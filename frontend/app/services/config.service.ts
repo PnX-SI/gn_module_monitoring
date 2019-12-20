@@ -98,6 +98,13 @@ export class ConfigService {
     return confObject ? confObject[fieldName] : null;
   }
 
+  /** config data : pour initialiser les données Nomenclature, Taxons, Users,... 
+   * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
+  */
+  configData(modulePath) {  
+    return this._config[modulePath]['data']
+  }
+
   frontendParams() {
     return this._config.frontendParams;
   }
@@ -107,6 +114,7 @@ export class ConfigService {
       this._config.frontendParams[paramName] = paramValue;
     }
   }
+
 
 
 }

@@ -1,11 +1,13 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 
 import { Observable } from "rxjs/Observable";
 import "rxjs/add/observable/forkJoin";
 
 import { Utils } from "./../utils/utils";
+
 import { CacheService } from "./cache.service";
+import { ConfigService } from "./config.service";
+import { DataFormService } from "@geonature_commons/form/data-form.service"
 
 
 /**
@@ -15,7 +17,11 @@ import { CacheService } from "./cache.service";
 @Injectable()
 export class DataUtilsService {
 
-  constructor(private _cacheService: CacheService) { }
+  constructor(
+    private _cacheService: CacheService,
+    private _configService: ConfigService,
+    private _commonsDataFromService: DataFormService
+    ) { }
 
 /** Util (Nomenclature, User, Taxonomy) */
 
@@ -67,4 +73,21 @@ export class DataUtilsService {
     let sCachePaths =  `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths, fieldName);
   }
+
+  /** Récupère les données qui seront utiles pour le module */
+  getInitData(modulePath): Observable<any> {
+    /** Les données à récupérer sont spécifiées dans la config du module 
+     * config/<module_path>/data_config.json et 
+     * config/<module_path>/custom_config.json
+    */
+
+    const configData = this._configService.configData(modulePath);
+
+    let nomenclatureRequest = null;
+    // Taxonomie (liste ou ensemble de )
+
+    // User
+    return Observable.of(true)
+  }
+
 }
