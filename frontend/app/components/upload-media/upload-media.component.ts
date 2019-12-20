@@ -94,7 +94,6 @@ export class UploadMediaComponent implements OnInit {
     let condForm = this.mediaForm.valid;
     let condFile = (!!this.file) || (!!this.mediaForm.value["id_media"]);
     let condUrl = !!this.mediaForm.value["media_url"];
-    console.log(condForm, condFile, condUrl)
     return condForm && (condFile || condUrl);
   }
 

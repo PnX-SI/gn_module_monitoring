@@ -53,32 +53,45 @@ export class MonitoringObjectComponent implements OnInit {
 
     this._route.paramMap
       .flatMap((params) => {
-        this.bLoadingModal = true;
-        this.objForm = this._formBuilder.group({});
-        let objectType = params.get('objectType') ? params.get('objectType') : 'module';
-        let modulePath = params.get('modulePath');
-        let id = params.get('id');
-        let parentId = params.get('parentId');
-        this.bEdit = (objectType.includes('module') && !modulePath) || (!id && !!parentId);
-        this.obj = new MonitoringObject(modulePath, objectType, id, this._objService);
-        this.obj.parentId = parentId;
+        this.bLoadingModal = true; // affiche la fenetre de chargement
+        
+        this.initParams(params)
+
         return this._configService.init(this.obj.modulePath);
       })
       .flatMap(() => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
         this.backendUrl = this._configService.backendUrl()
-        return Observable.forkJoin(this.obj.get(1), this.obj.getParent(1));
+        return Observable.forkJoin(this.obj.get(1), this.obj.getParent(1)); // TODO
       })
       .flatMap(() =>  {
-        return this.obj.getCircuitPoints();
+        return this.obj.getCircuitPoints(); //TODO
       })
       .subscribe(() => {
-        console.log('rrrr');
         this.obj.initTemplate()
         console.log('info', `Objet chargé ${this.obj.objectType} ${this.obj.modulePath}`);
         this.bLoadingModal = false;
         this.obj.bIsInitialized = true;
       });
+  }
+
+  initParams(params) {
+    this.objForm = this._formBuilder.group({});
+    let objectType = params.get('objectType') ? params.get('objectType') : 'module';
+    let modulePath = params.get('modulePath');
+    let id = params.get('id');
+    let parentId = params.get('parentId');
+
+    this.obj = new MonitoringObject(modulePath, objectType, id, this._objService);
+    this.obj.parentId = parentId;
+
+    // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
+    this.bEdit = (this.obj.isRoot() && !modulePath) || (!this.obj.id && !!this.obj.parentId);
+
+  }
+
+  initData() {
+
   }
 
 }

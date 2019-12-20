@@ -79,7 +79,6 @@ export class MonitoringObjectBase {
   }
 
   setData(data) {
-    console.log(Utils.copy(data));
     this.properties = data.properties;
     this.geometry = data.geometry;
     this.id = this.id || this.properties[this.configParam("id_field_name")];
@@ -285,7 +284,12 @@ export class MonitoringObjectBase {
   isCircuit() {
     return this.objectType == "circuit";
   }
+
   isObservationCircuit() {
     return this.objectType == 'observation' && this.modulePath == 'cheveches'
+  }
+
+  isRoot() {
+    return this.parentType() && this.childrenTypes() 
   }
 }

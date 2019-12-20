@@ -317,7 +317,6 @@ export class MonitoringObject extends MonitoringObjectBase {
             };
           })
         };
-        console.log(this.circuitPoints);
         return Observable.of(true);
       });
   }

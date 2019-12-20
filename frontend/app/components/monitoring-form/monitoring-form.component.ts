@@ -49,7 +49,6 @@ export class MonitoringFormComponent implements OnInit {
     // set geometry
     if (this.obj.config['geometry_type']) {
       let validator = !this.obj.isCircuit() ? Validators.required : null;
-      console.log()
       this.objForm.addControl('geometry', this._formBuilder.control('', validator));
     }
     this.setFormValue(formValues);
@@ -106,7 +105,6 @@ export class MonitoringFormComponent implements OnInit {
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       return;
     } else {
-      console.log(this.obj.parentId);
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.parentType(), this.obj.parentId]);
       return; 
     }

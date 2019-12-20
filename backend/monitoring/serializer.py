@@ -30,12 +30,10 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # clean properties
 
         config_properties_keys = self.config_param('properties_keys')
-        print(config_properties_keys)
         properties_clean = {}
         for key in properties:
             if key in config_properties_keys:
                 properties_clean[key] = properties[key]
-        print(properties_clean)
         return properties_clean
 
     def patch_hybrid_properties(self, properties):
@@ -44,10 +42,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # par ex le site dans last visit qui est hybride
 
         for key in self.config_param('properties_keys'):
-            print(key, key in properties, hasattr(self._model, key))
             if key in properties or not hasattr(self._model, key):
                 continue
-            print(key)
             val = getattr(self._model, key)
             if isinstance(val, (datetime.date)):
                 val = str(val)
@@ -69,7 +65,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             if not hasattr(self._model, relation_name):
                 continue
-            print(children_type)
             children_of_type = [
                 monitoring_definitions
                 .monitoring_object_instance(self._module_path, children_type, model=child_model)

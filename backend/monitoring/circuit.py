@@ -40,7 +40,6 @@ class MonitoringCircuitPoint(MonitoringSite):
         pass
 
     def create_or_update(self, post_data):
-        print('postData', post_data)
         self = MonitoringObject.create_or_update(self, post_data)
         self._model.check_and_set_geom_circuit()
 

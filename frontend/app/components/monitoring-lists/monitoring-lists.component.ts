@@ -49,7 +49,6 @@ export class MonitoringListComponent implements OnInit {
 
         // datatable
         this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
-        console.log(this.obj.children)
 
         this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties)
       });

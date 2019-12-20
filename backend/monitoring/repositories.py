@@ -40,7 +40,6 @@ class MonitoringObject(MonitoringObjectSerializer):
         properties = post_data['properties']
 
         id_parent = post_data.get('id_parent')
-        print('id_parent!!!!', id_parent, self.id)
         if id_parent:
 
             # si l'objet est similaire a son parent
