@@ -1,0 +1,33 @@
+{
+  "code_circuit_point": {
+    "attribut_label": "Code point d'écoute"
+  },
+  "cd_nom": {
+    "type_widget": "text",
+    "attribut_label": "cd nom",
+    "type_util": "taxonomy",
+    "value": 3511,
+    "hidden": true
+  },
+  "date_observation": {
+    "type_widget": "date",
+    "attribut_label": "Date",
+    "value": ":parent:visit_date_min"
+  },
+  "time_observation": {
+    "attribut_label": "Heure",
+    "type_widget": "time"
+  },
+  "meteo_txt": {
+    "type_widget": "text",
+    "attribut_label": "Météo (txt)",
+    "value": ":parent"
+  },
+  "id_nomenclature_statut_obs": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Statut d'observation",
+    "code_nomenclature_type": "STATUT_OBS",
+    "type_util": "nomenclature",
+    "required": true
+  }
+}

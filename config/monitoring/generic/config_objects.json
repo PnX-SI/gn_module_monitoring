@@ -1,0 +1,64 @@
+{
+  "tree": {
+    "module": {
+      "site": {
+        "visit": {
+          "observation": null
+        }
+      }
+    }
+  },
+  "module": {
+    "id_field_name": "id_module",
+    "description_field_name": "module_label",
+    "label": "Module",
+    "uuid_field_name": "uuid_module_complement",
+    "id_table_location": "__ID_TABLE_LOCATION_MODULE"
+  },
+  
+  "site": {
+    "id_field_name": "id_base_site",
+    "description_field_name": "base_site_name",
+    "label": "Site",
+    "geom_field_name": "geom",
+    "uuid_field_name": "uuid_base_site",
+    "geometry_type": "Point",
+    "id_table_location": "__ID_TABLE_LOCATION_SITE",
+    "display_properties": [
+      "base_site_name",
+      "base_site_code",
+      "id_nomenclature_type_site",
+      "id_inventor",
+      "first_use_date",
+      "last_visit"
+    ],
+    "display_list": [
+      "base_site_name",
+      "base_site_code",
+      "id_nomenclature_type_site",
+      "last_visit"
+    ]
+  },
+  
+  "visit": {
+    "id_field_name": "id_base_visit",
+    "description_field_name": "visit_date_min",
+    "label": "Visite",
+    "uuid_field_name": "uuid_base_visit",
+    "id_table_location": "__ID_TABLE_LOCATION_VISIT",
+    "display_properties": ["visit_date_min", "observers", "comments"]
+  },
+  
+  "observation": {
+    "id_field_name": "id_observation",
+    "description_field_name": "id_observation",
+    "id_table_location": "__ID_TABLE_LOCATION_OBSERVATION",
+    "label": "Observation",
+    "display_properties": ["cd_nom", "comments"]
+  },
+
+  "media": {
+    "label": "Media",
+    "id_field_name":"id_media"
+  }
+}

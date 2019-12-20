@@ -1,0 +1,6 @@
+{
+    "meteo": {
+        "type_widget": "text",
+        "attribut_label": "Meteo"
+    }
+}

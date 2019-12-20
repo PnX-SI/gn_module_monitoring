@@ -1,0 +1,49 @@
+<div id="geometry" class="map-container" *ngIf="obj">
+
+  <pnx-map height="80vh" [ngClass]="{ 'hide-draw-form': !bEdit }">
+    
+    <draw-form
+      *ngIf="obj.config['geometry_type'] && objForm.controls['geometry'] && !obj.isCircuit()"
+      [parentFormControl]="objForm.controls['geometry']"
+      [geometryType]="obj.config['geometry_type']"
+      [bZoomOnPoint]=false
+    ></draw-form>
+
+    <pnx-geojson
+      *ngIf="obj.config['geometry_type'] && obj.geometry && obj.geometry.type"
+      [style]="styleObject('normal', bEdit)"
+      [geojson]="obj.geometry"
+      [zoomOnLayer]="true"
+    ></pnx-geojson>
+
+    <pnx-geojson
+      *ngFor="let childrenType of childrenTypes" 
+      [style]="styleObject('normal', bEdit)"
+      [geojson]="childrenGeometries[childrenType]"
+      [zoomOnLayer]="!obj.isCircuit()"
+    ></pnx-geojson>
+
+    <pnx-geojson
+      *ngIf="obj.parent && obj.parent.geometry" 
+      [style]="styleObject('normal', bEdit)"
+      [geojson]="obj.parent.geometry"
+      [zoomOnLayer]="true"
+    ></pnx-geojson>
+
+
+    <pnx-geojson
+      *ngIf="sibblingGeometries" 
+      [geojson]="sibblingGeometries"
+      [zoomOnLayer]="!obj.isCircuit()"
+    ></pnx-geojson>
+
+    <pnx-geojson
+      *ngIf="obj.circuitPoints" 
+      [style]="styleObject('normal')"
+      [geojson]="obj.circuitPoints"
+      [zoomOnLayer]="obj.circuitPoints"
+    ></pnx-geojson>
+
+
+  </pnx-map>
+</div>

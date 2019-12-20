@@ -1,0 +1,51 @@
+.flex-container {
+  background-color: rgb(240, 240, 240);
+  display: flex;
+}
+
+.flex-container > div {
+  width: 50%;
+  padding: 10px;
+  margin: 10px;
+}
+
+.flex-container > div:first-child {
+  margin-right: 0;
+}
+
+.msg {
+  font-size: small;
+}
+
+.msg-warning {
+  color: darkorange;
+}
+
+.msg-error {
+  color: darkred;
+}
+
+h2 {
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+:host ::ng-deep .cadre{
+  background-color: white;
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  /* display: inline-block; */
+}
+
+.debug {
+  font-size: small;
+  background-color: lightgray;
+}
+
+:host ::ng-deep h3 {
+  background-color: rgb(240, 240, 240);
+  padding: 2px 5px;
+}
+

@@ -1,0 +1,63 @@
+{
+    "tree":{
+        "module": {
+            "circuit": {
+                "circuit_point": null,
+                "visit": {
+                    "observation":null
+                }
+            }
+        }
+    },
+
+    "module": {
+    },    
+    "circuit": {
+        "inherit_type": "site",
+        "label": "Circuit",
+        "circuit_type": "points",
+        "geometry_type": "Polygon"
+    },
+    "circuit_point": {
+        "inherit_type": "site",
+        "geometry_type": "Point",
+        "label": "Point d'écoute",
+        "label_list": "Points d'écoute",
+        "display_properties": [
+            "base_site_name",
+            "base_site_code",
+            "site_id_2014",
+            "site_code_2014",
+            "site_id_2010",
+            "site_code_2014"
+          ],
+          "display_list": [
+            "base_site_name",
+            "base_site_code"
+          ]            
+      },
+    "visit": {
+        "display_properties": [
+            "num_passage",
+            "visit_date_min",
+            "observers"
+          ]      
+    },
+    "observation": {
+        "display_properties": [
+            "code_circuit_point",
+            "date_observation",
+            "time_observation",
+            "id_nomenclature_statut_obs",
+            "meteo_txt",
+            "comments"
+        ],
+        "display_list": [
+            "code_circuit_point",
+            "date_observation",
+            "time_observation",
+            "id_nomenclature_statut_obs"
+        ]
+
+    }
+}

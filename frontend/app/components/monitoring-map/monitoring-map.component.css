@@ -1,0 +1,4 @@
+:host ::ng-deep .hide-draw-form .leaflet-draw {
+    display: none;
+  }
+  

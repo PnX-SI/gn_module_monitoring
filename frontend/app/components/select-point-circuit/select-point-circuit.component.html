@@ -1,0 +1,9 @@
+<div>
+  <small> Point d'écoute </small>
+  <div class="input-group">
+    <select class="form-control form-control-sm" [formControl]="parentFormControl">
+      <option *ngFor="let point of points" [ngValue]="point['base_site_code']" title="Choisir le point du circuit">
+        {{point['base_site_name']}} </option>
+    </select>
+  </div>
+</div>

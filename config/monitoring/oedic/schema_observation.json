@@ -1,0 +1,25 @@
+{
+  "time_observation": {
+    "type_widget": "text",
+    "attribut_label": "Heure",
+    "required": "true"
+  },
+  "nb_oiseaux": {
+    "type_widget": "text",
+    "attribut_label": "Nb oiseau(x)"
+  },
+  "id_nomenclature_nature_observation": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Nature observation",
+    "code_nomenclature_type": "OED_NAT_OBS",
+    "required": true,
+    "type_util": "nomenclature"
+  },
+  "cd_nom": {
+    "type_widget": "text",
+    "attribut_label": "cd nom",
+    "type_util": "taxonomy",
+    "value": 3120,
+    "hidden": true
+  }
+}

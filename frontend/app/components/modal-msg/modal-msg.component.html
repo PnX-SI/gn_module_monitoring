@@ -1,0 +1,11 @@
+<div class="hide-modal" [ngClass]="{'hide-modal':!bDisplayModal, 'show-modal':bDiplayModal}">
+    <div class="cmodal-background">
+    </div>
+    <div class="cmodal-container">
+        <div class="cmodal-flex">
+          <div class="cmodal-content">
+              <ng-content></ng-content>
+          </div>
+        </div>
+    </div>
+  </div>

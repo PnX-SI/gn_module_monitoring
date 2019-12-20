@@ -1,0 +1,21 @@
+:host ::ng-deep .obj-form {
+  margin: 0;
+  padding: 0;
+  line-height: 0.5rem;
+}
+
+:host ::ng-deep .obj-form small {
+  position: relative;
+  background-color: lightgray;
+  top: -5px;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+:host ::ng-deep .obj-form .input-group {
+  line-height: 1.5rem;
+}
+
+.hide-spinner {
+  display: none;
+}

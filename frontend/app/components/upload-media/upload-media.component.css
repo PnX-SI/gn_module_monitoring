@@ -1,0 +1,27 @@
+:host ::ng-deep .media-form {
+  margin: 0;
+  padding: 0;
+  line-height: 0.8rem;
+}
+
+:host ::ng-deep .media-form small {
+  position: relative;
+  background-color: lightgray;
+  top: -5px;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+:host ::ng-deep .media-form .input-group {
+  line-height: 1.5rem;
+}
+
+.hide-spinner {
+  display: none;
+}
+
+
+:host ::ng-deep .input-file {
+  line-height: 1.5rem;
+  height: 20px;
+}

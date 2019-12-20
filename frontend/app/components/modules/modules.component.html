@@ -1,0 +1,33 @@
+<div class="modules">
+
+    <pnx-modal-msg [bDisplayModal]="bLoading">
+        <h2>Chargement en cours</h2>
+        <div>
+          <span class="center spinner-border" role="status" aria-hidden="true"></span>
+        </div>
+      </pnx-modal-msg>
+
+    <h2>Modules de suivi</h2>
+
+  <div class="flex-container">
+    <div class="row">
+      <a
+        *ngFor="let module of modules"
+        class="flex-item"
+        [routerLink]="['module', module.module_path]"
+      >
+        <img
+          src="/external_assets/{{ moduleMonitoringCode | lowercase }}/{{ module.module_path }}.jpg"
+          alt="{{ module.module_label }}"
+          title="{{ module.module_label }}"
+        />
+      </a>
+      <a
+        [routerLink]="['/', frontendModuleMonitoringUrl, 'module']"
+        class="flex-item"
+        role="button"
+        > Ajouter Module </a
+      >
+    </div>
+  </div>
+</div>

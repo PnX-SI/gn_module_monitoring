@@ -1,0 +1,50 @@
+.cmodal-container,
+.cmodal-background {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+}
+
+.cmodal-background {
+  background-color: lightgray   ;
+  opacity: 0.5;
+}
+
+.cmodal-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  height: 100%;
+}
+
+.cmodal-content {
+  z-index: 10001;
+  background-color: whitesmoke;
+  opacity: 0.9;
+  box-shadow: 0px 0px 5px black;
+  border-radius: 10px;
+  padding: 10px;
+  border: 5px lightgray solid;
+}
+
+.hide-modal {
+  opacity: 0;
+  visibility: hidden;
+  transition: visibility 0.6s, opacity 0.5s;
+}
+
+.show-modal {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 1s;
+}
+
+:host ::ng-deep .center {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

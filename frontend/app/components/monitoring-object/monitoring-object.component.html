@@ -1,0 +1,56 @@
+<div class="object">
+  <pnx-modal-msg [bDisplayModal]="bLoadingModal">
+    <h2>Chargement en cours</h2>
+    <div>
+      <span
+        class="center spinner-border"
+        role="status"
+        aria-hidden="true"
+      ></span>
+    </div>
+  </pnx-modal-msg>
+
+  <div *ngIf="obj && obj.bIsInitialized" class="flex-container">
+    <div id="map-container" class="cadre">
+      <pnx-monitoring-map
+        [obj]="obj"
+        [bEdit]="bEdit"
+        [objForm]="objForm"
+        [childrenStatus]="childrenStatus"
+        [(childrenTypeStatus)]="childrenTypeStatus"
+      ></pnx-monitoring-map>
+    </div>
+
+    <div id="monitoring-elem-container" class="cadre">
+      <pnx-monitoring-breadcrumps [obj]="obj"></pnx-monitoring-breadcrumps>
+
+      <h2>{{ obj.template["title"] }}</h2>
+
+      <div
+        id="properties-display"
+        class="cadre"
+        *ngIf="!bEdit && obj.objectType != 'module'"
+      >
+              <pnx-monitoring-properties
+                [obj]="obj"
+                *ngIf="!bEdit && obj.objectType != 'module'"
+                [(bEdit)]="bEdit"
+              ></pnx-monitoring-properties>
+            </div>
+
+      <pnx-monitoring-form
+        [(obj)]="obj"
+        *ngIf="bEdit"
+        [(bEdit)]="bEdit"
+        [objForm]="objForm"
+        [currentUser]="currentUser"
+      ></pnx-monitoring-form>
+      
+      <pnx-monitoring-lists
+        [obj]="obj"
+        [childrenStatus]="childrenStatus"
+        [(childrenTypeStatus)]="childrenTypeStatus"
+        *ngIf="!bEdit"
+      ></pnx-monitoring-lists>
+    </div>
+  </div>

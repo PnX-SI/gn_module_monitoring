@@ -1,0 +1,76 @@
+<div class="cadre" *ngIf="children0Array.length">
+  <!-- tab nav -->
+  <nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+      <a
+        *ngFor="let child0 of children0Array; first as isFirst"
+        class="nav-item nav-link"
+        [ngClass]="{ active: isFirst }"
+        id="nav-{{ child0.objectType }}-tab"
+        data-toggle="tab"
+        href="#nav-{{ child0.objectType }}"
+        role="tab"
+        attr.aria-controls="nav-{{ child0.objectType }}"
+        aria-selected="true"
+        >{{ child0.template["label_list"] }}</a
+      >
+    </div>
+  </nav>
+
+  <!-- tab content -->
+  <div class="tab-content" id="nav-tabContent">
+    <div
+      *ngFor="let child0 of children0Array; first as isFirst"
+      class="tab-pane fade show"
+      [ngClass]="{ active: isFirst }"
+      id="nav-{{ child0.objectType }}"
+      role="tabpanel"
+      attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
+    >
+
+    <pnx-medias
+        [(medias)]="medias"
+        [uuid_attached_row]="obj.template['uuid']"
+        [staticDirUrl]="backendUrl"
+        [id_table_location]="obj.template['idTableLocation']"
+        *ngIf="child0.objectType == 'media'"
+      ></pnx-medias>
+
+      <div
+        class="list-children"
+        *ngIf="
+          child0.objectType != 'media' && child0.objectType as childrenType
+        "
+      >
+        <pnx-monitoring-datatable
+          *ngIf="
+            childrenDataTable &&
+            childrenDataTable[childrenType] &&
+            childrenStatus
+          "
+          [rows]="childrenDataTable[childrenType]['rows']"
+          [columns]="childrenDataTable[childrenType]['columns']"
+          [rowStatus]="childrenStatus[childrenType]"
+          [objectType]="childrenType"
+          [modulePath]="obj.modulePath"
+          [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
+          (rowStatusChange)="onSelectedChildren(childrenType, $event)"
+        ></pnx-monitoring-datatable>
+      </div>
+      <div *ngIf="obj.modulePath && child0.objectType != 'media'">
+        <a
+          class="btn btn-success"
+          [routerLink]="[
+            '/',
+            frontendModuleMonitoringUrl,
+            'create_object',
+            obj.modulePath,
+            child0.objectType,
+            obj.id
+          ]"
+          >Ajouter {{ child0.template["label"] }}</a
+        >
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+{
+  "id_module": {
+    "type_widget": "text",
+    "attribut_label": "ID",
+    "hidden": true
+  },
+  "module_code":  {
+    "type_widget": "text",
+    "attribut_label": "Code",
+    "required": true
+  },
+  "module_label": {
+    "type_widget": "text",
+    "attribut_label": "Label",
+    "required": true
+  },
+  "module_path": {
+    "type_widget": "text",
+    "attribut_label": "Path",
+    "required": true
+  },
+  "module_desc": {
+    "type_widget": "text",
+    "attribut_label": "Description",
+    "required": true
+  },
+  "uuid_module_complement": {
+    "attribut_label": "uuid"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "meteo_txt": {
+    "type_widget": "text",
+    "attribut_label": "Météo (txt)"
+  },
+  "num_passage": {
+    "type_widget": "number",
+    "attribut_label": "N° de passage",
+    "min": 1,
+    "max": 2
+  }
+}

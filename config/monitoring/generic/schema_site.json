@@ -1,0 +1,58 @@
+{
+  "id_base_site": {
+    "type_widget": "text",
+    "attribut_label": "Id site",
+    "hidden": true
+  },
+  "id_module": {
+    "type_widget": "text",
+    "attribut_label": "ID Module",
+    "hidden": true
+  },
+  "base_site_name": {
+    "type_widget": "text",
+    "attribut_label": "Nom",
+    "required": true
+  },
+  "base_site_code": {
+    "type_widget": "text",
+    "attribut_label": "Code",
+    "required": true
+  },
+  "id_nomenclature_type_site": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Type de site",
+    "code_nomenclature_type": "TYPE_SITE",
+    "type_util": "nomenclature",
+    "required": true,
+    "hidden": true
+  },
+  "id_inventor": {
+    "type_widget": "observers",
+    "attribut_label": "Inventor",
+    "code_list": "__CODE_LIST_INVENTOR",
+    "max_length": 1,
+    "type_util": "user",
+    "required": true
+  },
+  "id_digitiser": {
+    "type_widget": "text",
+    "attribut_label": "Digitiser",
+    "required": true,
+    "hidden": true,
+    "type_util": "user"
+  },
+  "first_use_date": {
+    "type_widget": "date",
+    "attribut_label": "First use date",
+    "required": true
+  },
+  "last_visit": {
+    "attribut_label": "Dernière visite",
+    "type_util": "date"
+  },
+  "uuid_base_site": {
+    "attribut_label": "uuid"
+  }
+
+}

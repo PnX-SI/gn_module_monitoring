@@ -1,0 +1,23 @@
+{
+  "id_observation": {
+    "type_widget": "text",
+    "attribut_label": "Id observation",
+    "hidden": true
+  },
+  "id_base_visit": {
+    "type_widget": "text",
+    "attribut_label": "Id visite",
+    "hidden": true
+  },
+  "comments": {
+    "type_widget": "text",
+    "attribut_label": "Commentaires"
+  },
+  "cd_nom": {
+    "type_widget": "taxonomy",
+    "attribut_label": "Taxon",
+    "type_util": "taxonomy",
+    "required": true,
+    "idComponent": "__ID_COMPONENT_TAXONOMY"
+  }
+}

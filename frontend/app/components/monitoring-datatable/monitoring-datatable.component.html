@@ -1,0 +1,29 @@
+<input
+  type="text"
+  style="padding:8px;margin:15px auto;width:30%;"
+  placeholder="Entrer une valeur pour filtrer les colonnes"
+  (keyup)="updateFilter($event)"
+/>
+<ngx-datatable
+  *ngIf="rows"
+  #table
+  class="material"
+  [columnMode]="'force'"
+  [headerHeight]="50"
+  [footerHeight]="50"
+  [rowHeight]="'auto'"
+  [limit]="10"
+  [rows]="rows"
+  [columns]="columns"
+  (activate)="onRowClick($event)"
+>
+<ngx-datatable-column [cellClass]="'cell-link'" prop="Voir" class="object-link">
+  <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+    <a  class="nav-link edit cell-link"  (click)="navigateViewObject(objectType, row.id)">
+      <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+    </a>
+  </ng-template>
+</ngx-datatable-column>
+<ngx-datatable-column *ngFor="let col of columns" [name]="col.name" [prop]="col.prop"></ngx-datatable-column>
+
+</ngx-datatable>

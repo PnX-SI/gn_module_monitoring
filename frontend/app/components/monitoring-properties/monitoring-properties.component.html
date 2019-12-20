@@ -1,0 +1,16 @@
+<div id="properties-display">
+  <table class="table table-striped table-sm">
+    <tr *ngFor="let fieldName of obj.template['fieldNames']; let i = index">
+      <th>{{ obj.template["fieldLabels"][fieldName] }}</th>
+      <td>{{ obj.resolvedProperties[fieldName] }}</td>
+    </tr>
+  </table>
+
+  <button
+    class="btn btn-success"
+    (click)="onEditClick()"
+    *ngIf="!bEdit && obj.objectType != 'module'"
+  >
+    Éditer
+  </button>
+</div>
