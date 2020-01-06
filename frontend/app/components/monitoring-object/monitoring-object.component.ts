@@ -79,6 +79,9 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.initTemplate() // pour le html
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
+        // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
+        this.bEdit = (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
+
         console.log('info', `Objet chargé ${this.obj.objectType} ${this.obj.modulePath}`);
       });
   }
@@ -93,18 +96,15 @@ export class MonitoringObjectComponent implements OnInit {
     );
 
     this.obj.parentId = params.get('parentId');
-
-    // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
-    this.bEdit = (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
   }
 
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.modulePath)
       .flatMap(() => {
-      this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
-      this.backendUrl = this._configService.backendUrl();
-      return Observable.of(true);
-    });
+        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
+        this.backendUrl = this._configService.backendUrl();
+        return Observable.of(true);
+      });
   }
 
   initData(): Observable<any> {

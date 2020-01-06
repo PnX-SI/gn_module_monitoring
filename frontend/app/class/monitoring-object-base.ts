@@ -144,7 +144,7 @@ export class MonitoringObjectBase {
     if (val && configUtil && elem.type_widget) {
       return this._objService
         .dataUtilsService()
-        .getUtil(elem.type_util, val, configUtil.fieldName);
+        .getUtil(elem.type_util, val, configUtil.fieldName)
     }
 
     return Observable.of(val);
@@ -162,10 +162,7 @@ export class MonitoringObjectBase {
       resolvedPropertiesArray => {
         this.schema().forEach((elem, index) => {
           let val = resolvedPropertiesArray[index];
-
-          // si tableau retour chaine séparée par ', '
-          val = Array.isArray(val) ? val.join(", ") : val;
-
+          (elem, index, val)
           this.resolvedProperties[elem.attribut_name] = val;
         });
         return Observable.of(true);

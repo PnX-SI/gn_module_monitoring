@@ -158,7 +158,6 @@ def get_config(module_path=None):
 
     config = {
         'data': config_from_files('data', module_path),
-        # 'data_utils': get_data_utils(module_path),
         'schemas': schemas_from_files(module_path),
         'objects': config_objects_from_files(module_path),
         'last_modif': last_modif
