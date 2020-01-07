@@ -93,9 +93,10 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         properties = self._model.as_dict(depth=1)
 
         children = None
-        # processe properties
         if depth >= 0:
             children = self.serialize_children(depth)
+
+        # processe properties
         self.flatten_specific_properties(properties)
         # TODO utiliser as_dict avec parametres col et rel au lieu de clean
         properties = self.clean_properties(properties)
