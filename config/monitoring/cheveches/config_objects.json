@@ -2,10 +2,10 @@
     "tree":{
         "module": {
             "circuit": {
-                "circuit_point": null,
                 "visit": {
                     "observation":null
-                }
+                },
+                "circuit_point": null
             }
         }
     },
@@ -26,10 +26,10 @@
         "display_properties": [
             "base_site_name",
             "base_site_code",
-            "site_id_2014",
-            "site_code_2014",
-            "site_id_2010",
-            "site_code_2014"
+            "id_2014",
+            "code_2014",
+            "id_2010",
+            "code_2010"
           ],
           "display_list": [
             "base_site_name",

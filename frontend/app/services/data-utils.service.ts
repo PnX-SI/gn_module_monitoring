@@ -87,6 +87,13 @@ export class DataUtilsService {
      * config/<module_path>/custom_config.json
     */
 
+    let cache = this._cacheService.cache();
+    // test si la fonction a déjà été appelée
+    if(cache[modulePath] && cache[modulePath]['init_data']) {
+      console.log('init data déjà effectué')
+      return Observable.of(true);
+    }
+
     const configData = this._configService.configData(modulePath);
     
     let nomenclatureRequest = this._commonsDataFormService.getNomenclatures(...configData['nomenclature'])
@@ -96,12 +103,12 @@ export class DataUtilsService {
       TaxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
     }
 
-    let UserRequests = []
-    for ( let bcodeList of configData['user']) {
-      UserRequests.push(this._commonsDataFormService.getObserversFromCode(configData['user']))
+    let userRequests = []
+    for ( let codeList of configData['user']) {
+      userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList))
     } 
 
-    let observables = [nomenclatureRequest, Observable.forkJoin(TaxonomyRequests), Observable.forkJoin(UserRequests)];
+    let observables = [nomenclatureRequest, Observable.forkJoin(TaxonomyRequests), Observable.forkJoin(userRequests)];
 
     return Observable.forkJoin(observables)
       .concatMap((data) => {
@@ -126,7 +133,11 @@ export class DataUtilsService {
           this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
         }
 
-        console.log(Utils.copy(this._cacheService.cache()))
+        // pour ne pas appeler la fonction deux fois
+        if(!cache[modulePath]) {
+          cache[modulePath] = {}
+        }
+        cache[modulePath]['init_data'] = true;
 
         return Observable.of(true);
       });

@@ -150,9 +150,6 @@ export class MonitoringObject extends MonitoringObjectBase {
       .filter(elem => elem.type_widget)
       .map(elem => {
         this.setElemValueFromOtherObject(elem);
-        // if (elem.value == ":parent" && !this.id) {
-        //   elem.value = this.parent.properties[elem.attribut_name];
-        // }
         return this._objService.toForm(elem, properties[elem.attribut_name]);
       });
 
