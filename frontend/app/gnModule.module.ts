@@ -22,7 +22,6 @@ import { BreadcrumpsComponent } from './components/breadcrumps/breadcrumps.compo
 import { ModulesComponent } from './components/modules/modules.component';
 import { UploadMediaComponent } from './components/upload-media/upload-media.component';
 import { MonitoringObjectComponent } from './components/monitoring-object/monitoring-object.component';
-import { TestComponent } from './components/test/test.component';
 import { DrawFormComponent } from './components/draw-form/draw-form.component';
 import { ModalMsgComponent } from './components/modal-msg/modal-msg.component';
 import { MonitoringMapComponent } from './components/monitoring-map/monitoring-map.component';
@@ -34,9 +33,6 @@ import { MonitoringDatatableComponent } from './components/monitoring-datatable/
 import { SelectPointCircuitComponent } from './components/select-point-circuit/select-point-circuit.component'
 // my module routing
 const routes: Routes = [
-
-    /** Test */
-    { path: "test", component: TestComponent },
 
     /** modules  */
     { path: "", component: ModulesComponent },
@@ -60,7 +56,6 @@ const routes: Routes = [
         ModulesComponent,
         UploadMediaComponent,
         MonitoringObjectComponent,
-        TestComponent,
         DrawFormComponent,
         ModalMsgComponent,
         MonitoringMapComponent,
@@ -78,7 +73,6 @@ const routes: Routes = [
         FormsModule,
         ReactiveFormsModule,
         HttpClientXsrfModule.withOptions({
-            git: 'token',
             headerName: 'token'
         }),
         TreeModule

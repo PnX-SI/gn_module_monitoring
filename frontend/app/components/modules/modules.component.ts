@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { mergeMap } from 'rxjs/operators';
 
 /** services */
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
@@ -22,18 +23,20 @@ export class ModulesComponent implements OnInit {
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.bLoading = true;
     this._configService
       .init()
-      .flatMap(this._dataMonitoringObjectService.getModules.bind(this._dataMonitoringObjectService))
-      .subscribe( (modules: Array<any>) => {
+      .pipe(
+        mergeMap(this._dataMonitoringObjectService.getModules.bind(this._dataMonitoringObjectService))
+      )
+      .subscribe((modules: Array<any>) => {
         this.modules = modules;
         this.backendUrl = this._configService.backendUrl();
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
-        this.moduleMonitoringCode = this._configService.moduleMonitoringCode();  
+        this.moduleMonitoringCode = this._configService.moduleMonitoringCode();
         this.bLoading = false;
       });
   }

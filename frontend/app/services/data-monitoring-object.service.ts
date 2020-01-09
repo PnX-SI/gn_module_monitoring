@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import { Injectable } from "@angular/core";
 
 import { CacheService } from "./cache.service";
@@ -130,7 +131,7 @@ export class DataMonitoringObjectService {
   }
 
  
-  getCircuitPoints(idCircuit) {
+  getCircuitPoints(idCircuit): Observable<Array<any>> {
     let url = 'circuit_points/' +  idCircuit;
     return this._cacheService.request('get', url);
   }

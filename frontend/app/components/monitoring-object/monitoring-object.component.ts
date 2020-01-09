@@ -1,5 +1,5 @@
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/forkJoin";
+import { Observable, of, forkJoin } from "rxjs";
+import { mergeMap } from 'rxjs/operators';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';
@@ -54,27 +54,28 @@ export class MonitoringObjectComponent implements OnInit {
     this.currentUser = this._auth.getCurrentUser();
 
     this._route.paramMap
-      .flatMap((params) => {
-        this.bLoadingModal = true; // affiche la fenetre de chargement
-        this.objForm = this._formBuilder.group({}); // mise à zéro du formulaire
+      .pipe(
+        mergeMap((params) => {
+          this.bLoadingModal = true; // affiche la fenetre de chargement
+          this.objForm = this._formBuilder.group({}); // mise à zéro du formulaire
 
-        this.initParams(params)
-        // chargement de la configuration
-        return this._configService.init(this.obj.modulePath);
-      })
+          this.initParams(params)
+          // chargement de la configuration
+          return this._configService.init(this.obj.modulePath);
+        }),
 
-      .flatMap(() => {
-        return this.initConfig(); // initialisation de la config
-      })
+        mergeMap(() => {
+          return this.initConfig(); // initialisation de la config
+        }),
 
-      .flatMap(() => {
-        return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache 
-      })
+        mergeMap(() => {
+          return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache 
+        }),
 
-      .flatMap(() => {
-        return this.getMonitoringObject(); // récupération des données de l'object selon le type (module, site, etc..)
-      })
-
+        mergeMap(() => {
+          return this.getMonitoringObject(); // récupération des données de l'object selon le type (module, site, etc..)
+        })
+      )
       .subscribe(() => {
         this.obj.initTemplate() // pour le html
         this.bLoadingModal = false; // fermeture du modal
@@ -100,11 +101,13 @@ export class MonitoringObjectComponent implements OnInit {
 
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.modulePath)
-      .flatMap(() => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
-        this.backendUrl = this._configService.backendUrl();
-        return Observable.of(true);
-      });
+      .pipe(
+        mergeMap(() => {
+          this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
+          this.backendUrl = this._configService.backendUrl();
+          return of(true);
+        })
+      );
   }
 
   initData(): Observable<any> {
@@ -113,10 +116,12 @@ export class MonitoringObjectComponent implements OnInit {
 
   getMonitoringObject(): Observable<any> {
     // TODO mettre au propre
-    return Observable.forkJoin(this.obj.get(1), this.obj.getParent(1))
-      .flatMap(() => {
-        return this.obj.getCircuitPoints(); //TODO
-      })
+    return forkJoin(this.obj.get(1), this.obj.getParent(1))
+      .pipe(
+        mergeMap(() => {
+          return this.obj.getCircuitPoints(); //TODO
+        })
+      )
   }
 
 }

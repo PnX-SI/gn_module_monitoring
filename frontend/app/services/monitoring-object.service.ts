@@ -1,12 +1,11 @@
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/forkJoin";
+import { Observable, of } from "rxjs";
 
 import { ConfigService } from "./config.service";
 import { DataMonitoringObjectService } from "./data-monitoring-object.service";
 import { DataUtilsService } from "./data-utils.service";
 import { Utils } from "../utils/utils";
-import { type } from "os";
+import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class MonitoringObjectService {
@@ -29,20 +28,20 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem) {
-    let confUtil = elem.type_util && this.configUtilsDict[elem.type_util];   
+    let confUtil = elem.type_util && this.configUtilsDict[elem.type_util];
     return confUtil
   }
-  
+
   toForm(elem, val): Observable<any> {
     let x = val;
-    
+
     // valeur par default depuis la config schema
     x = x || elem.value;
 
-    switch(elem.type_widget) {
+    switch (elem.type_widget) {
       case 'date': {
         let date = new Date(x);
-        x = x ? {'year': date.getUTCFullYear(), 'month': date.getUTCMonth() + 1, 'day': date.getUTCDate()}: null;
+        x = x ? { 'year': date.getUTCFullYear(), 'month': date.getUTCMonth() + 1, 'day': date.getUTCDate() } : null;
         break;
       }
       case 'observers': {
@@ -54,25 +53,26 @@ export class MonitoringObjectService {
         break;
       }
     }
-    
-    if ( elem.type_util == 'nomenclature' && Utils.isObject(x)) {
+
+    if (elem.type_util == 'nomenclature' && Utils.isObject(x)) {
       x = this._dataUtilsService
-      .getNomenclature(x.code_nomenclature_type, x.cd_nomenclature)
-      .flatMap((nomenclature) => {
-        return Observable.of(nomenclature['id_nomenclature']);
-      })
-        ;
+        .getNomenclature(x.code_nomenclature_type, x.cd_nomenclature)
+        .pipe(
+          mergeMap((nomenclature) => {
+            return of(nomenclature['id_nomenclature']);
+          })
+        );
     }
 
     x = x || null; // sinon pb assignement dictionnaire
 
-    x = (x instanceof Observable) ? x : Observable.of(x);
+    x = (x instanceof Observable) ? x : of(x);
     return x;
   }
 
   fromForm(elem, val) {
     let x = val;
-    switch(elem.type_widget) {
+    switch (elem.type_widget) {
       case 'date': {
         x = (x && x.year && x.month && x.day) ? `${x.year}-${x.month}-${x.day}` : null;
         break;
@@ -100,5 +100,5 @@ export class MonitoringObjectService {
   configService(): ConfigService {
     return this._configService;
   }
-  
+
 }

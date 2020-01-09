@@ -28,15 +28,15 @@ export class UploadService {
 
     formData.append('file', file);
     let params = new HttpParams();
-    const options = {
-      params: params,
-      reportProgress: true,
-      responseType: 'json '
-    };
+    // const options = {
+    //   params: params,
+    //   reportProgress: true,
+    //   responseType: 'json '
+    // };
 
     let url = `${this._config.backendUrl()}/gn_commons/media`;
     
-    const req = new HttpRequest('POST', url, formData, options);
+    const req = new HttpRequest('POST', url, formData);
     return this._http.request(req);
   }
 }

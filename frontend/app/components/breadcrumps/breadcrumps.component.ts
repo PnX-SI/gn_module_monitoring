@@ -1,5 +1,5 @@
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/of";
+import { Observable, of } from "rxjs";
+import { mergeMap } from 'rxjs/operators';
 
 import { Component, OnInit, Input } from "@angular/core";
 
@@ -23,30 +23,32 @@ export class BreadcrumpsComponent implements OnInit {
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this._configService
       .init()
-      .flatMap(() => {
-        if (!this.obj.modulePath) {
-          return Observable.of([]);
-        }
+      .pipe(
+        mergeMap(() => {
+          if (!this.obj.modulePath) {
+            return of([]);
+          }
 
-        if (!this.obj.id && this.obj.parentId) {
+          if (!this.obj.id && this.obj.parentId) {
+            return this._dataMonitoringObjectService.getBreadcrumps(
+              this.obj.modulePath,
+              this.obj.parentType(),
+              this.obj.parentId
+            );
+          }
+
           return this._dataMonitoringObjectService.getBreadcrumps(
             this.obj.modulePath,
-            this.obj.parentType(),
-            this.obj.parentId
+            this.obj.objectType,
+            this.obj.id
           );
-        }
-
-        return this._dataMonitoringObjectService.getBreadcrumps(
-          this.obj.modulePath,
-          this.obj.objectType,
-          this.obj.id
-        );
-      })
+        })
+      )
       .subscribe(breadcrumps => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.breadcrumps = breadcrumps;

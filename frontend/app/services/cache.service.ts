@@ -1,10 +1,9 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
-import { Observable } from "rxjs/Observable";
+import { Observable, of } from "rxjs";
 import "rxjs/add/observable/forkJoin";
 
-import { Utils } from "./../utils/utils";
 import { ConfigService } from "./config.service";
 
 /**
@@ -30,7 +29,7 @@ export class CacheService {
   request(requestType: string, urlRelative: string, data = {}) {
     // verification de requestType
     if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
-      return Observable.of(null);
+      return of(null);
     }
     // requete
     return this._http[requestType]<any>(this._config.backendModuleUrl() + '/' + urlRelative, data);

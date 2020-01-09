@@ -5,6 +5,9 @@ import { Utils } from "../../utils/utils";
 import { Router } from "@angular/router";
 import { ConfigService } from "../../services/config.service";
 
+import { mergeMap } from 'rxjs/operators';
+
+
 @Component({
   selector: 'pnx-monitoring-form',
   templateUrl: './monitoring-form.component.html',
@@ -15,7 +18,7 @@ export class MonitoringFormComponent implements OnInit {
   @Input() currentUser;
 
   @Input() objForm: FormGroup;
-  
+
   @Input() obj: MonitoringObject;
   @Output() objChange = new EventEmitter<MonitoringObject>();
 
@@ -24,7 +27,7 @@ export class MonitoringFormComponent implements OnInit {
 
 
   objSchema;
-  
+
   public bSaveSpinner = false;
   public bSaveAddSpinner = false;
   public bDeleteSpinner = false;
@@ -40,24 +43,26 @@ export class MonitoringFormComponent implements OnInit {
 
   ngOnInit() {
     this._configService.init(this.obj.modulePath)
-      .flatMap(()=>{
-        this.bChainInput = this._configService.frontendParams()['bChainInput']
-        this.objSchema = this.obj.schema();
-        return this.obj.formValues() 
-      })
+      .pipe(
+        mergeMap(() => {
+          this.bChainInput = this._configService.frontendParams()['bChainInput']
+          this.objSchema = this.obj.schema();
+          return this.obj.formValues()
+        })
+      )
       .subscribe((formValues) => {
-    // set geometry
-    if (this.obj.config['geometry_type']) {
-      let validator = !this.obj.isCircuit() ? Validators.required : null;
-      this.objForm.addControl('geometry', this._formBuilder.control('', validator));
-    }
-    this.setFormValue(formValues);
-  });
+        // set geometry
+        if (this.obj.config['geometry_type']) {
+          let validator = !this.obj.isCircuit() ? Validators.required : null;
+          this.objForm.addControl('geometry', this._formBuilder.control('', validator));
+        }
+        this.setFormValue(formValues);
+      });
   }
 
   isFormReady() {
     let schemaFormSize = this.objSchema
-      .filter( elem => elem.type_widget)
+      .filter(elem => elem.type_widget)
       .length;
     if (this.obj.config['geometry_type']) {
       schemaFormSize += 1;
@@ -72,7 +77,7 @@ export class MonitoringFormComponent implements OnInit {
         if (this.isFormReady()) {
           objFormChangeSubscription.unsubscribe();
 
-          if(this.obj.isObservationCircuit()) {
+          if (this.obj.isObservationCircuit()) {
             this.objForm.addControl('code_circuit_point', this._formBuilder.control('', Validators.required));
             this.circuitPointsData = this.obj.circuitPoints && this.obj.circuitPoints.features.map(
               e => e.properties
@@ -98,34 +103,34 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   navigateToParent() {
-    if(this.obj.objectType.includes('module')) {
-      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl()]);  
+    if (this.obj.objectType.includes('module')) {
+      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl()]);
     }
-    if(this.obj.parentType().includes('module')) {
+    if (this.obj.parentType().includes('module')) {
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       return;
     } else {
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.parentType(), this.obj.parentId]);
-      return; 
+      return;
     }
   }
 
   reload_create_route() {
 
     this._router.navigate(['/']);
-    setTimeout(()=> {
-      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]);      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]);
-        }, 100);
+    setTimeout(() => {
+      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]); this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]);
+    }, 100);
   }
 
-  onSubmit(addNew=false) {
+  onSubmit(addNew = false) {
     this.bSaveSpinner = !addNew;
     this.bSaveAddSpinner = addNew;
 
     let action = this.obj.id ? this.obj.patch(this.objForm.value) : this.obj.post(this.objForm.value);
     let actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
-            
+
       console.log('info', `${actionLabel} de ${this.obj.configParam('label')} ${this.obj.id} effectué`);
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.bEditChange.emit(false);
@@ -133,19 +138,19 @@ export class MonitoringFormComponent implements OnInit {
       if (this.obj.objectType.includes('module')) {
         this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       } else {
-        if(addNew) {
+        if (addNew) {
           this.reload_create_route();
         } else {
           this.navigateToParent();
           // let url = this._router.url;
           // this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.objectType, this.obj.id]);
         }
-      }   
+      }
     });
   }
 
   onCancelEdit() {
-    if(this.obj.id) {
+    if (this.obj.id) {
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent()
@@ -155,17 +160,17 @@ export class MonitoringFormComponent implements OnInit {
   onDelete() {
     this.bDeleteSpinner = true;
     let msg_delete = `${this.obj.template['label']} ${this.obj.id} supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`
-    
-    this.obj
-    .delete()
-    .subscribe((objData) => {
-      console.log('info', msg_delete);
-      this.bDeleteSpinner = this.bDeleteModal = false;
-      this.navigateToParent();  
-      });
-    }
 
-    bChainInputChanged() {
-      this._configService.setFrontendParams('bChainInput', this.bChainInput)
-    }
+    this.obj
+      .delete()
+      .subscribe((objData) => {
+        console.log('info', msg_delete);
+        this.bDeleteSpinner = this.bDeleteModal = false;
+        this.navigateToParent();
+      });
+  }
+
+  bChainInputChanged() {
+    this._configService.setFrontendParams('bChainInput', this.bChainInput)
+  }
 }

@@ -1,5 +1,6 @@
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/forkJoin";
+import { Observable, of, forkJoin } from "rxjs";
+import { mergeMap, concatMap } from 'rxjs/operators';
+
 
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
@@ -32,18 +33,20 @@ export class MonitoringObject extends MonitoringObjectBase {
       observables.push(this.initChildren(objData.children));
     }
 
-    return Observable.forkJoin(observables).concatMap(() => {
-      // this.bIsInitialized = true;
-      return Observable.of(true);
-    });
+    return forkJoin(observables).pipe(
+      concatMap(() => {
+        // this.bIsInitialized = true;
+        return of(true);
+      })
+    );
   }
 
   initChildren(childrenData): Observable<any> {
     if (!(this.id && childrenData)) {
-      return Observable.of(true);
+      return of(true);
     }
 
-    return Observable.forkJoin(
+    return forkJoin(
       this.childrenTypes().map(childrenType => {
         return this.initChildrenOfType(childrenType, childrenData);
       })
@@ -53,14 +56,14 @@ export class MonitoringObject extends MonitoringObjectBase {
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     let childrenDataOfType = childrenData[childrenType];
     if (!(childrenDataOfType && childrenDataOfType.length)) {
-      return Observable.of(true);
+      return of(true);
     }
     this.children[childrenType] = [];
     let childIdFieldName = this.child0(childrenType).configParam(
       "id_field_name"
     );
     if (childrenDataOfType.length == 0) {
-      return Observable.of(true);
+      return of(true);
     }
     let observables = [];
     for (let childData of childrenDataOfType) {
@@ -76,7 +79,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       this.children[childrenType].push(child);
       observables.push(child.init(childData));
     }
-    return Observable.forkJoin(observables);
+    return forkJoin(observables);
   }
 
   /** Methodes get post patch delete */
@@ -85,18 +88,22 @@ export class MonitoringObject extends MonitoringObjectBase {
     return this._objService
       .dataMonitoringObjectService()
       .getObject(this.modulePath, this.objectType, this.id, depth)
-      .flatMap(postData => {
-        return this.init(postData);
-      });
+      .pipe(
+        mergeMap(postData => {
+          return this.init(postData);
+        })
+      );
   }
 
   post(formValue): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
       .postObject(this.modulePath, this.objectType, this.postData(formValue))
-      .flatMap(postData => {
-        return this.init(postData);
-      });
+      .pipe(
+        mergeMap(postData => {
+          return this.init(postData);
+        })
+      );
   }
 
   patch(formValue) {
@@ -108,9 +115,11 @@ export class MonitoringObject extends MonitoringObjectBase {
         this.id,
         this.postData(formValue)
       )
-      .flatMap(postData => {
-        return this.init(postData);
-      });
+      .pipe(
+        mergeMap(postData => {
+          return this.init(postData);
+        })
+      );
   }
 
   delete() {
@@ -127,7 +136,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       this.parent ||
       !(this.parentId || this.parentType().includes("module"))
     ) {
-      return Observable.of(true);
+      return of(true);
     }
 
     this.parent = new this.myClass(
@@ -153,19 +162,21 @@ export class MonitoringObject extends MonitoringObjectBase {
         return this._objService.toForm(elem, properties[elem.attribut_name]);
       });
 
-    return Observable.forkJoin(observables).concatMap(formValuesArray => {
-      let formValues = {};
-      schema
-        .filter(elem => elem.type_widget)
-        .forEach((elem, index) => {
-          formValues[elem.attribut_name] = formValuesArray[index];
-        });
-      //geometry
-      if (this.config["geometry_type"]) {
-        formValues["geometry"] = this.geometry; // copy???
-      }
-      return Observable.of(formValues);
-    });
+    return forkJoin(observables).pipe(
+      concatMap(formValuesArray => {
+        let formValues = {};
+        schema
+          .filter(elem => elem.type_widget)
+          .forEach((elem, index) => {
+            formValues[elem.attribut_name] = formValuesArray[index];
+          });
+        //geometry
+        if (this.config["geometry_type"]) {
+          formValues["geometry"] = this.geometry; // copy???
+        }
+        return of(formValues);
+      })
+    );
   }
 
   /** postData: obj -> from */
@@ -291,30 +302,32 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   getCircuitPoints() {
     if (!this.isObservationCircuit()) {
-      return Observable.of(true);
+      return of(true);
     }
     return this.getParent()
-      .flatMap(() => {
-        let idCircuit = this.parent.properties.id_base_site;
-        return this._objService
-          .dataMonitoringObjectService()
-          .getCircuitPoints(idCircuit);
-      })
-      .flatMap(circuitPoints => {
-        this.circuitPoints = {
-          type: "FeatureCollection",
-          features: circuitPoints.map(p => {
-            return {
-              type: "Feature",
-              id: p.properties.id_base_site,
-              object_type: "circuit_point",
-              module_path: this.modulePath,
-              geometry: p.geometry,
-              properties: p.properties
-            };
-          })
-        };
-        return Observable.of(true);
-      });
+      .pipe(
+        mergeMap(() => {
+          let idCircuit = this.parent.properties['id_base_site'];
+          return this._objService
+            .dataMonitoringObjectService()
+            .getCircuitPoints(idCircuit);
+        }),
+        mergeMap(circuitPoints => {
+          this.circuitPoints = {
+            type: "FeatureCollection",
+            features: circuitPoints.map(p => {
+              return {
+                type: "Feature",
+                id: p.properties.id_base_site,
+                object_type: "circuit_point",
+                module_path: this.modulePath,
+                geometry: p.geometry,
+                properties: p.properties
+              };
+            })
+          };
+          return of(true);
+        })
+      );
   }
 }

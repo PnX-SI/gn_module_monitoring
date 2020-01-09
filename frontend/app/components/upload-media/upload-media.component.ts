@@ -46,9 +46,9 @@ export class UploadMediaComponent implements OnInit {
   ngOnInit() {
     for (let cd_nomenclature of ["4", "2"]) {
       this._dataUtilsService
-        .getNomenclature("TYPE_MEDIA", cd_nomenclature, "id_nomenclature")
-        .subscribe(idNomenclature => {
-          this.nomenclatureIds[cd_nomenclature] = idNomenclature;
+        .getNomenclature("TYPE_MEDIA", cd_nomenclature)
+        .subscribe(nomenclature => {
+          this.nomenclatureIds[cd_nomenclature] = nomenclature['id_nomenclature'];
         });
     }
 

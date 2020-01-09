@@ -87,13 +87,13 @@ export class MonitoringMapComponent implements OnInit {
         let $this = this;
         this.obj.circuitPoints.features.forEach(p => {
           $this.setPopup(p.object_type, p.id);
-          let layer = $this.findObjectLayer("circuit_point", p.id);
+          let layer: Layer = $this.findObjectLayer("circuit_point", p.id);
           
-          let val  = layer.feature.properties.base_site_code;
+          let val  = layer['feature'].properties.base_site_code;
           
           if($this.obj.properties['code_circuit_point'] == val) {
             layer.openPopup();
-            layer.setStyle({'color': 'red'})
+            layer['setStyle']({'color': 'red'})
           }
           
           layer.on('click', (e) => {
@@ -141,13 +141,13 @@ export class MonitoringMapComponent implements OnInit {
     let ObjectLabel = this._configService.configModuleObjectParam(
       "objects",
       this.obj.modulePath,
-      layer.feature.object_type,
+      layer['feature'].object_type,
       "label"
     );
 
     let sPopup = `
     <div>
-      ${ObjectLabel} ${layer.feature.properties.description || layer.feature.properties.base_site_name}
+      ${ObjectLabel} ${layer['feature'].properties.description || layer['feature'].properties.base_site_name}
     </div>    
     `;
 
@@ -162,7 +162,7 @@ export class MonitoringMapComponent implements OnInit {
       ? this.styleConfig.normal
       // ? this.styleObject('normal', this.bEdit)
       : this.styleConfig.hidden;
-    layer.setStyle(style);
+    layer['setStyle'](style);
 
     if (status.selected) {
       layer.openPopup();

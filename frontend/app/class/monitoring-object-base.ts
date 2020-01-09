@@ -1,6 +1,5 @@
-import { MonitoringPropertiesComponent } from "./../components/monitoring-properties/monitoring-properties.component";
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/forkJoin";
+import { Observable, of } from "rxjs";
+import { concatMap } from 'rxjs/operators';
 
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
@@ -87,13 +86,13 @@ export class MonitoringObjectBase {
     if (!this.parentId) {
       if (this.schema().find(e => e.attribut_name == "id_parent")) {
         this.parentId = this.properties["id_parent"];
-      } else if(this.parentIdFieldName()) {
+      } else if (this.parentIdFieldName()) {
         this.parentId = this.properties[this.parentIdFieldName()]
       }
     } else {
       if (this.schema().find(e => e.attribut_name == "id_parent")) {
         this.properties["id_parent"] = this.parentId;
-      } else if(this.parentIdFieldName()){
+      } else if (this.parentIdFieldName()) {
         this.properties[this.parentIdFieldName()] = this.parentId;
       }
     }
@@ -103,13 +102,13 @@ export class MonitoringObjectBase {
     return !this.parentType()
       ? null
       : this._objService
-          .configService()
-          .configModuleObjectParam(
-            "objects",
-            this.modulePath,
-            this.parentType(),
-            "id_field_name"
-          );
+        .configService()
+        .configModuleObjectParam(
+          "objects",
+          this.modulePath,
+          this.parentType(),
+          "id_field_name"
+        );
   }
 
   setElemValueFromOtherObject(elem) {
@@ -147,7 +146,7 @@ export class MonitoringObjectBase {
         .getUtil(elem.type_util, val, configUtil.fieldName)
     }
 
-    return Observable.of(val);
+    return of(val);
   }
 
   resolveProperties(): Observable<any> {
@@ -158,15 +157,15 @@ export class MonitoringObjectBase {
       observables.push(this.resolveProperty(elem));
     }
 
-    return Observable.forkJoin(observables).concatMap(
-      resolvedPropertiesArray => {
-        this.schema().forEach((elem, index) => {
-          let val = resolvedPropertiesArray[index];
-          (elem, index, val)
-          this.resolvedProperties[elem.attribut_name] = val;
-        });
-        return Observable.of(true);
-      }
+    return Observable.forkJoin(observables).pipe(
+      concatMap(
+        resolvedPropertiesArray => {
+          this.schema().forEach((elem, index) => {
+            let val = resolvedPropertiesArray[index];
+            this.resolvedProperties[elem.attribut_name] = val;
+          });
+          return of(true);
+        })
     );
   }
 
@@ -287,6 +286,6 @@ export class MonitoringObjectBase {
   }
 
   isRoot() {
-    return this.parentType() && this.childrenTypes() 
+    return this.parentType() && this.childrenTypes()
   }
 }

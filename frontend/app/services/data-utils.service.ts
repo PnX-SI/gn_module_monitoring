@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 
-import { Observable } from "rxjs/Observable";
-import "rxjs/add/observable/forkJoin";
+import { Observable, forkJoin, of } from "rxjs";
+import { concatMap ,mergeMap } from 'rxjs/operators';
 
 import { Utils } from "./../utils/utils";
 
@@ -21,9 +21,9 @@ export class DataUtilsService {
     private _cacheService: CacheService,
     private _configService: ConfigService,
     private _commonsDataFormService: DataFormService
-    ) { }
+  ) { }
 
-/** Util (Nomenclature, User, Taxonomy) */
+  /** Util (Nomenclature, User, Taxonomy) */
 
   /**
    * Renvoie un champ d'un objet de type nomenclare, taxonomy ou utilisateur à partir de son id
@@ -44,11 +44,12 @@ export class DataUtilsService {
     let sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths)
-      .flatMap(
-        value => {
-          let out = fieldName == 'all' ? value :  value[fieldName];
-          return Observable.of(out);
-        }
+      .pipe(
+        mergeMap(
+          value => {
+            let out = fieldName == 'all' ? value : value[fieldName];
+            return of(out);
+          })
       );
   }
 
@@ -66,17 +67,19 @@ export class DataUtilsService {
       observables.push(this.getUtil(typeUtilObject, id, fieldName));
     }
     // renvoie un forkJoin du tableau d'observables
-    return Observable.forkJoin(observables)
-      .concatMap(res => {
-        return Observable.of(res.join(' ,'));
-      });
+    return forkJoin(observables)
+      .pipe(
+        concatMap(res => {
+          return of(res.join(' ,'));
+        })
+      );
   }
 
 
   /** Renvoie une nomenclature à partir de son type et son code */
   getNomenclature(typeNomenclature, codeNomenclature) {
     let urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
-    let sCachePaths =  `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
+    let sCachePaths = `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
   }
 
@@ -89,14 +92,14 @@ export class DataUtilsService {
 
     let cache = this._cacheService.cache();
     // test si la fonction a déjà été appelée
-    if(cache[modulePath] && cache[modulePath]['init_data']) {
+    if (cache[modulePath] && cache[modulePath]['init_data']) {
       console.log('init data déjà effectué')
-      return Observable.of(true);
+      return of(true);
     }
 
     const configData = this._configService.configData(modulePath);
-    
-    let nomenclatureRequest = this._commonsDataFormService.getNomenclatures(...configData['nomenclature'])
+
+    let nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature'])
     // Taxonomie (liste ou ensemble de )
     let TaxonomyRequests = [];
     for (let cd_nom of configData['taxonomy']['cd_noms']) {
@@ -104,43 +107,45 @@ export class DataUtilsService {
     }
 
     let userRequests = []
-    for ( let codeList of configData['user']) {
+    for (let codeList of configData['user']) {
       userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList))
-    } 
+    }
 
-    let observables = [nomenclatureRequest, Observable.forkJoin(TaxonomyRequests), Observable.forkJoin(userRequests)];
+    let observables = [nomenclatureRequest, forkJoin(TaxonomyRequests), forkJoin(userRequests)];
 
-    return Observable.forkJoin(observables)
-      .concatMap((data) => {
-        let nomenclatures = data[0];
-        let taxonomy = data[1];
-        let userLists = data[2];
+    return forkJoin(observables)
+      .pipe(
+        concatMap((data) => {
+          let nomenclatures = data[0];
+          let taxonomy = data[1];
+          let userLists = data[2];
 
-        // mise en cache
-        for (let nomenclature_type of nomenclatures) {
-          for (let nomenclature of nomenclature_type.values) {
-            this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
+          // mise en cache
+          for (let nomenclature_type of nomenclatures) {
+            for (let nomenclature of nomenclature_type.values) {
+              this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
+            }
           }
-        }
 
-        for (let userList of userLists) {
-          for (let user of userList) {
-          this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
+          for (let userList of userLists) {
+            for (let user of userList) {
+              this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
+            }
           }
-        }
 
-        for (let taxon of taxonomy) {
-          this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
-        }
+          for (let taxon of taxonomy) {
+            this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
+          }
 
-        // pour ne pas appeler la fonction deux fois
-        if(!cache[modulePath]) {
-          cache[modulePath] = {}
-        }
-        cache[modulePath]['init_data'] = true;
+          // pour ne pas appeler la fonction deux fois
+          if (!cache[modulePath]) {
+            cache[modulePath] = {}
+          }
+          cache[modulePath]['init_data'] = true;
 
-        return Observable.of(true);
-      });
+          return of(true);
+        })
+      );
   }
 
 }

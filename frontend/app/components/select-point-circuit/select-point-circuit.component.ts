@@ -24,7 +24,7 @@ export class SelectPointCircuitComponent implements OnInit {
   ngOnInit() {
 
     this._configService.init().subscribe(() => {
-      this._data.getCircuitPointsData(this.idCircuit).subscribe((points) => {
+      this._data.getCircuitPoints(this.idCircuit).subscribe((points) => {
        this.points = points 
       });
     });
