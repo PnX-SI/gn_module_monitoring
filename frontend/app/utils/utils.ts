@@ -1,4 +1,4 @@
-import { Observable } from "rxjs/Observable";
+import { Observable } from "@librairies/rxjs/Observable";
 
 
 export class Utils {

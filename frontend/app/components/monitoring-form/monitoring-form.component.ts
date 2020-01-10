@@ -5,7 +5,7 @@ import { Utils } from "../../utils/utils";
 import { Router } from "@angular/router";
 import { ConfigService } from "../../services/config.service";
 
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap } from "@librairies/rxjs/operators";
 
 
 @Component({

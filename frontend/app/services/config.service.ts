@@ -5,8 +5,8 @@ import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "@geonature_config/app.config";
 import { ModuleConfig } from "../module.config";
 
-import { of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { of } from "@librairies/rxjs";
+import { mergeMap } from "@librairies/rxjs/operators";
 
 
 @Injectable()

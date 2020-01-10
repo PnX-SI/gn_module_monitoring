@@ -9,7 +9,7 @@ import {
 
 import { FormGroup } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
-import { Layer } from "leaflet";
+import { Layer } from "@librairies/leaflet";
 import { ConfigService } from "../../services/config.service";
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
 

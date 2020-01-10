@@ -1,4 +1,3 @@
-import { media } from './components/upload-media/media';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { GN2CommonModule } from "@geonature_common/GN2Common.module";
 import { Routes, RouterModule } from "@angular/router";
@@ -7,7 +6,6 @@ import { FormsModule } from "@angular/forms";
 import { ReactiveFormsModule } from "@angular/forms";
 import { HttpClient} from '@angular/common/http';
 import { HttpClientXsrfModule } from '@angular/common/http';
-import { TreeModule } from "@librairies/angular-tree-component";
 
 // Service
 import { DataMonitoringObjectService } from './services/data-monitoring-object.service';
@@ -75,8 +73,6 @@ const routes: Routes = [
         HttpClientXsrfModule.withOptions({
             headerName: 'token'
         }),
-        TreeModule
-        // DatatableComponent,
     ],
     providers: [
         HttpClient,

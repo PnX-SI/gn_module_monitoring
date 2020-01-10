@@ -1,11 +1,11 @@
 import { Injectable } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { Observable, of } from "@librairies/rxjs";
 
 import { ConfigService } from "./config.service";
 import { DataMonitoringObjectService } from "./data-monitoring-object.service";
 import { DataUtilsService } from "./data-utils.service";
 import { Utils } from "../utils/utils";
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap } from "@librairies/rxjs/operators";
 
 @Injectable()
 export class MonitoringObjectService {

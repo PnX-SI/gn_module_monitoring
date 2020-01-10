@@ -1,5 +1,5 @@
-import { Observable, of, forkJoin } from "rxjs";
-import { mergeMap } from 'rxjs/operators';
+import { Observable, of, forkJoin } from "@librairies/rxjs";
+import { mergeMap } from "@librairies/rxjs/operators";
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';

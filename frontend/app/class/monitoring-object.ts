@@ -1,5 +1,5 @@
-import { Observable, of, forkJoin } from "rxjs";
-import { mergeMap, concatMap } from 'rxjs/operators';
+import { Observable, of, forkJoin } from "@librairies/rxjs";
+import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
 
 import { MonitoringObjectService } from "../services/monitoring-object.service";
