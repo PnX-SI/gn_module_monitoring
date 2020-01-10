@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap } from "@librairies/rxjs/operators";
 
 /** services */
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";

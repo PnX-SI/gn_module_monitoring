@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { Observable } from "@librairies/rxjs";
 import { Injectable } from "@angular/core";
 
 import { CacheService } from "./cache.service";

@@ -1,8 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
-import { Observable, of } from "rxjs";
-import "rxjs/add/observable/forkJoin";
+import { Observable, of } from "@librairies/rxjs";
 
 import { ConfigService } from "./config.service";
 

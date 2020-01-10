@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 
-import { Observable, forkJoin, of } from "rxjs";
-import { concatMap ,mergeMap } from 'rxjs/operators';
+import { Observable, forkJoin, of } from "@librairies/rxjs";
+import { concatMap ,mergeMap } from "@librairies/rxjs/operators";
 
 import { Utils } from "./../utils/utils";
 

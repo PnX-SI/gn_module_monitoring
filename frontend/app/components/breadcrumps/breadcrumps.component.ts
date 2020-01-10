@@ -1,5 +1,5 @@
-import { Observable, of } from "rxjs";
-import { mergeMap } from 'rxjs/operators';
+import { Observable, of } from "@librairies/rxjs";
+import { mergeMap } from "@librairies/rxjs/operators";
 
 import { Component, OnInit, Input } from "@angular/core";
 

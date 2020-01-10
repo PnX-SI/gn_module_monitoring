@@ -1,4 +1,4 @@
-import { DatatableComponent } from "@swimlane/ngx-datatable";
+import { DatatableComponent } from "@librairies/@swimlane/ngx-datatable";
 import {
   Component,
   OnInit,
