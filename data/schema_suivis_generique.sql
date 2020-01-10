@@ -26,16 +26,6 @@
 
     );
 
-
-    -- on lie la visite au module car le site peut appartenir a plusieurs modules
-
-    ALTER TABLE gn_monitoring.t_base_visits ADD COLUMN IF NOT EXISTS id_module INTEGER NOT NULL;
-    ALTER TABLE gn_monitoring.t_base_visits ADD CONSTRAINT fk_t_base_visits_id_module FOREIGN KEY (id_module)
-                REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
-                ON UPDATE CASCADE ON DELETE CASCADE;
-
-
-
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_visit_complements (
 
         id_base_visit INTEGER NOT NULL,
