@@ -1,7 +1,7 @@
 backend/__pycache__/*
 **/__pycache__/
 frontend/app/module.config.ts
-#**/node_modules
+**/node_modules
 config/conf_gn_module.toml
 .vscode
 **/custom.json
