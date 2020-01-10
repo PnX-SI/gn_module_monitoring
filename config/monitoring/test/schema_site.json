@@ -1,16 +1,13 @@
 {
   "id_nomenclature_type_site": {
-    "type_widget": "text",
+    "type_widget": "nomenclature",
     "attribut_label": "Type site",
+    "code_nomenclature_type": "TYPE_SITE",
     "type_util": "nomenclature",
-    "value": {
-      "code_nomenclature_type": "TYPE_SITE",
-      "cd_nomenclature": "OEDIC"
-    }
+    "required": true
   },
   "contact_name": {
     "type_widget": "text",
-    "attribut_label": "Nom contact",
-    "required": true
+    "attribut_label": "Commentaire"
   }
 }
