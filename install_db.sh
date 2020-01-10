@@ -13,4 +13,4 @@ echo "Create schema gn_suivi_generique ..." > $LOG_FILE
 echo "--------------------" &>> $LOG_FILE
 echo "" &>> $LOG_FILE
 
-export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $SCRIPTPATH/data/schema_suivi_generique.sql &>> $LOG_FILE
+export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $SCRIPTPATH/data/schema_suivis_generique.sql &>> $LOG_FILE
