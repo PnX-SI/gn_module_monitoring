@@ -83,8 +83,6 @@ export class MonitoringObjectService {
       }
       case 'taxonomy': {
         x = x instanceof Object ? x.cd_nom : x; 
-        // console.log(x)
-        // x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
         break;
       }
     }
