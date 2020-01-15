@@ -102,8 +102,11 @@ export class DataUtilsService {
     let nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature'])
     // Taxonomie (liste ou ensemble de )
     let TaxonomyRequests = [];
-    for (let cd_nom of configData['taxonomy']['cd_noms']) {
-      TaxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
+
+    if(configData['taxonomy']['cd_noms']) {
+      for (let cd_nom of configData['taxonomy']['cd_noms']) {
+        TaxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
+      }
     }
 
     let userRequests = []
