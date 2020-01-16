@@ -13,8 +13,6 @@
     },    
     "site": {
         "geometry_type": "Point",
-        "label": "Point d'écoute",
-        "label_list": "Points d'écoute",
         "display_properties": [
             "base_site_name",
             "base_site_code",

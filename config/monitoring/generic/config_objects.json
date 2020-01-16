@@ -13,7 +13,11 @@
     "description_field_name": "module_label",
     "label": "Module",
     "uuid_field_name": "uuid_module_complement",
-    "id_table_location": "__ID_TABLE_LOCATION_MODULE"
+    "id_table_location": "__ID_TABLE_LOCATION_MODULE",
+    "display_properties": [
+      "module_label",
+      "module_desc"
+    ]
   },
   
   "site": {

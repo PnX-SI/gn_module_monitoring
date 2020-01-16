@@ -55,7 +55,8 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     let childrenDataOfType = childrenData[childrenType];
-    if (!(childrenDataOfType && childrenDataOfType.length)) {
+    // if (!(childrenDataOfType && childrenDataOfType.length)) {
+    if (!(childrenDataOfType)) {
       return of(true);
     }
     this.children[childrenType] = [];

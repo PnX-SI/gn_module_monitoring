@@ -91,6 +91,7 @@ export class MonitoringObjectComponent implements OnInit {
     const objectsStatus = {}
     this.obj.childrenTypes().forEach((childrenType) => {
       objectsStatus[childrenType] = []
+      console.log($this.obj.children, childrenType)
       $this.obj.children[childrenType].forEach((child) => {
         objectsStatus[childrenType].push(
           {

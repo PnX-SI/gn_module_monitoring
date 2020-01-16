@@ -1,12 +1,43 @@
 {
-  "meteo_txt": {
-    "type_widget": "text",
-    "attribut_label": "Météo (txt)"
+  "id_base_site": {
+    "attribut_label": "Code point d'écoute"
   },
   "num_passage": {
     "type_widget": "number",
     "attribut_label": "N° de passage",
     "min": 1,
     "max": 2
+  },
+  "id_nomenclature_meteo": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Méteo",
+    "code_nomenclature_type": "CHE_METEO",
+    "type_util": "nomenclature",
+    "required": true
+  },
+  "id_nomenclature_vent": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Vent",
+    "code_nomenclature_type": "CHE_VENT",
+    "type_util": "nomenclature",
+    "required": true
+  },
+  "id_nomenclature_statut_obs": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Statut d'observation",
+    "code_nomenclature_type": "STATUT_OBS",
+    "type_util": "nomenclature",
+    "required": true
+  },
+  "time_observation": {
+    "attribut_label": "Heure",
+    "type_widget": "time"
+  },
+  "cd_nom": {
+    "type_widget": "text",
+    "attribut_label": "cd nom",
+    "type_util": "taxonomy",
+    "value": 3511,
+    "hidden": true
   }
 }

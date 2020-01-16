@@ -11,7 +11,7 @@
   },
   "module_label": {
     "type_widget": "text",
-    "attribut_label": "Label",
+    "attribut_label": "Nom",
     "required": true
   },
   "module_path": {
