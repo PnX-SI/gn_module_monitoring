@@ -82,7 +82,6 @@ export class MonitoringObjectComponent implements OnInit {
 
         this.initObjectsStatus()
 
-        console.log('info', `Objet chargé ${this.obj.objectType} ${this.obj.modulePath}`);
       });
   }
 

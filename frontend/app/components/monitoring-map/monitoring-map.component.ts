@@ -30,7 +30,7 @@ export class MonitoringMapComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   sites = {};
-
+  map;
   // todo mettre en config
   styleConfig = {
     hidden: {
@@ -44,7 +44,7 @@ export class MonitoringMapComponent implements OnInit {
   };
 
   constructor(
-    private _mapService: MapService,
+    protected _mapService: MapService,
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
   ) { }
