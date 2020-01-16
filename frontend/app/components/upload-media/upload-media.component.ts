@@ -77,7 +77,7 @@ export class UploadMediaComponent implements OnInit {
     this.media = media;
     this.media["uuid_attached_row"] = this.media["uuid_attached_row"] || this.uuid_attached_row;
     this.media["id_table_location"] = this.media["id_table_location"] || this.id_table_location;
-    
+
     setTimeout(() => {
       let mediaFormValue = {};
       Object.keys(this.mediaForm.controls)
@@ -105,8 +105,16 @@ export class UploadMediaComponent implements OnInit {
       event => {
         // media uploadé
         if (event["body"]) {
-          this.media = JSON.parse(event["body"]);
-          this.mediaChange.emit(JSON.parse(event["body"]));
+          let media_content = event["body"];
+
+          // Test si c'est un string alors transformation en objet
+          // TODO A voir si nécessaire
+          if (typeof event["body"] == "string") {
+            media_content = JSON.stringify(event["body"]);
+          }
+
+          this.media = media_content;
+          this.mediaChange.emit(media_content);
           this.bUploadSpinner = false;
         }
         // upload en cours
