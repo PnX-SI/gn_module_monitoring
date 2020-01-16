@@ -24,6 +24,7 @@ export class MonitoringObjectBase {
   myClass = MonitoringObjectBase;
 
   parentId;
+  siteId;
 
   template = {};
 
@@ -80,7 +81,9 @@ export class MonitoringObjectBase {
     this.geometry = data.geometry;
     this.id = this.id || this.properties[this.configParam("id_field_name")];
     this.medias = data.medias;
+    this.siteId = data.site_id;
 
+    // TODO simplifier!!
     if (!this.parentId) {
       if (this.schema().find(e => e.attribut_name == "id_parent")) {
         this.parentId = this.properties["id_parent"];

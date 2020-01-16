@@ -1,6 +1,5 @@
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
-from .base import monitoring_definitions
 from .serializer import MonitoringObjectSerializer
 
 
@@ -103,7 +102,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
             self.process_correlations(post_data)
 
-
             return self
 
         except Exception as e:
@@ -133,24 +131,6 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
-    def parent(self):
-        parent_type = self.config_param('parent_type')
-        if not parent_type:
-            return
-
-        if self._parent:
-            return self._parent
-
-        return (
-            monitoring_definitions
-            .monitoring_object_instance(
-                self._module_path,
-                parent_type,
-                self.id_parent()
-            )
-            .get()
-        )
-
     def breadcrump(self):
 
         breadcrump = {
@@ -166,7 +146,7 @@ class MonitoringObject(MonitoringObjectSerializer):
     def breadcrumps(self):
         breadcrumps = [self.breadcrump()]
 
-        parent = self.parent()
+        parent = self.get_parent()
         if parent:
             breadcrumps = parent.breadcrumps() + breadcrumps
 

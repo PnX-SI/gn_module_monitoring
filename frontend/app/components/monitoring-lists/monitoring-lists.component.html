@@ -27,8 +27,7 @@
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
-
-    <pnx-medias
+      <pnx-medias
         [(medias)]="medias"
         [uuid_attached_row]="obj.template['uuid']"
         [staticDirUrl]="backendUrl"
@@ -43,14 +42,11 @@
         "
       >
         <pnx-monitoring-datatable
-          *ngIf="
-            childrenDataTable &&
-            childrenDataTable[childrenType]
-          "
+          *ngIf="childrenDataTable && childrenDataTable[childrenType]"
           [rows]="childrenDataTable[childrenType]['rows']"
           [columns]="childrenDataTable[childrenType]['columns']"
           [rowStatus]="objectsStatus[childrenType]"
-          [objectType]="childrenType" 
+          [objectType]="childrenType"
           [modulePath]="obj.modulePath"
           [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
           (rowStatusChange)="onSelectedChildren(childrenType, $event)"

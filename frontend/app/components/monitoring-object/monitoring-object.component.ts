@@ -91,7 +91,6 @@ export class MonitoringObjectComponent implements OnInit {
     const objectsStatus = {}
     this.obj.childrenTypes().forEach((childrenType) => {
       objectsStatus[childrenType] = []
-      console.log($this.obj.children, childrenType)
       $this.obj.children[childrenType].forEach((child) => {
         objectsStatus[childrenType].push(
           {
@@ -100,8 +99,26 @@ export class MonitoringObjectComponent implements OnInit {
             "visible": true
           }
         )
-      })
+      });
     });
+
+    // init site status
+    if(this.obj.siteId) {
+      if(!objectsStatus['site']) {
+        objectsStatus['site'] = [
+          {
+            "id": this.obj.siteId,
+            "selected": true,
+            "visible": true
+          }
+        ];
+      } else {
+        let siteStatus = objectsStatus['site'] && objectsStatus['site'].find((status) => status.id == this.obj.siteId)
+        siteStatus['selected'] = true;
+      }
+    }
+
+    $this.objectsStatus = objectsStatus;
   }
 
   initParams(params) {
