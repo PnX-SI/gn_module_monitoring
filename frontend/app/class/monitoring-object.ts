@@ -59,7 +59,9 @@ export class MonitoringObject extends MonitoringObjectBase {
     if (!(childrenDataOfType)) {
       return of(true);
     }
+
     this.children[childrenType] = [];
+    console.log(childrenType)
     let childIdFieldName = this.child0(childrenType).configParam(
       "id_field_name"
     );
