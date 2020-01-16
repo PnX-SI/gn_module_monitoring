@@ -1,5 +1,16 @@
 {
+    "tree": {
+        "module": {
+          "site": {
+            "visit": {
+              "observation": null
+            },
+            "media": null
+          }
+        }
+    },
     "site" : {
-        "geometry_type": "Point"
+        "geometry_type": "Point",
+        "media_types": ["pdf"]
     }
 }

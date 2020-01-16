@@ -29,7 +29,7 @@
   },
   "id_inventor": {
     "type_widget": "observers",
-    "attribut_label": "Inventor",
+    "attribut_label": "Descripteur",
     "code_list": "__CODE_LIST_INVENTOR",
     "max_length": 1,
     "type_util": "user",
@@ -37,14 +37,14 @@
   },
   "id_digitiser": {
     "type_widget": "text",
-    "attribut_label": "Digitiser",
+    "attribut_label": "Numérisateur",
     "required": true,
     "hidden": true,
     "type_util": "user"
   },
   "first_use_date": {
     "type_widget": "date",
-    "attribut_label": "First use date",
+    "attribut_label": "Date description",
     "required": true
   },
   "last_visit": {
