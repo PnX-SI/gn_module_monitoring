@@ -50,7 +50,11 @@
     "label": "Visite",
     "uuid_field_name": "uuid_base_visit",
     "id_table_location": "__ID_TABLE_LOCATION_VISIT",
-    "display_properties": ["visit_date_min", "observers", "comments"]
+    "display_properties": [
+      "visit_date_min",
+      "observers",
+      "comments"
+    ]
   },
   
   "observation": {

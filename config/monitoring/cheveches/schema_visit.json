@@ -1,6 +1,6 @@
 {
   "id_base_site": {
-    "attribut_label": "Code point d'écoute"
+    "attribut_label": "Site"
   },
   "num_passage": {
     "type_widget": "number",
@@ -24,7 +24,7 @@
   },
   "id_nomenclature_statut_obs": {
     "type_widget": "nomenclature",
-    "attribut_label": "Statut d'observation",
+    "attribut_label": "Observation",
     "code_nomenclature_type": "STATUT_OBS",
     "type_util": "nomenclature",
     "required": true
@@ -33,11 +33,17 @@
     "attribut_label": "Heure",
     "type_widget": "time"
   },
+  "visit_date_min": {
+    "attribut_label": "Date"
+  },
   "cd_nom": {
     "type_widget": "text",
     "attribut_label": "cd nom",
     "type_util": "taxonomy",
     "value": 3511,
+    "hidden": true
+  },
+  "visit_date_max": {
     "hidden": true
   }
 }
