@@ -214,6 +214,17 @@ export class MonitoringObject extends MonitoringObjectBase {
     });
   }
 
+  children0Array() {
+    if (!this.childrenTypes()) {
+      return null;
+    }
+
+    return this.childrenTypes().map(childrenType => {
+      return this.child0(childrenType);
+    });
+  }
+
+  
   /** list */
 
   childrenColumnsAndRowsOfType(childrenType, typeDisplay) {
@@ -300,34 +311,4 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  getCircuitPoints() {
-    if (!this.isObservationCircuit()) {
-      return of(true);
-    }
-    return this.getParent()
-      .pipe(
-        mergeMap(() => {
-          let idCircuit = this.parent.properties['id_base_site'];
-          return this._objService
-            .dataMonitoringObjectService()
-            .getCircuitPoints(idCircuit);
-        }),
-        mergeMap(circuitPoints => {
-          this.circuitPoints = {
-            type: "FeatureCollection",
-            features: circuitPoints.map(p => {
-              return {
-                type: "Feature",
-                id: p.properties.id_base_site,
-                object_type: "circuit_point",
-                module_path: this.modulePath,
-                geometry: p.geometry,
-                properties: p.properties
-              };
-            })
-          };
-          return of(true);
-        })
-      );
-  }
 }

@@ -14,7 +14,7 @@ import { DataUtilsService } from "../../services/data-utils.service";
 import { MapService } from '@geonature_common/map/map.service'
 import { AuthService, User } from "@geonature/components/auth/auth.service";
 
-
+import {Utils} from '../../utils/utils'
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -32,12 +32,9 @@ export class MonitoringObjectComponent implements OnInit {
   bEdit = false;
   bLoadingModal = false;
 
-  circuitPointSelected;
   currentUser: User;
 
-  childrenTypeStatus: boolean;
-
-  childrenStatus = {}
+  objectsStatus: Object = {};
 
   constructor(
     private _route: ActivatedRoute,
@@ -83,8 +80,27 @@ export class MonitoringObjectComponent implements OnInit {
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
         this.bEdit = (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
 
+        this.initObjectsStatus()
+
         console.log('info', `Objet chargé ${this.obj.objectType} ${this.obj.modulePath}`);
       });
+  }
+
+  initObjectsStatus() {
+    const $this = this;
+    const objectsStatus = {}
+    this.obj.childrenTypes().forEach((childrenType) => {
+      objectsStatus[childrenType] = []
+      $this.obj.children[childrenType].forEach((child) => {
+        objectsStatus[childrenType].push(
+          {
+            "id": child.id,
+            "selected": false,
+            "visible": true
+          }
+        )
+      })
+    });
   }
 
   initParams(params) {
@@ -116,12 +132,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   getMonitoringObject(): Observable<any> {
     // TODO mettre au propre
-    return forkJoin(this.obj.get(1), this.obj.getParent(1))
-      .pipe(
-        mergeMap(() => {
-          return this.obj.getCircuitPoints(); //TODO
-        })
-      )
+    return forkJoin(this.obj.get(1));
   }
 
 }

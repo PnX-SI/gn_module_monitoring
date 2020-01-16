@@ -1,4 +1,5 @@
-import { Observable } from "@librairies/rxjs";
+import { mergeMap } from '@librairies/rxjs/operators';
+import { Observable, of } from "@librairies/rxjs";
 import { Injectable } from "@angular/core";
 
 import { CacheService } from "./cache.service";
@@ -31,25 +32,49 @@ export class DataMonitoringObjectService {
   // }
 
   /** Object */
-  urlMonitoring(apiType, modulePath, objectType, id=null, depth=null) {
-    
+  urlMonitoring(apiType, modulePath, objectType, id = null, depth = null) {
+
     let url: string;
     let params = {}
-    if(objectType.includes('module')) {
+    if (objectType.includes('module')) {
       url = modulePath ? `${apiType}/${modulePath}/${objectType}` : `${apiType}/module`;
       params['field_name'] = 'module_path'
     } else {
       url = id ? `${apiType}/${modulePath}/${objectType}/${id}` : `${apiType}/${modulePath}/${objectType}`
     }
 
-    if(depth) {
+    if (depth) {
       params['depth'] = depth;
     }
 
-    let s_params = Object.keys(params).map( key => `${key}=${params[key]}` ).join('&')
-    url = s_params.length ? url + '?' + s_params  : url
-    
+    let s_params = Object.keys(params).map(key => `${key}=${params[key]}`).join('&')
+    url = s_params.length ? url + '?' + s_params : url
+
     return url;
+  }
+
+
+  /** 
+   * Renvoie l'ensemple des site d'un module
+   * sous forme de geofeatures
+  */
+  getSites(modulePath): Observable<any> {
+    return this.getObject(modulePath, 'module', null, 1)
+      .pipe(
+        mergeMap((module) => {
+          let sites = module['children']['site'];
+          sites = {
+            features: sites.map((site) => {
+              site['id'] = site['properties']['id_base_site'];
+              site['type'] = 'Feature';
+              return site
+            }),
+            type: 'FeatureCollection'
+          }
+          // transformer en geofeatures
+          return of(sites);
+        })
+      )
   }
 
   /**
@@ -59,7 +84,7 @@ export class DataMonitoringObjectService {
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  getObject(modulePath, objectType, id=null, depth=null) {
+  getObject(modulePath, objectType, id = null, depth = null) {
     const url = this.urlMonitoring('object', modulePath, objectType, id, depth)
     return this._cacheService.request('get', url);
   }
@@ -129,12 +154,5 @@ export class DataMonitoringObjectService {
     let url = this.urlMonitoring('breadcrumps', modulePath, objectType, id)
     return this._cacheService.request('get', url);
   }
-
- 
-  getCircuitPoints(idCircuit): Observable<Array<any>> {
-    let url = 'circuit_points/' +  idCircuit;
-    return this._cacheService.request('get', url);
-  }
-  
 
 }

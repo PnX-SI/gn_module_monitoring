@@ -19,12 +19,13 @@ export class MonitoringFormComponent implements OnInit {
 
   @Input() objForm: FormGroup;
 
-  @Input() obj: MonitoringObject;
-  @Output() objChange = new EventEmitter<MonitoringObject>();
+  @Input() obj;
+
+  @Input() objectsStatus: MonitoringObject;
+  @Output() objectsStatusChange = new EventEmitter<MonitoringObject>();
 
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
-
 
   objSchema;
 
@@ -32,7 +33,6 @@ export class MonitoringFormComponent implements OnInit {
   public bSaveAddSpinner = false;
   public bDeleteSpinner = false;
   public bDeleteModal = false;
-  public circuitPointsData;
   public bChainInput = false;
 
   constructor(
@@ -53,8 +53,7 @@ export class MonitoringFormComponent implements OnInit {
       .subscribe((formValues) => {
         // set geometry
         if (this.obj.config['geometry_type']) {
-          let validator = !this.obj.isCircuit() ? Validators.required : null;
-          this.objForm.addControl('geometry', this._formBuilder.control('', validator));
+          this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
         }
         this.setFormValue(formValues);
       });
@@ -76,14 +75,6 @@ export class MonitoringFormComponent implements OnInit {
       .subscribe(() => {
         if (this.isFormReady()) {
           objFormChangeSubscription.unsubscribe();
-
-          if (this.obj.isObservationCircuit()) {
-            this.objForm.addControl('code_circuit_point', this._formBuilder.control('', Validators.required));
-            this.circuitPointsData = this.obj.circuitPoints && this.obj.circuitPoints.features.map(
-              e => e.properties
-            );
-            formValue['code_circuit_point'] = this.obj.properties['code_circuit_point']
-          }
 
           this.objForm.setValue(formValue);
           this.setDefaultFormValue()
@@ -134,7 +125,7 @@ export class MonitoringFormComponent implements OnInit {
       console.log('info', `${actionLabel} de ${this.obj.configParam('label')} ${this.obj.id} effectué`);
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.bEditChange.emit(false);
-      this.objChange.emit(this.obj);
+      // this.objChange.emit(this.obj);
       if (this.obj.objectType.includes('module')) {
         this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       } else {

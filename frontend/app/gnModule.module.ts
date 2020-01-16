@@ -28,7 +28,6 @@ import { MonitoringListComponent } from './components/monitoring-lists/monitorin
 import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
 import { MediasComponent} from './components/medias/medias.component';
 import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
-import { SelectPointCircuitComponent } from './components/select-point-circuit/select-point-circuit.component'
 // my module routing
 const routes: Routes = [
 
@@ -62,7 +61,6 @@ const routes: Routes = [
         MonitoringPropertiesComponent,
         MediasComponent,
         MonitoringDatatableComponent,
-        SelectPointCircuitComponent,
     ],
     imports: [
         GN2CommonModule,

@@ -3,6 +3,8 @@ import { ConfigService } from "../../services/config.service";
 
 import { MonitoringObject } from '../../class/monitoring-object';
 
+import { Utils } from '../../utils/utils';
+
 @Component({
   selector: 'pnx-monitoring-lists',
   templateUrl: './monitoring-lists.component.html',
@@ -23,12 +25,8 @@ export class MonitoringListComponent implements OnInit {
 
   medias;
 
-  @Input() childrenStatus: Object = {};
-  // @Output() childrenStatusChange = new EventEmitter<Object>();
-  
-  @Input() childrenTypeStatus;
-  @Output() childrenTypeStatusChange = new EventEmitter<Object>();
-
+  @Input() objectsStatus: Object;
+  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();  
 
   constructor(
     private _configService: ConfigService,
@@ -40,13 +38,7 @@ export class MonitoringListComponent implements OnInit {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl()
 
-        // status
-        this.children0Array = Object.keys(this.obj.children0())
-          .map( key => this.obj.children0()[key]);  //
-        this.obj.childrenTypes().forEach((childrenType) => {
-          this.childrenStatus[childrenType] = []
-        });
-
+        this.children0Array = this.obj.children0Array()
         // datatable
         this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
@@ -54,13 +46,8 @@ export class MonitoringListComponent implements OnInit {
       });
   }
 
-  onSelectedChildren(childrenType, event) {
-    this.childrenStatus[childrenType]=event;
-    this.childrenTypeStatus = !this.childrenTypeStatus;
-    this.childrenTypeStatusChange.emit("");
-    setTimeout(() => {
-      this.childrenTypeStatusChange.emit(childrenType);
-    },100);
-  }
-  
+  onSelectedChildren(typeObject, event) {
+    this.objectsStatus[typeObject] = event;
+    this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
+  }  
 }

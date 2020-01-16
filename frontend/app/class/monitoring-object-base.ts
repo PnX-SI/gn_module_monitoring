@@ -23,13 +23,11 @@ export class MonitoringObjectBase {
   parent: MonitoringObjectBase;
   myClass = MonitoringObjectBase;
 
-  circuitPoints;
-
   parentId;
 
   template = {};
 
-  configParams = ["geometry_type", "media_types", "circuit_type"];
+  configParams = ["geometry_type", "media_types"];
   config = {};
 
   protected _objService: MonitoringObjectService;
@@ -277,15 +275,7 @@ export class MonitoringObjectBase {
     };
   }
 
-  isCircuit() {
-    return this.objectType == "circuit";
-  }
-
-  isObservationCircuit() {
-    return this.objectType == 'observation' && this.modulePath == 'cheveches'
-  }
-
   isRoot() {
-    return this.parentType() && this.childrenTypes()
+    return !this.parentType() && this.childrenTypes()
   }
 }

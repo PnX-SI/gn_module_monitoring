@@ -144,20 +144,3 @@ def breadcrumps_object_api(module_path, object_type, id):
         .get()
         .breadcrumps()
     )
-
-
-@blueprint.route('circuit_points/<int:id_circuit>', methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
-@json_resp
-def circuit_point_api(id_circuit):
-
-    circuit = (
-        monitoring_definitions
-        .monitoring_object_instance('cheveches', 'circuit', id_circuit)
-        .get()
-        .serialize(depth=1)
-    )
-
-    circuit_points = circuit['children']['circuit_point']
-
-    return circuit_points

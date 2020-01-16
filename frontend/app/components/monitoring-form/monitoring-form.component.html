@@ -30,20 +30,6 @@
     <h3>{{ obj.id ? 'Modification' : 'Création' }} {{ obj.template['label'] }}</h3>
     <form [formGroup]="objForm">
 
-
-      <div
-      class="obj-form"
-      *ngIf="circuitPointsData"
-      >
-        <small> Point d'écoute </small>
-        <div class="input-group">
-          <select class="form-control form-control-sm" [formControl]="objForm.controls['code_circuit_point']">
-            <option *ngFor="let point of circuitPointsData" [ngValue]="point['base_site_code']" title="Choisir le point du circuit">
-              {{point['base_site_name']}} </option>
-          </select>
-        </div>
-      </div>
-
       <pnx-dynamic-form-generator
       class="obj-form"
       #dynamicForm
@@ -52,8 +38,6 @@
       [formsDefinition]="objSchema"
       ></pnx-dynamic-form-generator>
       
-
-
       <div>
         <button
         class="btn btn-success"

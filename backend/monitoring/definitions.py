@@ -6,18 +6,12 @@ from ..models.monitoring import (
     TMonitoringObservations,
     TMonitoringObservationDetails,
 )
-from ..models.circuit import (
-    TCircuitPoints,
-    TCircuits,
-    TModulesCircuit,
-)
 from .objects import (
     MonitoringModule,
     MonitoringSite,
     MonitoringVisit
 )
 from .base import monitoring_definitions
-from .circuit import MonitoringCircuitPoint, MonitoringCircuit
 from .repositories import MonitoringObject
 
 
@@ -29,14 +23,11 @@ from .repositories import MonitoringObject
 
 MonitoringModels_dict = {
     'module': TMonitoringModules,
-    'module_circuit': TModulesCircuit,
     'site': TMonitoringSites,
     'visit': TMonitoringVisits,
     'observation': TMonitoringObservations,
     'detail': TMonitoringObservationDetails,
     'media': TMedias,
-    'circuit': TCircuits,
-    'circuit_point': TCircuitPoints
 }
 
 
@@ -46,8 +37,6 @@ MonitoringObjects_dict = {
     'visit': MonitoringVisit,
     'observation': MonitoringObject,
     'observation_detail': MonitoringObject,
-    'circuit_point': MonitoringCircuitPoint,
-    'circuit': MonitoringCircuit,
     'media': MonitoringObject
 }
 

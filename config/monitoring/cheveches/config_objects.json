@@ -1,25 +1,17 @@
 {
     "tree":{
         "module": {
-            "circuit": {
+            "site": {
                 "visit": {
                     "observation":null
-                },
-                "circuit_point": null
+                }
             }
         }
     },
 
     "module": {
     },    
-    "circuit": {
-        "inherit_type": "site",
-        "label": "Circuit",
-        "circuit_type": "points",
-        "geometry_type": "Polygon"
-    },
-    "circuit_point": {
-        "inherit_type": "site",
+    "site": {
         "geometry_type": "Point",
         "label": "Point d'écoute",
         "label_list": "Points d'écoute",

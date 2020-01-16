@@ -45,13 +45,12 @@
         <pnx-monitoring-datatable
           *ngIf="
             childrenDataTable &&
-            childrenDataTable[childrenType] &&
-            childrenStatus
+            childrenDataTable[childrenType]
           "
           [rows]="childrenDataTable[childrenType]['rows']"
           [columns]="childrenDataTable[childrenType]['columns']"
-          [rowStatus]="childrenStatus[childrenType]"
-          [objectType]="childrenType"
+          [rowStatus]="objectsStatus[childrenType]"
+          [objectType]="childrenType" 
           [modulePath]="obj.modulePath"
           [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
           (rowStatusChange)="onSelectedChildren(childrenType, $event)"

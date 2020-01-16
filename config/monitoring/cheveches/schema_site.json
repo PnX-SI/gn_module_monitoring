@@ -1,4 +1,4 @@
-  {
+{
   "id_2014": {
     "type_widget": "text",
     "attribut_label": "Id 2014"
@@ -15,7 +15,6 @@
     "type_widget": "text",
     "attribut_label": "Code 2010"
   },
-
   "id_nomenclature_type_site": {
     "type_widget": "text",
     "attribut_label": "Type site",
@@ -25,17 +24,5 @@
       "cd_nomenclature": "POINT_ECOUTE_CHEVECHE"
     },
     "hidden": true
-  },
-  "id_parent":{
-    "type_widget": "text",
-    "hidden": true
-  },
-  "id_inventor":{
-    "value":":parent",
-    "hidden": true
-  },
-  "first_use_date":{
-    "value":":parent",
-    "hidden": true 
   }
 }

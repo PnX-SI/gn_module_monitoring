@@ -1,7 +1,6 @@
 from .geom import MonitoringObjectGeom
 from .repositories import MonitoringObject
 from ..models.monitoring import CorSiteModule, CorVisitObserver
-from .base import monitoring_definitions
 
 
 class MonitoringVisit(MonitoringObject):
@@ -36,11 +35,7 @@ class MonitoringSite(MonitoringObjectGeom):
 class MonitoringModule(MonitoringObject):
 
     def MonitoringModel(self):
-        if 'circuit' in self.config_param('children_types'):
-            return monitoring_definitions.MonitoringModel('module_circuit')
-
-        else:
-            return MonitoringObject.MonitoringModel(self)
+        return MonitoringObject.MonitoringModel(self)
 
     def get(self, param_value=None, param_name=None):
         if not param_name:

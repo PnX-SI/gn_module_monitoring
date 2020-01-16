@@ -45,11 +45,6 @@ export class MonitoringDatatableComponent implements OnInit {
       this.temp[index]["key_filter"] = keyFilter;
     });
 
-    if (!Object.keys(this.rowStatus).length) {
-      this.rows.forEach(row => {
-        this.rowStatus.push({ id: row.id, visible: true, selected: false });
-      });
-    }
   }
 
   updateFilter(event) {
