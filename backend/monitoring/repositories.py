@@ -131,9 +131,9 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
-    def breadcrump(self):
+    def breadcrumb(self):
 
-        breadcrump = {
+        breadcrumb = {
             'id': self._id,
             'label': self.config_param('label'),
             'description': str(self.config_value('description_field_name')),
@@ -141,13 +141,13 @@ class MonitoringObject(MonitoringObjectSerializer):
             'object_type': self._object_type,
         }
 
-        return breadcrump
+        return breadcrumb
 
-    def breadcrumps(self):
-        breadcrumps = [self.breadcrump()]
+    def breadcrumbs(self):
+        breadcrumbs = [self.breadcrumb()]
 
         parent = self.get_parent()
         if parent:
-            breadcrumps = parent.breadcrumps() + breadcrumps
+            breadcrumbs = parent.breadcrumbs() + breadcrumbs
 
-        return breadcrumps
+        return breadcrumbs

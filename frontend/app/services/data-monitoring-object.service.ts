@@ -142,7 +142,7 @@ export class DataMonitoringObjectService {
   //   return this._cacheService.request('get', `objects/${modulePath}/${objectType}/${idParent}`);
   // }
 
-  /** Breadcrumps */
+  /** breadcrumbs */
   /** 
    * Renvoie le fil d'ariane d'un object
    * 
@@ -150,8 +150,8 @@ export class DataMonitoringObjectService {
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
   */
-  getBreadcrumps(modulePath, objectType, id) {
-    let url = this.urlMonitoring('breadcrumps', modulePath, objectType, id)
+  getbreadcrumbs(modulePath, objectType, id) {
+    let url = this.urlMonitoring('breadcrumbs', modulePath, objectType, id)
     return this._cacheService.request('get', url);
   }
 

@@ -16,7 +16,7 @@ import { ConfigService } from './services/config.service';
 import { UploadService } from './components/upload-media/upload.service';
 
 // Component
-import { BreadcrumpsComponent } from './components/breadcrumps/breadcrumps.component';
+import { breadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { ModulesComponent } from './components/modules/modules.component';
 import { UploadMediaComponent } from './components/upload-media/upload-media.component';
 import { MonitoringObjectComponent } from './components/monitoring-object/monitoring-object.component';
@@ -49,7 +49,7 @@ const routes: Routes = [
 
 @NgModule({
     declarations: [
-        BreadcrumpsComponent,
+        breadcrumbsComponent,
         ModulesComponent,
         UploadMediaComponent,
         MonitoringObjectComponent,

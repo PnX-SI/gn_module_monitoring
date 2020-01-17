@@ -128,19 +128,19 @@ def delete_object_api(module_path, object_type, id):
     )
 
 
-# breadcrumps
-@blueprint.route('breadcrumps/<string:module_path>/<object_type>/<int:id>', methods=['GET'])
+# breadcrumbs
+@blueprint.route('breadcrumbs/<string:module_path>/<object_type>/<int:id>', methods=['GET'])
 @blueprint.route(
-    '/breadcrumps/<string:module_path>/module',
+    '/breadcrumbs/<string:module_path>/module',
     defaults={'id': None, 'object_type': 'module'},
     methods=['GET'])
 @check_cruved_scope_monitoring('R', 1)
 @json_resp
-def breadcrumps_object_api(module_path, object_type, id):
+def breadcrumbs_object_api(module_path, object_type, id):
 
     return (
         monitoring_definitions
         .monitoring_object_instance(module_path, object_type, id)
         .get()
-        .breadcrumps()
+        .breadcrumbs()
     )
