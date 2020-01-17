@@ -6,6 +6,20 @@ Module générique de gestion des données de protocoles de type suivis
 
 Ce module permet de gérer de façon générique des données de protocoles "simples". Les données spécifiques à chaque protocole sont stockées en base de données sous forme de jsonb.
 
+## Module de test
+
+Liste des protocoles de suivis
+![Liste des protocoles de suivis](/docs/images/suivis_list_modules.png)
+Liste des sites du protocole de test
+![Liste des sites du protocole de test](/docs/images/suivis_list_sites.png)
+Détail d'un site du protocole de test
+![Détail d'un site du protocole de test](/docs/images/suivis_detail_site.png)
+Formulaire des sites du protocole de test
+![Formulaire des sites du protocole de test](/docs/images/suivis_form_site.png)
+Formulaire des visites du protocole de test
+![Formulaire des visites du protocole de test](/docs/images/suivis_form_visite.png)
+Détail d'une visite du protocole de test
+![Détail d'une visite du protocole de test](/docs/images/suivis_detail_observation.png)
 
 ## Installation du module
 
@@ -58,3 +72,4 @@ WHERE module_code = 'GN_MONITORING_TEST';
 Modifier les valeurs du fichier `config/monitoring/generic/config_custom.json`
 
 ## Création d'un nouveau module
+TODO
