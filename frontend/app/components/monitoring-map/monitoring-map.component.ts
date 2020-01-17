@@ -100,9 +100,13 @@ export class MonitoringMapComponent implements OnInit {
 
   setSelectedSite(id) {
     this.objectsStatus['site'].forEach(status => {
+      const b_changed = status['selected'] != (status['id'] == id);
       status['selected'] = status['id'] == id;
+      if (b_changed) {
+        this.setSiteStyle(status);
+      }
     });
-    this.setSitesStyle();
+    // this.setSitesStyle();
   }
 
   setSitesStyle() {
