@@ -19,8 +19,7 @@ export class MonitoringDatatableComponent implements OnInit {
   @Input() rows;
   @Input() columns;
 
-  @Input() objectType;
-  @Input() modulePath;
+  @Input() child0;
   @Input() frontendModuleMonitoringUrl;
 
   @Input() rowStatus: Array<any>;
@@ -28,12 +27,16 @@ export class MonitoringDatatableComponent implements OnInit {
 
   temp;
   selected = [];
+  customColumnComparator;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
 
-  constructor(private _router: Router) { }
+  constructor(
+    private _router: Router,
+  ) { }
 
   ngOnInit() {
+    this.customColumnComparator = this.customColumnComparator_(this.child0)
     this.temp = [...this.rows];
 
     // init key_filter
@@ -61,7 +64,7 @@ export class MonitoringDatatableComponent implements OnInit {
       bChange = bChange || bCondVisible != this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
       this.rowStatus[index]['selected'] &= bCondVisible;
-      
+
 
       return bCondVisible;
     });
@@ -96,26 +99,26 @@ export class MonitoringDatatableComponent implements OnInit {
       "/",
       this.frontendModuleMonitoringUrl,
       "object",
-      this.modulePath,
+      this.child0.modulePath,
       objectType,
       id
     ]);
   }
 
   setSelected() {
-    
+
     const status_selected = this.rowStatus.find(status => status.selected);
-    if(! status_selected) {
+    if (!status_selected) {
       return;
     }
 
     const index_row_selected = this.rows.findIndex(row => row.id == status_selected.id);
-    if(index_row_selected == -1) {
+    if (index_row_selected == -1) {
       return;
     }
 
     this.selected = [this.rows[index_row_selected]];
-    this.table.offset =  Math.floor((index_row_selected)/this.table._limit);
+    this.table.offset = Math.floor((index_row_selected) / this.table._limit);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -127,6 +130,44 @@ export class MonitoringDatatableComponent implements OnInit {
           console.log('ngChange')
           this.rowStatus = cur;
           this.setSelected();
+          break;
+        case "child0":
+          this.customColumnComparator = this.customColumnComparator_(cur);
+          break;
+      }
+    }
+  }
+
+  customColumnComparator_(child0) {
+    return (propA, propB, colA, colB, sd) => {
+      // console.log(colA, propA)
+      const prop = Object.keys(colA).find(key => colA[key] == propA);
+      if (!prop) {
+        return
+      }
+
+      const schema = this.child0.schema();
+      const elem = schema.find(elem => elem.attribut_name == prop);
+      if (!elem) {
+        return
+      }
+      const type = elem.type_widget || elem.type_util;
+      console.log(type)
+      switch(type) {
+        case 'date':
+        
+          let dateA = new Date(propA);
+          let dateB = new Date(propB);
+          console.log(dateA, dateB, dateB > dateA)
+          if(dateB > dateA) return 1;
+          if(dateB == dateA) return 0;
+          if(dateB < dateA) return -1;
+          break;
+        default:
+          if(propB > propA) return 1;
+          if(propB == propA) return 0;
+          if(propB < propA) return -1;
+          break;
       }
     }
   }

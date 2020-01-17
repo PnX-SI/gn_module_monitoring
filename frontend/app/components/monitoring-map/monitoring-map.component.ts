@@ -61,7 +61,6 @@ export class MonitoringMapComponent implements OnInit {
       .subscribe((sites) => {
         this.initSites(sites);
       })
-      console.log(this._configService)
   }
 
   initSites(sites) {
