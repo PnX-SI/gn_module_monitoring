@@ -78,7 +78,6 @@ export class MonitoringFormComponent implements OnInit {
 
           this.objForm.setValue(formValue);
           this.setDefaultFormValue()
-          console.log('info', 'objForm initialisé')
         }
       })
     // emit change programmatically
@@ -155,7 +154,6 @@ export class MonitoringFormComponent implements OnInit {
     this.obj
       .delete()
       .subscribe((objData) => {
-        console.log('info', msg_delete);
         this.bDeleteSpinner = this.bDeleteModal = false;
         this.navigateToParent();
       });

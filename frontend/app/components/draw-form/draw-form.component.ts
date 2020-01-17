@@ -69,7 +69,9 @@ export class DrawFormComponent implements OnInit {
   }
 
   setGeojson(geometry) {
-    this.geojson = { 'geometry': geometry };
+    setTimeout(() => {
+      this.geojson = { 'geometry': geometry };
+    });
   }
 
   // suivi composant => formControl

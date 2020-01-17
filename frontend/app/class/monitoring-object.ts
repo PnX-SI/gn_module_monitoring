@@ -29,7 +29,8 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     let observables = [this.resolveProperties()];
 
-    if (this.id && this.childrenTypes().length) {
+    // if (this.id && this.childrenTypes().length) {
+    if (this.childrenTypes().length) {
       observables.push(this.initChildren(objData.children));
     }
 
@@ -42,9 +43,9 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   initChildren(childrenData): Observable<any> {
-    if (!(this.id && childrenData)) {
+    if(!childrenData) {
       return of(true);
-    }
+    } 
 
     return forkJoin(
       this.childrenTypes().map(childrenType => {
@@ -61,13 +62,15 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     this.children[childrenType] = [];
-    console.log(childrenType)
+    
+    if ( !(this.id && childrenDataOfType.length) ) {
+      return of(true);
+    }
+
     let childIdFieldName = this.child0(childrenType).configParam(
       "id_field_name"
     );
-    if (childrenDataOfType.length == 0) {
-      return of(true);
-    }
+
     let observables = [];
     for (let childData of childrenDataOfType) {
       let id = childData.properties[childIdFieldName];

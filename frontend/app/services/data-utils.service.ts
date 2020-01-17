@@ -93,7 +93,6 @@ export class DataUtilsService {
     let cache = this._cacheService.cache();
     // test si la fonction a déjà été appelée
     if (cache[modulePath] && cache[modulePath]['init_data']) {
-      console.log('init data déjà effectué')
       return of(true);
     }
 

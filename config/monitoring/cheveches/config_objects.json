@@ -2,15 +2,11 @@
     "tree":{
         "module": {
             "site": {
-                "visit": {
-                    "observation":null
-                }
+                "visit": null,
+                "media": null
             }
         }
     },
-
-    "module": {
-    },    
     "site": {
         "geometry_type": "Point",
         "display_properties": [
@@ -19,32 +15,32 @@
             "id_2014",
             "code_2014",
             "id_2010",
-            "code_2010"
+            "code_2010",
+            "last_visit"
           ],
           "display_list": [
             "base_site_name",
-            "base_site_code"
+            "base_site_code",
+            "last_visit"
           ]            
-      },
+    },
     "visit": {
         "display_properties": [
-            "num_passage",
+            "id_base_site",
             "visit_date_min",
-            "observers"
-          ]      
-    },
-    "observation": {
-        "display_properties": [
-            "code_circuit_point",
-            "date_observation",
+            "num_passage",
+            "observers",
+            "id_nomenclature_vent",
+            "id_nomenclature_meteo",
             "time_observation",
             "id_nomenclature_statut_obs",
-            "meteo_txt",
             "comments"
         ],
         "display_list": [
-            "code_circuit_point",
-            "date_observation",
+            "id_base_site",
+            "visit_date_min",
+            "num_passage",
+            "observers",
             "time_observation",
             "id_nomenclature_statut_obs"
         ]

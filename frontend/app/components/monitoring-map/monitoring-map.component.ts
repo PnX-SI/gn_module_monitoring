@@ -30,7 +30,7 @@ export class MonitoringMapComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   sites = {};
-
+  map;
   // todo mettre en config
   styleConfig = {
     hidden: {
@@ -44,7 +44,7 @@ export class MonitoringMapComponent implements OnInit {
   };
 
   constructor(
-    private _mapService: MapService,
+    protected _mapService: MapService,
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
   ) { }
@@ -64,6 +64,7 @@ export class MonitoringMapComponent implements OnInit {
       let $this = this;
       if (this.sites && this.sites['features']) {
         this.initSitesStatus();
+        this.setSitesStyle();
         this.sites['features'].forEach(site => {
 
           $this.setPopup(site.id);
@@ -77,19 +78,23 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSitesStatus() {
-    if (this.objectsStatus['site']) {
-      return;
+    if (!this.objectsStatus['site']) {
+      this.objectsStatus['site'] = [];
     }
-    this.objectsStatus['site'] = []
     const $this = this;
     this.sites['features'].forEach(site => {
+      const status = $this.objectsStatus['site'].find(status => status.id == site.id);
+      if(status) { 
+        return;
+      }
+
       $this.objectsStatus['site'].push(
         {
           'selected': false,
           'visible': true,
           'id': site.id
         }
-      )
+      );
     });
   }
 
@@ -101,7 +106,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSitesStyle() {
-    if(this.objectsStatus['site']) {
+    if(this.objectsStatus['site'] && this._mapService.map) {
       this.objectsStatus['site'].forEach(status => {
         this.setSiteStyle(status)
       });

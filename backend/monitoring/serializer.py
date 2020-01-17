@@ -5,6 +5,37 @@ from ..utils.utils import to_int
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
 
+    def get_parent(self):
+        if(self._object_type == 'media'):
+            return
+
+        parent_type = self.config_param('parent_type')
+        if not parent_type:
+            return
+
+        if self._parent:
+            return self._parent
+
+        return (
+            monitoring_definitions
+            .monitoring_object_instance(
+                self._module_path,
+                parent_type,
+                self.id_parent()
+            )
+            .get()
+        )
+
+    def get_site_id(self):
+        if not self.id:
+            return
+        if self._object_type == 'site':
+            return self._model.id_base_site
+        parent = self.get_parent()
+        if not parent:
+            return
+        return parent.get_site_id()
+
     def as_dict(self, depth):
         return self._model.as_dict(depth=depth)
 
@@ -106,6 +137,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'properties': properties,
             'object_type': self._object_type,
             'module_path': self._module_path,
+            'site_id': self.get_site_id()
         }
         properties['id_parent']: to_int(self.id_parent())
         if(children):

@@ -21,7 +21,7 @@
     "type_util": "nomenclature",
     "value": {
       "code_nomenclature_type": "TYPE_SITE",
-      "cd_nomenclature": "POINT_ECOUTE_CHEVECHE"
+      "cd_nomenclature": "CHE_PT_E"
     },
     "hidden": true
   }
