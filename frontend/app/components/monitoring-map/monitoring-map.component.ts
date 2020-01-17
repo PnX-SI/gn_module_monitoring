@@ -14,6 +14,8 @@ import { ConfigService } from "../../services/config.service";
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
 
 import { MapService } from "@geonature_common/map/map.service";
+import { Utils } from '../../utils/utils'
+
 
 @Component({
   selector: "pnx-monitoring-map",
@@ -71,6 +73,7 @@ export class MonitoringMapComponent implements OnInit {
           let layer = $this.findSiteLayer(site.id);
           layer.on('click', (e) => {
             this.setSelectedSite(site.id)
+            this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
           })
         });
       }
@@ -106,7 +109,6 @@ export class MonitoringMapComponent implements OnInit {
         this.setSiteStyle(status);
       }
     });
-    // this.setSitesStyle();
   }
 
   setSitesStyle() {

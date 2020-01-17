@@ -5,7 +5,8 @@ import {
   Input,
   Output,
   EventEmitter,
-  ViewChild
+  ViewChild,
+  SimpleChanges
 } from "@angular/core";
 import { Router } from "@angular/router";
 
@@ -26,10 +27,11 @@ export class MonitoringDatatableComponent implements OnInit {
   @Output() rowStatusChange = new EventEmitter<Object>();
 
   temp;
+  selected = [];
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
 
-  constructor(private _router: Router) {}
+  constructor(private _router: Router) { }
 
   ngOnInit() {
     this.temp = [...this.rows];
@@ -39,7 +41,7 @@ export class MonitoringDatatableComponent implements OnInit {
       let keyFilter = "";
       Object.keys(row).forEach(key => {
         if (key != 'id') {
-          keyFilter += " "+ row[key];
+          keyFilter += " " + row[key];
         }
       });
       this.temp[index]["key_filter"] = keyFilter;
@@ -58,6 +60,8 @@ export class MonitoringDatatableComponent implements OnInit {
 
       bChange = bChange || bCondVisible != this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
+      this.rowStatus[index]['selected'] &= bCondVisible;
+      
 
       return bCondVisible;
     });
@@ -69,6 +73,7 @@ export class MonitoringDatatableComponent implements OnInit {
     this.rows = temp;
     // Whenever the filter changes, always go back to the first page
     this.table.offset = 0;
+    this.setSelected();
   }
 
   onRowClick(event) {
@@ -76,12 +81,14 @@ export class MonitoringDatatableComponent implements OnInit {
       return;
     }
     let id = event.row && event.row.id;
-    this.rowStatus.forEach((status, index) => {
+
+    this.rowStatus.forEach((status) => {
       let bCond = status.id == id;
       status["selected"] = bCond && !status["selected"];
     });
 
-      this.rowStatusChange.emit(this.rowStatus);
+    this.setSelected();
+    this.rowStatusChange.emit(this.rowStatus);
   }
 
   navigateViewObject(objectType, id) {
@@ -95,4 +102,32 @@ export class MonitoringDatatableComponent implements OnInit {
     ]);
   }
 
+  setSelected() {
+    
+    const status_selected = this.rowStatus.find(status => status.selected);
+    if(! status_selected) {
+      return;
+    }
+
+    const index_row_selected = this.rows.findIndex(row => row.id == status_selected.id);
+    if(index_row_selected == -1) {
+      return;
+    }
+
+    this.selected = [this.rows[index_row_selected]];
+    this.table.offset =  Math.floor((index_row_selected)/this.table._limit);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    for (let propName in changes) {
+      let chng = changes[propName];
+      let cur = chng.currentValue;
+      switch (propName) {
+        case "rowStatus":
+          console.log('ngChange')
+          this.rowStatus = cur;
+          this.setSelected();
+      }
+    }
+  }
 }

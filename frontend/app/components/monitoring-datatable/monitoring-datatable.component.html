@@ -1,3 +1,4 @@
+{{ selected | json }}
 <input
   type="text"
   style="padding:8px;margin:15px auto;width:30%;"
@@ -16,6 +17,7 @@
   [limit]="10"
   [rows]="rows"
   [columns]="columns"
+  [selected]="selected"
   (activate)="onRowClick($event)"
 >
 
