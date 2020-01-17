@@ -7,6 +7,8 @@ import {
   SimpleChanges
 } from "@angular/core";
 
+import { Router } from "@angular/router";
+
 import { FormGroup } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Layer } from "@librairies/leaflet";
@@ -49,6 +51,7 @@ export class MonitoringMapComponent implements OnInit {
     protected _mapService: MapService,
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
+    private _router: Router
   ) { }
 
 
@@ -58,6 +61,7 @@ export class MonitoringMapComponent implements OnInit {
       .subscribe((sites) => {
         this.initSites(sites);
       })
+      console.log(this._configService)
   }
 
   initSites(sites) {
@@ -87,7 +91,7 @@ export class MonitoringMapComponent implements OnInit {
     const $this = this;
     this.sites['features'].forEach(site => {
       const status = $this.objectsStatus['site'].find(status => status.id == site.id);
-      if(status) { 
+      if(status) {
         return;
       }
 
@@ -153,17 +157,23 @@ export class MonitoringMapComponent implements OnInit {
   setPopup(id) {
     let layer = this.findSiteLayer(id);
 
-    let ObjectLabel = this._configService.configModuleObjectParam(
-      "objects",
+    // TODO verifier si le fait de spécifier # en dur
+    //  Ne pose pas de soucis pour certaine configuration
+    let url = [
+      '#',
+      this._configService.frontendModuleMonitoringUrl(),
+      'object',
       this.obj.modulePath,
-      layer['feature'].object_type,
-      "label"
-    );
+      'site',
+      layer['feature'].properties.id_base_site
+    ].join('/');
+
 
     let sPopup = `
     <div>
-      ${ObjectLabel} ${layer['feature'].properties.description || layer['feature'].properties.base_site_name}
-    </div>    
+      <h4>  <a href=${url}>${layer['feature'].properties.base_site_name}</a></h4>
+      ${layer['feature'].properties.description || ''}
+    </div>
     `;
 
     layer.bindPopup(sPopup).closePopup();
