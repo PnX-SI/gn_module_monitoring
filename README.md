@@ -39,8 +39,7 @@ npm install
 source venv/bin/activate 
 geonature install_gn_module <mon_chemin_absolu_vers_le_module> /monitoring
 ```
-
-    * Vous pouvez sortir du venv en lançant la commande `deactivate`
+ * Vous pouvez sortir du venv en lançant la commande `deactivate`
 
 
 ## Ajout du module de test
