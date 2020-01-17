@@ -96,15 +96,15 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             if not hasattr(self._model, relation_name):
                 continue
+
             children_of_type = [
                 monitoring_definitions
                 .monitoring_object_instance(self._module_path, children_type, model=child_model)
-                .get()
+                # .get()
                 .serialize(depth)
                 for child_model in getattr(self._model, relation_name)
             ]
             children[children_type] = children_of_type
-            # children[relation_name] = children_of_type
 
         return children
 

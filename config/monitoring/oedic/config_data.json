@@ -1,0 +1,20 @@
+{
+  "nomenclature": [
+      "TYPE_SITE",
+      "OED_NAT_OBS",
+      "OED_METEO_VENT",
+      "OED_METEO_CIEL"
+
+  ],
+  "taxonomy": {
+    "id_list": "__ID_COMPONENT_TAXONOMY"
+    ,
+    "cd_noms": [
+      3120
+    ]
+  },
+  "user": [
+    "__CODE_LIST_INVENTOR",
+    "__CODE_LIST_OBSERVER"
+  ]
+}
