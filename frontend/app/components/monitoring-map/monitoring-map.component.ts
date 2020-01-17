@@ -125,7 +125,8 @@ export class MonitoringMapComponent implements OnInit {
       ? this.styleConfig.normal
       : this.styleConfig.hidden;
 
-    style['color'] = status['selected'] ? 'red' : 'blue';
+    style['color'] = status['current'] ? 'green' : 'blue';
+    style['color'] = status['selected'] ? 'red' : style['color'];
 
     layer['setStyle'](style);
 
