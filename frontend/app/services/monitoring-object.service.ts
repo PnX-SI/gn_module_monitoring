@@ -82,7 +82,7 @@ export class MonitoringObjectService {
         break;
       }
       case 'taxonomy': {
-        x = x instanceof Object ? x.cd_nom : x; 
+        x = x instanceof Object ? x.cd_nom : x;
         break;
       }
     }
@@ -91,11 +91,20 @@ export class MonitoringObjectService {
 
   dateFromString(s_date) {
     const v_date = s_date.split('/');
-    if(v_date.length != 3) {
+    if (v_date.length != 3) {
       return null;
     }
-    let date = Date.parse(`${v_date[2]}-${v_date[1]}-${v_date[0]}`); 
+    let date = Date.parse(`${v_date[2]}-${v_date[1]}-${v_date[0]}`);
     return date;
+  }
+
+  numberFromString(s) {
+    const v = s.split(' ');
+    const s_n = v[0];
+    const v_n = s_n.split('.');
+    v_n[0] = Number(v_n[0]);
+    v_n[1] = Number(v_n[1]);
+    return (v_n.length > 1 && v_n[0]) ? v_n : null;
   }
 
   dataMonitoringObjectService(): DataMonitoringObjectService {

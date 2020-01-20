@@ -140,6 +140,8 @@ export class MonitoringDatatableComponent implements OnInit {
     }
   }
 
+
+
   customColumnComparator_() {
     return (propA, propB, colA, colB, sortDirection) => {
 
@@ -171,10 +173,21 @@ export class MonitoringDatatableComponent implements OnInit {
           x2 = this._monitoring.dateFromString(x2);
           out = (x1 == x2) ? 0 : (x1 > x2) ? 1 : -1;
           break;
+        case 'text':
+          // quand les propriete sont de la forme "1.1 Nom_site"
+          let v1 = this._monitoring.numberFromString(x1)
+          let v2 = this._monitoring.numberFromString(x2);
+          if(v1 && v2){
+            if( v1[0] == v2[0]) {
+              out = (v1[1] == v2[1]) ? 0 : (v1[1] > v2[1]) ? 1 : -1;
+            }
+            else {
+              out = v1[0] > v2[0] ? 1 : -1
+            }
+          }
         default:
           break
       }
-
       return out;
     }
   }
