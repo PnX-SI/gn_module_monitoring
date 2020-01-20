@@ -85,7 +85,6 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSites() {
-    console.log('init sites', this.sites)
     setTimeout(() => {
       let $this = this;
       this.initPanes()
@@ -236,7 +235,6 @@ export class MonitoringMapComponent implements OnInit {
     for (let propName in changes) {
       let chng = changes[propName];
       let cur = chng.currentValue;
-      console.log(propName, cur)
       switch (propName) {
         case "objectsStatus":
           this.setSitesStyle();
