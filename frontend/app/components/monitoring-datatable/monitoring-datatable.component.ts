@@ -145,7 +145,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
       let x1 = propA, x2 = propB;
 
-      let res = 1-2*(sortDirection=='asc')
+      let res = 1 - Number(sortDirection=='asc') * 2;
 
       if(!x1 && !x2) return 0;
       if(!x1 && x2) return -res;
