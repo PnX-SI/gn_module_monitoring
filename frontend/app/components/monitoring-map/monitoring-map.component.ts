@@ -9,9 +9,10 @@ import {
 
 import { FormGroup } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
-import { Layer } from "@librairies/leaflet";
+import { Layer, svg } from "@librairies/leaflet";
 import { ConfigService } from "../../services/config.service";
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
+
 
 import { MapService } from "@geonature_common/map/map.service";
 import { Utils } from '../../utils/utils'
@@ -32,16 +33,42 @@ export class MonitoringMapComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   sites = {};
+  panes = {};
+  renderers = {};
   map;
   // todo mettre en config
-  styleConfig = {
+  
+  styles = {
     hidden: {
       opacity: 0,
-      fillOpacity: 0
+      fillOpacity: 0,
+      color: 'blue',
+      zIndex: 0
     },
-    normal: {
+    default: {
       opacity: 0.7,
-      fillOpacity: 0.5
+      fillOpacity: 0.5,
+      color: 'blue',
+      zIndex: 600
+    },
+    current: {
+      opacity: 0.7,
+      fillOpacity: 0.5,
+      color: 'green',
+      zIndex: 650
+
+    },
+    selected: {
+      opacity: 0.7,
+      fillOpacity: 0.5,
+      color: 'red',
+      zIndex: 660
+    },
+    edit: {
+      opacity: 0.1,
+      fillOpacity: 0.05,
+      color: 'blue',
+      zIndex: 600
     }
   };
 
@@ -53,6 +80,7 @@ export class MonitoringMapComponent implements OnInit {
 
 
   ngOnInit() {
+    console.log('init map');
     this._data
       .getSites(this.obj.modulePath)
       .subscribe((sites) => {
@@ -61,22 +89,39 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSites(sites) {
+    console.log('sites')
     this.sites = sites;
     setTimeout(() => {
       let $this = this;
+      this.initPanes()
       if (this.sites && this.sites['features']) {
+
         this.initSitesStatus();
-        this.setSitesStyle();
         this.sites['features'].forEach(site => {
           $this.setPopup(site.id);
           let layer = $this.findSiteLayer(site.id);
+          //pane
           layer.on('click', (e) => {
             this.setSelectedSite(site.id);
             this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
           })
         });
+        this.setSitesStyle();
       }
     }, 0);
+  }
+
+  initPanes() {
+    const map = this._mapService.map
+    for (const key in this.styles) {
+      const style = this.styles[key];
+      map.createPane(key);
+      const pane = map.getPane(key);
+      pane.style.zIndex = style.zIndex;
+      const renderer = svg({pane: pane});
+      this.panes[key] = pane;
+      this.renderers[key] = renderer;
+    }
   }
 
   initSitesStatus() {
@@ -119,20 +164,30 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSiteStyle(status) {
+    const map = this._mapService.map;
     let layer = this.findSiteLayer(status.id);
     if (!layer) return;
 
-    let style = status['visible']
-      ? this.styleConfig.normal
-      : this.styleConfig.hidden;
 
-    style['color'] = status['current'] ?
-      'green' : status['selected'] ?
-      'red' : 'blue';
 
-    layer['setStyle'](style);
+    const style_name = 
+      !status['visible'] ? 'hidden' :
+      status['current'] ? 'current' :
+      status['selected'] ? 'selected' :
+      this.bEdit ? 'edit' :
+      'default';
+
+    const style = this.styles[style_name] || this.styles['default'];
+
+    style['pane'] = this.panes[style_name];
+    style['renderer'] = this.renderers[style_name];
+    layer.removeFrom(map);
+    layer.setStyle(style);
+    layer.addTo(map);
+
 
     if (status['selected']) {
+
       if(!layer._popup) {
         this.setPopup(status.id);
         layer = this.findSiteLayer(status.id);
@@ -180,7 +235,6 @@ export class MonitoringMapComponent implements OnInit {
     `;
 
     layer.bindPopup(sPopup).closePopup();
-    console.log(id)
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -190,6 +244,10 @@ export class MonitoringMapComponent implements OnInit {
       switch (propName) {
         case "objectsStatus":
           this.setSitesStyle();
+          break;
+        case "bEdit":
+          this.setSitesStyle();
+          break;
       }
     }
   }
