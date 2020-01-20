@@ -239,7 +239,10 @@ export class MonitoringObject extends MonitoringObjectBase {
     let childrenFieldNames = child0.fieldNames(typeDisplay);
 
     let columns = childrenFieldNames.map(fieldName => {
-      return { prop: fieldName, name: childrenFieldLabels[fieldName] };
+      return { 
+        prop: fieldName,
+        name: childrenFieldLabels[fieldName] 
+      };
     });
 
     let rows = [];
@@ -264,57 +267,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     return Utils.mapArrayToDict(this.childrenTypes(), childrenType => {
       return this.childrenColumnsAndRowsOfType(childrenType, typeDisplay);
     });
-  }
-
-  /** Geometry :  sibbling, children, parent TODO*/
-
-  sibblingGeometries() {
-    if (
-      !(this.config["geometry_type"] && this.parent && this.parent.children)
-    ) {
-      return null;
-    }
-
-    let sibblingGeometries = this.parent.childrenGeometriesOfType(
-      this.objectType
-    );
-
-    if (!sibblingGeometries) {
-      return null;
-    }
-
-    let features = sibblingGeometries["features"].filter(geom => {
-      return geom.id != this.id;
-    });
-
-    sibblingGeometries.features = features;
-
-    return sibblingGeometries;
-  }
-
-  childrenGeometriesOfType(childrenType) {
-    let childrenWithGeom = this.children[childrenType];
-    if (!childrenWithGeom) {
-      return null;
-    }
-
-    let features = childrenWithGeom.map(child => {
-      return child.geoFeature();
-    });
-
-    return {
-      type: "FeatureCollection",
-      features: features
-    };
-  }
-
-  childrenGeometries() {
-    return Utils.mapArrayToDict(
-      this.childrenTypes("geometry_type"),
-      childrenType => {
-        return this.childrenGeometriesOfType(childrenType);
-      }
-    );
   }
 
 }

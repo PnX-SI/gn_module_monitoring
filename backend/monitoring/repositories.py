@@ -40,14 +40,8 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         id_parent = post_data.get('id_parent')
         if id_parent:
-
-            # si l'objet est similaire a son parent
-            # on garde l'id du parent dans un champs specifique id_parent
-            if self.is_similar_to_parent():
-                properties['id_parent'] = id_parent
-            else:
-                parent_id_field_name = self.parent_config_param('id_field_name')
-                properties[parent_id_field_name] = post_data['id_parent']
+            parent_id_field_name = self.parent_config_param('id_field_name')
+            properties[parent_id_field_name] = post_data['id_parent']
 
     def process_correlations(self, post_data):
         # pour gérer et commiter les corrélations en tout genre

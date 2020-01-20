@@ -9,6 +9,7 @@ import {
   SimpleChanges
 } from "@angular/core";
 import { Router } from "@angular/router";
+import { MonitoringObjectService } from './../../services/monitoring-object.service';
 
 @Component({
   selector: "pnx-monitoring-datatable",
@@ -33,10 +34,11 @@ export class MonitoringDatatableComponent implements OnInit {
 
   constructor(
     private _router: Router,
+    private _monitoring: MonitoringObjectService
   ) { }
 
   ngOnInit() {
-    this.customColumnComparator = this.customColumnComparator_(this.child0)
+    this.customColumnComparator = this.customColumnComparator_()
     this.temp = [...this.rows];
 
     // init key_filter
@@ -132,13 +134,13 @@ export class MonitoringDatatableComponent implements OnInit {
           this.setSelected();
           break;
         case "child0":
-          this.customColumnComparator = this.customColumnComparator_(cur);
+          this.customColumnComparator = this.customColumnComparator_();
           break;
       }
     }
   }
 
-  customColumnComparator_(child0) {
+  customColumnComparator_() {
     return (propA, propB, colA, colB, sd) => {
       // console.log(colA, propA)
       const prop = Object.keys(colA).find(key => colA[key] == propA);
@@ -152,23 +154,7 @@ export class MonitoringDatatableComponent implements OnInit {
         return
       }
       const type = elem.type_widget || elem.type_util;
-      console.log(type)
-      switch(type) {
-        case 'date':
-        
-          let dateA = new Date(propA);
-          let dateB = new Date(propB);
-          console.log(dateA, dateB, dateB > dateA)
-          if(dateB > dateA) return 1;
-          if(dateB == dateA) return 0;
-          if(dateB < dateA) return -1;
-          break;
-        default:
-          if(propB > propA) return 1;
-          if(propB == propA) return 0;
-          if(propB < propA) return -1;
-          break;
-      }
+      return this._monitoring.sort(propA, propB, type)      
     }
   }
 }

@@ -89,6 +89,30 @@ export class MonitoringObjectService {
     return x;
   }
 
+  dateFromString(s_date) {
+    const v_date = s_date.split('-');
+    if(v_date.length != 3) {
+      return
+    }
+    let date = Date.parse(`${v_date[2]}-${v_date[1]}-${v_date[0]}`); 
+    console.log(date)
+    return date;
+  }
+
+  sort(val1, val2, type) {
+    let x1 = val1, x2 = val2;
+    switch (type) {
+      case 'date':
+        x1 = this.dateFromString(val1);
+        x2 = this.dateFromString(val2);
+        break;
+      default:
+        break
+    }
+      return (x1 == x2) ? 0 :
+        (x1 > x2) ? 1 : -1;
+  }
+
   dataMonitoringObjectService(): DataMonitoringObjectService {
     return this._dataMonitoringObjectService;
   }

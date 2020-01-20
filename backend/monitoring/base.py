@@ -150,13 +150,7 @@ class MonitoringObjectBase():
         return base_object_type == base_parent_type
 
     def id_parent_fied_name(self):
-
-        if self.is_similar_to_parent():
-            return 'id_parent'
-        else:
-            id_parent_field_name = self.parent_config_param('id_field_name')
-
-        return id_parent_field_name
+        return self.parent_config_param('id_field_name')
 
     def id_parent(self):
         parent_type = self.config_param('parent_type')

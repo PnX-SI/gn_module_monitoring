@@ -83,19 +83,11 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
 
-    // TODO simplifier!!
+    // TODO verifier!!
     if (!this.parentId) {
-      if (this.schema().find(e => e.attribut_name == "id_parent")) {
-        this.parentId = this.properties["id_parent"];
-      } else if (this.parentIdFieldName()) {
         this.parentId = this.properties[this.parentIdFieldName()]
-      }
     } else {
-      if (this.schema().find(e => e.attribut_name == "id_parent")) {
-        this.properties["id_parent"] = this.parentId;
-      } else if (this.parentIdFieldName()) {
         this.properties[this.parentIdFieldName()] = this.parentId;
-      }
     }
   }
 
