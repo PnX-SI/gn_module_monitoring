@@ -52,16 +52,11 @@ export class MonitoringObjectComponent implements OnInit {
 
     this.currentUser = this._auth.getCurrentUser();
 
-    this._route.paramMap
+    of(true)
       .pipe(
-        mergeMap((params) => {
-          this.bLoadingModal = true; // affiche la fenetre de chargement
-          this.objForm = this._formBuilder.group({}); // mise à zéro du formulaire
-          this.initParams(params)
-          // chargement de la configuration
-          return of(true);
+        mergeMap(() => {
+          return this.initParams();
         }),
-
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
         }),
@@ -80,7 +75,7 @@ export class MonitoringObjectComponent implements OnInit {
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
-        this.bEdit = (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
+        this.bEdit = this.bEdit || (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
 
         this.initObjectsStatus()
 
@@ -134,22 +129,34 @@ export class MonitoringObjectComponent implements OnInit {
     this.objectsStatus = objectsStatus;
   }
 
-  initParams(params) {
-    let objectType = params.get('objectType') ? params.get('objectType') : 'module';
+  initParams() {
+    return this._route.paramMap
+      .pipe(
+        mergeMap((params) => {
 
-    this.obj = new MonitoringObject(params.get('modulePath'),
-      objectType,
-      params.get('id'),
-      this._objService
-    );
-
-    this.module = new MonitoringObject(params.get('modulePath'),
-      'module',
-      null,
-      this._objService
-    );
-
-    this.obj.parentId = params.get('parentId');
+          let objectType = params.get('objectType') ? params.get('objectType') : 'module';
+          
+          this.obj = new MonitoringObject(params.get('modulePath'),
+          objectType,
+          params.get('id'),
+          this._objService
+          );
+          
+          this.module = new MonitoringObject(params.get('modulePath'),
+          'module',
+          null,
+          this._objService
+          );
+          
+          this.obj.parentId = params.get('parentId');
+          return this._route.queryParamMap
+        }),
+        mergeMap((params) => {
+          this.objForm = this._formBuilder.group({});
+          this.bEdit = !!params.get('edit');
+          return of(true);
+        })
+      )
   }
 
   initConfig(): Observable<any> {
@@ -180,7 +187,7 @@ export class MonitoringObjectComponent implements OnInit {
       .pipe(
         concatMap((res) => {
           if (this.obj.objectType == 'module') {
-            this.obj = this.module;
+            return this.obj.get(1);
           }
           return of(true);
         })

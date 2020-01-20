@@ -96,7 +96,12 @@ export class MonitoringDatatableComponent implements OnInit {
     this.rowStatusChange.emit(this.rowStatus);
   }
 
-  navigateViewObject(objectType, id) {
+  navigateViewObject(objectType, id, bEdit) {
+    const queryParams = {}
+    if(bEdit) {
+      queryParams['edit'] = 'true';
+    }
+    
     this._router.navigate([
       "/",
       this.frontendModuleMonitoringUrl,
@@ -104,7 +109,9 @@ export class MonitoringDatatableComponent implements OnInit {
       this.child0.modulePath,
       objectType,
       id
-    ]);
+    ], { queryParams: 
+      queryParams
+     });
   }
 
   setSelected() {

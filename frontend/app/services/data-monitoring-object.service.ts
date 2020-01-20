@@ -54,29 +54,6 @@ export class DataMonitoringObjectService {
   }
 
 
-  /** 
-   * Renvoie l'ensemple des site d'un module
-   * sous forme de geofeatures
-  */
-  getSites(modulePath): Observable<any> {
-    return this.getObject(modulePath, 'module', null, 1)
-      .pipe(
-        mergeMap((module) => {
-          let sites = module['children']['site'];
-          sites = {
-            features: sites.map((site) => {
-              site['id'] = site['properties']['id_base_site'];
-              site['type'] = 'Feature';
-              return site
-            }),
-            type: 'FeatureCollection'
-          }
-          // transformer en geofeatures
-          return of(sites);
-        })
-      )
-  }
-
   /**
    * Renvoie un objet pour un module, un type d'objet et un identifiant donnés
    * 
@@ -86,7 +63,7 @@ export class DataMonitoringObjectService {
    */
   getObject(modulePath, objectType, id = null, depth = null) {
     const url = this.urlMonitoring('object', modulePath, objectType, id, depth);
-    if(objectType = 'module') {
+    if(objectType == 'module') {
       const sCachePaths = `module|${modulePath}`;
       return this._cacheService.cache_or_request('get', url, sCachePaths);
     } else {

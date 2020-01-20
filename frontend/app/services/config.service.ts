@@ -26,7 +26,6 @@ export class ConfigService {
     if (this._config && this._config[modulePath]) {
       return of(true);
     } else {
-      console.log('config get');
       let urlConfig = modulePath == 'generic' ? `${this.backendModuleUrl()}/config` : `${this.backendModuleUrl()}/config/${modulePath}`
       return this._http.get<any>(urlConfig)
         .pipe(

@@ -20,9 +20,10 @@ export class MonitoringFormComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   @Input() obj: MonitoringObject;
+  @Input() objChanged = new EventEmitter<MonitoringObject>();
 
   @Input() objectsStatus;
-  @Output() objectsStatusChange = new EventEmitter<MonitoringObject>();
+  @Output() objectsStatusChange = new EventEmitter<Object>();
 
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
@@ -83,6 +84,21 @@ export class MonitoringFormComponent implements OnInit {
     this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
   }
 
+  resetObjForm() {
+    this.obj = new MonitoringObject(this.obj.modulePath, this.obj.objectType, null, this.obj.monitoringObjectService());
+    this.obj.properties[this.obj.configParam('id_field_Name')] = null;
+    this.obj.get(0).
+      pipe(
+        mergeMap(() => {
+          this.obj.bIsInitialized = true;
+          return this.obj.formValues()
+        })
+      ).subscribe((formValue) => {
+        this.setFormValue(formValue);
+        this.objChanged.emit(this.obj);
+      });
+  }
+
   setDefaultFormValue() {
     const values = this.objForm.value
     let defaultValues = {};
@@ -105,7 +121,6 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   reload_create_route() {
-
     this._router.navigate(['/']);
     setTimeout(() => {
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]); this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]);
@@ -122,15 +137,16 @@ export class MonitoringFormComponent implements OnInit {
 
       console.log('info', `${actionLabel} de ${this.obj.configParam('label')} ${this.obj.id} effectué`);
       this.bSaveSpinner = this.bSaveAddSpinner = false;
-      this.bEditChange.emit(false);
       // this.objChange.emit(this.obj);
       if (this.obj.objectType.includes('module')) {
         this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       } else {
         if (addNew) {
-          this.reload_create_route();
+          this.resetObjForm();
+          // this.reload_create_route();
         } else {
           this.navigateToParent();
+          // this.bEditChange.emit(false);
           // let url = this._router.url;
           // this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.objectType, this.obj.id]);
         }

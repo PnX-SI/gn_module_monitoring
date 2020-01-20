@@ -48,6 +48,10 @@ export class MonitoringObjectBase {
     this._objService = objService;
   }
 
+  monitoringObjectService() {
+    return this._objService;
+  }
+
   toString() {
     return `Object - module: ${this.modulePath} - type: ${this.objectType} - id: ${this.id}`;
   }

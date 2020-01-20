@@ -5,3 +5,14 @@
 :host::ng-deep .datatable-body-row.active .datatable-row-group {
     background-color: rgb(117, 227, 118) !important;
 }
+
+.link:hover {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    transition: background-color 0.5;
+}
+
+.link {
+    display: inline;
+    transition: background-color 0.5s;
+    border-radius: 5px;
+}

@@ -66,8 +66,8 @@ export class MonitoringMapComponent implements OnInit {
       zIndex: 660
     },
     edit: {
-      opacity: 0.1,
-      fillOpacity: 0.05,
+      opacity: 0.2,
+      fillOpacity: 0.1,
       color: 'blue',
       zIndex: 600
     }

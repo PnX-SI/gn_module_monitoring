@@ -24,9 +24,13 @@
   
   <ngx-datatable-column [cellClass]="'cell-link'" prop="Voir" class="object-link">
     <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-      <a  class="nav-link edit cell-link"  (click)="navigateViewObject(child0.objectType, row.id)">
+      <a  class="nav-link link cell-link"  (click)="navigateViewObject(child0.objectType, row.id, false)">
         <i class="fa fa-info-circle" aria-hidden="true"></i>
       </a>
+      <a  class="nav-link link cell-link"  (click)="navigateViewObject(child0.objectType, row.id, true)">
+        <i class="fa fa-edit" aria-hidden="true"></i>
+      </a>
+
     </ng-template>
   </ngx-datatable-column>
   
