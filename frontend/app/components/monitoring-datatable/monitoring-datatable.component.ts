@@ -129,7 +129,6 @@ export class MonitoringDatatableComponent implements OnInit {
       let cur = chng.currentValue;
       switch (propName) {
         case "rowStatus":
-          console.log('ngChange')
           this.rowStatus = cur;
           this.setSelected();
           break;
