@@ -107,14 +107,14 @@ export class MonitoringObjectComponent implements OnInit {
         objectsStatus['site'] = [
           {
             "id": this.obj.siteId,
-            "selected": false,
+            "selected": true,
             "visible": true,
             "current": true
           }
         ];
       } else {
         let siteStatus = objectsStatus['site'] && objectsStatus['site'].find((status) => status.id == this.obj.siteId)
-        siteStatus['selected'] = false;
+        siteStatus['selected'] = true;
         siteStatus['current'] = true;
       }
     }

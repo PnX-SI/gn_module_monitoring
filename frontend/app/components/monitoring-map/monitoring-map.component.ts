@@ -7,8 +7,6 @@ import {
   SimpleChanges
 } from "@angular/core";
 
-import { Router } from "@angular/router";
-
 import { FormGroup } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Layer } from "@librairies/leaflet";
@@ -51,7 +49,6 @@ export class MonitoringMapComponent implements OnInit {
     protected _mapService: MapService,
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
-    private _router: Router
   ) { }
 
 
@@ -71,16 +68,15 @@ export class MonitoringMapComponent implements OnInit {
         this.initSitesStatus();
         this.setSitesStyle();
         this.sites['features'].forEach(site => {
-
           $this.setPopup(site.id);
           let layer = $this.findSiteLayer(site.id);
           layer.on('click', (e) => {
-            this.setSelectedSite(site.id)
+            this.setSelectedSite(site.id);
             this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
           })
         });
       }
-    }, 500);
+    }, 0);
   }
 
   initSitesStatus() {
@@ -130,12 +126,17 @@ export class MonitoringMapComponent implements OnInit {
       ? this.styleConfig.normal
       : this.styleConfig.hidden;
 
-    style['color'] = status['current'] ? 'green' : 'blue';
-    style['color'] = status['selected'] ? 'red' : style['color'];
+    style['color'] = status['current'] ?
+      'green' : status['selected'] ?
+      'red' : 'blue';
 
     layer['setStyle'](style);
 
     if (status['selected']) {
+      if(!layer._popup) {
+        this.setPopup(status.id);
+        layer = this.findSiteLayer(status.id);
+      }
       layer.openPopup();
     }
 
@@ -156,6 +157,9 @@ export class MonitoringMapComponent implements OnInit {
   setPopup(id) {
     let layer = this.findSiteLayer(id);
 
+    if(layer._popup) {
+      return;
+    }
     // TODO verifier si le fait de spécifier # en dur
     //  Ne pose pas de soucis pour certaine configuration
     let url = [
@@ -176,6 +180,7 @@ export class MonitoringMapComponent implements OnInit {
     `;
 
     layer.bindPopup(sPopup).closePopup();
+    console.log(id)
   }
 
   ngOnChanges(changes: SimpleChanges) {
