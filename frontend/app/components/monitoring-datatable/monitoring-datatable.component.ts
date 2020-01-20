@@ -141,20 +141,41 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   customColumnComparator_() {
-    return (propA, propB, colA, colB, sd) => {
-      // console.log(colA, propA)
-      const prop = Object.keys(colA).find(key => colA[key] == propA);
+    return (propA, propB, colA, colB, sortDirection) => {
+
+      let x1 = propA, x2 = propB;
+
+      let res = 1-2*(sortDirection=='asc')
+
+      if(!x1 && !x2) return 0;
+      if(!x1 && x2) return -res;
+      if(x1 && !x2) return res;
+      
+      let out = (x1 == x2) ? 0 : (x1 > x2) ? 1 : -1;
+
+      const prop = Object.keys(colA).find(key => colA[key] == x1);
       if (!prop) {
-        return
+        return out;
       }
 
       const schema = this.child0.schema();
       const elem = schema.find(elem => elem.attribut_name == prop);
       if (!elem) {
-        return
+        return out;
       }
-      const type = elem.type_widget || elem.type_util;
-      return this._monitoring.sort(propA, propB, type)      
+      const typeUtil = elem.type_widget || elem.type_util;
+
+      switch (typeUtil) {
+        case 'date':
+          x1 = this._monitoring.dateFromString(x1);
+          x2 = this._monitoring.dateFromString(x2);
+          out = (x1 == x2) ? 0 : (x1 > x2) ? 1 : -1;
+          break;
+        default:
+          break
+      }
+
+      return out;
     }
   }
 }
