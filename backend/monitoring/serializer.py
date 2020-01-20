@@ -1,4 +1,8 @@
+'''
+    serialiser
+'''
 import datetime
+import uuid
 from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
 
@@ -57,30 +61,30 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         if data:
             properties['data'] = data
 
-    def clean_properties(self, properties):
-        # clean properties
+    # def clean_properties(self, properties):
+    #     # clean properties
 
-        config_properties_keys = self.config_param('properties_keys')
-        properties_clean = {}
-        for key in properties:
-            if key in config_properties_keys:
-                properties_clean[key] = properties[key]
-        return properties_clean
+    #     config_properties_keys = self.config_param('properties_keys')
+    #     properties_clean = {}
+    #     for key in properties:
+    #         if key in config_properties_keys:
+    #             properties_clean[key] = properties[key]
+    #     return properties_clean
 
-    def patch_hybrid_properties(self, properties):
-        # TODO!! idéalement à faire dans utils_flask_slqalchemy
-        # patch pour les proprietes qui ne sortent pas avec le as_dict()
-        # par ex le site dans last visit qui est hybride
+    # def patch_hybrid_properties(self, properties):
+    #     # TODO!! idéalement à faire dans utils_flask_slqalchemy
+    #     # patch pour les proprietes qui ne sortent pas avec le as_dict()
+    #     # par ex le site dans last visit qui est hybride
 
-        for key in self.config_param('properties_keys'):
-            if key in properties or not hasattr(self._model, key):
-                continue
-            val = getattr(self._model, key)
-            if isinstance(val, (datetime.date)):
-                val = str(val)
-            if not val:
-                val = None
-            properties[key] = val
+    #     for key in self.config_param('properties_keys'):
+    #         if key in properties or not hasattr(self._model, key):
+    #             continue
+    #         val = getattr(self._model, key)
+    #         if isinstance(val, (datetime.date)):
+    #             val = str(val)
+    #         if not val:
+    #             val = None
+    #         properties[key] = val
 
     def serialize_children(self, depth):
         children_types = self.config_param('children_types')
@@ -108,6 +112,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         return children
 
+    def properties_names(self):
+        generic = list(map(lambda x: x['attribut_name'], self.config_schema('generic')))
+        data = ['data'] if hasattr(self._model, 'data') else []
+        return generic + data
+
     def serialize(self, depth=1):
         if depth is None:
             depth = 1
@@ -121,7 +130,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             self._model = Model()
 
-        properties = self._model.as_dict(depth=1)
+        # properties = self._model.as_dict(depth=1)
+        properties = {}
+        for field_name in self.properties_names():
+            val = getattr(self._model, field_name)
+            if isinstance(val, (datetime.date, uuid.UUID)):
+                val = str(val)
+            properties[field_name] = val
 
         children = None
         if depth >= 0:
@@ -130,8 +145,10 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # processe properties
         self.flatten_specific_properties(properties)
         # TODO utiliser as_dict avec parametres col et rel au lieu de clean
-        properties = self.clean_properties(properties)
-        self.patch_hybrid_properties(properties)
+
+        # plus besoin
+        # properties = self.clean_properties(properties)
+        # self.patch_hybrid_properties(properties)
 
         monitoring_object_dict = {
             'properties': properties,
