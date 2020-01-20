@@ -32,7 +32,8 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() objForm: FormGroup;
 
-  sites = {};
+  @Input() sites: {};
+
   panes = {};
   renderers = {};
   map;
@@ -80,17 +81,11 @@ export class MonitoringMapComponent implements OnInit {
 
 
   ngOnInit() {
-    console.log('init map');
-    this._data
-      .getSites(this.obj.modulePath)
-      .subscribe((sites) => {
-        this.initSites(sites);
-      })
+    this.initSites();
   }
 
-  initSites(sites) {
-    console.log('sites')
-    this.sites = sites;
+  initSites() {
+    console.log('init sites', this.sites)
     setTimeout(() => {
       let $this = this;
       this.initPanes()
@@ -241,6 +236,7 @@ export class MonitoringMapComponent implements OnInit {
     for (let propName in changes) {
       let chng = changes[propName];
       let cur = chng.currentValue;
+      console.log(propName, cur)
       switch (propName) {
         case "objectsStatus":
           this.setSitesStyle();

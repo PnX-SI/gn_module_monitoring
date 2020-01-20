@@ -1,5 +1,5 @@
 import { Observable, of, forkJoin } from "@librairies/rxjs";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';
@@ -23,6 +23,8 @@ import {Utils} from '../../utils/utils'
 export class MonitoringObjectComponent implements OnInit {
 
   obj: MonitoringObject;
+  module: MonitoringObject;
+  sites: {};
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -70,11 +72,12 @@ export class MonitoringObjectComponent implements OnInit {
         }),
 
         mergeMap(() => {
-          return this.getMonitoringObject(); // récupération des données de l'object selon le type (module, site, etc..)
+          return this.getDataObject(); // récupération des données de l'object selon le type (module, site, etc..)
         })
       )
       .subscribe(() => {
         this.obj.initTemplate() // pour le html
+        this.initSites();
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
@@ -83,6 +86,18 @@ export class MonitoringObjectComponent implements OnInit {
         this.initObjectsStatus()
 
       });
+  }
+
+  initSites() {
+    const sites = this.module['children']['site'];
+    this.sites = {
+      features: sites.map((site) => {
+        site['id'] = site['properties']['id_base_site'];
+        site['type'] = 'Feature';
+        return site
+      }),
+      type: 'FeatureCollection'
+    };
   }
 
   initObjectsStatus() {
@@ -131,6 +146,12 @@ export class MonitoringObjectComponent implements OnInit {
       this._objService
     );
 
+    this.module = new MonitoringObject(params.get('modulePath'),
+      'module',
+      null,
+      this._objService
+  );
+
     this.obj.parentId = params.get('parentId');
   }
 
@@ -149,9 +170,23 @@ export class MonitoringObjectComponent implements OnInit {
     return this._dataUtilsService.getInitData(this.obj.modulePath);
   }
 
-  getMonitoringObject(): Observable<any> {
+  getDataObject(): Observable<any> {
     // TODO mettre au propre
-    return forkJoin(this.obj.get(1));
-  }
+    const observables = {
+      'module': this.module.get(1)
+    }
+    if(this.obj.objectType != 'module') {
+      observables['obj'] = this.obj.get(1);
+    }
 
+    return forkJoin(observables)
+      .pipe(
+        concatMap((res) => {
+          if(this.obj.objectType == 'module') {
+            this.obj = this.module; 
+          }
+          return of(true);
+        })
+      );
+  }
 }

@@ -12,7 +12,7 @@ class MonitoringVisit(MonitoringObject):
         properties = monitoring_object_dict['properties']
         # on ne garde que les ids de observers
         if properties.get('observers'):
-            observers = [obs['id_role'] for obs in properties['observers']]
+            observers = [obs.id_role for obs in properties['observers']]
             properties['observers'] = observers
 
         return monitoring_object_dict
