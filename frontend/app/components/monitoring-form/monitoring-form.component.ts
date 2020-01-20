@@ -19,9 +19,9 @@ export class MonitoringFormComponent implements OnInit {
 
   @Input() objForm: FormGroup;
 
-  @Input() obj;
+  @Input() obj: MonitoringObject;
 
-  @Input() objectsStatus: MonitoringObject;
+  @Input() objectsStatus;
   @Output() objectsStatusChange = new EventEmitter<MonitoringObject>();
 
   @Input() bEdit: boolean;
@@ -75,7 +75,6 @@ export class MonitoringFormComponent implements OnInit {
       .subscribe(() => {
         if (this.isFormReady()) {
           objFormChangeSubscription.unsubscribe();
-
           this.objForm.setValue(formValue);
           this.setDefaultFormValue()
         }

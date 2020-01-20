@@ -29,7 +29,6 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     let observables = [this.resolveProperties()];
 
-    // if (this.id && this.childrenTypes().length) {
     if (this.childrenTypes().length) {
       observables.push(this.initChildren(objData.children));
     }
@@ -56,7 +55,6 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     let childrenDataOfType = childrenData[childrenType];
-    // if (!(childrenDataOfType && childrenDataOfType.length)) {
     if (!(childrenDataOfType)) {
       return of(true);
     }
@@ -164,7 +162,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     let observables = schema
       .filter(elem => elem.type_widget)
       .map(elem => {
-        this.setElemValueFromOtherObject(elem);
         return this._objService.toForm(elem, properties[elem.attribut_name]);
       });
 

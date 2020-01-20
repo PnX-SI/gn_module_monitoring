@@ -38,6 +38,8 @@ export class MonitoringObjectService {
     // valeur par default depuis la config schema
     x = x || elem.value;
 
+    x = (x==undefined) ? null : x;
+
     switch (elem.type_widget) {
       case 'date': {
         let date = new Date(x);

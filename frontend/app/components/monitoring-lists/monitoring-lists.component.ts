@@ -42,12 +42,14 @@ export class MonitoringListComponent implements OnInit {
         // datatable
         this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
-        this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties)
+        this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
       });
   }
 
   onSelectedChildren(typeObject, event) {
     this.objectsStatus[typeObject] = event;
-    this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
+    if(typeObject == 'site') {
+      this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
+    }
   }  
 }

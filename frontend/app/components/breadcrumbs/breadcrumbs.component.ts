@@ -1,3 +1,4 @@
+import { Utils } from './../../utils/utils';
 import { of } from "@librairies/rxjs";
 import { mergeMap } from "@librairies/rxjs/operators";
 
@@ -26,8 +27,7 @@ export class breadcrumbsComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this._configService
-      .init()
+    this._configService.init(this.obj.modulePath)
       .pipe(
         mergeMap(() => {
           if (!this.obj.modulePath) {

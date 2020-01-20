@@ -5,6 +5,9 @@ export class Utils {
 
   /** Fonction pour copier un objet de type dictionnaire */
   static copy(object) {
+    if ([undefined].includes(object)) {
+      return object
+    }
     return JSON.parse(JSON.stringify(object));
   }
 

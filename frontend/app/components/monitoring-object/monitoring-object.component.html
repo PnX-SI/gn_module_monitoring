@@ -22,7 +22,9 @@
     </div>
 
     <div id="monitoring-elem-container" class="cadre">
-      <pnx-monitoring-breadcrumbs [obj]="obj"></pnx-monitoring-breadcrumbs>
+      <pnx-monitoring-breadcrumbs 
+        *ngIf="obj && obj.bIsInitialized"
+        [obj]="obj"></pnx-monitoring-breadcrumbs>
 
       <h2>{{ obj.template["title"] }}</h2>
 
@@ -40,7 +42,7 @@
 
       <pnx-monitoring-form
         [obj]="obj"
-        *ngIf="bEdit"
+        *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit"
         [objForm]="objForm"
         [currentUser]="currentUser"

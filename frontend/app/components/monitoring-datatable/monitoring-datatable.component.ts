@@ -109,6 +109,10 @@ export class MonitoringDatatableComponent implements OnInit {
 
   setSelected() {
 
+    if(!this.rowStatus) {
+      return;
+    }
+
     const status_selected = this.rowStatus.find(status => status.selected);
     if (!status_selected) {
       return;

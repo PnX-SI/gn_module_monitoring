@@ -104,27 +104,6 @@ export class MonitoringObjectBase {
         );
   }
 
-  setElemValueFromOtherObject(elem) {
-    if (!(typeof elem.value === "string" && elem.value.substr(0, 1) == ":"))
-      return;
-
-    // seulement pour create
-    if (this.id) return;
-
-    let params = elem.value.split(":");
-    if (params.length < 2) return;
-
-    params.shift();
-
-    let typeOther = params[0];
-    let fieldName = params[1] || elem.attribut_name;
-    switch (typeOther) {
-      case "parent": {
-        elem.value = this.parent.properties[fieldName];
-      }
-    }
-  }
-
   resolveProperty(elem): Observable<any> {
     let val = this.properties[elem.attribut_name];
     let configUtil = this._objService.configUtils(elem);

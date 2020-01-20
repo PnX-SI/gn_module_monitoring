@@ -1,3 +1,4 @@
+import { Utils } from './../utils/utils';
 // import _ from "lodash";
 import { Injectable } from "@angular/core";
 
@@ -7,7 +8,6 @@ import { ModuleConfig } from "../module.config";
 
 import { of } from "@librairies/rxjs";
 import { mergeMap } from "@librairies/rxjs/operators";
-
 
 @Injectable()
 export class ConfigService {
@@ -36,7 +36,6 @@ export class ConfigService {
             this._config['frontendParams'] = {
               'bChainInput': false
             }
-
             return of(true);
           })
         );
@@ -118,6 +117,9 @@ export class ConfigService {
     }
   }
 
+  cache() {
+    return this._config;
+  }
 
 
 }

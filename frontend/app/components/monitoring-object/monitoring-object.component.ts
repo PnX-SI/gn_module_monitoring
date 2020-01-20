@@ -14,7 +14,7 @@ import { DataUtilsService } from "../../services/data-utils.service";
 import { MapService } from '@geonature_common/map/map.service'
 import { AuthService, User } from "@geonature/components/auth/auth.service";
 
-import {Utils} from '../../utils/utils'
+import { Utils } from '../../utils/utils'
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -57,10 +57,9 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap((params) => {
           this.bLoadingModal = true; // affiche la fenetre de chargement
           this.objForm = this._formBuilder.group({}); // mise à zéro du formulaire
-
           this.initParams(params)
           // chargement de la configuration
-          return this._configService.init(this.obj.modulePath);
+          return of(true);
         }),
 
         mergeMap(() => {
@@ -102,23 +101,22 @@ export class MonitoringObjectComponent implements OnInit {
 
   initObjectsStatus() {
     const $this = this;
-    const objectsStatus = {}
-    this.obj.childrenTypes().forEach((childrenType) => {
-      objectsStatus[childrenType] = []
-      $this.obj.children[childrenType].forEach((child) => {
-        objectsStatus[childrenType].push(
-          {
+    const objectsStatus = {};
+    for (let childrenType in this.obj.children) {
+      objectsStatus[childrenType] = this.obj
+        .children[childrenType]
+        .map((child) => {
+          return {
             "id": child.id,
             "selected": false,
             "visible": true
           }
-        )
-      });
-    });
+        });
+    }
 
     // init site status
-    if(this.obj.siteId) {
-      if(!objectsStatus['site']) {
+    if (this.obj.siteId) {
+      if (!objectsStatus['site']) {
         objectsStatus['site'] = [
           {
             "id": this.obj.siteId,
@@ -133,8 +131,7 @@ export class MonitoringObjectComponent implements OnInit {
         siteStatus['current'] = true;
       }
     }
-
-    $this.objectsStatus = objectsStatus;
+    this.objectsStatus = objectsStatus;
   }
 
   initParams(params) {
@@ -150,7 +147,7 @@ export class MonitoringObjectComponent implements OnInit {
       'module',
       null,
       this._objService
-  );
+    );
 
     this.obj.parentId = params.get('parentId');
   }
@@ -175,15 +172,15 @@ export class MonitoringObjectComponent implements OnInit {
     const observables = {
       'module': this.module.get(1)
     }
-    if(this.obj.objectType != 'module') {
+    if (this.obj.objectType != 'module') {
       observables['obj'] = this.obj.get(1);
     }
 
     return forkJoin(observables)
       .pipe(
         concatMap((res) => {
-          if(this.obj.objectType == 'module') {
-            this.obj = this.module; 
+          if (this.obj.objectType == 'module') {
+            this.obj = this.module;
           }
           return of(true);
         })
