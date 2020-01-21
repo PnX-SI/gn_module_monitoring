@@ -1,9 +1,9 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { GN2CommonModule } from "@geonature_common/GN2Common.module";
-import { Routes, RouterModule } from "@angular/router";
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { GN2CommonModule } from '@geonature_common/GN2Common.module';
+import { Routes, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from "@angular/forms";
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { HttpClientXsrfModule } from '@angular/common/http';
 
@@ -16,7 +16,7 @@ import { ConfigService } from './services/config.service';
 import { UploadService } from './components/upload-media/upload.service';
 
 // Component
-import { breadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { ModulesComponent } from './components/modules/modules.component';
 import { UploadMediaComponent } from './components/upload-media/upload-media.component';
 import { MonitoringObjectComponent } from './components/monitoring-object/monitoring-object.component';
@@ -32,24 +32,24 @@ import { MonitoringDatatableComponent } from './components/monitoring-datatable/
 const routes: Routes = [
 
     /** modules  */
-    { path: "", component: ModulesComponent },
+    { path: '', component: ModulesComponent },
 
     /** module  */
-    { path: "module/:modulePath", component: MonitoringObjectComponent },
+    { path: 'module/:modulePath', component: MonitoringObjectComponent },
     /** create module */
-    { path: "module", component: MonitoringObjectComponent },
+    { path: 'module', component: MonitoringObjectComponent },
 
     /** object */
-    { path: "object/:modulePath/:objectType/:id", component: MonitoringObjectComponent },
+    { path: 'object/:modulePath/:objectType/:id', component: MonitoringObjectComponent },
     /** create object */
-    { path: "create_object/:modulePath/:objectType/:parentId", component: MonitoringObjectComponent },
+    { path: 'create_object/:modulePath/:objectType/:parentId', component: MonitoringObjectComponent },
 
 ];
 
 
 @NgModule({
     declarations: [
-        breadcrumbsComponent,
+        BreadcrumbsComponent,
         ModulesComponent,
         UploadMediaComponent,
         MonitoringObjectComponent,
@@ -85,7 +85,7 @@ const routes: Routes = [
         ModulesComponent
     ],
     schemas: [
-        // CUSTOM_ELEMENTS_SCHEMA 
+        // CUSTOM_ELEMENTS_SCHEMA
     ]
 })
 export class GeonatureModule { }
