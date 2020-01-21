@@ -1,12 +1,12 @@
 import { MonitoringObject } from './../class/monitoring-object';
-import { Injectable } from "@angular/core";
-import { Observable, of } from "@librairies/rxjs";
+import { Injectable } from '@angular/core';
+import { Observable, of } from '@librairies/rxjs';
 
-import { ConfigService } from "./config.service";
-import { DataMonitoringObjectService } from "./data-monitoring-object.service";
-import { DataUtilsService } from "./data-utils.service";
-import { Utils } from "../utils/utils";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { ConfigService } from './config.service';
+import { DataMonitoringObjectService } from './data-monitoring-object.service';
+import { DataUtilsService } from './data-utils.service';
+import { Utils } from '../utils/utils';
+import { mergeMap } from '@librairies/rxjs/operators';
 
 @Injectable()
 export class MonitoringObjectService {
@@ -18,10 +18,22 @@ export class MonitoringObjectService {
 
   _cache = {};
 
-  cache(modulePath, objectType, id=null) {
+  configUtilsDict = {
+    'user': {
+      'fieldName': 'nom_complet'
+    },
+    'nomenclature': {
+      'fieldName': 'label_fr'
+    },
+    'taxonomy': {
+      'fieldName': 'nom_vern'
+    }
+  };
+
+  cache(modulePath, objectType, id= null) {
     let cache = this._cache[modulePath] = this._cache[modulePath] || {};
     cache = cache[objectType] = cache[objectType] || {};
-    if(id) {
+    if (id) {
       cache = cache[id] = cache[id] || null;
     }
     return cache;
@@ -31,15 +43,15 @@ export class MonitoringObjectService {
     // post ou update
 
     // object
-    let cache = this.cache(obj.modulePath, obj.objectType, obj.id)
+    let cache = this.cache(obj.modulePath, obj.objectType, obj.id);
     cache = postData;
 
     // children
-    for (let childrenType of obj.childrenTypes()) {
+    for (const childrenType of obj.childrenTypes()) {
       const childrenData = obj.children[childrenType];
-      for (let childData of childrenData) {
-        cache = this.cache(obj.modulePath, childrenType, childData.id)
-        cache = childData
+      for (const childData of childrenData) {
+        cache = this.cache(obj.modulePath, childrenType, childData.id);
+        cache = childData;
       }
     }
 
@@ -48,7 +60,7 @@ export class MonitoringObjectService {
     if (parent) {
       const index = parent.children[obj.objectType]
         .findIndex((child) => {
-          return child.id == obj.id;
+          return child.id === obj.id;
         });
       parent.children[obj.objectType].splice(index, 1, postData);
     }
@@ -56,53 +68,39 @@ export class MonitoringObjectService {
 
   getFromCache(obj) {
     // get
-
-    return this.cache(obj.modulePath, obj.objectType, obj.id)
+    return this.cache(obj.modulePath, obj.objectType, obj.id);
   }
 
   deleteCache(obj) {
-    let postData = this.getFromCache(obj);
-
+    let index: Number;
     // children
-    for (let childrenType of obj.childrenTypes()) {
+    for (const childrenType of obj.childrenTypes()) {
       const childrenData = obj.children[childrenType];
-      for (let childData of childrenData) {
+      for (const childData of childrenData) {
         const child = new MonitoringObject(obj.modulePath, childrenType, childData.id, this);
         this.deleteCache(child);
       }
     }
-    
+
     // parent
     const parent = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
     if (parent) {
-      const index = parent.children[obj.objectType]
+      index = parent.children[obj.objectType]
         .findIndex((child) => {
-          return child.id == obj.id;
+          return child.id === obj.id;
         });
       parent.children[obj.objectType].splice(index, 1);
     }
-    
+
     // delete
-    const objectsCache = this.cache(obj.modulePath, obj.objectType)
-    const index = objectsCache.findIndex(data => data.id == obj.id);
+    const objectsCache = this.cache(obj.modulePath, obj.objectType);
+    index = objectsCache.findIndex(data => data.id === obj.id);
     objectsCache.splice(index, 1);
   }
 
-  configUtilsDict = {
-    'user': {
-      "fieldName": "nom_complet"
-    },
-    "nomenclature": {
-      "fieldName": "label_fr"
-    },
-    "taxonomy": {
-      "fieldName": "nom_vern"
-    }
-  }
-
   configUtils(elem) {
-    let confUtil = elem.type_util && this.configUtilsDict[elem.type_util];
-    return confUtil
+    const confUtil = elem.type_util && this.configUtilsDict[elem.type_util];
+    return confUtil;
   }
 
   toForm(elem, val): Observable<any> {
@@ -111,11 +109,11 @@ export class MonitoringObjectService {
     // valeur par default depuis la config schema
     x = x || elem.value;
 
-    x = (x==undefined) ? null : x;
+    x = (x === undefined) ? null : x;
 
     switch (elem.type_widget) {
       case 'date': {
-        let date = new Date(x);
+        const date = new Date(x);
         x = x ? { 'year': date.getUTCFullYear(), 'month': date.getUTCMonth() + 1, 'day': date.getUTCDate() } : null;
         break;
       }
@@ -129,7 +127,7 @@ export class MonitoringObjectService {
       }
     }
 
-    if (elem.type_util == 'nomenclature' && Utils.isObject(x)) {
+    if (elem.type_util === 'nomenclature' && Utils.isObject(x)) {
       x = this._dataUtilsService
         .getNomenclature(x.code_nomenclature_type, x.cd_nomenclature)
         .pipe(
@@ -153,7 +151,7 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        x = elem.max_length == 1 && x instanceof Array && x.length == 1 ? x[0] : x
+        x = elem.max_length === 1 && x instanceof Array && x.length === 1 ? x[0] : x;
         break;
       }
       case 'taxonomy': {
@@ -166,10 +164,10 @@ export class MonitoringObjectService {
 
   dateFromString(s_date) {
     const v_date = s_date.split('/');
-    if (v_date.length != 3) {
+    if (v_date.length !== 3) {
       return null;
     }
-    let date = Date.parse(`${v_date[2]}-${v_date[1]}-${v_date[0]}`);
+    const date = Date.parse(`${v_date[2]}-${v_date[1]}-${v_date[0]}`);
     return date;
   }
 

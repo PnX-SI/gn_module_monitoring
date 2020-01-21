@@ -1,11 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
-import { Utils } from "../../utils/utils";
-import { Router } from "@angular/router";
-import { ConfigService } from "../../services/config.service";
+import { Utils } from '../../utils/utils';
+import { Router } from '@angular/router';
+import { ConfigService } from '../../services/config.service';
 
-import { mergeMap } from "@librairies/rxjs/operators";
+import { mergeMap } from '@librairies/rxjs/operators';
 
 
 @Component({
@@ -46,9 +46,9 @@ export class MonitoringFormComponent implements OnInit {
     this._configService.init(this.obj.modulePath)
       .pipe(
         mergeMap(() => {
-          this.bChainInput = this._configService.frontendParams()['bChainInput']
+          this.bChainInput = this._configService.frontendParams()['bChainInput'];
           this.objSchema = this.obj.schema();
-          return this.obj.formValues()
+          return this.obj.formValues();
         })
       )
       .subscribe((formValues) => {
@@ -67,19 +67,19 @@ export class MonitoringFormComponent implements OnInit {
     if (this.obj.config['geometry_type']) {
       schemaFormSize += 1;
     }
-    let formSize = Utils.dictSize(this.objForm.controls);
-    return schemaFormSize == formSize;
+    const formSize = Utils.dictSize(this.objForm.controls);
+    return schemaFormSize === formSize;
   }
 
   setFormValue(formValue) {
-    let objFormChangeSubscription = this.objForm.valueChanges
+    const objFormChangeSubscription = this.objForm.valueChanges
       .subscribe(() => {
         if (this.isFormReady()) {
           objFormChangeSubscription.unsubscribe();
           this.objForm.setValue(formValue);
-          this.setDefaultFormValue()
+          this.setDefaultFormValue();
         }
-      })
+      });
     // emit change programmatically
     this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
   }
@@ -91,7 +91,7 @@ export class MonitoringFormComponent implements OnInit {
       pipe(
         mergeMap(() => {
           this.obj.bIsInitialized = true;
-          return this.obj.formValues()
+          return this.obj.formValues();
         })
       ).subscribe((formValue) => {
         this.setFormValue(formValue);
@@ -100,8 +100,8 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   setDefaultFormValue() {
-    const values = this.objForm.value
-    let defaultValues = {};
+    const values = this.objForm.value;
+    const defaultValues = {};
 
     defaultValues['id_digitiser'] = values['id_digitiser'] || this.currentUser.id_role;
     this.objForm.patchValue(defaultValues);
@@ -115,7 +115,13 @@ export class MonitoringFormComponent implements OnInit {
       this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'module', this.obj.modulePath]);
       return;
     } else {
-      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.parentType(), this.obj.parentId]);
+      this._router.navigate([
+          '/',
+          this._configService.frontendModuleMonitoringUrl(),
+          'object', this.obj.modulePath,
+          this.obj.parentType(),
+          this.obj.parentId
+        ]);
       return;
     }
   }
@@ -123,7 +129,13 @@ export class MonitoringFormComponent implements OnInit {
   reload_create_route() {
     this._router.navigate(['/']);
     setTimeout(() => {
-      this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]); this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'create_object', this.obj.modulePath, this.obj.objectType, this.obj.parentId]);
+      this._router.navigate([
+        '/',
+        this._configService.frontendModuleMonitoringUrl(),
+        'create_object',
+        this.obj.modulePath,
+        this.obj.objectType,
+        this.obj.parentId]);
     }, 100);
   }
 
@@ -131,8 +143,8 @@ export class MonitoringFormComponent implements OnInit {
     this.bSaveSpinner = !addNew;
     this.bSaveAddSpinner = addNew;
 
-    let action = this.obj.id ? this.obj.patch(this.objForm.value) : this.obj.post(this.objForm.value);
-    let actionLabel = this.obj.id ? 'Modification' : 'Création';
+    const action = this.obj.id ? this.obj.patch(this.objForm.value) : this.obj.post(this.objForm.value);
+    const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
 
       console.log('info', `${actionLabel} de ${this.obj.configParam('label')} ${this.obj.id} effectué`);
@@ -143,12 +155,8 @@ export class MonitoringFormComponent implements OnInit {
       } else {
         if (addNew) {
           this.resetObjForm();
-          // this.reload_create_route();
         } else {
           this.navigateToParent();
-          // this.bEditChange.emit(false);
-          // let url = this._router.url;
-          // this._router.navigate(['/', this._configService.frontendModuleMonitoringUrl(), 'object', this.obj.modulePath, this.obj.objectType, this.obj.id]);
         }
       }
     });
@@ -158,13 +166,13 @@ export class MonitoringFormComponent implements OnInit {
     if (this.obj.id) {
       this.bEditChange.emit(false);
     } else {
-      this.navigateToParent()
+      this.navigateToParent();
     }
   }
 
   onDelete() {
     this.bDeleteSpinner = true;
-    let msg_delete = `${this.obj.template['label']} ${this.obj.id} supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`
+    const msg_delete = `${this.obj.template['label']} ${this.obj.id} supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
 
     this.obj
       .delete()
@@ -175,6 +183,6 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   bChainInputChanged() {
-    this._configService.setFrontendParams('bChainInput', this.bChainInput)
+    this._configService.setFrontendParams('bChainInput', this.bChainInput);
   }
 }

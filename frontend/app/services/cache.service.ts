@@ -1,9 +1,9 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
-import { Observable, of } from "@librairies/rxjs";
+import { Observable, of } from '@librairies/rxjs';
 
-import { ConfigService } from "./config.service";
+import { ConfigService } from './config.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -20,7 +20,7 @@ export class CacheService {
 
   /**
    * requête générique
-   * 
+   *
    * @param requestType get, post, patch ou delete
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
@@ -35,20 +35,20 @@ export class CacheService {
   }
 
 
-  /** Cache 
+  /** Cache
     * Essaye de recupérer un donnée depuis le cache
-    * 
+    *
     /**
      * @param sCachePaths chaine de caractères tableau qui permet de parcourir le dictionnaire _cache
-     * 
-  
+     *
+
      */
   getFromCache(sCachePaths: string) {
-    let cachePaths = sCachePaths.split('|');
+    const cachePaths = sCachePaths.split('|');
 
     // parcours du dictionnaire _cache
     let current = this._cache;
-    for (let path of cachePaths) {
+    for (const path of cachePaths) {
       if (!current[path]) {
         return undefined;
       }
@@ -60,10 +60,10 @@ export class CacheService {
 
   /**
      * Renseigne une donnée dans le cache
-     * 
+     *
      * @param sCachePaths chaine de caractères tableau qui permet de parcourir le dictionnaire _cache
      * @param value valeur a assigner au cache
-     * 
+     *
      * par exemple on souhaite renseigner le noms francais du taxon 591558
      * _cache
      * ____ 'utils'
@@ -73,15 +73,15 @@ export class CacheService {
      *  setCacheValue('utils|taxonomy|591558', 'nom_francais')
      */
   setCacheValue(sCachePaths: string, value: any) {
-    let cachePaths = sCachePaths.split('|');
+    const cachePaths = sCachePaths.split('|');
 
     // parcours du cache
     let current = this._cache;
-    for (let path of cachePaths) {
+    for (const path of cachePaths) {
       current = current[path] = current[path] ? current[path] : {};
     }
 
-    for( let key in value) {
+    for ( const key of Object.keys(value)) {
       current[key] = value[key];
     }
 
@@ -91,7 +91,7 @@ export class CacheService {
    * recupere le resultat d'une requete en cache
    * effectue la requete si besoin et stocke le resultat en cache
    * renvoie un observable
-   * 
+   *
    * @param value valeur a assigner au cache
    * @param requestType get, post, patch ou delete
    * @param urlRelative url relative de la route
@@ -102,14 +102,14 @@ export class CacheService {
     return new Observable(observer => {
 
       // recuperation depuis le cache
-      let valueCache = this.getFromCache(sCachePaths);
-      if (valueCache != undefined) {
+      const valueCache = this.getFromCache(sCachePaths);
+      if (valueCache !== undefined) {
         // envoie de la valeur à l'observer
         observer.next(valueCache);
         return observer.complete();
       }
 
-      let request = this.request(requestType, urlRelative);
+      const request = this.request(requestType, urlRelative);
 
       // si la donnée n'est pas dans le cache on effectue la requête
       request.subscribe(

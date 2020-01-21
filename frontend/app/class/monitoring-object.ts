@@ -1,11 +1,11 @@
-import { Observable, of, forkJoin } from "@librairies/rxjs";
-import { mergeMap, concatMap } from "@librairies/rxjs/operators";
+import { Observable, of, forkJoin } from '@librairies/rxjs';
+import { mergeMap, concatMap } from '@librairies/rxjs/operators';
 
 
-import { MonitoringObjectService } from "../services/monitoring-object.service";
-import { Utils } from "../utils/utils";
+import { MonitoringObjectService } from '../services/monitoring-object.service';
+import { Utils } from '../utils/utils';
 
-import { MonitoringObjectBase } from "./monitoring-object-base";
+import { MonitoringObjectBase } from './monitoring-object-base';
 
 export class MonitoringObject extends MonitoringObjectBase {
   parent: MonitoringObject;
@@ -23,11 +23,11 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** Initialisation de l'object à partir des données du serveur */
 
   init(objData): Observable<any> {
-    //set data et get children
+    // set data et get children
     this.setConfig();
     this.setData(objData);
 
-    let observables = [this.resolveProperties()];
+    const observables = [this.resolveProperties()];
 
     if (this.childrenTypes().length) {
       observables.push(this.initChildren(objData.children));
@@ -54,7 +54,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   initChildrenOfType(childrenType, childrenData): Observable<any> {
-    let childrenDataOfType = childrenData[childrenType];
+    const childrenDataOfType = childrenData[childrenType];
     if (!(childrenDataOfType)) {
       return of(true);
     }
@@ -65,14 +65,14 @@ export class MonitoringObject extends MonitoringObjectBase {
       return of(true);
     }
 
-    let childIdFieldName = this.child0(childrenType).configParam(
-      "id_field_name"
+    const childIdFieldName = this.child0(childrenType).configParam(
+      'id_field_name'
     );
 
-    let observables = [];
-    for (let childData of childrenDataOfType) {
-      let id = childData.properties[childIdFieldName];
-      let child = new this.myClass(
+    const observables = [];
+    for (const childData of childrenDataOfType) {
+      const id = childData.properties[childIdFieldName];
+      const child = new this.myClass(
         this.modulePath,
         childrenType,
         id,
@@ -89,17 +89,25 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** Methodes get post patch delete */
 
   get(depth): Observable<any> {
+    let bFromCache = false;
     return of(true).pipe(
       mergeMap(() => {
-        let postData = this._objService.getFromCache(this)
+        const postData = this._objService.getFromCache(this);
         if (postData) {
-          return of(postData)
+          bFromCache = true;
+          console.log('cache ', this.toString());
+          return of(postData);
         }
+        console.log('get ', this.toString());
         return this._objService
           .dataMonitoringObjectService()
-          .getObject(this.modulePath, this.objectType, this.id, depth)
+          .getObject(this.modulePath, this.objectType, this.id, depth);
       }),
       mergeMap(postData => {
+        console.log('set ', this.toString());
+        if (bFromCache) {
+          this._objService.setCache(this, postData);
+        }
         return this.init(postData);
       })
     );
@@ -147,7 +155,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     if (
       !this.parentType() ||
       this.parent ||
-      !(this.parentId || this.parentType().includes("module"))
+      !(this.parentId || this.parentType().includes('module'))
     ) {
       return of(true);
     }
@@ -166,9 +174,9 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** formValues: obj -> from */
 
   formValues(): Observable<any> {
-    let properties = Utils.copy(this.properties);
-    let schema = this.schema();
-    let observables = schema
+    const properties = Utils.copy(this.properties);
+    const schema = this.schema();
+    const observables = schema
       .filter(elem => elem.type_widget)
       .map(elem => {
         return this._objService.toForm(elem, properties[elem.attribut_name]);
@@ -176,15 +184,15 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     return forkJoin(observables).pipe(
       concatMap(formValuesArray => {
-        let formValues = {};
+        const formValues = {};
         schema
           .filter(elem => elem.type_widget)
           .forEach((elem, index) => {
             formValues[elem.attribut_name] = formValuesArray[index];
           });
-        //geometry
-        if (this.config["geometry_type"]) {
-          formValues["geometry"] = this.geometry; // copy???
+        // geometry
+        if (this.config['geometry_type']) {
+          formValues['geometry'] = this.geometry; // copy???
         }
         return of(formValues);
       })
@@ -194,7 +202,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** postData: obj -> from */
 
   postData(formValue) {
-    let propertiesData = {};
+    const propertiesData = {};
     this.schema().forEach(elem => {
       propertiesData[elem.attribut_name] = this._objService.fromForm(
         elem,
@@ -202,14 +210,14 @@ export class MonitoringObject extends MonitoringObjectBase {
       );
     });
 
-    let postData = {
+    const postData = {
       properties: propertiesData,
       id_parent: this.parentId
     };
 
-    if (this.config["geometry_type"]) {
-      postData["geometry"] = formValue["geometry"];
-      postData["type"] = "Feature";
+    if (this.config['geometry_type']) {
+      postData['geometry'] = formValue['geometry'];
+      postData['type'] = 'Feature';
     }
     return postData;
   }
@@ -240,11 +248,11 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** list */
 
   childrenColumnsAndRowsOfType(childrenType, typeDisplay) {
-    let child0 = this.child0(childrenType);
-    let childrenFieldLabels = child0.fieldLabels();
-    let childrenFieldNames = child0.fieldNames(typeDisplay);
+    const child0 = this.child0(childrenType);
+    const childrenFieldLabels = child0.fieldLabels();
+    const childrenFieldNames = child0.fieldNames(typeDisplay);
 
-    let columns = childrenFieldNames.map(fieldName => {
+    const columns = childrenFieldNames.map(fieldName => {
       return {
         prop: fieldName,
         name: childrenFieldLabels[fieldName]
@@ -254,11 +262,11 @@ export class MonitoringObject extends MonitoringObjectBase {
     let rows = [];
     if (this.children[childrenType]) {
       rows = this.children[childrenType].map(child => {
-        let row = Utils.mapArrayToDict(
+        const row = Utils.mapArrayToDict(
           childrenFieldNames,
           fieldName => child.resolvedProperties[fieldName]
         );
-        row["id"] = child.id;
+        row['id'] = child.id;
         return row;
       });
     }

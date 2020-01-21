@@ -1,20 +1,20 @@
 import { Utils } from './../../utils/utils';
-import { of } from "@librairies/rxjs";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { of } from '@librairies/rxjs';
+import { mergeMap } from '@librairies/rxjs/operators';
 
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input } from '@angular/core';
 
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
 
-import { MonitoringObject } from "../../class/monitoring-object";
+import { MonitoringObject } from '../../class/monitoring-object';
 
 @Component({
-  selector: "pnx-monitoring-breadcrumbs",
-  templateUrl: "./breadcrumbs.component.html",
-  styleUrls: ["./breadcrumbs.component.css"]
+  selector: 'pnx-monitoring-breadcrumbs',
+  templateUrl: './breadcrumbs.component.html',
+  styleUrls: ['./breadcrumbs.component.css']
 })
-export class breadcrumbsComponent implements OnInit {
+export class BreadcrumbsComponent implements OnInit {
   public breadcrumbs;
 
   public frontendModuleMonitoringUrl: string;

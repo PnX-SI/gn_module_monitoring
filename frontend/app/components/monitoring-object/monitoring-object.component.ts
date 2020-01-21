@@ -1,20 +1,20 @@
-import { Observable, of, forkJoin } from "@librairies/rxjs";
-import { mergeMap, concatMap } from "@librairies/rxjs/operators";
+import { Observable, of, forkJoin } from '@librairies/rxjs';
+import { mergeMap, concatMap } from '@librairies/rxjs/operators';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from "@angular/forms";
+import { FormGroup, FormBuilder } from '@angular/forms';
 
 
 // services
-import { ActivatedRoute } from "@angular/router";
-import { MonitoringObjectService } from "../../services/monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
-import { DataUtilsService } from "../../services/data-utils.service";
-import { MapService } from '@geonature_common/map/map.service'
-import { AuthService, User } from "@geonature/components/auth/auth.service";
+import { ActivatedRoute } from '@angular/router';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
+import { DataUtilsService } from '../../services/data-utils.service';
+import { MapService } from '@geonature_common/map/map.service';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
 
-import { Utils } from '../../utils/utils'
+import { Utils } from '../../utils/utils';
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -62,7 +62,7 @@ export class MonitoringObjectComponent implements OnInit {
         }),
 
         mergeMap(() => {
-          return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache 
+          return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache
         }),
 
         mergeMap(() => {
@@ -70,14 +70,14 @@ export class MonitoringObjectComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        this.obj.initTemplate() // pour le html
+        this.obj.initTemplate(); // pour le html
         this.initSites();
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
         this.bEdit = this.bEdit || (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
 
-        this.initObjectsStatus()
+        this.initObjectsStatus();
 
       });
   }
@@ -88,7 +88,7 @@ export class MonitoringObjectComponent implements OnInit {
       features: sites.map((site) => {
         site['id'] = site['properties']['id_base_site'];
         site['type'] = 'Feature';
-        return site
+        return site;
       }),
       type: 'FeatureCollection'
     };
@@ -97,15 +97,15 @@ export class MonitoringObjectComponent implements OnInit {
   initObjectsStatus() {
     const $this = this;
     const objectsStatus = {};
-    for (let childrenType in this.obj.children) {
+    for (const childrenType of Object.keys(this.obj.children)) {
       objectsStatus[childrenType] = this.obj
         .children[childrenType]
         .map((child) => {
           return {
-            "id": child.id,
-            "selected": false,
-            "visible": true
-          }
+            'id': child.id,
+            'selected': false,
+            'visible': true
+          };
         });
     }
 
@@ -114,14 +114,14 @@ export class MonitoringObjectComponent implements OnInit {
       if (!objectsStatus['site']) {
         objectsStatus['site'] = [
           {
-            "id": this.obj.siteId,
-            "selected": true,
-            "visible": true,
-            "current": true
+            'id': this.obj.siteId,
+            'selected': true,
+            'visible': true,
+            'current': true
           }
         ];
       } else {
-        let siteStatus = objectsStatus['site'] && objectsStatus['site'].find((status) => status.id == this.obj.siteId)
+        const siteStatus = objectsStatus['site'] && objectsStatus['site'].find((status) => status.id === this.obj.siteId);
         siteStatus['selected'] = true;
         siteStatus['current'] = true;
       }
@@ -134,36 +134,36 @@ export class MonitoringObjectComponent implements OnInit {
       .pipe(
         mergeMap((params) => {
 
-          let objectType = params.get('objectType') ? params.get('objectType') : 'module';
-          
+          const objectType = params.get('objectType') ? params.get('objectType') : 'module';
+
           this.obj = new MonitoringObject(params.get('modulePath'),
           objectType,
           params.get('id'),
           this._objService
           );
-          
+
           this.module = new MonitoringObject(params.get('modulePath'),
           'module',
           null,
           this._objService
           );
-          
+
           this.obj.parentId = params.get('parentId');
-          return this._route.queryParamMap
+          return this._route.queryParamMap;
         }),
         mergeMap((params) => {
           this.objForm = this._formBuilder.group({});
           this.bEdit = !!params.get('edit');
           return of(true);
         })
-      )
+      );
   }
 
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.modulePath)
       .pipe(
         mergeMap(() => {
-          this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl()
+          this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
           this.backendUrl = this._configService.backendUrl();
           return of(true);
         })
@@ -178,15 +178,15 @@ export class MonitoringObjectComponent implements OnInit {
     // TODO mettre au propre
     const observables = {
       'module': this.module.get(1)
-    }
-    if (this.obj.objectType != 'module') {
+    };
+    if (this.obj.objectType !== 'module') {
       observables['obj'] = this.obj.get(1);
     }
 
     return forkJoin(observables)
       .pipe(
         concatMap((res) => {
-          if (this.obj.objectType == 'module') {
+          if (this.obj.objectType === 'module') {
             return this.obj.get(1);
           }
           return of(true);

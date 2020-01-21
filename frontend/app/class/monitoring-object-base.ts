@@ -1,8 +1,8 @@
-import { Observable, of } from "@librairies/rxjs";
-import { concatMap } from "@librairies/rxjs/operators";
+import { Observable, of } from '@librairies/rxjs';
+import { concatMap } from '@librairies/rxjs/operators';
 
-import { MonitoringObjectService } from "../services/monitoring-object.service";
-import { Utils } from "../utils/utils";
+import { MonitoringObjectService } from '../services/monitoring-object.service';
+import { Utils } from '../utils/utils';
 
 export class MonitoringObjectBase {
   modulePath: string;
@@ -16,7 +16,7 @@ export class MonitoringObjectBase {
 
   medias; // children ?
 
-  bIsInitialized: boolean = false;
+  bIsInitialized = false;
 
   children = {};
   _children0 = {};
@@ -28,7 +28,7 @@ export class MonitoringObjectBase {
 
   template = {};
 
-  configParams = ["geometry_type", "media_types"];
+  configParams = ['geometry_type', 'media_types'];
   config = {};
 
   protected _objService: MonitoringObjectService;
@@ -40,7 +40,7 @@ export class MonitoringObjectBase {
     objService: MonitoringObjectService
   ) {
     if (!modulePath) {
-      throw new Error("Monitoring object sans modulePath");
+      throw new Error('Monitoring object sans modulePath');
     }
     this.objectType = objectType;
     this.modulePath = modulePath;
@@ -57,39 +57,38 @@ export class MonitoringObjectBase {
   }
 
   initTemplate() {
-    this.template["idTableLocation"] = this.configParam("id_table_location");
-    this.template["label"] = this.configParam("label");
-    this.template["label_list"] =
-      this.configParam("label_list") || this.configParam("label") + "s";
+    this.template['idTableLocation'] = this.configParam('id_table_location');
+    this.template['label'] = this.configParam('label');
+    this.template['label_list'] =
+      this.configParam('label_list') || this.configParam('label') + 's';
 
-    this.template["uuid"] = this.paramValue("uuid_field_name");
-    this.template["description"] = this.paramValue(
-      "description_field_name",
+    this.template['uuid'] = this.paramValue('uuid_field_name');
+    this.template['description'] = this.paramValue(
+      'description_field_name',
       true
     );
 
-    this.template["fieldLabels"] = this.fieldLabels();
-    this.template["fieldNames"] = this.fieldNames("display_properties");
-    this.template["fieldNamesList"] = this.fieldNames("display_list");
+    this.template['fieldLabels'] = this.fieldLabels();
+    this.template['fieldNames'] = this.fieldNames('display_properties');
+    this.template['fieldNamesList'] = this.fieldNames('display_list');
   }
 
   setConfig() {
-    let $this = this;
-    this.configParams.forEach(config_param => {
-      $this.config[config_param] = $this.configParam(config_param);
-    });
+    for (const configParam of this.configParams) {
+      this.config[configParam] = this.configParam(configParam);
+    }
   }
 
   setData(data) {
     this.properties = data.properties;
     this.geometry = data.geometry;
-    this.id = this.id || this.properties[this.configParam("id_field_name")];
+    this.id = this.id || this.properties[this.configParam('id_field_name')];
     this.medias = data.medias;
     this.siteId = data.site_id;
 
     // TODO verifier!!
     if (!this.parentId) {
-        this.parentId = this.properties[this.parentIdFieldName()]
+        this.parentId = this.properties[this.parentIdFieldName()];
     } else {
         this.properties[this.parentIdFieldName()] = this.parentId;
     }
@@ -101,25 +100,25 @@ export class MonitoringObjectBase {
       : this._objService
         .configService()
         .configModuleObjectParam(
-          "objects",
+          'objects',
           this.modulePath,
           this.parentType(),
-          "id_field_name"
+          'id_field_name'
         );
   }
 
   resolveProperty(elem): Observable<any> {
     let val = this.properties[elem.attribut_name];
-    let configUtil = this._objService.configUtils(elem);
+    const configUtil = this._objService.configUtils(elem);
 
-    if (elem.type_widget == "date" || (elem.type_util == "date" && val)) {
+    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
       val = Utils.formatDate(val);
     }
 
     if (val && configUtil && elem.type_widget) {
       return this._objService
         .dataUtilsService()
-        .getUtil(elem.type_util, val, configUtil.fieldName)
+        .getUtil(elem.type_util, val, configUtil.fieldName);
     }
 
     return of(val);
@@ -127,9 +126,9 @@ export class MonitoringObjectBase {
 
   resolveProperties(): Observable<any> {
     // return new Observable(observer => {
-    let observables = [];
+    const observables = [];
 
-    for (let elem of this.schema()) {
+    for (const elem of this.schema()) {
       observables.push(this.resolveProperty(elem));
     }
 
@@ -137,7 +136,7 @@ export class MonitoringObjectBase {
       concatMap(
         resolvedPropertiesArray => {
           this.schema().forEach((elem, index) => {
-            let val = resolvedPropertiesArray[index];
+            const val = resolvedPropertiesArray[index];
             this.resolvedProperties[elem.attribut_name] = val;
           });
           return of(true);
@@ -149,7 +148,7 @@ export class MonitoringObjectBase {
     return this._objService
       .configService()
       .configModuleObjectParam(
-        "objects",
+        'objects',
         this.modulePath,
         this.objectType,
         fieldName
@@ -157,7 +156,7 @@ export class MonitoringObjectBase {
   }
 
   childrenTypes(configParam: string = null): Array<string> {
-    let childrenTypes = this.configParam("children_types") || [];
+    let childrenTypes = this.configParam('children_types') || [];
 
     if (configParam) {
       childrenTypes = childrenTypes.filter(TypeChildren => {
@@ -168,14 +167,14 @@ export class MonitoringObjectBase {
   }
 
   parentType() {
-    return this.configParam("parent_type");
+    return this.configParam('parent_type');
   }
 
   child0(childrenType) {
     if (this._children0[childrenType]) {
       return this._children0[childrenType];
     }
-    let child0 = new this.myClass(
+    const child0 = new this.myClass(
       this.modulePath,
       childrenType,
       null,
@@ -189,12 +188,12 @@ export class MonitoringObjectBase {
 
   childsLabel() {
     return Utils.mapArrayToDict(this.childrenTypes(), childrenType => {
-      return this.child0(childrenType).configParam("label");
+      return this.child0(childrenType).configParam('label');
     });
   }
 
   paramValue(param, bResolved = false) {
-    let fieldName = this.configParam(param);
+    const fieldName = this.configParam(param);
     if (bResolved) {
       return fieldName && this.properties[fieldName];
     } else {
@@ -203,26 +202,26 @@ export class MonitoringObjectBase {
   }
 
   title() {
-    let title = this.configParam("label");
-    let description = this.paramValue("description_field_name", true);
-    return description ? title + " " + description : title;
+    const title = this.configParam('label');
+    const description = this.paramValue('description_field_name', true);
+    return description ? title + ' ' + description : title;
   }
 
-  schema(typeSchema = "all") {
+  schema(typeSchema = 'all') {
     return this._objService
       .configService()
       .schema(this.modulePath, this.objectType, typeSchema);
   }
 
-  schemaKeys(typeSchema = "all") {
+  schemaKeys(typeSchema = 'all') {
     return Object.keys(this.schema());
   }
 
-  fieldNames(typeDisplay = "") {
-    if (["display_properties", "display_list"].includes(typeDisplay)) {
+  fieldNames(typeDisplay = '') {
+    if (['display_properties', 'display_list'].includes(typeDisplay)) {
       return this.configParam(typeDisplay);
     }
-    if (typeDisplay == "schema") {
+    if (typeDisplay === 'schema') {
       return this.schema().map(elem => elem.attribut_name);
     }
   }
@@ -232,28 +231,28 @@ export class MonitoringObjectBase {
     return Utils.mapArrayToDict(
       this.schema(),
       e => e.attribut_label,
-      "attribut_name"
+      'attribut_name'
     );
   }
 
   geoFeature() {
     // patch
-    this.resolvedProperties["object_type"] = this.objectType;
-    this.resolvedProperties["description"] = this.paramValue(
-      "description_field_name",
+    this.resolvedProperties['object_type'] = this.objectType;
+    this.resolvedProperties['description'] = this.paramValue(
+      'description_field_name',
       true
     );
 
     return {
       id: this.id,
       object_type: this.objectType,
-      type: "Feature",
+      type: 'Feature',
       geometry: this.geometry,
       properties: this.resolvedProperties
     };
   }
 
   isRoot() {
-    return !this.parentType() && this.childrenTypes()
+    return !this.parentType() && this.childrenTypes();
   }
 }

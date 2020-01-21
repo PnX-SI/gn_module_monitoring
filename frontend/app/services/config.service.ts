@@ -1,13 +1,13 @@
 import { Utils } from './../utils/utils';
 // import _ from "lodash";
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 
-import { HttpClient } from "@angular/common/http";
-import { AppConfig } from "@geonature_config/app.config";
-import { ModuleConfig } from "../module.config";
+import { HttpClient } from '@angular/common/http';
+import { AppConfig } from '@geonature_config/app.config';
+import { ModuleConfig } from '../module.config';
 
-import { of } from "@librairies/rxjs";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { of } from '@librairies/rxjs';
+import { mergeMap } from '@librairies/rxjs/operators';
 
 @Injectable()
 export class ConfigService {
@@ -26,7 +26,7 @@ export class ConfigService {
     if (this._config && this._config[modulePath]) {
       return of(true);
     } else {
-      let urlConfig = modulePath == 'generic' ? `${this.backendModuleUrl()}/config` : `${this.backendModuleUrl()}/config/${modulePath}`
+      const urlConfig = modulePath === 'generic' ? `${this.backendModuleUrl()}/config` : `${this.backendModuleUrl()}/config/${modulePath}`;
       return this._http.get<any>(urlConfig)
         .pipe(
           mergeMap((config) => {
@@ -34,7 +34,7 @@ export class ConfigService {
             this._config[modulePath] = config;
             this._config['frontendParams'] = {
               'bChainInput': false
-            }
+            };
             return of(true);
           })
         );
@@ -61,49 +61,49 @@ export class ConfigService {
   }
 
   /** Config Object Schema */
-  schema(modulePath, objectType, typeSchema = "all") {
+  schema(modulePath, objectType, typeSchema = 'all') {
     modulePath = modulePath || 'generic';
-    let schemas = this._config[modulePath].schemas[objectType]
-    let generic = schemas.generic;
-    let specific = schemas.specific;
+    const schemas = this._config[modulePath].schemas[objectType];
+    const generic = schemas.generic;
+    const specific = schemas.specific;
 
     switch (typeSchema) {
-      case "all": {
+      case 'all': {
         return generic.concat(specific);
       }
-      case "generic": {
+      case 'generic': {
         return generic;
       }
-      case "specific": {
+      case 'specific': {
         return specific;
       }
     }
   }
 
-  getFormDef(modulePath, objectType, key, keyType = "attribut_name", typeSchema = "all") {
+  getFormDef(modulePath, objectType, key, keyType = 'attribut_name', typeSchema = 'all') {
     modulePath = modulePath || 'generic';
     return this.schema(modulePath, objectType, typeSchema)
       .find(formDef =>
-        formDef[keyType] == key
+        formDef[keyType] === key
       );
   }
 
   /**
    * Renvoie un element de configuration d'un objet pour un module donné
-   * 
+   *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
   configModuleObjectParam(typeConfig: string, modulePath: string, objectType: string, fieldName: string) {
     modulePath = modulePath || 'generic';
-    let confObject = this._config[modulePath][typeConfig][objectType];
+    const confObject = this._config[modulePath][typeConfig][objectType];
     return confObject ? confObject[fieldName] : null;
   }
 
-  /** config data : pour initialiser les données Nomenclature, Taxons, Users,... 
+  /** config data : pour initialiser les données Nomenclature, Taxons, Users,...
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
   */
   configData(modulePath) {
-    return this._config[modulePath]['data']
+    return this._config[modulePath]['data'];
   }
 
   frontendParams() {

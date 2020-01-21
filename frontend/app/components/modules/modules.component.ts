@@ -1,22 +1,22 @@
-import { Component, OnInit } from "@angular/core";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { Component, OnInit } from '@angular/core';
+import { mergeMap } from '@librairies/rxjs/operators';
 
 /** services */
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
 
 
 @Component({
-  selector: "modules",
-  templateUrl: "./modules.component.html",
-  styleUrls: ["./modules.component.css"]
+  selector: 'pnx-monitoring-modules',
+  templateUrl: './modules.component.html',
+  styleUrls: ['./modules.component.css']
 })
 export class ModulesComponent implements OnInit {
   modules: Array<any> = [];
 
-  backendUrl: string
+  backendUrl: string;
   frontendModuleMonitoringUrl: string;
-  moduleMonitoringCode: string
+  moduleMonitoringCode: string;
 
   bLoading = false;
 

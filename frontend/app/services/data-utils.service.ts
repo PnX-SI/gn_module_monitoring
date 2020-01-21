@@ -1,13 +1,13 @@
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 
-import { Observable, forkJoin, of } from "@librairies/rxjs";
-import { concatMap ,mergeMap } from "@librairies/rxjs/operators";
+import { Observable, forkJoin, of } from '@librairies/rxjs';
+import { concatMap , mergeMap } from '@librairies/rxjs/operators';
 
-import { Utils } from "./../utils/utils";
+import { Utils } from './../utils/utils';
 
-import { CacheService } from "./cache.service";
-import { ConfigService } from "./config.service";
-import { DataFormService } from "@geonature_common/form/data-form.service"
+import { CacheService } from './cache.service';
+import { ConfigService } from './config.service';
+import { DataFormService } from '@geonature_common/form/data-form.service';
 
 
 /**
@@ -27,7 +27,7 @@ export class DataUtilsService {
 
   /**
    * Renvoie un champ d'un objet de type nomenclare, taxonomy ou utilisateur à partir de son id
-   *  
+   *
    * @param typeUtil le type de l'objet (nomenclature, taxonomy, utilisateur, ...)
    * @param id identifiant de l'objet
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
@@ -39,15 +39,15 @@ export class DataUtilsService {
     }
 
     // url relative
-    let urlRelative = `util/${typeUtil}/${id}`;
+    const urlRelative = `util/${typeUtil}/${id}`;
     // parametre pour le stockage dans le cache
-    let sCachePaths = `util|${typeUtil}|${id}`;
+    const sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths)
       .pipe(
         mergeMap(
           value => {
-            let out = fieldName == 'all' ? value : value[fieldName];
+            const out = fieldName === 'all' ? value : value[fieldName];
             return of(out);
           })
       );
@@ -55,15 +55,15 @@ export class DataUtilsService {
 
   /**
    * Renvoie tableau de champs d'objets de type nomenclare, taxonomy ou utilisateur
-   * 
+   *
    * @param typeUtilObject le type de l'objet (nomenclature, taxonomy, utilisateur, ...)
    * @param ids tableau d'identifiant des objets
-   * @param fieldName nom du champ requis, renvoie l'objet entier si 'all' 
+   * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
   getUtils(typeUtilObject, ids, fieldName) {
-    let observables = [];
+    const observables = [];
     // applique getUtil pour chaque id de ids
-    for (let id of ids) {
+    for (const id of ids) {
       observables.push(this.getUtil(typeUtilObject, id, fieldName));
     }
     // renvoie un forkJoin du tableau d'observables
@@ -78,19 +78,19 @@ export class DataUtilsService {
 
   /** Renvoie une nomenclature à partir de son type et son code */
   getNomenclature(typeNomenclature, codeNomenclature) {
-    let urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
-    let sCachePaths = `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
+    const urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
+    const sCachePaths = `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
   }
 
   /** Récupère les données qui seront utiles pour le module */
   getInitData(modulePath): Observable<any> {
-    /** Les données à récupérer sont spécifiées dans la config du module 
-     * config/<module_path>/data_config.json et 
+    /** Les données à récupérer sont spécifiées dans la config du module
+     * config/<module_path>/data_config.json et
      * config/<module_path>/custom_config.json
     */
 
-    let cache = this._cacheService.cache();
+    const cache = this._cacheService.cache();
     // test si la fonction a déjà été appelée
     if (cache[modulePath] && cache[modulePath]['init_data']) {
       return of(true);
@@ -98,50 +98,50 @@ export class DataUtilsService {
 
     const configData = this._configService.configData(modulePath);
 
-    let nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature'])
+    const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
     // Taxonomie (liste ou ensemble de )
-    let TaxonomyRequests = [];
+    const TaxonomyRequests = [];
 
-    if(configData['taxonomy']['cd_noms']) {
-      for (let cd_nom of configData['taxonomy']['cd_noms']) {
+    if (configData['taxonomy']['cd_noms']) {
+      for (const cd_nom of configData['taxonomy']['cd_noms']) {
         TaxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
       }
     }
 
-    let userRequests = []
-    for (let codeList of configData['user']) {
-      userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList))
+    const userRequests = [];
+    for (const codeList of configData['user']) {
+      userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList));
     }
 
-    let observables = [nomenclatureRequest, forkJoin(TaxonomyRequests), forkJoin(userRequests)];
+    const observables = [nomenclatureRequest, forkJoin(TaxonomyRequests), forkJoin(userRequests)];
 
     return forkJoin(observables)
       .pipe(
         concatMap((data) => {
-          let nomenclatures = data[0];
-          let taxonomy = data[1];
-          let userLists = data[2];
+          const nomenclatures = data[0];
+          const taxonomy = data[1];
+          const userLists = data[2];
 
           // mise en cache
-          for (let nomenclature_type of nomenclatures) {
-            for (let nomenclature of nomenclature_type.values) {
+          for (const nomenclature_type of nomenclatures) {
+            for (const nomenclature of nomenclature_type.values) {
               this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
             }
           }
 
-          for (let userList of userLists) {
-            for (let user of userList) {
+          for (const userList of userLists) {
+            for (const user of userList) {
               this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
             }
           }
 
-          for (let taxon of taxonomy) {
+          for (const taxon of taxonomy) {
             this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
           }
 
           // pour ne pas appeler la fonction deux fois
           if (!cache[modulePath]) {
-            cache[modulePath] = {}
+            cache[modulePath] = {};
           }
           cache[modulePath]['init_data'] = true;
 
