@@ -95,7 +95,6 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initObjectsStatus() {
-    const $this = this;
     const objectsStatus = {};
     for (const childrenType of Object.keys(this.obj.children)) {
       objectsStatus[childrenType] = this.obj

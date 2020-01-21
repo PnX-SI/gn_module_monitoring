@@ -31,7 +31,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         )
 
     def get_site_id(self):
-        if not self.id:
+        if not self._id:
             return
         if self._object_type == 'site':
             return self._model.id_base_site
@@ -154,7 +154,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'properties': properties,
             'object_type': self._object_type,
             'module_path': self._module_path,
-            'site_id': self.get_site_id()
+            'site_id': self.get_site_id(),
+            'id': self._id
         }
         properties['id_parent']: to_int(self.id_parent())
         if(children):

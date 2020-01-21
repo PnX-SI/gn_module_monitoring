@@ -12,7 +12,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         if not field_name:
             field_name = self.config_param('id_field_name')
             if not value:
-                value = self.id
+                value = self._id
 
         if not value:
             return self
@@ -56,7 +56,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         cors = (
             DB.session.query(Cor)
-            .filter(getattr(Cor, id_field_name) == self.id)
+            .filter(getattr(Cor, id_field_name) == self._id)
             .all()
         )
         for cor in cors:
@@ -67,7 +67,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             if foreign_id not in [getattr(cor, id_foreign_key_name) for cor in cors]:
                 cor_new = Cor()
                 setattr(cor_new, id_foreign_key_name, foreign_id)
-                setattr(cor_new, id_field_name, self.id)
+                setattr(cor_new, id_field_name, self._id)
                 DB.session.add(cor_new)
                 # new_cor.id_base_visit = self.id_base_visit
                 # new_cor.id_role = id_role
@@ -81,7 +81,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             # si id existe alors c'est un update
             self.get()
 
-            b_creation = not self.id
+            b_creation = not self._id
 
             # ajout de l'objet dans le cas d'une creation
             if b_creation:
@@ -92,7 +92,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             self.populate(post_data)
             DB.session.commit()
 
-            self.id = getattr(self._model, self.config_param('id_field_name'))
+            self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_correlations(post_data)
 
@@ -106,7 +106,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
     def delete(self):
 
-        if not self.id:
+        if not self._id:
             raise GeoNatureError('Monitoring : delete object has no id')
 
         try:

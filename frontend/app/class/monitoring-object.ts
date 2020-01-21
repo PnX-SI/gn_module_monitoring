@@ -93,9 +93,10 @@ export class MonitoringObject extends MonitoringObjectBase {
     return of(true).pipe(
       mergeMap(() => {
         const postData = this._objService.getFromCache(this);
+        console.log('postData cache', postData);
         if (postData) {
           bFromCache = true;
-          console.log('cache ', this.toString());
+          console.log('cache ', this.toString(), postData);
           return of(postData);
         }
         console.log('get ', this.toString());
@@ -104,8 +105,8 @@ export class MonitoringObject extends MonitoringObjectBase {
           .getObject(this.modulePath, this.objectType, this.id, depth);
       }),
       mergeMap(postData => {
-        console.log('set ', this.toString());
-        if (bFromCache) {
+        if (!bFromCache) {
+          console.log('set ', this.toString(), postData);
           this._objService.setCache(this, postData);
         }
         return this.init(postData);

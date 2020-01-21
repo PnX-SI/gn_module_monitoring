@@ -68,9 +68,9 @@ class MonitoringObjectBase():
         self._module_path = module_path
         self._object_type = object_type
 
-        self.id = id
-        if not self.id and model:
-            self.id = getattr(model, self.config_param('id_field_name'))
+        self._id = id
+        if not self._id and model:
+            self._id = getattr(model, self.config_param('id_field_name'))
 
         self.set_model_from(model)
 
@@ -84,7 +84,7 @@ class MonitoringObjectBase():
     def __str__(self):
         return (
             'monitoringobject {}, {}, {}'
-            .format(self._module_path, self._object_type, self.id)
+            .format(self._module_path, self._object_type, self._id)
             )
 
     def MonitoringModel(self):

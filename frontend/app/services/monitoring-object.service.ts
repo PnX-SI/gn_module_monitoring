@@ -30,45 +30,74 @@ export class MonitoringObjectService {
     }
   };
 
-  cache(modulePath, objectType, id= null) {
+  cache(modulePath, objectType = null, id = null) {
     let cache = this._cache[modulePath] = this._cache[modulePath] || {};
+
+    if (!objectType) {
+      return cache;
+    }
     cache = cache[objectType] = cache[objectType] || {};
+
+    if (objectType === 'module') {
+      return cache;
+    }
+
     if (id) {
       cache = cache[id] = cache[id] || null;
     }
     return cache;
   }
 
-  setCache(obj: MonitoringObject, postData) {
+  setCache(obj: MonitoringObject, objData) {
     // post ou update
 
     // object
-    let cache = this.cache(obj.modulePath, obj.objectType, obj.id);
-    cache = postData;
+    if (obj.objectType === 'module') {
+      const cache = this.cache(obj.modulePath);
+      cache['module'] = objData;
+    } else {
+      const cache = this.cache(obj.modulePath, obj.objectType);
+      cache[obj.id] = objData;
+    }
 
     // children
-    for (const childrenType of obj.childrenTypes()) {
-      const childrenData = obj.children[childrenType];
+    for (const childrenType of Object.keys(objData.children)) {
+      const childrenData = objData.children[childrenType];
+      const cacheChildren = this.cache(obj.modulePath, childrenType);
+      console.log(Utils.copy(cacheChildren));
+      console.log(Utils.copy(this._cache));
       for (const childData of childrenData) {
-        cache = this.cache(obj.modulePath, childrenType, childData.id);
-        cache = childData;
+        cacheChildren[childData.id] = childData;
+        console.log(Utils.copy(cacheChildren));
+
       }
     }
 
     // parent
-    const parent = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
+    const parent = this.getParentFromCache(obj);
     if (parent) {
+      console.log('aa', parent)
       const index = parent.children[obj.objectType]
         .findIndex((child) => {
           return child.id === obj.id;
         });
-      parent.children[obj.objectType].splice(index, 1, postData);
+      parent.children[obj.objectType].splice(index, 1, objData);
     }
+
+    console.log('after set', this._cache);
+
+  }
+
+  getParentFromCache(obj) {
+    if (!obj.parentType()) { return; }
+    const parentData = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
+    return Object.keys(parentData).length ? parentData : null;
   }
 
   getFromCache(obj) {
     // get
-    return this.cache(obj.modulePath, obj.objectType, obj.id);
+    const objData = this.cache(obj.modulePath, obj.objectType, obj.id);
+    return Object.keys(objData).length ? objData : null;
   }
 
   deleteCache(obj) {
@@ -83,8 +112,8 @@ export class MonitoringObjectService {
     }
 
     // parent
-    const parent = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
-    if (parent) {
+    const parent = this.getParentFromCache(obj);
+    if (parent && Object.keys(parent).length) {
       index = parent.children[obj.objectType]
         .findIndex((child) => {
           return child.id === obj.id;
