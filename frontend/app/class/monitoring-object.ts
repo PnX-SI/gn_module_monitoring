@@ -24,8 +24,6 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   init(objData): Observable<any> {
     // set data et get children
-    console.log('UUUU', this.objectType, objData);
-
     this.setConfig();
     this.setData(objData);
 

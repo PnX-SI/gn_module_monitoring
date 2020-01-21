@@ -139,7 +139,6 @@ export class MonitoringObjectBase {
             this.resolvedProperties[elem.attribut_name] = val;
             index++;
           }
-          console.log('eee');
           return of(true);
         })
     );

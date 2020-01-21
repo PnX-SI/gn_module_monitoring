@@ -132,7 +132,6 @@ export class MonitoringObjectComponent implements OnInit {
     return this._route.paramMap
       .pipe(
         mergeMap((params) => {
-          console.log('params', params);
           const objectType = params.get('objectType') ? params.get('objectType') : 'module';
 
           this.obj = new MonitoringObject(params.get('modulePath'),
