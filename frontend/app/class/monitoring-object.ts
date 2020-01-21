@@ -42,9 +42,9 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   initChildren(childrenData): Observable<any> {
-    if(!childrenData) {
+    if (!childrenData) {
       return of(true);
-    } 
+    }
 
     return forkJoin(
       this.childrenTypes().map(childrenType => {
@@ -60,8 +60,8 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     this.children[childrenType] = [];
-    
-    if ( !(this.id && childrenDataOfType.length) ) {
+
+    if (!(this.id && childrenDataOfType.length)) {
       return of(true);
     }
 
@@ -89,14 +89,20 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** Methodes get post patch delete */
 
   get(depth): Observable<any> {
-    return this._objService
-      .dataMonitoringObjectService()
-      .getObject(this.modulePath, this.objectType, this.id, depth)
-      .pipe(
-        mergeMap(postData => {
-          return this.init(postData);
-        })
-      );
+    return of(true).pipe(
+      mergeMap(() => {
+        let postData = this._objService.getFromCache(this)
+        if (postData) {
+          return of(postData)
+        }
+        return this._objService
+          .dataMonitoringObjectService()
+          .getObject(this.modulePath, this.objectType, this.id, depth)
+      }),
+      mergeMap(postData => {
+        return this.init(postData);
+      })
+    );
   }
 
   post(formValue): Observable<any> {
@@ -105,6 +111,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       .postObject(this.modulePath, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap(postData => {
+          this._objService.setCache(this, postData);
           return this.init(postData);
         })
       );
@@ -121,12 +128,14 @@ export class MonitoringObject extends MonitoringObjectBase {
       )
       .pipe(
         mergeMap(postData => {
+          this._objService.setCache(this, postData);
           return this.init(postData);
         })
       );
   }
 
   delete() {
+    this._objService.deleteCache(this);
     return this._objService
       .dataMonitoringObjectService()
       .deleteObject(this.modulePath, this.objectType, this.id);
@@ -227,7 +236,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     });
   }
 
-  
+
   /** list */
 
   childrenColumnsAndRowsOfType(childrenType, typeDisplay) {
@@ -236,9 +245,9 @@ export class MonitoringObject extends MonitoringObjectBase {
     let childrenFieldNames = child0.fieldNames(typeDisplay);
 
     let columns = childrenFieldNames.map(fieldName => {
-      return { 
+      return {
         prop: fieldName,
-        name: childrenFieldLabels[fieldName] 
+        name: childrenFieldLabels[fieldName]
       };
     });
 

@@ -1,3 +1,4 @@
+import { MonitoringObject } from './../class/monitoring-object';
 import { Injectable } from "@angular/core";
 import { Observable, of } from "@librairies/rxjs";
 
@@ -14,6 +15,78 @@ export class MonitoringObjectService {
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _dataUtilsService: DataUtilsService
   ) { }
+
+  _cache = {};
+
+  cache(modulePath, objectType, id=null) {
+    let cache = this._cache[modulePath] = this._cache[modulePath] || {};
+    cache = cache[objectType] = cache[objectType] || {};
+    if(id) {
+      cache = cache[id] = cache[id] || null;
+    }
+    return cache;
+  }
+
+  setCache(obj: MonitoringObject, postData) {
+    // post ou update
+
+    // object
+    let cache = this.cache(obj.modulePath, obj.objectType, obj.id)
+    cache = postData;
+
+    // children
+    for (let childrenType of obj.childrenTypes()) {
+      const childrenData = obj.children[childrenType];
+      for (let childData of childrenData) {
+        cache = this.cache(obj.modulePath, childrenType, childData.id)
+        cache = childData
+      }
+    }
+
+    // parent
+    const parent = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
+    if (parent) {
+      const index = parent.children[obj.objectType]
+        .findIndex((child) => {
+          return child.id == obj.id;
+        });
+      parent.children[obj.objectType].splice(index, 1, postData);
+    }
+  }
+
+  getFromCache(obj) {
+    // get
+
+    return this.cache(obj.modulePath, obj.objectType, obj.id)
+  }
+
+  deleteCache(obj) {
+    let postData = this.getFromCache(obj);
+
+    // children
+    for (let childrenType of obj.childrenTypes()) {
+      const childrenData = obj.children[childrenType];
+      for (let childData of childrenData) {
+        const child = new MonitoringObject(obj.modulePath, childrenType, childData.id, this);
+        this.deleteCache(child);
+      }
+    }
+    
+    // parent
+    const parent = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
+    if (parent) {
+      const index = parent.children[obj.objectType]
+        .findIndex((child) => {
+          return child.id == obj.id;
+        });
+      parent.children[obj.objectType].splice(index, 1);
+    }
+    
+    // delete
+    const objectsCache = this.cache(obj.modulePath, obj.objectType)
+    const index = objectsCache.findIndex(data => data.id == obj.id);
+    objectsCache.splice(index, 1);
+  }
 
   configUtilsDict = {
     'user': {
