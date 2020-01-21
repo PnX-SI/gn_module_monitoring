@@ -8,7 +8,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 export class MediasComponent implements OnInit {
 
   bEditMedia = false;
-  media
+  media;
 
   @Input() uuid_attached_row;
   @Input() id_table_location;
@@ -20,7 +20,7 @@ export class MediasComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    
+
   }
 
   editMedia(media) {
@@ -30,15 +30,15 @@ export class MediasComponent implements OnInit {
 
   onMediaChange(mediaChanged) {
     this.media = mediaChanged;
-    let isNewMedia=true;
+    let isNewMedia = true;
     this.medias.forEach((media, index) => {
-      if(media.id_media == this.media.id_media) {
+      if (media.id_media === this.media.id_media) {
         this.medias[index] = this.media;
         isNewMedia = false;
       }
-    })
-    if(isNewMedia) {
-      this.medias.push(mediaChanged)
+    });
+    if (isNewMedia) {
+      this.medias.push(mediaChanged);
     }
     this.mediasChange.emit(this.medias);
     this.bEditMedia = false;

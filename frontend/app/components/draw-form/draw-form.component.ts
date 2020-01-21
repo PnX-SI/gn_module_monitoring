@@ -4,7 +4,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { leafletDrawOptions } from './leaflet-draw.options';
 
 @Component({
-  selector: 'draw-form',
+  selector: 'pnx-draw-form',
   templateUrl: './draw-form.component.html',
   styleUrls: ['./draw-form.component.css']
 })

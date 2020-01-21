@@ -24,18 +24,19 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   init(objData): Observable<any> {
     // set data et get children
+    console.log('UUUU', this.objectType, objData);
+
     this.setConfig();
     this.setData(objData);
 
     const observables = [this.resolveProperties()];
 
-    if (this.childrenTypes().length) {
+    if (this.childrenTypes().length && objData) {
       observables.push(this.initChildren(objData.children));
     }
 
     return forkJoin(observables).pipe(
       concatMap(() => {
-        // this.bIsInitialized = true;
         return of(true);
       })
     );
@@ -93,20 +94,16 @@ export class MonitoringObject extends MonitoringObjectBase {
     return of(true).pipe(
       mergeMap(() => {
         const postData = this._objService.getFromCache(this);
-        console.log('postData cache', postData);
         if (postData) {
           bFromCache = true;
-          console.log('cache ', this.toString(), postData);
           return of(postData);
         }
-        console.log('get ', this.toString());
         return this._objService
           .dataMonitoringObjectService()
           .getObject(this.modulePath, this.objectType, this.id, depth);
       }),
       mergeMap(postData => {
         if (!bFromCache) {
-          console.log('set ', this.toString(), postData);
           this._objService.setCache(this, postData);
         }
         return this.init(postData);

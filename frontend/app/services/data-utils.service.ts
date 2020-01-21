@@ -61,6 +61,9 @@ export class DataUtilsService {
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
   getUtils(typeUtilObject, ids, fieldName) {
+    if (!ids.lenght) {
+      return of(null);
+    }
     const observables = [];
     // applique getUtil pour chaque id de ids
     for (const id of ids) {

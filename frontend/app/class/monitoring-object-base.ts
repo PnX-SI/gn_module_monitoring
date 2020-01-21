@@ -53,7 +53,7 @@ export class MonitoringObjectBase {
   }
 
   toString() {
-    return `Object - module: ${this.modulePath} - type: ${this.objectType} - id: ${this.id}`;
+    return `Object - ${this.modulePath} ${this.objectType} ${this.id}`;
   }
 
   initTemplate() {
@@ -120,7 +120,6 @@ export class MonitoringObjectBase {
         .dataUtilsService()
         .getUtil(elem.type_util, val, configUtil.fieldName);
     }
-
     return of(val);
   }
 
@@ -131,14 +130,16 @@ export class MonitoringObjectBase {
     for (const elem of this.schema()) {
       observables.push(this.resolveProperty(elem));
     }
-
     return Observable.forkJoin(observables).pipe(
       concatMap(
         resolvedPropertiesArray => {
-          this.schema().forEach((elem, index) => {
+          let index = 0;
+          for (const elem of this.schema()) {
             const val = resolvedPropertiesArray[index];
             this.resolvedProperties[elem.attribut_name] = val;
-          });
+            index++;
+          }
+          console.log('eee');
           return of(true);
         })
     );

@@ -61,46 +61,56 @@ export class MonitoringObjectService {
     }
 
     // children
-    for (const childrenType of Object.keys(objData.children)) {
-      const childrenData = objData.children[childrenType];
-      const cacheChildren = this.cache(obj.modulePath, childrenType);
-      console.log(Utils.copy(cacheChildren));
-      console.log(Utils.copy(this._cache));
-      for (const childData of childrenData) {
-        cacheChildren[childData.id] = childData;
-        console.log(Utils.copy(cacheChildren));
-
+    if (objData.children) {
+      for (const childrenType of Object.keys(objData.children)) {
+        const childrenData = objData.children[childrenType];
+        const cacheChildren = this.cache(obj.modulePath, childrenType);
+        for (const childData of childrenData) {
+          cacheChildren[childData.id] = childData;
+        }
       }
     }
 
     // parent
     const parent = this.getParentFromCache(obj);
     if (parent) {
-      console.log('aa', parent)
       const index = parent.children[obj.objectType]
         .findIndex((child) => {
-          return child.id === obj.id;
+          return Number(child.id) === Number(obj.id);
         });
-      parent.children[obj.objectType].splice(index, 1, objData);
+      if (index !== -1) {
+        // update
+        parent.children[obj.objectType].splice(index, 1, objData);
+      } else {
+        // post
+        parent.children[obj.objectType].push(objData);
+      }
     }
-
-    console.log('after set', this._cache);
-
   }
 
-  getParentFromCache(obj) {
+  getParentFromCache(obj: MonitoringObject) {
     if (!obj.parentType()) { return; }
     const parentData = this.cache(obj.modulePath, obj.parentType(), obj.parentId);
-    return Object.keys(parentData).length ? parentData : null;
+    if (!(parentData && parentData.children)) { return; }
+    return parentData ? parentData : null;
   }
 
-  getFromCache(obj) {
+  getFromCache(obj: MonitoringObject) {
     // get
     const objData = this.cache(obj.modulePath, obj.objectType, obj.id);
-    return Object.keys(objData).length ? objData : null;
+
+    if ( !(objData && Object.keys(objData).length) ) {
+      return null;
+    }
+
+    if (obj.childrenTypes().length && !objData.children) {
+      return null;
+    }
+
+    return objData;
   }
 
-  deleteCache(obj) {
+  deleteCache(obj: MonitoringObject) {
     let index: Number;
     // children
     for (const childrenType of obj.childrenTypes()) {
@@ -116,15 +126,15 @@ export class MonitoringObjectService {
     if (parent && Object.keys(parent).length) {
       index = parent.children[obj.objectType]
         .findIndex((child) => {
-          return child.id === obj.id;
+          return Number(child.id) === Number(obj.id);
         });
       parent.children[obj.objectType].splice(index, 1);
+
     }
 
     // delete
     const objectsCache = this.cache(obj.modulePath, obj.objectType);
-    index = objectsCache.findIndex(data => data.id === obj.id);
-    objectsCache.splice(index, 1);
+    delete objectsCache[obj.id];
   }
 
   configUtils(elem) {

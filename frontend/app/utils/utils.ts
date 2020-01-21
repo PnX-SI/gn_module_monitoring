@@ -1,4 +1,4 @@
-import { Observable } from "@librairies/rxjs/Observable";
+import { Observable } from '@librairies/rxjs/Observable';
 
 
 export class Utils {
@@ -6,9 +6,13 @@ export class Utils {
   /** Fonction pour copier un objet de type dictionnaire */
   static copy(object) {
     if ([undefined].includes(object)) {
-      return object
+      return object;
     }
     return JSON.parse(JSON.stringify(object));
+  }
+
+  static equal(x1, x2) {
+    return JSON.stringify(x1) === JSON.stringify(x2);
   }
 
   static dictSize(dict) {
@@ -20,17 +24,17 @@ export class Utils {
   }
 
   static formatDate(val) {
-    return val ? new Date(val).toLocaleString('fr-FR', { timeZone: 'UTC' }).split(' ')[0] : val
+    return val ? new Date(val).toLocaleString('fr-FR', { timeZone: 'UTC' }).split(' ')[0] : val;
   }
 
-  static mapDictToArray(dictIn: Object, processFunc=null, fieldName: string = null): Array<any> {
+  static mapDictToArray(dictIn: Object, processFunc= null, fieldName: string = null): Array<any> {
     if (!dictIn) {
       return null;
     }
-    let arrayOut = [];
+    const arrayOut = [];
     return Object.keys(dictIn).map((key) => {
       let elem = dictIn[key];
-      let condKey = Utils.isObject(elem) && fieldName;
+      const condKey = Utils.isObject(elem) && fieldName;
       if ( condKey ) {
         elem[fieldName] = key;
       }
@@ -43,14 +47,14 @@ export class Utils {
    * (opt) processFunc modifie les elements de arrayIn
    * (opt) field name pour prendre comme cle du dictOut elem[field_name]
    */
-  static mapArrayToDict(arrayIn: Array<any>, processFunc=null, fieldName: string = null): Object {
+  static mapArrayToDict(arrayIn: Array<any>, processFunc= null, fieldName: string = null): Object {
     if (!arrayIn) {
       return null;
     }
-    let dictOut = {};
+    const dictOut = {};
       arrayIn.forEach((elem) => {
-        let condKey = Utils.isObject(elem) && fieldName in elem;
-        let key = condKey ? elem[fieldName]: elem;
+        const condKey = Utils.isObject(elem) && fieldName in elem;
+        const key = condKey ? elem[fieldName] : elem;
         dictOut[key] = processFunc ? processFunc(elem) : elem;
       });
     return dictOut;

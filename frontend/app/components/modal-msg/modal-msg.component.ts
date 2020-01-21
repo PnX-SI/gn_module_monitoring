@@ -7,7 +7,7 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['./modal-msg.component.css']
 })
 export class ModalMsgComponent implements OnInit {
-  
+
   @Input() bDisplayModal;
 
   constructor() { }

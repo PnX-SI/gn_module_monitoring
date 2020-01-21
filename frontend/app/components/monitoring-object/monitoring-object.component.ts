@@ -55,7 +55,7 @@ export class MonitoringObjectComponent implements OnInit {
     of(true)
       .pipe(
         mergeMap(() => {
-          return this.initParams();
+          return this.initParams(); // parametres de route
         }),
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
@@ -70,15 +70,15 @@ export class MonitoringObjectComponent implements OnInit {
         })
       )
       .subscribe(() => {
+
         this.obj.initTemplate(); // pour le html
         this.initSites();
-        this.bLoadingModal = false; // fermeture du modal
-        this.obj.bIsInitialized = true; // obj initialisé
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
         this.bEdit = this.bEdit || (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
-
         this.initObjectsStatus();
-
+        this.bLoadingModal = false; // fermeture du modal
+        this.obj.bIsInitialized = true; // obj initialisé
+        console.log(`${this.obj.toString()} initialised`)
       });
   }
 
@@ -132,7 +132,7 @@ export class MonitoringObjectComponent implements OnInit {
     return this._route.paramMap
       .pipe(
         mergeMap((params) => {
-
+          console.log('params', params);
           const objectType = params.get('objectType') ? params.get('objectType') : 'module';
 
           this.obj = new MonitoringObject(params.get('modulePath'),
@@ -152,6 +152,7 @@ export class MonitoringObjectComponent implements OnInit {
         }),
         mergeMap((params) => {
           this.objForm = this._formBuilder.group({});
+          this.obj.bIsInitialized = false;
           this.bEdit = !!params.get('edit');
           return of(true);
         })
@@ -174,22 +175,33 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getDataObject(): Observable<any> {
-    // TODO mettre au propre
-    const observables = {
-      'module': this.module.get(1)
-    };
-    if (this.obj.objectType !== 'module') {
-      observables['obj'] = this.obj.get(1);
-    }
-
-    return forkJoin(observables)
+    console.log('getData');
+    return this.module.get(1)
       .pipe(
-        concatMap((res) => {
-          if (this.obj.objectType === 'module') {
-            return this.obj.get(1);
-          }
-          return of(true);
+        mergeMap(() => {
+          return this.obj.get(1);
         })
       );
+
+    // TODO mettre au propre
+    // const observables = {
+    //   'module': this.module.get(1)
+    // };
+    // if (this.obj.objectType !== 'module') {
+    //   observables['obj'] = this.obj.get(1);
+    // }
+
+
+    // return forkJoin(observables)
+    //   .pipe(
+    //     concatMap((res) => {
+    //       console.log('getModule', this.module.children['site'].length);
+    //       if (this.obj.objectType === 'module') {
+    //         return this.obj.get(1);
+    //       }
+    //       console.log('end');
+    //       return of(true);
+    //     })
+    //   );
   }
 }

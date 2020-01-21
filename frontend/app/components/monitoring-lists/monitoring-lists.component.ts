@@ -1,5 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { ConfigService } from "../../services/config.service";
+import { DataMonitoringObjectService } from './../../services/data-monitoring-object.service';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 
@@ -26,7 +27,7 @@ export class MonitoringListComponent implements OnInit {
   medias;
 
   @Input() objectsStatus: Object;
-  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();  
+  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   constructor(
     private _configService: ConfigService,
@@ -34,22 +35,39 @@ export class MonitoringListComponent implements OnInit {
 
   ngOnInit() {
     this._configService.init(this.obj.modulePath)
-      .subscribe(()=>{
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
-        this.backendUrl = this._configService.backendUrl()
-
-        this.children0Array = this.obj.children0Array()
-        // datatable
-        this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
-
-        this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
+      .subscribe(() => {
+        this.initDataTable();
       });
+  }
+
+  initDataTable() {
+    this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
+    this.backendUrl = this._configService.backendUrl();
+
+    this.children0Array = this.obj.children0Array();
+    // datatable
+    this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
+
+    this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }
 
   onSelectedChildren(typeObject, event) {
     this.objectsStatus[typeObject] = event;
-    if(typeObject == 'site') {
+    if (typeObject === 'site') {
       this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
     }
-  }  
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    for (const propName of Object.keys(changes)) {
+      const chng = changes[propName];
+      const cur = chng.currentValue;
+      const prev = chng.previousValue;
+      switch (propName) {
+        case 'obj':
+          this.initDataTable();
+          break;
+      }
+    }
+  }
 }

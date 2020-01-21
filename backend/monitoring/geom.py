@@ -17,9 +17,7 @@ class MonitoringObjectGeom(MonitoringObject):
             geofeature = self.as_geofeature(0, columns=(self.config_param('geom_field_name')))
             geometry = geofeature['geometry']
 
-        if not self._
-        
-        id:
+        if not self._id:
             geometry = None
 
         monitoring_object_dict['geometry'] = geometry

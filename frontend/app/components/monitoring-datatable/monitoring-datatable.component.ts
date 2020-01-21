@@ -1,4 +1,4 @@
-import { DatatableComponent } from "@librairies/@swimlane/ngx-datatable";
+import { DatatableComponent } from '@librairies/@swimlane/ngx-datatable';
 import {
   Component,
   OnInit,
@@ -7,14 +7,15 @@ import {
   EventEmitter,
   ViewChild,
   SimpleChanges
-} from "@angular/core";
-import { Router } from "@angular/router";
+} from '@angular/core';
+import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
+import { Utils } from '../../utils/utils';
 
 @Component({
-  selector: "pnx-monitoring-datatable",
-  templateUrl: "./monitoring-datatable.component.html",
-  styleUrls: ["./monitoring-datatable.component.css"]
+  selector: 'pnx-monitoring-datatable',
+  templateUrl: './monitoring-datatable.component.html',
+  styleUrls: ['./monitoring-datatable.component.css']
 })
 export class MonitoringDatatableComponent implements OnInit {
   @Input() rows;
@@ -38,20 +39,23 @@ export class MonitoringDatatableComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.customColumnComparator = this.customColumnComparator_()
+    this.initDatatable();
+  }
+
+  initDatatable() {
+    this.customColumnComparator = this.customColumnComparator_();
     this.temp = [...this.rows];
 
     // init key_filter
     this.temp.forEach((row, index) => {
-      let keyFilter = "";
+      let keyFilter = '';
       Object.keys(row).forEach(key => {
-        if (key != 'id') {
-          keyFilter += " " + row[key];
+        if (key !== 'id') {
+          keyFilter += ' ' + row[key];
         }
       });
-      this.temp[index]["key_filter"] = keyFilter;
+      this.temp[index]['key_filter'] = keyFilter;
     });
-
   }
 
   updateFilter(event) {
@@ -61,11 +65,11 @@ export class MonitoringDatatableComponent implements OnInit {
 
     let bChange = false;
     const temp = this.temp.filter((row, index) => {
-      let bCondVisible = row.key_filter.includes(val) || !val;
+      const bCondVisible = row.key_filter.includes(val) || !val;
 
-      bChange = bChange || bCondVisible != this.rowStatus[index].visible;
+      bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
-      this.rowStatus[index]['selected'] &= bCondVisible;
+      this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;
 
 
       return bCondVisible;
@@ -82,14 +86,18 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   onRowClick(event) {
-    if (!(event && event.type == 'click')) {
+    if (!(event && event.type === 'click')) {
       return;
     }
-    let id = event.row && event.row.id;
+    const id = event.row && event.row.id;
+
+    if (!this.rowStatus) {
+      return;
+    }
 
     this.rowStatus.forEach((status) => {
-      let bCond = status.id == id;
-      status["selected"] = bCond && !status["selected"];
+      const bCond = status.id === id;
+      status['selected'] = bCond && !status['selected'];
     });
 
     this.setSelected();
@@ -97,26 +105,25 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   navigateViewObject(objectType, id, bEdit) {
-    const queryParams = {}
-    if(bEdit) {
+    const queryParams = {};
+    if (bEdit) {
       queryParams['edit'] = 'true';
     }
-    
+
     this._router.navigate([
-      "/",
+      '/',
       this.frontendModuleMonitoringUrl,
-      "object",
+      'object',
       this.child0.modulePath,
       objectType,
       id
-    ], { queryParams: 
+    ], { queryParams:
       queryParams
      });
   }
 
   setSelected() {
-
-    if(!this.rowStatus) {
+    if (!this.rowStatus) {
       return;
     }
 
@@ -125,8 +132,8 @@ export class MonitoringDatatableComponent implements OnInit {
       return;
     }
 
-    const index_row_selected = this.rows.findIndex(row => row.id == status_selected.id);
-    if (index_row_selected == -1) {
+    const index_row_selected = this.rows.findIndex(row => row.id === status_selected.id);
+    if (index_row_selected === -1) {
       return;
     }
 
@@ -135,15 +142,16 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    for (let propName in changes) {
-      let chng = changes[propName];
-      let cur = chng.currentValue;
+    for (const propName of Object.keys(changes)) {
+      const chng = changes[propName];
+      const cur = chng.currentValue;
+      const pre = chng.currentValue;
+      console.log('datatable ngOnChanges ', this.child0.objectType, propName, cur, changes)
       switch (propName) {
-        case "rowStatus":
-          this.rowStatus = cur;
+        case 'rowStatus':
           this.setSelected();
-          break;
-        case "child0":
+            break;
+        case 'child0':
           this.customColumnComparator = this.customColumnComparator_();
           break;
       }
@@ -157,21 +165,21 @@ export class MonitoringDatatableComponent implements OnInit {
 
       let x1 = propA, x2 = propB;
 
-      let res = 1 - Number(sortDirection=='asc') * 2;
+      const res = 1 - Number(sortDirection === 'asc') * 2;
 
-      if(!x1 && !x2) return 0;
-      if(!x1 && x2) return -res;
-      if(x1 && !x2) return res;
-      
-      let out = (x1 == x2) ? 0 : (x1 > x2) ? 1 : -1;
+      if (!x1 && !x2) { return 0; }
+      if (!x1 && x2) { return -res; }
+      if (x1 && !x2) { return res; }
 
-      const prop = Object.keys(colA).find(key => colA[key] == x1);
+      let out = (x1 === x2) ? 0 : (x1 > x2) ? 1 : -1;
+
+      const prop = Object.keys(colA).find(key => colA[key] === x1);
       if (!prop) {
         return out;
       }
 
       const schema = this.child0.schema();
-      const elem = schema.find(elem => elem.attribut_name == prop);
+      const elem = schema.find(e => e.attribut_name === prop);
       if (!elem) {
         return out;
       }
@@ -181,24 +189,24 @@ export class MonitoringDatatableComponent implements OnInit {
         case 'date':
           x1 = this._monitoring.dateFromString(x1);
           x2 = this._monitoring.dateFromString(x2);
-          out = (x1 == x2) ? 0 : (x1 > x2) ? 1 : -1;
+          out = (x1 === x2) ? 0 : (x1 > x2) ? 1 : -1;
           break;
         case 'text':
           // quand les propriete sont de la forme "1.1 Nom_site"
-          let v1 = this._monitoring.numberFromString(x1)
-          let v2 = this._monitoring.numberFromString(x2);
-          if(v1 && v2){
-            if( v1[0] == v2[0]) {
-              out = (v1[1] == v2[1]) ? 0 : (v1[1] > v2[1]) ? 1 : -1;
-            }
-            else {
-              out = v1[0] > v2[0] ? 1 : -1
+          const v1 = this._monitoring.numberFromString(x1);
+          const v2 = this._monitoring.numberFromString(x2);
+          if (v1 && v2) {
+            if ( v1[0] === v2[0]) {
+              out = (v1[1] === v2[1]) ? 0 : (v1[1] > v2[1]) ? 1 : -1;
+            } else {
+              out = v1[0] > v2[0] ? 1 : -1;
             }
           }
+          break;
         default:
-          break
+          break;
       }
       return out;
-    }
+    };
   }
 }

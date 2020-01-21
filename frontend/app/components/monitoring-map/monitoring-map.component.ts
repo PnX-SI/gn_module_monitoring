@@ -5,23 +5,23 @@ import {
   Output,
   EventEmitter,
   SimpleChanges
-} from "@angular/core";
+} from '@angular/core';
 
-import { FormGroup } from "@angular/forms";
-import { MonitoringObject } from "../../class/monitoring-object";
-import { Layer, svg } from "@librairies/leaflet";
-import { ConfigService } from "../../services/config.service";
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
+import { FormGroup } from '@angular/forms';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { Layer, svg } from '@librairies/leaflet';
+import { ConfigService } from '../../services/config.service';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 
 
-import { MapService } from "@geonature_common/map/map.service";
-import { Utils } from '../../utils/utils'
+import { MapService } from '@geonature_common/map/map.service';
+import { Utils } from '../../utils/utils';
 
 
 @Component({
-  selector: "pnx-monitoring-map",
-  templateUrl: "./monitoring-map.component.html",
-  styleUrls: ["./monitoring-map.component.css"]
+  selector: 'pnx-monitoring-map',
+  templateUrl: './monitoring-map.component.html',
+  styleUrls: ['./monitoring-map.component.css']
 })
 export class MonitoringMapComponent implements OnInit {
   @Input() bEdit: boolean;
@@ -37,8 +37,9 @@ export class MonitoringMapComponent implements OnInit {
   panes = {};
   renderers = {};
   map;
+  selectedSiteId: Number;
   // todo mettre en config
-  
+
   styles = {
     hidden: {
       opacity: 0,
@@ -81,33 +82,39 @@ export class MonitoringMapComponent implements OnInit {
 
 
   ngOnInit() {
-    this.initSites();
+    // this.initSites();
   }
 
   initSites() {
+    console.log('init sites', this.sites);
     setTimeout(() => {
-      let $this = this;
-      this.initPanes()
+      this.initPanes();
       if (this.sites && this.sites['features']) {
-
         this.initSitesStatus();
-        this.sites['features'].forEach(site => {
-          $this.setPopup(site.id);
-          let layer = $this.findSiteLayer(site.id);
-          //pane
-          layer.on('click', (e) => {
-            this.setSelectedSite(site.id);
-            this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
-          })
-        });
+        for (const site of this.sites['features']) {
+          this.setPopup(site.id);
+          const layer = this.findSiteLayer(site.id);
+          // pane
+          const fClick = this.onLayerClick(site);
+          layer.off('click', fClick);
+          layer.on('click', fClick);
+        }
         this.setSitesStyle();
       }
-    }, 0);
+    }, 500);
+  }
+
+  onLayerClick(site) {
+    return (event) => {
+      const id = (this.selectedSiteId === site.id) ? -1 : site.id;
+      this.setSelectedSite(id);
+      this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
+    };
   }
 
   initPanes() {
-    const map = this._mapService.map
-    for (const key in this.styles) {
+    const map = this._mapService.map;
+    for (const key of Object.keys(this.styles)) {
       const style = this.styles[key];
       map.createPane(key);
       const pane = map.getPane(key);
@@ -124,8 +131,8 @@ export class MonitoringMapComponent implements OnInit {
     }
     const $this = this;
     this.sites['features'].forEach(site => {
-      const status = $this.objectsStatus['site'].find(status => status.id == site.id);
-      if(status) {
+      const status = $this.objectsStatus['site'].find(s => s.id === site.id);
+      if (status) {
         return;
       }
 
@@ -141,18 +148,19 @@ export class MonitoringMapComponent implements OnInit {
 
   setSelectedSite(id) {
     this.objectsStatus['site'].forEach(status => {
-      const b_changed = status['selected'] != (status['id'] == id);
-      status['selected'] = status['id'] == id;
+      const b_changed = status['selected'] !== (status['id'] === id);
+      status['selected'] = status['id'] === id;
       if (b_changed) {
         this.setSiteStyle(status);
       }
+      this.selectedSiteId = id;
     });
   }
 
   setSitesStyle() {
-    if(this.objectsStatus['site'] && this._mapService.map) {
+    if (this.objectsStatus['site'] && this._mapService.map) {
       this.objectsStatus['site'].forEach(status => {
-        this.setSiteStyle(status)
+        this.setSiteStyle(status);
       });
     }
   }
@@ -160,11 +168,9 @@ export class MonitoringMapComponent implements OnInit {
   setSiteStyle(status) {
     const map = this._mapService.map;
     let layer = this.findSiteLayer(status.id);
-    if (!layer) return;
+    if (!layer) { return; }
 
-
-
-    const style_name = 
+    const style_name =
       !status['visible'] ? 'hidden' :
       status['current'] ? 'current' :
       status['selected'] ? 'selected' :
@@ -182,7 +188,7 @@ export class MonitoringMapComponent implements OnInit {
 
     if (status['selected']) {
 
-      if(!layer._popup) {
+      if (!layer._popup) {
         this.setPopup(status.id);
         layer = this.findSiteLayer(status.id);
       }
@@ -195,23 +201,23 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   findSiteLayer(id): Layer {
-    let layers = this._mapService.map["_layers"];
-    let layerKey = Object.keys(layers).find(key => {
-      let feature = layers[key] && layers[key].feature;
-      return feature && (feature['id'] == id || feature.properties['id'] == id);
+    const layers = this._mapService.map['_layers'];
+    const layerKey = Object.keys(layers).find(key => {
+      const feature = layers[key] && layers[key].feature;
+      return feature && (feature['id'] === id || feature.properties['id'] === id);
     });
     return layerKey && layers[layerKey];
   }
 
   setPopup(id) {
-    let layer = this.findSiteLayer(id);
+    const layer = this.findSiteLayer(id);
 
-    if(layer._popup) {
+    if (layer._popup) {
       return;
     }
     // TODO verifier si le fait de spécifier # en dur
     //  Ne pose pas de soucis pour certaine configuration
-    let url = [
+    const url = [
       '#',
       this._configService.frontendModuleMonitoringUrl(),
       'object',
@@ -221,7 +227,7 @@ export class MonitoringMapComponent implements OnInit {
     ].join('/');
 
 
-    let sPopup = `
+    const sPopup = `
     <div>
       <h4>  <a href=${url}>${layer['feature'].properties.base_site_name}</a></h4>
       ${layer['feature'].properties.description || ''}
@@ -232,16 +238,20 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    for (let propName in changes) {
-      let chng = changes[propName];
-      let cur = chng.currentValue;
+    for (const propName of Object.keys(changes)) {
+      const chng = changes[propName];
+      const cur = chng.currentValue;
+      const pre = chng.currentValue;
+      console.log('map ngOnChanges ', propName, cur)
       switch (propName) {
-        case "objectsStatus":
+        case 'objectsStatus':
           this.setSitesStyle();
           break;
-        case "bEdit":
+        case 'bEdit':
           this.setSitesStyle();
           break;
+        case 'sites':
+          this.initSites();
       }
     }
   }
