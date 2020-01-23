@@ -10,7 +10,7 @@
     </div>
   </pnx-modal-msg>
 
-  <div *ngIf="obj && obj.bIsInitialized" class="flex-container">
+  <div class="flex-container">
     <div id="map-container" class="cadre">
       <pnx-monitoring-map
         [obj]="obj"
@@ -41,7 +41,8 @@
       </div>
 
       <pnx-monitoring-form
-        [(obj)]="obj"
+        [obj]="obj"
+        (objChanged)="onObjChanged($event)" 
         *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit"
         [objForm]="objForm"
@@ -51,7 +52,8 @@
       <pnx-monitoring-lists
         [obj]="obj"
         [(objectsStatus)]="objectsStatus"
-        *ngIf="!bEdit"
+        (bEditChanged)="onbEditChanged($event)"
+        *ngIf="!bEdit && obj && obj.bIsInitialized"
       ></pnx-monitoring-lists>
     </div>
   </div>

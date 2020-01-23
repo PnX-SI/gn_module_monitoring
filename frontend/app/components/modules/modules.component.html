@@ -14,7 +14,12 @@
       <a
         *ngFor="let module of modules"
         class="flex-item"
-        [routerLink]="['module', module.module_path]"
+        [routerLink]="[
+          'object',
+          module.module_path,
+          'module',
+          module.id_module
+          ]"
       >
         <img
           src="/external_assets/{{ moduleMonitoringCode | lowercase }}/{{ module.module_path }}.jpg"
@@ -22,12 +27,6 @@
           title="{{ module.module_label }}"
         />
       </a>
-      <a
-        [routerLink]="['/', frontendModuleMonitoringUrl, 'module']"
-        class="flex-item"
-        role="button"
-        > Ajouter Module </a
-      >
     </div>
   </div>
 </div>

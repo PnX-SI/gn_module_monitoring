@@ -1,4 +1,4 @@
-:host ::ng-deep .hide-draw-form .leaflet-draw {
+/* :host ::ng-deep .hide-draw-form .leaflet-draw, 
+:host ::ng-deep .hide-draw-form .leaflet-marker-pane {
     display: none;
-  }
-  
+  } */

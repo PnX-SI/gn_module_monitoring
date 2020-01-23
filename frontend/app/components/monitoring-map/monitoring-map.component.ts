@@ -34,6 +34,7 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() sites: {};
 
+  bListen = true;
   panes = {};
   renderers = {};
   map;
@@ -82,11 +83,9 @@ export class MonitoringMapComponent implements OnInit {
 
 
   ngOnInit() {
-    // this.initSites();
   }
 
   initSites() {
-    console.log('init sites', this.sites);
     setTimeout(() => {
       this.initPanes();
       if (this.sites && this.sites['features']) {
@@ -101,13 +100,14 @@ export class MonitoringMapComponent implements OnInit {
         }
         this.setSitesStyle();
       }
-    }, 500);
+    }, 0);
   }
 
   onLayerClick(site) {
     return (event) => {
       const id = (this.selectedSiteId === site.id) ? -1 : site.id;
       this.setSelectedSite(id);
+      this.bListen=false
       this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
     };
   }
@@ -242,10 +242,14 @@ export class MonitoringMapComponent implements OnInit {
       const chng = changes[propName];
       const cur = chng.currentValue;
       const pre = chng.currentValue;
-      console.log('map ngOnChanges ', propName, cur)
+      // console.log('map ngOnChanges ', propName, cur, pre)
       switch (propName) {
         case 'objectsStatus':
-          this.setSitesStyle();
+          if(!this.bListen) {
+            this.bListen=true;
+          } else {
+            this.setSitesStyle();
+          }
           break;
         case 'bEdit':
           this.setSitesStyle();

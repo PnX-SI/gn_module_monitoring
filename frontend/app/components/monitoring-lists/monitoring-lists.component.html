@@ -43,6 +43,7 @@
       >
         <pnx-monitoring-datatable
           *ngIf="childrenDataTable && childrenDataTable[childrenType]"
+          (bEditChanged)="onbEditChanged($event)"
           [rows]="childrenDataTable[childrenType]['rows']"
           [columns]="childrenDataTable[childrenType]['columns']"
           [rowStatus]="objectsStatus[childrenType]"

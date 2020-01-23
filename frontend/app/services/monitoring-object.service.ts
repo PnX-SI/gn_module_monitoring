@@ -51,6 +51,14 @@ export class MonitoringObjectService {
   setCache(obj: MonitoringObject, objData) {
     // post ou update
 
+    if (obj.objectType === 'module' && !obj.modulePath)
+    {
+      return;
+    }
+    if (obj.objectType !== 'module' && !obj.id) {
+      return
+    }
+
     // object
     if (obj.objectType === 'module') {
       const cache = this.cache(obj.modulePath);
@@ -97,6 +105,14 @@ export class MonitoringObjectService {
 
   getFromCache(obj: MonitoringObject) {
     // get
+    if (obj.objectType === 'module' && !obj.modulePath)
+    {
+      return;
+    }
+    if (obj.objectType !== 'module' && !obj.id) {
+      return;
+    }
+
     const objData = this.cache(obj.modulePath, obj.objectType, obj.id);
 
     if ( !(objData && Object.keys(objData).length) ) {

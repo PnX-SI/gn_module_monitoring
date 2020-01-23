@@ -27,6 +27,8 @@ export class MonitoringDatatableComponent implements OnInit {
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
 
+  @Output() bEditChanged = new EventEmitter<boolean>();
+
   temp;
   selected = [];
   customColumnComparator;
@@ -106,8 +108,9 @@ export class MonitoringDatatableComponent implements OnInit {
 
   navigateViewObject(objectType, id, bEdit) {
     const queryParams = {};
-    if (bEdit) {
-      queryParams['edit'] = 'true';
+    
+    if(bEdit) {
+      this.bEditChanged.emit(bEdit);
     }
 
     this._router.navigate([
@@ -117,9 +120,7 @@ export class MonitoringDatatableComponent implements OnInit {
       this.child0.modulePath,
       objectType,
       id
-    ], { queryParams:
-      queryParams
-     });
+    ]);
   }
 
   setSelected() {
@@ -146,7 +147,7 @@ export class MonitoringDatatableComponent implements OnInit {
       const chng = changes[propName];
       const cur = chng.currentValue;
       const pre = chng.currentValue;
-      console.log('datatable ngOnChanges ', this.child0.objectType, propName, cur, changes)
+      // console.log('datatable ngOnChanges ', this.child0.objectType, propName, cur, changes)
       switch (propName) {
         case 'rowStatus':
           this.setSelected();

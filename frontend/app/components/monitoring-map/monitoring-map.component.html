@@ -1,11 +1,12 @@
 <div id="geometry" class="map-container">
   <pnx-map height="80vh" [ngClass]="{ 'hide-draw-form': !bEdit }">
     
+    <!-- *ngIf="objForm.controls['geometry']" -->
     <pnx-draw-form
-      *ngIf="obj && obj.config['geometry_type'] && objForm.controls['geometry'] && _mapService.map"
-      [parentFormControl]="objForm.controls['geometry']"
-      [geometryType]="obj.config['geometry_type']"
+      [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
+      [geometryType]="obj && obj.config['geometry_type']"
       [bZoomOnPoint]=false
+      [bEdit]=bEdit
     ></pnx-draw-form>
 
     <pnx-geojson

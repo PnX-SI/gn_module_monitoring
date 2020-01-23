@@ -49,7 +49,6 @@ export class MonitoringObjectComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-
     this.currentUser = this._auth.getCurrentUser();
 
     of(true)
@@ -72,26 +71,33 @@ export class MonitoringObjectComponent implements OnInit {
       .subscribe(() => {
 
         this.obj.initTemplate(); // pour le html
-        this.initSites();
+        
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
         this.bEdit = this.bEdit || (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
-        this.initObjectsStatus();
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-        console.log(`${this.obj.toString()} initialised`)
+        if(!this.sites) {
+          this.initSites();
+        }
       });
   }
 
   initSites() {
-    const sites = this.module['children']['site'];
-    this.sites = {
-      features: sites.map((site) => {
-        site['id'] = site['properties']['id_base_site'];
-        site['type'] = 'Feature';
-        return site;
-      }),
-      type: 'FeatureCollection'
-    };
+    return this.module.get(1)
+    .subscribe(() => {
+      const sites = this.module['children']['site'];
+      this.sites = {
+
+        features: sites.map((site) => {
+          site['id'] = site['properties']['id_base_site'];
+          site['type'] = 'Feature';
+          return site;
+        }),
+        type: 'FeatureCollection'
+      };
+      this.initObjectsStatus();
+    });
+
   }
 
   initObjectsStatus() {
@@ -114,7 +120,7 @@ export class MonitoringObjectComponent implements OnInit {
         objectsStatus['site'] = [
           {
             'id': this.obj.siteId,
-            'selected': true,
+            'selected': false,
             'visible': true,
             'current': true
           }
@@ -152,7 +158,6 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap((params) => {
           this.objForm = this._formBuilder.group({});
           this.obj.bIsInitialized = false;
-          this.bEdit = !!params.get('edit');
           return of(true);
         })
       );
@@ -174,33 +179,17 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getDataObject(): Observable<any> {
-    console.log('getData');
-    return this.module.get(1)
-      .pipe(
-        mergeMap(() => {
-          return this.obj.get(1);
-        })
-      );
+    return this.obj.get(1);
+  }
 
-    // TODO mettre au propre
-    // const observables = {
-    //   'module': this.module.get(1)
-    // };
-    // if (this.obj.objectType !== 'module') {
-    //   observables['obj'] = this.obj.get(1);
-    // }
+  onbEditChanged(event) {
+    this.bEdit = event;
+  }
 
-
-    // return forkJoin(observables)
-    //   .pipe(
-    //     concatMap((res) => {
-    //       console.log('getModule', this.module.children['site'].length);
-    //       if (this.obj.objectType === 'module') {
-    //         return this.obj.get(1);
-    //       }
-    //       console.log('end');
-    //       return of(true);
-    //     })
-    //   );
+  onObjChanged(obj: MonitoringObject) {
+    if(obj['objectType'] == 'site') {
+      console.log('monitoring object compute sites')
+      this.initSites();
+    }
   }
 }

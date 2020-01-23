@@ -5,7 +5,7 @@
     {{ this.obj.template['label'] }}
     {{ this.obj.template['description'] }}
   </p>
-  <button class="btn btn-danger" (click)="onDelete()">
+  <button class="btn btn-danger float-right" (click)="onDelete()">
     <span
       [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
       class="spinner-border spinner-border-sm"
@@ -14,13 +14,13 @@
     ></span>
     Confirmer la suppression
   </button>
-  <button class="btn btn-success" (click)="bDeleteModal = false">
+  <button class="btn btn-primary" (click)="bDeleteModal = false">
     Annuler
   </button>
 </pnx-modal-msg>
 
 
-
+{{objForm.value|json}}
 <div>
   <div
     id="properties-form"

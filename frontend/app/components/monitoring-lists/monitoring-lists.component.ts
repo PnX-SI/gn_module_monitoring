@@ -15,6 +15,9 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() obj: MonitoringObject;
 
+  @Output() bEditChanged = new EventEmitter<boolean>();
+
+
   frontendModuleMonitoringUrl;
   backendUrl: string;
 
@@ -56,6 +59,10 @@ export class MonitoringListComponent implements OnInit {
     if (typeObject === 'site') {
       this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
     }
+  }
+
+  onbEditChanged(event) {
+    this.bEditChanged.emit(event);
   }
 
   ngOnChanges(changes: SimpleChanges) {

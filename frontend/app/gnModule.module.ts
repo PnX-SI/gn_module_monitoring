@@ -35,9 +35,9 @@ const routes: Routes = [
     { path: '', component: ModulesComponent },
 
     /** module  */
-    { path: 'module/:modulePath', component: MonitoringObjectComponent },
+    // { path: 'module/:modulePath', component: MonitoringObjectComponent },
     /** create module */
-    { path: 'module', component: MonitoringObjectComponent },
+    // { path: 'module', component: MonitoringObjectComponent },
 
     /** object */
     { path: 'object/:modulePath/:objectType/:id', component: MonitoringObjectComponent },

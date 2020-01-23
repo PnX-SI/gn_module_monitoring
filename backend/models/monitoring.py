@@ -95,6 +95,7 @@ class TObservations(DB.Model):
         TMonitoringObservationDetails,
         primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
         foreign_keys=[TMonitoringObservationDetails.id_observation],
+        cascade="all,delete"
     )
 
 
@@ -140,6 +141,7 @@ class TMonitoringVisits(TBaseVisits):
         "TMonitoringObservations",
         primaryjoin=(TObservations.id_base_visit == TBaseVisits.id_base_visit),
         foreign_keys=[TObservations.id_base_visit],
+        cascade="all,delete"
     )
 
 
@@ -171,14 +173,14 @@ class TMonitoringSites(TBaseSites):
         TMonitoringVisits,
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
-        # single_parent=True
-        join_depth=0,
+        cascade="all,delete"
         )
 
     medias = DB.relationship(
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
-        foreign_keys=[TMedias.uuid_attached_row])
+        foreign_keys=[TMedias.uuid_attached_row],
+        cascade="all,delete")
 
     @hybrid_property
     def last_visit(self):

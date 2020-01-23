@@ -1,10 +1,10 @@
 <pnx-leaflet-draw
-
       [options]="leafletDrawOptions"
       [zoomLevel]="1"
       (layerDrawed)="bindGeojsonForm($event)"
       [geojson]="geojson ? geojson.geometry : null"
       [bZoomOnPoint]="bZoomOnPoint"
       [zoomLevelOnPoint]="zoomLevelOnPoint"
+      [bEnable]="bEdit"
       >
 </pnx-leaflet-draw>

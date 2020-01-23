@@ -12,8 +12,8 @@ export class DrawFormComponent implements OnInit {
 
   public geojson;
   public leafletDrawOptions = leafletDrawOptions;
-  // Disable the input: default to false
-  @Input() disabled = false;
+  formValueChangeSubscription;
+
   @Input() parentFormControl: FormControl;
   /** Type de geomtrie parmi : 'Point', 'Polygon', 'LineString' */
   @Input() geometryType: string;
@@ -26,9 +26,12 @@ export class DrawFormComponent implements OnInit {
   @Input() bZoomOnPoint = true;
   @Input() zoomLevelOnPoint = 8;
 
+  @Input() bEdit;
+
   constructor() { }
 
   ngOnInit() {
+
     // choix du type de geometrie
     switch (this.geometryType) {
       case 'Point': {
@@ -56,15 +59,21 @@ export class DrawFormComponent implements OnInit {
 
     }
 
-    // init geometry from parentFormControl
-    if (this.parentFormControl.value) {
-      this.setGeojson(this.parentFormControl.value);
-    }
+    this.initForm()
+  }
 
-    // suivi formControl => composant
-    this.parentFormControl.valueChanges.subscribe(geometry => {
-      this.setGeojson(geometry);
-    });
+  initForm() {
+    if (this.formValueChangeSubscription) {
+      this.formValueChangeSubscription.unsubscribe();
+    }
+    if (this.parentFormControl && this.parentFormControl.value) {
+      // init geometry from parentFormControl
+      this.setGeojson(this.parentFormControl.value);      
+      // suivi formControl => composant
+      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(geometry => {
+        this.setGeojson(geometry);
+      });
+    }
 
   }
 
@@ -78,5 +87,11 @@ export class DrawFormComponent implements OnInit {
   bindGeojsonForm(geojson) {
     this.geojson = geojson;
     this.parentFormControl.setValue(geojson.geometry);
+  }
+
+  ngOnChanges(changes) {
+    if (changes.parentFormControl && changes.parentFormControl.currentValue) {
+      this.initForm();
+    }
   }
 }

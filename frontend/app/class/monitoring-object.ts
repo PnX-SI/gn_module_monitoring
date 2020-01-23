@@ -96,6 +96,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           bFromCache = true;
           return of(postData);
         }
+        console.log('get',this.toString())
         return this._objService
           .dataMonitoringObjectService()
           .getObject(this.modulePath, this.objectType, this.id, depth);
@@ -115,6 +116,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       .postObject(this.modulePath, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap(postData => {
+          this.id = postData['id'];
           this._objService.setCache(this, postData);
           return this.init(postData);
         })
