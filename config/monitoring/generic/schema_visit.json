@@ -48,5 +48,8 @@
     "type_widget": "text",
     "value": "__ID_DATASET_VISIT",
     "hidden": true
+  },
+  "nb_observations": {
+    "attribut_label": "Nb. obs."
   }
 }

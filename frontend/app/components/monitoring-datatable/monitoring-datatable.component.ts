@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
-import { Utils } from '../../utils/utils';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -20,6 +19,8 @@ import { Utils } from '../../utils/utils';
 export class MonitoringDatatableComponent implements OnInit {
   @Input() rows;
   @Input() columns;
+
+  @Input() sorts;
 
   @Input() child0;
   @Input() frontendModuleMonitoringUrl;
@@ -108,8 +109,8 @@ export class MonitoringDatatableComponent implements OnInit {
 
   navigateViewObject(objectType, id, bEdit) {
     const queryParams = {};
-    
-    if(bEdit) {
+
+    if (bEdit) {
       this.bEditChanged.emit(bEdit);
     }
 

@@ -144,6 +144,10 @@ class TMonitoringVisits(TBaseVisits):
         cascade="all,delete"
     )
 
+    @hybrid_property
+    def nb_observations(self):
+        return len(self.observations)
+
 
 @geoserializable
 class TMonitoringSites(TBaseSites):
@@ -191,6 +195,10 @@ class TMonitoringSites(TBaseSites):
                     last_visit = visit.visit_date_min
 
         return last_visit
+    
+    @hybrid_property
+    def nb_visits(self):
+        return len(self.visits)
 
 
 @serializable

@@ -51,6 +51,9 @@
     "attribut_label": "Dernière visite",
     "type_util": "date"
   },
+  "nb_visits": {
+    "attribut_label": "Nb. visites"
+  },
   "uuid_base_site": {
     "attribut_label": "uuid"
   }

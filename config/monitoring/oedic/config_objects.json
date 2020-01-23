@@ -2,5 +2,15 @@
     "site": {
         "geometry_type": "Polygon",
         "media_types": ["pdf"]
+    },
+    "visit": {
+        "display_properties": [
+            "visit_date_min",
+            "observers",
+            "nb_ind_obs_min",
+            "nb_ind_obs_max",
+            "nb_observations",
+            "comments"
+          ]
     }
 }

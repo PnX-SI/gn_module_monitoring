@@ -49,7 +49,8 @@
           [rowStatus]="objectsStatus[childrenType]"
           [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
           (rowStatusChange)="onSelectedChildren(childrenType, $event)"
-          [child0]=child0
+          [child0]="child0"
+          [sorts]="child0.configParam('sorts')"
         ></pnx-monitoring-datatable>
       </div>
       <div *ngIf="obj.modulePath && child0.objectType != 'media'">

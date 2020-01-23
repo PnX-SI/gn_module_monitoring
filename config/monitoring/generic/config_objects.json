@@ -34,13 +34,18 @@
       "id_nomenclature_type_site",
       "id_inventor",
       "first_use_date",
-      "last_visit"
+      "last_visit",
+      "nb_visits"
     ],
     "display_list": [
       "base_site_name",
       "base_site_code",
       "id_nomenclature_type_site",
-      "last_visit"
+      "last_visit",
+      "nb_visits"
+    ],
+    "sorts": [
+      {"prop": "last_visit", "dir": "desc"}
     ]
   },
   
@@ -53,7 +58,8 @@
     "display_properties": [
       "visit_date_min",
       "observers",
-      "comments"
+      "comments",
+      "nb_observations"
     ]
   },
   

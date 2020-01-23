@@ -1,11 +1,11 @@
 {
   "nb_ind_obs_min": {
       "type_widget": "text",
-      "attribut_label": "Nb min"
+      "attribut_label": "Nb. min"
     },
     "nb_ind_obs_max": {
       "type_widget": "text",
-      "attribut_label": "Nb max"
+      "attribut_label": "Nb. max"
     },
     "id_nomenclature_meteo_vent": {
       "type_widget": "nomenclature",
@@ -23,7 +23,7 @@
     },
     "time_start": {
       "type_widget": "text",
-      "attribut_label": "Debut"
+      "attribut_label": "Début"
     },
     "time_end": {
       "type_widget": "text",
