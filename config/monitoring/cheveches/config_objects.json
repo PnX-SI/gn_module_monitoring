@@ -14,6 +14,7 @@
             "base_site_code",
             "id_2014",
             "code_2014",
+            "id_inventor",
             "id_2010",
             "code_2010",
             "last_visit"
@@ -21,6 +22,7 @@
           "display_list": [
             "base_site_name",
             "base_site_code",
+            "id_inventor",
             "last_visit"
           ]            
     },

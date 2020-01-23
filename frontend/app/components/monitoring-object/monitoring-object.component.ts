@@ -71,12 +71,12 @@ export class MonitoringObjectComponent implements OnInit {
       .subscribe(() => {
 
         this.obj.initTemplate(); // pour le html
-        
+
         // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
         this.bEdit = this.bEdit || (this.obj.isRoot() && !this.obj.modulePath) || (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-        if(!this.sites) {
+        if (!this.sites) {
           this.initSites();
         }
       });
@@ -158,6 +158,8 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap((params) => {
           this.objForm = this._formBuilder.group({});
           this.obj.bIsInitialized = false;
+          this.bLoadingModal = true;
+
           return of(true);
         })
       );
@@ -187,8 +189,8 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   onObjChanged(obj: MonitoringObject) {
-    if(obj['objectType'] == 'site') {
-      console.log('monitoring object compute sites')
+    if (obj['objectType'] === 'site') {
+      console.log('monitoring object compute sites');
       this.initSites();
     }
   }

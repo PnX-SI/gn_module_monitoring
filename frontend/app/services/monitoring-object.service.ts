@@ -51,12 +51,11 @@ export class MonitoringObjectService {
   setCache(obj: MonitoringObject, objData) {
     // post ou update
 
-    if (obj.objectType === 'module' && !obj.modulePath)
-    {
+    if (obj.objectType === 'module' && !obj.modulePath) {
       return;
     }
     if (obj.objectType !== 'module' && !obj.id) {
-      return
+      return;
     }
 
     // object
@@ -105,8 +104,7 @@ export class MonitoringObjectService {
 
   getFromCache(obj: MonitoringObject) {
     // get
-    if (obj.objectType === 'module' && !obj.modulePath)
-    {
+    if (obj.objectType === 'module' && !obj.modulePath) {
       return;
     }
     if (obj.objectType !== 'module' && !obj.id) {
