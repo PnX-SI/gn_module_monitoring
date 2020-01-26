@@ -42,33 +42,21 @@ geonature install_gn_module <mon_chemin_absolu_vers_le_module> /monitoring
  * Vous pouvez sortir du venv en lançant la commande `deactivate`
 
 
-## Ajout du module de test
+## Installaton du module de test
+
+
+
+* S'assurer d'être dans le virtualenv
+
+
+* Executer la commande
 
 ```
---Création d'un module
-
-INSERT INTO gn_commons.t_modules(
-    module_label, module_desc, 
-    module_path, module_target,
-    active_frontend, active_backend, module_code
-)
-VALUES (
-    'test',  'Module de suivis des test', 
-    'test', '_self', 
-    false, false, 'GN_MONITORING_TEST'
-);
- 
---  Récupération de l'id module et insertion dans la table complément
-INSERT INTO gn_monitoring.t_module_complements (id_module)
-SELECT id_module
-FROM  gn_commons.t_modules 
-WHERE module_code = 'GN_MONITORING_TEST';
-
-
+    flask monitoring install <mon_chemin_absolu_vers_le_module>/contrib/test test
 ```
 
 ## Customisation 
-Modifier les valeurs du fichier `config/monitoring/generic/config_custom.json`
+Modifier les valeurs du fichier `config/monit1oring/generic/config_custom.json`
 
 ## Création d'un nouveau module
 TODO

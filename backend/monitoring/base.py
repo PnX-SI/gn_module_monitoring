@@ -1,4 +1,8 @@
+from sqlalchemy import and_
+
+from geonature.core.gn_commons.models import BibTablesLocation
 from geonature.utils.errors import GeoNatureError
+from geonature.utils.env import DB
 
 from ..config.repositories import (
     config_param as repositories_config_param,
@@ -161,3 +165,34 @@ class MonitoringObjectBase():
             return self._module_path
 
         return getattr(self._model, self.id_parent_fied_name())
+
+    def get_id_table_location(self):
+        table_names = {
+            'module': 't_module_complements',
+            'site': 't_base_sites',
+            'visit': 't_base_visits',
+            'observation': 't_observations'
+        }
+
+        id_table_location = None
+        schema_name = 'monitoring'
+
+        table_name = table_names.get(self._object_type)
+        if not table_name:
+            return
+
+        try:
+            id_table_location = (
+                DB.session.query(BibTablesLocation.id_table_location)
+                .filter(
+                    and_(
+                        BibTablesLocation.schema_name == schema_name,
+                        BibTablesLocation.table_name == table_name
+                    )
+                )
+                .one()
+            )[0]
+        except Exception:
+            pass
+
+        return id_table_location

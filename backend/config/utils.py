@@ -5,7 +5,7 @@ from geonature.utils.errors import GeoNatureError
 
 
 # chemin ver le repertoire de la config
-config_path = os.path.dirname(os.path.abspath(
+CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
 
 
@@ -44,13 +44,13 @@ def json_from_file(file_path, result_default):
 
 def json_config_from_file(module_path, type_config):
 
-    file_path = "{}/{}/config_{}.json".format(config_path, module_path, type_config)
+    file_path = "{}/{}/config_{}.json".format(CONFIG_PATH, module_path, type_config)
     return json_from_file(file_path, {})
 
 
 def json_schema_from_file(module_path, object_type):
 
-    file_path = "{}/{}/schema_{}.json".format(config_path, module_path, object_type)
+    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_path, object_type)
     return json_from_file(file_path, {})
 
 

@@ -17,7 +17,7 @@ import { Utils } from '../../utils/utils';
 })
 export class UploadMediaComponent implements OnInit {
   @Input() uuid_attached_row;
-  @Input() id_table_location;
+  @Input() idTableLocation;
 
   @Input() media;
   @Output() mediaChange = new EventEmitter<any>();
@@ -76,7 +76,7 @@ export class UploadMediaComponent implements OnInit {
   setMedia(media) {
     this.media = media;
     this.media['uuid_attached_row'] = this.media['uuid_attached_row'] || this.uuid_attached_row;
-    this.media['id_table_location'] = this.media['id_table_location'] || this.id_table_location;
+    this.media['id_table_location'] = this.media['id_table_location'] || this.idTableLocation;
 
     setTimeout(() => {
       const mediaFormValue = {};

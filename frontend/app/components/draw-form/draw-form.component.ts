@@ -59,7 +59,7 @@ export class DrawFormComponent implements OnInit {
 
     }
 
-    this.initForm()
+    this.initForm();
   }
 
   initForm() {
@@ -68,7 +68,7 @@ export class DrawFormComponent implements OnInit {
     }
     if (this.parentFormControl && this.parentFormControl.value) {
       // init geometry from parentFormControl
-      this.setGeojson(this.parentFormControl.value);      
+      this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant
       this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(geometry => {
         this.setGeojson(geometry);

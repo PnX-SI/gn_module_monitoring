@@ -9,6 +9,7 @@ export class MonitoringObjectBase {
   objectType: string;
   id: number; // id de l'objet
 
+  idTableLocation;
   properties = {}; // liste des propriétés de type non géométrie
   geometry;
 
@@ -85,6 +86,8 @@ export class MonitoringObjectBase {
     this.id = this.id || this.properties[this.configParam('id_field_name')];
     this.medias = data.medias;
     this.siteId = data.site_id;
+    this.idTableLocation = data.id_table_location;
+
 
     // TODO verifier!!
     if (!this.parentId) {

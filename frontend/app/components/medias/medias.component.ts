@@ -11,7 +11,7 @@ export class MediasComponent implements OnInit {
   media;
 
   @Input() uuid_attached_row;
-  @Input() id_table_location;
+  @Input() idTableLocation;
   @Input() staticDirUrl;
 
   @Input() medias = [];

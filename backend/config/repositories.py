@@ -4,8 +4,6 @@
 
 import os
 from flask import current_app
-from ..modules.repositories import get_module
-from .data_utils import get_data_utils
 from .utils import (
     copy_dict,
     customize_config,
@@ -17,12 +15,10 @@ from .utils import (
     process_config_display,
     process_config_tree,
     process_schema,
-    schema_dict_to_array
+    schema_dict_to_array,
+    CONFIG_PATH
 )
 
-# chemin ver le repertoire de la config
-config_path = os.path.dirname(os.path.abspath(
-    __file__)) + '/../../config/monitoring'
 
 # pour stocker la config dans current_app.config
 config_cache_name = 'MONITORINGS_CONFIG'
@@ -136,8 +132,13 @@ def get_config(module_path=None):
 
     module_path = module_path if module_path else 'generic'
 
+    module_confg_dir_path = CONFIG_PATH + '/' + module_path
+    # test si le repertoire existe
+    if not os.path.exists(module_confg_dir_path):
+        return None
+
     # derniere modification
-    last_modif = directory_last_modif(config_path)
+    last_modif = directory_last_modif(CONFIG_PATH)
 
     # test si present dans cache et pas modifée depuis le dernier appel
     config = current_app.config.get(config_cache_name, {}).get(module_path)
@@ -147,14 +148,14 @@ def get_config(module_path=None):
 
     print('config_get')
 
-    try:
-        module = get_module('module_path', module_path)
-    except Exception:
-        module = None
+    # try:
+    #     module = get_module('module_path', module_path)
+    # except Exception:
+    #     module = None
 
-    if module_path != 'generic' and not module:
-        module_path = 'generic'
-        # return []  # TODO exception
+    # if module_path != 'generic' and not module:
+    #     module_path = 'generic'
+    # return []  # TODO exception
 
     config = {
         'data': config_from_files('data', module_path),
