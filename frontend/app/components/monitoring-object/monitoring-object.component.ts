@@ -78,6 +78,8 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.bIsInitialized = true; // obj initialisé
         if (!this.sites) {
           this.initSites();
+        } else {
+          this.initObjectsStatus();
         }
       });
   }

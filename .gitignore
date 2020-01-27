@@ -7,8 +7,5 @@ config/conf_gn_module.toml
 **/config_custom.json
 config/monitoring/*
 !config/monitoring/generic
-#TODO remove oedic cheveches
-!config/monitoring/oedic
-!config/monitoring/cheveches
 frontend/assets/img_module/*
 !frontend/assets/img_module/.gitkeep
