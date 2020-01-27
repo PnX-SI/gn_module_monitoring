@@ -59,7 +59,7 @@
       <button
       class="btn btn-danger float-right"
       (click)="bDeleteModal = true"
-      *ngIf="obj.id"
+      *ngIf="obj.id && currentUser?.cruved.D >= 1"
       >
       Supprimer
     </button>

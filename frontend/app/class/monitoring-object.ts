@@ -96,7 +96,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           bFromCache = true;
           return of(postData);
         }
-        console.log('get', this.toString())
+        console.log('get', this.toString());
         return this._objService
           .dataMonitoringObjectService()
           .getObject(this.modulePath, this.objectType, this.id, depth);

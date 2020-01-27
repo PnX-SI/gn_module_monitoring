@@ -156,7 +156,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'module_path': self._module_path,
             'site_id': self.get_site_id(),
             'id': self._id,
-            'id_table_location': self.get_id_table_location()
+            'id_table_location': self.get_id_table_location(),
+            'cruved': self.get_cruved()
         }
         properties['id_parent']: to_int(self.id_parent())
         if(children):

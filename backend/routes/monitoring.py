@@ -15,6 +15,7 @@ from .decorators import check_cruved_scope_monitoring
 
 # from geonature.utils.errors import GeoNatureError
 from ..monitoring.definitions import monitoring_definitions
+from ..modules.repositories import get_module
 from ..utils.utils import to_int
 
 
@@ -57,7 +58,7 @@ def get_monitoring_object_api(module_path, object_type, id):
     )
 
 
-def create_or_update_object_api(module_path, object_type, id, module):
+def create_or_update_object_api(module_path, object_type, id):
     '''
         route pour la création ou la modification d'un objet
         si id est renseigné, c'est une création (PATCH)
@@ -77,9 +78,8 @@ def create_or_update_object_api(module_path, object_type, id, module):
     # recupération des données post
     post_data = dict(request.get_json())
 
-    # patch module id???
-    if depth:
-        post_data['properties']['id_module'] = module['id_module']
+    module = get_module(module_path)
+    post_data['properties']['id_module'] = module.id_module
 
     return (
         monitoring_definitions.monitoring_object_instance(module_path, object_type, id)
@@ -93,10 +93,10 @@ def create_or_update_object_api(module_path, object_type, id, module):
     '/object/<string:module_path>/module',
     defaults={'id': None, 'object_type': 'module'},
     methods=['PATCH'])
-@check_cruved_scope_monitoring('U', 1, return_module=True)
+@check_cruved_scope_monitoring('U', 1)
 @json_resp
-def update_object_api(module_path, object_type, id, module):
-    return create_or_update_object_api(module_path, object_type, id, module)
+def update_object_api(module_path, object_type, id):
+    return create_or_update_object_api(module_path, object_type, id)
 
 
 # create object
@@ -105,10 +105,10 @@ def update_object_api(module_path, object_type, id, module):
     '/object/module',
     defaults={'module_path': None, 'object_type': 'module', 'id': None},
     methods=['POST'])
-@check_cruved_scope_monitoring('C', 1, return_module=True)
+@check_cruved_scope_monitoring('C', 1)
 @json_resp
-def create_object_api(module_path, object_type, id, module):
-    return create_or_update_object_api(module_path, object_type, id, module)
+def create_object_api(module_path, object_type, id):
+    return create_or_update_object_api(module_path, object_type, id)
 
 
 # delete

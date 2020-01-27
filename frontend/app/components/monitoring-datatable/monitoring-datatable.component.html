@@ -1,41 +1,53 @@
 <div *ngIf="child0">
-<input
-  type="text"
-  style="padding:8px;margin:15px auto;width:30%;"
-  placeholder="Entrer une valeur pour filtrer les colonnes"
-  (keyup)="updateFilter($event)"
+  <input
+    type="text"
+    style="padding:8px;margin:15px auto;width:30%;"
+    placeholder="Entrer une valeur pour filtrer les colonnes"
+    (keyup)="updateFilter($event)"
   />
-  
-  <ngx-datatable
-  *ngIf="rows"
-  #table
-  class="material striped"
-  [columnMode]="'force'"
-  [headerHeight]="50"
-  [footerHeight]="50"
-  [rowHeight]="40"
-  [limit]="10"
-  [rows]="rows"
-  [columns]="columns"
-  [selected]="selected"
-  (activate)="onRowClick($event)"
-  [sorts]="sorts"
-  >
-  
-  <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
-    <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-      <a  class="nav-link link cell-link"  (click)="navigateViewObject(child0.objectType, row.id, false)">
-        <i class="fa fa-info-circle" aria-hidden="true"></i>
-      </a>
-      <a  class="nav-link link cell-link"  (click)="navigateViewObject(child0.objectType, row.id, true)">
-        <i class="fa fa-edit" aria-hidden="true"></i>
-      </a>
 
-    </ng-template>
-  </ngx-datatable-column>
-  
-  <ngx-datatable-column *ngFor="let col of columns" [name]="col.name" [prop]="col.prop" [comparator]="customColumnComparator"></ngx-datatable-column>
-  
-</ngx-datatable>
-</div
->
+  <ngx-datatable
+    *ngIf="rows"
+    #table
+    class="material striped"
+    [columnMode]="'force'"
+    [headerHeight]="50"
+    [footerHeight]="50"
+    [rowHeight]="40"
+    [limit]="10"
+    [rows]="rows"
+    [columns]="columns"
+    [selected]="selected"
+    (activate)="onRowClick($event)"
+    [sorts]="sorts"
+  >
+    <ngx-datatable-column
+      [cellClass]="'cell-link'"
+      prop="Action"
+      class="object-link"
+    >
+      <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+        <a
+          class="nav-link link cell-link"
+          (click)="navigateViewObject(child0.objectType, row.id, false)"
+        >
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+        </a>
+        <a
+          *ngIf="currentUser?.cruved.E >= 1"
+          class="nav-link link cell-link"
+          (click)="navigateViewObject(child0.objectType, row.id, true)"
+        >
+          <i class="fa fa-edit" aria-hidden="true"></i>
+        </a>
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column
+      *ngFor="let col of columns"
+      [name]="col.name"
+      [prop]="col.prop"
+      [comparator]="customColumnComparator"
+    ></ngx-datatable-column>
+  </ngx-datatable>
+</div>

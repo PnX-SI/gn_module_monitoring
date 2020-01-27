@@ -12,7 +12,7 @@
   <button
     class="btn btn-success"
     (click)="onEditClick()"
-    *ngIf="!bEdit && obj.objectType != 'module'"
+    *ngIf="!bEdit && obj.objectType != 'module' && currentUser?.cruved.E >= 1"
   >
     Éditer
   </button>

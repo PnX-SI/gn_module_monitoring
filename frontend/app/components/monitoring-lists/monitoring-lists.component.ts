@@ -17,6 +17,8 @@ export class MonitoringListComponent implements OnInit {
 
   @Output() bEditChanged = new EventEmitter<boolean>();
 
+  @Input() currentUser;
+
 
   frontendModuleMonitoringUrl;
   backendUrl: string;

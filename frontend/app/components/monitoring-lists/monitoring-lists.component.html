@@ -41,7 +41,8 @@
           child0.objectType != 'media' && child0.objectType as childrenType
         "
       >
-      <div *ngIf="obj.modulePath && child0.objectType != 'media'">
+
+      <div *ngIf="obj.modulePath && child0.objectType != 'media' && currentUser?.cruved.C >= 1">
         <a
           class="btn btn-success"
           [routerLink]="[
@@ -52,7 +53,7 @@
             child0.objectType,
             obj.id
           ]"
-          >Ajouter {{ child0.template["label"] }}</a
+          ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter {{ child0.template["label"] }}</a
         >
       </div>
         <pnx-monitoring-datatable
@@ -65,6 +66,7 @@
           (rowStatusChange)="onSelectedChildren(childrenType, $event)"
           [child0]="child0"
           [sorts]="child0.configParam('sorts')"
+          [currentUser]="currentUser"
         ></pnx-monitoring-datatable>
       </div>
     </div>

@@ -32,6 +32,7 @@
           [obj]="obj"
           *ngIf="!bEdit"
           [(bEdit)]="bEdit"
+          [currentUser]="currentUser"
         ></pnx-monitoring-properties>
 
       <pnx-monitoring-form
@@ -48,6 +49,7 @@
         [(objectsStatus)]="objectsStatus"
         (bEditChanged)="onbEditChanged($event)"
         *ngIf="!bEdit && obj && obj.bIsInitialized"
+        [currentUser]="currentUser"
       ></pnx-monitoring-lists>
     </div>
   </div>

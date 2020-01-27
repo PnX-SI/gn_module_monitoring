@@ -13,6 +13,7 @@ import { ConfigService } from './config.service';
 export class CacheService {
 
   private _cache = {};
+  private _pendingCache = {};
 
   constructor(private _http: HttpClient, private _config: ConfigService) { }
 
@@ -43,11 +44,11 @@ export class CacheService {
      *
 
      */
-  getFromCache(sCachePaths: string) {
+  getFromCache(sCachePaths: string, cache = this._cache) {
     const cachePaths = sCachePaths.split('|');
 
     // parcours du dictionnaire _cache
-    let current = this._cache;
+    let current = cache;
     for (const path of cachePaths) {
       if (!current[path]) {
         return undefined;
@@ -72,7 +73,7 @@ export class CacheService {
      * la comande sera :
      *  setCacheValue('utils|taxonomy|591558', 'nom_francais')
      */
-  setCacheValue(sCachePaths: string, value: any) {
+  setCacheValue(sCachePaths: string, value: any, cache = this._cache) {
     const cachePaths = sCachePaths.split('|');
 
     // parcours du cache
@@ -86,6 +87,21 @@ export class CacheService {
     }
 
   }
+
+  removeCacheValue(sCachePaths: string, cache = this._cache) {
+    const cachePaths = sCachePaths.split('|');
+
+    const key = cachePaths.pop();
+    // parcours du cache
+    let current = this._cache;
+    for (const path of cachePaths) {
+      current = current[path] = current[path] ? current[path] : {};
+    }
+    console.log(current, cachePaths, key)
+    delete current[key];
+
+  }
+
 
   /**
    * recupere le resultat d'une requete en cache
@@ -102,20 +118,31 @@ export class CacheService {
     return new Observable(observer => {
 
       // recuperation depuis le cache
-      const valueCache = this.getFromCache(sCachePaths);
+      const valueCache = this.getFromCache(sCachePaths, this._cache);
       if (valueCache !== undefined) {
         // envoie de la valeur à l'observer
         observer.next(valueCache);
         return observer.complete();
       }
 
-      const request = this.request(requestType, urlRelative);
+      let request;
+
+      const pendingCacheValue = this.getFromCache(sCachePaths, this._pendingCache);
+      if (pendingCacheValue !== undefined) {
+        console.log(sCachePaths, 'pending cache')
+
+        request = pendingCacheValue;
+      } else {
+        console.log(sCachePaths, 'get')
+        request = this.request(requestType, urlRelative);
+        this.setCacheValue(sCachePaths, request, this._pendingCache);
+      }
 
       // si la donnée n'est pas dans le cache on effectue la requête
       request.subscribe(
         value => {
           // stockage de la donnée en cache
-          this.setCacheValue(sCachePaths, value);
+          this.setCacheValue(sCachePaths, value, this._cache);
           // envoie de la valeur à l'observer
           observer.next(value);
           return observer.complete();

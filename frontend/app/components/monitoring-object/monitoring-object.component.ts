@@ -49,7 +49,9 @@ export class MonitoringObjectComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+
     this.currentUser = this._auth.getCurrentUser();
+    this.currentUser['cruved'] = {};
 
     of(true)
       .pipe(
@@ -87,6 +89,8 @@ export class MonitoringObjectComponent implements OnInit {
   initSites() {
     return this.module.get(1)
     .subscribe(() => {
+      this.currentUser['cruved'] = this.module.cruved;
+
       const sites = this.module['children']['site'];
       this.sites = {
 
@@ -141,6 +145,8 @@ export class MonitoringObjectComponent implements OnInit {
       .pipe(
         mergeMap((params) => {
           const objectType = params.get('objectType') ? params.get('objectType') : 'module';
+
+
 
           this.obj = new MonitoringObject(params.get('modulePath'),
           objectType,

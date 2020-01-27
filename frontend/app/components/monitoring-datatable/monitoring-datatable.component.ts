@@ -30,6 +30,8 @@ export class MonitoringDatatableComponent implements OnInit {
 
   @Output() bEditChanged = new EventEmitter<boolean>();
 
+  @Input() currentUser;
+
   temp;
   selected = [];
   customColumnComparator;

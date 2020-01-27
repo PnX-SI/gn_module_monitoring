@@ -12,6 +12,8 @@ export class MonitoringPropertiesComponent implements OnInit {
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 
+  @Input() currentUser;
+
   constructor() { }
 
   ngOnInit() {

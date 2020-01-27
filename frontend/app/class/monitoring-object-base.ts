@@ -9,6 +9,8 @@ export class MonitoringObjectBase {
   objectType: string;
   id: number; // id de l'objet
 
+  cruved;
+
   idTableLocation;
   properties = {}; // liste des propriétés de type non géométrie
   geometry;
@@ -63,6 +65,8 @@ export class MonitoringObjectBase {
     this.template['label_list'] =
       this.configParam('label_list') || this.configParam('label') + 's';
 
+    this.template['title'] = this.title();
+
     this.template['uuid'] = this.paramValue('uuid_field_name');
     this.template['description'] = this.paramValue(
       'description_field_name',
@@ -81,6 +85,7 @@ export class MonitoringObjectBase {
   }
 
   setData(data) {
+    this.cruved = data.cruved;
     this.properties = data.properties;
     this.geometry = data.geometry;
     this.id = this.id || this.properties[this.configParam('id_field_name')];

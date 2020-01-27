@@ -4,6 +4,8 @@ from geonature.core.gn_commons.models import BibTablesLocation
 from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
 
+from ..routes.decorators import cruved_scope_for_user_in_monitoring_module
+
 from ..config.repositories import (
     config_param as repositories_config_param,
     config_schema as repositories_config_schema
@@ -196,3 +198,6 @@ class MonitoringObjectBase():
             pass
 
         return id_table_location
+
+    def get_cruved(self):
+        return cruved_scope_for_user_in_monitoring_module(self._module_path)

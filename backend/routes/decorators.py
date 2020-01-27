@@ -21,12 +21,53 @@ def to_int(s):
         return None
 
 
+def to_int_cruved(cruved):
+    for key in cruved:
+        cruved[key] = to_int(cruved[key])
+    return cruved
+
+
+def cruved_scope_for_user_in_monitoring_module(module_path=None):
+    user = get_user_from_token_and_raise(request)
+
+    cruved_module = {
+        'C': '0',
+        'R': '0',
+        'U': '0',
+        'V': '0',
+        'E': '0',
+        'D': '0'
+    }
+
+    # If user not a dict: its a token issue
+    # return the appropriate Response
+    if not isinstance(user, dict):
+        return user
+
+    # get_monitoring from route parameter monitoring_url
+    module = None
+    herited = False
+
+    if module_path and module_path != 'null':
+        module = get_module('module_path', module_path)
+        if module:
+            cruved_module, herited = cruved_scope_for_user_in_module(user['id_role'], module.module_code, 'ALL')
+            if not herited:
+                return to_int_cruved(cruved_module)
+
+    cruved_monitorings, herited = cruved_scope_for_user_in_module(user['id_role'], 'MONITORINGS', 'ALL')
+    if not herited:
+        return to_int_cruved(cruved_monitorings)
+
+    # return cruved_0, user
+    return to_int_cruved(cruved_monitorings)
+
+
 def check_cruved_scope_monitoring(
     action,
     droit_min=1,
     redirect_on_expiration=None,
-    redirect_on_invalid_token=None,
-    return_module=False,
+    redirect_on_invalid_token=None
 ):
     """
         Decorateur qui verifie si un utilisateur a des droit sur un module de suivi
@@ -50,41 +91,12 @@ def check_cruved_scope_monitoring(
     def _check_cruved_scope_monitoring(fn):
         @wraps(fn)
         def __check_cruved_scope_monitoring(*args, **kwargs):
-            user = get_user_from_token_and_raise(
-                request, action, redirect_on_expiration,
-                redirect_on_invalid_token
-            )
 
-            cruved_module = {
-                'C': '0',
-                'R': '0',
-                'U': '0',
-                'V': '0',
-                'E': '0',
-                'D': '0'
-            }
-
-            # If user not a dict: its a token issue
-            # return the appropriate Response
-            if not isinstance(user, dict):
-                return user
-
-            # get_monitoring from route parameter monitoring_url
             module_path = kwargs.get('module_path')
-            module = None
-            if module_path and module_path != 'null':
-                module = get_module('module_path', module_path).as_dict()
-                cruved_module, _ = cruved_scope_for_user_in_module(user['id_role'], module['module_code'], 'ALL')
 
-            # if not module:
-            #     raise InsufficientRightsError('module with module_path {} does not exist.'.format(module_path), 403)
-
-            cruved_monitorings, _ = cruved_scope_for_user_in_module(user['id_role'], 'MONITORINGS', 'ALL')
-
-            permission_monitoring = to_int(cruved_monitorings[action])
-            permission_module = to_int(cruved_module[action])
-
-            permission = max(permission_monitoring, permission_module)
+            cruved = cruved_scope_for_user_in_monitoring_module(module_path)
+            user = get_user_from_token_and_raise(request)
+            permission = cruved[action]
 
             if not permission or permission < droit_min:
                 raise InsufficientRightsError(
@@ -94,14 +106,11 @@ min permission level is {}'''.format(
                         user['id_role'],
                         permission,
                         action,
-                        module['module_code'],
+                        module_path or 'monitorings',
                         droit_min
                     ),
                     403,
                 )
-
-            if return_module:
-                kwargs["module"] = module
 
             return fn(*args, **kwargs)
 
