@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, Subject } from '@librairies/rxjs';
 
 import { ConfigService } from './config.service';
-import { Utils } from '../utils/utils'
+
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
  *  Les requêtes pour les objects de type nomenclature, utilisateurs, taxonomie ,sont mise en cache

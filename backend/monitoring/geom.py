@@ -3,10 +3,10 @@ from .repositories import MonitoringObject
 
 class MonitoringObjectGeom(MonitoringObject):
 
-    def as_geofeature(self, depth, columns=()):
+    def as_geofeature(self, depth=None, columns=()):
         id_field_name = self.config_param('id_field_name')
         geom_field_name = self.config_param('geom_field_name')
-        return self._model.as_geofeature(geom_field_name, id_field_name, depth)
+        return self._model.as_geofeature(geom_field_name, id_field_name, depth=depth, columns=columns)
 
     def serialize(self, depth):
         monitoring_object_dict = MonitoringObject.serialize(self, depth)
@@ -14,7 +14,7 @@ class MonitoringObjectGeom(MonitoringObject):
         geometry = {}
 
         if self.config_param('geom_field_name'):
-            geofeature = self.as_geofeature(0, columns=(self.config_param('geom_field_name')))
+            geofeature = self.as_geofeature(False, columns=(self.config_param('geom_field_name')))
             geometry = geofeature['geometry']
 
         if not self._id:

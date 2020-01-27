@@ -1,17 +1,17 @@
 <div *ngIf="child0">
-  <input
+  <!-- <input
     type="text"
     style="padding:8px;margin:15px auto;width:30%;"
     placeholder="Entrer une valeur pour filtrer les colonnes"
     (keyup)="updateFilter($event)"
-  />
+  /> -->
 
   <ngx-datatable
-    *ngIf="rows"
+    *ngIf="rows && columns_"
     #table
     class="material striped"
     [columnMode]="'force'"
-    [headerHeight]="50"
+    [headerHeight]="'auto'"
     [footerHeight]="50"
     [rowHeight]="40"
     [limit]="10"
@@ -48,6 +48,25 @@
       [name]="col.name"
       [prop]="col.prop"
       [comparator]="customColumnComparator"
+      [headerTemplate]="hdrTpl"
     ></ngx-datatable-column>
   </ngx-datatable>
+
+  <ng-template #hdrTpl let-column="column" let-sort="sortFn">
+    <div class="header-filter-span">
+      <input 
+        [(ngModel)]="filters[column.prop]" 
+        (input)="filterInput($event)"
+        type="text" />
+        {{filters[column.prop]}}
+
+    </div>
+    <span
+      class="header-sort-span" 
+      (click)=sort();
+      >
+      {{column.name}}
+    </span>
+  </ng-template>
+
 </div>

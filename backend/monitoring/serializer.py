@@ -109,7 +109,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 for child_model in getattr(self._model, relation_name)
             ]
             children[children_type] = children_of_type
-
         return children
 
     def properties_names(self):
@@ -118,6 +117,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return generic + data
 
     def serialize(self, depth=1):
+
         if depth is None:
             depth = 1
         depth = depth-1
@@ -130,7 +130,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             self._model = Model()
 
-        # properties = self._model.as_dict(depth=1)
         properties = {}
         for field_name in self.properties_names():
             val = getattr(self._model, field_name)
@@ -144,11 +143,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         # processe properties
         self.flatten_specific_properties(properties)
-        # TODO utiliser as_dict avec parametres col et rel au lieu de clean
-
-        # plus besoin
-        # properties = self.clean_properties(properties)
-        # self.patch_hybrid_properties(properties)
 
         monitoring_object_dict = {
             'properties': properties,

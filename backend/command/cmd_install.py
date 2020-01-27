@@ -127,7 +127,7 @@ def add_nomenclature(module_path):
                 .one()
             )
 
-        except Exception as e:
+        except Exception:
             pass
 
         if nomenclature_type:
@@ -167,8 +167,6 @@ def add_nomenclature(module_path):
         if nomenclature:
             print('no insert nomenclature', nomenclature_type)
             continue
-
-        print(data)
 
         id_type = None
 

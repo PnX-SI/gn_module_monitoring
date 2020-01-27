@@ -6,10 +6,13 @@ import {
   Output,
   EventEmitter,
   ViewChild,
-  SimpleChanges
+  SimpleChanges,
+  TemplateRef,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
+import { Subject } from '@librairies/rxjs';
+import { catchError, map, tap, take, debounceTime } from '@librairies/rxjs/operators';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -32,11 +35,19 @@ export class MonitoringDatatableComponent implements OnInit {
 
   @Input() currentUser;
 
+  private filterSubject: Subject<string> = new Subject();
+  private subscription: any;
+
   temp;
   selected = [];
   customColumnComparator;
+  filters = [];
+  columns_ = [];
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
+  @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
+  @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
+
 
   constructor(
     private _router: Router,
@@ -47,9 +58,26 @@ export class MonitoringDatatableComponent implements OnInit {
     this.initDatatable();
   }
 
+  ngAfterViewInit() {
+    console.log('child', this.hdrTpl);
+
+    for (const col of this.columns) {
+      col['headerTemplate'] = this.hdrTpl;
+    }
+
+    console.log(this.table)
+    this.columns_ = this.columns;
+  }
+
   initDatatable() {
+    this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
+      this.filter();
+    });
+
     this.customColumnComparator = this.customColumnComparator_();
     this.temp = [...this.rows];
+
+    console.log(this.hdrTpl);
 
     // init key_filter
     this.temp.forEach((row, index) => {
@@ -63,20 +91,36 @@ export class MonitoringDatatableComponent implements OnInit {
     });
   }
 
-  updateFilter(event) {
-    const val = event.target.value.toLowerCase();
+  filterInput($event) {
+    this.filterSubject.next();
+  }
+
+  sort() {
+
+  }
+
+  filter() {
 
     // filter all
 
     let bChange = false;
     const temp = this.temp.filter((row, index) => {
-      const bCondVisible = row.key_filter.includes(val) || !val;
 
+      let bCondVisible = true;
+      for (const key of Object.keys(this.filters)) {
+        let val = this.filters[key];
+        if (!val) {
+          continue;
+        }
+        val = String(val).toLowerCase();
+        const vals = val.split(' ');
+        for (const v of vals) {
+          bCondVisible = bCondVisible && (row[key] || '').toLowerCase().includes(v);
+        }
+      }
       bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
       this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;
-
-
       return bCondVisible;
     });
 
@@ -145,6 +189,10 @@ export class MonitoringDatatableComponent implements OnInit {
     this.table.offset = Math.floor((index_row_selected) / this.table._limit);
   }
 
+  ngOnDestroy() {
+    this.filterSubject.unsubscribe();
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     for (const propName of Object.keys(changes)) {
       const chng = changes[propName];
@@ -154,7 +202,7 @@ export class MonitoringDatatableComponent implements OnInit {
       switch (propName) {
         case 'rowStatus':
           this.setSelected();
-            break;
+          break;
         case 'child0':
           this.customColumnComparator = this.customColumnComparator_();
           break;
@@ -200,7 +248,7 @@ export class MonitoringDatatableComponent implements OnInit {
           const v1 = this._monitoring.numberFromString(x1);
           const v2 = this._monitoring.numberFromString(x2);
           if (v1 && v2) {
-            if ( v1[0] === v2[0]) {
+            if (v1[0] === v2[0]) {
               out = (v1[1] === v2[1]) ? 0 : (v1[1] > v2[1]) ? 1 : -1;
             } else {
               out = v1[0] > v2[0] ? 1 : -1;
