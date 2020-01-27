@@ -1,10 +1,11 @@
+import { ObserversComponent } from './../../../../../frontend/src/app/GN2CommonModule/form/observers/observers.component';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { Observable, of } from '@librairies/rxjs';
+import { Observable, of, Subject } from '@librairies/rxjs';
 
 import { ConfigService } from './config.service';
-
+import { Utils } from '../utils/utils'
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
  *  Les requêtes pour les objects de type nomenclature, utilisateurs, taxonomie ,sont mise en cache
@@ -44,7 +45,10 @@ export class CacheService {
      *
 
      */
-  getFromCache(sCachePaths: string, cache = this._cache) {
+  getFromCache(sCachePaths: string, cache = null) {
+
+    cache = cache || this._cache;
+
     const cachePaths = sCachePaths.split('|');
 
     // parcours du dictionnaire _cache
@@ -73,31 +77,32 @@ export class CacheService {
      * la comande sera :
      *  setCacheValue('utils|taxonomy|591558', 'nom_francais')
      */
-  setCacheValue(sCachePaths: string, value: any, cache = this._cache) {
+  setCacheValue(sCachePaths: string, value: any, cache = null) {
+
+    cache = cache || this._cache;
     const cachePaths = sCachePaths.split('|');
 
+    const key = cachePaths.pop();
+
     // parcours du cache
-    let current = this._cache;
+    let current = cache;
     for (const path of cachePaths) {
       current = current[path] = current[path] ? current[path] : {};
     }
-
-    for ( const key of Object.keys(value)) {
-      current[key] = value[key];
-    }
-
+      current[key] = value;
   }
 
-  removeCacheValue(sCachePaths: string, cache = this._cache) {
+  removeCacheValue(sCachePaths: string, cache = null) {
+    cache = cache || this._cache;
+
     const cachePaths = sCachePaths.split('|');
 
     const key = cachePaths.pop();
     // parcours du cache
-    let current = this._cache;
+    let current = cache;
     for (const path of cachePaths) {
       current = current[path] = current[path] ? current[path] : {};
     }
-    console.log(current, cachePaths, key)
     delete current[key];
 
   }
@@ -125,29 +130,33 @@ export class CacheService {
         return observer.complete();
       }
 
-      let request;
 
-      const pendingCacheValue = this.getFromCache(sCachePaths, this._pendingCache);
-      if (pendingCacheValue !== undefined) {
-        console.log(sCachePaths, 'pending cache')
+      let pendingSubject = this.getFromCache(sCachePaths, this._pendingCache);
+      if (pendingSubject === undefined) {
+        pendingSubject = new Subject();
+        this.setCacheValue(sCachePaths, pendingSubject, this._pendingCache);
+        this.request(requestType, urlRelative)
+        .subscribe(
+          value => {
+            // stockage de la donnée en cache
+            this.setCacheValue(sCachePaths, value, this._cache);
 
-        request = pendingCacheValue;
-      } else {
-        console.log(sCachePaths, 'get')
-        request = this.request(requestType, urlRelative);
-        this.setCacheValue(sCachePaths, request, this._pendingCache);
-      }
-
-      // si la donnée n'est pas dans le cache on effectue la requête
-      request.subscribe(
-        value => {
-          // stockage de la donnée en cache
-          this.setCacheValue(sCachePaths, value, this._cache);
-          // envoie de la valeur à l'observer
-          observer.next(value);
-          return observer.complete();
+            // envoie de la valeur à l'observer
+            pendingSubject.next(value);
+            pendingSubject.complete();
+            observer.next(value);
+            return observer.complete();
+          }
+          );
+        } else {
+          pendingSubject
+          .asObservable()
+          .subscribe((value) => {
+            observer.next(value);
+            return observer.complete();
+          });
         }
-      );
+      // si la donnée n'est pas dans le cache on effectue la requête
     });
   }
 

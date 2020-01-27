@@ -96,7 +96,6 @@ export class MonitoringObject extends MonitoringObjectBase {
           bFromCache = true;
           return of(postData);
         }
-        console.log('get', this.toString());
         return this._objService
           .dataMonitoringObjectService()
           .getObject(this.modulePath, this.objectType, this.id, depth);
@@ -173,22 +172,17 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   formValues(): Observable<any> {
     const properties = Utils.copy(this.properties);
-    const schema = this.schema();
-    const observables = schema
-      .filter(elem => elem.type_widget)
-      .map(elem => {
-        return this._objService.toForm(elem, properties[elem.attribut_name]);
-      });
+    const observables = {}
+    const schema = this.schema().filter(elem => elem.type_widget);
+    for (const elem of schema) {
+      const key = elem.attribut_name;
+      observables[key] = this._objService.toForm(elem, properties[key]);
+    }
 
     return forkJoin(observables).pipe(
-      concatMap(formValuesArray => {
-        const formValues = {};
-        schema
-          .filter(elem => elem.type_widget)
-          .forEach((elem, index) => {
-            formValues[elem.attribut_name] = formValuesArray[index];
-          });
+      concatMap(formValues_in => {
         // geometry
+        const formValues = Utils.copy(formValues_in);
         if (this.config['geometry_type']) {
           formValues['geometry'] = this.geometry; // copy???
         }

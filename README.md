@@ -56,7 +56,7 @@ geonature install_gn_module <mon_chemin_absolu_vers_le_module> /monitoring
 ```
 
 ## Customisation 
-Modifier les valeurs du fichier `config/monit1oring/generic/config_custom.json`
+Modifier les valeurs du fichier `config/monitoring/generic/config_custom.json`
 
 ## Création d'un nouveau module
 TODO

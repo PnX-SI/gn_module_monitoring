@@ -133,19 +133,16 @@ export class MonitoringObjectBase {
 
   resolveProperties(): Observable<any> {
     // return new Observable(observer => {
-    const observables = [];
+    const observables = {};
 
     for (const elem of this.schema()) {
-      observables.push(this.resolveProperty(elem));
+      observables[elem.attribut_name] = this.resolveProperty(elem);
     }
     return Observable.forkJoin(observables).pipe(
       concatMap(
-        resolvedPropertiesArray => {
-          let index = 0;
-          for (const elem of this.schema()) {
-            const val = resolvedPropertiesArray[index];
-            this.resolvedProperties[elem.attribut_name] = val;
-            index++;
+        resolvedProperties => {
+          for (const key of Object.keys(resolvedProperties)) {
+            this.resolvedProperties[key] = resolvedProperties[key];
           }
           return of(true);
         })
