@@ -50,7 +50,7 @@ def install_monitoring_module(module_config_dir_path, module_path):
     if os.path.exists(module_config_dir_path + '/img.jpg'):
         symlink(
             module_config_dir_path + '/img.jpg',
-            CONFIG_PATH + '/../../frontend/assets/img_module/' + module_path + '.jpg'
+            CONFIG_PATH + '/../../frontend/assets/' + module_path + '.jpg'
         )
 
     if not get_config(module_path):

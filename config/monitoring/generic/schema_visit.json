@@ -30,12 +30,13 @@
   },
   "visit_date_min": {
     "type_widget": "date",
-    "attribut_label": "Date (min)",
+    "attribut_label": "Date",
     "required": true
   },
   "visit_date_max": {
     "type_widget": "date",
-    "attribut_label": "Date (max)"
+    "attribut_label": "Date (max)",
+    "hidden": true
   },
   "comments": {
     "type_widget": "text",
@@ -50,6 +51,6 @@
     "hidden": true
   },
   "nb_observations": {
-    "attribut_label": "Nb. obs."
+    "attribut_label": "Nombre d'observations"
   }
 }

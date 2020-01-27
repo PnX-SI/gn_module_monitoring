@@ -28,17 +28,11 @@
 
       <h2>{{ obj.template["title"] }}</h2>
 
-      <div
-        id="properties-display"
-        class="cadre"
-        *ngIf="!bEdit "
-      >
         <pnx-monitoring-properties
           [obj]="obj"
           *ngIf="!bEdit"
           [(bEdit)]="bEdit"
         ></pnx-monitoring-properties>
-      </div>
 
       <pnx-monitoring-form
         [obj]="obj"
