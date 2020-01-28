@@ -13,7 +13,6 @@
     "description_field_name": "module_label",
     "label": "Module",
     "uuid_field_name": "uuid_module_complement",
-    "id_table_location": "__ID_TABLE_LOCATION_MODULE",
     "display_properties": [
       "module_label",
       "module_desc"
@@ -27,7 +26,6 @@
     "geom_field_name": "geom",
     "uuid_field_name": "uuid_base_site",
     "geometry_type": "Point",
-    "id_table_location": "__ID_TABLE_LOCATION_SITE",
     "display_properties": [
       "base_site_name",
       "base_site_code",
@@ -54,7 +52,6 @@
     "description_field_name": "visit_date_min",
     "label": "Visite",
     "uuid_field_name": "uuid_base_visit",
-    "id_table_location": "__ID_TABLE_LOCATION_VISIT",
     "display_properties": [
       "visit_date_min",
       "observers",
@@ -69,7 +66,6 @@
   "observation": {
     "id_field_name": "id_observation",
     "description_field_name": "id_observation",
-    "id_table_location": "__ID_TABLE_LOCATION_OBSERVATION",
     "label": "Observation",
     "display_properties": ["cd_nom", "comments"]
   },
