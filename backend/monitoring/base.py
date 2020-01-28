@@ -200,4 +200,5 @@ class MonitoringObjectBase():
         return id_table_location
 
     def get_cruved(self):
-        return cruved_scope_for_user_in_monitoring_module(self._module_path)
+        if self._object_type == 'module':
+            return cruved_scope_for_user_in_monitoring_module(self._module_path)
