@@ -209,7 +209,6 @@ Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable
 
 .. code-block:: JSON
 
-    "generic": {
         "id_base_site": {
             "type_widget": "text",
             "attribut_label": "Id site",
@@ -220,8 +219,6 @@ Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable
             "attribut_label": "ID Module",
             "hidden": true
         },
-        ...
-    } 
 
 Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_site"``, ``"id_nomenclature_type_site"``, etc...)
 
@@ -245,21 +242,15 @@ Définir une nouvelle variable
 
 .. code-block:: JSON
 
-    ...
-    "specific": {
-    ...
         nom_contact": {
             "type_widget": "text",
             "attribut_label": "Nom du contact"
         }
-    ...
-    }
 
 * entier : le numéro du passage compris entre 1 et 2 et obligatoire
 
 .. code-block:: JSON
 
-    ...
         "num_passage": {
             "type_widget": "int",
             "attribut_label": "Numéro de passage",
@@ -267,20 +258,17 @@ Définir une nouvelle variable
             "min": 1,
             "max": 2
         }
-    ...
     
 * utilisateur : choix de plusieurs noms utilisateurs dans une liste: 
 
 .. code-block:: JSON
 
-    ...
         "observers": {
             "attribut_label": "Observateurs",
             "type_widget": "observers",
             "type_util": "user",
             "code_list": "__CODE_LIST_OBSERVER",
         },
-    ...
 
 Ici la variable ``"__CODE_LIST_OBSERVER"`` sera à redéfinir dans le fichier ``custom.json`` à l'installation du sous-module.
 
@@ -328,15 +316,11 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 .. code-block:: JSON
     
-    ...
-    "specific": {
-        ...
         "visit_date_max": {
             "attribut_label": "Date de fin de visite",
             "hidden": false,
             "required": true
         }
-        ...
     }   
 
 * Donner une valeur par défault à une nomenclature et cacher l'élément
