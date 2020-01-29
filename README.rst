@@ -168,7 +168,7 @@ Dans le fichier ``module.json``,  deux variables doivent obligatoirement être d
 * ``module_path``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
 
-Dans le cas général on peut redéfinir au besoin certaines variables.
+Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observation.json``) on peut redéfinir au besoin certaines variables.
 
 * ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site,
 * ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
