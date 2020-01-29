@@ -87,7 +87,7 @@ Configuration du sous-module de test
 ------------------------------------
 
 * Copier le fichier ``config/monitoring/generic/custom.json`` dans ``config/monitoring/test/config_custom.json``.
-* Renseigner et/ou modifier les valeurs du fichier ``contrib/test/custom.json`` (voir `Configuration du module de suivi générique`_ pour les détails).
+* Renseigner et/ou modifier les valeurs du fichier ``contrib/test/custom.json`` (voir le paragraphe `Configuration du module de suivi générique`_ pour les détails).
 
 
 ========================
@@ -170,11 +170,11 @@ Dans le fichier ``module.json``,  deux variables doivent obligatoirement être d
 
 Dans le cas général on peut redéfinir au besoin certaines variables.
 
-* ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site.
-* ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple:
-    * ``"visit_date_min"`` pour une visite
-    * ``"base_site_name"`` pour un site
-* ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``
+* ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site,
+* ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
+    * ``"visit_date_min"`` pour une visite,
+    * ``"base_site_name"`` pour un site;
+* ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
 
 Les variable ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichée (pour la page d'un object ou pour les listes et dans quel ordre.
 
@@ -226,7 +226,7 @@ Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable
 Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_site"``, ``"id_nomenclature_type_site"``, etc...)
 
 * les attribut obligatoires :
-    * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir `Définir une nouvelle variable`_.
+    * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir le  paragraphe `Définir une nouvelle variable`_.
     * ``attribut_label`` : associe un nom à la variable, comme ``"Type de site"`` pour ``id_nomenclature_type_site``,
 * les attributs facultatifs :
     * ``hidden`` : permet de cacher la variable ou l'input du formulaire,
