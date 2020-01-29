@@ -1,12 +1,50 @@
 import os
 import json
 
-from geonature.utils.errors import GeoNatureError
+from sqlalchemy import and_
 
+from geonature.core.gn_commons.models import BibTablesLocation
+from geonature.utils.errors import GeoNatureError
+from geonature.utils.env import DB
 
 # chemin ver le repertoire de la config
 CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
+
+
+def get_id_table_location(object_type):
+
+    table_names = {
+        'module': 't_module_complements',
+        'site': 't_base_sites',
+        'visit': 't_base_visits',
+        'observation': 't_observations'
+    }
+
+    schema_name = 'gn_monitoring'
+    table_name = table_names.get(object_type)
+
+    if not table_name:
+        return None
+
+    id_table_location = None
+
+    try:
+        id_table_location = (
+            DB.session.query(BibTablesLocation.id_table_location)
+            .filter(
+                and_(
+                    BibTablesLocation.schema_name == schema_name,
+                    BibTablesLocation.table_name == table_name
+                )
+            )
+            .one()
+        )[0]
+    except Exception as e:
+        print(schema_name, table_name, e)
+        pass
+
+    return id_table_location
 
 
 def copy_dict(dict_in):
@@ -37,14 +75,14 @@ def json_from_file(file_path, result_default):
         pass
         raise GeoNatureError(
             "Module monitoring - Config - error in file {} : {}"
-            .format(file_path, e)
+            .format(file_path, str(e))
         )
     return out
 
 
 def json_config_from_file(module_path, type_config):
 
-    file_path = "{}/{}/config_{}.json".format(CONFIG_PATH, module_path, type_config)
+    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_path, type_config)
     return json_from_file(file_path, {})
 
 
@@ -95,7 +133,14 @@ def schema_dict_to_array(schema_dict):
     return schema_array
 
 
-def process_schema(generic, specific):
+def process_schema(object_type, config):
+
+    generic = config[object_type]['generic']
+
+    # specific n'est pas toujours defini
+    if not config[object_type].get('specific'):
+        config[object_type]['specific'] = {}
+    specific = config[object_type]['specific']
 
     # generic redef in specific
     #  cas ou un element de generic est redefini dans specific
@@ -117,38 +162,28 @@ def process_schema(generic, specific):
                 del specific[key]
 
 
-def process_config_display(config):
+def process_config_display(object_type, config):
 
-    config_objects = config.get('objects')
-    schemas = config.get('schemas')
+    config_object = config[object_type]
 
-    object_types = list(config_objects.keys())
-    object_types.remove('tree')
+    schema = dict(config_object['generic'])
+    schema.update(config_object['specific'])
 
-    for object_type in object_types:
-        schema = schemas[object_type]['generic'] + \
-            schemas[object_type]['specific']
+    properties_keys = list(schema.keys())
 
-        display_properties = config_objects.get(
-            object_type, {}).get('display_properties')
-        if not display_properties:
-            display_properties = [elem['attribut_name']
-                                  for elem in schema if not elem.get('hidden')]
+    display_properties = config_object.get(
+        'display_properties',
+        [key for key in schema if not schema[key].get('hidden')]
+    )
 
-        display_list = config_objects.get(
-            object_type, {}).get('display_list')
-        if not display_list:
-            display_list = display_properties
+    display_list = config_object.get(
+        'display_list',
+        display_properties
+    )
 
-        config_objects[object_type]['display_properties'] = display_properties
-        config_objects[object_type]['display_list'] = display_list
-
-        properties_keys = [elem['attribut_name'] for elem in schema]
-        for key in display_properties + display_list:
-            if key not in properties_keys:
-                properties_keys.append(key)
-
-        config_objects[object_type]['properties_keys'] = properties_keys
+    config_object['display_properties'] = display_properties
+    config_object['display_list'] = display_list
+    config_object['properties_keys'] = properties_keys
 
 
 def customize_config(elem, custom):
@@ -173,22 +208,3 @@ def config_from_files_customized(type_config, module_path):
     config_type = config_from_files(type_config, module_path)
     custom = config_from_files('custom', module_path)
     return customize_config(config_type, custom)
-
-
-def process_config_tree(objects, tree=None, parent_type=None):
-
-    if not tree and not parent_type:
-        tree = objects['tree']
-
-    for object_type in tree.keys():
-
-        children_types = tree[object_type] and list(tree[object_type].keys())
-
-        objects[object_type]['children_types'] = children_types
-        objects[object_type]['parent_type'] = parent_type
-
-        if (not parent_type) and children_types:
-            objects[object_type]['root_object'] = True
-
-        if tree[object_type]:
-            process_config_tree(objects, tree[object_type], object_type)

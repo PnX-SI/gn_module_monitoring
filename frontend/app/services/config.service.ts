@@ -61,31 +61,21 @@ export class ConfigService {
   }
 
   /** Config Object Schema */
-  schema(modulePath, objectType, typeSchema = 'all') {
+  schema(modulePath, objectType, typeSchema = 'all'): Object {
     modulePath = modulePath || 'generic';
-    const schemas = this._config[modulePath].schemas[objectType];
-    const generic = schemas.generic;
-    const specific = schemas.specific;
+    const configObject = this._config[modulePath][objectType];
 
     switch (typeSchema) {
       case 'all': {
-        return generic.concat(specific);
+        return {...configObject.generic, ...configObject.specific};
       }
       case 'generic': {
-        return generic;
+        return configObject.generic;
       }
       case 'specific': {
-        return specific;
+        return configObject.specific;
       }
     }
-  }
-
-  getFormDef(modulePath, objectType, key, keyType = 'attribut_name', typeSchema = 'all') {
-    modulePath = modulePath || 'generic';
-    return this.schema(modulePath, objectType, typeSchema)
-      .find(formDef =>
-        formDef[keyType] === key
-      );
   }
 
   /**
@@ -93,9 +83,9 @@ export class ConfigService {
    *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
-  configModuleObjectParam(typeConfig: string, modulePath: string, objectType: string, fieldName: string) {
+  configModuleObjectParam(modulePath: string, objectType: string, fieldName: string) {
     modulePath = modulePath || 'generic';
-    const confObject = this._config[modulePath][typeConfig][objectType];
+    const confObject = this._config[modulePath][objectType];
     return confObject ? confObject[fieldName] : null;
   }
 

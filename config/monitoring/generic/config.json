@@ -1,0 +1,25 @@
+{
+  "tree": {
+    "module": {
+      "site": {
+        "visit": {
+          "observation": null
+        }
+      }
+    }
+  },
+  "data": {
+    "nomenclature": [
+        "TYPE_SITE",
+        "STATUT_OBS"
+    ],
+    "taxonomy": {
+      "cd_noms": []
+    },
+    "user": [
+      "__CODE_LIST_INVENTOR",
+      "__CODE_LIST_OBSERVER"
+    ]
+  }
+  
+}

@@ -26,7 +26,7 @@ export class MonitoringFormComponent implements OnInit {
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 
-  objSchema;
+  objFormsDefinition;
 
   public bSaveSpinner = false;
   public bSaveAddSpinner = false;
@@ -48,7 +48,16 @@ export class MonitoringFormComponent implements OnInit {
           this.bChainInput = this._configService.frontendParams()[
             'bChainInput'
           ];
-          this.objSchema = this.obj.schema().filter(e => e.type_widget);
+          const schema = this.obj.schema();
+
+          // init objFormsDefinition
+          this.objFormsDefinition = Object.keys(schema)
+            .filter(attribut_name => schema['attribut_name'].type_widget)
+            .map((attribut_name) => {
+              const elem = schema[attribut_name];
+              elem['attribut_name'] = attribut_name;
+            });
+
           return this.obj.formValues();
         })
       )
@@ -65,7 +74,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   isFormReady() {
-    let schemaFormSize = this.objSchema.filter(elem => elem.type_widget).length;
+    let schemaFormSize = this.objFormsDefinition.filter(elem => elem.type_widget).length;
     if (this.obj.config['geometry_type']) {
       schemaFormSize += 1;
     }

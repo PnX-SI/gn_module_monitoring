@@ -42,7 +42,6 @@ export class MonitoringDatatableComponent implements OnInit {
   selected = [];
   customColumnComparator;
   filters = [];
-  columns_ = [];
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -58,26 +57,13 @@ export class MonitoringDatatableComponent implements OnInit {
     this.initDatatable();
   }
 
-  ngAfterViewInit() {
-    console.log('child', this.hdrTpl);
-
-    for (const col of this.columns) {
-      col['headerTemplate'] = this.hdrTpl;
-    }
-
-    console.log(this.table)
-    this.columns_ = this.columns;
-  }
-
   initDatatable() {
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
       this.filter();
     });
 
     this.customColumnComparator = this.customColumnComparator_();
-    this.temp = [...this.rows];
-
-    console.log(this.hdrTpl);
+    this.temp = this.rows.map(e => e);
 
     // init key_filter
     this.temp.forEach((row, index) => {
@@ -115,7 +101,7 @@ export class MonitoringDatatableComponent implements OnInit {
         val = String(val).toLowerCase();
         const vals = val.split(' ');
         for (const v of vals) {
-          bCondVisible = bCondVisible && (row[key] || '').toLowerCase().includes(v);
+          bCondVisible = bCondVisible && (String(row[key]) || '').toLowerCase().includes(v);
         }
       }
       bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
@@ -231,7 +217,7 @@ export class MonitoringDatatableComponent implements OnInit {
       }
 
       const schema = this.child0.schema();
-      const elem = schema.find(e => e.attribut_name === prop);
+      const elem = schema[prop];
       if (!elem) {
         return out;
       }

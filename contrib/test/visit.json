@@ -1,0 +1,15 @@
+{
+  "display_properties": [
+    "visit_date_min",
+    "observers",
+    "meteo",
+    "comments",
+    "nb_observations"
+  ],
+  "specific": {
+    "meteo": {
+      "type_widget": "text",
+      "attribut_label": "Meteo"
+    }
+  }
+}

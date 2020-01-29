@@ -5,17 +5,13 @@
 import os
 from flask import current_app
 from .utils import (
-    copy_dict,
     customize_config,
     config_from_files,
     directory_last_modif,
     json_config_from_file,
-    json_schema_from_file,
-    keys_remove_doublons,
+    get_id_table_location,
     process_config_display,
-    process_config_tree,
     process_schema,
-    schema_dict_to_array,
     CONFIG_PATH
 )
 
@@ -24,99 +20,56 @@ from .utils import (
 config_cache_name = 'MONITORINGS_CONFIG'
 
 
-def config_objects_from_files(module_path):
+def get_config_objects(module_path, config, tree=None, parent_type=None):
+    '''
+        recupere la config de chaque object present dans tree pour le module <module_path>
+    '''
+    if not tree:
+        # initial tree
+        tree = config['tree']
 
-    generic_config_objects = json_config_from_file('generic', 'objects')
-    specific_config_objects = {} if module_path == 'generic' else json_config_from_file(module_path, 'objects')
-
-    object_types = keys_remove_doublons(
-        generic_config_objects,
-        specific_config_objects
-    )
-
-    config_objects = {}
-    for object_type in object_types:
-
-        config_object = generic_config_objects.get(object_type, {})
-        config_object.update(specific_config_objects.get(object_type, {}))
-        config_objects[object_type] = config_object
-
-    # cas ou inherit_type dans config
-    # dans ce cas l'object prend les caracteristiques genrerique de inherit_type
-    for object_type in object_types:
-
-        inherit_type = config_objects[object_type].get('inherit_type')
-        if not inherit_type:
+    for object_type in tree:
+        # not for media
+        if object_type == 'media':
             continue
-        config_object = copy_dict(config_objects[object_type])
-        generic_config_inherit = config_objects_from_files('generic').get(inherit_type)
-        generic_config_inherit.update(config_object)
-        config_objects[object_type] = generic_config_inherit
 
-    return config_objects
+        # config object
+        config[object_type] = config_object_from_files(module_path, object_type)
 
+        # tree
+        children_types = tree[object_type] and list(tree[object_type].keys())
+        config[object_type]['children_types'] = children_types
+        config[object_type]['parent_type'] = parent_type
 
-def schema_from_file(module_path, object_type):
-    generic_schema_object = json_schema_from_file('generic', object_type)
-    specific_schema_object = {} if module_path == 'generic' else json_schema_from_file(module_path, object_type)
+        # schema
+        process_schema(object_type, config)
 
-    process_schema(generic_schema_object, specific_schema_object)
+        # display
+        process_config_display(object_type, config)
 
-    return {
-        'generic': generic_schema_object,
-        'specific': specific_schema_object
-    }
+        # root
+        if (not parent_type) and children_types:
+            config[object_type]['root_object'] = True
 
-    return generic_schema_object
+        # id_table_location
+        config[object_type]['id_table_location'] = get_id_table_location(object_type)
 
-
-def inherit_schema(module_path, object_type, schemas, config_objects):
-    inherit_type = config_objects[object_type].get('inherit_type')
-    if not inherit_type:
-        return schemas[object_type]
-
-    schema_inherit = {
-        'generic': json_schema_from_file('generic', inherit_type),
-        'specific': {}
-    }
-
-    schema_object = schemas[object_type]
-    schema_object['generic'].update(schema_object['specific'])
-    all_schema_object = schema_object['generic']
-
-    process_schema(schema_inherit['generic'], all_schema_object)
-    process_schema(schema_inherit['specific'], all_schema_object)
-    schema_inherit['specific'].update(all_schema_object)
-
-    schema_object = copy_dict(schema_inherit)
-
-    return schema_object
+        # recursif
+        if tree[object_type]:
+            get_config_objects(module_path, config, tree[object_type], object_type)
 
 
-def schemas_from_files(module_path):
+def config_object_from_files(module_path, object_type):
+    '''
+        recupere la configuration d'un object de type <object_type> pour le module <module_path>
+    '''
+    generic_config_object = json_config_from_file('generic', object_type)
+    specific_config_object = {} if module_path == 'generic' else json_config_from_file(module_path, object_type)
 
-    schemas = {}
+    config_object = generic_config_object
+    config_object.update(specific_config_object)
 
-    config_objects = config_objects_from_files(module_path)
-    object_types = list(config_objects.keys())
-    object_types.remove('tree')
-
-    for object_type in object_types:
-
-        schemas[object_type] = schema_from_file(module_path, object_type)
-
-    # heritage
-    for object_type in object_types:
-
-        schemas[object_type] = inherit_schema(module_path, object_type, schemas, config_objects)
-
-    # passage de dict à array
-    for object_type in object_types:
-        for type_schema in ['generic', 'specific']:
-            schemas[object_type][type_schema] = schema_dict_to_array(
-                schemas[object_type][type_schema])
-
-    return schemas
+    return config_object
 
 
 def get_config(module_path=None):
@@ -148,32 +101,14 @@ def get_config(module_path=None):
 
     print('config_get')
 
-    # try:
-    #     module = get_module('module_path', module_path)
-    # except Exception:
-    #     module = None
+    config = config_from_files('config', module_path)
+    get_config_objects(module_path, config)
+    config['last_modif'] = last_modif
 
-    # if module_path != 'generic' and not module:
-    #     module_path = 'generic'
-    # return []  # TODO exception
-
-    config = {
-        'data': config_from_files('data', module_path),
-        'schemas': schemas_from_files(module_path),
-        'objects': config_objects_from_files(module_path),
-        'last_modif': last_modif
-    }
-
-    # tree : definit les parent_type et children types
-    process_config_tree(config['objects'])
-
-    # patch display et properties keys
-    process_config_display(config)
-
-    # customize_config
+    # customize config
     customize_config(config, config_from_files('custom', module_path))
 
-    # mise en cache
+    # mise en cache dans current_app.config[config_cache_name][module_path]
     if not current_app.config.get(config_cache_name, {}):
         current_app.config[config_cache_name] = {}
     current_app.config[config_cache_name][module_path] = config
@@ -206,7 +141,7 @@ def config_param(module_path, object_type, param_name):
 
     config = get_config(module_path)
 
-    return config['objects'][object_type].get(param_name)
+    return config[object_type].get(param_name)
 
 
 def config_schema(module_path, object_type, type_schema="all"):
@@ -239,14 +174,16 @@ def config_schema(module_path, object_type, type_schema="all"):
     config = get_config(module_path)
 
     if type_schema in ["generic", "specific"]:
-        return config['schemas'][object_type][type_schema]
+        return config[object_type][type_schema]
 
-    # renvoie le schema complet si type_schema=='all' ou par defaut
-    return config['schemas'][object_type]['generic'] + config['schemas'][object_type]['specific']
+    # renvoie le schema complet si type_schema == 'all' ou par defaut
+    schema = dict(config[object_type]['generic'])
+    schema.update(config[object_type]['specific'])
+
+    return schema
 
 
 def get_config_frontend(module_path=None):
 
     config = dict(get_config(module_path))
-    # config.pop('data_utils')
     return config

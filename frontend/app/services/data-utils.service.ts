@@ -99,47 +99,59 @@ export class DataUtilsService {
       return of(true);
     }
 
+    const observables = {};
     const configData = this._configService.configData(modulePath);
 
     const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
-    // Taxonomie (liste ou ensemble de )
-    const TaxonomyRequests = [];
+    observables['nomenclature'] = nomenclatureRequest;
 
-    if (configData['taxonomy']['cd_noms']) {
-      for (const cd_nom of configData['taxonomy']['cd_noms']) {
-        TaxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
+    // Taxonomie (liste ou ensemble de )
+    const taxonomyRequests = [];
+    if (configData.taxonomy && configData.taxonomy.cd_noms) {
+      for (const cd_nom of configData.taxonomy.cd_noms) {
+        taxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
       }
+    }
+    if (taxonomyRequests.length) {
+      observables['taxonomy'] = forkJoin(taxonomyRequests);
     }
 
     const userRequests = [];
     for (const codeList of configData['user']) {
       userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList));
     }
-
-    const observables = [nomenclatureRequest, forkJoin(TaxonomyRequests), forkJoin(userRequests)];
+    if (userRequests.length) {
+      observables['user'] = forkJoin(userRequests);
+    }
 
     return forkJoin(observables)
       .pipe(
         concatMap((data) => {
-          const nomenclatures = data[0];
-          const taxonomy = data[1];
-          const userLists = data[2];
-
           // mise en cache
-          for (const nomenclature_type of nomenclatures) {
-            for (const nomenclature of nomenclature_type.values) {
-              this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
+
+          const nomenclatures = data['nomenclature'] as Array<any>;
+          if (nomenclatures) {
+            for (const nomenclature_type of nomenclatures ) {
+              for (const nomenclature of nomenclature_type.values) {
+                this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
+              }
             }
           }
 
-          for (const userList of userLists) {
-            for (const user of userList) {
-              this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
+          const userLists = data['user'];
+          if (userLists) {
+            for (const userList of userLists as Array<any>) {
+              for (const user of userList) {
+                this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
+              }
             }
           }
 
-          for (const taxon of taxonomy) {
-            this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
+          const taxonomy = data['taxonomy'] as Array<any>;
+          if (taxonomy) {
+            for (const taxon of taxonomy) {
+              this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
+            }
           }
 
           // pour ne pas appeler la fonction deux fois

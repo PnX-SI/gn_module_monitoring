@@ -27,7 +27,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     this.setConfig();
     this.setData(objData);
 
-    const observables = [this.resolveProperties()];
+    const observables = [this.setResolvedProperties()];
 
     if (this.childrenTypes().length && objData) {
       observables.push(this.initChildren(objData.children));
@@ -172,17 +172,20 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   formValues(): Observable<any> {
     const properties = Utils.copy(this.properties);
-    const observables = {}
-    const schema = this.schema().filter(elem => elem.type_widget);
-    for (const elem of schema) {
-      const key = elem.attribut_name;
-      observables[key] = this._objService.toForm(elem, properties[key]);
+    const observables = {};
+    const schema = this.schema();
+    for (const attribut_name of Object.keys(schema)) {
+      const elem = schema[attribut_name];
+      if (!elem.type_widget) {
+        continue;
+      }
+        observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
     }
 
     return forkJoin(observables).pipe(
       concatMap(formValues_in => {
-        // geometry
         const formValues = Utils.copy(formValues_in);
+        // geometry
         if (this.config['geometry_type']) {
           formValues['geometry'] = this.geometry; // copy???
         }
@@ -195,12 +198,15 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   postData(formValue) {
     const propertiesData = {};
-    this.schema().forEach(elem => {
-      propertiesData[elem.attribut_name] = this._objService.fromForm(
-        elem,
-        formValue[elem.attribut_name]
-      );
-    });
+    const schema = this.schema();
+    for (const attribut_name of Object.keys(schema)) {
+      const elem = schema[attribut_name];
+      if (!elem.type_widget) {
+        continue;
+      }
+      propertiesData[elem.attribut_name] = this._objService
+        .fromForm(elem, formValue[elem.attribut_name]);
+    }
 
     const postData = {
       properties: propertiesData,

@@ -49,14 +49,14 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             return
         data = properties.pop('data')
         data = data if data else {}
-        for elem in self.config_schema(type_schema='specific'):
-            properties[elem['attribut_name']] = data.get(elem['attribut_name'])
+        for attribut_name in self.config_schema(type_schema='specific'):
+            properties[attribut_name] = data.get(attribut_name)
 
     def unflatten_specific_properties(self, properties):
         data = {}
-        for elem in self.config_schema('specific'):
-            val = properties.pop(elem['attribut_name'])
-            data[elem['attribut_name']] = val
+        for attribut_name in self.config_schema('specific'):
+            val = properties.pop(attribut_name)
+            data[attribut_name] = val
 
         if data:
             properties['data'] = data
@@ -112,7 +112,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return children
 
     def properties_names(self):
-        generic = list(map(lambda x: x['attribut_name'], self.config_schema('generic')))
+        generic = list(self.config_schema('generic').keys())
         data = ['data'] if hasattr(self._model, 'data') else []
         return generic + data
 
@@ -149,10 +149,12 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'object_type': self._object_type,
             'module_path': self._module_path,
             'site_id': self.get_site_id(),
-            'id': self._id,
-            'id_table_location': self.get_id_table_location(),
-            'cruved': self.get_cruved()
+            'id': self._id
         }
+
+        if self._object_type == 'module':
+            monitoring_object_dict['cruved'] = self.get_cruved()
+
         properties['id_parent']: to_int(self.id_parent())
         if(children):
             monitoring_object_dict['children'] = children

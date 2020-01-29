@@ -108,15 +108,13 @@ export class MonitoringObjectBase {
       : this._objService
         .configService()
         .configModuleObjectParam(
-          'objects',
           this.modulePath,
           this.parentType(),
           'id_field_name'
         );
   }
 
-  resolveProperty(elem): Observable<any> {
-    let val = this.properties[elem.attribut_name];
+  resolveProperty(elem, val): Observable<any> {
     const configUtil = this._objService.configUtils(elem);
 
     if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
@@ -131,18 +129,18 @@ export class MonitoringObjectBase {
     return of(val);
   }
 
-  resolveProperties(): Observable<any> {
-    // return new Observable(observer => {
-    const observables = {};
+  setResolvedProperties(): Observable<any> {
 
-    for (const elem of this.schema()) {
-      observables[elem.attribut_name] = this.resolveProperty(elem);
+    const observables = {};
+    const schema = this.schema();
+    for (const attribut_name of Object.keys(schema)) {
+      observables[attribut_name] = this.resolveProperty(schema[attribut_name], this.properties[attribut_name]);
     }
     return Observable.forkJoin(observables).pipe(
       concatMap(
         resolvedProperties => {
-          for (const key of Object.keys(resolvedProperties)) {
-            this.resolvedProperties[key] = resolvedProperties[key];
+          for (const attribut_name of Object.keys(resolvedProperties)) {
+            this.resolvedProperties[attribut_name] = resolvedProperties[attribut_name];
           }
           return of(true);
         })
@@ -153,7 +151,6 @@ export class MonitoringObjectBase {
     return this._objService
       .configService()
       .configModuleObjectParam(
-        'objects',
         this.modulePath,
         this.objectType,
         fieldName
@@ -212,14 +209,10 @@ export class MonitoringObjectBase {
     return description ? title + ' ' + description : title;
   }
 
-  schema(typeSchema = 'all') {
+  schema(typeSchema = 'all'): Object {
     return this._objService
       .configService()
       .schema(this.modulePath, this.objectType, typeSchema);
-  }
-
-  schemaKeys(typeSchema = 'all') {
-    return Object.keys(this.schema());
   }
 
   fieldNames(typeDisplay = '') {
@@ -227,17 +220,18 @@ export class MonitoringObjectBase {
       return this.configParam(typeDisplay);
     }
     if (typeDisplay === 'schema') {
-      return this.schema().map(elem => elem.attribut_name);
+      return Object.keys(this.schema());
     }
   }
 
   /** return dict as {..., attribut_name: label, ...} */
   fieldLabels() {
-    return Utils.mapArrayToDict(
-      this.schema(),
-      e => e.attribut_label,
-      'attribut_name'
-    );
+    const schema = this.schema();
+    const fieldLabels = {};
+    for (const key of Object.keys(schema)) {
+      fieldLabels[key] = schema[key]['attribut_label'];
+    }
+    return fieldLabels;
   }
 
   geoFeature() {
