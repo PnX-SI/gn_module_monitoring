@@ -238,7 +238,7 @@ Définir une nouvelle variable
 
     Pour définir une nouvelle variable ou aussi rédéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
 
-* texte : une variable facultative
+* **texte** : une variable facultative
 
 .. code-block:: JSON
 
@@ -247,7 +247,7 @@ Définir une nouvelle variable
             "attribut_label": "Nom du contact"
         }
 
-* entier : le numéro du passage compris entre 1 et 2 et obligatoire
+* **entier** : le numéro du passage compris entre 1 et 2 et obligatoire
 
 .. code-block:: JSON
 
@@ -259,7 +259,7 @@ Définir une nouvelle variable
             "max": 2
         }
     
-* utilisateur : choix de plusieurs noms utilisateurs dans une liste: 
+* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste: 
 
 .. code-block:: JSON
 
@@ -274,7 +274,7 @@ Ici la variable ``"__CODE_LIST_OBSERVER"`` sera à redéfinir dans le fichier ``
 
 Il est important d'ajouter ``"type_util": "user",``.
 
-* nomenclature : un choix obligatoire parmi une liste définie par un type de nomenclature
+* **nomenclature** : un choix obligatoire parmi une liste définie par un type de nomenclature
 
 .. code-block:: JSON
 
@@ -290,7 +290,7 @@ La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nom
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-* Un choix dans une liste de taxon:
+* **taxonomie** : un choix dans une liste de taxon:
 
 .. code-block:: JSON
 
@@ -321,7 +321,6 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
             "hidden": false,
             "required": true
         }
-    }   
 
 * Donner une valeur par défault à une nomenclature et cacher l'élément
 
