@@ -3,7 +3,7 @@
 
 ## Structure des données génériques
   - /
-    - [`config.json`](../config/monitoring/generic/config.json) *(définition générales et données à pre-charger)*
+    - [`config.json`](../config/monitoring/generic/config.json) *(définitions générales et données à pre-charger)*
     - [`custom.json`](../config/monitoring/generic/custom.json) *(configuration propre à chaque installation)*
     - [`module.json`](../config/monitoring/generic/module.json) *(configuration du module)*
     - [`site.json`](../config/monitoring/generic/site.json) *(configuration des sites)*
@@ -13,9 +13,9 @@
 ### L`config.json`
 
 #### `tree`
-Cette  variable renseigne l'arborescence du module et defini les relation de parenté entre les objets.
+Cette variable renseigne l'arborescence du module et definit les relations de parenté entre les objets.
 
-Dans cet exemple, et dans le cas le plus général on à ici un module qui contient des sites. Ces derniers sont associés à des visites qui sont eux même associés à des observations.
+Dans cet exemple, et dans le cas le plus général on a ici un module qui contient des sites. Ces derniers sont associés à des visites qui sont eux-même associés à des observations.
 
 ```
   "tree": {
@@ -50,15 +50,15 @@ Cette variable renseigne les données à pré-charger pour les formulaires.
 ```
 
 Dans ce cas les données pré-chargées seront :
-  * les nomenclature de type sera `TYPE_SITE` ou `STATUT_OBS`,
+  * les nomenclatures de type seront `TYPE_SITE` ou `STATUT_OBS`,
   * le taxon correspondant au cd_nom : `423718`,
-  * les utilisteurs des listes correspondant au valeurs définie dans le fichier [config/generic/custom.json](../config/generic/custom.json).
+  * les utilisteurs des listes correspondant aux valeurs définies dans le fichier [config/generic/custom.json](../config/generic/custom.json).
 
 ### Configuration 
 
 ### Configuration pour chaque type d'objet
 
-    Nous prenons exemple ici sur la configuration des sites, c'est à dire le fichier [config/monitoring/generic/site.json](../config/monitoring/generic/site.json)
+Nous prenons exemple ici sur la configuration des sites, c'est-à-dire le fichier [config/monitoring/generic/site.json](../config/monitoring/generic/site.json)
 
 ```
 {
@@ -95,7 +95,7 @@ Dans ce cas les données pré-chargées seront :
 
 ```
 
-#### Tri par default
+#### Tri par défaut
 
 ```
 ...
@@ -144,11 +144,10 @@ Dans ce cas les données pré-chargées seront :
 
 ## Struture d'un module
 
-
 ## Définir un schéma
 
 ### Ajouter une variable
 
-### Redefinir un composant
+### Redéfinir un composant
 
-### Les différent types de composant
+### Les différents types de composant
