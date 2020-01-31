@@ -1,7 +1,6 @@
-==========================
-Module de suivi génériques
-==========================
-
+===========================
+Module de suivis génériques
+===========================
 
 --------------------------------------------------------------------
 Module générique de gestion des données de protocoles de type suivis
@@ -9,7 +8,6 @@ Module générique de gestion des données de protocoles de type suivis
 
 Ce module permet de gérer de façon générique des données de protocoles "simples".
 Les données spécifiques à chaque protocole sont stockées en base de données sous forme de jsonb.
-
 
 .. image:: docs/images/apercu.png
     :alt: Liste des sites du protocole de test
@@ -26,9 +24,9 @@ Les données spécifiques à chaque protocole sont stockées en base de données
 Installation du module de suivi générique
 =========================================
 
-* Installer GéoNature (<https://github.com/PnX-SI/GeoNature>)
-* Téléchargez la dernière version stable du module (wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip ou en cliquant sur le bouton GitHub "Clone or download" de cette page)
-* Placez-vous dans le répertoire backend de GeoNature et lancez les commandes suivantes :
+* Installez GeoNature (<https://github.com/PnX-SI/GeoNature>)
+* Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page)
+* Placez-vous dans le répertoire ``backend`` de GeoNature et lancez les commandes suivantes :
 
 ::
 
@@ -40,8 +38,8 @@ Installation du module de suivi générique
 Configuration du module de suivi générique
 ------------------------------------------
 
-* Placer vous à la racine du module (``<chemin_vers_geonature>/external_module/monitorings``). 
-* Copier le fichier ``config/monitoring/generic/custom.json.sample`` dans ``config/monitoring/generic/custom.json``
+* Placez-vous à la racine du module (``<chemin_vers_geonature>/external_module/monitorings``). 
+* Copiez le fichier ``config/monitoring/generic/custom.json.sample`` dans ``config/monitoring/generic/custom.json``
 
 :: 
 
@@ -58,20 +56,20 @@ Configuration du module de suivi générique
         "__ID_DATASET_VISIT": 1
     }
 
-Les Valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom `config_custom.json` propre au sous-module.
+Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``config_custom.json`` propre au sous-module.
 
 * ``__CODE_LIST_OBSERVER`` : le code de la liste utilisateur pour les observateurs du protocole.
   Il est par defaut mis à ``obsocctax`` mais une liste spécifique peut être précisée.
 * ``__CODE_LIST_INVENTER`` : la liste des descripteurs de sites.
-* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxon qui concernent un module. Il est en général propre à chaque sous module et devrai être redéfini pour chaque sous-module.
-* ``__ID_DATASET_VISIT`` : l'id du jeu de donnée correspondant à aux visites. Il est en général propre à chaque sous module et devrai être redéfini pour chaque sous-module.
+* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
+* ``__ID_DATASET_VISIT`` : l'id du jeu de donnée correspondant à aux visites. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
 
 
 ===================================
 Installation du sous-module de test
 ===================================
 
-Le sous module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``
+Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``
 
 
 * S'assurer d'être dans le ``virtualenv``.
@@ -96,8 +94,8 @@ Exemples de sous-modules
 
 D'autres exemples de sous-modules sont disponibles sur le dépôt https://github.com/PnCevennes/protocoles_suivi :
 
-* protocole de suivi des oedicnèmes,
-* protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena.
+* Protocole de suivi des oedicnèmes,
+* Protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena.
 
 =========================
 Création d'un sous-module
@@ -120,7 +118,7 @@ Structure d'un module
 * ``observation.json`` `(config. des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
 
-Pour chaque fichier, les valeurs prises par défaut sont celle du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
+Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
 ----------------------
 Configuration générale
@@ -128,8 +126,8 @@ Configuration générale
 
 Dans le fichier `config.json`
 
-* ``tree`` défini les relations entre les objets :
-* ``data`` défini les donées à pré-charger :
+* ``tree`` définit les relations entre les objets :
+* ``data`` définit les données à pré-charger :
 
 
 .. code-block:: JSON
@@ -159,11 +157,11 @@ Dans le fichier `config.json`
     }
     }
 
--------------------------
-Configuration des objects
--------------------------
+------------------------
+Configuration des objets
+------------------------
 
-Dans le fichier ``module.json``,  deux variables doivent obligatoirement être définies dans ce fichier:
+Dans le fichier ``module.json``,  deux variables doivent obligatoirement être définies dans ce fichier :
 
 * ``module_path``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
@@ -176,9 +174,9 @@ Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observa
     * ``"base_site_name"`` pour un site;
 * ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
 
-Les variable ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichée (pour la page d'un object ou pour les listes et dans quel ordre.
+Les variables ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichées (pour la page d'un objet ou pour les listes et dans quel ordre).
 
-Si ``display_list`` n'est pas défini, il prend la valeur de  ``display_properties``
+Si ``display_list`` n'est pas défini, il prend la valeur de ``display_properties``
 
 Par exemple:
 
@@ -194,13 +192,13 @@ Par exemple:
 
 
 
-Les schemas
+Les schémas
 ===========
 
 Les schémas génériques
 ----------------------
 
-Les schémas des variables génériques sont définies dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets
+Les schémas des variables génériques sont définis dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets
 et dans la variable ``generic``.
 
 Pour la suite nous prendrons exemple sur la configuration des sites, qui sera similaire aux autres objets dans les grandes lignes.
@@ -222,7 +220,7 @@ Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable
 
 Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_site"``, ``"id_nomenclature_type_site"``, etc...)
 
-* les attribut obligatoires :
+* les attributs obligatoires :
     * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir le  paragraphe `Définir une nouvelle variable`_.
     * ``attribut_label`` : associe un nom à la variable, comme ``"Type de site"`` pour ``id_nomenclature_type_site``,
 * les attributs facultatifs :
@@ -236,7 +234,7 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
 Définir une nouvelle variable
 -----------------------------
 
-    Pour définir une nouvelle variable ou aussi rédéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
+    Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
 
 * **texte** : une variable facultative
 
@@ -247,7 +245,7 @@ Définir une nouvelle variable
             "attribut_label": "Nom du contact"
         }
 
-* **entier** : le numéro du passage compris entre 1 et 2 et obligatoire
+* **entier** : le numéro du passage compris entre 1 et 2 est obligatoire
 
 .. code-block:: JSON
 
@@ -259,7 +257,7 @@ Définir une nouvelle variable
             "max": 2
         }
     
-* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste: 
+* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste : 
 
 .. code-block:: JSON
 
@@ -290,7 +288,7 @@ La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nom
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-* **taxonomie** : un choix dans une liste de taxon:
+* **taxonomie** : un choix dans une liste de taxon :
 
 .. code-block:: JSON
 
@@ -310,7 +308,7 @@ Redéfinir une variable existante
 --------------------------------
 
 Dans plusieurs cas, on peut avoir besoin de redéfinir un élément du schéma.
-On rajoutera cet élément dans notre variable ``specific`` et cet élément sera mis à jour:
+On rajoutera cet élément dans notre variable ``specific`` et cet élément sera mis à jour :
 
 * Changer le label d'un élément et le rendre visible et obligatoire
 
@@ -342,7 +340,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 Il est important d'ajouter ``"type_util": "nomenclaure",``.
 
 Pour renseigner la valeur de la nomenclature, on spécifie 
-    * le type de nomenclare ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
+    * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
     * le code de la nomenclature ``"cd_nomenclature"``.
 
 ------------
@@ -352,7 +350,7 @@ Nomenclature
 Ce fichier permet de renseigner la nomenclature spécifique au sous-module.
 Elle sera insérée en base lors de l'installation du module. 
 
-Un exemple de fichier:
+Un exemple de fichier :
 
 .. code-block:: JSON
 
