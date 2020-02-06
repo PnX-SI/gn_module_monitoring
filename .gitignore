@@ -4,7 +4,7 @@ frontend/app/module.config.ts
 **/node_modules
 config/conf_gn_module.toml
 .vscode
-**/config_custom.json
+**/custom.json
 config/monitoring/*
 !config/monitoring/generic
 frontend/assets/*.jpg
