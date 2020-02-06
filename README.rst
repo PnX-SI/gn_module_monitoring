@@ -77,7 +77,7 @@ Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_m
 
 ::
 
-    flask monitoring install <mon_chemin_absolu_vers_le_module>/contrib/test test
+    flask monitorings install <mon_chemin_absolu_vers_le_module>/contrib/test test
 
 
 ------------------------------------
@@ -337,7 +337,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
             "hidden": true
         }
 
-Il est important d'ajouter ``"type_util": "nomenclaure",``.
+Il est important d'ajouter ``"type_util": "nomenclature",``.
 
 Pour renseigner la valeur de la nomenclature, on spécifie 
     * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
