@@ -38,7 +38,7 @@ export class MonitoringDatatableComponent implements OnInit {
   private filterSubject: Subject<string> = new Subject();
   private subscription: any;
 
-  temp;
+  row_save;
   selected = [];
   customColumnComparator;
   filters = [];
@@ -63,18 +63,7 @@ export class MonitoringDatatableComponent implements OnInit {
     });
 
     this.customColumnComparator = this.customColumnComparator_();
-    this.temp = this.rows.map(e => e);
-
-    // init key_filter
-    this.temp.forEach((row, index) => {
-      let keyFilter = '';
-      Object.keys(row).forEach(key => {
-        if (key !== 'id') {
-          keyFilter += ' ' + row[key];
-        }
-      });
-      this.temp[index]['key_filter'] = keyFilter;
-    });
+    this.row_save = this.rows.map(e => e);
   }
 
   filterInput($event) {
@@ -90,7 +79,7 @@ export class MonitoringDatatableComponent implements OnInit {
     // filter all
 
     let bChange = false;
-    const temp = this.temp.filter((row, index) => {
+    const temp = this.row_save.filter((row, index) => {
 
       let bCondVisible = true;
       for (const key of Object.keys(this.filters)) {
@@ -126,6 +115,7 @@ export class MonitoringDatatableComponent implements OnInit {
     }
     const id = event.row && event.row.id;
 
+    console.log('click', event.row.id, event.row);
     if (!this.rowStatus) {
       return;
     }
@@ -157,6 +147,8 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   setSelected() {
+    // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
+
     if (!this.rowStatus) {
       return;
     }
@@ -166,12 +158,12 @@ export class MonitoringDatatableComponent implements OnInit {
       return;
     }
 
-    const index_row_selected = this.rows.findIndex(row => row.id === status_selected.id);
+    const index_row_selected = this.table._internalRows.findIndex(row => row.id === status_selected.id);
     if (index_row_selected === -1) {
       return;
     }
 
-    this.selected = [this.rows[index_row_selected]];
+    this.selected = [this.table._internalRows[index_row_selected]];
     this.table.offset = Math.floor((index_row_selected) / this.table._limit);
   }
 
@@ -184,7 +176,6 @@ export class MonitoringDatatableComponent implements OnInit {
       const chng = changes[propName];
       const cur = chng.currentValue;
       const pre = chng.currentValue;
-      // console.log('datatable ngOnChanges ', this.child0.objectType, propName, cur, changes)
       switch (propName) {
         case 'rowStatus':
           this.setSelected();
@@ -195,7 +186,6 @@ export class MonitoringDatatableComponent implements OnInit {
       }
     }
   }
-
 
 
   customColumnComparator_() {

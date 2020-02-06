@@ -65,6 +65,11 @@ export class ConfigService {
     modulePath = modulePath || 'generic';
     const configObject = this._config[modulePath][objectType];
 
+    // patch media TODO fix
+    if (!configObject) {
+      return {};
+    }
+
     switch (typeSchema) {
       case 'all': {
         return {...configObject.generic, ...configObject.specific};

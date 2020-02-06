@@ -1,21 +1,15 @@
 {
   "tree": {
-      "module": {
-        "site": {
-          "visit": {
-            "observation": null
-          },
-          "media": null
+    "module": {
+      "site": {
+        "visit": {
+          "observation": null
         }
       }
+    }
   },
   "data": {
-    "nomenclature": [
-        "TEST_METEO"
-    ],
-    "user": [
-      "__CODE_LIST_INVENTOR",
-      "__CODE_LIST_OBSERVER"
-    ]
+    "nomenclature": ["TEST_METEO"],
+    "user": ["__CODE_LIST_INVENTOR", "__CODE_LIST_OBSERVER"]
   }
 }
