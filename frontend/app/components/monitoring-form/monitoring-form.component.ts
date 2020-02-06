@@ -52,12 +52,12 @@ export class MonitoringFormComponent implements OnInit {
 
           // init objFormsDefinition
           this.objFormsDefinition = Object.keys(schema)
-            .filter(attribut_name => schema['attribut_name'].type_widget)
+            .filter(attribut_name => schema[attribut_name].type_widget)
             .map((attribut_name) => {
               const elem = schema[attribut_name];
               elem['attribut_name'] = attribut_name;
+              return elem;
             });
-
           return this.obj.formValues();
         })
       )

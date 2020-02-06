@@ -77,8 +77,7 @@ def create_or_update_object_api(module_path, object_type, id):
 
     # recupération des données post
     post_data = dict(request.get_json())
-
-    module = get_module(module_path)
+    module = get_module('module_path', module_path)
     post_data['properties']['id_module'] = module.id_module
 
     return (
