@@ -115,7 +115,6 @@ export class MonitoringDatatableComponent implements OnInit {
     }
     const id = event.row && event.row.id;
 
-    console.log('click', event.row.id, event.row);
     if (!this.rowStatus) {
       return;
     }
