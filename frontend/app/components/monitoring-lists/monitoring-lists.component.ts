@@ -15,7 +15,8 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() obj: MonitoringObject;
 
-  @Output() bEditChanged = new EventEmitter<boolean>();
+  @Input() bEdit: boolean;
+  @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
 
@@ -64,7 +65,7 @@ export class MonitoringListComponent implements OnInit {
   }
 
   onbEditChanged(event) {
-    this.bEditChanged.emit(event);
+    this.bEditChange.emit(event);
   }
 
   ngOnChanges(changes: SimpleChanges) {

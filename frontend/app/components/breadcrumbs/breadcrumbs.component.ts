@@ -1,7 +1,7 @@
 import { of } from '@librairies/rxjs';
 import { mergeMap } from '@librairies/rxjs/operators';
 
-import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@angular/core';
 
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
@@ -15,6 +15,9 @@ import { MonitoringObject } from '../../class/monitoring-object';
 })
 export class BreadcrumbsComponent implements OnInit {
   public breadcrumbs;
+
+  @Input() bEdit: boolean;
+  @Output() bEditChange = new EventEmitter<boolean>();
 
   public frontendModuleMonitoringUrl: string;
 
@@ -56,6 +59,10 @@ export class BreadcrumbsComponent implements OnInit {
       this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
       this.breadcrumbs = breadcrumbs;
     });
+  }
+
+  onClick() {
+    this.bEditChange.emit(false);
   }
 
   ngOnChanges(changes: SimpleChanges) {

@@ -4,7 +4,10 @@
       >
   </a>
   / 
-  <span *ngFor="let elem of breadcrumbs; let isLast = last">
+  <span
+    *ngFor="let elem of breadcrumbs; let isLast = last"
+    (click)="onClick($event)"
+  >
     <a 
       [routerLink]="[
         '/',

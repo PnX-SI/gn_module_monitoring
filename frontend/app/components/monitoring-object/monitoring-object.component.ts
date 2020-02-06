@@ -192,10 +192,6 @@ export class MonitoringObjectComponent implements OnInit {
     return this.obj.get(1);
   }
 
-  onbEditChanged(event) {
-    this.bEdit = event;
-  }
-
   onObjChanged(obj: MonitoringObject) {
     if (obj['objectType'] === 'site') {
       console.log('monitoring object compute sites');

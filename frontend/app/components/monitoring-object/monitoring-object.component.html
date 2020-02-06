@@ -22,9 +22,12 @@
     </div>
 
     <div id="monitoring-elem-container" class="cadre">
+
       <pnx-monitoring-breadcrumbs 
         *ngIf="obj && obj.bIsInitialized"
-        [obj]="obj"></pnx-monitoring-breadcrumbs>
+        [obj]="obj"
+        [(bEdit)]="bEdit"
+        ></pnx-monitoring-breadcrumbs>
 
       <h2>{{ obj.template["title"] }}</h2>
 
@@ -47,10 +50,10 @@
       <pnx-monitoring-lists
         [obj]="obj"
         [(objectsStatus)]="objectsStatus"
-        (bEditChanged)="onbEditChanged($event)"
+        [(bEdit)]="bEdit"
         *ngIf="!bEdit && obj && obj.bIsInitialized"
         [currentUser]="currentUser"
       ></pnx-monitoring-lists>
     </div>
   </div>
-</div>
+<>
