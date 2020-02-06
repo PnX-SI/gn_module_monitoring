@@ -112,7 +112,7 @@ def directory_last_modif(dir_path):
         :rtype: float
     '''
     modification_time_max = 0
-    for (repertoire, sousRepertoires, fichiers) in os.walk(dir_path):
+    for (repertoire, sousRepertoires, fichiers) in os.walk(dir_path, followlinks=True):
         for fichier in fichiers:
             modification_time = os.path.getmtime(repertoire + '/' + fichier)
             if modification_time > modification_time_max:
