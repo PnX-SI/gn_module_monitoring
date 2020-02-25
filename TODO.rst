@@ -11,6 +11,7 @@ petites modifications
 * Pouvoir choisir les colonnes à afficher dans le tableau
 * Ameliorer perf récupération de la geom en geojson (ajout fct Utils-Flask-SQLA-Geo)
 * Afficher plus d'info sur les composants non valides d'un formulaire (Messages, etc...) Surtout pour la carte quand il faut renseignerla géomtrie (site)
+* Faire un composant générique repris par les autres composant (pour ne pas redéfinir certains Inputs, Outputs (bEdit, obj) et services)
 
 à long terme
 ============

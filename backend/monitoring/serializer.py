@@ -155,7 +155,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         if self._object_type == 'module':
             monitoring_object_dict['cruved'] = self.get_cruved()
 
-        properties['id_parent']: to_int(self.id_parent())
+        properties['id_parent'] = to_int(self.id_parent())
         if(children):
             monitoring_object_dict['children'] = children
 
