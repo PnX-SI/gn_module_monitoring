@@ -165,7 +165,13 @@ def add_nomenclature(module_path):
             pass
 
         if nomenclature:
-            print('no insert nomenclature', nomenclature_type)
+            # TODO make update
+            print(
+                'nomenclature {} - {} already exist'.format(
+                    nomenclature.cd_nomenclature,
+                    nomenclature.label_default
+                )
+            )
             continue
 
         id_type = None
