@@ -72,7 +72,7 @@ Installation du sous-module de test
 Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``
 
 
-* S'assurer d'être dans le ``virtualenv``.
+* S'assurer d'être dans le ``virtualenv`` et à la racine de l'application ``GeoNature``
 * Exécuter la commande :
 
 ::
