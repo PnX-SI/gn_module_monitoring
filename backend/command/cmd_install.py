@@ -54,7 +54,7 @@ def install_monitoring_module(module_config_dir_path, module_path):
         )
 
     if not get_config(module_path):
-        print('config directotry for module {} does not exist'.format(module_path))
+        print('config directory for module {} does not exist'.format(module_path))
         return None
 
     module_desc = config_param(module_path, 'module', 'module_desc')
@@ -165,7 +165,13 @@ def add_nomenclature(module_path):
             pass
 
         if nomenclature:
-            print('no insert nomenclature', nomenclature_type)
+            # TODO make update
+            print(
+                'nomenclature {} - {} already exist'.format(
+                    nomenclature.cd_nomenclature,
+                    nomenclature.label_default
+                )
+            )
             continue
 
         id_type = None
