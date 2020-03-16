@@ -63,7 +63,7 @@ def install_monitoring_module(module_config_dir_path, module_path):
     if not(module_desc and module_label):
         print(
             "Veuillez renseigner les valeurs des champs module_label \
-et module_desc dans le fichier <dir_module_suivi>/config/monitoring/config_object.json"
+et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         )
         return
 
