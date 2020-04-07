@@ -1,3 +1,12 @@
 .object-link:hover {
     color:lightblue;
 }
+
+.btn-height {
+    height: 70px;
+}
+
+.btn-float-right {
+    margin: 10px 0;
+    float: right;
+}

@@ -41,21 +41,6 @@
           child0.objectType != 'media' && child0.objectType as childrenType
         "
       >
-
-      <div *ngIf="obj.modulePath && child0.objectType != 'media' && currentUser?.cruved.C >= 1">
-        <a
-          class="btn btn-success"
-          [routerLink]="[
-            '/',
-            frontendModuleMonitoringUrl,
-            'create_object',
-            obj.modulePath,
-            child0.objectType,
-            obj.id
-          ]"
-          ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter {{ child0.template["label"] }}</a
-        >
-      </div>
         <pnx-monitoring-datatable
           *ngIf="childrenDataTable && childrenDataTable[childrenType]"
           (bEditChanged)="onbEditChanged($event)"
@@ -68,6 +53,29 @@
           [sorts]="child0.configParam('sorts')"
           [currentUser]="currentUser"
         ></pnx-monitoring-datatable>
+        <div
+        *ngIf="
+        obj.modulePath &&
+        child0.objectType != 'media' &&
+            currentUser?.cruved.C >= 1
+            "
+            class='float-right'
+        >
+          <a
+          class="btn btn-success btn-float-right"
+          [routerLink]="[
+          '/',
+          frontendModuleMonitoringUrl,
+          'create_object',
+          obj.modulePath,
+          child0.objectType,
+          obj.id
+          ]"
+          ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+          {{ child0.template["label"] }}</a
+          >
+        </div>
+        <div class="btn-height"></div>
       </div>
     </div>
   </div>
