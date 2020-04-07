@@ -126,30 +126,34 @@ export class MonitoringObjectComponent implements OnInit {
             id: child.id,
             selected: false,
             visible: true,
+            current: false
           };
         }
       );
     }
 
+
     // init site status
     if (this.obj.siteId) {
-      if (!objectsStatus['site']) {
-        objectsStatus['site'] = [
-          {
-            id: this.obj.siteId,
+      objectsStatus['site'] = [];
+      this.sites["features"].forEach(
+        (f) => {
+          // determination du site courrant
+          let cur = false;
+          if (f.properties.id_base_site == this.obj.siteId){
+            cur = true;
+          }
+
+          objectsStatus['site'].push({
+            id: f.properties.id_base_site,
             selected: false,
             visible: true,
-            current: true,
-          },
-        ];
-      } else {
-        const siteStatus =
-          objectsStatus['site'] &&
-          objectsStatus['site'].find((status) => status.id === this.obj.siteId);
-        siteStatus['selected'] = true;
-        siteStatus['current'] = true;
-      }
+            current: cur
+          });
+        }
+      );
     }
+
     this.objectsStatus = objectsStatus;
   }
 

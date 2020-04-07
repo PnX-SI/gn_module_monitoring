@@ -41,6 +41,7 @@ export class MonitoringMapComponent implements OnInit {
   renderers = {};
   map;
   selectedSiteId: Number;
+  currentSiteId: Number;
   // todo mettre en config
 
   styles = {
@@ -149,14 +150,24 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSelectedSite(id) {
-    this.objectsStatus['site'].forEach(status => {
-      const b_changed = status['selected'] !== (status['id'] === id);
-      status['selected'] = status['id'] === id;
-      if (b_changed) {
-        this.setSiteStyle(status);
-      }
-      this.selectedSiteId = id;
-    });
+    if (id == this.selectedSiteId)  {
+      return;
+    }
+
+    // Get old select site
+    let old_s_site = this.objectsStatus["site"].filter(site => site.id == this.selectedSiteId);
+    if (old_s_site.length > 0){
+      old_s_site[0]['selected'] = false;
+      this.setSiteStyle(old_s_site[0]);
+    }
+
+    // Get new select site
+    let new_s_site = this.objectsStatus["site"].filter(site => site.id == id);
+    if (new_s_site.length > 0){
+      new_s_site[0]['selected'] = true;
+      this.setSiteStyle(new_s_site[0]);
+    }
+    this.selectedSiteId = id;
   }
 
   setSitesStyle() {
