@@ -46,6 +46,10 @@ export class ConfigService {
     return `${AppConfig.API_ENDPOINT}`;
   }
 
+  urlApplication() {
+    return `${AppConfig.URL_APPLICATION}`
+  }
+
   /** Backend Module Url */
   backendModuleUrl() {
     return `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;

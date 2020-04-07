@@ -17,6 +17,7 @@ export class ModulesComponent implements OnInit {
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
+  urlApplication: string;
   moduleMonitoringCode: string;
 
   bLoading = false;
@@ -38,6 +39,7 @@ export class ModulesComponent implements OnInit {
         this.backendUrl = this._configService.backendUrl();
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.moduleMonitoringCode = this._configService.moduleMonitoringCode();
+        this.urlApplication = this._configService.urlApplication();
         this.bLoading = false;
       });
   }
