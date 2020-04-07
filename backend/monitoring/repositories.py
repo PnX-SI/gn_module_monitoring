@@ -59,12 +59,13 @@ class MonitoringObject(MonitoringObjectSerializer):
             .filter(getattr(Cor, id_field_name) == self._id)
             .all()
         )
+
         for cor in cors:
             if getattr(cor, id_foreign_key_name) not in cor_data_array:
                 DB.session.delete(cor)
 
         for foreign_id in cor_data_array:
-            if foreign_id not in [getattr(cor, id_foreign_key_name) for cor in cors]:
+            if int(foreign_id) not in [getattr(cor, id_foreign_key_name) for cor in cors]:
                 cor_new = Cor()
                 setattr(cor_new, id_foreign_key_name, foreign_id)
                 setattr(cor_new, id_field_name, self._id)

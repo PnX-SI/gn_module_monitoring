@@ -1,4 +1,11 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  ViewEncapsulation,
+} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { leafletDrawOptions } from './leaflet-draw.options';
@@ -6,10 +13,9 @@ import { leafletDrawOptions } from './leaflet-draw.options';
 @Component({
   selector: 'pnx-draw-form',
   templateUrl: './draw-form.component.html',
-  styleUrls: ['./draw-form.component.css']
+  styleUrls: ['./draw-form.component.css'],
 })
 export class DrawFormComponent implements OnInit {
-
   public geojson;
   public leafletDrawOptions = leafletDrawOptions;
   formValueChangeSubscription;
@@ -28,11 +34,23 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit() {
-
     // choix du type de geometrie
+
+    this.initForm();
+  }
+
+  initForm() {
+    console.log(this.geometryType, this.parentFormControl);
+
+    if (!(this.geometryType && this.parentFormControl)) {
+      return;
+    }
+
+    console.log('aa')
+
     switch (this.geometryType) {
       case 'Point': {
         this.leafletDrawOptions.draw.marker = true;
@@ -43,8 +61,8 @@ export class DrawFormComponent implements OnInit {
           allowIntersection: false, // Restricts shapes to simple polygons
           drawError: {
             color: '#e1e100', // Color the shape will turn when intersects
-            message: 'Intersection forbidden !' // Message that will show when intersect
-          }
+            message: 'Intersection forbidden !', // Message that will show when intersect
+          },
         };
         break;
       }
@@ -56,13 +74,10 @@ export class DrawFormComponent implements OnInit {
         this.leafletDrawOptions.draw.marker = true;
         break;
       }
-
     }
 
-    this.initForm();
-  }
+    this.leafletDrawOptions = {...this.leafletDrawOptions};
 
-  initForm() {
     if (this.formValueChangeSubscription) {
       this.formValueChangeSubscription.unsubscribe();
     }
@@ -70,16 +85,17 @@ export class DrawFormComponent implements OnInit {
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant
-      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(geometry => {
-        this.setGeojson(geometry);
-      });
+      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
+        (geometry) => {
+          this.setGeojson(geometry);
+        }
+      );
     }
-
   }
 
   setGeojson(geometry) {
     setTimeout(() => {
-      this.geojson = { 'geometry': geometry };
+      this.geojson = { geometry: geometry };
     });
   }
 
@@ -91,6 +107,9 @@ export class DrawFormComponent implements OnInit {
 
   ngOnChanges(changes) {
     if (changes.parentFormControl && changes.parentFormControl.currentValue) {
+      this.initForm();
+    }
+    if (changes.geometryType && changes.geometryType.currentValue) {
       this.initForm();
     }
   }
