@@ -35,16 +35,16 @@
       [myFormGroup]="objForm"
       [formsDefinition]="objFormsDefinition"
       ></pnx-dynamic-form-generator>
-      
+
       <div>
         <button
-        class="btn btn-success"
+        class="btn btn-success float-right"
         (click)="onSubmit(bChainInput)"
         [disabled]="!objForm.valid"
         >
         <span
         [ngClass]="{ 'hide-spinner': !bSaveSpinner }"
-        class="spinner-border spinner-border-sm"
+        class="spinner-border spinner-border-sm float-right"
         role="status"
         aria-hidden="true"
         ></span>
@@ -53,17 +53,18 @@
         <span *ngIf="!bChainInput || obj.id">Enregister</span>
       </button>
       
-      <button class="btn btn-primary" (click)="onCancelEdit()">
+      <button class="btn btn-primary float-left" (click)="onCancelEdit()">
         Annuler
       </button>
       <button
-      class="btn btn-danger float-right"
+      class="btn btn-danger float-left"
       (click)="bDeleteModal = true"
       *ngIf="obj.id && currentUser?.cruved.D >= 1"
       >
       Supprimer
     </button>
   </div>
+  <div class="btn-height"></div>
 </form>
 <div *ngIf="!obj.id">
   <br />

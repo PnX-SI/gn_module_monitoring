@@ -1,5 +1,6 @@
 :host ::ng-deep .obj-form {
   margin: 0;
+  margin-bottom: 10px;
   padding: 0;
   line-height: 0.5rem;
 }
@@ -18,4 +19,16 @@
 
 .hide-spinner {
   display: none;
+}
+
+.btn-height {
+  height: 39px;
+}
+
+.float-left, .float-right {
+}
+
+.float-left {
+  margin-right: 10px;
+  float: left;
 }
