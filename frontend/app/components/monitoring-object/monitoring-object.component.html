@@ -10,18 +10,20 @@
     </div>
   </pnx-modal-msg>
 
-  <div class="flex-container">
-    <div id="map-container" class="cadre">
+  <div class="flex-container" id="object">
+    <div id="monitoring-map-container" class="cadre">
       <pnx-monitoring-map
+        *ngIf="heightMap"
         [obj]="obj"
         [bEdit]="bEdit"
         [objForm]="objForm"
         [(objectsStatus)]="objectsStatus"
         [sites]="sites"
+        [heightMap]="heightMap"
       ></pnx-monitoring-map>
     </div>
 
-    <div id="monitoring-elem-container" class="cadre">
+    <div id="monitoring-elem-container" class="cadre scroll">
       <pnx-monitoring-breadcrumbs
         *ngIf="obj && obj.bIsInitialized"
         [obj]="obj"

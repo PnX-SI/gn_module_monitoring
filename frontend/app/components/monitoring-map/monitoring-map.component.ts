@@ -34,6 +34,8 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() sites: {};
 
+  @Input() heightMap;
+
   bListen = true;
   panes = {};
   renderers = {};
