@@ -128,7 +128,8 @@ export class MonitoringObjectService {
     let index: Number;
     // children
     for (const childrenType of obj.childrenTypes()) {
-      const childrenData = obj.children[childrenType];
+      const childrenData = obj.children[childrenType] || [];
+      console.log(obj.childrenTypes(), obj.children, childrenType, childrenData)
       for (const childData of childrenData) {
         const child = new MonitoringObject(obj.modulePath, childrenType, childData.id, this);
         this.deleteCache(child);

@@ -35,7 +35,7 @@ export class DrawFormComponent implements OnInit {
     // choix du type de geometrie
     switch (this.geometryType) {
       case 'Point': {
-        this.leafletDrawOptions.draw.circlemarker = true;
+        this.leafletDrawOptions.draw.marker = true;
         break;
       }
       case 'Polygon': {
@@ -53,7 +53,7 @@ export class DrawFormComponent implements OnInit {
         break;
       }
       default: {
-        this.leafletDrawOptions.draw.circlemarker = true;
+        this.leafletDrawOptions.draw.marker = true;
         break;
       }
 
