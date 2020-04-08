@@ -37,18 +37,19 @@ export class DrawFormComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    // Intialisation du formulaire
-    if (this.geometryType && this.parentFormControl) {
-      this.initForm();
-    }
+    // choix du type de geometrie
+
+    this.initForm();
   }
 
   initForm() {
-    //Si le type de géometrie et le parent form control ne sont pas définis
-    // Alors pas d'initialisation du formulaire
+    console.log(this.geometryType, this.parentFormControl);
+
     if (!(this.geometryType && this.parentFormControl)) {
       return;
     }
+
+    console.log('aa')
 
     switch (this.geometryType) {
       case 'Point': {
@@ -106,14 +107,10 @@ export class DrawFormComponent implements OnInit {
 
   ngOnChanges(changes) {
     if (changes.parentFormControl && changes.parentFormControl.currentValue) {
-      if (this.geometryType) {
-        this.initForm();
-      }
+      this.initForm();
     }
     if (changes.geometryType && changes.geometryType.currentValue) {
-      if (this.parentFormControl) {
-        this.initForm();
-      }
+      this.initForm();
     }
   }
 }

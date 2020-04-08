@@ -3,9 +3,8 @@
   [height]="heightMap"
   [ngClass]="{ 'hide-draw-form': !bEdit }"
   >
-    <!-- *ngIf="objForm.controls['geometry']" -->
+
     <pnx-draw-form
-      *ngIf="objForm && objForm.controls && objForm.controls['geometry'] && obj && obj.config['geometry_type']"
       [parentFormControl]="
         objForm && objForm.controls && objForm.controls['geometry']
       "
