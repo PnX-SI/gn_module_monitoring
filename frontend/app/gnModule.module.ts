@@ -28,6 +28,11 @@ import { MonitoringListComponent } from './components/monitoring-lists/monitorin
 import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
 import { MediasComponent} from './components/medias/medias.component';
 import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
+
+import {
+    MatSlideToggleModule
+  } from '@angular/material';
+
 // my module routing
 const routes: Routes = [
 
@@ -68,6 +73,7 @@ const routes: Routes = [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
+        MatSlideToggleModule,
         HttpClientXsrfModule.withOptions({
             headerName: 'token'
         }),

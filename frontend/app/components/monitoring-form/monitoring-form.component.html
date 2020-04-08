@@ -25,7 +25,22 @@
     class="cadre"
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
-    <h3>{{ obj.id ? 'Modification' : 'Création' }} {{ obj.template['label'] }}</h3>
+    <h3>{{ obj.id ? 'Modification' : 'Création' }} {{ obj.template['label'] }}
+      <span
+        *ngIf="!obj.id"
+        id="toggle-btn"
+        class="float-right"
+        matTooltip="Enchainer les saisies"
+        matTooltipPosition="left">
+        <i class="fa fa-repeat" aria-hidden="true"></i>
+        <mat-slide-toggle
+          color="primary"
+          [(ngModel)]="bChainInput" (change)="bChainInputChanged($event)"
+>
+        </mat-slide-toggle>
+      </span>
+
+    </h3>
     <form [formGroup]="objForm">
 
       <pnx-dynamic-form-generator
@@ -48,11 +63,11 @@
         role="status"
         aria-hidden="true"
         ></span>
-        
+
         <span *ngIf="bChainInput && !obj.id">Enregister et enchainer les saisies</span>
         <span *ngIf="!bChainInput || obj.id">Enregister</span>
       </button>
-      
+
       <button class="btn btn-primary float-left" (click)="onCancelEdit()">
         Annuler
       </button>
@@ -66,10 +81,5 @@
   </div>
   <div class="btn-height"></div>
 </form>
-<div *ngIf="!obj.id">
-  <br />
-  <input type="checkbox" [(ngModel)]="bChainInput" (change)="bChainInputChanged($event)"  />
-  <label for="scales">Enchainer les saisies</label>
-</div>
   </div>
 </div>
