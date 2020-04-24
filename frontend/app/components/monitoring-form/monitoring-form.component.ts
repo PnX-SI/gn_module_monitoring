@@ -183,7 +183,6 @@ export class MonitoringFormComponent implements OnInit {
       );
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.objChanged.emit(this.obj);
-
       if (addNew) {
         this.resetObjForm();
       } else {
