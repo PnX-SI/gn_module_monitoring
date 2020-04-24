@@ -27,20 +27,16 @@
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
-      <pnx-medias
+      <!-- <pnx-medias
         [(medias)]="medias"
         [uuid_attached_row]="obj.template['uuid']"
         [staticDirUrl]="backendUrl"
         [idTableLocation]="obj.idTableLocation"
         *ngIf="child0.objectType == 'media'"
-      ></pnx-medias>
+      ></pnx-medias> -->
 
-      <div
-        class="list-children"
-        *ngIf="
-          child0.objectType != 'media' && child0.objectType as childrenType
-        "
-      >
+      <div class="list-children" *ngIf="child0.objectType as childrenType">
+        <!-- child0.objectType != 'media' && child0.objectType as childrenType -->
         <pnx-monitoring-datatable
           *ngIf="childrenDataTable && childrenDataTable[childrenType]"
           (bEditChanged)="onbEditChanged($event)"
@@ -54,25 +50,25 @@
           [currentUser]="currentUser"
         ></pnx-monitoring-datatable>
         <div
-        *ngIf="
-        obj.modulePath &&
-        child0.objectType != 'media' &&
+          *ngIf="
+            obj.modulePath &&
+            child0.objectType != 'media' &&
             currentUser?.cruved.C >= 1
-            "
-            class='float-right'
+          "
+          class="float-right"
         >
           <a
-          class="btn btn-success btn-float-right"
-          [routerLink]="[
-          '/',
-          frontendModuleMonitoringUrl,
-          'create_object',
-          obj.modulePath,
-          child0.objectType,
-          obj.id
-          ]"
-          ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-          {{ child0.template["label"] }}</a
+            class="btn btn-success btn-float-right"
+            [routerLink]="[
+              '/',
+              frontendModuleMonitoringUrl,
+              'create_object',
+              obj.modulePath,
+              child0.objectType,
+              obj.id
+            ]"
+            ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+            {{ child0.template["label"] }}</a
           >
         </div>
         <div class="btn-height"></div>

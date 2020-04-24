@@ -33,6 +33,7 @@
       <h2>{{ obj.template["title"] }}</h2>
 
       <pnx-monitoring-properties
+        id="nav-properties"
         [obj]="obj"
         *ngIf="!bEdit"
         [(bEdit)]="bEdit"

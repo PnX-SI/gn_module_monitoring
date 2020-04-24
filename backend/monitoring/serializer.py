@@ -10,8 +10,6 @@ from ..utils.utils import to_int
 class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def get_parent(self):
-        if(self._object_type == 'media'):
-            return
 
         parent_type = self.config_param('parent_type')
         if not parent_type:
@@ -149,7 +147,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'object_type': self._object_type,
             'module_path': self._module_path,
             'site_id': self.get_site_id(),
-            'id': self._id
+            'id': self._id,
+            'medias': [media.as_dict(True) for media in self._model.medias]
         }
 
         if self._object_type == 'module':

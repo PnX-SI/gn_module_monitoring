@@ -43,6 +43,10 @@
     </h3>
     <form [formGroup]="objForm">
 
+      <p *ngIf = "obj.config['geometry_type'] && !objForm.value.geometry">
+        Veuillez saisir une géométrie sur la carte
+      </p>
+
       <pnx-dynamic-form-generator
       class="obj-form"
       #dynamicForm

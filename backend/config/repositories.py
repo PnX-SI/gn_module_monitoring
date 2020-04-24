@@ -29,9 +29,6 @@ def get_config_objects(module_path, config, tree=None, parent_type=None):
         tree = config['tree']
 
     for object_type in tree:
-        # not for media
-        if object_type == 'media':
-            continue
 
         # config object
         config[object_type] = config_object_from_files(module_path, object_type)

@@ -31,7 +31,7 @@ export class MonitoringObjectBase {
 
   template = {};
 
-  configParams = ['geometry_type', 'media_types'];
+  configParams = ['geometry_type'];
   config = {};
 
   protected _objService: MonitoringObjectService;

@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MonitoringObject } from '../../class/monitoring-object';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'pnx-monitoring-properties',
@@ -14,9 +15,14 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   @Input() currentUser;
 
-  constructor() { }
+  backendUrl: string;
+
+  constructor(
+    private _configService: ConfigService,
+  ) {}
 
   ngOnInit() {
+    this.backendUrl = this._configService.backendUrl();
   }
 
   onEditClick() {

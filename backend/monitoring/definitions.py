@@ -1,4 +1,3 @@
-from geonature.core.gn_commons.models import TMedias
 from ..models.monitoring import (
     TMonitoringModules,
     TMonitoringSites,
@@ -27,7 +26,6 @@ MonitoringModels_dict = {
     'visit': TMonitoringVisits,
     'observation': TMonitoringObservations,
     'detail': TMonitoringObservationDetails,
-    'media': TMedias,
 }
 
 
@@ -37,7 +35,6 @@ MonitoringObjects_dict = {
     'visit': MonitoringVisit,
     'observation': MonitoringObject,
     'observation_detail': MonitoringObject,
-    'media': MonitoringObject
 }
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)
