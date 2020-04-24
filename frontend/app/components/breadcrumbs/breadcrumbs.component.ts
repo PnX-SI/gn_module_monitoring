@@ -7,6 +7,7 @@ import { DataMonitoringObjectService } from '../../services/data-monitoring-obje
 import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -25,7 +26,9 @@ export class BreadcrumbsComponent implements OnInit {
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _configService: ConfigService
+    private _configService: ConfigService,
+    private _router: Router,
+
   ) { }
 
   ngOnInit() {
@@ -61,8 +64,19 @@ export class BreadcrumbsComponent implements OnInit {
     });
   }
 
-  onClick() {
+  onClick(elem) {
     this.bEditChange.emit(false);
+    setTimeout(() =>  {
+      this._router.navigate([
+        '/',
+        this._configService.frontendModuleMonitoringUrl(),
+        'object',
+        elem.module_path,
+        elem.object_type,
+        elem.id
+      ]);
+    }, 100);
+
   }
 
   ngOnChanges(changes: SimpleChanges) {

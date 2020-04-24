@@ -4,3 +4,12 @@
   padding: 2px 5px;
   box-shadow: 0 0 2px;
 }
+
+.breadcrumbs .link {
+  cursor: pointer;
+  color: blue;
+}  
+
+.breadcrumbs .link:hover {
+  text-decoration: underline;
+}  
