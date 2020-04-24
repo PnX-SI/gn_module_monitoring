@@ -1,25 +1,13 @@
 <div class="breadcrumbs" *ngIf="breadcrumbs">
-  <span  class="link" (click)="onClick()">
-    <!-- <a [routerLink]="['/', frontendModuleMonitoringUrl]" disabled> -->
-      <i class="fa fa-home"></i>
-    <!-- </a> -->
+  <span class="link" (click)="onClick()">
+    <i class="fa fa-home"></i>
   </span>
- / 
-  <span class="link" *ngFor="let elem of breadcrumbs; let isLast = last"
-    (click)="onClick(elem)">
-    <!-- <a
-        [routerLink]="[
-        '/',
-        frontendModuleMonitoringUrl,
-        'object',
-        obj.modulePath,
-        elem.object_type,
-        elem.id
-        ]"
-        disabled
-        > -->
-    {{ elem.label }} : {{ elem.description }}
-    <!-- </a> -->
+  /
+
+  <span *ngFor="let elem of breadcrumbs; let isLast = last">
+    <span class="link" (click)="onClick(elem)">
+      {{ elem.label }} : {{ elem.description }}
+    </span>
     <span *ngIf="!isLast"> / </span>
   </span>
 </div>
