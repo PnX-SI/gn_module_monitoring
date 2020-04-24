@@ -28,6 +28,14 @@
 .float-left, .float-right {
 }
 
+form:invalid {
+  outline: none;
+}
+
+form.ng-invalid {
+  border: 0px !important;
+}
+
 .float-left {
   margin-right: 10px;
   float: left;
