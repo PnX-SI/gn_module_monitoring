@@ -3,6 +3,7 @@
   "description_field_name": "id_observation",
   "label": "Observation",
   "display_properties": ["cd_nom", "comments"],
+  "uuid_field_name": ["uuid_observation"],
   "generic": {
     "id_observation": {
       "type_widget": "text",
@@ -24,6 +25,9 @@
     "comments": {
       "type_widget": "text",
       "attribut_label": "Commentaires"
+    },
+    "uuid_observation": {
+      "attribut_label": "uuid"
     }
   }
 }

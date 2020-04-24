@@ -31,10 +31,9 @@
 <br>
 <br>
     <button
-    float right
       (click)="uploadFile()"
       [disabled]="!isMediaFormValid()"
-      class="btn btn-success"
+      class="btn btn-success float-right"
     >
       <span
         [ngClass]="{ 'hide-spinner': !bUploadSpinner }"
