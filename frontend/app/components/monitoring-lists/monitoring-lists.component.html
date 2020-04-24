@@ -12,7 +12,10 @@
         role="tab"
         attr.aria-controls="nav-{{ child0.objectType }}"
         aria-selected="true"
-        >{{ child0.template["label_list"] }}</a
+        >{{ child0.template["label_list"]}} 
+        ({{obj.children[child0.objectType].length}})
+        <!-- ({{child0.objectType}}) -->
+        </a
       >
     </div>
   </nav>
@@ -27,13 +30,15 @@
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
-      <!-- <pnx-medias
+      <!--
+         <pnx-medias
         [(medias)]="medias"
         [uuid_attached_row]="obj.template['uuid']"
         [staticDirUrl]="backendUrl"
         [idTableLocation]="obj.idTableLocation"
         *ngIf="child0.objectType == 'media'"
-      ></pnx-medias> -->
+      ></pnx-medias> 
+    -->
 
       <div class="list-children" *ngIf="child0.objectType as childrenType">
         <!-- child0.objectType != 'media' && child0.objectType as childrenType -->
