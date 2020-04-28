@@ -47,7 +47,7 @@
     <!-- {{objFormsDefinition.filter(def => obj.configParam('keep').includes(def.attribut_name))}} -->
     <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
       Garder les valeurs
-      <select [(ngModel)]="keepNames" multiple style='height: 300px;'>
+      <select [(ngModel)]="keepNames" multiple style='height: 100px;'>
         <option
           *ngFor="let formDef of keepDefinitions()"
           [value]="formDef.attribut_name"
