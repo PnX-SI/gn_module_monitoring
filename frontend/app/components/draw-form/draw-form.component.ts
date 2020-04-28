@@ -43,13 +43,11 @@ export class DrawFormComponent implements OnInit {
   }
 
   initForm() {
-    console.log(this.geometryType, this.parentFormControl);
 
     if (!(this.geometryType && this.parentFormControl)) {
       return;
     }
 
-    console.log('aa')
 
     switch (this.geometryType) {
       case 'Point': {

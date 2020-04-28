@@ -7,6 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { HttpClientXsrfModule } from '@angular/common/http';
 
+
 // Service
 import { DataMonitoringObjectService } from './services/data-monitoring-object.service';
 import { DataUtilsService } from './services/data-utils.service';
@@ -24,13 +25,14 @@ import { DrawFormComponent } from './components/draw-form/draw-form.component';
 import { ModalMsgComponent } from './components/modal-msg/modal-msg.component';
 import { MonitoringMapComponent } from './components/monitoring-map/monitoring-map.component';
 import { MonitoringFormComponent } from './components/monitoring-form/monitoring-form.component';
+import { MonitoringChoixSiteComponent } from './components/monitoring-form/choix-site/choix-site.component';
 import { MonitoringListComponent } from './components/monitoring-lists/monitoring-lists.component';
 import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
 import { MediasComponent} from './components/medias/medias.component';
 import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
 
 import {
-    MatSlideToggleModule
+    MatSlideToggleModule,
   } from '@angular/material';
 
 // my module routing
@@ -66,6 +68,7 @@ const routes: Routes = [
         MonitoringPropertiesComponent,
         MediasComponent,
         MonitoringDatatableComponent,
+        MonitoringChoixSiteComponent,
     ],
     imports: [
         GN2CommonModule,
