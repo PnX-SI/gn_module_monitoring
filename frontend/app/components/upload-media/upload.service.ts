@@ -16,6 +16,12 @@ export class UploadService {
       private _config: ConfigService
       ) {}
 
+
+  deleteMedia(idMedia) {
+    const req = new HttpRequest('DELETE', `${this._config.backendUrl()}/gn_commons/media/${idMedia}`);
+    return this._http.request(req);
+  }
+
   uploadFile(file: File, media): Observable<HttpEvent<any>> {
     const formData = new FormData();
     const postData = media;

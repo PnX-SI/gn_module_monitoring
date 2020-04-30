@@ -3,8 +3,9 @@
     <table class="table table-sm table-striped">
       <thead>
         <tr>
-          <th></th>
-          <th>Media</th>
+          <th>Actions</th>
+          <th>Lien</th>
+          <th>Type</th>
           <th>Description</th>
         </tr>
       </thead>
@@ -25,6 +26,7 @@
               {{ media.title_fr }}
             </a>
           </td>
+          <td>{{ media.mediaType }}</td>
           <td>{{ media.description_fr }}</td>
         </tr>
       </tbody>
@@ -45,6 +47,8 @@
       (mediaChange)="onMediaChange($event)"
       *ngIf="bEditMedia"
       [(bEditMedia)]="bEditMedia"
+      (deleteMedia)="onDeleteMedia($event)"
+      [currentUser]="currentUser"
     >
     </pnx-upload-media>
   </div>
