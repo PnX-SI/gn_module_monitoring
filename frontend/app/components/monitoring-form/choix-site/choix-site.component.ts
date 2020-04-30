@@ -10,10 +10,9 @@ export class MonitoringChoixSiteComponent implements OnInit {
   @Input() objForm;
 
   @Input() searchSite= '';
-  @Output() searchSiteChange = new EventEmitter<boolean>();
+  @Output() searchSiteChange = new EventEmitter<string>();
 
   siteList = [];
-
   constructor() {}
 
   ngOnInit() {}
