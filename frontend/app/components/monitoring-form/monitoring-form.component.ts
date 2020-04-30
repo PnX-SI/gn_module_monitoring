@@ -28,7 +28,7 @@ export class MonitoringFormComponent implements OnInit {
 
   @Input() sites: {};
 
-  searchSite: "";
+  searchSite = "";
 
   objFormsDefinition;
 

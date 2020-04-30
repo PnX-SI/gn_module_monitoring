@@ -9,7 +9,7 @@ export class MonitoringChoixSiteComponent implements OnInit {
   @Input() sites: {};
   @Input() objForm;
 
-  @Input() searchSite;
+  @Input() searchSite= '';
   @Output() searchSiteChange = new EventEmitter<boolean>();
 
   siteList = [];
@@ -20,6 +20,7 @@ export class MonitoringChoixSiteComponent implements OnInit {
 
   searchSiteChanged($event) {
     this.searchSite = $event;
+    this.setSiteList();
     this.searchSiteChange.emit(this.searchSite);
   }
 
@@ -34,7 +35,7 @@ export class MonitoringChoixSiteComponent implements OnInit {
     if (!this.searchSite) {
       return;
     } else {
-      const arraySearch = this.searchSite.toLowerCase().split(" ");
+      const arraySearch = this.searchSite.toLowerCase().split(",");
       this.siteList = this.siteList.filter((site) => {
         let cond = false;
         for (const search of arraySearch) {

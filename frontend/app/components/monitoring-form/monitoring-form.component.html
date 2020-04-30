@@ -43,19 +43,19 @@
         </mat-slide-toggle>
       </span>
     </h3>
-    <!-- {{obj.configParam('keep') | json}} -->
-    <!-- {{objFormsDefinition.filter(def => obj.configParam('keep').includes(def.attribut_name))}} -->
     <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
-      Garder les valeurs
-      <select [(ngModel)]="keepNames" multiple style='height: 100px;'>
-        <option
-          *ngFor="let formDef of keepDefinitions()"
-          [value]="formDef.attribut_name"
-          >{{ formDef.attribut_label }}</option
-        >
-        <!-- 
-      -->
-      </select>
+      <mat-form-field>
+        <mat-label>Garder les valeurs</mat-label>
+        <!-- [formControl]="toppings" -->
+        <mat-select [(ngModel)]="keepNames" multiple>
+          <mat-option
+            *ngFor="let formDef of keepDefinitions()"
+            [value]="formDef.attribut_name"
+            >{{ formDef.attribut_label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <hr />
     </div>
 
     <form [formGroup]="objForm">
