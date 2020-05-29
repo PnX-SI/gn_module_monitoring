@@ -56,23 +56,28 @@ Configuration du module de suivi générique
         "__ID_DATASET_VISIT": 1
     }
 
-Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``config_custom.json`` propre au sous-module.
+Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``config_custom.json`` propre à chaque sous-module.
 
-* ``__CODE_LIST_OBSERVER`` : le code de la liste utilisateur pour les observateurs du protocole.
-  Il est par defaut mis à ``obsocctax`` mais une liste spécifique peut être précisée.
+* ``__CODE_LIST_OBSERVER`` : le code de la liste d'utilisateurs pour les observateurs du protocole.
+  Il est par defaut mis à ``obsocctax`` mais une autre liste peut être précisée.
 * ``__CODE_LIST_INVENTER`` : la liste des descripteurs de sites.
-* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
-* ``__ID_DATASET_VISIT`` : l'id du jeu de donnée correspondant à aux visites. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
+* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
+* ``__ID_DATASET_VISIT`` : l'id du jeu de données correspondant aux visites. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 
 
 ===================================
 Installation du sous-module de test
 ===================================
 
-Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``
+Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``.
 
+* S'assurer d'être dans le ``virtualenv`` et à la racine de l'application ``GeoNature`` :
 
-* S'assurer d'être dans le ``virtualenv`` et à la racine de l'application ``GeoNature``
+::
+
+    cd /home/myuser/geonature/backend
+    source venv/bin/activate 
+
 * Exécuter la commande :
 
 ::
@@ -124,7 +129,7 @@ Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de m�
 Configuration générale
 ----------------------
 
-Dans le fichier `config.json`
+Dans le fichier ``config.json`` :
 
 * ``tree`` définit les relations entre les objets :
 * ``data`` définit les données à pré-charger :
@@ -161,7 +166,7 @@ Dans le fichier `config.json`
 Configuration des objets
 ------------------------
 
-Dans le fichier ``module.json``,  deux variables doivent obligatoirement être définies dans ce fichier :
+Dans le fichier ``module.json``, deux variables doivent obligatoirement être définies dans ce fichier :
 
 * ``module_path``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
@@ -198,12 +203,11 @@ Les schémas
 Les schémas génériques
 ----------------------
 
-Les schémas des variables génériques sont définis dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets
-et dans la variable ``generic``.
+Les schémas des variables génériques sont définis dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets et dans la variable ``generic``.
 
 Pour la suite nous prendrons exemple sur la configuration des sites, qui sera similaire aux autres objets dans les grandes lignes.
 
-Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable "generic":
+Par exemple dans le fichier ``site.json`` de ce repertoire on trouve la variable "generic" :
 
 .. code-block:: JSON
 
@@ -228,7 +232,7 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
     * ``value`` : permet d'attribuer une valeur par défaut,
     * ``required`` : permet de rendre un input obligatoire.
 * les attributs `spéciaux` :
-    * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``.  Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
+    * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
 
 
 Définir une nouvelle variable
@@ -320,7 +324,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
             "required": true
         }
 
-* Donner une valeur par défault à une nomenclature et cacher l'élément
+* Donner une valeur par défaut à une nomenclature et cacher l'élément
 
     Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
 
@@ -339,9 +343,9 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-Pour renseigner la valeur de la nomenclature, on spécifie 
+Pour renseigner la valeur de la nomenclature, on spécifie :
     * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
-    * le code de la nomenclature ``"cd_nomenclature"``.
+    * le code de la nomenclature ``"cd_nomenclature"``
 
 ------------
 Nomenclature
