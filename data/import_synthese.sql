@@ -108,3 +108,33 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
+
+
+CREATE OR REPLACE FUNCTION gn_synthese.import_row_from_table(
+	d_uuid uuid,
+	table_name varchar
+)
+RETURNS boolean AS
+$BODY$
+  DECLARE
+    insert_columns text;
+    select_columns text;
+    update_columns text;
+
+  BEGIN
+
+    EXECUTE '
+      SELECT gn_synthese.import_json_row(
+        (
+        SELECT row_to_json(c) d
+        FROM ' || table_name || ' c
+        WHERE  unique_id_sinp = ''' || d_uuid || '''
+        LIMIT 1
+        )
+    )';
+
+	RETURN TRUE;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
