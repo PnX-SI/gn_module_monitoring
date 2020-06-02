@@ -111,27 +111,24 @@ $BODY$
 
 
 CREATE OR REPLACE FUNCTION gn_synthese.import_row_from_table(
-	d_uuid uuid,
+  select_col_name varchar,
+	select_col_val varchar,
 	table_name varchar
 )
 RETURNS boolean AS
 $BODY$
   DECLARE
-    insert_columns text;
-    select_columns text;
-    update_columns text;
-
+    select_sql text;
+    import_rec record;
   BEGIN
-
-    EXECUTE '
-      SELECT gn_synthese.import_json_row(
-        (
-        SELECT row_to_json(c) d
+    -- TODO transtypage en text pour des questions de généricité. A réflechir
+    select_sql := 'SELECT row_to_json(c) d
         FROM ' || table_name || ' c
-        WHERE  unique_id_sinp = ''' || d_uuid || '''
-        LIMIT 1
-        )
-    )';
+        WHERE ' ||  select_col_name|| '::text = ''' || select_col_val || '''' ;
+
+    FOR import_rec IN EXECUTE select_sql LOOP
+        PERFORM gn_synthese.import_json_row(import_rec.d);
+    END LOOP;
 
 	RETURN TRUE;
   END;
