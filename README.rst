@@ -75,7 +75,7 @@ Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_m
 
 ::
 
-    cd /home/myuser/geonature/backend
+    cd /home/myuser/geonature/
     source venv/bin/activate 
 
 * Exécuter la commande :
