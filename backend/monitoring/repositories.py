@@ -1,6 +1,7 @@
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from .serializer import MonitoringObjectSerializer
+from .base import MonitoringObjectBase, monitoring_definitions
 
 
 class MonitoringObject(MonitoringObjectSerializer):
