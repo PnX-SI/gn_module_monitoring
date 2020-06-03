@@ -77,65 +77,25 @@ class MonitoringObject(MonitoringObjectSerializer):
         DB.session.commit()
 
 
-    def process_synthese(self, action):
-        synthese_object = self.config().get('synthese', {}).get('object')
-        if not synthese_object:
+    def process_synthese(self):
+        if not self.config().get('synthese'):
             return
         # print("process synthese ", self, action, synthese_object)
-
-        # si non object  pour la synthese : recursif sur les enfants
-        if not self._object_type == synthese_object:
-            children_types = self.config_param('children_types')
-
-            print(children_types)
-            for children_type in children_types:
-
-                relation_name = children_type + 's'
-
-                for child_model in getattr(self._model, relation_name):
-
-                    child = (
-                        monitoring_definitions
-                        .monitoring_object_instance(self._module_path, children_type, model=child_model)
-                        .get()
-                    ) 
-        
-                    child.process_synthese(action)
-            return
-
-        # sinon action
         
         # create or update
-        if action == 'CU':
-            txt = (
-                '''SELECT gn_synthese.import_row_from_table(
-                    '{0}',
-                    '{1}',
-                    'gn_monitoring.vs_{2}');'''
-                .format(
-                    self.config_param('id_field_name'),
-                    self.config_value('id_field_name'),
-                    self._module_path
-                )
-            )   
-
-            print('UUID', self.config_value('uuid_field_name'))
-
-            DB.engine.execution_options(autocommit=True).execute(txt)
-
-            return 
-
-        # delete
-        if action == 'D': 
-            txt = (
-                '''DELETE FROM gn_synthese.synthese
-                    WHERE uuid = {}'''
-                .format(self.config_value('uuid_field_name'))
+        txt = (
+            '''SELECT gn_synthese.import_row_from_table(
+                '{0}',
+                '{1}',
+                'gn_monitoring.vs_{2}');'''
+            .format(
+                self.config_param('id_field_name'),
+                self.config_value('id_field_name'),
+                self._module_path
             )
-            pass
+        )   
 
-            # DB.engine.execution_options(autocommit=True).execute(txt)
-            return 
+        DB.engine.execution_options(autocommit=True).execute(txt)
 
         return 
 
@@ -161,7 +121,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
             self.process_correlations(post_data)
 
-            self.process_synthese('CU') 
+            self.process_synthese() 
 
             return self
 
