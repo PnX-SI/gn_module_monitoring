@@ -87,7 +87,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             children_types = self.config_param('children_types')
 
             print(children_types)
-            for chidren_type in children_types:
+            for children_type in children_types:
 
                 relation_name = children_type + 's'
 
