@@ -1,8 +1,11 @@
 import os
 import click
+from pathlib import Path
+
 from flask import Flask
 from flask.cli import AppGroup, with_appcontext
 from sqlalchemy import and_
+from sqlalchemy.sql import text
 
 from geonature.utils.env import DB
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -24,7 +27,11 @@ def install_monitoring_module(module_config_dir_path, module_path):
     '''
         Module de suivi générique : installation d'un sous module
 
-        Commande d'inst
+        Commande d'installation
+        params :
+            - module_config_dir_path (str) : chemin du répertoire
+                    où se situe les fichiers de configuration du module
+            - module_path (str): code du module
     '''
 
     print('Install module {}'.format(module_path))
@@ -40,7 +47,11 @@ def install_monitoring_module(module_config_dir_path, module_path):
         pass
 
     if not os.path.exists(module_config_dir_path):
-        print('module_config_dir_path_does not exist (use absolute path)'.format(module_config_dir_path))
+        print(
+            'module_config_dir_path_does not exist (use absolute path)'.format(
+                module_config_dir_path
+            )
+        )
         return
 
     # symlink to config dir
@@ -54,7 +65,11 @@ def install_monitoring_module(module_config_dir_path, module_path):
         )
 
     if not get_config(module_path):
-        print('config directory for module {} does not exist'.format(module_path))
+        print(
+            'config directory for module {} does not exist'.format(
+                module_path
+            )
+        )
         return None
 
     module_desc = config_param(module_path, 'module', 'module_desc')
@@ -69,7 +84,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
 
     module_data = {
         'module_path': module_path,
-        'module_code': module_path,
+        'module_code': module_path, # ??? Pourquoi module_code = module_path
         'module_label': module_label,
         'module_desc': module_desc,
         'active_frontend': False,
@@ -81,6 +96,20 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     module.from_dict(module_data)
     DB.session.add(module)
     DB.session.commit()
+
+    #  run specific sql
+    if os.path.exists(module_config_dir_path + '/module.sql'):
+        print('Execution du script module.sql')
+        sql_script = module_config_dir_path + '/module.sql'
+        try:
+            DB.engine.execute(
+                text(
+                    open(sql_script, 'r').read()
+                ).execution_options(autocommit=True)
+            )
+        except Exception as e:
+            print(e)
+            print("Erreur dans le script module.sql")
 
     # TODO insert nomenclature
     add_nomenclature(module_path)
