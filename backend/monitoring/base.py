@@ -4,7 +4,8 @@ from ..routes.decorators import cruved_scope_for_user_in_monitoring_module
 
 from ..config.repositories import (
     config_param as repositories_config_param,
-    config_schema as repositories_config_schema
+    config_schema as repositories_config_schema,
+    get_config as repositories_get_config,
 )
 
 
@@ -109,6 +110,9 @@ class MonitoringObjectBase():
 
         Model = monitoring_definitions.MonitoringModel(new_object_type)
         return Model
+
+    def config(self):
+        return repositories_get_config(self._module_path)
 
     def config_param(self, param_name):
         return repositories_config_param(self._module_path, self._object_type, param_name)
