@@ -108,9 +108,9 @@ D'autres exemples de sous-modules sont disponibles sur le dépôt https://github
 Création d'un sous-module
 =========================
 
-* `structure d'un module`_
+* `Structure d'un module`_
 * `Configuration générale`_
-* `Configuration des objects`_
+* `Configuration des objets`_
 * `Nomenclature`_
 * `Installation du sous-module`_
 
