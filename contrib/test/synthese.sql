@@ -37,7 +37,7 @@ SELECT
 		o.uuid_observation AS unique_id_sinp, 
 		v.uuid_base_visit AS unique_id_sinp_grp,
 		(SELECT id_source FROM source) as id_source,
-		v.id_base_visit AS entity_source_pk_value,
+		v.id_observation AS entity_source_pk_value,
 		v.id_dataset,
 		v.id_nomenclature_geo_object_nature,
 		v.id_nomenclature_grp_typ,
@@ -99,4 +99,4 @@ SELECT
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(v.geom_local) alt (altitude_min, altitude_max) ON true
 	WHERE m.module_path = 'test';
 
-	SELECT count_min, cd_nom, id_observation, id_base_visit, * FROM gn_monitoring.vs_test;
+	--SELECT count_min, cd_nom, id_observation, id_base_visit, * FROM gn_monitoring.vs_test;
