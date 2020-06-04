@@ -18,6 +18,7 @@ Les données spécifiques à chaque protocole sont stockées en base de données
 * `Installation du sous-module de test`_
 * `Exemples de sous-modules`_
 * `Création d'un sous-module`_
+* `Synchronisation avec la synthèse`_
 
 
 =========================================
@@ -391,3 +392,37 @@ Installation du sous-module
 ---------------------------
 
 Procéder comme pour `Installation du sous-module de test`_
+
+
+
+Synchronisation avec la synthèse
+====================================
+
+
+-----------------------
+Configuration du module
+-----------------------
+
+Dans le fichier `config.json` ajouter le paramètre `synthese`:
+
+```
+{
+...
+synthese: true
+...
+}
+```
+
+-----------------------------------
+Création d'une vue pour la synthèse
+-----------------------------------
+
+La convention de nomage de la vue est `gn_monitoring.vs_<module_path>`, par exemple `gn_monitoring.vs_test`.
+
+Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
+On pourra s'inspirer de `la vue pour le module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`.
+
+TODO faire une vue d'exemple pour le module test.
+
+
+
