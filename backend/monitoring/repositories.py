@@ -1,5 +1,6 @@
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
+from geonature.core.gn_synthese.utils.process import import_from_table 
 from .serializer import MonitoringObjectSerializer
 from .base import MonitoringObjectBase, monitoring_definitions
 
@@ -80,22 +81,15 @@ class MonitoringObject(MonitoringObjectSerializer):
     def process_synthese(self):
         if not self.config().get('synthese'):
             return
-        # print("process synthese ", self, action, synthese_object)
         
-        # create or update
-        txt = (
-            '''SELECT gn_synthese.import_row_from_table(
-                '{0}',
-                '{1}',
-                'gn_monitoring.vs_{2}');'''
-            .format(
-                self.config_param('id_field_name'),
-                self.config_value('id_field_name'),
-                self._module_path
-            )
-        )   
+        table_name = 'vs_{}'.format(self._module_path)
 
-        DB.engine.execution_options(autocommit=True).execute(txt)
+        import_from_table(
+            'gn_monitoring',
+            table_name,
+            self.config_param('id_field_name'),
+            self.config_value('id_field_name')
+        )
 
         return 
 

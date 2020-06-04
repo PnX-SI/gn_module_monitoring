@@ -4,7 +4,6 @@ GN_PATH="$1"
 
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
-
 . $GN_PATH/config/settings.ini
 
 LOG_FILE="$GN_PATH/var/log/install_db_gn_module_suivi.log"
