@@ -20,7 +20,7 @@ export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $SCR
 for nom_fichier in $(ls $SCRIPTPATH/config/monitoring/*/synthese.sql)
 do
 [ -f "$nom_fichier" ] || continue
-echo nom_fichier $SCRIPTPATH/$nom_fichier
+echo nom_fichier $SCRIPTPATH$nom_fichier
 export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $nom_fichier &>> $LOG_FILE
 done
 
