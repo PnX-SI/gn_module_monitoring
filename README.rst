@@ -124,6 +124,7 @@ Structure d'un module
 * ``visit.json`` `(config. des visites)`
 * ``observation.json`` `(config. des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
+* ``synthese.sql`` `(vue pour la synchronisation avec la synthèse)`
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
@@ -417,10 +418,17 @@ Dans le fichier `config.json` ajouter le paramètre `synthese`:
 Création d'une vue pour la synthèse
 -----------------------------------
 
-La convention de nomage de la vue est `gn_monitoring.vs_<module_path>`, par exemple `gn_monitoring.vs_test`.
+Dans le fichier `synthese.sql`, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
+
+La convention de nommage de la vue est `gn_monitoring.vs_<module_path>`, par exemple `gn_monitoring.vs_test` pour le module de test.
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
-On pourra s'inspirer de `la vue pour le module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_.
+
+Il faudra aussi au besoin ajouter une ligne dans la table `gn_synthese.t_sources` pour renseigner le module.
+
+*TODO automatique à l'installatin du module avec les données contenues dans `module.json` et `config.json`*
+
+Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql du module *chevêche* <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_.
 
 TODO faire une vue d'exemple pour le module test.
 

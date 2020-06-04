@@ -98,9 +98,9 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     DB.session.commit()
 
     #  run specific sql
-    if os.path.exists(module_config_dir_path + '/module.sql'):
-        print('Execution du script module.sql')
-        sql_script = module_config_dir_path + '/module.sql'
+    if os.path.exists(module_config_dir_path + '/synthese.sql'):
+        print('Execution du script synthese.sql')
+        sql_script = module_config_dir_path + '/synthese.sql'
         try:
             DB.engine.execute(
                 text(
@@ -109,7 +109,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
             )
         except Exception as e:
             print(e)
-            print("Erreur dans le script module.sql")
+            print("Erreur dans le script synthese.sql")
 
     # TODO insert nomenclature
     add_nomenclature(module_path)
