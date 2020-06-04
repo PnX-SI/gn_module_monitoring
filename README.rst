@@ -397,7 +397,7 @@ Procéder comme pour `Installation du sous-module de test`_
 
 
 Synchronisation avec la synthèse
-====================================
+================================
 
 
 -----------------------
@@ -428,7 +428,7 @@ Il faudra aussi au besoin ajouter une ligne dans la table `gn_synthese.t_sources
 
 *TODO automatique à l'installatin du module avec les données contenues dans `module.json` et `config.json`*
 
-Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql du module *chevêche* <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_ qui lui même utilise la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
+Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_ qui lui même utilise la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
 TODO faire une vue d'exemple pour le module test.
 
