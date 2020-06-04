@@ -20,7 +20,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             return self
 
         try:
-
             Model = self.MonitoringModel()
             self._model = (
                 DB.session.query(Model)
@@ -94,7 +93,6 @@ class MonitoringObject(MonitoringObjectSerializer):
         return 
 
     def create_or_update(self, post_data):
-        print('cou', self)
         try:
 
             # si id existe alors c'est un update
@@ -110,7 +108,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             self.process_post_data_properties(post_data)
             self.populate(post_data)
             DB.session.commit()
-
             self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_correlations(post_data)

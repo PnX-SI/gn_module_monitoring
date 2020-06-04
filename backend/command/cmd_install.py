@@ -36,6 +36,8 @@ def install_monitoring_module(module_config_dir_path, module_path):
 
     print('Install module {}'.format(module_path))
 
+    module_monitoring = get_module('module_code', 'MONITORINGS')
+
     try:
         module = get_module('module_path', module_path)
         # test si le module existe
@@ -111,8 +113,33 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
             print(e)
             print("Erreur dans le script synthese.sql")
 
-    # TODO insert nomenclature
+    # insert nomenclature
     add_nomenclature(module_path)
+
+    # creation source pour la synthese
+
+    txt = ("""
+    INSERT INTO gn_synthese.t_sources(
+        name_source,
+        desc_source,
+        entity_source_pk_field,q
+        url_source
+    )
+    VALUES (
+        'MONITORING_{0}',
+        'Données issues du module de suivi générique (sous-module: {1})',
+        'gn_monitoring.vs_{2}.entity_source_pk_value',
+        '#/{3}/object/{2}/visit/observation'
+    );
+        """.format(
+            module_path.upper(), # MONITORING_TEST
+            module_label.lower(), # module de test
+            module.path, # test
+            module_monitoring.module_path, # monitorings
+        )
+    )
+
+    DB.engine.execution_options(autocommit=True).execute(txt)
 
     # TODO ++++ create specific tables
 

@@ -2,5 +2,7 @@
   "__CODE_LIST_INVENTOR": "obsocctax",
   "__CODE_LIST_OBSERVER": "obsocctax",
   "__ID_COMPONENT_TAXONOMY": "100",
-  "__ID_DATASET_VISIT": 1
+  "__ID_DATASET_VISIT": 1,
+  "__SYNTHESE": false
+
 }

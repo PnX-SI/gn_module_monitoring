@@ -404,13 +404,14 @@ Synchronisation avec la synthèse
 Configuration du module
 -----------------------
 
-Dans le fichier `config.json` ajouter le paramètre `synthese`:
+Dans le dossier de configuration du module. 
+S'il n'existe pas déjà, créer le fichier `custom.json` ajouter le paramètre `__SYNTHESE`:
 
 .. code-block:: JSON
 
     {
     ...
-    synthese: true
+    "__SYNTHESE": true
     ...
     }
 
@@ -424,11 +425,10 @@ La convention de nommage de la vue est `gn_monitoring.vs_<module_path>`, par exe
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
 
-Il faudra aussi au besoin ajouter une ligne dans la table `gn_synthese.t_sources` pour renseigner le module.
-
-*TODO automatique à l'installatin du module avec les données contenues dans `module.json` et `config.json`*
-
-Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_ qui lui même utilise la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
+Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql`
+`du module test <cotrib/test/synthese.sql>`_
+ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/synthese.sql>`_
+qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
 TODO faire une vue d'exemple pour le module test.
 

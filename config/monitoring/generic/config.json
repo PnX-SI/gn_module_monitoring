@@ -8,6 +8,7 @@
       }
     }
   },
+  "synthese": "__SYNTHESE",
   "data": {
     "nomenclature": [
         "TYPE_SITE",
