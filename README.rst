@@ -405,13 +405,13 @@ Configuration du module
 
 Dans le fichier `config.json` ajouter le paramètre `synthese`:
 
-```
+.. code-block:: JSON
+
     {
     ...
     synthese: true
     ...
     }
-```
 
 -----------------------------------
 Création d'une vue pour la synthèse
@@ -420,7 +420,7 @@ Création d'une vue pour la synthèse
 La convention de nomage de la vue est `gn_monitoring.vs_<module_path>`, par exemple `gn_monitoring.vs_test`.
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
-On pourra s'inspirer de `la vue pour le module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`.
+On pourra s'inspirer de `la vue pour le module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/module.sql>`_.
 
 TODO faire une vue d'exemple pour le module test.
 
