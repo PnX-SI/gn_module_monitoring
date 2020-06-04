@@ -98,5 +98,3 @@ SELECT
 	JOIN taxonomie.taxref t ON t.cd_nom = o.cd_nom
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(v.geom_local) alt (altitude_min, altitude_max) ON true
 	WHERE m.module_path = 'test';
-
-	SELECT count_min, cd_nom, id_observation, id_base_visit, * FROM gn_monitoring.vs_test;
