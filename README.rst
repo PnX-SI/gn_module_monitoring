@@ -13,6 +13,18 @@ Les données spécifiques à chaque protocole sont stockées en base de données
     :alt: Liste des sites du protocole de test
     :width: 800
 
+Le module permet de générer des sous-modules (stockés dans la table ``gn_commons.t_modules``) pour chaque protocole de suivi. Ils s'appuient sur les champs fixes des 3 tables ``gn_monitoring.t_base_sites``, ``gn_monitoring.t_base_visits`` et ``gn_monitoring.t_observations`` qui peuvent chacunes être étendues avec des champs spécifiques et dynamiques stockés dans des champs de type ``jsonb``. 
+
+Les champs spécifiques de chaque sous-module sont définis dans des fichiers de configuration au format json.
+
+Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il est ainsi possible d'ajouter dynamiquement des champs de différent type (liste, nomenclature, booléen, date, radio, observateurs, texte, taxonomie...). Ceux-ci peuvent être obligatoires ou non, affichés ou non et avoir des valeurs par défaut. Les listes d'observateurs et d'espèces peuvent aussi être définies au niveau de chaque sous-module, en fonction du contexte du protocole de suivi.
+
+Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'alimenter automatiquement la synthèse de GeoNature à partir des données saisies dans chaque sous-module.
+
+.. image:: docs/2020-06-MCD-monitoring.jpg
+    :alt: MCD du schema gn_monitoring
+
+
 * `Installation du module de suivi générique`_
 * `Configuration du module de suivi générique`_
 * `Installation du sous-module de test`_
@@ -25,8 +37,8 @@ Les données spécifiques à chaque protocole sont stockées en base de données
 Installation du module de suivi générique
 =========================================
 
-* Installez GeoNature (https://github.com/PnX-SI/GeoNature)
-* Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page)
+* Installez GeoNature (https://github.com/PnX-SI/GeoNature).
+* Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page) et dézippez-le.
 * Placez-vous dans le répertoire ``backend`` de GeoNature et lancez les commandes suivantes :
 
 ::
@@ -241,7 +253,7 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
 Définir une nouvelle variable
 -----------------------------
 
-Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
+Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer une variable nommée ``specific`` dans les fichiers ``site.json``, ``visit.json`` ou ``observation.json`` afin de définir le schéma spécifique pour cet objet.
 
 * **texte** : une variable facultative
 
@@ -252,7 +264,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
             "attribut_label": "Nom du contact"
         }
 
-* **entier** : le numéro du passage compris entre 1 et 2 est obligatoire
+* **entier** : exemple avec un numéro du passage compris entre 1 et 2 est obligatoire
 
 .. code-block:: JSON
 
@@ -264,7 +276,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
             "max": 2
         }
     
-* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste : 
+* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste
 
 .. code-block:: JSON
 
@@ -318,7 +330,7 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
             "values": ["Oui", "Non"]
         },
 
-* **taxonomie** : un choix dans une liste de taxons :
+* **taxonomie** : une liste de taxons
 
 .. code-block:: JSON
 
@@ -377,10 +389,10 @@ Pour renseigner la valeur de la nomenclature, on spécifie :
 Nomenclature
 ------------
 
-Ce fichier permet de renseigner la nomenclature spécifique au sous-module.
-Elle sera insérée en base lors de l'installation du module. 
+Le fichier ``nomenclature.json`` permet de renseigner les nomenclatures spécifiques à chaque sous-module.
+Elles seront insérées dans la base de données lors de l'installation du sous-module (si elles n'existent pas déjà). 
 
-Un exemple de fichier :
+Exemple de fichier :
 
 .. code-block:: JSON
 
@@ -427,8 +439,7 @@ Synchronisation avec la synthèse
 Configuration du module
 -----------------------
 
-Dans le dossier de configuration du module. 
-S'il n'existe pas déjà, créer le fichier ``custom.json`` ajouter le paramètre ``__SYNTHESE``:
+Dans le dossier de configuration du module, s'il n'existe pas déjà, créer le fichier ``custom.json`` et ajouter le paramètre ``__SYNTHESE`` :
 
 .. code-block:: JSON
 
@@ -442,7 +453,7 @@ S'il n'existe pas déjà, créer le fichier ``custom.json`` ajouter le paramètr
 Création d'une vue pour la synthèse
 -----------------------------------
 
-Dans le fichier ``synthese.sql``, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
+Dans un fichier nommé ``synthese.sql`` placé dans le dossier de configuration du module, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
 
 La convention de nommage de la vue est ``gn_monitoring.vs_<module_path>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
 
