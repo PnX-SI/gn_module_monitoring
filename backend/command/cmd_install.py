@@ -6,6 +6,7 @@ from flask import Flask
 from flask.cli import AppGroup, with_appcontext
 from sqlalchemy import and_
 from sqlalchemy.sql import text
+from sqlalchemy.exc import IntegrityError
 
 from geonature.utils.env import DB
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -13,7 +14,7 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from ..models.monitoring import TMonitoringModules
 from ..config.repositories import config_param, get_config
 from ..config.utils import json_from_file, CONFIG_PATH
-from ..modules.repositories import get_module
+from ..modules.repositories import get_module, get_simple_module, get_source_by_code
 
 app = Flask(__name__)
 monitorings_cli = AppGroup('monitorings')
@@ -36,10 +37,10 @@ def install_monitoring_module(module_config_dir_path, module_path):
 
     print('Install module {}'.format(module_path))
 
-    module_monitoring = get_module('module_code', 'MONITORINGS')
+    module_monitoring = get_simple_module('module_code', 'MONITORINGS')
 
     try:
-        module = get_module('module_path', module_path)
+        module = get_simple_module('module_path', module_path)
         # test si le module existe
         if(module):
             print("Le module {} existe déjà".format(module_path))
@@ -117,12 +118,11 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     add_nomenclature(module_path)
 
     # creation source pour la synthese
-
     txt = ("""
     INSERT INTO gn_synthese.t_sources(
         name_source,
         desc_source,
-        entity_source_pk_field,q
+        entity_source_pk_field,
         url_source
     )
     VALUES (
@@ -134,7 +134,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         """.format(
             module_path.upper(), # MONITORING_TEST
             module_label.lower(), # module de test
-            module.path, # test
+            module.module_path, # test
             module_monitoring.module_path, # monitorings
         )
     )
@@ -144,6 +144,69 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     # TODO ++++ create specific tables
 
     return
+
+
+@monitorings_cli.command('remove')
+@click.argument('module_path')
+@with_appcontext
+def remove_monitoring_module_cmd(module_path):
+    '''
+        Module de suivi générique : suppression d'un sous module
+
+        Commande d'installation
+        params :
+            - module_path (str): code du module
+    '''
+
+    print('Remove module {}'.format(module_path))
+    remove_monitoring_module(module_path)
+
+
+def remove_monitoring_module(module_path):
+    try:
+        module = get_module('module_path', module_path)
+    except Exception:
+        print("le module n'existe pas")
+        return
+
+    # remove module in db
+    try:
+        DB.session.delete(module)
+        DB.session.commit()
+    except IntegrityError as ie:
+        print("Impossible de supprimer le module car il y a des données associées")
+        return
+    except Exception as e:
+        print("Impossible de supprimer le module")
+        raise(e)
+
+    # remove symlink config
+    if os.path.exists(CONFIG_PATH + '/' + module_path):
+        removesymlink(CONFIG_PATH + '/' + module_path)
+
+    # remove symlink image menu modules de suivi
+    img_link = CONFIG_PATH + '/../../frontend/assets/' + module_path + '.jpg'
+    if os.path.exists(img_link):
+        removesymlink(img_link)
+
+    # suppression source pour la synthese
+    source = get_source_by_code("MONITORING_" + module_path.upper())
+    try:
+        DB.session.delete(source)
+        DB.session.commit()
+    except Exception:
+        print("Impossible de supprimer la source")
+        return
+
+    # run specific sql TODO
+    # remove nomenclature TODO
+    return
+
+
+def removesymlink(path):
+    if(os.path.islink(path)):
+        print('remove link ' + path)
+        os.remove(path)
 
 
 def symlink(path_source, path_dest):
