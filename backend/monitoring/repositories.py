@@ -1,6 +1,6 @@
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
-from geonature.core.gn_synthese.utils.process import import_from_table 
+from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
 from .base import MonitoringObjectBase, monitoring_definitions
 
@@ -80,17 +80,19 @@ class MonitoringObject(MonitoringObjectSerializer):
     def process_synthese(self):
         if not self.config().get('synthese'):
             return
-        
+
         table_name = 'vs_{}'.format(self._module_path)
+        try:
+            import_from_table(
+                'gn_monitoring',
+                table_name,
+                self.config_param('id_field_name'),
+                self.config_value('id_field_name')
+            )
+        except ValueError as e:
+            print(e) # TODO ???
 
-        import_from_table(
-            'gn_monitoring',
-            table_name,
-            self.config_param('id_field_name'),
-            self.config_value('id_field_name')
-        )
-
-        return 
+        return
 
     def create_or_update(self, post_data):
         try:
@@ -112,7 +114,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
             self.process_correlations(post_data)
 
-            self.process_synthese() 
+            self.process_synthese()
 
             return self
 
