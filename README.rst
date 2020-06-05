@@ -25,7 +25,7 @@ Les données spécifiques à chaque protocole sont stockées en base de données
 Installation du module de suivi générique
 =========================================
 
-* Installez GeoNature (<https://github.com/PnX-SI/GeoNature>)
+* Installez GeoNature (https://github.com/PnX-SI/GeoNature)
 * Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page)
 * Placez-vous dans le répertoire ``backend`` de GeoNature et lancez les commandes suivantes :
 
@@ -61,7 +61,7 @@ Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modul
 
 * ``__CODE_LIST_OBSERVER`` : le code de la liste d'utilisateurs pour les observateurs du protocole.
   Il est par defaut mis à ``obsocctax`` mais une autre liste peut être précisée.
-* ``__CODE_LIST_INVENTER`` : la liste des descripteurs de sites.
+* ``__CODE_LIST_INVENTOR`` : la liste des descripteurs de sites.
 * ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 * ``__ID_DATASET_VISIT`` : l'id du jeu de données correspondant aux visites. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 
@@ -134,8 +134,8 @@ Configuration générale
 
 Dans le fichier ``config.json`` :
 
-* ``tree`` définit les relations entre les objets :
-* ``data`` définit les données à pré-charger :
+* ``tree`` définit les relations entre les objets
+* ``data`` définit les données à pré-charger
 
 
 .. code-block:: JSON
@@ -241,7 +241,7 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
 Définir une nouvelle variable
 -----------------------------
 
-    Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
+Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
 
 * **texte** : une variable facultative
 
@@ -295,7 +295,30 @@ La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nom
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-* **taxonomie** : un choix dans une liste de taxon :
+* **liste** : une liste déroulante simple, non basée sur une nomenclature
+
+.. code-block:: JSON
+
+        "rain": {
+            "type_widget": "select",
+            "required": true,
+            "attribut_label": "Pluie",
+            "values": ["Absente", "Intermittente", "Continue"]
+        },
+
+Il est possible de définir une valeur par défaut pré-selectionnée avec le paramètre ``value`` (exemple : ``"value": "Absente"``).
+
+* **radio** : bouton radio pour un choix unique parmi plusieurs possibilités
+
+.. code-block:: JSON
+
+        "beginner": {
+            "type_widget": "radio",
+            "attribut_label": "Débutant",
+            "values": ["Oui", "Non"]
+        },
+
+* **taxonomie** : un choix dans une liste de taxons :
 
 .. code-block:: JSON
 
@@ -329,7 +352,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 * Donner une valeur par défaut à une nomenclature et cacher l'élément
 
-    Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
+  Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
 
 .. code-block:: JSON
 
@@ -405,7 +428,7 @@ Configuration du module
 -----------------------
 
 Dans le dossier de configuration du module. 
-S'il n'existe pas déjà, créer le fichier `custom.json` ajouter le paramètre `__SYNTHESE`:
+S'il n'existe pas déjà, créer le fichier ``custom.json`` ajouter le paramètre ``__SYNTHESE``:
 
 .. code-block:: JSON
 
@@ -419,18 +442,15 @@ S'il n'existe pas déjà, créer le fichier `custom.json` ajouter le paramètre 
 Création d'une vue pour la synthèse
 -----------------------------------
 
-Dans le fichier `synthese.sql`, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
+Dans le fichier ``synthese.sql``, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
 
-La convention de nommage de la vue est `gn_monitoring.vs_<module_path>`, par exemple `gn_monitoring.vs_test` pour le module de test.
+La convention de nommage de la vue est ``gn_monitoring.vs_<module_path>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
 
-Pour la vue et la source, on pourra s'inspirer du fichier `synthese.sql`
+Pour la vue et la source, on pourra s'inspirer du fichier ``synthese.sql``
 `du module test <cotrib/test/synthese.sql>`_
 ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/synthese.sql>`_
 qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
-TODO faire une vue d'exemple pour le module test.
-
-
-
+TODO : Faire une vue d'exemple pour le module test.
