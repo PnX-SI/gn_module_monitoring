@@ -6,8 +6,9 @@ Module de suivis génériques
 Module générique de gestion des données de protocoles de type suivis
 --------------------------------------------------------------------
 
-Ce module permet de gérer de façon générique des données de protocoles "simples".
-Les données spécifiques à chaque protocole sont stockées en base de données sous forme de jsonb.
+Ce module permet de gérer de façon générique des données de protocoles "simples" articulés en 3 niveaux : des sites (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs) dans lesquelles on peut faire des observations (espèces).
+
+Ces 3 niveaux peuvent être complétés des données spécifiques à chaque protocole, qui sont stockées dynamiquement dans la base de données sous forme de jsonb.
 
 .. image:: docs/images/apercu.png
     :alt: Liste des sites du protocole de test
@@ -465,3 +466,5 @@ ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/mas
 qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
 TODO : Faire une vue d'exemple pour le module test.
+
+L'alimentation de la Synthèse est automatique si sa vue existe et si le paramètre ``__SYNTHESE`` est défini à ``true`` dans le fichier ``config.json`` du module.
