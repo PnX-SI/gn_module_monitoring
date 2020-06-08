@@ -73,7 +73,7 @@ export class DataUtilsService {
     return forkJoin(observables)
       .pipe(
         concatMap(res => {
-          return of(res.join(' ,'));
+          return of(res.join(', '));
         })
       );
   }
