@@ -15,7 +15,6 @@ from ..models.monitoring import (
     TMonitoringModules
 )
 
-
 def get_simple_module(field_name, value):
     '''
     récupere un module a partir d'un paramètre
