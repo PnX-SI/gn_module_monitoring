@@ -141,6 +141,10 @@ Structure d'un module
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
+Chaque sous-module peut aussi contenir une image nommée ``img.jpg`` dans ce même dossier, qui servira de vignette du sous-module sur la page d'accueil du module Monitorings. Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``frontend/src/external_assets/monitorings`` de GeoNature. 
+
+Pour que l'image soit prise en compte, lors de l'installation du module ou si on la modifie, il faut relancer une compilation de GeoNature (avec la commande ``update_module_configuration monitorings`` par exemple).
+
 ----------------------
 Configuration générale
 ----------------------
