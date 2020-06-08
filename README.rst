@@ -69,7 +69,7 @@ Configuration du module de suivi générique
         "__ID_DATASET_VISIT": 1
     }
 
-Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``config_custom.json`` propre à chaque sous-module.
+Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``custom.json`` propre à chaque sous-module.
 
 * ``__CODE_LIST_OBSERVER`` : le code de la liste d'utilisateurs pour les observateurs du protocole.
   Il est par defaut mis à ``obsocctax`` mais une autre liste peut être précisée.
@@ -103,7 +103,7 @@ Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_m
 Configuration du sous-module de test
 ------------------------------------
 
-* Copier le fichier ``config/monitoring/generic/custom.json`` dans ``config/monitoring/test/config_custom.json``.
+* Copier le fichier ``config/monitoring/generic/custom.json`` dans ``config/monitoring/test/custom.json``.
 * Renseigner et/ou modifier les valeurs du fichier ``contrib/test/custom.json`` (voir le paragraphe `Configuration du module de suivi générique`_ pour les détails).
 
 

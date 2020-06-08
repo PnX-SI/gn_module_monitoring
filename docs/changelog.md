@@ -7,12 +7,16 @@ Première version fonctionelle du module Monitoring de GeoNature
 
 **TOCHECK**
 
-* vues.sql basculé dans install_gn_module.py (https://github.com/PnX-SI/gn_module_monitoring/commit/05634743112e2ba9f0cd96d5d6c69d9db603a1f8). A virer de https://github.com/PnX-SI/gn_module_monitoring/blob/develop/install_db.sh#L21 ?
-* https://github.com/PnX-SI/gn_module_monitoring/blob/develop/data/delete_synthese.sql à exécuter à l'installation ? Partie à basculer dans GN ? Voir https://github.com/PnX-SI/gn_module_monitoring/issues/14#issuecomment-639671708
+* Commande remove_monitoring_module_cmd() à indiquer dans le README ? TODO
+* Lancer la commande d'alimentation de la Synthèse ? (automatique si vue existe et __SYNTHESE = true dans config.json du module)
+* Table gn_monitoring.t_observation_details à virer ? (ça peut servir... pour les modules plus complexe)
+
+**CHECKED**
+
+* vues.sql basculé dans install_gn_module.py (https://github.com/PnX-SI/gn_module_monitoring/commit/05634743112e2ba9f0cd96d5d6c69d9db603a1f8). A virer de https://github.com/PnX-SI/gn_module_monitoring/blob/develop/install_db.sh#L21 ? ok
+* https://github.com/PnX-SI/gn_module_monitoring/blob/develop/data/delete_synthese.sql à exécuter à l'installation ? Partie à basculer dans GN ? Voir https://github.com/PnX-SI/gn_module_monitoring/issues/14#issuecomment-639671708 dans le module
 * config_custom.json à renommer custom.json dans le README ?
-* Commande remove_monitoring_module_cmd() à indiquer dans le README ?
-* Lancer la commande d'alimentation de la Synthèse ?
-* Table gn_monitoring.t_observation_details à virer ?
+
 
 **Fonctionnalités**
 
