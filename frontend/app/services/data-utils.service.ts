@@ -47,7 +47,7 @@ export class DataUtilsService {
       .pipe(
         mergeMap(
           value => {
-            let out = '';
+            let out;
             if ( fieldName === 'all') {
               out =  value;
             } else if (fieldName.split(',').length >= 2) {

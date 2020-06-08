@@ -22,3 +22,5 @@ def gnmodule_install_app(gn_db, gn_app):
 
 
         subprocess.call(["npm install"], cwd=str(ROOT_DIR / "frontend"), shell=True)
+
+
