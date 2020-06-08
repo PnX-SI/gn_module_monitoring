@@ -26,7 +26,7 @@ export class MonitoringObjectService {
       fieldName: "label_fr",
     },
     taxonomy: {
-      fieldName: "nom_vern",
+      fieldName: "nom_vern,lb_nom",
     },
   };
 
