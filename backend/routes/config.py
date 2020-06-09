@@ -19,8 +19,16 @@ def get_config_api(module_path):
         route qui renvoie la config pour un module donné
     """
 
-    return get_config_frontend(module_path)
+    return get_config(module_path)
+    try:
+        config = get_config(module_path)
+        
+        return config
 
+    except Exception as e:
+        return {
+            'errors': [str(e)]
+        }
 
 @blueprint.route('/config/test/<string:module_path>', methods=['GET'])
 # @check_cruved_scope_monitoring('R', 1)

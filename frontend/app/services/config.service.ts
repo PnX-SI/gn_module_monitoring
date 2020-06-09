@@ -5,6 +5,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AppConfig } from '@geonature_config/app.config';
 import { ModuleConfig } from '../module.config';
+import { Router } from "@angular/router";
 
 import { of } from '@librairies/rxjs';
 import { mergeMap } from '@librairies/rxjs/operators';
@@ -13,7 +14,9 @@ import { mergeMap } from '@librairies/rxjs/operators';
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient) { }
+  constructor(private _http: HttpClient,
+    private _router: Router,
+    ) { }
 
   /** Configuration */
 
@@ -31,6 +34,7 @@ export class ConfigService {
         .pipe(
           mergeMap((config) => {
             this._config = this._config || {};
+            this._config.errors = config.errors;
             this._config[modulePath] = config;
             this._config['frontendParams'] = {
               'bChainInput': false
@@ -39,6 +43,10 @@ export class ConfigService {
           })
         );
     }
+  }
+
+  errors() {
+    return this._config && this._config.errors;
   }
 
   /** Backend Url et static dir ??*/

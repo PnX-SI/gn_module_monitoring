@@ -204,6 +204,37 @@ def customize_config(elem, custom):
     return elem
 
 
+def check_config(config):
+    config['errors'] = []
+    check_config_custom(config, config)
+
+
+def check_config_custom(config, elem=None):
+
+    #test si il reste des elem ave une valeur '__XXXXXX' (custom non défini)
+
+    if isinstance(elem, list):
+        elem = [check_config_custom(config, e) for e in elem]
+        # patch remove doublons
+        if len(elem) and not isinstance(elem[0], dict):
+            elem = list(dict.fromkeys(elem))
+
+    elif isinstance(elem, dict):
+        for key in elem:
+            elem[key] = check_config_custom(config, elem[key])
+
+    elif isinstance(elem, str) and '__' in elem:
+        config['errors'].append(
+            """{} n''est pas défini.
+            Veuillez le définir dans le fichier custom.json 
+            (dans le répertoire config/monitoring/generic ou config/monitoring/<module_path>)
+            et créer le fichier si besoin."""
+            .format(elem)
+        )
+
+    return elem
+
+
 def config_from_files_customized(type_config, module_path):
     config_type = config_from_files(type_config, module_path)
     custom = config_from_files('custom', module_path)

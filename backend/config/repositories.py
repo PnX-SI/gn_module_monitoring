@@ -5,6 +5,7 @@
 import os
 from flask import current_app
 from .utils import (
+    check_config,
     customize_config,
     config_from_files,
     directory_last_modif,
@@ -104,6 +105,9 @@ def get_config(module_path=None):
 
     # customize config
     customize_config(config, config_from_files('custom', module_path))
+
+    # check config
+    check_config(config)
 
     # mise en cache dans current_app.config[config_cache_name][module_path]
     if not current_app.config.get(config_cache_name, {}):

@@ -22,6 +22,8 @@ export class ModulesComponent implements OnInit {
 
   bLoading = false;
 
+  configErrors = [];
+
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService
@@ -33,9 +35,10 @@ export class ModulesComponent implements OnInit {
       .init()
       .pipe(
         mergeMap(this._dataMonitoringObjectService.getModules.bind(this._dataMonitoringObjectService))
-      )
-      .subscribe((modules: Array<any>) => {
-        this.modules = modules.filter(m => m.cruved.R >= 1);
+        )
+        .subscribe((modules: Array<any>) => {
+          this.configErrors = this._configService.errors();
+          this.modules = modules.filter(m => m.cruved.R >= 1);
         this.backendUrl = this._configService.backendUrl();
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.moduleMonitoringCode = this._configService.moduleMonitoringCode();

@@ -1,11 +1,22 @@
 
 <div class="modules">
-    <pnx-modal-msg [bDisplayModal]="bLoading">
+    <pnx-modal-msg [bDisplayModal]="bLoading || (configErrors.length)">
+      <div *ngIf="!(configErrors.length)">
         <h2>Chargement en cours</h2>
         <div>
           <span class="center spinner-border" role="status" aria-hidden="true"></span>
         </div>
+      </div>
+      <div *ngIf="configErrors.length ">
+
+        <h2>Erreur dans la configuration</h2>
+        
+        <div *ngFor="let error of configErrors">
+          {{error}}
+        </div>
+      </div>
       </pnx-modal-msg>
+
 
   <h2>Modules de suivi</h2>
 
