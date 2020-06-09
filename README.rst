@@ -472,3 +472,9 @@ qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 TODO : Faire une vue d'exemple pour le module test.
 
 L'alimentation de la Synthèse est automatique si sa vue existe et si le paramètre ``__SYNTHESE`` est défini à ``true`` dans le fichier ``config.json`` du module.
+
+
+Suppression d'un module
+=======================
+
+Lancer la commande `flask monitorings remove <module_path>`.
