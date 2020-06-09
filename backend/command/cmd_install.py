@@ -184,8 +184,16 @@ def remove_monitoring_module(module_path):
 
     # remove module in db
     try:
-        DB.session.delete(module)
-        DB.session.commit()
+        # HACK pour le moment suprresion avec un sql direct
+        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
+        txt = ("""
+                    DELETE FROM gn_commons.t_modules WHERE id_module ={}
+                """.format(
+                    module.id_module
+                )
+        )
+
+        DB.engine.execution_options(autocommit=True).execute(txt)
     except IntegrityError as ie:
         print("Impossible de supprimer le module car il y a des données associées")
         return
