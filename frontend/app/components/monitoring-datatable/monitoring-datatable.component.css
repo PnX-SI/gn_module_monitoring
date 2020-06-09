@@ -22,9 +22,13 @@
 }
 
 .header-sort-span {
-    width: 100%;
+    /* width: 100%; */
     cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space:nowrap
 }
+
 
 .header-sort-span:hover {
     background-color: rgb(245, 245, 245);
