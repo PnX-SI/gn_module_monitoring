@@ -66,6 +66,11 @@ export class MonitoringDatatableComponent implements OnInit {
     this.row_save = this.rows.map(e => e);
   }
 
+  dispcol(col) {
+    console.log(col)
+    return '';
+  }
+
   filterInput($event) {
     this.filterSubject.next();
   }

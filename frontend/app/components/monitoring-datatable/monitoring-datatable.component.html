@@ -52,21 +52,20 @@
     ></ngx-datatable-column>
   </ngx-datatable>
 
-  <ng-template #hdrTpl let-column="column" let-sort="sortFn">
-    <div class="header-filter-span">
-      <input 
-        [(ngModel)]="filters[column.prop]" 
-        (input)="filterInput($event)"
-        type="text" />
-        {{filters[column.prop]}}
-
+  <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
+    <div class="header-sort-span" (click)="sortFn()">
+      {{ column.name }}
+      <b>
+        <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
+      </b>
     </div>
-    <span
-      class="header-sort-span" 
-      (click)=sort();
-      >
-      {{column.name}}
-    </span>
+    <div class="header-filter-span">
+      <input
+        [(ngModel)]="filters[column.prop]"
+        (input)="filterInput($event)"
+        type="text"
+      />
+      {{ filters[column.prop] }}
+    </div>
   </ng-template>
-
 </div>

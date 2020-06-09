@@ -16,3 +16,26 @@
     transition: background-color 0.5s;
     border-radius: 5px;
 }
+
+.header-filter-span > input {
+    width: 100%;
+}
+
+.header-sort-span {
+    width: 100%;
+    cursor: pointer;
+}
+
+.header-sort-span:hover {
+    background-color: rgb(245, 245, 245);
+}
+
+.icon-sort {
+    font-size: 1.2em;
+    float: right;
+}
+
+:host::ng-deep .sort-btn {
+    display: none !important;
+}
+
