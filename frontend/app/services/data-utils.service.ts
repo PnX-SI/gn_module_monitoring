@@ -47,7 +47,20 @@ export class DataUtilsService {
       .pipe(
         mergeMap(
           value => {
-            const out = fieldName === 'all' ? value : value[fieldName];
+            let out;
+            if ( fieldName === 'all') {
+              out =  value;
+            } else if (fieldName.split(',').length >= 2) {
+              // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
+              for (const fieldNameInter of fieldName.split(',')) {
+                if (value[fieldNameInter]) {
+                  out =  value[fieldNameInter];
+                  break;
+                }
+              }
+            } else {
+              out = value[fieldName];
+            }
             return of(out);
           })
       );
@@ -73,7 +86,7 @@ export class DataUtilsService {
     return forkJoin(observables)
       .pipe(
         concatMap(res => {
-          return of(res.join(' ,'));
+          return of(res.join(', '));
         })
       );
   }

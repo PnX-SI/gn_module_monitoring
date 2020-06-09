@@ -6,26 +6,40 @@ Module de suivis génériques
 Module générique de gestion des données de protocoles de type suivis
 --------------------------------------------------------------------
 
-Ce module permet de gérer de façon générique des données de protocoles "simples".
-Les données spécifiques à chaque protocole sont stockées en base de données sous forme de jsonb.
+Ce module permet de gérer de façon générique des données de protocoles "simples" articulés en 3 niveaux : des sites (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs) dans lesquelles on peut faire des observations (espèces).
+
+Ces 3 niveaux peuvent être complétés des données spécifiques à chaque protocole, qui sont stockées dynamiquement dans la base de données sous forme de jsonb.
 
 .. image:: docs/images/apercu.png
     :alt: Liste des sites du protocole de test
     :width: 800
+
+Le module permet de générer des sous-modules (stockés dans la table ``gn_commons.t_modules``) pour chaque protocole de suivi. Ils s'appuient sur les champs fixes des 3 tables ``gn_monitoring.t_base_sites``, ``gn_monitoring.t_base_visits`` et ``gn_monitoring.t_observations`` qui peuvent chacunes être étendues avec des champs spécifiques et dynamiques stockés dans des champs de type ``jsonb``. 
+
+Les champs spécifiques de chaque sous-module sont définis dans des fichiers de configuration au format json.
+
+Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il est ainsi possible d'ajouter dynamiquement des champs de différent type (liste, nomenclature, booléen, date, radio, observateurs, texte, taxonomie...). Ceux-ci peuvent être obligatoires ou non, affichés ou non et avoir des valeurs par défaut. Les listes d'observateurs et d'espèces peuvent aussi être définies au niveau de chaque sous-module, en fonction du contexte du protocole de suivi.
+
+Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'alimenter automatiquement la synthèse de GeoNature à partir des données saisies dans chaque sous-module.
+
+.. image:: docs/2020-06-MCD-monitoring.jpg
+    :alt: MCD du schema gn_monitoring
+
 
 * `Installation du module de suivi générique`_
 * `Configuration du module de suivi générique`_
 * `Installation du sous-module de test`_
 * `Exemples de sous-modules`_
 * `Création d'un sous-module`_
+* `Synchronisation avec la synthèse`_
 
 
 =========================================
 Installation du module de suivi générique
 =========================================
 
-* Installez GeoNature (<https://github.com/PnX-SI/GeoNature>)
-* Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page)
+* Installez GeoNature (https://github.com/PnX-SI/GeoNature).
+* Téléchargez la dernière version stable du module (``wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip`` ou en cliquant sur le bouton GitHub "Clone or download" de cette page) et dézippez-le.
 * Placez-vous dans le répertoire ``backend`` de GeoNature et lancez les commandes suivantes :
 
 ::
@@ -56,23 +70,29 @@ Configuration du module de suivi générique
         "__ID_DATASET_VISIT": 1
     }
 
-Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``config_custom.json`` propre au sous-module.
+Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``custom.json`` propre à chaque sous-module.
 
-* ``__CODE_LIST_OBSERVER`` : le code de la liste utilisateur pour les observateurs du protocole.
-  Il est par defaut mis à ``obsocctax`` mais une liste spécifique peut être précisée.
-* ``__CODE_LIST_INVENTER`` : la liste des descripteurs de sites.
-* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
-* ``__ID_DATASET_VISIT`` : l'id du jeu de donnée correspondant à aux visites. Il est en général propre à chaque sous module et pourra être redéfini pour chaque sous-module.
+* ``__CODE_LIST_OBSERVER`` : le code de la liste d'utilisateurs pour les observateurs du protocole.
+  Il est par defaut mis à ``obsocctax`` mais une autre liste peut être précisée.
+* ``__CODE_LIST_INVENTOR`` : la liste des descripteurs de sites.
+* ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
+* ``__ID_DATASET_VISIT`` : l'id du jeu de données correspondant aux visites. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 
 
 ===================================
 Installation du sous-module de test
 ===================================
 
-Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``
+Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_module>/contrib/test``.
 
+* S'assurer d'être dans le ``virtualenv`` et à la racine de l'application ``GeoNature`` :
 
-* S'assurer d'être dans le ``virtualenv`` et à la racine de l'application ``GeoNature``
+::
+
+    cd /home/myuser/geonature/backend/
+    source venv/bin/activate
+    cd ..
+
 * Exécuter la commande :
 
 ::
@@ -84,7 +104,7 @@ Le sous-module de test est situé dans le dossier ``<mon_chemin_absolu_vers_le_m
 Configuration du sous-module de test
 ------------------------------------
 
-* Copier le fichier ``config/monitoring/generic/custom.json`` dans ``config/monitoring/test/config_custom.json``.
+* Copier le fichier ``config/monitoring/generic/custom.json`` dans ``config/monitoring/test/custom.json``.
 * Renseigner et/ou modifier les valeurs du fichier ``contrib/test/custom.json`` (voir le paragraphe `Configuration du module de suivi générique`_ pour les détails).
 
 
@@ -101,9 +121,9 @@ D'autres exemples de sous-modules sont disponibles sur le dépôt https://github
 Création d'un sous-module
 =========================
 
-* `structure d'un module`_
+* `Structure d'un module`_
 * `Configuration générale`_
-* `Configuration des objects`_
+* `Configuration des objets`_
 * `Nomenclature`_
 * `Installation du sous-module`_
 
@@ -117,17 +137,22 @@ Structure d'un module
 * ``visit.json`` `(config. des visites)`
 * ``observation.json`` `(config. des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
+* ``synthese.sql`` `(vue pour la synchronisation avec la synthèse)`
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
+
+Chaque sous-module peut aussi contenir une image nommée ``img.jpg`` dans ce même dossier, qui servira de vignette du sous-module sur la page d'accueil du module Monitorings. Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``frontend/src/external_assets/monitorings`` de GeoNature. 
+
+Pour que l'image soit prise en compte, lors de l'installation du module ou si on la modifie, il faut relancer une compilation de GeoNature (avec la commande ``update_module_configuration monitorings`` par exemple).
 
 ----------------------
 Configuration générale
 ----------------------
 
-Dans le fichier `config.json`
+Dans le fichier ``config.json`` :
 
-* ``tree`` définit les relations entre les objets :
-* ``data`` définit les données à pré-charger :
+* ``tree`` définit les relations entre les objets
+* ``data`` définit les données à pré-charger
 
 
 .. code-block:: JSON
@@ -161,7 +186,7 @@ Dans le fichier `config.json`
 Configuration des objets
 ------------------------
 
-Dans le fichier ``module.json``,  deux variables doivent obligatoirement être définies dans ce fichier :
+Dans le fichier ``module.json``, deux variables doivent obligatoirement être définies dans ce fichier :
 
 * ``module_path``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
@@ -198,12 +223,11 @@ Les schémas
 Les schémas génériques
 ----------------------
 
-Les schémas des variables génériques sont définis dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets
-et dans la variable ``generic``.
+Les schémas des variables génériques sont définis dans le repertoire ``config/monitoring/generic`` dans les fichiers correspondant aux objets et dans la variable ``generic``.
 
 Pour la suite nous prendrons exemple sur la configuration des sites, qui sera similaire aux autres objets dans les grandes lignes.
 
-Par exemple dans le fichier ``site.json`` de ce repertoire on trouve le variable "generic":
+Par exemple dans le fichier ``site.json`` de ce repertoire on trouve la variable "generic" :
 
 .. code-block:: JSON
 
@@ -228,13 +252,13 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
     * ``value`` : permet d'attribuer une valeur par défaut,
     * ``required`` : permet de rendre un input obligatoire.
 * les attributs `spéciaux` :
-    * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``.  Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
+    * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
 
 
 Définir une nouvelle variable
 -----------------------------
 
-    Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer un variable nommée ``specific`` dans le fichier ``site.json`` afin de définir le schéma spécifique pour cet objet.
+Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'une variable générique, il faut créer une variable nommée ``specific`` dans les fichiers ``site.json``, ``visit.json`` ou ``observation.json`` afin de définir le schéma spécifique pour cet objet.
 
 * **texte** : une variable facultative
 
@@ -245,7 +269,7 @@ Définir une nouvelle variable
             "attribut_label": "Nom du contact"
         }
 
-* **entier** : le numéro du passage compris entre 1 et 2 est obligatoire
+* **entier** : exemple avec un numéro du passage compris entre 1 et 2 est obligatoire
 
 .. code-block:: JSON
 
@@ -257,7 +281,7 @@ Définir une nouvelle variable
             "max": 2
         }
     
-* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste : 
+* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste
 
 .. code-block:: JSON
 
@@ -288,7 +312,30 @@ La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nom
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-* **taxonomie** : un choix dans une liste de taxon :
+* **liste** : une liste déroulante simple, non basée sur une nomenclature
+
+.. code-block:: JSON
+
+        "rain": {
+            "type_widget": "select",
+            "required": true,
+            "attribut_label": "Pluie",
+            "values": ["Absente", "Intermittente", "Continue"]
+        },
+
+Il est possible de définir une valeur par défaut pré-selectionnée avec le paramètre ``value`` (exemple : ``"value": "Absente"``).
+
+* **radio** : bouton radio pour un choix unique parmi plusieurs possibilités
+
+.. code-block:: JSON
+
+        "beginner": {
+            "type_widget": "radio",
+            "attribut_label": "Débutant",
+            "values": ["Oui", "Non"]
+        },
+
+* **taxonomie** : une liste de taxons
 
 .. code-block:: JSON
 
@@ -320,9 +367,9 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
             "required": true
         }
 
-* Donner une valeur par défault à une nomenclature et cacher l'élément
+* Donner une valeur par défaut à une nomenclature et cacher l'élément
 
-    Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
+  Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
 
 .. code-block:: JSON
 
@@ -339,18 +386,18 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-Pour renseigner la valeur de la nomenclature, on spécifie 
+Pour renseigner la valeur de la nomenclature, on spécifie :
     * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
-    * le code de la nomenclature ``"cd_nomenclature"``.
+    * le code de la nomenclature ``"cd_nomenclature"``
 
 ------------
 Nomenclature
 ------------
 
-Ce fichier permet de renseigner la nomenclature spécifique au sous-module.
-Elle sera insérée en base lors de l'installation du module. 
+Le fichier ``nomenclature.json`` permet de renseigner les nomenclatures spécifiques à chaque sous-module.
+Elles seront insérées dans la base de données lors de l'installation du sous-module (si elles n'existent pas déjà). 
 
-Un exemple de fichier :
+Exemple de fichier :
 
 .. code-block:: JSON
 
@@ -386,3 +433,48 @@ Installation du sous-module
 ---------------------------
 
 Procéder comme pour `Installation du sous-module de test`_
+
+
+
+Synchronisation avec la synthèse
+================================
+
+
+-----------------------
+Configuration du module
+-----------------------
+
+Dans le dossier de configuration du module, s'il n'existe pas déjà, créer le fichier ``custom.json`` et ajouter le paramètre ``__SYNTHESE`` :
+
+.. code-block:: JSON
+
+    {
+    ...
+    "__SYNTHESE": true
+    ...
+    }
+
+-----------------------------------
+Création d'une vue pour la synthèse
+-----------------------------------
+
+Dans un fichier nommé ``synthese.sql`` placé dans le dossier de configuration du module, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
+
+La convention de nommage de la vue est ``gn_monitoring.vs_<module_path>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
+
+Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
+
+Pour la vue et la source, on pourra s'inspirer du fichier ``synthese.sql``
+`du module test <cotrib/test/synthese.sql>`_
+ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/synthese.sql>`_
+qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
+
+TODO : Faire une vue d'exemple pour le module test.
+
+L'alimentation de la Synthèse est automatique si sa vue existe et si le paramètre ``__SYNTHESE`` est défini à ``true`` dans le fichier ``config.json`` du module.
+
+
+Suppression d'un module
+=======================
+
+Lancer la commande `flask monitorings remove <module_path>`.

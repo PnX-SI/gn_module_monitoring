@@ -28,14 +28,16 @@ class CorSiteModule(DB.Model):
     __tablename__ = 'cor_site_module'
     __table_args__ = (
         DB.PrimaryKeyConstraint('id_module', 'id_base_site'),
-        {'schema': 'gn_monitoring'}
+        {'schema': 'gn_monitoring', 'extend_existing': True}
     )
 
     id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module')
+        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        primary_key=True
     )
     id_base_site = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site')
+        DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
+        primary_key=True
     )
 
 
@@ -43,14 +45,16 @@ class CorVisitObserver(DB.Model):
     __tablename__ = 'cor_visit_observer'
     __table_args__ = (
         DB.PrimaryKeyConstraint('id_base_visit', 'id_role'),
-        {'schema': 'gn_monitoring'}
+        {'schema': 'gn_monitoring', 'extend_existing': True}
     )
 
     id_base_visit = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_visits.id_base_visit')
+        DB.ForeignKey('gn_monitoring.t_base_visits.id_base_visit'),
+        primary_key=True
     )
     id_role = DB.Column(
-        DB.ForeignKey('utilisateurs.t_roles.id_role')
+        DB.ForeignKey('utilisateurs.t_roles.id_role'),
+        primary_key=True
     )
 
 

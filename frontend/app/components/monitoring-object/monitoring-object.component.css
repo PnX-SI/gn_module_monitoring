@@ -26,14 +26,16 @@
   color: darkred;
 }
 
-h2 {
+h3 {
   font-weight: bold;
-  margin: 15px 0;
+  padding: 5px 15px;
+  display: inline-block;
+  border-radius: 15px;
 }
 
-:host ::ng-deep .cadre{
+:host ::ng-deep .cadre {
   background-color: white;
-  border: 1px solid grey;
+  /* border: 1px solid grey;*/
   border-radius: 5px;
   padding: 5px;
   margin: 5px;
@@ -45,10 +47,10 @@ h2 {
   background-color: lightgray;
 }
 
-:host ::ng-deep h3 {
+/* :host ::ng-deep h3 {
   background-color: rgb(240, 240, 240);
   padding: 2px 5px;
-}
+} */
 
 .scroll {
   overflow-y: scroll;

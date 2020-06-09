@@ -25,3 +25,7 @@
   line-height: 1.5rem;
   height: 20px;
 }
+
+.float-left {
+  margin-right: 10px;
+}

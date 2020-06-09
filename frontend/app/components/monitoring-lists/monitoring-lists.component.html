@@ -57,7 +57,6 @@
         <div
           *ngIf="
             obj.modulePath &&
-            child0.objectType != 'media' &&
             currentUser?.cruved.C >= 1
           "
           class="float-right"
@@ -73,7 +72,7 @@
               obj.id
             ]"
             ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-            {{ child0.template["label"] }}</a
+            {{ (child0.template["label"] || '').toLowerCase() }}</a
           >
         </div>
         <div class="btn-height"></div>

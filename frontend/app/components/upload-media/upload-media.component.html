@@ -1,16 +1,5 @@
 <div *ngIf="media">
-    <!-- <div *ngIf="media['media_path'] || media['media_url']">
-        <p
-          *ngIf="
-            media['media_url'] || staticDirUrl + '/' + media['media_path'] as url
-          "
-        >
-        url : 
-          <a href="{{ url }}">{{ url }}
-            </a>
-        </p>
-      </div>     -->
-
+ 
   <form [formGroup]="mediaForm" class="media-form" *ngIf="mediaForm">
     <pnx-dynamic-form-generator
       #dynamicForm
@@ -43,10 +32,20 @@
       ></span>
       Envoyer
     </button>
-    <button class="btn btn-primary" (click)="bEditMediaChange.emit(false)">
+    <button
+    class="btn btn-danger float-left"
+    (click)="onDeleteMedia()"
+    *ngIf="media.id_media && currentUser?.cruved.D >= 1"
+  >
+    Supprimer
+  </button>
+
+  <button class="btn btn-primary" (click)="bEditMediaChange.emit(false)">
     Annuler
     </button>
+
   
+
   </form>
 
   <!-- <div *ngIf="media['media_path']">

@@ -1,6 +1,12 @@
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
+from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
+from .base import MonitoringObjectBase, monitoring_definitions
+
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class MonitoringObject(MonitoringObjectSerializer):
@@ -18,7 +24,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             return self
 
         try:
-
             Model = self.MonitoringModel()
             self._model = (
                 DB.session.query(Model)
@@ -75,8 +80,37 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         DB.session.commit()
 
-    def create_or_update(self, post_data):
 
+    def process_synthese(self):
+        if not self.config().get('synthese'):
+            return
+
+        table_name = 'vs_{}'.format(self._module_path)
+        try:
+            import_from_table(
+                'gn_monitoring',
+                table_name,
+                self.config_param('id_field_name'),
+                self.config_value('id_field_name')
+            )
+        except ValueError as e:
+            # warning
+            log.warning(
+                """Error in module monitoring, process_synthese.
+                Function import_from_table with parameters({}, {}, {}) raises the following error :
+                {}
+                """
+                .format(
+                    table_name,
+                    self.config_param('id_field_name'),
+                    self.config_value('id_field_name'),
+                    e
+                )
+            )
+
+        return
+
+    def create_or_update(self, post_data):
         try:
 
             # si id existe alors c'est un update
@@ -92,10 +126,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             self.process_post_data_properties(post_data)
             self.populate(post_data)
             DB.session.commit()
-
             self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_correlations(post_data)
+
+            self.process_synthese()
 
             return self
 

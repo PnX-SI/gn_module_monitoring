@@ -1,6 +1,5 @@
 {
   "geometry_type": "Point",
-
   "specific": {
     "id_nomenclature_type_site": {
       "type_widget": "nomenclature",

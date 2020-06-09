@@ -25,6 +25,9 @@ export class UploadMediaComponent implements OnInit {
   @Input() bEditMedia;
   @Output() bEditMediaChange = new EventEmitter<any>();
 
+  @Output() deleteMedia = new EventEmitter<any>();
+
+  @Input() currentUser;
 
   @Input() staticDirUrl;
   public file: File;
@@ -132,6 +135,12 @@ export class UploadMediaComponent implements OnInit {
         console.log('Upload done');
       }
     );
+  }
+
+  onDeleteMedia() {
+    this._uploadService.deleteMedia(this.media.id_media).subscribe(() => {
+      this.deleteMedia.emit(this.media.id_media);
+    });
   }
 
   ngOnChanges(changes) {

@@ -45,7 +45,7 @@
           !bEdit && obj.objectType != 'module' && currentUser?.cruved.E >= 1
         "
       >
-        Éditer
+        Éditer {{(obj.template.label || '').toLowerCase()}}
       </button>
     </div>
     <div
@@ -59,6 +59,7 @@
         [uuid_attached_row]="obj.template['uuid']"
         [staticDirUrl]="backendUrl"
         [idTableLocation]="obj.template.idTableLocation"
+        [currentUser]="currentUser"
       ></pnx-medias>
     </div>
   </div>
