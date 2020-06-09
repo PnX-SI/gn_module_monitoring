@@ -4,7 +4,7 @@
     get_modules
 """
 
-from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -114,6 +114,11 @@ def get_source_by_code(value):
     except MultipleResultsFound:
         raise GeoNatureError(
             'get_source : multiple results found for  {}'
+            .format(value)
+        )
+    except NoResultFound:
+        raise GeoNatureError(
+            'get_source : no results found for  {}'
             .format(value)
         )
     except Exception as e:
