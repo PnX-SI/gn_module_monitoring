@@ -30,7 +30,9 @@
         [(bEdit)]="bEdit"
       ></pnx-monitoring-breadcrumbs>
 
-      <h2>{{ obj.template["title"] }}</h2>
+      <div>
+        <h3>{{ obj.template["title"] }}</h3>
+      </div>
 
       <pnx-monitoring-properties
         id="nav-properties"
@@ -39,7 +41,6 @@
         [(bEdit)]="bEdit"
         [currentUser]="currentUser"
       ></pnx-monitoring-properties>
-
       <pnx-monitoring-form
         [obj]="obj"
         (objChanged)="onObjChanged($event)"

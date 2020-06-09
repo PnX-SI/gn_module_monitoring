@@ -1,13 +1,13 @@
 .breadcrumbs {
-  background-color: lightgray;
+  /* background-color: lightgray; */
   display: inline-block;
   padding: 2px 5px;
-  box-shadow: 0 0 2px;
+  /* box-shadow: 0 0 2px; */
 }
 
 .breadcrumbs .link {
   cursor: pointer;
-  color: blue;
+  color: rgb(0, 123, 255);
 }  
 
 .breadcrumbs .link:hover {

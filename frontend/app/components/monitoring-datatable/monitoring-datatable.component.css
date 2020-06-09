@@ -39,3 +39,6 @@
     display: none !important;
 }
 
+.custom-dt {
+    box-shadow: none !important;
+}
