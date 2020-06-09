@@ -55,9 +55,7 @@
   <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
     <div class="header-sort-span" (click)="sortFn()">
       {{ column.name }}
-      <b>
         <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
-      </b>
     </div>
     <div class="header-filter-span">
       <input
