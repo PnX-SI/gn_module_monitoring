@@ -2,6 +2,9 @@ import os
 import click
 from pathlib import Path
 
+import subprocess
+
+
 from flask import Flask
 from flask.cli import AppGroup, with_appcontext
 from sqlalchemy import and_
@@ -140,6 +143,14 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     )
 
     DB.engine.execution_options(autocommit=True).execute(txt)
+
+    # exec geonature (update img)
+    subprocess.call(
+        [
+            "geonature update_module_configuration {}"
+            .format(module_monitoring.module_code)
+        ],
+        shell=True)
 
     # TODO ++++ create specific tables
 
