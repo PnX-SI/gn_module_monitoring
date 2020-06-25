@@ -115,8 +115,11 @@ export class DataUtilsService {
     const observables = {};
     const configData = this._configService.configData(modulePath);
 
-    const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
-    observables['nomenclature'] = nomenclatureRequest;
+    // Test if nomenclature is define
+    if (('nomenclature' in configData)  && (configData['nomenclature'].length > 0)) {
+      const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
+      observables['nomenclature'] = nomenclatureRequest;
+    }
 
     // Taxonomie (liste ou ensemble de )
     const taxonomyRequests = [];
