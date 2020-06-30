@@ -161,7 +161,7 @@ export class MonitoringFormComponent implements OnInit {
       this._configService.frontendModuleMonitoringUrl(),
       "create_object",
       this.obj.modulePath,
-      this.obj.uniqueChildrenType(),
+      this.obj.uniqueChildrenName(),
       this.obj.id,
     ]);
   }

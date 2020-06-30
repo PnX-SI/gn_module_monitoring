@@ -86,7 +86,7 @@
       <div>
 
         <button
-        *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenType()"
+        *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
         class="btn btn-success float-right"
         (click)="bAddChildren=true; onSubmit();"
         [disabled]="!objForm.valid"
@@ -99,7 +99,7 @@
         ></span>
 
         <span
-          >Valider et saisir des {{obj.uniqueChildrenType()}}s</span
+          >Valider et saisir des {{obj.uniqueChildrenName()}}</span
         >
       </button>
 

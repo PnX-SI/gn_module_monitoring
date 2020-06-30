@@ -172,11 +172,11 @@ export class MonitoringObjectBase {
     return childrenTypes || [];
   }
 
-  uniqueChildrenType() {
+  uniqueChildrenName() {
     const childrenTypes = this.configParam('children_types') || [];
 
     if (childrenTypes.length === 1) {
-      return childrenTypes[0]
+      return this.child0(childrenTypes[0]).template.label_list;
     }
   }
 
