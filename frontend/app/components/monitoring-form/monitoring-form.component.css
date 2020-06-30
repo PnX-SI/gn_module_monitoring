@@ -25,7 +25,8 @@
   height: 39px;
 }
 
-.float-left, .float-right {
+.float-right {
+margin-left: 5px;
 }
 
 form:invalid {

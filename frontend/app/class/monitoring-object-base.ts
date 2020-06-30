@@ -157,6 +157,7 @@ export class MonitoringObjectBase {
       );
   }
 
+
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];
 
@@ -167,6 +168,15 @@ export class MonitoringObjectBase {
     }
     return childrenTypes || [];
   }
+
+  uniqueChildrenType() {
+    const childrenTypes = this.configParam('children_types') || [];
+
+    if (childrenTypes.length === 1) {
+      return childrenTypes[0]
+    }
+  }
+
 
   parentType() {
     return this.configParam('parent_type');

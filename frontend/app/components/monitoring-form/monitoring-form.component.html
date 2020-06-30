@@ -59,8 +59,13 @@
     </div>
 
     <form [formGroup]="objForm">
-      <p style="color:red" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
-        Veuillez saisir une géométrie sur la carte
+      <p class="alert alert-danger" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
+        <span class="material-icons">
+          warning
+          </span>
+          <span>
+            Veuillez saisir une géométrie sur la carte
+          </span>
       </p>
 
       <!-- composant choix de site select + filtre -->
@@ -80,9 +85,29 @@
       ></pnx-dynamic-form-generator>
 
       <div>
+
+        <button
+        *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenType()"
+        class="btn btn-success float-right"
+        (click)="bAddChildren=true; onSubmit();"
+        [disabled]="!objForm.valid"
+      >
+        <span
+          [ngClass]="{ 'hide-spinner': !bSaveSpinner }"
+          class="spinner-border spinner-border-sm float-right"
+          role="status"
+          aria-hidden="true"
+        ></span>
+
+        <span
+          >Enregister et saisir les {{obj.uniqueChildrenType()}}s</span
+        >
+      </button>
+
+
         <button
           class="btn btn-success float-right"
-          (click)="onSubmit(bChainInput)"
+          (click)="onSubmit()"
           [disabled]="!objForm.valid"
         >
           <span
