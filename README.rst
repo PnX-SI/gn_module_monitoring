@@ -477,4 +477,4 @@ L'alimentation de la Synthèse est automatique si sa vue existe et si le paramè
 Suppression d'un module
 =======================
 
-Lancer la commande `flask monitorings remove <module_path>`.
+Lancer la commande ``flask monitorings remove <module_path>``.
