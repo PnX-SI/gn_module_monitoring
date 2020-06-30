@@ -39,6 +39,7 @@ export class MonitoringFormComponent implements OnInit {
   public bDeleteSpinner = false;
   public bDeleteModal = false;
   public bChainInput = false;
+  public bAddChildren = false;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -153,6 +154,30 @@ export class MonitoringFormComponent implements OnInit {
     this.objForm.patchValue(defaultValues);
   }
 
+  navigateToAddChildren() {
+    this.bEditChange.emit(false);
+    this._router.navigate([
+      "/",
+      this._configService.frontendModuleMonitoringUrl(),
+      "create_object",
+      this.obj.modulePath,
+      this.obj.uniqueChildrenType(),
+      this.obj.id,
+    ]);
+  }
+
+  navigateToDetail() {
+    this.bEditChange.emit(false);
+    this._router.navigate([
+      "/",
+      this._configService.frontendModuleMonitoringUrl(),
+      "object",
+      this.obj.modulePath,
+      this.obj.objectType,
+      this.obj.id,
+    ]);
+  }
+
   navigateToParent() {
     this.bEditChange.emit(false);
     if (this.obj.objectType.includes("module")) {
@@ -198,9 +223,9 @@ export class MonitoringFormComponent implements OnInit {
     return bCreation && bChoixSite && this.bChainInput;
   }
 
-  onSubmit(addNew = false) {
-    this.bSaveSpinner = !addNew;
-    this.bSaveAddSpinner = addNew;
+  onSubmit() {
+    this.bSaveSpinner = !this.bChainInput;
+    this.bSaveAddSpinner = this.bChainInput;
 
     // cas choix site
     if (this.testChoixSite()) {
@@ -220,10 +245,12 @@ export class MonitoringFormComponent implements OnInit {
       );
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.objChanged.emit(this.obj);
-      if (addNew) {
+      if (this.bChainInput) {
         this.resetObjForm();
+      } else if (this.bAddChildren){
+        this.navigateToAddChildren()
       } else {
-        this.navigateToParent();
+        this.navigateToDetail();
       }
     });
   }
@@ -246,7 +273,6 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.objChanged.emit(this.obj);
-      // this.bEditChange.emit(false);
       this.navigateToParent();
     });
   }

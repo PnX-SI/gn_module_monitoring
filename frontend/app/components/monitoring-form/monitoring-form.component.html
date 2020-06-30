@@ -26,8 +26,7 @@
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
     <h3>
-      {{ obj.id ? "Modification" : "Création" }} {{ obj.template["label"] }}
-      <span
+      {{ obj.id ? "Modification" : "Création" }}<span
         *ngIf="!obj.id"
         id="toggle-btn"
         class="float-right"
@@ -59,8 +58,13 @@
     </div>
 
     <form [formGroup]="objForm">
-      <p style="color:red" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
-        Veuillez saisir une géométrie sur la carte
+      <p class="alert alert-danger" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
+        <span class="material-icons">
+          warning
+          </span>
+          <span>
+            Veuillez saisir une géométrie sur la carte
+          </span>
       </p>
 
       <!-- composant choix de site select + filtre -->
@@ -80,9 +84,29 @@
       ></pnx-dynamic-form-generator>
 
       <div>
+
+        <button
+        *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenType()"
+        class="btn btn-success float-right"
+        (click)="bAddChildren=true; onSubmit();"
+        [disabled]="!objForm.valid"
+      >
+        <span
+          [ngClass]="{ 'hide-spinner': !bSaveSpinner }"
+          class="spinner-border spinner-border-sm float-right"
+          role="status"
+          aria-hidden="true"
+        ></span>
+
+        <span
+          >Valider et saisir des {{obj.uniqueChildrenType()}}s</span
+        >
+      </button>
+
+
         <button
           class="btn btn-success float-right"
-          (click)="onSubmit(bChainInput)"
+          (click)="onSubmit()"
           [disabled]="!objForm.valid"
         >
           <span
@@ -93,9 +117,9 @@
           ></span>
 
           <span *ngIf="bChainInput && !obj.id"
-            >Enregister et enchainer les saisies</span
+            >Valider et enchainer les saisies</span
           >
-          <span *ngIf="!bChainInput || obj.id">Enregister</span>
+          <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
 
         <button class="btn btn-primary float-left" (click)="onCancelEdit()">

@@ -73,8 +73,11 @@ export class MonitoringObjectBase {
       true
     );
 
+
+
     this.template['fieldLabels'] = this.fieldLabels();
     this.template['fieldNames'] = this.fieldNames('display_properties');
+    this.template['fieldDefinitions'] = this.fieldDefinitions();
     this.template['fieldNamesList'] = this.fieldNames('display_list');
   }
 
@@ -157,6 +160,7 @@ export class MonitoringObjectBase {
       );
   }
 
+
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];
 
@@ -167,6 +171,15 @@ export class MonitoringObjectBase {
     }
     return childrenTypes || [];
   }
+
+  uniqueChildrenType() {
+    const childrenTypes = this.configParam('children_types') || [];
+
+    if (childrenTypes.length === 1) {
+      return childrenTypes[0]
+    }
+  }
+
 
   parentType() {
     return this.configParam('parent_type');
@@ -233,6 +246,16 @@ export class MonitoringObjectBase {
     }
     return fieldLabels;
   }
+
+  fieldDefinitions() {
+    const schema = this.schema();
+    const fieldDefinitions = {};
+    for (const key of Object.keys(schema)) {
+      fieldDefinitions[key] = schema[key]['definition'];
+    }
+    return fieldDefinitions;
+  }
+
 
   geoFeature() {
     // patch

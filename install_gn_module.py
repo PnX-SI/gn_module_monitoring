@@ -21,6 +21,6 @@ def gnmodule_install_app(gn_db, gn_app):
         gn_db.session.commit()
 
 
-        subprocess.call(["npm install"], cwd=str(ROOT_DIR / "frontend"), shell=True)
+        
 
 

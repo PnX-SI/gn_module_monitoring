@@ -249,11 +249,13 @@ export class MonitoringObject extends MonitoringObjectBase {
     const child0 = this.child0(childrenType);
     const childrenFieldLabels = child0.fieldLabels();
     const childrenFieldNames = child0.fieldNames(typeDisplay);
+    const childrenFieldDefinitons = child0.fieldDefinitions();
 
     const columns = childrenFieldNames.map(fieldName => {
       return {
         prop: fieldName,
-        name: childrenFieldLabels[fieldName]
+        name: childrenFieldLabels[fieldName],
+        definition: childrenFieldDefinitons[fieldName],
       };
     });
 

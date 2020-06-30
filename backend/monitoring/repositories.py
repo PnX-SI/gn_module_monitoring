@@ -80,7 +80,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         DB.session.commit()
 
-
     def process_synthese(self):
         if not self.config().get('synthese'):
             return

@@ -26,8 +26,9 @@ monitorings_cli = AppGroup('monitorings')
 @monitorings_cli.command('install')
 @click.argument('module_config_dir_path')
 @click.argument('module_path')
+@click.option("--build", type=bool, required=False, default=True)
 @with_appcontext
-def install_monitoring_module(module_config_dir_path, module_path):
+def install_monitoring_module(module_config_dir_path, module_path, build):
     '''
         Module de suivi générique : installation d'un sous module
 
@@ -145,12 +146,13 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     DB.engine.execution_options(autocommit=True).execute(txt)
 
     # exec geonature (update img)
-    subprocess.call(
-        [
-            "geonature update_module_configuration {}"
-            .format(module_monitoring.module_code)
-        ],
-        shell=True)
+    if build:
+        subprocess.call(
+            [
+                "geonature update_module_configuration {}"
+                .format(module_monitoring.module_code)
+            ],
+            shell=True)
 
     # TODO ++++ create specific tables
 
@@ -182,8 +184,16 @@ def remove_monitoring_module(module_path):
 
     # remove module in db
     try:
-        DB.session.delete(module)
-        DB.session.commit()
+        # HACK pour le moment suprresion avec un sql direct
+        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
+        txt = ("""
+                    DELETE FROM gn_commons.t_modules WHERE id_module ={}
+                """.format(
+                    module.id_module
+                )
+        )
+
+        DB.engine.execution_options(autocommit=True).execute(txt)
     except IntegrityError as ie:
         print("Impossible de supprimer le module car il y a des données associées")
         return
@@ -201,14 +211,14 @@ def remove_monitoring_module(module_path):
         removesymlink(img_link)
 
     # suppression source pour la synthese
-    source = get_source_by_code("MONITORING_" + module_path.upper())
     try:
+        print('Remove source {}'.format("MONITORING_" + module_path.upper()))
+        source = get_source_by_code("MONITORING_" + module_path.upper())
         DB.session.delete(source)
         DB.session.commit()
-    except Exception:
-        print("Impossible de supprimer la source")
+    except Exception as e:
+        print("Impossible de supprimer la source {}".format(str(e)))
         return
-
     # run specific sql TODO
     # remove nomenclature TODO
     return
