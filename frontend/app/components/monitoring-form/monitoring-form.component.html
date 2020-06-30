@@ -100,7 +100,7 @@
         ></span>
 
         <span
-          >Enregister et saisir les {{obj.uniqueChildrenType()}}s</span
+          >Valider et saisir les {{obj.uniqueChildrenType()}}s</span
         >
       </button>
 
@@ -118,9 +118,9 @@
           ></span>
 
           <span *ngIf="bChainInput && !obj.id"
-            >Enregister et enchainer les saisies</span
+            >Valider et enchainer les saisies</span
           >
-          <span *ngIf="!bChainInput || obj.id">Enregister</span>
+          <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
 
         <button class="btn btn-primary float-left" (click)="onCancelEdit()">
