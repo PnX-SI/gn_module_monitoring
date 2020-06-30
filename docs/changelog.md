@@ -17,4 +17,4 @@ Première version fonctionelle du module Monitoring de GeoNature
 * Ajout d'une commande de suppression d'un sous-module (``remove_monitoring_module_cmd(module_path)``)
 * Documentation de l'installation et de la configuration d'un sous-module de protocole de suivi
 
-* Des exemples de sous-modules sont présent [au dépôt suivant](https://github.com/PnCevennes/protocoles_suivi/)
+* Des exemples de sous-modules sont présent [ici](https://github.com/PnCevennes/protocoles_suivi/)
