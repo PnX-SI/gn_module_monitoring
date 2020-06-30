@@ -38,7 +38,8 @@
     "base_site_name": {
       "type_widget": "text",
       "attribut_label": "Nom",
-      "required": true
+      "required": true,
+      "definition": "Nom du site."
     },
     "base_site_code": {
       "type_widget": "text",

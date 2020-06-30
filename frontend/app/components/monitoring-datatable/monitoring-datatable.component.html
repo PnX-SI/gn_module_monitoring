@@ -54,12 +54,18 @@
 
   <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
     <div class="header-sort-span" (click)="sortFn()">
+      {{column.definition}}
       <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
+      <i 
+        *ngIf="child0.template.fieldDefinitions[column.prop]"
+        class="material-icons icon-sort" 
+        [matTooltip]="tooltip(column)"
+        matTooltipPosition="above"
+        >help</i>
       <span
-        [matTooltip]="column.name"
-        matTooltipPosition="above">
-        {{ column.name }}
-      </span>
+        [matTooltip]="tooltip(column)"
+        matTooltipPosition="above"
+        > {{ column.name }}</span>
     </div>
     <div class="header-filter-span">
       <input

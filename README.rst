@@ -251,6 +251,7 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
     * ``hidden`` : permet de cacher la variable ou l'input du formulaire,
     * ``value`` : permet d'attribuer une valeur par défaut,
     * ``required`` : permet de rendre un input obligatoire.
+    * ``definition`` : permet d'ajouter une définiton à la variable pour aider l'utilisateur.
 * les attributs `spéciaux` :
     * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
 

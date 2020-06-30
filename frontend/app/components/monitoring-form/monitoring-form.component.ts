@@ -39,6 +39,7 @@ export class MonitoringFormComponent implements OnInit {
   public bDeleteSpinner = false;
   public bDeleteModal = false;
   public bChainInput = false;
+  public bAddChildren = false;
 
   constructor(
     private _formBuilder: FormBuilder,

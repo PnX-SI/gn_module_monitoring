@@ -32,8 +32,16 @@
       attr.aria-labelledby="nav-properties-tab"
     >
       <table class="table table-striped table-sm">
-        <tr *ngFor="let fieldName of obj.template['fieldNames']; let i = index">
-          <th>{{ obj.template["fieldLabels"][fieldName] }}</th>
+        <tr *ngFor="let fieldName of obj.template.fieldNames; let i = index">
+          <th>
+            {{ obj.template.fieldLabels[fieldName] }}
+              <i 
+              *ngIf="obj.template.fieldDefinitions[fieldName]"
+              class="material-icons small-icon" 
+              [matTooltip]="obj.template.fieldLabels[fieldName] + ' : ' + obj.template.fieldDefinitions[fieldName]"
+              matTooltipPosition="above"
+              >help</i>
+          </th>
           <td>{{ obj.resolvedProperties[fieldName] }}</td>
         </tr>
       </table>

@@ -66,11 +66,6 @@ export class MonitoringDatatableComponent implements OnInit {
     this.row_save = this.rows.map(e => e);
   }
 
-  dispcol(col) {
-    console.log(col)
-    return '';
-  }
-
   filterInput($event) {
     this.filterSubject.next();
   }
@@ -173,6 +168,12 @@ export class MonitoringDatatableComponent implements OnInit {
 
   ngOnDestroy() {
     this.filterSubject.unsubscribe();
+  }
+
+  tooltip(column) {
+    return this.child0.template.fieldDefinitions[column.prop]
+      ? column.name + ' : ' +  this.child0.template.fieldDefinitions[column.prop]
+      : column.name;
   }
 
   ngOnChanges(changes: SimpleChanges) {

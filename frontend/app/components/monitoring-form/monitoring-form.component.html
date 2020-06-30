@@ -26,8 +26,7 @@
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
     <h3>
-      {{ obj.id ? "Modification" : "Création" }} {{ obj.template["label"] }}
-      <span
+      {{ obj.id ? "Modification" : "Création" }}<span
         *ngIf="!obj.id"
         id="toggle-btn"
         class="float-right"

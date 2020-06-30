@@ -73,8 +73,11 @@ export class MonitoringObjectBase {
       true
     );
 
+
+
     this.template['fieldLabels'] = this.fieldLabels();
     this.template['fieldNames'] = this.fieldNames('display_properties');
+    this.template['fieldDefinitions'] = this.fieldDefinitions();
     this.template['fieldNamesList'] = this.fieldNames('display_list');
   }
 
@@ -243,6 +246,16 @@ export class MonitoringObjectBase {
     }
     return fieldLabels;
   }
+
+  fieldDefinitions() {
+    const schema = this.schema();
+    const fieldDefinitions = {};
+    for (const key of Object.keys(schema)) {
+      fieldDefinitions[key] = schema[key]['definition'];
+    }
+    return fieldDefinitions;
+  }
+
 
   geoFeature() {
     // patch
