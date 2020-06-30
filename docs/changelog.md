@@ -1,6 +1,6 @@
 # Changelog
 
-0.1.0 (unreleased)
+0.1.0
 ------------------
 
 Première version fonctionelle du module Monitoring de GeoNature
@@ -16,3 +16,5 @@ Première version fonctionelle du module Monitoring de GeoNature
 * Ajout d'une commande d'installation d'un sous-module (``flask monitoring install <module_dir_config_path> <module_path>``)
 * Ajout d'une commande de suppression d'un sous-module (``remove_monitoring_module_cmd(module_path)``)
 * Documentation de l'installation et de la configuration d'un sous-module de protocole de suivi
+
+* Des exemples de sous-modules sont présent [au dépôt suivant](https://github.com/PnCevennes/protocoles_suivi/)
