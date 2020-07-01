@@ -8,6 +8,7 @@
       }
     }
   },
+  "taxonomy_field_name": "__TAXONOMY_FIELD_NAME",
   "synthese": "__SYNTHESE",
   "synthese_object": "observation",
   "data": {

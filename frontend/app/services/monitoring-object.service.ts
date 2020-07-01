@@ -18,17 +18,19 @@ export class MonitoringObjectService {
 
   _cache = {};
 
-  configUtilsDict = {
-    user: {
-      fieldName: "nom_complet",
-    },
-    nomenclature: {
-      fieldName: "label_fr",
-    },
-    taxonomy: {
-      fieldName: "nom_vern,lb_nom",
-    },
-  };
+  configUtilsDict(modulePath) {
+    return {
+      user: {
+        fieldName: "nom_complet",
+      },
+      nomenclature: {
+        fieldName: "label_fr",
+      },
+      taxonomy: {
+        fieldName: this._configService.config()[modulePath].taxonomy_field_name || "nom_vern,lb_nom",
+      }
+    }
+  }
 
   cache(modulePath, objectType = null, id = null) {
     let cache = (this._cache[modulePath] = this._cache[modulePath] || {});
@@ -192,8 +194,8 @@ export class MonitoringObjectService {
     delete objectsCache[obj.id];
   }
 
-  configUtils(elem) {
-    const confUtil = elem.type_util && this.configUtilsDict[elem.type_util];
+  configUtils(elem, modulePath) {
+    const confUtil = elem.type_util && this.configUtilsDict(modulePath)[elem.type_util];
     return confUtil;
   }
 

@@ -115,6 +115,11 @@ export class ConfigService {
     }
   }
 
+  config() {
+    return this._config;
+  }
+
+
   cache() {
     return this._config;
   }

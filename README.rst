@@ -64,12 +64,14 @@ Configuration du module de suivi générique
 
 .. code-block:: JSON
 
-    {
-        "__CODE_LIST_INVENTOR": "obsocctax",
-        "__CODE_LIST_OBSERVER": "obsocctax",
-        "__ID_COMPONENT_TAXONOMY": "100",
-        "__ID_DATASET_VISIT": 1
-    }
+{
+  "__CODE_LIST_INVENTOR": "obsocctax",
+  "__CODE_LIST_OBSERVER": "obsocctax",
+  "__ID_COMPONENT_TAXONOMY": "100",
+  "__ID_DATASET_VISIT": 1,
+  "__SYNTHESE": false,
+  "__TAXONOMY_FIELD_NAME": "nom_vern,lb_nom"
+}
 
 Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modules, ou bien peuvent être redéfinies dans le fichier du même nom ``custom.json`` propre à chaque sous-module.
 
@@ -78,6 +80,8 @@ Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modul
 * ``__CODE_LIST_INVENTOR`` : la liste des descripteurs de sites.
 * ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 * ``__ID_DATASET_VISIT`` : l'id du jeu de données correspondant aux visites. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
+* ``__SYNTHESE`` : activer la synchronisation des données saisie dans ce module avec la synthèse.
+* ``__TAXONOMY_FIELD_NAME`` : choisir l'affichage des taxons (par défaut ``"nom_vern,lb_nom"``: nom vernaculaire si existant ou nom latin.), passer à ``'lb_nom'`` pour afficher les noms latins.
 
 
 ===================================
@@ -183,6 +187,7 @@ Dans le fichier ``config.json`` :
         },
     }
     }
+
 
 ------------------------
 Configuration des objets

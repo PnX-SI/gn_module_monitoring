@@ -118,7 +118,7 @@ export class MonitoringObjectBase {
   }
 
   resolveProperty(elem, val): Observable<any> {
-    const configUtil = this._objService.configUtils(elem);
+    const configUtil = this._objService.configUtils(elem, this.modulePath);
 
     if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
       val = Utils.formatDate(val);
