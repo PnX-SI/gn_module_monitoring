@@ -81,6 +81,7 @@ def install_monitoring_module(module_config_dir_path, module_path, build):
 
     module_desc = config_param(module_path, 'module', 'module_desc')
     module_label = config_param(module_path, 'module', 'module_label')
+    synthese_object = config_param(module_path, 'module', 'synthese_object')
 
     if not(module_desc and module_label):
         print(
@@ -133,13 +134,14 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         'MONITORING_{0}',
         'Données issues du module de suivi générique (sous-module: {1})',
         'gn_monitoring.vs_{2}.entity_source_pk_value',
-        '#/{3}/object/{2}/visit/observation'
+        '#/{3}/object/{2}/{4}
     );
         """.format(
             module_path.upper(), # MONITORING_TEST
             module_label.lower(), # module de test
             module.module_path, # test
             module_monitoring.module_path, # monitorings
+            synthese_object # observation
         )
     )
 
