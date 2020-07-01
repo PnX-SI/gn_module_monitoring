@@ -7,7 +7,6 @@
     "module_label",
     "module_desc"
   ],
-  "synthese_object": "observation",
   "generic": {
     "id_module": {
       "type_widget": "text",

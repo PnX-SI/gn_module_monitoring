@@ -1,5 +1,11 @@
 # Changelog
 
+0.1.1 (Unreleased)
+
+**Corrections**
+
+* Renseignement de la table `gn_synthese.t_source` à l'installation
+
 0.1.0 (2020-06-30)
 ------------------
 

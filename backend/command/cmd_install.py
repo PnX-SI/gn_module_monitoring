@@ -71,7 +71,9 @@ def install_monitoring_module(module_config_dir_path, module_path, build):
             CONFIG_PATH + '/../../frontend/assets/' + module_path + '.jpg'
         )
 
-    if not get_config(module_path):
+    config = get_config(module_path)
+
+    if not config:
         print(
             'config directory for module {} does not exist'.format(
                 module_path
@@ -81,7 +83,7 @@ def install_monitoring_module(module_config_dir_path, module_path, build):
 
     module_desc = config_param(module_path, 'module', 'module_desc')
     module_label = config_param(module_path, 'module', 'module_label')
-    synthese_object = config_param(module_path, 'module', 'synthese_object')
+    synthese_object = config.get('synthese_object')
 
     if not(module_desc and module_label):
         print(

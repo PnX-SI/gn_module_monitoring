@@ -458,6 +458,23 @@ Dans le dossier de configuration du module, s'il n'existe pas déjà, créer le 
     ...
     }
 
+
+Si le module de possède pas d'observation et son arborescense s'arrête au niveau des visites,
+dans le fichier `config/monitoring/generic/config.json` ajouter la lignee
+
+.. code-block:: JSON
+
+    {
+    ...
+    "synthese_object": "visit"
+    ...
+    }
+
+Ce dernier point doit être effectué avant l'installation du module,
+et permettra d'avoir le lien de la page concernant la visite depuis la synthèse de GéoNature.
+
+Par défaut ce lien renvoie vers l'observation concernée.
+
 -----------------------------------
 Création d'une vue pour la synthèse
 -----------------------------------

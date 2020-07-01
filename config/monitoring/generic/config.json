@@ -9,6 +9,7 @@
     }
   },
   "synthese": "__SYNTHESE",
+  "synthese_object": "observation",
   "data": {
     "nomenclature": [
         "TYPE_SITE",
