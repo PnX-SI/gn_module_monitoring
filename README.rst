@@ -14,7 +14,7 @@ Ces 3 niveaux peuvent être complétés des données spécifiques à chaque prot
     :alt: Liste des sites du protocole de test
     :width: 800
 
-Le module permet de générer des sous-modules (stockés dans la table ``gn_commons.t_modules``) pour chaque protocole de suivi. Ils s'appuient sur les champs fixes des 3 tables ``gn_monitoring.t_base_sites``, ``gn_monitoring.t_base_visits`` et ``gn_monitoring.t_observations`` qui peuvent chacunes être étendues avec des champs spécifiques et dynamiques stockés dans des champs de type ``jsonb``. 
+Le module permet de générer des sous-modules (stockés dans la table ``gn_commons.t_modules``) pour chaque protocole de suivi. Ils s'appuient sur les champs fixes des 3 tables ``gn_monitoring.t_base_sites``, ``gn_monitoring.t_base_visits`` et ``gn_monitoring.t_observations`` qui peuvent chacunes être étendues avec des champs spécifiques et dynamiques stockés dans des champs de type ``jsonb``.
 
 Les champs spécifiques de chaque sous-module sont définis dans des fichiers de configuration au format json.
 
@@ -32,6 +32,7 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 * `Exemples de sous-modules`_
 * `Création d'un sous-module`_
 * `Synchronisation avec la synthèse`_
+* `Suppression d'un module`_
 
 
 =========================================
@@ -115,7 +116,8 @@ Exemples de sous-modules
 D'autres exemples de sous-modules sont disponibles sur le dépôt https://github.com/PnCevennes/protocoles_suivi :
 
 * Protocole de suivi des oedicnèmes,
-* Protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena.
+* Protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena;
+* Protocole Suivi Temporel des Oiseaux de Montagne (STOM)
 
 =========================
 Création d'un sous-module
@@ -201,9 +203,9 @@ Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observa
 
 Les variables ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichées (pour la page d'un objet ou pour les listes et dans quel ordre).
 
-Si ``display_list`` n'est pas défini, il prend la valeur de ``display_properties``
+Si ``display_list`` n'est pas défini, il prend la valeur de ``display_properties``.
 
-Par exemple:
+Par exemple :
 
 .. code-block:: JSON
 
@@ -275,7 +277,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 .. code-block:: JSON
 
         "num_passage": {
-            "type_widget": "int",
+            "type_widget": "number",
             "attribut_label": "Numéro de passage",
             "required": true,
             "min": 1,
@@ -356,6 +358,7 @@ Redéfinir une variable existante
 --------------------------------
 
 Dans plusieurs cas, on peut avoir besoin de redéfinir un élément du schéma.
+
 On rajoutera cet élément dans notre variable ``specific`` et cet élément sera mis à jour :
 
 * Changer le label d'un élément et le rendre visible et obligatoire
@@ -370,7 +373,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 * Donner une valeur par défaut à une nomenclature et cacher l'élément
 
-  Dans le cas où la variable ``type_widget`` est redefinie, il faut redéfinir toutes les variables.
+  Dans le cas où la variable ``type_widget`` est redéfinie, il faut redéfinir toutes les variables.
 
 .. code-block:: JSON
 
@@ -436,7 +439,7 @@ Installation du sous-module
 Procéder comme pour `Installation du sous-module de test`_
 
 
-
+================================
 Synchronisation avec la synthèse
 ================================
 
@@ -470,11 +473,9 @@ Pour la vue et la source, on pourra s'inspirer du fichier ``synthese.sql``
 ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/synthese.sql>`_
 qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
-TODO : Faire une vue d'exemple pour le module test.
-
 L'alimentation de la Synthèse est automatique si sa vue existe et si le paramètre ``__SYNTHESE`` est défini à ``true`` dans le fichier ``config.json`` du module.
 
-
+=======================
 Suppression d'un module
 =======================
 
