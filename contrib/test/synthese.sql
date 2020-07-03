@@ -85,7 +85,8 @@ SELECT
 		--last_action
 		v.id_module,
 		--comment_context
-		v.comment_description,
+		v.comment_context,
+		o.comments AS comment_description,
 		ids_observers,
 		
 		-- ## Colonnes complémentaires pouvant être utile

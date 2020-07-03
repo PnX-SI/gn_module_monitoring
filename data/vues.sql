@@ -21,7 +21,6 @@ SELECT
 	v.visit_date_min AS date_min,
 	COALESCE (v.visit_date_max, v.visit_date_min) AS date_max,
 	v.comments AS comment_context,
-	s.comments AS site_comment,
 	s.geom AS the_geom_4326,
 	ST_CENTROID(s.geom) AS the_geom_point,
 	s.geom_local as geom_local,
