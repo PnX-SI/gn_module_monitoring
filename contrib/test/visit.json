@@ -3,6 +3,7 @@
     "visit_date_min",
     "observers",
     "meteo",
+    "id_dataset",
     "comments",
     "nb_observations"
   ],

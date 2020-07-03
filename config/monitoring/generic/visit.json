@@ -7,6 +7,7 @@
     "visit_date_min",
     "observers",
     "comments",
+    "dataset",
     "nb_observations"
   ],
   "sorts": [
@@ -60,9 +61,11 @@
       "attribut_label": "uuid"
     },
     "id_dataset": {
-      "type_widget": "text",
-      "value": "__ID_DATASET_VISIT",
-      "hidden": true
+      "type_widget": "dataset",
+      "attribut_label": "Jeu de données",
+      "module_code": "__MODULE_CODE",
+      "type_util": "dataset",
+      "required": true
     },
     "nb_observations": {
       "attribut_label": "Nombre d'observations"

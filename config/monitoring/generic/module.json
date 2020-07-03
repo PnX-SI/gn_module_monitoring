@@ -5,36 +5,49 @@
   "uuid_field_name": "uuid_module_complement",
   "display_properties": [
     "module_label",
-    "module_desc"
+    "module_desc",
+    "datasets"
   ],
   "generic": {
     "id_module": {
       "type_widget": "text",
-      "attribut_label": "ID",
+      "attribut_label": "ID",gti 
       "hidden": true
     },
     "module_code":  {
       "type_widget": "text",
       "attribut_label": "Code",
-      "required": true
+      "required": true,
+      "hidden": true
     },
     "module_label": {
       "type_widget": "text",
       "attribut_label": "Nom",
-      "required": true
+      "required": true,
+      "hidden": true
     },
     "module_path": {
       "type_widget": "text",
       "attribut_label": "Path",
-      "required": true
+      "required": true,
+      "hidden": true
     },
     "module_desc": {
       "type_widget": "text",
       "attribut_label": "Description",
-      "required": true
+      "required": true,
+      "hidden": true
     },
     "uuid_module_complement": {
       "attribut_label": "uuid"
+    },
+    "datasets": {
+      "type_widget": "dataset",
+      "attribut_label": "Jeux de données",
+      "multi_select": true,
+      "type_util": "dataset",
+      "required": true
+
     }
   }
 }

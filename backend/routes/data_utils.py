@@ -16,6 +16,7 @@ from pypnusershub.db.models import User
 from utils_flask_sqla.response import json_resp
 
 from geonature.core.taxonomie.models import Taxref
+from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 
@@ -25,14 +26,16 @@ from ..blueprint import blueprint
 object_dict = {
     'nomenclature': TNomenclatures,
     'user': User,
-    'taxonomy': Taxref
+    'taxonomy': Taxref,
+    'dataset': TDatasets,
     }
 
 
 id_field_name_dict = {
     'nomenclature': 'id_nomenclature',
     'user': 'id_role',
-    'taxonomy': 'cd_nom'
+    'taxonomy': 'cd_nom',
+    'dataset': 'id_dataset',
 }
 
 

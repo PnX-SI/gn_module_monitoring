@@ -26,6 +26,9 @@ export class MonitoringObjectService {
       nomenclature: {
         fieldName: "label_fr",
       },
+      dataset: {
+        fieldName: "dataset_name",
+      },
       taxonomy: {
         fieldName: this._configService.config()[modulePath].taxonomy_field_name || "nom_vern,lb_nom",
       }

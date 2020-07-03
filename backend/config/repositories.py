@@ -103,7 +103,9 @@ def get_config(module_path=None):
     config['last_modif'] = last_modif
 
     # customize config
-    customize_config(config, config_from_files('custom', module_path))
+    custom = config_from_files('custom', module_path)
+    custom['__MODULE_CODE'] = module_path # TODO CLARIFIER MODULE_CODE MODULE_PATH!!!
+    customize_config(config, custom)
 
     # mise en cache dans current_app.config[config_cache_name][module_path]
     if not current_app.config.get(config_cache_name, {}):

@@ -1,6 +1,6 @@
 from .geom import MonitoringObjectGeom
 from .repositories import MonitoringObject
-from ..models.monitoring import CorSiteModule, CorVisitObserver
+from ..models.monitoring import CorSiteModule, CorVisitObserver, CorModuleDataset
 
 
 class MonitoringVisit(MonitoringObject):
@@ -45,3 +45,24 @@ class MonitoringModule(MonitoringObject):
         MonitoringObject.get(self, param_value, param_name)
         self._id = self._model.id_module
         return self
+
+    def process_correlations(self, post_data):
+
+        datasets = post_data['properties']['datasets']
+        print(datasets)
+        self.process_correlation(datasets, CorModuleDataset, 'id_dataset')
+
+    def serialize(self, depth=0):
+
+        monitoring_object_dict = MonitoringObject.serialize(self, depth)
+
+        properties = monitoring_object_dict['properties']
+        # on ne garde que les ids de datasets
+        if properties.get('datasets'):
+            datasets = [dataset.id_dataset for dataset in properties['datasets']]
+            properties['datasets'] = datasets
+
+        return monitoring_object_dict
+
+
+

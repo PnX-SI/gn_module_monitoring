@@ -11,6 +11,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
 
@@ -37,6 +38,23 @@ class CorSiteModule(DB.Model):
     )
     id_base_site = DB.Column(
         DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
+        primary_key=True
+    )
+
+
+class CorModuleDataset(DB.Model):
+    __tablename__ = 'cor_module_dataset'
+    __table_args__ = (
+        DB.PrimaryKeyConstraint('id_module', 'id_dataset'),
+        {'schema': 'gn_commons', 'extend_existing': True}
+    )
+
+    id_module = DB.Column(
+        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        primary_key=True
+    )
+    id_dataset = DB.Column(
+        DB.ForeignKey('gn_meta.t_datasets.id_dataset'),
         primary_key=True
     )
 
@@ -236,4 +254,13 @@ class TMonitoringModules(TModules):
         join_depth=0,
         lazy="select",
         # backref='parents'
+    )
+
+    datasets = DB.relationship(
+        'TDatasets',
+        secondary='gn_commons.cor_module_dataset',
+        primaryjoin=id_module == CorModuleDataset.id_module,
+        secondaryjoin=TDatasets.id_dataset == CorModuleDataset.id_dataset,
+        join_depth=0,
+        lazy="select",
     )

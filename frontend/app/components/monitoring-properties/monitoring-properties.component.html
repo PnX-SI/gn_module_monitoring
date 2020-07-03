@@ -50,7 +50,7 @@
         class="btn btn-success"
         (click)="onEditClick()"
         *ngIf="
-          !bEdit && obj.objectType != 'module' && currentUser?.cruved.E >= 1
+          !bEdit && currentUser?.cruved.E >= 1 && (obj.objectType != 'module' || currentUser?.cruved.E >= 3)
         "
       >
         Éditer {{(obj.template.label || '').toLowerCase()}}
