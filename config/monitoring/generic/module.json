@@ -11,7 +11,7 @@
   "generic": {
     "id_module": {
       "type_widget": "text",
-      "attribut_label": "ID",gti 
+      "attribut_label": "ID",
       "hidden": true
     },
     "module_code":  {
