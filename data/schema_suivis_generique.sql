@@ -80,7 +80,16 @@
             ON UPDATE CASCADE ON DELETE CASCADE
     );
 
+
+-- patch en attendant que la contrainte soit dans GN
+ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS gn_commons_bib_tables_location_unique;
+ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT gn_commons_bib_tables_location_unique UNIQUE (schema_name, table_name);
+
+-- pour ne pas remettre des lignes qui existent déjà
 INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
 VALUES
 ('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
-('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation');
+('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
+('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
+('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')
+ON CONFLICT(schema_name, table_name) DO NOTHING;
