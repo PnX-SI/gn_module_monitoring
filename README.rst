@@ -80,8 +80,8 @@ Les valeurs renseignées dans ce fichier peuvent servir pour tous les sous-modul
 * ``__CODE_LIST_INVENTOR`` : la liste des descripteurs de sites.
 * ``__ID_COMPONENT_TAXONOMY`` : l'id de la liste de taxons qui concernent un module. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
 * ``__ID_DATASET_VISIT`` : l'id du jeu de données correspondant aux visites. Il est en général propre à chaque sous-module et pourra être redéfini pour chaque sous-module.
-* ``__SYNTHESE`` : activer la synchronisation des données saisie dans ce module avec la synthèse.
-* ``__TAXONOMY_FIELD_NAME`` : choisir l'affichage des taxons (par défaut ``"nom_vern,lb_nom"``: nom vernaculaire si existant ou nom latin.), passer à ``'lb_nom'`` pour afficher les noms latins.
+* ``__SYNTHESE`` : activer la synchronisation des données saisies dans ce module avec la synthèse.
+* ``__TAXONOMY_FIELD_NAME`` : choisir l'affichage des taxons (par défaut ``"nom_vern,lb_nom"``: nom vernaculaire si existant ou nom latin.), passer à ``'lb_nom'`` pour afficher uniquement les noms latins.
 
 
 ===================================
@@ -464,8 +464,8 @@ Dans le dossier de configuration du module, s'il n'existe pas déjà, créer le 
     }
 
 
-Si le module de possède pas d'observation et son arborescense s'arrête au niveau des visites,
-dans le fichier `config/monitoring/generic/config.json` ajouter la lignee
+Si le module ne possède pas d'observation et son arborescense s'arrête au niveau des visites,
+dans le fichier `config/monitoring/generic/config.json` ajouter la ligne :
 
 .. code-block:: JSON
 
@@ -476,7 +476,7 @@ dans le fichier `config/monitoring/generic/config.json` ajouter la lignee
     }
 
 Ce dernier point doit être effectué avant l'installation du module,
-et permettra d'avoir le lien de la page concernant la visite depuis la synthèse de GéoNature.
+et permettra d'avoir le lien de la page concernant la visite depuis la synthèse de GeoNature.
 
 Par défaut ce lien renvoie vers l'observation concernée.
 
@@ -484,16 +484,16 @@ Par défaut ce lien renvoie vers l'observation concernée.
 Création d'une vue pour la synthèse
 -----------------------------------
 
-Dans un fichier nommé ``synthese.sql`` placé dans le dossier de configuration du module, créér une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse.
+Dans un fichier nommé ``synthese.sql``, placé dans le dossier de configuration du module, créer une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse de GeoNature selon le standard Occurrences de taxons du SINP.
 
 La convention de nommage de la vue est ``gn_monitoring.vs_<module_path>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
 
 Pour la vue et la source, on pourra s'inspirer du fichier ``synthese.sql``
-`du module test <cotrib/test/synthese.sql>`_
+`du module test <contrib/test/synthese.sql>`_
 ou `du module chevêche <https://github.com/PnCevennes/protocoles_suivi/blob/master/cheveches/synthese.sql>`_
-qui utilisent eux même la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
+qui utilisent eux-mêmes la vue `gn_monitoring.vs_visits <data/vues.sql>`_.
 
 L'alimentation de la Synthèse est automatique si sa vue existe et si le paramètre ``__SYNTHESE`` est défini à ``true`` dans le fichier ``config.json`` du module.
 
