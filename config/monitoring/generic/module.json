@@ -9,7 +9,7 @@
     "datasets"
   ],
   "generic": {
-    "id_module": {
+    "id_module": {"cd"
       "type_widget": "text",
       "attribut_label": "ID",
       "hidden": true
