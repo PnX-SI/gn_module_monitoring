@@ -82,8 +82,9 @@
 
 
 -- patch en attendant que la contrainte soit dans GN
-ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS gn_commons_bib_tables_location_unique;
-ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT gn_commons_bib_tables_location_unique UNIQUE (schema_name, table_name);
+ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_table_location_schema_name_table_name;
+ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT unique_bib_table_location_schema_name_table_name UNIQUE (schema_name, table_name);
+
 
 -- pour ne pas remettre des lignes qui existent déjà
 INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
