@@ -136,7 +136,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         'MONITORING_{0}',
         'Données issues du module de suivi générique (sous-module: {1})',
         'gn_monitoring.vs_{2}.entity_source_pk_value',
-        '#/{3}/object/{2}/{4}
+        '#/{3}/object/{2}/{4}'
     );
         """.format(
             module_path.upper(), # MONITORING_TEST
