@@ -60,12 +60,14 @@ class MonitoringObject(MonitoringObjectSerializer):
         self._model.medias = []
         for media_data in medias:
             id_media = media_data['id_media']
+
             media = (
                 DB.session.query(TMedias)
                     .filter(id_media == TMedias.id_media).one()
                 if id_media
-                else TMedias().from_dict(media_data)
+                else TMedias()
             )
+            media.from_dict(media_data)
             media.uuid_attached_row = self.config_value('uuid_field_name')
             self._model.medias.append(media)
         DB.session.commit()

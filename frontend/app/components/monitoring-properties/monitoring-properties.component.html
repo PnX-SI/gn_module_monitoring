@@ -62,9 +62,19 @@
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
     >
-    <div *ngFor="let media of obj.properties.medias">
-      {{media.title_fr}}
-    </div>
+    <ng-container *ngFor="let media of obj.properties.medias; index as i">
+      <div [matTooltip]="ms.toString(media)">
+        <a
+        [href]="ms.href(media)" target=_blank
+        >{{ media.title_fr }}</a>
+        <i>
+          ({{ ms.typeMedia(media) }}, @{{ media.author }})
+        </i>
+      </div>
+      <div>
+        <img-medias [medias]="obj.properties.medias" [index]=i></img-medias>
+      </div>
+    </ng-container>
 
   </div>
   </div>
