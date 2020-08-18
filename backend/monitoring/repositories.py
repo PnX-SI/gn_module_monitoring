@@ -3,6 +3,7 @@ from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
 from .base import MonitoringObjectBase, monitoring_definitions
+from geonature.core.gn_commons.models import TMedias
 
 import logging
 
@@ -43,7 +44,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         properties = post_data['properties']
 
-        id_parent = post_data.get('id_parent')
+        id_parent = post_data.get('id_parent') #TODO remove
         if id_parent:
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
@@ -52,6 +53,22 @@ class MonitoringObject(MonitoringObjectSerializer):
         # pour gérer et commiter les corrélations en tout genre
         # à redefinir dans class fille à definir dans les modèles sqlalchemy
         pass
+
+    def process_medias(self, post_data):
+
+        medias = post_data['properties'].get('medias', [])
+        self._model.medias = []
+        for media_data in medias:
+            id_media = media_data['id_media']
+            media = (
+                DB.session.query(TMedias)
+                    .filter(id_media == TMedias.id_media).one()
+                if id_media
+                else TMedias().from_dict(media_data)
+            )
+            media.uuid_attached_row = self.config_value('uuid_field_name')
+            self._model.medias.append(media)
+        DB.session.commit()
 
     def process_correlation(self, cor_data_array, Cor, id_foreign_key_name):
         '''
@@ -128,6 +145,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_correlations(post_data)
+            self.process_medias(post_data)
 
             self.process_synthese()
 

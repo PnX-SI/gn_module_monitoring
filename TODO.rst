@@ -2,6 +2,12 @@
 TODO
 ====
 
+impt
+====
+
+* serializer et populate propre (avec schéma comme dans occtax??, dans serializable.from_dict ???
+    * passer par object et plus par id ??
+
 petites modifications
 =====================
 

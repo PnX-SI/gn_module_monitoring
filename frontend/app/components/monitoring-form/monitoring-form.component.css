@@ -7,7 +7,7 @@
 
 :host ::ng-deep .obj-form small {
   position: relative;
-  background-color: lightgray;
+  /* background-color: lightgray; */
   top: -5px;
   padding: 1px 3px;
   border-radius: 3px;
