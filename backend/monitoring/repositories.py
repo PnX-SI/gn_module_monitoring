@@ -147,7 +147,10 @@ class MonitoringObject(MonitoringObjectSerializer):
             self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_correlations(post_data)
+
+            print('yarglou', post_data)
             self.process_medias(post_data)
+            print('yarglouu')
 
             self.process_synthese()
 
