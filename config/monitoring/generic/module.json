@@ -47,7 +47,11 @@
       "multi_select": true,
       "type_util": "dataset",
       "required": true
-
+    },
+    "medias": {
+      "type_widget": "medias",
+      "attribut_label": "Médias",
+      "schema_dot_table": "gn_monitoring.t_module_complements"
     }
   }
 }

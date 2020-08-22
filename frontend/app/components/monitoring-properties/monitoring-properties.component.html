@@ -20,7 +20,7 @@
         attr.aria-controls="medias"
         aria-selected="false"
         >Médias
-        ({{ obj.medias && obj.medias.length || 0 }})
+        ({{ obj.properties.medias && obj.properties.medias.length || 0 }})
       </a>
     </div>
   </nav>
@@ -62,13 +62,20 @@
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
     >
-      <pnx-medias
-        [(medias)]="obj.medias"
-        [uuid_attached_row]="obj.template['uuid']"
-        [staticDirUrl]="backendUrl"
-        [idTableLocation]="obj.template.idTableLocation"
-        [currentUser]="currentUser"
-      ></pnx-medias>
-    </div>
+    <ng-container *ngFor="let media of obj.properties.medias; index as i">
+      <div [matTooltip]="ms.toString(media)">
+        <a
+        [href]="ms.href(media)" target=_blank
+        >{{ media.title_fr }}</a>
+        <i>
+          ({{ ms.typeMedia(media) }}, @{{ media.author }})
+        </i>
+      </div>
+      <div>
+        <img-medias [medias]="obj.properties.medias" [index]=i></img-medias>
+      </div>
+    </ng-container>
+
+  </div>
   </div>
 </div>

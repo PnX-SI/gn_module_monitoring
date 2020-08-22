@@ -13,7 +13,6 @@ import { DataUtilsService } from "./services/data-utils.service";
 import { CacheService } from "./services/cache.service";
 import { MonitoringObjectService } from "./services/monitoring-object.service";
 import { ConfigService } from "./services/config.service";
-import { UploadService } from "./components/upload-media/upload.service";
 
 // Component
 import { BreadcrumbsComponent } from "./components/breadcrumbs/breadcrumbs.component";
@@ -27,7 +26,6 @@ import { MonitoringFormComponent } from "./components/monitoring-form/monitoring
 import { MonitoringChoixSiteComponent } from "./components/monitoring-form/choix-site/choix-site.component";
 import { MonitoringListComponent } from "./components/monitoring-lists/monitoring-lists.component";
 import { MonitoringPropertiesComponent } from "./components/monitoring-properties/monitoring-properties.component";
-import { MediasComponent } from "./components/medias/medias.component";
 import { MonitoringDatatableComponent } from "./components/monitoring-datatable/monitoring-datatable.component";
 
 import {
@@ -75,7 +73,6 @@ const routes: Routes = [
     MonitoringFormComponent,
     MonitoringListComponent,
     MonitoringPropertiesComponent,
-    MediasComponent,
     MonitoringDatatableComponent,
     MonitoringChoixSiteComponent,
   ],
@@ -102,7 +99,6 @@ const routes: Routes = [
     DataUtilsService,
     ConfigService,
     MonitoringObjectService,
-    UploadService,
   ],
   bootstrap: [ModulesComponent],
   schemas: [

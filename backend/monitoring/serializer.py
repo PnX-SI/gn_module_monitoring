@@ -142,13 +142,16 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # processe properties
         self.flatten_specific_properties(properties)
 
+        if properties.get('medias'):
+            medias = [media.as_dict() for media in properties['medias']]
+            properties['medias'] = medias
+
         monitoring_object_dict = {
             'properties': properties,
             'object_type': self._object_type,
             'module_path': self._module_path,
             'site_id': self.get_site_id(),
             'id': self._id,
-            'medias': [media.as_dict(True) for media in self._model.medias]
         }
 
         if self._object_type == 'module':

@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { ConfigService } from '../../services/config.service';
+import { MediaService } from '@geonature_common/service/media.service'
 
 @Component({
   selector: 'pnx-monitoring-properties',
@@ -19,6 +20,7 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   constructor(
     private _configService: ConfigService,
+    public ms: MediaService,
   ) {}
 
   ngOnInit() {

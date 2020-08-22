@@ -49,7 +49,6 @@ class MonitoringModule(MonitoringObject):
     def process_correlations(self, post_data):
 
         datasets = post_data['properties']['datasets']
-        print(datasets)
         self.process_correlation(datasets, CorModuleDataset, 'id_dataset')
 
     def serialize(self, depth=0):
@@ -61,6 +60,7 @@ class MonitoringModule(MonitoringObject):
         if properties.get('datasets'):
             datasets = [dataset.id_dataset for dataset in properties['datasets']]
             properties['datasets'] = datasets
+
 
         return monitoring_object_dict
 

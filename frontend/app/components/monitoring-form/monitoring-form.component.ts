@@ -45,7 +45,7 @@ export class MonitoringFormComponent implements OnInit {
     private _formBuilder: FormBuilder,
     private _router: Router,
     private _configService: ConfigService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this._configService
@@ -59,12 +59,14 @@ export class MonitoringFormComponent implements OnInit {
 
           // init objFormsDefinition
           this.objFormsDefinition = Object.keys(schema)
+            // medias toujours à la fin
+            .sort((a, b) => { return a == 'medias' ? +1 : b == "medias" ? -1 : 0 })
             .filter((attribut_name) => schema[attribut_name].type_widget)
             .map((attribut_name) => {
               const elem = schema[attribut_name];
               elem["attribut_name"] = attribut_name;
               return elem;
-            });
+            })
           return this.obj.formValues();
         })
       )
@@ -240,14 +242,14 @@ export class MonitoringFormComponent implements OnInit {
       console.log(
         "info",
         `${actionLabel} de ${this.obj.configParam("label")} ${
-          this.obj.id
+        this.obj.id
         } effectué`
       );
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.objChanged.emit(this.obj);
       if (this.bChainInput) {
         this.resetObjForm();
-      } else if (this.bAddChildren){
+      } else if (this.bAddChildren) {
         this.navigateToAddChildren()
       } else {
         this.navigateToDetail();
@@ -267,7 +269,7 @@ export class MonitoringFormComponent implements OnInit {
     this.bDeleteSpinner = true;
     const msg_delete = `${this.obj.template["label"]} ${
       this.obj.id
-    } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
+      } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
     console.log(msg_delete);
 
     this.obj.delete().subscribe((objData) => {
