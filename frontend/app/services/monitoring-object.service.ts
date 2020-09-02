@@ -125,8 +125,6 @@ export class MonitoringObjectService {
       obj.parentId
     );
     if (!(parentData && parentData.children)) {
-      console.log(parentData);
-      console.log(parentData && parentData.children);
       return;
     }
     return parentData ? parentData : null;
