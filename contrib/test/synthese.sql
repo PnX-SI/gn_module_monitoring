@@ -42,7 +42,7 @@ SELECT
 		v.id_nomenclature_geo_object_nature,
 		v.id_nomenclature_grp_typ,
 		--id_nomenclature_obs_meth,
-		v.id_nomenclature_obs_technique,
+		v.id_nomenclature_tech_collect_campanule,
 		--id_nomenclature_bio_status, 
 		--id_nomenclature_bio_condition,
 		--id_nomenclature_naturalness,

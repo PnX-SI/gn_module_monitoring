@@ -15,7 +15,7 @@ SELECT
 	s.id_base_site,
 	v.id_base_visit,
 	v.id_dataset,
-	id_nomenclature_obs_technique,
+	id_nomenclature_tech_collect_campanule,
 	id_nomenclature_grp_typ,
 	ref_nomenclatures.get_id_nomenclature('NAT_OBJ_GEO', 'St') AS id_nomenclature_geo_object_nature,
 	v.visit_date_min AS date_min,
