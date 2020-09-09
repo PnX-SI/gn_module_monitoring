@@ -1,15 +1,22 @@
 # Changelog
 
 0.1.1 (Unreleased)
+------------------
+
+Nécessite la version 2.5.0 de GeoNature minimum.
+
+**Fonctionnalités**
+
+* 
 
 **Corrections**
 
-* Renseignement de la table `gn_synthese.t_source` à l'installation
+* Renseignement de la table `gn_synthese.t_sources` à l'installation
 
 0.1.0 (2020-06-30)
 ------------------
 
-Première version fonctionelle du module Monitoring de GeoNature
+Première version fonctionelle du module Monitoring de GeoNature. Nécessite la version 2.4.1 de GeoNature minimum.
 
 **Fonctionnalités**
 
@@ -23,4 +30,4 @@ Première version fonctionelle du module Monitoring de GeoNature
 * Ajout d'une commande de suppression d'un sous-module (``remove_monitoring_module_cmd(module_path)``)
 * Documentation de l'installation et de la configuration d'un sous-module de protocole de suivi
 
-* Des exemples de sous-modules sont présent [ici](https://github.com/PnCevennes/protocoles_suivi/)
+* Des exemples de sous-modules sont présents [ici](https://github.com/PnCevennes/protocoles_suivi/)
