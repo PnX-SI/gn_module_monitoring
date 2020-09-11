@@ -19,8 +19,9 @@
         role="tab"
         attr.aria-controls="medias"
         aria-selected="false"
-        >Médias
-        ({{ obj.properties.medias && obj.properties.medias.length || 0 }})
+        >Médias ({{
+          (obj.properties.medias && obj.properties.medias.length) || 0
+        }})
       </a>
     </div>
   </nav>
@@ -35,26 +36,21 @@
         <tr *ngFor="let fieldName of obj.template.fieldNames; let i = index">
           <th>
             {{ obj.template.fieldLabels[fieldName] }}
-              <i 
+            <i
               *ngIf="obj.template.fieldDefinitions[fieldName]"
-              class="material-icons small-icon" 
-              [matTooltip]="obj.template.fieldLabels[fieldName] + ' : ' + obj.template.fieldDefinitions[fieldName]"
+              class="material-icons small-icon"
+              [matTooltip]="
+                obj.template.fieldLabels[fieldName] +
+                ' : ' +
+                obj.template.fieldDefinitions[fieldName]
+              "
               matTooltipPosition="above"
-              >help</i>
+              >help</i
+            >
           </th>
           <td>{{ obj.resolvedProperties[fieldName] }}</td>
         </tr>
       </table>
-
-      <button
-        class="btn btn-success"
-        (click)="onEditClick()"
-        *ngIf="
-          !bEdit && currentUser?.cruved.E >= 1 && (obj.objectType != 'module' || currentUser?.cruved.E >= 3)
-        "
-      >
-        Éditer {{(obj.template.label || '').toLowerCase()}}
-      </button>
     </div>
     <div
       class="tab-pane fade"
@@ -62,21 +58,38 @@
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
     >
-    <ng-container *ngFor="let media of obj.properties.medias; index as i">
-      <div [matTooltip]="ms.toString(media)">
-        <a
-        [href]="ms.href(media)" target=_blank
-        >{{ media.title_fr }}</a>
-        <i>
-          ({{ ms.typeMedia(media) }}<span *ngIf="media.author"> par {{ media.author }}</span>)
-        </i>
-      </div>
-      <div>
-        <pnx-display-medias [medias]="obj.properties.medias" [index]=i display='medium' diaporama=true>
-        </pnx-display-medias>
-      </div>
-    </ng-container>
-
-  </div>
+      <ng-container *ngFor="let media of obj.properties.medias; index as i">
+        <div class="medias-tab">
+          <div [matTooltip]="ms.toString(media)">
+            <a [href]="ms.href(media)" target="_blank">{{ media.title_fr }}</a>
+            <i>
+              ({{ ms.typeMedia(media)
+              }}<span *ngIf="media.author"> par {{ media.author }}</span
+              >)
+            </i>
+          </div>
+          <div>
+            <pnx-display-medias
+              [medias]="obj.properties.medias"
+              [index]="i"
+              display="medium"
+              diaporama="true"
+            >
+            </pnx-display-medias>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+    <button
+      class="btn btn-success"
+      (click)="onEditClick()"
+      *ngIf="
+        !bEdit &&
+        currentUser?.cruved.E >= 1 &&
+        (obj.objectType != 'module' || currentUser?.cruved.E >= 3)
+      "
+    >
+      Éditer {{ (obj.template.label || "").toLowerCase() }}
+    </button>
   </div>
 </div>
