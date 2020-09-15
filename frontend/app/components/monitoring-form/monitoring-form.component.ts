@@ -49,7 +49,7 @@ export class MonitoringFormComponent implements OnInit {
 
   ngOnInit() {
     this._configService
-      .init(this.obj.modulePath)
+      .init(this.obj.moduleCode)
       .pipe(
         mergeMap(() => {
           this.bChainInput = this._configService.frontendParams()[
@@ -123,7 +123,7 @@ export class MonitoringFormComponent implements OnInit {
 
     const parentId = this.obj.parentId;
     this.obj = new MonitoringObject(
-      this.obj.modulePath,
+      this.obj.moduleCode,
       this.obj.objectType,
       null,
       this.obj.monitoringObjectService()
@@ -162,7 +162,7 @@ export class MonitoringFormComponent implements OnInit {
       "/",
       this._configService.frontendModuleMonitoringUrl(),
       "create_object",
-      this.obj.modulePath,
+      this.obj.moduleCode,
       this.obj.uniqueChildrenType(),
       this.obj.id,
     ]);
@@ -174,7 +174,7 @@ export class MonitoringFormComponent implements OnInit {
       "/",
       this._configService.frontendModuleMonitoringUrl(),
       "object",
-      this.obj.modulePath,
+      this.obj.moduleCode,
       this.obj.objectType,
       this.obj.id,
     ]);
@@ -187,7 +187,7 @@ export class MonitoringFormComponent implements OnInit {
         "/",
         this._configService.frontendModuleMonitoringUrl(),
         "object",
-        this.obj.modulePath,
+        this.obj.moduleCode,
         "module",
         this.obj.id,
       ]);
@@ -196,7 +196,7 @@ export class MonitoringFormComponent implements OnInit {
         "/",
         this._configService.frontendModuleMonitoringUrl(),
         "object",
-        this.obj.modulePath,
+        this.obj.moduleCode,
         this.obj.parentType(),
         this.obj.parentId,
       ]);
@@ -210,7 +210,7 @@ export class MonitoringFormComponent implements OnInit {
         "/",
         this._configService.frontendModuleMonitoringUrl(),
         "create_object",
-        this.obj.modulePath,
+        this.obj.moduleCode,
         this.obj.objectType,
         this.obj.parentId,
       ]);
@@ -250,7 +250,7 @@ export class MonitoringFormComponent implements OnInit {
 
       /** si c'est un module : reset de la config */
       if(this.obj.objectType == 'module') {
-        this._configService.loadConfig(this.obj.modulePath).subscribe();
+        this._configService.loadConfig(this.obj.moduleCode).subscribe();
       }
 
 

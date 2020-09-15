@@ -27,7 +27,7 @@ def to_int_cruved(cruved):
     return cruved
 
 
-def cruved_scope_for_user_in_monitoring_module(module_path=None):
+def cruved_scope_for_user_in_monitoring_module(module_code=None):
     user = get_user_from_token_and_raise(request)
 
     cruved_module = {
@@ -48,8 +48,8 @@ def cruved_scope_for_user_in_monitoring_module(module_path=None):
     module = None
     herited = False
 
-    if module_path and module_path != 'null':
-        module = get_module('module_path', module_path)
+    if module_code and module_code != 'null':
+        module = get_module('module_code', module_code)
         if module:
             cruved_module, herited = cruved_scope_for_user_in_module(user['id_role'], module.module_code, 'ALL')
             if not herited:
@@ -71,7 +71,7 @@ def check_cruved_scope_monitoring(
 ):
     """
         Decorateur qui verifie si un utilisateur a des droit sur un module de suivi
-        (reférencé dans la route comme module_path)
+        (reférencé dans la route comme module_code)
 
         Prend en compte le droit maximum entre le module MONITORINGS et le module spécifique
         autorise l'acces a la route si ce droit est supérieur ou égal à droit_min
@@ -92,9 +92,9 @@ def check_cruved_scope_monitoring(
         @wraps(fn)
         def __check_cruved_scope_monitoring(*args, **kwargs):
 
-            module_path = kwargs.get('module_path')
+            module_code = kwargs.get('module_code')
 
-            cruved = cruved_scope_for_user_in_monitoring_module(module_path)
+            cruved = cruved_scope_for_user_in_monitoring_module(module_code)
             user = get_user_from_token_and_raise(request)
             permission = cruved[action]
 
@@ -106,7 +106,7 @@ min permission level is {}'''.format(
                         user['id_role'],
                         permission,
                         action,
-                        module_path or 'monitorings',
+                        module_code or 'monitorings',
                         droit_min
                     ),
                     403,

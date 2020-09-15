@@ -100,24 +100,24 @@ export class DataUtilsService {
   }
 
   /** Récupère les données qui seront utiles pour le module */
-  getInitData(modulePath): Observable<any> {
+  getInitData(moduleCode): Observable<any> {
     /** Les données à récupérer sont spécifiées dans la config du module
-     * config/<module_path>/data_config.json et
-     * config/<module_path>/custom_config.json
+     * config/<module_code>/data_config.json et
+     * config/<module_code>/custom_config.json
     */
 
-    if(!Object.keys(this._configService.configData(modulePath)).length) {
+    if(!Object.keys(this._configService.configData(moduleCode)).length) {
       return of(true);
     }
 
     const cache = this._cacheService.cache();
     // test si la fonction a déjà été appelée
-    if (cache[modulePath] && cache[modulePath]['init_data']) {
+    if (cache[moduleCode] && cache[moduleCode]['init_data']) {
       return of(true);
     }
 
     const observables = {};
-    const configData = this._configService.configData(modulePath);
+    const configData = this._configService.configData(moduleCode);
 
     // Test if nomenclature is define
     if (('nomenclature' in configData) && (configData['nomenclature'].length > 0)) {
@@ -175,10 +175,10 @@ export class DataUtilsService {
           }
 
           // pour ne pas appeler la fonction deux fois
-          if (!cache[modulePath]) {
-            cache[modulePath] = {};
+          if (!cache[moduleCode]) {
+            cache[moduleCode] = {};
           }
-          cache[modulePath]['init_data'] = true;
+          cache[moduleCode]['init_data'] = true;
 
           return of(true);
         })

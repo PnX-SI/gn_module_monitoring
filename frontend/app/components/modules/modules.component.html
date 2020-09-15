@@ -14,13 +14,13 @@
       <div class="col-4 col-sm-5 col-md-4 col-lg-4 " *ngFor="let module of modules">
         <a [routerLink]="[
         'object',
-        module.module_path,
+        module.module_code,
         'module',
         module.id_module
         ]" >
           <div class="card module-card">
             <img class="card-img-top"
-            src="{{ urlApplication }}/external_assets/{{ moduleMonitoringCode | lowercase }}/{{ module.module_path }}.jpg"
+            src="{{ urlApplication }}/external_assets/{{ moduleMonitoringCode | lowercase }}/{{ module.module_code }}.jpg"
             alt="{{ module.module_label }}"
             title="{{ module.module_label }}"
             >

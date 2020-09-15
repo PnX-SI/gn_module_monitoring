@@ -15,12 +15,12 @@ CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
 
 
-def get_monitoring_module(module_path):
-    if module_path == 'generic':
+def get_monitoring_module(module_code):
+    if module_code == 'generic':
         return None
     return (
         DB.session.query(TMonitoringModules)
-        .filter(TMonitoringModules.module_path == module_path)
+        .filter(TMonitoringModules.module_code == module_code)
         .one()
     )
 
@@ -92,22 +92,22 @@ def json_from_file(file_path, result_default):
     return out
 
 
-def json_config_from_file(module_path, type_config):
+def json_config_from_file(module_code, type_config):
 
-    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_path, type_config)
+    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_code, type_config)
     return json_from_file(file_path, {})
 
 
-def json_schema_from_file(module_path, object_type):
+def json_schema_from_file(module_code, object_type):
 
-    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_path, object_type)
+    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_code, object_type)
     return json_from_file(file_path, {})
 
 
-def config_from_files(config_type, module_path):
+def config_from_files(config_type, module_code):
 
     generic_config_custom = json_config_from_file('generic', config_type)
-    specific_config_custom = {} if module_path == 'generic' else json_config_from_file(module_path, config_type)
+    specific_config_custom = {} if module_code == 'generic' else json_config_from_file(module_code, config_type)
 
     generic_config_custom.update(specific_config_custom)
 
@@ -214,13 +214,15 @@ def customize_config(elem, custom):
         for key_custom in custom:
             if elem == key_custom:
                 elem = custom[key_custom]
+                print('uuuu', elem, key_custom)
             elif isinstance(elem, str) and key_custom in elem:
                 elem = elem.replace(key_custom, str(custom[key_custom]))
+                print('yakou', elem, key_custom)
 
     return elem
 
 
-def config_from_files_customized(type_config, module_path):
-    config_type = config_from_files(type_config, module_path)
-    custom = config_from_files('custom', module_path)
+def config_from_files_customized(type_config, module_code):
+    config_type = config_from_files(type_config, module_code)
+    custom = config_from_files('custom', module_code)
     return customize_config(config_type, custom)

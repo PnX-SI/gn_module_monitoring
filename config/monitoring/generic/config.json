@@ -8,7 +8,7 @@
       }
     }
   },
-  "taxonomie_display_field_name": "__MODULE.TAXONOMIE_DISPLAY_FIELD_NAME",
+  "taxonomie_display_field_name": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
   "synthese": "__MODULE.B_SYNTHESE",
   "synthese_object": "observation",
   "data": {

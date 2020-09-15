@@ -71,7 +71,7 @@
       "params": {
         "active": true,
         "orderby": "dataset_name",
-        "module_code": "__MODULE.MODULE_CODE"
+        "module_code": "__MODULE.module_code"
       },
       "data_path": "data",
       "required": true

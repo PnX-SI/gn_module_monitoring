@@ -21,7 +21,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return (
             monitoring_definitions
             .monitoring_object_instance(
-                self._module_path,
+                self._module_code,
                 parent_type,
                 self.id_parent()
             )
@@ -101,7 +101,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             children_of_type = [
                 monitoring_definitions
-                .monitoring_object_instance(self._module_path, children_type, model=child_model)
+                .monitoring_object_instance(self._module_code, children_type, model=child_model)
                 # .get()
                 .serialize(depth)
                 for child_model in getattr(self._model, relation_name)
@@ -149,7 +149,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         monitoring_object_dict = {
             'properties': properties,
             'object_type': self._object_type,
-            'module_path': self._module_path,
+            'module_code': self._module_code,
             'site_id': self.get_site_id(),
             'id': self._id,
         }

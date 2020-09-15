@@ -25,10 +25,10 @@ monitorings_cli = AppGroup('monitorings')
 
 @monitorings_cli.command('install')
 @click.argument('module_config_dir_path')
-@click.argument('module_path')
+@click.argument('module_code')
 @click.option("--build", type=bool, required=False, default=True)
 @with_appcontext
-def install_monitoring_module(module_config_dir_path, module_path, build):
+def install_monitoring_module(module_config_dir_path, module_code, build):
     '''
         Module de suivi générique : installation d'un sous module
 
@@ -36,18 +36,18 @@ def install_monitoring_module(module_config_dir_path, module_path, build):
         params :
             - module_config_dir_path (str) : chemin du répertoire
                     où se situe les fichiers de configuration du module
-            - module_path (str): code du module
+            - module_code (str): code du module
     '''
 
-    print('Install module {}'.format(module_path))
+    print('Install module {}'.format(module_code))
 
     module_monitoring = get_simple_module('module_code', 'MONITORINGS')
 
     try:
-        module = get_simple_module('module_path', module_path)
+        module = get_simple_module('module_code', module_code)
         # test si le module existe
         if(module):
-            print("Le module {} existe déjà".format(module_path))
+            print("Le module {} existe déjà".format(module_code))
             # TODO update??
             return
     except Exception:
@@ -62,27 +62,27 @@ def install_monitoring_module(module_config_dir_path, module_path, build):
         return
 
     # symlink to config dir
-    symlink(module_config_dir_path, CONFIG_PATH + '/' + module_path)
+    symlink(module_config_dir_path, CONFIG_PATH + '/' + module_code)
 
     # symlink image menu modules de suivi
     if os.path.exists(module_config_dir_path + '/img.jpg'):
         symlink(
             module_config_dir_path + '/img.jpg',
-            CONFIG_PATH + '/../../frontend/assets/' + module_path + '.jpg'
+            CONFIG_PATH + '/../../frontend/assets/' + module_code + '.jpg'
         )
 
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     if not config:
         print(
             'config directory for module {} does not exist'.format(
-                module_path
+                module_code
             )
         )
         return None
 
-    module_desc = config_param(module_path, 'module', 'module_desc')
-    module_label = config_param(module_path, 'module', 'module_label')
+    module_desc = config_param(module_code, 'module', 'module_desc')
+    module_label = config_param(module_code, 'module', 'module_label')
     synthese_object = config.get('synthese_object')
 
     if not(module_desc and module_label):
@@ -93,19 +93,20 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         return
 
     module_data = {
-        'module_path': module_path,
-        'module_code': module_path, # ??? Pourquoi module_code = module_path
+        'module_code': module_code,
+        'module_path': '{}/module/{}'.format(module_monitoring.module_path, module_code),
         'module_label': module_label,
         'module_desc': module_desc,
         'active_frontend': False,
         'active_backend': False
     }
 
-    print('ajout du module {} en base'.format(module_path))
+    print('ajout du module {} en base'.format(module_code))
     module = TMonitoringModules()
     module.from_dict(module_data)
     DB.session.add(module)
     DB.session.commit()
+
 
     #  run specific sql
     if os.path.exists(module_config_dir_path + '/synthese.sql'):
@@ -122,7 +123,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
             print("Erreur dans le script synthese.sql")
 
     # insert nomenclature
-    add_nomenclature(module_path)
+    add_nomenclature(module_code)
 
     # creation source pour la synthese
     txt = ("""
@@ -139,9 +140,9 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         '#/{3}/object/{2}/{4}'
     );
         """.format(
-            module_path.upper(), # MONITORING_TEST
+            module_code.upper(), # MONITORING_TEST
             module_label.lower(), # module de test
-            module.module_path, # test
+            module.module_code, # test
             module_monitoring.module_path, # monitorings
             synthese_object # observation
         )
@@ -153,8 +154,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     if build:
         subprocess.call(
             [
-                "geonature update_module_configuration {}"
-                .format(module_monitoring.module_code)
+                "geonature frontend_build"
             ],
             shell=True)
 
@@ -164,24 +164,24 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
 
 
 @monitorings_cli.command('remove')
-@click.argument('module_path')
+@click.argument('module_code')
 @with_appcontext
-def remove_monitoring_module_cmd(module_path):
+def remove_monitoring_module_cmd(module_code):
     '''
         Module de suivi générique : suppression d'un sous module
 
         Commande d'installation
         params :
-            - module_path (str): code du module
+            - module_code (str): code du module
     '''
 
-    print('Remove module {}'.format(module_path))
-    remove_monitoring_module(module_path)
+    print('Remove module {}'.format(module_code))
+    remove_monitoring_module(module_code)
 
 
-def remove_monitoring_module(module_path):
+def remove_monitoring_module(module_code):
     try:
-        module = get_module('module_path', module_path)
+        module = get_module('module_code', module_code)
     except Exception:
         print("le module n'existe pas")
         return
@@ -206,18 +206,18 @@ def remove_monitoring_module(module_path):
         raise(e)
 
     # remove symlink config
-    if os.path.exists(CONFIG_PATH + '/' + module_path):
-        removesymlink(CONFIG_PATH + '/' + module_path)
+    if os.path.exists(CONFIG_PATH + '/' + module_code):
+        removesymlink(CONFIG_PATH + '/' + module_code)
 
     # remove symlink image menu modules de suivi
-    img_link = CONFIG_PATH + '/../../frontend/assets/' + module_path + '.jpg'
+    img_link = CONFIG_PATH + '/../../frontend/assets/' + module_code + '.jpg'
     if os.path.exists(img_link):
         removesymlink(img_link)
 
     # suppression source pour la synthese
     try:
-        print('Remove source {}'.format("MONITORING_" + module_path.upper()))
-        source = get_source_by_code("MONITORING_" + module_path.upper())
+        print('Remove source {}'.format("MONITORING_" + module_code.upper()))
+        source = get_source_by_code("MONITORING_" + module_code.upper())
         DB.session.delete(source)
         DB.session.commit()
     except Exception as e:
@@ -242,14 +242,14 @@ def symlink(path_source, path_dest):
 
 
 @monitorings_cli.command('add_module_nomenclature')
-@click.argument('module_path')
+@click.argument('module_code')
 @with_appcontext
-def add_module_nomenclature_cli(module_path):
-    return add_nomenclature(module_path)
+def add_module_nomenclature_cli(module_code):
+    return add_nomenclature(module_code)
 
 
-def add_nomenclature(module_path):
-    path_nomenclature = CONFIG_PATH + '/' + module_path + '/nomenclature.json'
+def add_nomenclature(module_code):
+    path_nomenclature = CONFIG_PATH + '/' + module_code + '/nomenclature.json'
 
     if not os.path.exists(path_nomenclature):
         print("Il n'y a pas de nomenclature à insérer pour ce module")

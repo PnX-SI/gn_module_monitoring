@@ -56,7 +56,7 @@
         ></pnx-monitoring-datatable>
         <div
           *ngIf="
-            obj.modulePath &&
+            obj.moduleCode &&
             currentUser?.cruved.C >= 1
           "
           class="float-right"
@@ -67,7 +67,7 @@
               '/',
               frontendModuleMonitoringUrl,
               'create_object',
-              obj.modulePath,
+              obj.moduleCode,
               child0.objectType,
               obj.id
             ]"

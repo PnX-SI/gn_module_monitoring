@@ -21,9 +21,9 @@ from .utils import (
 config_cache_name = 'MONITORINGS_CONFIG'
 
 
-def get_config_objects(module_path, config, tree=None, parent_type=None):
+def get_config_objects(module_code, config, tree=None, parent_type=None):
     '''
-        recupere la config de chaque object present dans tree pour le module <module_path>
+        recupere la config de chaque object present dans tree pour le module <module_code>
     '''
     if not tree:
         # initial tree
@@ -32,7 +32,7 @@ def get_config_objects(module_path, config, tree=None, parent_type=None):
     for object_type in tree:
 
         # config object
-        config[object_type] = config_object_from_files(module_path, object_type)
+        config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
         children_types = tree[object_type] and list(tree[object_type].keys())
@@ -54,15 +54,15 @@ def get_config_objects(module_path, config, tree=None, parent_type=None):
 
         # recursif
         if tree[object_type]:
-            get_config_objects(module_path, config, tree[object_type], object_type)
+            get_config_objects(module_code, config, tree[object_type], object_type)
 
 
-def config_object_from_files(module_path, object_type):
+def config_object_from_files(module_code, object_type):
     '''
-        recupere la configuration d'un object de type <object_type> pour le module <module_path>
+        recupere la configuration d'un object de type <object_type> pour le module <module_code>
     '''
     generic_config_object = json_config_from_file('generic', object_type)
-    specific_config_object = {} if module_path == 'generic' else json_config_from_file(module_path, object_type)
+    specific_config_object = {} if module_code == 'generic' else json_config_from_file(module_code, object_type)
 
     config_object = generic_config_object
     config_object.update(specific_config_object)
@@ -70,7 +70,7 @@ def config_object_from_files(module_path, object_type):
     return config_object
 
 
-def get_config(module_path=None):
+def get_config(module_code=None):
     '''
         recupere la configuration pour le module monitoring
 
@@ -82,10 +82,10 @@ def get_config(module_path=None):
     '''
 
 
-    module_path = module_path if module_path else 'generic'
-    module = get_monitoring_module(module_path)
+    module_code = module_code if module_code else 'generic'
+    module = get_monitoring_module(module_code)
 
-    module_confg_dir_path = CONFIG_PATH + '/' + module_path
+    module_confg_dir_path = CONFIG_PATH + '/' + module_code
     # test si le repertoire existe
     if not os.path.exists(module_confg_dir_path):
         return None
@@ -108,15 +108,15 @@ def get_config(module_path=None):
     last_modif = max(last_modif_base, last_modif_file) 
 
     # test si present dans cache et pas modifée depuis le dernier appel
-    config = current_app.config.get(config_cache_name, {}).get(module_path)
+    config = current_app.config.get(config_cache_name, {}).get(module_code)
 
     if config and config.get('last_modif', 0) >= last_modif:
         return config
 
     print('config_get')
 
-    config = config_from_files('config', module_path)
-    get_config_objects(module_path, config)
+    config = config_from_files('config', module_code)
+    get_config_objects(module_code, config)
     config['last_modif'] = last_modif
 
     # customize config
@@ -131,9 +131,11 @@ def get_config(module_path=None):
         ]:
             var_name = '__MODULE.{}'.format(field_name.upper())
             custom[var_name] = getattr(module, field_name)
-        # custom['__MODULE_CODE'] = module_path # TODO CLARIFIER MODULE_CODE MODULE_PATH!!!
-        
+            print(var_name, custom[var_name])
+
         customize_config(config, custom)
+
+        print(config)
 
         # preload data
         config['data'] = {
@@ -141,22 +143,22 @@ def get_config(module_path=None):
             # 'no': 
         }
 
-    # mise en cache dans current_app.config[config_cache_name][module_path]
+    # mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(config_cache_name, {}):
         current_app.config[config_cache_name] = {}
-    current_app.config[config_cache_name][module_path] = config
+    current_app.config[config_cache_name][module_code] = config
 
     return config
 
 
-def config_param(module_path, object_type, param_name):
+def config_param(module_code, object_type, param_name):
     '''
         revoie un parametre de la configuration des objets
 
-        :param module_path: reference le module concerne
+        :param module_code: reference le module concerne
         :param object_type: le type d'object (site, visit, obervation)
         :param param_name: le parametre voulu (id_field_name, label)
-        :type module_path: str
+        :type module_code: str
         :type object_type: str
         :type param_name: str
         :return: valeur du paramètre requis
@@ -172,12 +174,12 @@ def config_param(module_path, object_type, param_name):
 
     '''
 
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     return config[object_type].get(param_name)
 
 
-def config_schema(module_path, object_type, type_schema="all"):
+def config_schema(module_code, object_type, type_schema="all"):
     '''
         renvoie une liste d'éléments de configuration de formulaire
 
@@ -194,17 +196,17 @@ def config_schema(module_path, object_type, type_schema="all"):
                 "required": "true",
             }
 
-        :param module_path: reference le module concerne
+        :param module_code: reference le module concerne
         :param object_type: le type d'object (site, visit, obervation)
         :param type_schema: le type de schema requis ('all', 'generic', 'specific')
-        :type module_path: str
+        :type module_code: str
         :type object_type: str
         :type type_schema: str, optional
         :return: tableau d'élément de configuration de formulaire
         :rtype: list
     '''
     # recuperation de la configuration
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     if type_schema in ["generic", "specific"]:
         return config[object_type][type_schema]
@@ -216,7 +218,7 @@ def config_schema(module_path, object_type, type_schema="all"):
     return schema
 
 
-def get_config_frontend(module_path=None):
+def get_config_frontend(module_code=None):
 
-    config = dict(get_config(module_path))
+    config = dict(get_config(module_code))
     return config

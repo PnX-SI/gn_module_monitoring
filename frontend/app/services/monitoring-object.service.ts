@@ -18,7 +18,7 @@ export class MonitoringObjectService {
 
   _cache = {};
 
-  configUtilsDict(modulePath) {
+  configUtilsDict(moduleCode) {
     return {
       user: {
         fieldName: "nom_complet",
@@ -33,7 +33,7 @@ export class MonitoringObjectService {
         fieldName: "nom_liste",
       },
       taxonomy: {
-        fieldName: this._configService.config()[modulePath].taxonomie_display_field_name || "nom_vern,lb_nom",
+        fieldName: this._configService.config()[moduleCode].taxonomie_display_field_name || "nom_vern,lb_nom",
       },
       taxonomy_list: {
         fieldName: "nom_liste",
@@ -41,8 +41,8 @@ export class MonitoringObjectService {
     }
   }
 
-  cache(modulePath, objectType = null, id = null) {
-    let cache = (this._cache[modulePath] = this._cache[modulePath] || {});
+  cache(moduleCode, objectType = null, id = null) {
+    let cache = (this._cache[moduleCode] = this._cache[moduleCode] || {});
 
     if (!objectType) {
       return cache;
@@ -62,7 +62,7 @@ export class MonitoringObjectService {
   setCache(obj: MonitoringObject, objData) {
     // post ou update
 
-    if (obj.objectType === "module" && !obj.modulePath) {
+    if (obj.objectType === "module" && !obj.moduleCode) {
       return;
     }
     if (obj.objectType !== "module" && !obj.id) {
@@ -71,10 +71,10 @@ export class MonitoringObjectService {
 
     // object
     if (obj.objectType === "module") {
-      const cache = this.cache(obj.modulePath);
+      const cache = this.cache(obj.moduleCode);
       cache["module"] = objData;
     } else {
-      const cache = this.cache(obj.modulePath, obj.objectType);
+      const cache = this.cache(obj.moduleCode, obj.objectType);
       cache[obj.id] = objData;
     }
 
@@ -82,7 +82,7 @@ export class MonitoringObjectService {
     if (objData.children) {
       for (const childrenType of Object.keys(objData.children)) {
         const childrenData = objData.children[childrenType];
-        const cacheChildren = this.cache(obj.modulePath, childrenType);
+        const cacheChildren = this.cache(obj.moduleCode, childrenType);
         for (const childData of childrenData) {
           cacheChildren[childData.id] = childData;
         }
@@ -126,7 +126,7 @@ export class MonitoringObjectService {
       return;
     }
     const parentData = this.cache(
-      obj.modulePath,
+      obj.moduleCode,
       obj.parentType(),
       obj.parentId
     );
@@ -138,14 +138,14 @@ export class MonitoringObjectService {
 
   getFromCache(obj: MonitoringObject) {
     // get
-    if (obj.objectType === "module" && !obj.modulePath) {
+    if (obj.objectType === "module" && !obj.moduleCode) {
       return;
     }
     if (obj.objectType !== "module" && !obj.id) {
       return;
     }
 
-    const objData = this.cache(obj.modulePath, obj.objectType, obj.id);
+    const objData = this.cache(obj.moduleCode, obj.objectType, obj.id);
 
     if (!(objData && Object.keys(objData).length)) {
       return null;
@@ -171,7 +171,7 @@ export class MonitoringObjectService {
       );
       for (const childData of childrenData) {
         const child = new MonitoringObject(
-          obj.modulePath,
+          obj.moduleCode,
           childrenType,
           childData.id,
           this
@@ -197,12 +197,12 @@ export class MonitoringObjectService {
     }
 
     // delete
-    const objectsCache = this.cache(obj.modulePath, obj.objectType);
+    const objectsCache = this.cache(obj.moduleCode, obj.objectType);
     delete objectsCache[obj.id];
   }
 
-  configUtils(elem, modulePath) {
-    const confUtil = elem.type_util && this.configUtilsDict(modulePath)[elem.type_util];
+  configUtils(elem, moduleCode) {
+    const confUtil = elem.type_util && this.configUtilsDict(moduleCode)[elem.type_util];
     return confUtil;
   }
 

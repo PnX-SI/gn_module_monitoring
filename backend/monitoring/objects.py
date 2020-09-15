@@ -39,9 +39,9 @@ class MonitoringModule(MonitoringObject):
 
     def get(self, param_value=None, param_name=None):
         if not param_name:
-            param_name = 'module_path'
+            param_name = 'module_code'
             if not param_value:
-                param_value = self._module_path
+                param_value = self._module_code
         MonitoringObject.get(self, param_value, param_name)
         self._id = self._model.id_module
         return self

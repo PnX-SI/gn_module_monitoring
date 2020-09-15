@@ -43,23 +43,23 @@ export class BreadcrumbsComponent implements OnInit {
 
   initBreadcrumbs() {
     this._configService
-      .init(this.obj.modulePath)
+      .init(this.obj.moduleCode)
       .pipe(
         mergeMap(() => {
-          if (!this.obj.modulePath) {
+          if (!this.obj.moduleCode) {
             return of([]);
           }
 
           if (!this.obj.id && this.obj.parentId) {
             return this._dataMonitoringObjectService.getbreadcrumbs(
-              this.obj.modulePath,
+              this.obj.moduleCode,
               this.obj.parentType(),
               this.obj.parentId
             );
           }
 
           return this._dataMonitoringObjectService.getbreadcrumbs(
-            this.obj.modulePath,
+            this.obj.moduleCode,
             this.obj.objectType,
             this.obj.id
           );
@@ -79,7 +79,7 @@ export class BreadcrumbsComponent implements OnInit {
           "/",
           this._configService.frontendModuleMonitoringUrl(),
           "object",
-          elem.module_path,
+          elem.module_code,
           elem.object_type,
           elem.id,
         ]);

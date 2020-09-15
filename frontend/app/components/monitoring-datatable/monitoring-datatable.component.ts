@@ -139,7 +139,7 @@ export class MonitoringDatatableComponent implements OnInit {
       '/',
       this.frontendModuleMonitoringUrl,
       'object',
-      this.child0.modulePath,
+      this.child0.moduleCode,
       objectType,
       id
     ]);

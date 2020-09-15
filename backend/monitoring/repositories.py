@@ -103,7 +103,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         if not self.config().get('synthese'):
             return
 
-        table_name = 'vs_{}'.format(self._module_path)
+        table_name = 'vs_{}'.format(self._module_code)
         try:
             import_from_table(
                 'gn_monitoring',
@@ -187,7 +187,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             'id': self._id,
             'label': self.config_param('label'),
             'description': str(self.config_value('description_field_name')),
-            'module_path': self._module_path,
+            'module_code': self._module_code,
             'object_type': self._object_type,
         }
 

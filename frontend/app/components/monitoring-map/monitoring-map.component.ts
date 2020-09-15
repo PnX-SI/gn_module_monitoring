@@ -234,7 +234,7 @@ export class MonitoringMapComponent implements OnInit {
       '#',
       this._configService.frontendModuleMonitoringUrl(),
       'object',
-      this.obj.modulePath,
+      this.obj.moduleCode,
       'site',
       layer['feature'].properties.id_base_site
     ].join('/');

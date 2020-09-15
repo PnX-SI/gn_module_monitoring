@@ -40,8 +40,8 @@ class MonitoringDefinitions:
                 .format(object_type, str(e))
             )
 
-    def monitoring_object_instance(self, module_path, object_type, id=None, model=None):
-        return self.MonitoringObject(object_type)(module_path, object_type, id, model)
+    def monitoring_object_instance(self, module_code, object_type, id=None, model=None):
+        return self.MonitoringObject(object_type)(module_code, object_type, id, model)
 
     def MonitoringModel(self, object_type):
         try:
@@ -59,16 +59,16 @@ monitoring_definitions = MonitoringDefinitions()
 class MonitoringObjectBase():
 
     _object_type = None
-    _module_path = None
+    _module_code = None
     _id = None
 
     _model = None
     _children = {}
     _parent = None
 
-    def __init__(self, module_path, object_type, id=None, model=None):
+    def __init__(self, module_code, object_type, id=None, model=None):
 
-        self._module_path = module_path
+        self._module_code = module_code
         self._object_type = object_type
 
         self._id = id
@@ -87,7 +87,7 @@ class MonitoringObjectBase():
     def __str__(self):
         return (
             'monitoringobject {}, {}, {}'
-            .format(self._module_path, self._object_type, self._id)
+            .format(self._module_code, self._object_type, self._id)
             )
 
     def MonitoringModel(self):
@@ -112,10 +112,10 @@ class MonitoringObjectBase():
         return Model
 
     def config(self):
-        return repositories_get_config(self._module_path)
+        return repositories_get_config(self._module_code)
 
     def config_param(self, param_name):
-        return repositories_config_param(self._module_path, self._object_type, param_name)
+        return repositories_config_param(self._module_code, self._object_type, param_name)
 
     def config_value(self, param_name):
         field_name = self.config_param(param_name)
@@ -124,10 +124,10 @@ class MonitoringObjectBase():
     def parent_config_param(self, param_name):
         parent_type = self.config_param('parent_type')
         if parent_type:
-            return repositories_config_param(self._module_path, parent_type, param_name)
+            return repositories_config_param(self._module_code, parent_type, param_name)
 
     def config_schema(self, type_schema='all'):
-        return repositories_config_schema(self._module_path, self._object_type, type_schema)
+        return repositories_config_schema(self._module_code, self._object_type, type_schema)
         pass
 
     def base_type_object(self):
@@ -150,7 +150,7 @@ class MonitoringObjectBase():
             return False
 
         base_parent_type = (
-            repositories_config_param(self._module_path, parent_type, 'inherit_type') or parent_type
+            repositories_config_param(self._module_code, parent_type, 'inherit_type') or parent_type
         )
 
         return base_object_type == base_parent_type
@@ -164,9 +164,9 @@ class MonitoringObjectBase():
         if not parent_type:
             return
         if 'module' in parent_type:
-            return self._module_path
+            return self._module_code
 
         return getattr(self._model, self.id_parent_fied_name())
 
     def get_cruved(self):
-        return cruved_scope_for_user_in_monitoring_module(self._module_path)
+        return cruved_scope_for_user_in_monitoring_module(self._module_code)

@@ -45,18 +45,18 @@ const routes: Routes = [
   { path: "", component: ModulesComponent },
 
   /** module  */
-  // { path: 'module/:modulePath', component: MonitoringObjectComponent },
+  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
   /** create module */
-  // { path: 'module', component: MonitoringObjectComponent },
+  { path: 'module', component: MonitoringObjectComponent },
 
   /** object */
   {
-    path: "object/:modulePath/:objectType/:id",
+    path: "object/:moduleCode/:objectType/:id",
     component: MonitoringObjectComponent,
   },
   /** create object */
   {
-    path: "create_object/:modulePath/:objectType/:parentId",
+    path: "create_object/:moduleCode/:objectType/:parentId",
     component: MonitoringObjectComponent,
   },
 ];

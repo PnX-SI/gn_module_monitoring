@@ -195,7 +195,7 @@ Configuration des objets
 
 Dans le fichier ``module.json``, deux variables doivent obligatoirement être définies dans ce fichier :
 
-* ``module_path``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
+* ``module_code``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
 
 Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observation.json``) on peut redéfinir au besoin certaines variables.
@@ -486,7 +486,7 @@ Création d'une vue pour la synthèse
 
 Dans un fichier nommé ``synthese.sql``, placé dans le dossier de configuration du module, créer une vue qui agrège les informations des visites et des observations, afin de pouvoir les insérer dans la syntèse de GeoNature selon le standard Occurrences de taxons du SINP.
 
-La convention de nommage de la vue est ``gn_monitoring.vs_<module_path>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
+La convention de nommage de la vue est ``gn_monitoring.vs_<module_code>``, par exemple ``gn_monitoring.vs_test`` pour le module de test.
 
 Cette vue regroupe toutes les informations nécessaires pour renseigner la synthèse.
 
@@ -501,4 +501,4 @@ L'alimentation de la Synthèse est automatique si sa vue existe et si le paramè
 Suppression d'un module
 =======================
 
-Lancer la commande ``flask monitorings remove <module_path>``.
+Lancer la commande ``flask monitorings remove <module_code>``.

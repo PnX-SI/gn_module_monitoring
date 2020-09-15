@@ -5,7 +5,7 @@ import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
 
 export class MonitoringObjectBase {
-  modulePath: string;
+  moduleCode: string;
   objectType: string;
   id: number; // id de l'objet
 
@@ -37,16 +37,16 @@ export class MonitoringObjectBase {
   protected _objService: MonitoringObjectService;
 
   constructor(
-    modulePath: string,
+    moduleCode: string,
     objectType: string,
     id,
     objService: MonitoringObjectService
   ) {
-    if (!modulePath) {
-      throw new Error('Monitoring object sans modulePath');
+    if (!moduleCode) {
+      throw new Error('Monitoring object sans moduleCode');
     }
     this.objectType = objectType;
-    this.modulePath = modulePath;
+    this.moduleCode = moduleCode;
     this.id = id;
     this._objService = objService;
   }
@@ -56,7 +56,7 @@ export class MonitoringObjectBase {
   }
 
   toString() {
-    return `Object - ${this.modulePath} ${this.objectType} ${this.id}`;
+    return `Object - ${this.moduleCode} ${this.objectType} ${this.id}`;
   }
 
   initTemplate() {
@@ -111,14 +111,14 @@ export class MonitoringObjectBase {
       : this._objService
         .configService()
         .configModuleObjectParam(
-          this.modulePath,
+          this.moduleCode,
           this.parentType(),
           'id_field_name'
         );
   }
 
   resolveProperty(elem, val): Observable<any> {
-    const configUtil = this._objService.configUtils(elem, this.modulePath);
+    const configUtil = this._objService.configUtils(elem, this.moduleCode);
 
     if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
       val = Utils.formatDate(val);
@@ -154,7 +154,7 @@ export class MonitoringObjectBase {
     return this._objService
       .configService()
       .configModuleObjectParam(
-        this.modulePath,
+        this.moduleCode,
         this.objectType,
         fieldName
       );
@@ -198,7 +198,7 @@ export class MonitoringObjectBase {
       return this._children0[childrenType];
     }
     const child0 = new this.myClass(
-      this.modulePath,
+      this.moduleCode,
       childrenType,
       null,
       this._objService
@@ -233,7 +233,7 @@ export class MonitoringObjectBase {
   schema(typeSchema = 'all'): Object {
     return this._objService
       .configService()
-      .schema(this.modulePath, this.objectType, typeSchema);
+      .schema(this.moduleCode, this.objectType, typeSchema);
   }
 
   fieldNames(typeDisplay = '') {

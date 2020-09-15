@@ -23,24 +23,24 @@ export class DataMonitoringObjectService {
   }
 
   // /**
-  //  * Renvoie un module référencé par le champ module_path
+  //  * Renvoie un module référencé par le champ module_code
   //  *
-  //  * @param modulePath le champ module_path du module
+  //  * @param moduleCode le champ module_code du module
   //  */
-  // getModule(modulePath) {
-  //   return this._cacheService.request('get', `module/${modulePath}`)
+  // getModule(moduleCode) {
+  //   return this._cacheService.request('get', `module/${moduleCode}`)
   // }
 
   /** Object */
-  urlMonitoring(apiType, modulePath, objectType, id = null, depth = null) {
+  urlMonitoring(apiType, moduleCode, objectType, id = null, depth = null) {
 
     let url: string;
     const params = {};
     if (objectType.includes('module')) {
-      url = modulePath ? `${apiType}/${modulePath}/${objectType}` : `${apiType}/module`;
-      params['field_name'] = 'module_path';
+      url = moduleCode ? `${apiType}/${moduleCode}/${objectType}` : `${apiType}/module`;
+      params['field_name'] = 'module_code';
     } else {
-      url = id ? `${apiType}/${modulePath}/${objectType}/${id}` : `${apiType}/${modulePath}/${objectType}`;
+      url = id ? `${apiType}/${moduleCode}/${objectType}/${id}` : `${apiType}/${moduleCode}/${objectType}`;
     }
 
     if (depth) {
@@ -57,12 +57,12 @@ export class DataMonitoringObjectService {
   /**
    * Renvoie un objet pour un module, un type d'objet et un identifiant donnés
    *
-   * @param modulePath le champ module_path du module
+   * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  getObject(modulePath, objectType, id = null, depth = null) {
-    const url = this.urlMonitoring('object', modulePath, objectType, id, depth);
+  getObject(moduleCode, objectType, id = null, depth = null) {
+    const url = this.urlMonitoring('object', moduleCode, objectType, id, depth);
     return this._cacheService.request('get', url);
   }
 
@@ -70,12 +70,12 @@ export class DataMonitoringObjectService {
   /**
    * Modifie un objet pour un module, un type d'objet et un identifiant donnés
    *
-   * @param modulePath le champ module_path du module
+   * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  patchObject(modulePath, objectType, id, postData) {
-    const url = this.urlMonitoring('object', modulePath, objectType, id);
+  patchObject(moduleCode, objectType, id, postData) {
+    const url = this.urlMonitoring('object', moduleCode, objectType, id);
     return this._cacheService.request('patch', url, postData);
   }
 
@@ -83,12 +83,12 @@ export class DataMonitoringObjectService {
   /**
    *  Créé un objet pour un module, un type d'objet
    *
-   * @param modulePath le champ module_path du module
+   * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  postObject(modulePath, objectType, postData) {
-    const url = this.urlMonitoring('object', modulePath, objectType);
+  postObject(moduleCode, objectType, postData) {
+    const url = this.urlMonitoring('object', moduleCode, objectType);
     return this._cacheService.request('post', url, postData);
   }
 
@@ -96,12 +96,12 @@ export class DataMonitoringObjectService {
   /**
    * Supprime un objet pour un module, un type d'objet et un identifiant donnés
    *
-   * @param modulePath le champ module_path du module
+   * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  deleteObject(modulePath, objectType, id) {
-    const url = this.urlMonitoring('object', modulePath, objectType, id);
+  deleteObject(moduleCode, objectType, id) {
+    const url = this.urlMonitoring('object', moduleCode, objectType, id);
     return this._cacheService.request('delete', url);
   }
 
@@ -111,24 +111,24 @@ export class DataMonitoringObjectService {
   //  * Renvoie une liste d'objet pour un module, un type d'objet
   //  *  et un identifiant du parent de l'objet donnés
   //  *
-  //  * @param modulePath le champ module_path du module
+  //  * @param moduleCode le champ module_code du module
   //  * @param objectType le type de l'objet (site, visit, observation, ...)
   //  * @param idParent identidiant du parent de l'objet
   //  */
-  // getObjects(modulePath, objectType, idParent) {
-  //   return this._cacheService.request('get', `objects/${modulePath}/${objectType}/${idParent}`);
+  // getObjects(moduleCode, objectType, idParent) {
+  //   return this._cacheService.request('get', `objects/${moduleCode}/${objectType}/${idParent}`);
   // }
 
   /** breadcrumbs */
   /**
    * Renvoie le fil d'ariane d'un object
    *
-   * @param modulePath le champ module_path du module
+   * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
   */
-  getbreadcrumbs(modulePath, objectType, id) {
-    const url = this.urlMonitoring('breadcrumbs', modulePath, objectType, id);
+  getbreadcrumbs(moduleCode, objectType, id) {
+    const url = this.urlMonitoring('breadcrumbs', moduleCode, objectType, id);
     return this._cacheService.request('get', url);
   }
 

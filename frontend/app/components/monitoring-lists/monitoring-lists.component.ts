@@ -40,7 +40,7 @@ export class MonitoringListComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this._configService.init(this.obj.modulePath)
+    this._configService.init(this.obj.moduleCode)
       .subscribe(() => {
         this.initDataTable();
       });

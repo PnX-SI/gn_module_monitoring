@@ -17,28 +17,28 @@ export class ConfigService {
 
   /** Configuration */
 
-  init(modulePath = null) {
+  init(moduleCode = null) {
 
     // a definir ailleurs
 
-    modulePath = modulePath || 'generic';
+    moduleCode = moduleCode || 'generic';
 
-    if (this._config && this._config[modulePath]) {
+    if (this._config && this._config[moduleCode]) {
       return of(true);
     } else {
-      return this.loadConfig(modulePath);
+      return this.loadConfig(moduleCode);
     }
   }
 
-  loadConfig(modulePath) {
-    const urlConfig = modulePath === 'generic'
+  loadConfig(moduleCode) {
+    const urlConfig = moduleCode === 'generic'
       ? `${this.backendModuleUrl()}/config`
-      : `${this.backendModuleUrl()}/config/${modulePath}`;
+      : `${this.backendModuleUrl()}/config/${moduleCode}`;
     return this._http.get<any>(urlConfig)
       .pipe(
         mergeMap((config) => {
           this._config = this._config || {};
-          this._config[modulePath] = config;
+          this._config[moduleCode] = config;
           this._config['frontendParams'] = {
             'bChainInput': false
           };
@@ -67,14 +67,14 @@ export class ConfigService {
   }
 
   moduleMonitoringCode() {
-    return ModuleConfig.MODULE_CODE;
+    return ModuleConfig.module_code;
   }
 
   /** Config Object Schema */
-  schema(modulePath, objectType, typeSchema = 'all'): Object {
-    modulePath = modulePath || 'generic';
+  schema(moduleCode, objectType, typeSchema = 'all'): Object {
+    moduleCode = moduleCode || 'generic';
 
-    const configObject = this._config[modulePath][objectType];
+    const configObject = this._config[moduleCode][objectType];
 
     // patch media TODO fix
     if (!configObject) {
@@ -99,17 +99,17 @@ export class ConfigService {
    *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
-  configModuleObjectParam(modulePath: string, objectType: string, fieldName: string) {
-    modulePath = modulePath || 'generic';
-    const confObject = this._config[modulePath][objectType];
+  configModuleObjectParam(moduleCode: string, objectType: string, fieldName: string) {
+    moduleCode = moduleCode || 'generic';
+    const confObject = this._config[moduleCode][objectType];
     return confObject ? confObject[fieldName] : null;
   }
 
   /** config data : pour initialiser les données Nomenclature, Taxons, Users,...
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
   */
-  configData(modulePath) {
-    return this._config[modulePath]['data'];
+  configData(moduleCode) {
+    return this._config[moduleCode]['data'];
   }
 
   frontendParams() {

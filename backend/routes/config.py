@@ -10,27 +10,27 @@ from ..config.repositories import (
 # from ..decorators import check_cruved_scope_monitoring
 
 
-@blueprint.route('/config/<string:module_path>', methods=['GET'])
-@blueprint.route('/config', defaults={'module_path': None}, methods=['GET'])
+@blueprint.route('/config/<string:module_code>', methods=['GET'])
+@blueprint.route('/config', defaults={'module_code': None}, methods=['GET'])
 # @check_cruved_scop e_monitoring('R', 1)
 @json_resp
-def get_config_api(module_path):
+def get_config_api(module_code):
     """
         route qui renvoie la config pour un module donné
     """
 
-    return get_config_frontend(module_path)
+    return get_config_frontend(module_code)
 
 
-@blueprint.route('/config/test/<string:module_path>', methods=['GET'])
+@blueprint.route('/config/test/<string:module_code>', methods=['GET'])
 # @check_cruved_scope_monitoring('R', 1)
 @json_resp
-def get_config_object_api(module_path):
+def get_config_object_api(module_code):
     """
         route qui renvoie la config pour un module donné et un object donné (pour debug)
     """
 
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     object_type = request.args.get('object_type')
     config_type = request.args.get('config_type')
@@ -49,12 +49,12 @@ def get_config_object_api(module_path):
     return out
 
 
-@blueprint.route('/config/test_tree/<string:module_path>', methods=['GET'])
+@blueprint.route('/config/test_tree/<string:module_code>', methods=['GET'])
 # @check_cruved_scope_monitoring('R', 1)
 @json_resp
-def test_config_tree_api(module_path):
+def test_config_tree_api(module_code):
 
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     config_objects = config.get('objects')
 
@@ -73,11 +73,11 @@ def test_config_tree_api(module_path):
     return d
 
 
-@blueprint.route('/config/test_data/<string:module_path>', methods=['GET'])
+@blueprint.route('/config/test_data/<string:module_code>', methods=['GET'])
 # @check_cruved_scope_monitoring('R', 1)
 @json_resp
-def test_config_data_api(module_path):
+def test_config_data_api(module_code):
 
-    config = get_config(module_path)
+    config = get_config(module_code)
 
     return config['data_utils']['taxonomy']
