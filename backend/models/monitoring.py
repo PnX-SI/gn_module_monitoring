@@ -15,15 +15,6 @@ from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
 
-# unmap_list = ['modules', 't_base_visits', 'digitiser', 'inventor', 'observers', 'dataset']
-# Models = [TBaseVisits, TBaseSites]
-
-# # unmap
-# for map_name in unmap_list:
-#     for Model in Models:
-#         if hasattr(Model, map_name):
-#             setattr(Model, map_name, 0)
-
 
 class CorSiteModule(DB.Model):
     __tablename__ = 'cor_site_module'
@@ -240,6 +231,12 @@ class TMonitoringModules(TModules):
 
     uuid_module_complement = DB.Column(UUID(as_uuid=True), default=uuid4)
 
+    id_list_observer = DB.Column(DB.Integer)
+    id_list_taxonomy = DB.Column(DB.Integer)
+
+    taxonomy_display_field_name = DB.Column(DB.Unicode)
+    b_synthese = DB.Column(DB.Boolean)
+
     medias = DB.relationship(
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
@@ -264,3 +261,6 @@ class TMonitoringModules(TModules):
         join_depth=0,
         lazy="select",
     )
+
+    meta_create_date = DB.Column(DB.DateTime)
+    meta_update_date = DB.Column(DB.DateTime)
