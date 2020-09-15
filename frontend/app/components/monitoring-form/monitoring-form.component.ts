@@ -247,6 +247,13 @@ export class MonitoringFormComponent implements OnInit {
       );
       this.bSaveSpinner = this.bSaveAddSpinner = false;
       this.objChanged.emit(this.obj);
+
+      /** si c'est un module : reset de la config */
+      if(this.obj.objectType == 'module') {
+        this._configService.loadConfig(this.obj.modulePath).subscribe();
+      }
+
+
       if (this.bChainInput) {
         this.resetObjForm();
       } else if (this.bAddChildren) {

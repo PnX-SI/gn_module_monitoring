@@ -9,11 +9,6 @@
         [ngModel]="searchSite"
         [clearSearchInput]="false"
       ></ngx-mat-select-search>
-      <!-- <input
-        placeholder="Filtrer les sites"
-        (keyup)="searchSiteChanged($event)"
-        [(ngModel)]="searchSite"
-        /> -->
       <mat-option>None</mat-option>
       <mat-option *ngFor="let site of siteList" [value]="site.value">
         {{ site.text }}

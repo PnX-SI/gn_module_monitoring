@@ -29,8 +29,14 @@ export class MonitoringObjectService {
       dataset: {
         fieldName: "dataset_name",
       },
+      observer_list: {
+        fieldName: "nom_liste",
+      },
       taxonomy: {
-        fieldName: this._configService.config()[modulePath].taxonomy_field_name || "nom_vern,lb_nom",
+        fieldName: this._configService.config()[modulePath].taxonomie_display_field_name || "nom_vern,lb_nom",
+      },
+      taxonomy_list: {
+        fieldName: "nom_liste",
       }
     }
   }

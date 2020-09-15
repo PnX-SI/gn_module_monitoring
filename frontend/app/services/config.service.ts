@@ -26,19 +26,25 @@ export class ConfigService {
     if (this._config && this._config[modulePath]) {
       return of(true);
     } else {
-      const urlConfig = modulePath === 'generic' ? `${this.backendModuleUrl()}/config` : `${this.backendModuleUrl()}/config/${modulePath}`;
-      return this._http.get<any>(urlConfig)
-        .pipe(
-          mergeMap((config) => {
-            this._config = this._config || {};
-            this._config[modulePath] = config;
-            this._config['frontendParams'] = {
-              'bChainInput': false
-            };
-            return of(true);
-          })
-        );
+      return this.loadConfig(modulePath);
     }
+  }
+
+  loadConfig(modulePath) {
+    const urlConfig = modulePath === 'generic'
+      ? `${this.backendModuleUrl()}/config`
+      : `${this.backendModuleUrl()}/config/${modulePath}`;
+    return this._http.get<any>(urlConfig)
+      .pipe(
+        mergeMap((config) => {
+          this._config = this._config || {};
+          this._config[modulePath] = config;
+          this._config['frontendParams'] = {
+            'bChainInput': false
+          };
+          return of(true);
+        })
+      );
   }
 
   /** Backend Url et static dir ??*/
@@ -67,6 +73,7 @@ export class ConfigService {
   /** Config Object Schema */
   schema(modulePath, objectType, typeSchema = 'all'): Object {
     modulePath = modulePath || 'generic';
+
     const configObject = this._config[modulePath][objectType];
 
     // patch media TODO fix
@@ -76,7 +83,7 @@ export class ConfigService {
 
     switch (typeSchema) {
       case 'all': {
-        return {...configObject.generic, ...configObject.specific};
+        return { ...configObject.generic, ...configObject.specific };
       }
       case 'generic': {
         return configObject.generic;

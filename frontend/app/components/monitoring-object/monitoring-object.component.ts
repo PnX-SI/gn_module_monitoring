@@ -37,6 +37,8 @@ export class MonitoringObjectComponent implements OnInit {
   objectsStatus: Object = {};
   heightMap;
 
+  moduleSet = false;
+
   constructor(
     private _route: ActivatedRoute,
     private _objService: MonitoringObjectService,
@@ -91,6 +93,9 @@ export class MonitoringObjectComponent implements OnInit {
           (this.obj.isRoot() && !this.obj.modulePath) ||
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
+
+
+
         this.obj.bIsInitialized = true; // obj initialisé
         if (!this.sites) {
           this.initSites();
@@ -100,8 +105,20 @@ export class MonitoringObjectComponent implements OnInit {
       });
   }
 
+  getModuleSet() {
+
+    this.module.get(0).subscribe(() => {
+      const schema = this._configService.schema(this.module.modulePath, 'module');
+      const moduleFieldList = Object.keys(this._configService.schema(this.module.modulePath, 'module'))
+      .filter(key => schema[key].required);
+      
+      this.moduleSet = moduleFieldList.every(v => !!(this.module.properties[v] || this.obj.properties[v]));
+    })
+  }
+
   initSites() {
     return this.module.get(1).subscribe(() => {
+      
       this.currentUser['cruved'] = this.module.cruved;
 
       const sites = this.module['children']['site'];
@@ -158,7 +175,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initParams() {
-    console.log('initParams')
+    
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get('objectType')
@@ -178,6 +195,8 @@ export class MonitoringObjectComponent implements OnInit {
           null,
           this._objService
         );
+
+        
 
         this.obj.parentId = params.get('parentId');
         return this._route.queryParamMap;
@@ -203,6 +222,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
+    this.getModuleSet()
     return this._dataUtilsService.getInitData(this.obj.modulePath);
   }
 
@@ -212,8 +232,9 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     if (obj['objectType'] === 'site') {
-      console.log('monitoring object compute sites');
+      
       this.initSites();
     }
+    this.getModuleSet()
   }
 }

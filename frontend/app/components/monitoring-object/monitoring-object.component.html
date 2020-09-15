@@ -31,7 +31,12 @@
       ></pnx-monitoring-breadcrumbs>
 
       <div>
-        <h3>{{ obj.template["title"] }}</h3>
+        <h3>{{ obj.template['title'] }}</h3>
+      </div>
+      <div *ngIf="!moduleSet && obj.bIsInitialized" class="alert alert-warning">
+        <p>Le module n'est pas encore configuré.</p>
+
+        <p>Veuillez éditer le module et renseigner les champs requis.</p>
       </div>
 
       <pnx-monitoring-properties
@@ -55,7 +60,7 @@
         [obj]="obj"
         [(objectsStatus)]="objectsStatus"
         [(bEdit)]="bEdit"
-        *ngIf="!bEdit && obj && obj.bIsInitialized"
+        *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
         [currentUser]="currentUser"
       ></pnx-monitoring-lists>
     </div>
