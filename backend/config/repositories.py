@@ -2,7 +2,7 @@
     module de gestion de la configuarion des protocoles de suivi
 """
 
-import os
+import os, datetime, time
 from flask import current_app
 from .utils import (
     customize_config,
@@ -12,6 +12,7 @@ from .utils import (
     get_id_table_location,
     process_config_display,
     process_schema,
+    get_monitoring_module,
     CONFIG_PATH
 )
 
@@ -80,7 +81,9 @@ def get_config(module_path=None):
 
     '''
 
+
     module_path = module_path if module_path else 'generic'
+    module = get_monitoring_module(module_path)
 
     module_confg_dir_path = CONFIG_PATH + '/' + module_path
     # test si le repertoire existe
@@ -88,7 +91,21 @@ def get_config(module_path=None):
         return None
 
     # derniere modification
-    last_modif = directory_last_modif(CONFIG_PATH)
+    # fichiers
+    last_modif_file = directory_last_modif(CONFIG_PATH)
+    last_modif_base = 0
+    # base
+    if module:
+        # calcul du offset pour etre raccord avec la date des fichiers
+        now_timestamp = time.time()
+        offset = (
+            datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
+        ).total_seconds()
+        last_modif_base = (
+            getattr(module, 'meta_update_date') - datetime.datetime(1970, 1, 1)
+        ).total_seconds() - offset
+
+    last_modif = max(last_modif_base, last_modif_file) 
 
     # test si present dans cache et pas modifée depuis le dernier appel
     config = current_app.config.get(config_cache_name, {}).get(module_path)
@@ -103,9 +120,26 @@ def get_config(module_path=None):
     config['last_modif'] = last_modif
 
     # customize config
-    custom = config_from_files('custom', module_path)
-    custom['__MODULE_CODE'] = module_path # TODO CLARIFIER MODULE_CODE MODULE_PATH!!!
-    customize_config(config, custom)
+    if module:
+        custom = {}
+        for field_name in [
+            'module_code',
+            'id_list_observer',
+            'id_list_taxonomy',
+            'b_synthese',
+            'taxonomy_display_field_name'
+        ]:
+            var_name = '__MODULE.{}'.format(field_name.upper())
+            custom[var_name] = getattr(module, field_name)
+        # custom['__MODULE_CODE'] = module_path # TODO CLARIFIER MODULE_CODE MODULE_PATH!!!
+        
+        customize_config(config, custom)
+
+        # preload data
+        config['data'] = {
+            # 'user': [module.id_list_observer]
+            # 'no': 
+        }
 
     # mise en cache dans current_app.config[config_cache_name][module_path]
     if not current_app.config.get(config_cache_name, {}):

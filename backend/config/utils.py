@@ -7,10 +7,22 @@ from geonature.core.gn_commons.models import BibTablesLocation
 from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
 
+from ..models.monitoring import TMonitoringModules
+
+
 # chemin ver le repertoire de la config
 CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
 
+
+def get_monitoring_module(module_path):
+    if module_path == 'generic':
+        return None
+    return (
+        DB.session.query(TMonitoringModules)
+        .filter(TMonitoringModules.module_path == module_path)
+        .one()
+    )
 
 def get_id_table_location(object_type):
 
@@ -198,8 +210,12 @@ def customize_config(elem, custom):
         for key in elem:
             elem[key] = customize_config(elem[key], custom)
 
-    elif elem in custom:
-        elem = custom[elem]
+    else:
+        for key_custom in custom:
+            if elem == key_custom:
+                elem = custom[key_custom]
+            elif isinstance(elem, str) and key_custom in elem:
+                elem = elem.replace(key_custom, str(custom[key_custom]))
 
     return elem
 
