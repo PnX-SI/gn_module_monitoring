@@ -2,13 +2,32 @@
         
         id_module SERIAL NOT NULL,
         uuid_module_complement uuid DEFAULT uuid_generate_v4() NOT NULL,
+        
+        id_list_observer INTEGER,
+        id_list_taxonomy INTEGER,
+        b_synthese BOOLEAN DEFAULT TRUE,
+        taxonomie_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom', 
+
+        meta_create_date timestamp without time zone NOT NULL,
+        meta_update_date timestamp without time zone,
 
         CONSTRAINT pk_t_module_complements PRIMARY KEY (id_module),
         CONSTRAINT fk_t_module_complements_id_module FOREIGN KEY (id_module)
             REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        CONSTRAINT fk_t_module_complements_id_list_observer FOREIGN KEY (id_list_observer)
+            REFERENCES utilisateurs.t_listes (id_liste) MATCH SIMPLE
+            ON UPDATE CASCADE ON DELETE CASCADE,
+        CONSTRAINT fk_t_module_complements_id_list_taxonomy FOREIGN KEY (id_list_taxonomy)
+            REFERENCES taxonomie.bib_listes (id_liste) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE CASCADE
     );
 
+    CREATE TRIGGER tri_meta_dates_change_t_medias
+          BEFORE INSERT OR UPDATE
+          ON gn_monitoring.t_module_complements
+          FOR EACH ROW
+          EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
 
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_site_complements (
 
