@@ -12,10 +12,14 @@ from sqlalchemy import and_
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from geonature.core.taxonomie.models import Taxref, BibListes
+from geonature.core.users.models import TListes
+
 from pypnusershub.db.models import User
+
+
 from utils_flask_sqla.response import json_resp
 
-from geonature.core.taxonomie.models import Taxref
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -28,14 +32,20 @@ object_dict = {
     'user': User,
     'taxonomy': Taxref,
     'dataset': TDatasets,
+    'observer_list': TListes,
+    'taxonomy_list': BibListes,
     }
 
 
+# todo get id from inspect +++
 id_field_name_dict = {
     'nomenclature': 'id_nomenclature',
     'user': 'id_role',
     'taxonomy': 'cd_nom',
     'dataset': 'id_dataset',
+    'observer_list': 'id_liste',
+    'taxonomy_list': 'id_liste',
+
 }
 
 
