@@ -20,7 +20,7 @@
       "attribut_label": "Taxon",
       "type_util": "taxonomy",
       "required": true,
-      "idComponent": "__ID_COMPONENT_TAXONOMY"
+      "id_list": "__MODULE.ID_LIST_TAXONOMY"
     },
     "comments": {
       "type_widget": "text",

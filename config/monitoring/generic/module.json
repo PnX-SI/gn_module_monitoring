@@ -3,10 +3,14 @@
   "description_field_name": "module_label",
   "label": "Module",
   "uuid_field_name": "uuid_module_complement",
-  "display_properties": [
+  "display_properties": [ 
     "module_label",
     "module_desc",
-    "datasets"
+    "datasets",
+    "id_list_observer",
+    "id_list_taxonomy",
+    "b_synthese",
+    "taxonomy_display_field_name"
   ],
   "generic": {
     "id_module": {
@@ -42,10 +46,56 @@
       "attribut_label": "uuid"
     },
     "datasets": {
-      "type_widget": "dataset",
+      "type_widget": "datalist",
       "attribut_label": "Jeux de données",
-      "multi_select": true,
+      "multiple": true,
       "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "params": {
+        "active": true,
+        "orderby": "dataset_name"
+      },
+      "data_path": "data",
+      "required": true
+    },
+    "id_list_observer": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste des observateurs",
+      "keyValue": "id_liste",
+      "keyLabel": "nom_liste",
+      "multiple": false,
+      "api" : "users/listes",
+      "application": "GeoNature",
+      "required": true, 
+      "type_util": "observer_list"
+    },
+    "id_list_taxonomy": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste des taxons",
+      "keyValue": "id_liste",
+      "keyLabel": "nom_liste",
+      "multiple": false,
+      "api" : "biblistes",
+      "application": "TaxHub",
+      "required": true, 
+      "type_util": "taxonomy_list",
+      "data_path": "data"
+    },
+    "b_synthese": {
+      "type_widget": "bool_checkbox",
+      "attribut_label": "Activer la synthèse ?",
+      "required": true
+    },
+    "taxonomy_display_field_name": {
+      "type_widget": "datalist",
+      "attribut_label": "Affichage des taxon",
+      "values": [
+        "nom_vern,lb_nom",
+        "lb_nom"
+      ],
       "required": true
     },
     "medias": {

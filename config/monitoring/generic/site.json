@@ -57,7 +57,7 @@
     "id_inventor": {
       "type_widget": "observers",
       "attribut_label": "Descripteur",
-      "code_list": "__CODE_LIST_INVENTOR",
+      "id_menu": "__MODULE.ID_LIST_OBSERVER",
       "max_length": 1,
       "type_util": "user",
       "required": true

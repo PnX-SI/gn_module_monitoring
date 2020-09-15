@@ -33,7 +33,7 @@
       "attribut_label": "Observateurs",
       "type_widget": "observers",
       "type_util": "user",
-      "code_list": "__CODE_LIST_OBSERVER",
+      "id_menu": "__MODULE.ID_LIST_OBSERVER",
       "required": true
     },
     "id_digitiser": {
@@ -61,10 +61,19 @@
       "attribut_label": "uuid"
     },
     "id_dataset": {
-      "type_widget": "dataset",
+      "type_widget": "datalist",
       "attribut_label": "Jeu de données",
-      "module_code": "__MODULE_CODE",
       "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "params": {
+        "active": true,
+        "orderby": "dataset_name",
+        "module_code": "__MODULE.MODULE_CODE"
+      },
+      "data_path": "data",
       "required": true
     },
     "nb_observations": {
