@@ -35,7 +35,7 @@ export class MonitoringFormComponent implements OnInit {
   keepNames = [];
 
   public bSaveSpinner = false;
-  public bSaveAddSpinner = false;
+  public bSaveAndAddChildrenSpinner = false;
   public bDeleteSpinner = false;
   public bDeleteModal = false;
   public bChainInput = false;
@@ -226,8 +226,6 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onSubmit() {
-    this.bSaveSpinner = !this.bChainInput;
-    this.bSaveAddSpinner = this.bChainInput;
 
     // cas choix site
     if (this.testChoixSite()) {
@@ -245,7 +243,7 @@ export class MonitoringFormComponent implements OnInit {
         this.obj.id
         } effectué`
       );
-      this.bSaveSpinner = this.bSaveAddSpinner = false;
+      this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
       this.objChanged.emit(this.obj);
 
       /** si c'est un module : reset de la config */

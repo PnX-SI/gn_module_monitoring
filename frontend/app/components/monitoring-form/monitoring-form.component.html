@@ -85,11 +85,11 @@
         <button
         *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
         class="btn btn-success float-right"
-        (click)="bAddChildren=true; onSubmit();"
+        (click)="bSaveAndAddChildrenSpinner=bAddChildren=true; onSubmit();"
         [disabled]="!objForm.valid"
       >
         <span
-          [ngClass]="{ 'hide-spinner': !bSaveSpinner }"
+          [ngClass]="{ 'hide-spinner': !bSaveAndAddChildrenSpinner }"
           class="spinner-border spinner-border-sm float-right"
           role="status"
           aria-hidden="true"
@@ -103,7 +103,7 @@
 
         <button
           class="btn btn-success float-right"
-          (click)="onSubmit()"
+          (click)="bSaveSpinner=true; onSubmit()"
           [disabled]="!objForm.valid"
         >
           <span
