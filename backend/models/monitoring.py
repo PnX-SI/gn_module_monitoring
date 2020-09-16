@@ -183,9 +183,6 @@ class TMonitoringSites(TBaseSites):
 
     data = DB.Column(JSONB)
 
-    # unmap modules
-    TBaseSites.modules = 0
-
     visits = DB.relationship(
         TMonitoringVisits,
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
