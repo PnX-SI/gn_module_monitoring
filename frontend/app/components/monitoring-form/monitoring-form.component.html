@@ -58,10 +58,7 @@
     </div>
 
     <form [formGroup]="objForm">
-      <p class="alert alert-danger" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
-        <span class="material-icons">
-          warning
-          </span>
+      <p class="alert alert-warning" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
           <span>
             Veuillez saisir une géométrie sur la carte
           </span>
