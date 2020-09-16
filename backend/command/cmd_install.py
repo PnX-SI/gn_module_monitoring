@@ -98,7 +98,8 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         'module_label': module_label,
         'module_desc': module_desc,
         'active_frontend': False,
-        'active_backend': False
+        'active_backend': False,
+        'module_picto': 'fa-puzzle-piece'
     }
 
     print('ajout du module {} en base'.format(module_code))
