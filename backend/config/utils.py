@@ -7,7 +7,7 @@ from geonature.core.gn_commons.models import BibTablesLocation
 from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
 
-from ..models.monitoring import TMonitoringModules
+from ..monitoring.models import TMonitoringModules
 
 
 # chemin ver le repertoire de la config

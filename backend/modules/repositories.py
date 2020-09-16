@@ -11,7 +11,7 @@ from geonature.utils.errors import GeoNatureError
 
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_synthese.models import TSources
-from ..models.monitoring import (
+from ..monitoring.models import (
     TMonitoringModules
 )
 

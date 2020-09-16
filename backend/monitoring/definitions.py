@@ -1,4 +1,4 @@
-from ..models.monitoring import (
+from .models import (
     TMonitoringModules,
     TMonitoringSites,
     TMonitoringVisits,

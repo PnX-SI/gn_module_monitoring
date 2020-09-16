@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from geonature.utils.env import DB
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
-from ..models.monitoring import TMonitoringModules
+from ..monitoring.models import TMonitoringModules
 from ..config.repositories import config_param, get_config
 from ..config.utils import json_from_file, CONFIG_PATH
 from ..modules.repositories import get_module, get_simple_module, get_source_by_code
