@@ -82,12 +82,13 @@
       "application": "TaxHub",
       "required": true, 
       "type_util": "taxonomy_list",
-      "data_path": "data"
+      "data_path": "data",
+      "definition": "liste des taxons concernés par ce module"
     },
     "b_synthese": {
       "type_widget": "bool_checkbox",
       "attribut_label": "Activer la synthèse ?",
-      "required": true
+      "definition": "Insertion automatique des nouvelles données dans la synthèse."
     },
     "taxonomy_display_field_name": {
       "type_widget": "datalist",
