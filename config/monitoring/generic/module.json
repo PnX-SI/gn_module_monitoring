@@ -6,11 +6,7 @@
   "display_properties": [ 
     "module_label",
     "module_desc",
-    "datasets",
-    "id_list_observer",
-    "id_list_taxonomy",
-    "b_synthese",
-    "taxonomy_display_field_name"
+    "datasets"
   ],
   "generic": {
     "id_module": {
