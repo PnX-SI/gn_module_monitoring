@@ -214,10 +214,8 @@ def customize_config(elem, custom):
         for key_custom in custom:
             if elem == key_custom:
                 elem = custom[key_custom]
-                print('uuuu', elem, key_custom)
             elif isinstance(elem, str) and key_custom in elem:
                 elem = elem.replace(key_custom, str(custom[key_custom]))
-                print('yakou', elem, key_custom)
 
     return elem
 

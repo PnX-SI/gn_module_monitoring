@@ -131,11 +131,8 @@ def get_config(module_code=None):
         ]:
             var_name = '__MODULE.{}'.format(field_name.upper())
             custom[var_name] = getattr(module, field_name)
-            print(var_name, custom[var_name])
 
         customize_config(config, custom)
-
-        print(config)
 
         # preload data
         config['data'] = {
