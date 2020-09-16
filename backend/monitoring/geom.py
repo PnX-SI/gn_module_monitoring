@@ -24,8 +24,8 @@ class MonitoringObjectGeom(MonitoringObject):
 
         return monitoring_object_dict
 
-    def populate(self, postData):
+    # def populate(self, postData):
 
-        properties = postData['properties']
-        self.unflatten_specific_properties(properties)
-        self._model.from_geofeature(postData)
+    #     properties = postData['properties']
+    #     self.unflatten_specific_properties(properties)
+    #     self._model.from_geofeature(postData)

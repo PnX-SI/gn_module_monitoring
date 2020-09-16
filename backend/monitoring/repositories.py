@@ -2,8 +2,6 @@ from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
-from .base import MonitoringObjectBase, monitoring_definitions
-from geonature.core.gn_commons.models import TMedias
 
 import logging
 
@@ -44,60 +42,10 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         properties = post_data['properties']
 
-        id_parent = post_data.get('id_parent') #TODO remove
+        id_parent = post_data.get('id_parent')  # TODO remove
         if id_parent:
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
-
-    def process_correlations(self, post_data):
-        # pour gérer et commiter les corrélations en tout genre
-        # à redefinir dans class fille à definir dans les modèles sqlalchemy
-        pass
-
-    def process_medias(self, post_data):
-
-        medias = post_data['properties'].get('medias', [])
-        self._model.medias = []
-        for media_data in medias:
-            id_media = media_data['id_media']
-
-            media = (
-                DB.session.query(TMedias)
-                    .filter(id_media == TMedias.id_media).one()
-                if id_media
-                else TMedias()
-            )
-            media.from_dict(media_data)
-            media.uuid_attached_row = self.config_value('uuid_field_name')
-            self._model.medias.append(media)
-        DB.session.commit()
-
-    def process_correlation(self, cor_data_array, Cor, id_foreign_key_name):
-        '''
-            à mieux gérer avec sqlalchemy??
-        '''
-        id_field_name = self.config_param('id_field_name')
-
-        cors = (
-            DB.session.query(Cor)
-            .filter(getattr(Cor, id_field_name) == self._id)
-            .all()
-        )
-
-        for cor in cors:
-            if getattr(cor, id_foreign_key_name) not in cor_data_array:
-                DB.session.delete(cor)
-
-        for foreign_id in cor_data_array:
-            if int(foreign_id) not in [getattr(cor, id_foreign_key_name) for cor in cors]:
-                cor_new = Cor()
-                setattr(cor_new, id_foreign_key_name, foreign_id)
-                setattr(cor_new, id_field_name, self._id)
-                DB.session.add(cor_new)
-                # new_cor.id_base_visit = self.id_base_visit
-                # new_cor.id_role = id_role
-
-        DB.session.commit()
 
     def process_synthese(self):
         if not self.config().get('synthese'):
@@ -137,18 +85,16 @@ class MonitoringObject(MonitoringObjectSerializer):
             b_creation = not self._id
 
             # ajout de l'objet dans le cas d'une creation
-            if b_creation:
-                DB.session.add(self._model)
 
             # on assigne les données post à l'objet et on commite
             self.process_post_data_properties(post_data)
             self.populate(post_data)
-            DB.session.commit()
-            self._id = getattr(self._model, self.config_param('id_field_name'))
 
-            self.process_correlations(post_data)
-            
-            self.process_medias(post_data)
+            if b_creation:
+                DB.session.add(self._model)
+            DB.session.commit()
+
+            self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_synthese()
 

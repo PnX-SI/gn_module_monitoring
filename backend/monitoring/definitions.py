@@ -7,11 +7,12 @@ from ..models.monitoring import (
 )
 from .objects import (
     MonitoringModule,
-    MonitoringSite,
-    MonitoringVisit
+    MonitoringSite
 )
+
 from .base import monitoring_definitions
 from .repositories import MonitoringObject
+from .geom import MonitoringObjectGeom
 
 
 '''
@@ -30,9 +31,9 @@ MonitoringModels_dict = {
 
 
 MonitoringObjects_dict = {
-    'module': MonitoringModule,
+    'module': MonitoringModule,  # besoin pour retrouver le module depuis module_code à voir si on peux faire sans
     'site': MonitoringSite,
-    'visit': MonitoringVisit,
+    'visit': MonitoringObject,
     'observation': MonitoringObject,
     'observation_detail': MonitoringObject,
 }
