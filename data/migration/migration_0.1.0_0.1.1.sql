@@ -29,3 +29,21 @@ CREATE TRIGGER tri_meta_dates_change_t_medias
           EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
 
 
+-- module_code <- module_path
+-- module_path <- <module_monitoring.module_path>/module/module_code>
+-- pour être raccord avec les modules classiques sur code et path
+-- path permet d'atteindre le module dans le menu de droite sur active_frontend est à true
+-- 
+-- en sécurité : si module_path contient déjà un '/' -> on ne refait pas l'operation
+UPDATE TABLE gn_commons.t_modules m 
+    SET 
+        module_code = m_submodule.module_code,
+        module_path = m_submodule.module_path
+SELECT m_submodule.module_path, m_monitoring.module_path||'/module/'||m_submodule.module_code
+    FROM gn_commons.t_modules m_submodule
+    JOIN gn_monitoring.t_module_complements mc
+        ON mc.id_module = m_submodule.id_module
+    JOIN gn_commons.t_modules m_monitoring
+        ON m_monitoring.module_code = 'MONITORINGS' -- code de monitoring en dur
+    WHERE m_submodule.id_module = m.id_module
+        AND NOT m_submodule.module_path LIKE '%/%'
