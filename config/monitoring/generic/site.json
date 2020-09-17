@@ -46,6 +46,16 @@
       "attribut_label": "Code",
       "required": true
     },
+    "id_group_site": {
+      "type_widget": "datalist",
+      "attribut_label": "Groupe de site",
+      "hidden": true,
+      "type_util": "group_site",
+      "keyValue": "id_group_site",
+      "keyLabel": "group_site_name",
+      "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/group_site?id_module=__MODULE.ID_MODULE",
+      "application": "GeoNature"
+    },
     "id_nomenclature_type_site": {
       "type_widget": "nomenclature",
       "attribut_label": "Type de site",
