@@ -4,6 +4,7 @@ from .models import (
     TMonitoringVisits,
     TMonitoringObservations,
     TMonitoringObservationDetails,
+    TMonitoringGroupSites,
 )
 from .objects import (
     MonitoringModule,
@@ -27,8 +28,8 @@ MonitoringModels_dict = {
     'visit': TMonitoringVisits,
     'observation': TMonitoringObservations,
     'detail': TMonitoringObservationDetails,
+    'group_site': TMonitoringGroupSites
 }
-
 
 MonitoringObjects_dict = {
     'module': MonitoringModule,  # besoin pour retrouver le module depuis module_code à voir si on peux faire sans
@@ -36,6 +37,7 @@ MonitoringObjects_dict = {
     'visit': MonitoringObject,
     'observation': MonitoringObject,
     'observation_detail': MonitoringObject,
+    'group_site': MonitoringObject,
 }
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)
