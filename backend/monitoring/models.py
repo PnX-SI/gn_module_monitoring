@@ -174,12 +174,18 @@ class TMonitoringSites(TBaseSites):
     id_base_site = DB.Column(
         DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
         nullable=False,
-        primary_key=True)
+        primary_key=True
+    )
 
     id_module = DB.Column(
         DB.ForeignKey('gn_commons.t_modules.id_module'),
         nullable=False,
-        primary_key=True)
+    )
+
+    id_group_site = DB.Column(
+        DB.ForeignKey('gn_monitoring.t_group_sites.id_group_site', ondelete='SET NULL'),
+        nullable=False,
+    )
 
     data = DB.Column(JSONB)
 
@@ -188,13 +194,14 @@ class TMonitoringSites(TBaseSites):
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
         cascade="all,delete"
-        )
+    )
 
     medias = DB.relationship(
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
-        cascade="all,delete")
+        cascade="all"
+    )
 
     @hybrid_property
     def last_visit(self):
@@ -261,3 +268,59 @@ class TMonitoringModules(TModules):
 
     meta_create_date = DB.Column(DB.DateTime)
     meta_update_date = DB.Column(DB.DateTime)
+
+
+@serializable
+class TMonitoringGroupSites(DB.Model):
+    __tablename__ = 't_group_sites'
+    __table_args__ = {'schema': 'gn_monitoring'}
+
+    id_group_site = DB.Column(
+        DB.Integer,
+        primary_key=True,
+        nullable=False,
+        unique=True
+    )
+
+    id_module = DB.Column(
+        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        nullable=False,
+        unique=True
+    )
+
+    uuid_group_site = DB.Column(UUID(as_uuid=True), default=uuid4)
+
+    group_site_name = DB.Column(DB.Unicode)
+    group_site_code = DB.Column(DB.Unicode)
+    group_site_description = DB.Column(DB.Unicode)
+
+    comments = DB.Column(DB.Unicode)
+
+    data = DB.Column(JSONB)
+
+    medias = DB.relationship(
+        TMedias,
+        primaryjoin=(TMedias.uuid_attached_row == uuid_group_site),
+        foreign_keys=[TMedias.uuid_attached_row],
+        lazy="select",
+    )
+
+    sites = DB.relationship(
+        TMonitoringSites,
+        primaryjoin=(TMonitoringSites.id_group_site == id_group_site),
+        foreign_keys=[TMonitoringSites.id_group_site],
+        lazy="select",
+    )
+
+
+# add group_site relationship to TMonitoringSites
+TMonitoringSites.group_site = (
+    DB.relationship(
+        TMonitoringGroupSites,
+        primaryjoin=(
+            TMonitoringGroupSites.id_group_site == TMonitoringSites.id_group_site
+        ),
+        cascade="all",
+        uselist=False
+    )
+)
