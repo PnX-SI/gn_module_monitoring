@@ -3,7 +3,7 @@ import json
 
 from sqlalchemy import and_
 
-from geonature.core.gn_commons.models import BibTablesLocation
+from geonature.core.gn_commons.models import BibTablesLocation, TModules
 from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
 
@@ -23,6 +23,14 @@ def get_monitoring_module(module_code):
         .filter(TMonitoringModules.module_code == module_code)
         .one()
     )
+
+def get_monitorings_path():
+    return (
+        DB.session.query(TModules.module_path)
+        .filter(TModules.module_code == 'MONITORINGS')
+        .one()[0]
+    )
+
 
 def get_id_table_location(object_type):
 

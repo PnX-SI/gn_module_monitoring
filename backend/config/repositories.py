@@ -13,6 +13,7 @@ from .utils import (
     process_config_display,
     process_schema,
     get_monitoring_module,
+    get_monitorings_path,
     CONFIG_PATH
 )
 
@@ -81,7 +82,6 @@ def get_config(module_code=None):
 
     '''
 
-
     module_code = module_code if module_code else 'generic'
     module = get_monitoring_module(module_code)
 
@@ -127,11 +127,12 @@ def get_config(module_code=None):
             'id_list_observer',
             'id_list_taxonomy',
             'b_synthese',
-            'taxonomy_display_field_name'
+            'taxonomy_display_field_name',
+            'id_module'
         ]:
             var_name = '__MODULE.{}'.format(field_name.upper())
             custom[var_name] = getattr(module, field_name)
-
+        custom['__MONITORINGS_PATH'] = get_monitorings_path()
         customize_config(config, custom)
 
         # preload data
