@@ -20,6 +20,7 @@ class MonitoringModule(MonitoringObject):
 
 class MonitoringSite(MonitoringObjectGeom):
     '''
+        PATCH
         pour pouvoir renseigner la table cor_site_module
         avec la méthode from_dict
     '''
