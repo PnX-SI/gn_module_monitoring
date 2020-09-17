@@ -30,10 +30,14 @@
       "hidden": true
     },
     "observers": {
+      "type_widget": "datalist",
       "attribut_label": "Observateurs",
-      "type_widget": "observers",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
       "type_util": "user",
-      "id_menu": "__MODULE.ID_LIST_OBSERVER",
+      "multiple": true,
       "required": true
     },
     "id_digitiser": {

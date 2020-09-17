@@ -51,14 +51,15 @@
       "attribut_label": "Type de site",
       "code_nomenclature_type": "TYPE_SITE",
       "type_util": "nomenclature",
-      "required": true,
-      "hidden": true
+      "required": true
     },
     "id_inventor": {
-      "type_widget": "observers",
+      "type_widget": "datalist",
       "attribut_label": "Descripteur",
-      "id_menu": "__MODULE.ID_LIST_OBSERVER",
-      "max_length": 1,
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
       "type_util": "user",
       "required": true
     },

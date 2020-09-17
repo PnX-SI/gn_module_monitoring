@@ -14,33 +14,39 @@
       "attribut_label": "ID", 
       "hidden": true
     },
+
     "module_code":  {
       "type_widget": "text",
       "attribut_label": "Code",
       "required": true,
       "hidden": true
     },
+
     "module_label": {
       "type_widget": "text",
       "attribut_label": "Nom",
       "required": true,
       "hidden": true
     },
+
     "module_path": {
       "type_widget": "text",
       "attribut_label": "Path",
       "required": true,
       "hidden": true
     },
+
     "module_desc": {
       "type_widget": "text",
       "attribut_label": "Description",
       "required": true,
       "hidden": true
     },
+
     "uuid_module_complement": {
       "attribut_label": "uuid"
     },
+
     "datasets": {
       "type_widget": "datalist",
       "attribut_label": "Jeux de données",
@@ -57,6 +63,7 @@
       "data_path": "data",
       "required": true
     },
+
     "id_list_observer": {
       "type_widget": "datalist",
       "attribut_label": "Liste des observateurs",
@@ -66,8 +73,10 @@
       "api" : "users/listes",
       "application": "GeoNature",
       "required": true, 
-      "type_util": "observer_list"
+      "type_util": "observer_list",
+      "definition": "Liste des observateurs. À gérer dans UsersHub."
     },
+
     "id_list_taxonomy": {
       "type_widget": "datalist",
       "attribut_label": "Liste des taxons",
@@ -79,13 +88,15 @@
       "required": true, 
       "type_util": "taxonomy_list",
       "data_path": "data",
-      "definition": "liste des taxons concernés par ce module"
+      "definition": "Liste des taxons. À gérer dans TaxHub."
     },
+
     "b_synthese": {
       "type_widget": "bool_checkbox",
       "attribut_label": "Activer la synthèse ?",
       "definition": "Insertion automatique des nouvelles données dans la synthèse."
     },
+
     "taxonomy_display_field_name": {
       "type_widget": "datalist",
       "attribut_label": "Affichage des taxon",
@@ -95,6 +106,13 @@
       ],
       "required": true
     },
+
+    "active_frontend": {
+      "type_widget": "bool_checkbox",
+      "attribut_label": "Afficher dans le menu ?",
+      "definition": "Afficher le module dans le menu de GéoNature. (Recharger la page pour voir les modifications)."
+    },
+    
     "medias": {
       "type_widget": "medias",
       "attribut_label": "Médias",
