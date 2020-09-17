@@ -7,19 +7,19 @@
   margin: 0;
   margin-bottom: 10px;
   padding: 0;
-  line-height: 0.5rem;
+  /* line-height: 0.5rem; */
 }
 
 :host ::ng-deep .obj-form small {
-  position: relative;
+  /* position: relative; */
   /* background-color: lightgray; */
-  top: -5px;
-  padding: 1px 3px;
-  border-radius: 3px;
+  /* top: -5px; */
+  /* padding: 1px 3px; */
+  /* border-radius: 3px; */
 }
 
 :host ::ng-deep .obj-form .input-group {
-  line-height: 1.5rem;
+  /* line-height: 1rem; */
 }
 
 .hide-spinner {
