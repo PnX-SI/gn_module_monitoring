@@ -208,11 +208,10 @@ export class MonitoringObjectService {
 
   toForm(elem, val): Observable<any> {
     let x = val;
-
     // valeur par default depuis la config schema
-    x = x || elem.value;
-
-    x = x === undefined ? null : x;
+    x = x === undefined 
+      ? elem.value || null
+      : x
 
     switch (elem.type_widget) {
       case "date": {
@@ -245,8 +244,6 @@ export class MonitoringObjectService {
           })
         );
     }
-
-    x = x || null; // sinon pb assignement dictionnaire
 
     x = x instanceof Observable ? x : of(x);
     return x;
