@@ -147,3 +147,47 @@ class MonitoringObject(MonitoringObjectSerializer):
             breadcrumbs = parent.breadcrumbs() + breadcrumbs
 
         return breadcrumbs
+
+    def get_list(self, args=None):
+        '''
+            renvoie une liste d'objet serialisés
+            possibilité de filtrer
+            args arguments de requête get
+            get_list(request.args.to_dict())
+
+            TODO ajouter sort, page ou autres avec args
+            TODO traiter geojson ?? 
+            TODO filtrer par module ++++
+        '''
+
+        Model = self.MonitoringModel()
+
+        limit = args.get('limit')
+        print(args)
+
+        req = (
+            DB.session.query(Model)
+        )
+
+        # filtres
+        for key in args:
+            if hasattr(Model, key):
+                vals = args.getlist(key)
+                print(vals)
+                req = req.filter(getattr(Model, key).in_(vals))
+
+        # TODO page etc...
+
+        res = (
+            req
+            .limit(limit)
+            .all()
+        )
+
+        # TODO check if self.properties_names() == props et rel
+        props = self.properties_names()
+
+        return [
+            r.as_dict(True, columns=props, relationships=props)
+            for r in res
+        ]

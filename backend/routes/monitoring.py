@@ -143,3 +143,17 @@ def breadcrumbs_object_api(module_code, object_type, id):
         .get()
         .breadcrumbs()
     )
+
+
+# listes pour les formulaires par exemple
+# todo ajouter filtres
+@blueprint.route('list/<string:module_code>/<object_type>', methods=['GET'])
+@check_cruved_scope_monitoring('R', 1)
+@json_resp
+def list_object_api(module_code, object_type):
+
+    return (
+        monitoring_definitions
+        .monitoring_object_instance(module_code, object_type)
+        .get_list(request.args)
+    )
