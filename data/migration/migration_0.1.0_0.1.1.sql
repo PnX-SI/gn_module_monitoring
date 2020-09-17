@@ -47,3 +47,4 @@ SELECT m_submodule.module_path, m_monitoring.module_path||'/module/'||m_submodul
         ON m_monitoring.module_code = 'MONITORINGS' -- code de monitoring en dur
     WHERE m_submodule.id_module = m.id_module
         AND NOT m_submodule.module_path LIKE '%/%'
+;
