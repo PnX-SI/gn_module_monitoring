@@ -8,7 +8,7 @@
 """
 
 from flask import request
-from sqlalchemy import and_
+from sqlalchemy import and_, inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -22,31 +22,27 @@ from utils_flask_sqla.response import json_resp
 
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
+
 from geonature.utils.errors import GeoNatureError
 
 from ..blueprint import blueprint
 
+from ..monitoring.models import TMonitoringGroupSites
 
-object_dict = {
+model_dict = {
     'nomenclature': TNomenclatures,
     'user': User,
     'taxonomy': Taxref,
     'dataset': TDatasets,
     'observer_list': TListes,
     'taxonomy_list': BibListes,
+    'group_site': TMonitoringGroupSites,
     }
 
-
-# todo get id from inspect +++
-id_field_name_dict = {
-    'nomenclature': 'id_nomenclature',
-    'user': 'id_role',
-    'taxonomy': 'cd_nom',
-    'dataset': 'id_dataset',
-    'observer_list': 'id_liste',
-    'taxonomy_list': 'id_liste',
-
-}
+id_field_name_dict = dict( 
+    (k, inspect(Model).primary_key[0].name)
+    for (k, Model) in model_dict.items()
+)
 
 
 @blueprint.route('util/nomenclature/<string:code_nomenclature_type>/<string:cd_nomenclature>', methods=['GET'])
@@ -120,7 +116,7 @@ def get_util_from_id_api(type_util, id):
     field_name = request.args.get('field_name', 'all')
 
     # modèle SQLA
-    obj = object_dict.get(type_util)
+    obj = model_dict.get(type_util)
 
     if not hasattr(obj, field_name) and field_name != "all":
         raise GeoNatureError(
@@ -180,7 +176,7 @@ def get_util_from_ids_api(type_util, ids):
     # tableau d'id depuis ids
     list_ids = list(ids.split('-'))
 
-    obj = object_dict.get(type_util)
+    obj = model_dict.get(type_util)
     id_field_name = id_field_name_dict.get(type_util)
 
     if not hasattr(obj, field_name) and field_name != "all":

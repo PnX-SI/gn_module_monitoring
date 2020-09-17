@@ -18,6 +18,8 @@ export class MonitoringObjectService {
 
   _cache = {};
 
+  // TODO get config from backend!!!
+  // un peu comme avec taxonomy
   configUtilsDict(moduleCode) {
     return {
       user: {
@@ -37,6 +39,9 @@ export class MonitoringObjectService {
       },
       taxonomy_list: {
         fieldName: "nom_liste",
+      },
+      group_site: {
+        field_name: "group_site_name",
       }
     }
   }
