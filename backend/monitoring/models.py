@@ -238,7 +238,7 @@ class TMonitoringModules(TModules):
     id_list_observer = DB.Column(DB.Integer)
     id_list_taxonomy = DB.Column(DB.Integer)
 
-    taxonomie_display_field_name = DB.Column(DB.Unicode)
+    taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
 
     medias = DB.relationship(
