@@ -6,11 +6,13 @@ import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
 
 import { MonitoringObjectBase } from './monitoring-object-base';
+//======================================================================================
+//======================================================================================
 
 export class MonitoringObject extends MonitoringObjectBase {
   parent: MonitoringObject;
   myClass = MonitoringObject;
-
+//======================================================================================
   constructor(
     modulePath: string,
     objectType: string,
@@ -19,10 +21,11 @@ export class MonitoringObject extends MonitoringObjectBase {
   ) {
     super(modulePath, objectType, id, objService);
   }
-
+//======================================================================================
   /** Initialisation de l'object à partir des données du serveur */
 
   init(objData): Observable<any> {
+    
     // set data et get children
     this.setConfig();
     this.setData(objData);
@@ -39,7 +42,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       })
     );
   }
-
+//======================================================================================
   initChildren(childrenData): Observable<any> {
     if (!childrenData) {
       return of(true);
@@ -51,9 +54,13 @@ export class MonitoringObject extends MonitoringObjectBase {
       })
     );
   }
-
+//======================================================================================
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     const childrenDataOfType = childrenData[childrenType];
+
+    console.log("childrenType: "+childrenType);
+    console.log("childrenDataOfType");    console.log(childrenDataOfType);
+
     if (!(childrenDataOfType)) {
       return of(true);
     }
@@ -70,6 +77,8 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     const observables = [];
     for (const childData of childrenDataOfType) {
+      
+     
       const id = childData.properties[childIdFieldName];
       const child = new this.myClass(
         this.modulePath,
@@ -77,38 +86,49 @@ export class MonitoringObject extends MonitoringObjectBase {
         id,
         this._objService
       );
+      
       child.parentId = this.id;
       child.parent = this;
+      
       this.children[childrenType].push(child);
       observables.push(child.init(childData));
     }
     return forkJoin(observables);
   }
-
+//======================================================================================
   /** Methodes get post patch delete */
 
   get(depth): Observable<any> {
     let bFromCache = false;
+ 
+
     return of(true).pipe(
       mergeMap(() => {
         const postData = this._objService.getFromCache(this);
+
         if (postData) {
           bFromCache = true;
           return of(postData);
+          
         }
+        
+
+
         return this._objService
           .dataMonitoringObjectService()
           .getObject(this.modulePath, this.objectType, this.id, depth);
       }),
+      
       mergeMap(postData => {
         if (!bFromCache) {
           this._objService.setCache(this, postData);
         }
+
         return this.init(postData);
       })
     );
   }
-
+//======================================================================================
   post(formValue): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
@@ -121,7 +141,7 @@ export class MonitoringObject extends MonitoringObjectBase {
         })
       );
   }
-
+//======================================================================================
   patch(formValue) {
     return this._objService
       .dataMonitoringObjectService()
@@ -138,14 +158,14 @@ export class MonitoringObject extends MonitoringObjectBase {
         })
       );
   }
-
+//======================================================================================
   delete() {
     this._objService.deleteCache(this);
     return this._objService
       .dataMonitoringObjectService()
       .deleteObject(this.modulePath, this.objectType, this.id);
   }
-
+//======================================================================================
   /** methodes pour obtenir les parent et enfants de l'object */
 
   getParent(depth = 0): Observable<any> {
@@ -169,7 +189,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** Formulaires  */
 
   /** formValues: obj -> from */
-
+//======================================================================================
   formValues(): Observable<any> {
     const properties = Utils.copy(this.properties);
     const observables = {};
@@ -195,7 +215,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   /** postData: obj -> from */
-
+//======================================================================================
   postData(formValue) {
     const propertiesData = {};
     const schema = this.schema();
@@ -219,7 +239,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
     return postData;
   }
-
+//======================================================================================
   /** child0 et children0 pour les templates html */
 
   children0() {
@@ -231,7 +251,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       return this.child0(childrenType);
     });
   }
-
+//======================================================================================
   children0Array() {
     if (!this.childrenTypes()) {
       return null;
@@ -244,13 +264,16 @@ export class MonitoringObject extends MonitoringObjectBase {
 
 
   /** list */
-
+//======================================================================================
   childrenColumnsAndRowsOfType(childrenType, typeDisplay) {
+    console.log("===========/home/geonatureadmin/geonature/external_modules/monitorings/frontend/app/class/monitoring-object.ts:"  );
+    console.log("childrenColumnsAndRowsOfType: childrentype: "+childrenType);
     const child0 = this.child0(childrenType);
     const childrenFieldLabels = child0.fieldLabels();
     const childrenFieldNames = child0.fieldNames(typeDisplay);
     const childrenFieldDefinitons = child0.fieldDefinitions();
-
+    
+    //-------------------------------------column
     const columns = childrenFieldNames.map(fieldName => {
       return {
         prop: fieldName,
@@ -258,10 +281,19 @@ export class MonitoringObject extends MonitoringObjectBase {
         definition: childrenFieldDefinitons[fieldName],
       };
     });
+    console.log("columns");  //--------------------
+    console.log(columns);  //--------------------
 
+
+
+
+    
+//-------------------------------------ROW
     let rows = [];
+    
+    console.log(this.children);//-----------------------
     if (this.children[childrenType]) {
-      rows = this.children[childrenType].map(child => {
+        rows = this.children[childrenType].map(child => {
         const row = Utils.mapArrayToDict(
           childrenFieldNames,
           fieldName => child.resolvedProperties[fieldName]
@@ -270,7 +302,9 @@ export class MonitoringObject extends MonitoringObjectBase {
         return row;
       });
     }
-
+   
+    console.log("rows");  //--------------------
+    console.log(rows);  //--------------------
     return {
       columns: columns,
       rows: rows

@@ -85,10 +85,29 @@ export class MonitoringMapComponent implements OnInit {
   ) { }
 
 
-  ngOnInit() {
+  ngOnInit() {    
   }
 
+
+
+sendGeoInfo(geojson){
+  
+  this.objForm.value.geometry=geojson;
+  this.objForm.value.geometry_type=geojson.type;
+  //this.obj.config['geometry_type']="Point";
+  this.objForm.status="VALID";
+
+  console.log(this.objForm);
+ 
+  
+  
+}
+
+
+
+
   initSites() {
+    console.log("initSites()");
     setTimeout(() => {
       this.initPanes();
       if (this.sites && this.sites['features']) {
@@ -107,6 +126,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   onLayerClick(site) {
+    console.log("onLayerClick");
     return (event) => {
       const id = (this.selectedSiteId === site.id) ? -1 : site.id;
       this.setSelectedSite(id);
@@ -116,6 +136,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initPanes() {
+    console.log("initPanes");
     const map = this._mapService.map;
     for (const key of Object.keys(this.styles)) {
       const style = this.styles[key];
@@ -129,6 +150,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSitesStatus() {
+    console.log("initSitesStatus()");
     if (!this.objectsStatus['site']) {
       this.objectsStatus['site'] = [];
     }
@@ -150,6 +172,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSelectedSite(id) {
+    console.log("setSelectedSite");
     if (id == this.selectedSiteId)  {
       return;
     }
@@ -171,6 +194,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSitesStyle() {
+    console.log("setSitesStyle");
     if (this.objectsStatus['site'] && this._mapService.map) {
       this.objectsStatus['site'].forEach(status => {
         this.setSiteStyle(status);
@@ -179,6 +203,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSiteStyle(status) {
+    console.log("setSiteStyle");
     const map = this._mapService.map;
     let layer = this.findSiteLayer(status.id);
     if (!layer) { return; }
@@ -214,6 +239,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   findSiteLayer(id): Layer {
+    console.log("findSiteLayer");
     const layers = this._mapService.map['_layers'];
     const layerKey = Object.keys(layers).find(key => {
       const feature = layers[key] && layers[key].feature;
@@ -223,6 +249,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setPopup(id) {
+    console.log("setPopup");
     const layer = this.findSiteLayer(id);
 
     if (layer._popup) {
@@ -251,6 +278,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    console.log("ngOnChanges");
     for (const propName of Object.keys(changes)) {
       const chng = changes[propName];
       const cur = chng.currentValue;
@@ -266,6 +294,7 @@ export class MonitoringMapComponent implements OnInit {
           break;
         case 'bEdit':
           this.setSitesStyle();
+          
           break;
         case 'sites':
           this.initSites();

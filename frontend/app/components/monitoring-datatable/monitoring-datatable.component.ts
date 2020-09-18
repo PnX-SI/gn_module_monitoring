@@ -130,7 +130,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
   navigateViewObject(objectType, id, bEdit) {
     const queryParams = {};
-
+    
     if (bEdit) {
       this.bEditChanged.emit(bEdit);
     }

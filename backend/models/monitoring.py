@@ -10,7 +10,7 @@ from utils_flask_sqla_geo.serializers import geoserializable
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TBaseSites_groups
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
 
@@ -39,7 +39,10 @@ class CorSiteModule(DB.Model):
         DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
         primary_key=True
     )
-
+    id_base_sites_groups= DB.Column(
+        DB.ForeignKey('gn_monitoring.t_base_sites_groups.id_base_sites_groups'),
+        primary_key=False
+    )
 
 class CorVisitObserver(DB.Model):
     __tablename__ = 'cor_visit_observer'
@@ -203,6 +206,40 @@ class TMonitoringSites(TBaseSites):
     @hybrid_property
     def nb_visits(self):
         return len(self.visits)
+        
+#geofit
+@serializable
+class TMonitoringSites_groups(TBaseSites_groups):
+
+    __tablename__ = 't_sites_groups_complements'
+    __table_args__ = {'schema': 'gn_monitoring'}
+    __mapper_args__ = {
+        'polymorphic_identity': 'monitoring_sites_groups',
+    }
+
+    id_base_sites_groups = DB.Column(
+        DB.ForeignKey('gn_monitoring.t_base_sites_groups.id_base_sites_groups'),
+        nullable=False,
+        primary_key=True)
+
+    id_module = DB.Column(
+        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        nullable=False,
+        primary_key=True)
+
+    data = DB.Column(JSONB)
+
+    # unmap modules
+    TBaseSites_groups.modules = 0
+
+    medias = DB.relationship(
+        TMedias,
+        primaryjoin=(TMedias.uuid_attached_row == TBaseSites_groups.uuid_sites_groups),
+        foreign_keys=[TMedias.uuid_attached_row],
+        cascade="all,delete")
+#--------------------end
+
+
 
 
 @serializable
@@ -237,3 +274,20 @@ class TMonitoringModules(TModules):
         lazy="select",
         # backref='parents'
     )
+    sites_groups = DB.relationship(
+        'TMonitoringSites_groups',
+        #secondary='gn_monitoring.cor_site_module',
+        #primaryjoin=id_module == CorSiteModule.id_module,
+        #secondaryjoin=TMonitoringSites_groups.id_base_sites_groups == CorSiteModule.id_base_sites_groups,
+        #join_depth=0,
+        lazy="select",
+        # backref='parents'
+    )
+
+
+
+
+
+
+    
+

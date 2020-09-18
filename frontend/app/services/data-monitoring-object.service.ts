@@ -63,7 +63,8 @@ export class DataMonitoringObjectService {
    */
   getObject(modulePath, objectType, id = null, depth = null) {
     const url = this.urlMonitoring('object', modulePath, objectType, id, depth);
-    return this._cacheService.request('get', url);
+     return this._cacheService.request('get', url);
+    
   }
 
 

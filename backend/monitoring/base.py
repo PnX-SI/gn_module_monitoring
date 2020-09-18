@@ -72,11 +72,12 @@ class MonitoringObjectBase():
         self._object_type = object_type
 
         self._id = id
+        
         if not self._id and model:
             self._id = getattr(model, self.config_param('id_field_name'))
 
         self.set_model_from(model)
-
+        print(model)
     def set_model_from(self, model):
         if model:
             self._model = model

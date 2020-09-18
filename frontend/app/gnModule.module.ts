@@ -30,6 +30,8 @@ import { MonitoringPropertiesComponent } from "./components/monitoring-propertie
 import { MediasComponent } from "./components/medias/medias.component";
 import { MonitoringDatatableComponent } from "./components/monitoring-datatable/monitoring-datatable.component";
 
+import { MonitoringChoixAireComponent } from "./components/monitoring-form/choix-aire/choix-aire.component";
+
 import {
   MatSlideToggleModule,
   MatFormFieldModule,
@@ -78,6 +80,7 @@ const routes: Routes = [
     MediasComponent,
     MonitoringDatatableComponent,
     MonitoringChoixSiteComponent,
+    MonitoringChoixAireComponent,
   ],
   imports: [
     GN2CommonModule,

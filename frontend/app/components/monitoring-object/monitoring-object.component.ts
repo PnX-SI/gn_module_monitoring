@@ -23,6 +23,8 @@ export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
   sites: {};
+ 
+
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -48,6 +50,7 @@ export class MonitoringObjectComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    console.log("=============/home/geonatureadmin/geonature/external_modules/monitorings/frontend/app/components/monitoring-object/monitoring-object.component.ts");
     const elements = document.getElementsByClassName(
       'monitoring-map-container'
     );
@@ -79,7 +82,8 @@ export class MonitoringObjectComponent implements OnInit {
         }),
 
         mergeMap(() => {
-          return this.getDataObject(); // récupération des données de l'object selon le type (module, site, etc..)
+          
+          return this.getDataObject(); // récupération des données de l'object selon le type (module, site, area, etc..)
         })
       )
       .subscribe(() => {
@@ -93,12 +97,20 @@ export class MonitoringObjectComponent implements OnInit {
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
         if (!this.sites) {
-          this.initSites();
+          
+          this.initSites(); 
+
         } else {
+          
           this.initObjectsStatus();
+          
+          
         }
       });
   }
+
+
+
 
   initSites() {
     return this.module.get(1).subscribe(() => {
@@ -116,6 +128,8 @@ export class MonitoringObjectComponent implements OnInit {
       this.initObjectsStatus();
     });
   }
+
+ 
 
   initObjectsStatus() {
     const objectsStatus = {};
@@ -197,6 +211,7 @@ export class MonitoringObjectComponent implements OnInit {
       mergeMap(() => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
+        
         return of(true);
       })
     );
@@ -207,7 +222,11 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getDataObject(): Observable<any> {
+
+    console.log("777777777777777777777777777777777777777777777777");
+    console.log(this.obj);//-------------------------
     return this.obj.get(1);
+    
   }
 
   onObjChanged(obj: MonitoringObject) {

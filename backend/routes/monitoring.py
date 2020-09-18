@@ -44,7 +44,7 @@ def get_monitoring_object_api(module_path, object_type, id):
         :return: renvoie l'object requis
         :rtype: dict
     '''
-
+    
     # field_name = param.get('field_name')
     # value = module_path if object_type == 'module'
 
@@ -107,6 +107,7 @@ def update_object_api(module_path, object_type, id):
 @check_cruved_scope_monitoring('C', 1)
 @json_resp
 def create_object_api(module_path, object_type, id):
+    
     return create_or_update_object_api(module_path, object_type, id)
 
 

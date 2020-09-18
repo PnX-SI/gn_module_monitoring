@@ -28,6 +28,8 @@ export class MonitoringFormComponent implements OnInit {
 
   @Input() sites: {};
 
+  @Input() aires: {};
+
   searchSite = "";
 
   objFormsDefinition;
@@ -224,6 +226,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onSubmit() {
+
     this.bSaveSpinner = !this.bChainInput;
     this.bSaveAddSpinner = this.bChainInput;
 

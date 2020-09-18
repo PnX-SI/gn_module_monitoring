@@ -75,6 +75,13 @@
         [(searchSite)]="searchSite"
       ></pnx-monitoring-choix-site>
 
+      <!--pnx-monitoring-choix-aire
+        *ngIf="testChoixAire()"
+        [aires]="aires"
+        [objForm]="objForm"
+        [(searchAire)]="searchAire">
+      </pnx-monitoring-choix-aire-->
+
       <pnx-dynamic-form-generator
         class="obj-form"
         #dynamicForm
@@ -117,8 +124,7 @@
           ></span>
 
           <span *ngIf="bChainInput && !obj.id"
-            >Valider et enchainer les saisies</span
-          >
+            >Valider et enchainer les saisies</span>
           <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
 

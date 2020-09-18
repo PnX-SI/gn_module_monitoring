@@ -1,26 +1,15 @@
 {
   "tree": {
-    "module": {
-      "site": {
-        "visit": {
-          "observation": null
+      "module": {
+        "site": {
+          "visit": {
+            "observation": null
+          }
         }
       }
-    }
-  },
-  "synthese": "__SYNTHESE",
+ },
   "data": {
-    "nomenclature": [
-        "TYPE_SITE",
-        "STATUT_OBS"
-    ],
-    "taxonomy": {
-      "cd_noms": []
-    },
-    "user": [
-      "__CODE_LIST_INVENTOR",
-      "__CODE_LIST_OBSERVER"
-    ]
+    "nomenclature": ["TEST_METEO"],
+    "user": ["__CODE_LIST_INVENTOR", "__CODE_LIST_OBSERVER"]
   }
-  
 }

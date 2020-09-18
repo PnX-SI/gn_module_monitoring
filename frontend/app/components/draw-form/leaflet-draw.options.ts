@@ -1,12 +1,12 @@
 export const leafletDrawOptions: any = {
   position: 'topleft',
   draw: {
-    polyline: false,
+    polyline: true,
     circle: false, // Turns off this drawing tool
     circlemarker: false,
     rectangle: false,
     marker: false,
-    polygon: false,
+    polygon: true,
   },
   edit: {
     remove: false,

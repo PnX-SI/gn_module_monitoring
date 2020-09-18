@@ -3,6 +3,8 @@ from .repositories import MonitoringObject
 from ..models.monitoring import CorSiteModule, CorVisitObserver
 
 
+
+
 class MonitoringVisit(MonitoringObject):
 
     def serialize(self, depth=0):
@@ -27,7 +29,7 @@ class MonitoringVisit(MonitoringObject):
 class MonitoringSite(MonitoringObjectGeom):
 
     def process_correlations(self, post_data):
-
+        
         id_module = post_data['properties']['id_module']
         self.process_correlation([id_module], CorSiteModule, 'id_module')
 
@@ -45,3 +47,11 @@ class MonitoringModule(MonitoringObject):
         MonitoringObject.get(self, param_value, param_name)
         self._id = self._model.id_module
         return self
+
+
+class MonitoringSites_group(MonitoringObject):
+
+    def process_correlations(self, post_data):
+        
+        id_module = post_data['properties']['id_module']
+        #self.process_correlation([id_module], CorSiteModule, 'id_module')

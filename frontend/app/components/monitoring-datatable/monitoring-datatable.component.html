@@ -6,7 +6,7 @@
     (keyup)="updateFilter($event)"
   /> -->
 
-  <ngx-datatable
+<ngx-datatable
     *ngIf="rows"
     #table
     class="material striped custom-dt"
@@ -21,38 +21,47 @@
     (activate)="onRowClick($event)"
     [sorts]="sorts"
   >
-    <ngx-datatable-column
+  <!--la première colonne contenant deux boutons info et modif site-->
+  <ngx-datatable-column
       [cellClass]="'cell-link'"
       prop="Action"
       class="object-link"
     >
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+
+        <!--bouton i infos site-->
         <a
           class="nav-link link cell-link"
           (click)="navigateViewObject(child0.objectType, row.id, false)"
         >
           <i class="fa fa-info-circle" aria-hidden="true"></i>
         </a>
-        <!-- <a
+        <!--bouton modifier site-->
+        <a
           *ngIf="currentUser?.cruved.E >= 1"
           class="nav-link link cell-link"
           (click)="navigateViewObject(child0.objectType, row.id, true)"
         >
           <i class="fa fa-edit" aria-hidden="true"></i>
-        </a> -->
+        </a> 
       </ng-template>
-    </ngx-datatable-column>
+  </ngx-datatable-column>
 
+
+    <!--les colonnes des attributs  des sites-->
     <ngx-datatable-column
       *ngFor="let col of columns"
       [name]="col.name"
       [prop]="col.prop"
       [comparator]="customColumnComparator"
       [headerTemplate]="hdrTpl"
-    ></ngx-datatable-column>
-  </ngx-datatable>
+    >
+  </ngx-datatable-column>
+</ngx-datatable>
 
-  <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
+<ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
+
+    <!--labels de tri dans l'onglet sites-->
     <div class="header-sort-span" (click)="sortFn()">
       {{column.definition}}
       <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
@@ -67,6 +76,8 @@
         matTooltipPosition="above"
         > {{ column.name }}</span>
     </div>
+
+    <!--zone de saisie dans l'onglet sites-->
     <div class="header-filter-span">
       <input
         [(ngModel)]="filters[column.prop]"
@@ -75,5 +86,5 @@
       />
       {{ filters[column.prop] }}
     </div>
-  </ng-template>
+</ng-template>
 </div>

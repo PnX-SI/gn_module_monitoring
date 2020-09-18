@@ -24,16 +24,17 @@
     </div>
 
     <div id="monitoring-elem-container" class="cadre scroll">
+      
       <pnx-monitoring-breadcrumbs
         *ngIf="obj && obj.bIsInitialized"
         [obj]="obj"
         [(bEdit)]="bEdit"
       ></pnx-monitoring-breadcrumbs>
-
+<!--titre de module-->
       <div>
         <h3>{{ obj.template["title"] }}</h3>
       </div>
-
+<!--description de module-->
       <pnx-monitoring-properties
         id="nav-properties"
         [obj]="obj"
@@ -41,6 +42,8 @@
         [(bEdit)]="bEdit"
         [currentUser]="currentUser"
       ></pnx-monitoring-properties>
+
+<!--editer un site-->
       <pnx-monitoring-form
         [obj]="obj"
         (objChanged)="onObjChanged($event)"
@@ -50,7 +53,7 @@
         [currentUser]="currentUser"
         [sites]="sites"
       ></pnx-monitoring-form>
-
+<!--onglet des sites-->
       <pnx-monitoring-lists
         [obj]="obj"
         [(objectsStatus)]="objectsStatus"

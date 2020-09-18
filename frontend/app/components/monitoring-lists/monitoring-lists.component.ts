@@ -44,6 +44,7 @@ export class MonitoringListComponent implements OnInit {
       .subscribe(() => {
         this.initDataTable();
       });
+ 
   }
 
   initDataTable() {
@@ -53,6 +54,10 @@ export class MonitoringListComponent implements OnInit {
     this.children0Array = this.obj.children0Array();
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
+     
+    console.log('===========/home/geonatureadmin/geonature/external_modules/monitorings/frontend/app/components/monitoring-lists/monitoring-lists.component.ts: childrenDataTable');
+     console.log(this.childrenDataTable);//------------------------------------
+     console.log(this.children0Array);
 
     // this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }

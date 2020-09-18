@@ -86,7 +86,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def serialize_children(self, depth):
         children_types = self.config_param('children_types')
-
+        
         if not children_types:
             return
 
@@ -95,6 +95,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         for children_type in children_types:
             # attention a bien nommer les relation en children_type + 's' !!!
             relation_name = children_type + 's'
+            
 
             if not hasattr(self._model, relation_name):
                 continue
@@ -107,6 +108,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 for child_model in getattr(self._model, relation_name)
             ]
             children[children_type] = children_of_type
+
         return children
 
     def properties_names(self):

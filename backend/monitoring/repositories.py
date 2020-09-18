@@ -12,14 +12,14 @@ log = logging.getLogger(__name__)
 class MonitoringObject(MonitoringObjectSerializer):
 
     def get(self, value=None, field_name=None):
-
+        
         # par defaut on filtre sur l'id
 
         if not field_name:
             field_name = self.config_param('id_field_name')
             if not value:
                 value = self._id
-
+        
         if not value:
             return self
 
@@ -32,7 +32,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             )
 
             self._id = getattr(self._model, self.config_param('id_field_name'))
-
+            
             return self
 
         except Exception as e:

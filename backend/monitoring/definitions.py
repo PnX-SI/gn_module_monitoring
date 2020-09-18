@@ -1,12 +1,14 @@
 from ..models.monitoring import (
     TMonitoringModules,
+    TMonitoringSites_groups,
     TMonitoringSites,
     TMonitoringVisits,
     TMonitoringObservations,
-    TMonitoringObservationDetails,
+    TMonitoringObservationDetails
 )
 from .objects import (
     MonitoringModule,
+    MonitoringSites_group,
     MonitoringSite,
     MonitoringVisit
 )
@@ -22,6 +24,7 @@ from .repositories import MonitoringObject
 
 MonitoringModels_dict = {
     'module': TMonitoringModules,
+    'sites_group': TMonitoringSites_groups,
     'site': TMonitoringSites,
     'visit': TMonitoringVisits,
     'observation': TMonitoringObservations,
@@ -31,6 +34,7 @@ MonitoringModels_dict = {
 
 MonitoringObjects_dict = {
     'module': MonitoringModule,
+    'sites_group': MonitoringSites_group,
     'site': MonitoringSite,
     'visit': MonitoringVisit,
     'observation': MonitoringObject,
