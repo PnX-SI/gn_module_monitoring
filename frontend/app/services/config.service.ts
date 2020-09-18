@@ -67,7 +67,7 @@ export class ConfigService {
   }
 
   moduleMonitoringCode() {
-    return ModuleConfig.module_code;
+    return ModuleConfig.MODULE_CODE;
   }
 
   /** Config Object Schema */

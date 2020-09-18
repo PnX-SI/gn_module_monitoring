@@ -2,11 +2,15 @@
 TODO
 ====
 
+* date du jour par defaut
+* doc à fond
+* base_type_code requis
+
 impt
 ====
 
 * serializer et populate propre (avec schéma comme dans occtax??, dans serializable.from_dict ???
-    * passer par object et plus par id ??
+* passer par object et plus par id ??
 * config custom plus en base ?? (comme avec les id_dataset ??)
 * valider et valider visites -> disabled et un seul qui tourne
 * bug JDD visite

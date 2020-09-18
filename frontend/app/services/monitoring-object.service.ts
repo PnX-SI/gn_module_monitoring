@@ -35,13 +35,13 @@ export class MonitoringObjectService {
         fieldName: "nom_liste",
       },
       taxonomy: {
-        fieldName: this._configService.config()[moduleCode].taxonomie_display_field_name || "nom_vern,lb_nom",
+        fieldName: this._configService.config()[moduleCode].taxonomy_display_field_name || "nom_vern,lb_nom",
       },
       taxonomy_list: {
         fieldName: "nom_liste",
       },
-      group_site: {
-        field_name: "group_site_name",
+      site_group: {
+        field_name: "site_group_name",
       }
     }
   }

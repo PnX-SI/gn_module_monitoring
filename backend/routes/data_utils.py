@@ -27,7 +27,7 @@ from geonature.utils.errors import GeoNatureError
 
 from ..blueprint import blueprint
 
-from ..monitoring.models import TMonitoringGroupSites
+from ..monitoring.models import TMonitoringSitesGroups
 
 model_dict = {
     'nomenclature': TNomenclatures,
@@ -36,7 +36,7 @@ model_dict = {
     'dataset': TDatasets,
     'observer_list': TListes,
     'taxonomy_list': BibListes,
-    'group_site': TMonitoringGroupSites,
+    'site_group': TMonitoringSitesGroups,
     }
 
 id_field_name_dict = dict( 
