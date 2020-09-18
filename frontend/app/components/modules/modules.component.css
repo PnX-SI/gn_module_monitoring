@@ -6,6 +6,10 @@ h2 {
   background-color: white;
 }
 
+.module {
+  padding: 5px;
+}
+
 .flex-container {
   padding: 0;
   margin: 0;
