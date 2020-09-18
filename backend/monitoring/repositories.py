@@ -160,10 +160,15 @@ class MonitoringObject(MonitoringObjectSerializer):
             TODO filtrer par module ++++
         '''
 
+        # test si présent dans le module 
+        # sinon []
+
+        if not self.config().get(self._object_type):
+            return []
+
         Model = self.MonitoringModel()
 
         limit = args.get('limit')
-        print(args)
 
         req = (
             DB.session.query(Model)
@@ -183,7 +188,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             .limit(limit)
             .all()
         )
-
+        print(res)
         # TODO check if self.properties_names() == props et rel
         props = self.properties_names()
 

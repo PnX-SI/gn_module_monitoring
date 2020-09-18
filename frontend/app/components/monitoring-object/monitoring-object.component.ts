@@ -106,14 +106,14 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getModuleSet() {
-
+    // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
       const schema = this._configService.schema(this.module.moduleCode, 'module');
       const moduleFieldList = Object.keys(this._configService.schema(this.module.moduleCode, 'module'))
       .filter(key => schema[key].required);
-      
-      this.moduleSet = moduleFieldList.every(v => !!(this.module.properties[v] || this.obj.properties[v]));
-    })
+      this.moduleSet = moduleFieldList
+        .every(v => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v]));
+    });
   }
 
   initSites() {
