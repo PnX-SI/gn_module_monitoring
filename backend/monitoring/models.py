@@ -182,8 +182,8 @@ class TMonitoringSites(TBaseSites):
         nullable=False,
     )
 
-    id_group_site = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_group_sites.id_group_site', ondelete='SET NULL'),
+    id_site_group = DB.Column(
+        DB.ForeignKey('gn_monitoring.t_site_groups.id_site_group', ondelete='SET NULL'),
         nullable=False,
     )
 
@@ -271,11 +271,11 @@ class TMonitoringModules(TModules):
 
 
 @serializable
-class TMonitoringGroupSites(DB.Model):
-    __tablename__ = 't_group_sites'
+class TMonitoringSitesGroups(DB.Model):
+    __tablename__ = 't_site_groups'
     __table_args__ = {'schema': 'gn_monitoring'}
 
-    id_group_site = DB.Column(
+    id_site_group = DB.Column(
         DB.Integer,
         primary_key=True,
         nullable=False,
@@ -288,11 +288,11 @@ class TMonitoringGroupSites(DB.Model):
         unique=True
     )
 
-    uuid_group_site = DB.Column(UUID(as_uuid=True), default=uuid4)
+    uuid_site_group = DB.Column(UUID(as_uuid=True), default=uuid4)
 
-    group_site_name = DB.Column(DB.Unicode)
-    group_site_code = DB.Column(DB.Unicode)
-    group_site_description = DB.Column(DB.Unicode)
+    site_group_name = DB.Column(DB.Unicode)
+    site_group_code = DB.Column(DB.Unicode)
+    site_group_description = DB.Column(DB.Unicode)
 
     comments = DB.Column(DB.Unicode)
 
@@ -300,25 +300,25 @@ class TMonitoringGroupSites(DB.Model):
 
     medias = DB.relationship(
         TMedias,
-        primaryjoin=(TMedias.uuid_attached_row == uuid_group_site),
+        primaryjoin=(TMedias.uuid_attached_row == uuid_site_group),
         foreign_keys=[TMedias.uuid_attached_row],
         lazy="select",
     )
 
     sites = DB.relationship(
         TMonitoringSites,
-        primaryjoin=(TMonitoringSites.id_group_site == id_group_site),
-        foreign_keys=[TMonitoringSites.id_group_site],
+        primaryjoin=(TMonitoringSites.id_site_group == id_site_group),
+        foreign_keys=[TMonitoringSites.id_site_group],
         lazy="select",
     )
 
 
-# add group_site relationship to TMonitoringSites
-TMonitoringSites.group_site = (
+# add site_group relationship to TMonitoringSites
+TMonitoringSites.site_group = (
     DB.relationship(
-        TMonitoringGroupSites,
+        TMonitoringSitesGroups,
         primaryjoin=(
-            TMonitoringGroupSites.id_group_site == TMonitoringSites.id_group_site
+            TMonitoringSitesGroups.id_site_group == TMonitoringSites.id_site_group
         ),
         cascade="all",
         uselist=False

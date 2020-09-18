@@ -65,13 +65,7 @@
       </p>
 
       <!-- composant choix de site select + filtre -->
-      <pnx-monitoring-choix-site
-        *ngIf="testChoixSite()"
-        [sites]="sites"
-        [objForm]="objForm"
-        [(searchSite)]="searchSite"
-      ></pnx-monitoring-choix-site>
-
+ 
       <pnx-dynamic-form-generator
         class="obj-form"
         #dynamicForm

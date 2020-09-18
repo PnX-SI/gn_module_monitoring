@@ -17,13 +17,11 @@ import { ConfigService } from "./services/config.service";
 // Component
 import { BreadcrumbsComponent } from "./components/breadcrumbs/breadcrumbs.component";
 import { ModulesComponent } from "./components/modules/modules.component";
-import { UploadMediaComponent } from "./components/upload-media/upload-media.component";
 import { MonitoringObjectComponent } from "./components/monitoring-object/monitoring-object.component";
 import { DrawFormComponent } from "./components/draw-form/draw-form.component";
 import { ModalMsgComponent } from "./components/modal-msg/modal-msg.component";
 import { MonitoringMapComponent } from "./components/monitoring-map/monitoring-map.component";
 import { MonitoringFormComponent } from "./components/monitoring-form/monitoring-form.component";
-import { MonitoringChoixSiteComponent } from "./components/monitoring-form/choix-site/choix-site.component";
 import { MonitoringListComponent } from "./components/monitoring-lists/monitoring-lists.component";
 import { MonitoringPropertiesComponent } from "./components/monitoring-properties/monitoring-properties.component";
 import { MonitoringDatatableComponent } from "./components/monitoring-datatable/monitoring-datatable.component";
@@ -36,7 +34,6 @@ import {
   MatInputModule,
 } from "@angular/material";
 
-import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 
 // my module routing
@@ -65,7 +62,6 @@ const routes: Routes = [
   declarations: [
     BreadcrumbsComponent,
     ModulesComponent,
-    UploadMediaComponent,
     MonitoringObjectComponent,
     DrawFormComponent,
     ModalMsgComponent,
@@ -74,7 +70,6 @@ const routes: Routes = [
     MonitoringListComponent,
     MonitoringPropertiesComponent,
     MonitoringDatatableComponent,
-    MonitoringChoixSiteComponent,
   ],
   imports: [
     GN2CommonModule,
@@ -87,7 +82,6 @@ const routes: Routes = [
     MatAutocompleteModule,
     MatSelectModule,
     MatInputModule,
-    NgxMatSelectSearchModule,
     HttpClientXsrfModule.withOptions({
       headerName: "token",
     }),

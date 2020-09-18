@@ -13,7 +13,7 @@ ALTER TABLE gn_monitoring.t_module_complements ADD CONSTRAINT fk_t_module_comple
             ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN b_synthese BOOLEAN DEFAULT TRUE;
-ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN taxonomie_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom';
+ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom';
 
 
 -- create update date for t_modules complements 
@@ -35,11 +35,10 @@ CREATE TRIGGER tri_meta_dates_change_t_medias
 -- path permet d'atteindre le module dans le menu de droite sur active_frontend est à true
 -- 
 -- en sécurité : si module_path contient déjà un '/' -> on ne refait pas l'operation
-UPDATE TABLE gn_commons.t_modules m 
+UPDATE gn_commons.t_modules m 
     SET 
         module_code = m_submodule.module_code,
-        module_path = m_submodule.module_path
-SELECT m_submodule.module_path, m_monitoring.module_path||'/module/'||m_submodule.module_code
+        module_path = m_monitoring.module_path||'/module/'||m_submodule.module_code
     FROM gn_commons.t_modules m_submodule
     JOIN gn_monitoring.t_module_complements mc
         ON mc.id_module = m_submodule.id_module
@@ -51,40 +50,40 @@ SELECT m_submodule.module_path, m_monitoring.module_path||'/module/'||m_submodul
 
 -- group site
 
-  -- creation gn_monitoring.t_group_site
+  -- creation gn_monitoring.t_site_group
 
-CREATE TABLE IF NOT EXISTS gn_monitoring.t_group_sites (
-    id_group_site SERIAL NOT NULL,
+CREATE TABLE IF NOT EXISTS gn_monitoring.t_site_groups (
+    id_site_group SERIAL NOT NULL,
 
     id_module INTEGER NOT NULL,
-    group_site_name character varying(255),
-    group_site_code character varying(255),
-    group_site_description TEXT,
-    uuid_group_site UUID DEFAULT uuid_generate_v4() NOT NULL,
+    site_group_name character varying(255),
+    site_group_code character varying(255),
+    site_group_description TEXT,
+    uuid_site_group UUID DEFAULT uuid_generate_v4() NOT NULL,
     comment TEXT,
     data JSONB,
     meta_create_date timestamp without time zone DEFAULT now(),
     meta_update_date timestamp without time zone DEFAULT now(),
 
-    CONSTRAINT pk_t_group_sites PRIMARY KEY (id_group_site),
-    CONSTRAINT fk_t_group_sites_id_module FOREIGN KEY (id_module)
+    CONSTRAINT pk_t_site_groups PRIMARY KEY (id_site_group),
+    CONSTRAINT fk_t_site_groups_id_module FOREIGN KEY (id_module)
         REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TRIGGER tri_meta_dates_change_t_group_sites
+CREATE TRIGGER tri_meta_dates_change_t_site_groups
     BEFORE INSERT OR UPDATE
-    ON gn_monitoring.t_group_sites
+    ON gn_monitoring.t_site_groups
     FOR EACH ROW
     EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
 
 
-  -- ajout id_group_site à gn_monitoring.t_site_complements
+  -- ajout id_site_group à gn_monitoring.t_site_complements
 
-ALTER TABLE gn_monitoring.t_site_complements ADD id_group_site INTEGER;
+ALTER TABLE gn_monitoring.t_site_complements ADD id_site_group INTEGER;
 ALTER TABLE gn_monitoring.t_site_complements ADD CONSTRAINT
-    fk_t_site_complement_id_group_site FOREIGN KEY (id_group_site)
-    REFERENCES gn_monitoring.t_group_sites (id_group_site) MATCH SIMPLE
+    fk_t_site_complement_id_site_group FOREIGN KEY (id_site_group)
+    REFERENCES gn_monitoring.t_site_groups (id_site_group) MATCH SIMPLE
     ON UPDATE CASCADE ON DELETE SET NULL;
 
 -- pour ajout de group site et au cas où il en manquerait
@@ -93,7 +92,7 @@ VALUES
 ('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
 ('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
 ('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
-('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_group_sites', 'id_group_site', 'uuid_group_site'),
+('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_site_groups', 'id_site_group', 'uuid_site_group'),
 ('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')
 -- on evite de mettre 2 fois le meme couple (shema_name, table_name)
 ON CONFLICT(schema_name, table_name) DO NOTHING;
