@@ -2,12 +2,13 @@
     module de gestion de la configuarion des protocoles de suivi
 """
 
-import os, datetime, time
+import os
 from flask import current_app
 from .utils import (
     customize_config,
     config_from_files,
-    directory_last_modif,
+    get_directory_last_modif,
+    get_base_last_modif,
     json_config_from_file,
     get_id_table_location,
     process_config_display,
@@ -92,20 +93,9 @@ def get_config(module_code=None):
 
     # derniere modification
     # fichiers
-    last_modif_file = directory_last_modif(CONFIG_PATH)
-    last_modif_base = 0
-    # base
-    if module:
-        # calcul du offset pour etre raccord avec la date des fichiers
-        now_timestamp = time.time()
-        offset = (
-            datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
-        ).total_seconds()
-        last_modif_base = (
-            getattr(module, 'meta_update_date') - datetime.datetime(1970, 1, 1)
-        ).total_seconds() - offset
-
-    last_modif = max(last_modif_base, last_modif_file) 
+    file_last_modif = get_directory_last_modif(CONFIG_PATH)
+    base_last_modif = get_base_last_modif(module)
+    last_modif = max(base_last_modif, file_last_modif)
 
     # test si present dans cache et pas modifée depuis le dernier appel
     config = current_app.config.get(config_cache_name, {}).get(module_code)
@@ -135,7 +125,7 @@ def get_config(module_code=None):
         custom['__MONITORINGS_PATH'] = get_monitorings_path()
         customize_config(config, custom)
 
-        # preload data
+        # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
         config['data'] = {
             # 'user': [module.id_list_observer]
             # 'no': 

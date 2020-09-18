@@ -1,4 +1,4 @@
-import os
+import os, datetime, time
 import json
 
 from sqlalchemy import and_
@@ -37,6 +37,24 @@ def get_monitorings_path():
         .filter(TModules.module_code == 'MONITORINGS')
         .one()[0]
     )
+    
+def get_base_last_modif(module):
+    '''
+        renvoie (en seconde depuis le 1 1 1970) la date de modif du module
+        (i. e. de la ligne de gn_monitoring.t_module_complement )
+    '''
+    if not module:
+        return 0
+
+    now_timestamp = time.time()
+    # prise en compte du offset pour etre raccord avec la date des fichiers
+    offset = (
+        datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
+    ).total_seconds()
+    date_module = getattr(module, 'meta_update_date') or getattr(module, 'meta_create_date')
+
+    return (date_module - datetime.datetime(1970, 1, 1)).total_seconds() - offset
+
 
 
 def get_id_table_location(object_type):
@@ -129,7 +147,7 @@ def config_from_files(config_type, module_code):
     return generic_config_custom
 
 
-def directory_last_modif(dir_path):
+def get_directory_last_modif(dir_path):
     '''
         get the last modification time among all file in a directory
 
@@ -139,7 +157,7 @@ def directory_last_modif(dir_path):
         :rtype: float
     '''
     modification_time_max = 0
-    for (repertoire, sousRepertoires, fichiers) in os.walk(dir_path, followlinks=True):
+    for (repertoire, _, fichiers) in os.walk(dir_path, followlinks=True):
         for fichier in fichiers:
             modification_time = os.path.getmtime(repertoire + '/' + fichier)
             if modification_time > modification_time_max:
