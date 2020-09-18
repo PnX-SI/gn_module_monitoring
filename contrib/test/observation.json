@@ -10,17 +10,6 @@
       "application": "TaxHub",
       "required": true,
       "type_util": "taxonomy"
-    },
-    "test_multi": {
-        "type_widget": "datalist",
-        "attribut_label": "Test",
-        "keyValue": "cd_nom",
-        "keyLabel": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
-        "multiple": true,
-        "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
-        "application": "TaxHub",
-        "required": true,
-        "type_util": "taxonomy"
-      }
+    }
   }
 }

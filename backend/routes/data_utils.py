@@ -36,7 +36,7 @@ model_dict = {
     'dataset': TDatasets,
     'observer_list': TListes,
     'taxonomy_list': BibListes,
-    'site_group': TMonitoringSitesGroups,
+    'sites_group': TMonitoringSitesGroups,
     }
 
 id_field_name_dict = dict( 

@@ -6,7 +6,8 @@
           "observation": null
         }
       }
-    }
+    },
+    "sites_group": {}
   },
   "data": {
     "nomenclature": ["TEST_METEO"],

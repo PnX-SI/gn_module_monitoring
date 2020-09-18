@@ -33,7 +33,7 @@
 
         id_base_site INTEGER NOT NULL,
         id_module INTEGER NOT NULL,
-        id_site_group INTEGER,
+        id_sites_group INTEGER,
         data JSONB,
 
         CONSTRAINT pk_t_site_complements PRIMARY KEY (id_base_site),
@@ -43,8 +43,8 @@
         CONSTRAINT fk_t_site_complement_id_base_site FOREIGN KEY (id_base_site)
             REFERENCES gn_monitoring.t_base_sites (id_base_site) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE CASCADE,
-        CONSTRAINT fk_t_site_complement_id_site_group FOREIGN KEY (id_site_group)
-            REFERENCES gn_monitoring.t_site_groups (id_site_group) MATCH SIMPLE
+        CONSTRAINT fk_t_site_complement_id_sites_group FOREIGN KEY (id_sites_group)
+            REFERENCES gn_monitoring.t_sites_groups (id_sites_group) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE SET NULL -- on ne supprime pas forcement les sites quand on supprime un groupe ??
 
     );
@@ -115,7 +115,7 @@ VALUES
 ('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
 ('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
 ('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
-('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_site_groups', 'id_site_group', 'uuid_site_group'),
+('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_sites_groups', 'id_sites_group', 'uuid_sites_group'),
 ('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')
 -- on evite de mettre 2 fois le meme couple (shema_name, table_name)
 ON CONFLICT(schema_name, table_name) DO NOTHING;
@@ -123,27 +123,27 @@ ON CONFLICT(schema_name, table_name) DO NOTHING;
 
 -- Les groupes de site
 
-CREATE TABLE IF NOT EXISTS gn_monitoring.t_site_groups (
-    id_site_group SERIAL NOT NULL,
+CREATE TABLE IF NOT EXISTS gn_monitoring.t_sites_groups (
+    id_sites_group SERIAL NOT NULL,
 
     id_module INTEGER NOT NULL,
-    site_group_name character varying(255),
-    site_group_code character varying(255),
-    site_group_description TEXT,
-    uuid_site_group UUID DEFAULT uuid_generate_v4() NOT NULL,
-    comment TEXT,
+    sites_group_name character varying(255),
+    sites_group_code character varying(255),
+    sites_group_description TEXT,
+    uuid_sites_group UUID DEFAULT uuid_generate_v4() NOT NULL,
+    comments TEXT,
     data JSONB,
     meta_create_date timestamp without time zone DEFAULT now(),
     meta_update_date timestamp without time zone DEFAULT now(),
 
-    CONSTRAINT pk_t_site_groups PRIMARY KEY (id_site_group),
-    CONSTRAINT fk_t_site_groups_id_module FOREIGN KEY (id_module)
+    CONSTRAINT pk_t_sites_groups PRIMARY KEY (id_sites_group),
+    CONSTRAINT fk_t_sites_groups_id_module FOREIGN KEY (id_module)
         REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TRIGGER tri_meta_dates_change_t_site_groups
+CREATE TRIGGER tri_meta_dates_change_t_sites_groups
     BEFORE INSERT OR UPDATE
-    ON gn_monitoring.t_site_groups
+    ON gn_monitoring.t_sites_groups
     FOR EACH ROW
     EXECUTE PROCEDURE public.fct_trg_meta_dates_change();

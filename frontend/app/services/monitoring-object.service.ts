@@ -40,8 +40,8 @@ export class MonitoringObjectService {
       taxonomy_list: {
         fieldName: "nom_liste",
       },
-      site_group: {
-        field_name: "site_group_name",
+      sites_group: {
+        field_name: "sites_group_name",
       }
     }
   }
