@@ -81,8 +81,8 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
         )
         return None
 
-    module_desc = config_param(module_code, 'module', 'module_desc')
-    module_label = config_param(module_code, 'module', 'module_label')
+    module_desc = config['module'].get('module_desc')
+    module_label = config['module'].get('module_label')
     synthese_object = config.get('synthese_object')
 
     if not(module_desc and module_label):
