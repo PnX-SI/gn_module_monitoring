@@ -55,7 +55,7 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
 
     if not os.path.exists(module_config_dir_path):
         print(
-            'module_config_dir_path_does not exist (use absolute path)'.format(
+            'module_config_dir_path {} does not exist (use absolute path)'.format(
                 module_config_dir_path
             )
         )
@@ -199,10 +199,10 @@ def remove_monitoring_module(module_code):
         )
 
         DB.engine.execution_options(autocommit=True).execute(txt)
-    except IntegrityError as ie:
+    except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
         return
-    except Exception as e:
+    except Exception:
         print("Impossible de supprimer le module")
         raise(e)
 
@@ -333,7 +333,7 @@ def add_nomenclature(module_code):
             pass
 
         if not id_type:
-            print('probleme de type avec mnemonique="{}" pour la nomenclature'.format(data['type'], data))
+            print('probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(data['type'], data))
             continue
 
         data['label_fr'] = data.get('label_fr') or data['label_default']
