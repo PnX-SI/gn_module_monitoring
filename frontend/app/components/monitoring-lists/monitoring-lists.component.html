@@ -12,11 +12,11 @@
         role="tab"
         attr.aria-controls="nav-{{ child0.objectType }}"
         aria-selected="true"
-        >{{ child0.template["label_list"]}} 
-        ({{obj.children[child0.objectType].length}})
+        >{{ child0.template["label_list"] }} ({{
+          obj.children[child0.objectType].length
+        }})
         <!-- ({{child0.objectType}}) -->
-        </a
-      >
+      </a>
     </div>
   </nav>
 
@@ -30,18 +30,28 @@
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
-      <!--
-         <pnx-medias
-        [(medias)]="medias"
-        [uuid_attached_row]="obj.template['uuid']"
-        [staticDirUrl]="backendUrl"
-        [idTableLocation]="obj.idTableLocation"
-        *ngIf="child0.objectType == 'media'"
-      ></pnx-medias> 
-    -->
-
       <div class="list-children" *ngIf="child0.objectType as childrenType">
-        <!-- child0.objectType != 'media' && child0.objectType as childrenType -->
+        <div
+          class="btn-height"
+          *ngIf="obj.moduleCode && currentUser?.cruved.C >= 1"
+        >
+          <div class="btn-float-right">
+            <a
+              class="btn btn-success float-right"
+              [routerLink]="[
+                '/',
+                frontendModuleMonitoringUrl,
+                'create_object',
+                obj.moduleCode,
+                child0.objectType,
+                obj.id
+              ]"
+              ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+              {{ (child0.template["label"] || "").toLowerCase() }}</a
+            >
+          </div>
+        </div>
+
         <pnx-monitoring-datatable
           *ngIf="childrenDataTable && childrenDataTable[childrenType]"
           (bEditChanged)="onbEditChanged($event)"
@@ -54,28 +64,6 @@
           [sorts]="child0.configParam('sorts')"
           [currentUser]="currentUser"
         ></pnx-monitoring-datatable>
-        <div
-          *ngIf="
-            obj.moduleCode &&
-            currentUser?.cruved.C >= 1
-          "
-          class="float-right"
-        >
-          <a
-            class="btn btn-success btn-float-right"
-            [routerLink]="[
-              '/',
-              frontendModuleMonitoringUrl,
-              'create_object',
-              obj.moduleCode,
-              child0.objectType,
-              obj.id
-            ]"
-            ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-            {{ (child0.template["label"] || '').toLowerCase() }}</a
-          >
-        </div>
-        <div class="btn-height"></div>
       </div>
     </div>
   </div>

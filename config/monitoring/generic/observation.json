@@ -16,11 +16,15 @@
       "hidden": true
     },
     "cd_nom": {
-      "type_widget": "taxonomy",
+      "type_widget": "datalist",
       "attribut_label": "Taxon",
-      "type_util": "taxonomy",
+      "keyValue": "cd_nom",
+      "keyLabel": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+      "multiple": false,
+      "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
+      "application": "TaxHub",
       "required": true,
-      "id_list": "__MODULE.ID_LIST_TAXONOMY"
+      "type_util": "taxonomy"
     },
     "comments": {
       "type_widget": "text",

@@ -1,12 +1,12 @@
-import { MonitoringObject } from "./../class/monitoring-object";
-import { Injectable } from "@angular/core";
-import { Observable, of } from "@librairies/rxjs";
+import { MonitoringObject } from './../class/monitoring-object';
+import { Injectable } from '@angular/core';
+import { Observable, of } from '@librairies/rxjs';
 
-import { ConfigService } from "./config.service";
-import { DataMonitoringObjectService } from "./data-monitoring-object.service";
-import { DataUtilsService } from "./data-utils.service";
-import { Utils } from "../utils/utils";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { ConfigService } from './config.service';
+import { DataMonitoringObjectService } from './data-monitoring-object.service';
+import { DataUtilsService } from './data-utils.service';
+import { Utils } from '../utils/utils';
+import { mergeMap } from '@librairies/rxjs/operators';
 
 @Injectable()
 export class MonitoringObjectService {
@@ -23,27 +23,27 @@ export class MonitoringObjectService {
   configUtilsDict(moduleCode) {
     return {
       user: {
-        fieldName: "nom_complet",
+        fieldName: 'nom_complet',
       },
       nomenclature: {
-        fieldName: "label_fr",
+        fieldName: 'label_fr',
       },
       dataset: {
-        fieldName: "dataset_name",
+        fieldName: 'dataset_name',
       },
       observer_list: {
-        fieldName: "nom_liste",
+        fieldName: 'nom_liste',
       },
       taxonomy: {
-        fieldName: this._configService.config()[moduleCode].taxonomy_display_field_name || "nom_vern,lb_nom",
+        fieldName: this._configService.config()[moduleCode].taxonomy_display_field_name || 'nom_vern,lb_nom',
       },
       taxonomy_list: {
-        fieldName: "nom_liste",
+        fieldName: 'nom_liste',
       },
       sites_group: {
-        field_name: "sites_group_name",
+        fieldName: 'sites_group_name',
       }
-    }
+    };
   }
 
   cache(moduleCode, objectType = null, id = null) {
@@ -54,7 +54,7 @@ export class MonitoringObjectService {
     }
     cache = cache[objectType] = cache[objectType] || {};
 
-    if (objectType === "module") {
+    if (objectType === 'module') {
       return cache;
     }
 
@@ -67,17 +67,17 @@ export class MonitoringObjectService {
   setCache(obj: MonitoringObject, objData) {
     // post ou update
 
-    if (obj.objectType === "module" && !obj.moduleCode) {
+    if (obj.objectType === 'module' && !obj.moduleCode) {
       return;
     }
-    if (obj.objectType !== "module" && !obj.id) {
+    if (obj.objectType !== 'module' && !obj.id) {
       return;
     }
 
     // object
-    if (obj.objectType === "module") {
+    if (obj.objectType === 'module') {
       const cache = this.cache(obj.moduleCode);
-      cache["module"] = objData;
+      cache['module'] = objData;
     } else {
       const cache = this.cache(obj.moduleCode, obj.objectType);
       cache[obj.id] = objData;
@@ -115,11 +115,11 @@ export class MonitoringObjectService {
         parent.children[obj.objectType].push(objData);
 
         // update nb_child
-        const key = Object.keys(parent.properties).find((key) =>
-          ["nb_visits", "nb_observations", "nb_sites"].includes(key)
+        const key = Object.keys(parent.properties).find((k) =>
+          ['nb_visits', 'nb_observations', 'nb_sites'].includes(k)
         );
         if (key) {
-          console.log("up cache", parent.properties.base_site_name, key);
+          console.log('up cache', parent.properties.base_site_name, key);
           parent.properties[key] = parent.children[obj.objectType].length;
         }
       }
@@ -143,10 +143,10 @@ export class MonitoringObjectService {
 
   getFromCache(obj: MonitoringObject) {
     // get
-    if (obj.objectType === "module" && !obj.moduleCode) {
+    if (obj.objectType === 'module' && !obj.moduleCode) {
       return;
     }
-    if (obj.objectType !== "module" && !obj.id) {
+    if (obj.objectType !== 'module' && !obj.id) {
       return;
     }
 
@@ -193,8 +193,8 @@ export class MonitoringObjectService {
       });
       parent.children[obj.objectType].splice(index, 1);
       // update nb_child
-      const key = Object.keys(parent.properties).find((key) =>
-        ["nb_visits", "nb_observations", "nb_sites"].includes(key)
+      const key = Object.keys(parent.properties).find((k) =>
+        ['nb_visits', 'nb_observations', 'nb_sites'].includes(k)
       );
       if (key) {
         parent.properties[key] = parent.children[obj.objectType].length;
@@ -214,12 +214,12 @@ export class MonitoringObjectService {
   toForm(elem, val): Observable<any> {
     let x = val;
     // valeur par default depuis la config schema
-    x = x === undefined 
+    x = x === undefined
       ? elem.value || null
-      : x
+      : x;
 
     switch (elem.type_widget) {
-      case "date": {
+      case 'date': {
         const date = new Date(x);
         x = x
           ? {
@@ -230,22 +230,22 @@ export class MonitoringObjectService {
           : null;
         break;
       }
-      case "observers": {
+      case 'observers': {
         x = !(x instanceof Array) ? [x] : x;
         break;
       }
-      case "taxonomy": {
-        x = x ? this._dataUtilsService.getUtil("taxonomy", x, "all") : null;
+      case 'taxonomy': {
+        x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
         break;
       }
     }
 
-    if (elem.type_util === "nomenclature" && Utils.isObject(x)) {
+    if (elem.type_util === 'nomenclature' && Utils.isObject(x)) {
       x = this._dataUtilsService
         .getNomenclature(x.code_nomenclature_type, x.cd_nomenclature)
         .pipe(
           mergeMap((nomenclature) => {
-            return of(nomenclature["id_nomenclature"]);
+            return of(nomenclature['id_nomenclature']);
           })
         );
     }
@@ -257,21 +257,21 @@ export class MonitoringObjectService {
   fromForm(elem, val) {
     let x = val;
     switch (elem.type_widget) {
-      case "date": {
+      case 'date': {
         x =
           x && x.year && x.month && x.day
             ? `${x.year}-${x.month}-${x.day}`
             : null;
         break;
       }
-      case "observers": {
+      case 'observers': {
         x =
           elem.max_length === 1 && x instanceof Array && x.length === 1
             ? x[0]
             : x;
         break;
       }
-      case "taxonomy": {
+      case 'taxonomy': {
         x = x instanceof Object ? x.cd_nom : x;
         break;
       }
@@ -280,7 +280,7 @@ export class MonitoringObjectService {
   }
 
   dateFromString(s_date) {
-    const v_date = s_date.split("/");
+    const v_date = s_date.split('/');
     if (v_date.length !== 3) {
       return null;
     }
@@ -289,9 +289,9 @@ export class MonitoringObjectService {
   }
 
   numberFromString(s) {
-    const v = s.split(" ");
+    const v = s.split(' ');
     const s_n = v[0];
-    const v_n = s_n.split(".");
+    const v_n = s_n.split('.');
     v_n[0] = Number(v_n[0]);
     v_n[1] = Number(v_n[1]);
     return v_n.length > 1 && v_n[0] ? v_n : null;

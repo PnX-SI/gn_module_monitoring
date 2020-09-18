@@ -83,7 +83,7 @@
       "keyValue": "id_liste",
       "keyLabel": "nom_liste",
       "multiple": false,
-      "api" : "biblistes",
+      "api" : "biblistes/",
       "application": "TaxHub",
       "required": true, 
       "type_util": "taxonomy_list",

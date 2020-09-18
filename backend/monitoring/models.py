@@ -219,58 +219,6 @@ class TMonitoringSites(TBaseSites):
 
 
 @serializable
-class TMonitoringModules(TModules):
-    __tablename__ = 't_module_complements'
-    __table_args__ = {'schema': 'gn_monitoring'}
-    __mapper_args__ = {
-        'polymorphic_identity': 'monitoring_module',
-    }
-
-    id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
-        primary_key=True,
-        nullable=False,
-        unique=True
-    )
-
-    uuid_module_complement = DB.Column(UUID(as_uuid=True), default=uuid4)
-
-    id_list_observer = DB.Column(DB.Integer)
-    id_list_taxonomy = DB.Column(DB.Integer)
-
-    taxonomy_display_field_name = DB.Column(DB.Unicode)
-    b_synthese = DB.Column(DB.Boolean)
-
-    medias = DB.relationship(
-        TMedias,
-        primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
-        foreign_keys=[TMedias.uuid_attached_row]
-    )
-
-    sites = DB.relationship(
-        'TMonitoringSites',
-        secondary='gn_monitoring.cor_site_module',
-        primaryjoin=id_module == CorSiteModule.id_module,
-        secondaryjoin=TMonitoringSites.id_base_site == CorSiteModule.id_base_site,
-        join_depth=0,
-        lazy="select",
-        # backref='parents'
-    )
-
-    datasets = DB.relationship(
-        'TDatasets',
-        secondary='gn_commons.cor_module_dataset',
-        primaryjoin=id_module == CorModuleDataset.id_module,
-        secondaryjoin=TDatasets.id_dataset == CorModuleDataset.id_dataset,
-        join_depth=0,
-        lazy="select",
-    )
-
-    meta_create_date = DB.Column(DB.DateTime)
-    meta_update_date = DB.Column(DB.DateTime)
-
-
-@serializable
 class TMonitoringSitesGroups(DB.Model):
     __tablename__ = 't_sites_groups'
     __table_args__ = {'schema': 'gn_monitoring'}
@@ -311,6 +259,66 @@ class TMonitoringSitesGroups(DB.Model):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
+
+
+@serializable
+class TMonitoringModules(TModules):
+    __tablename__ = 't_module_complements'
+    __table_args__ = {'schema': 'gn_monitoring'}
+    __mapper_args__ = {
+        'polymorphic_identity': 'monitoring_module',
+    }
+
+    id_module = DB.Column(
+        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        primary_key=True,
+        nullable=False,
+        unique=True
+    )
+
+    uuid_module_complement = DB.Column(UUID(as_uuid=True), default=uuid4)
+
+    id_list_observer = DB.Column(DB.Integer)
+    id_list_taxonomy = DB.Column(DB.Integer)
+
+    taxonomy_display_field_name = DB.Column(DB.Unicode)
+    b_synthese = DB.Column(DB.Boolean)
+
+    medias = DB.relationship(
+        TMedias,
+        primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
+        foreign_keys=[TMedias.uuid_attached_row]
+    )
+
+    sites = DB.relationship(
+        'TMonitoringSites',
+        secondary='gn_monitoring.cor_site_module',
+        primaryjoin=(id_module == CorSiteModule.id_module),
+        secondaryjoin=TMonitoringSites.id_base_site == CorSiteModule.id_base_site,
+        join_depth=0,
+        lazy="select",
+        # backref='parents'
+    )
+
+    sites_groups = DB.relationship(
+        'TMonitoringSitesGroups',
+        primaryjoin=(id_module == TMonitoringSitesGroups.id_module),
+        foreign_keys=[id_module],
+        uselist=True,  # pourquoi pas par defaut
+        lazy="select",
+    )
+
+    datasets = DB.relationship(
+        'TDatasets',
+        secondary='gn_commons.cor_module_dataset',
+        primaryjoin=id_module == CorModuleDataset.id_module,
+        secondaryjoin=TDatasets.id_dataset == CorModuleDataset.id_dataset,
+        join_depth=0,
+        lazy="select",
+    )
+
+    meta_create_date = DB.Column(DB.DateTime)
+    meta_update_date = DB.Column(DB.DateTime)
 
 
 # add sites_group relationship to TMonitoringSites

@@ -18,6 +18,9 @@
     "contact_name": {
       "type_widget": "text",
       "attribut_label": "Commentaire"
+    },
+    "id_sites_group": {
+      "hidden": false
     }
   }
 }

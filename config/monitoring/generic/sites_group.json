@@ -2,6 +2,7 @@
     "id_field_name": "id_sites_group",
     "description_field_name": "sites_group_name",
     "label": "Groupe de sites",
+    "label_list": "Groupes de sites",
     "uuid_field_name": "uuid_sites_group",
     "display_properties": [
       "sites_group_name",
@@ -32,6 +33,10 @@
         "type_widget": "text",
         "attribut_label": "Code",
         "required": true
+      },
+      "comments": {
+        "type_widget": "text",
+        "attribut_label": "Commentaires"
       },
       "uuid_sites_group": {
         "attribut_label": "uuid"

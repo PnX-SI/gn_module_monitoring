@@ -63,7 +63,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def serialize_children(self, depth):
         children_types = self.config_param('children_types')
-
         if not children_types:
             return
 

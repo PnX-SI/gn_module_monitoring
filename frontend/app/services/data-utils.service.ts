@@ -106,7 +106,7 @@ export class DataUtilsService {
      * config/<module_code>/custom_config.json
     */
 
-    if(!Object.keys(this._configService.configData(moduleCode)).length) {
+    if (!Object.keys(this._configService.configData(moduleCode)).length) {
       return of(true);
     }
 

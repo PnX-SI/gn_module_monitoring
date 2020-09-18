@@ -32,7 +32,6 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
         tree = config['tree']
 
     for object_type in tree:
-
         # config object
         config[object_type] = config_object_from_files(module_code, object_type)
 

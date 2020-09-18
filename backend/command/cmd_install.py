@@ -25,7 +25,7 @@ monitorings_cli = AppGroup('monitorings')
 
 @monitorings_cli.command('install')
 @click.argument('module_config_dir_path')
-@click.argument('module_code')
+@click.argument('module_code', type=str, required=False, default='')
 @click.option("--build", type=bool, required=False, default=True)
 @with_appcontext
 def install_monitoring_module(module_config_dir_path, module_code, build):
@@ -36,9 +36,15 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
         params :
             - module_config_dir_path (str) : chemin du répertoire
                     où se situe les fichiers de configuration du module
-            - module_code (str): code du module
+            - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
     '''
 
+    # on enleve le '/' de la fin de module_config_dir_path
+    if module_config_dir_path[-1] == '/':
+        module_config_dir_path = module_config_dir_path[:-1]    
+    
+    module_code = module_code or module_config_dir_path.split('/')[-1]
+            
     print('Install module {}'.format(module_code))
 
     module_monitoring = get_simple_module('module_code', 'MONITORINGS')

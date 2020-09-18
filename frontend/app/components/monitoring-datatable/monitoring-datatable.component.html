@@ -20,6 +20,11 @@
     [selected]="selected"
     (activate)="onRowClick($event)"
     [sorts]="sorts"
+    [messages]= "{
+      emptyMessage: 'Pas de données disponibles',
+      totalMessage: 'total',
+      selectedMessage: 'selection'
+    }"
   >
     <ngx-datatable-column
       [cellClass]="'cell-link'"
