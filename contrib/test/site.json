@@ -20,7 +20,7 @@
       "attribut_label": "Commentaire"
     },
     "id_sites_group": {
-      "hidden": "false"      
+      "hidden": false      
     }
   }
 }

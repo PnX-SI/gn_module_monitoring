@@ -6,7 +6,7 @@
 from flask import request
 
 from utils_flask_sqla.response import (
-    json_resp,
+    json_resp, json_resp_accept_empty_list
 )
 
 from ..blueprint import blueprint
@@ -149,7 +149,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
 # todo ajouter filtres
 @blueprint.route('list/<string:module_code>/<object_type>', methods=['GET'])
 @check_cruved_scope_monitoring('R', 1)
-@json_resp
+@json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
 
     return (
