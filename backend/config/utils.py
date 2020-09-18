@@ -18,11 +18,19 @@ CONFIG_PATH = os.path.dirname(os.path.abspath(
 def get_monitoring_module(module_code):
     if module_code == 'generic':
         return None
-    return (
-        DB.session.query(TMonitoringModules)
-        .filter(TMonitoringModules.module_code == module_code)
-        .one()
-    )
+
+    module = None
+    try:
+        module = (
+            DB.session.query(TMonitoringModules)
+            .filter(TMonitoringModules.module_code == module_code)
+            .one()
+        )
+    except Exception as e:
+        pass
+
+    return module
+
 
 def get_monitorings_path():
     return (

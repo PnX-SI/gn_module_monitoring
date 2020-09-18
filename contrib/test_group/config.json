@@ -1,0 +1,13 @@
+{
+  "tree": {
+    "sites_group": {
+      "module": {
+        "site": {
+          "visit": {
+            "observation": null
+          }
+        }
+      }
+    }
+  }
+}
