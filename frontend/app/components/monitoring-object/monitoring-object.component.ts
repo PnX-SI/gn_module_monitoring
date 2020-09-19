@@ -118,7 +118,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   initSites() {
     return this.module.get(1).subscribe(() => {
-      
+
       this.currentUser['cruved'] = this.module.cruved;
 
       const sites = this.module['children']['site'];

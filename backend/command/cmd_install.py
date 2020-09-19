@@ -37,6 +37,7 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
             - module_config_dir_path (str) : chemin du répertoire
                     où se situe les fichiers de configuration du module
             - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
+            - build: si on relance un build du frontend après l'installation du sous-module
     '''
 
     # on enleve le '/' de la fin de module_config_dir_path

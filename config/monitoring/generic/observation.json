@@ -16,15 +16,11 @@
       "hidden": true
     },
     "cd_nom": {
-      "type_widget": "datalist",
-      "attribut_label": "Taxon",
-      "keyValue": "cd_nom",
-      "keyLabel": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
-      "multiple": false,
-      "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
-      "application": "TaxHub",
+      "type_widget": "taxonomy",
+      "attribut_label": "Espèce",
+      "type_util": "taxonomy",
       "required": true,
-      "type_util": "taxonomy"
+      "id_list": "__MODULE.ID_LIST_TAXONOMY"
     },
     "comments": {
       "type_widget": "text",

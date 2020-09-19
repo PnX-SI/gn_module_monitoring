@@ -48,8 +48,12 @@ class MonitoringObject(MonitoringObjectSerializer):
             properties[parent_id_field_name] = post_data['id_parent']
 
     def process_synthese(self):
+
+        # test du parametre synthese 
         if not self.config().get('synthese'):
             return
+
+        print(self.config().get('synthese'))
 
         table_name = 'vs_{}'.format(self._module_code)
         try:

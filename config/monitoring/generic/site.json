@@ -57,9 +57,13 @@
       "application": "GeoNature"
     },
     "id_nomenclature_type_site": {
-      "type_widget": "nomenclature",
-      "attribut_label": "Type de site",
-      "code_nomenclature_type": "TYPE_SITE",
+      "type_widget": "datalist",
+      "attribut_label": "Type site",
+      "api": "nomenclatures/nomenclature/TYPE_SITE",
+      "application": "GeoNature",
+      "keyValue": "id_nomenclature",
+      "keyLabel": "label_fr",
+      "data_path": "values",
       "type_util": "nomenclature",
       "required": true
     },

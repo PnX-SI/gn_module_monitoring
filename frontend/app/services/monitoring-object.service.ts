@@ -214,7 +214,7 @@ export class MonitoringObjectService {
   toForm(elem, val): Observable<any> {
     let x = val;
     // valeur par default depuis la config schema
-    x = x === undefined
+    x = [undefined, null].includes(x)
       ? elem.value || null
       : x;
 
@@ -240,7 +240,7 @@ export class MonitoringObjectService {
       }
     }
 
-    if (elem.type_util === 'nomenclature' && Utils.isObject(x)) {
+    if (elem.type_util === 'nomenclature' && Utils.isObject(x) && x.code_nomenclature_type && x.cd_nomenclature) {
       x = this._dataUtilsService
         .getNomenclature(x.code_nomenclature_type, x.cd_nomenclature)
         .pipe(

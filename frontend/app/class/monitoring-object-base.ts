@@ -160,7 +160,6 @@ export class MonitoringObjectBase {
       );
   }
 
-
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];
 
