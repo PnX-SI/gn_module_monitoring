@@ -1,17 +1,40 @@
 # Changelog
 
-0.1.1 (Unreleased)
+0.2.0 (Unreleased)
 ------------------
 
 Nécessite la version 2.5.0 de GeoNature minimum.
 
-**Fonctionnalités**
+TODO : A mettre à jour dans manifest.toml avant release.
 
-* 
+**Nouveautés**
+
+* Possibilité de renseigner le JDD à chaque visite (#30)
+* Possibilité pour les administrateurs d'associer les JDD à un sous-module directement depuis l'accueil du sous-module (#30)
+* Possibilité de créer des groupes de sites (#24)
+* Possibilité de créer une visite directement après la création d'un site, et d'une observation directement après la création d'une visite (#28)
+* Redirection sur sa page de détail après la création d'un objet, plutôt que sur la liste (#22)
+* Mise à jour du composant de gestion et d'affichage des médias
+* Ajout d'un composant de liste simple (``datalist``) pouvant interroger une API, utilisé pour les listes de taxons et d'observateurs (#44)
+* Liste des observations : ajout d'un paramètre permettant d'afficher le nom latin des taxon observés (#36)
+* Suppression du fichier ``custom.json`` pour gérer son contenu dans les nouveaux champs de la table ``gn_monitoring.t_module_complements`` (#43)
+* Clarification et remplacement des ``module_path`` et ``module_code`` (#40)
 
 **Corrections**
 
-* Renseignement de la table `gn_synthese.t_sources` à l'installation
+* Renseignement de la table ``gn_synthese.t_sources`` à l'installation (#33)
+* Passage du commentaire de la visite en correspondance avec le champs ``comment_context`` de la Synthèse, dans la vue ``gn_monitoring.vs_visits`` (#31)
+* Remplissage de la table ``gn_commons.bib_tables_location`` pour les tables du schémas ``gn_monitoring`` si cela n'a pas été fait par GeoNature (#27)
+* Corrections et optimisations diverses du code et de l'ergonomie
+
+**Notes de version**
+
+Si vous mettez à jour le module depuis la vers 0.1.0 :
+
+* Exécuter le script SQL de mise à jour de la BDD : ``data/migrations/0.1.0to0.2.0.sql`` (/!\ à renommer avant release !)
+* Exécuter ``update_views.sh`` ???
+* Renseigner les nouveaux champs de ``gn_monitoring.t_module_complements`` ?
+* TOCHECK : Des modifications obligatoires à appliquer dans les fichiers JSON de configuration des modules ?
 
 0.1.0 (2020-06-30)
 ------------------
