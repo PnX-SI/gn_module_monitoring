@@ -6,6 +6,7 @@
   "uuid_field_name": "uuid_base_site",
   "geometry_type": "Point",
   "display_properties": [
+
     "base_site_name",
     "base_site_code",
     "id_nomenclature_type_site",
@@ -35,6 +36,11 @@
       "type_widget": "text",
       "attribut_label": "ID Module",
       "hidden": true
+    },
+    "id_base_sites_groups": {
+      "type_widget": "text",
+      "attribut_label": "Aire de suivies"
+      
     },
     "base_site_name": {
       "type_widget": "text",
@@ -85,6 +91,7 @@
     "uuid_base_site": {
       "attribut_label": "uuid"
     }
+
 
   } 
 }

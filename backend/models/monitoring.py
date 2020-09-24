@@ -39,10 +39,7 @@ class CorSiteModule(DB.Model):
         DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
         primary_key=True
     )
-    id_base_sites_groups= DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_sites_groups.id_base_sites_groups'),
-        primary_key=False
-    )
+
 
 class CorVisitObserver(DB.Model):
     __tablename__ = 'cor_visit_observer'
@@ -174,6 +171,11 @@ class TMonitoringSites(TBaseSites):
         DB.ForeignKey('gn_commons.t_modules.id_module'),
         nullable=False,
         primary_key=True)
+        
+    id_base_sites_groups = DB.Column(
+        DB.ForeignKey('gn_monitoring.t_base_sites_groups.id_base_sites_groups'),
+        nullable=False,
+        primary_key=False)
 
     data = DB.Column(JSONB)
 
@@ -221,6 +223,7 @@ class TMonitoringSites_groups(TBaseSites_groups):
         DB.ForeignKey('gn_monitoring.t_base_sites_groups.id_base_sites_groups'),
         nullable=False,
         primary_key=True)
+    
 
     id_module = DB.Column(
         DB.ForeignKey('gn_commons.t_modules.id_module'),
@@ -237,6 +240,17 @@ class TMonitoringSites_groups(TBaseSites_groups):
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites_groups.uuid_sites_groups),
         foreign_keys=[TMedias.uuid_attached_row],
         cascade="all,delete")
+
+    sites = DB.relationship(
+        'TMonitoringSites',
+        #secondary='gn_monitoring.cor_site_module',
+        #primaryjoin=id_module == CorSiteModule.id_module,
+        #secondaryjoin=TMonitoringSites.id_base_site == CorSiteModule.id_base_site,
+        #join_depth=0,
+        lazy="select",
+        # backref='parents'
+    )
+
 #--------------------end
 
 

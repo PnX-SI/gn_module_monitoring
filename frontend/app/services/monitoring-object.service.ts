@@ -120,8 +120,7 @@ export class MonitoringObjectService {
       obj.parentId
     );
     if (!(parentData && parentData.children)) {
-      console.log(parentData);
-      console.log(parentData && parentData.children);
+
       return;
     }
     return parentData ? parentData : null;
@@ -154,12 +153,12 @@ export class MonitoringObjectService {
     // children
     for (const childrenType of obj.childrenTypes()) {
       const childrenData = obj.children[childrenType] || [];
-      console.log(
+    /*  console.log(
         obj.childrenTypes(),
         obj.children,
         childrenType,
         childrenData
-      );
+      );*/
       for (const childData of childrenData) {
         const child = new MonitoringObject(
           obj.modulePath,

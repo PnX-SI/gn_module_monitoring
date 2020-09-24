@@ -58,9 +58,6 @@ export class MonitoringObject extends MonitoringObjectBase {
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     const childrenDataOfType = childrenData[childrenType];
 
-    console.log("childrenType: "+childrenType);
-    console.log("childrenDataOfType");    console.log(childrenDataOfType);
-
     if (!(childrenDataOfType)) {
       return of(true);
     }
@@ -266,8 +263,6 @@ export class MonitoringObject extends MonitoringObjectBase {
   /** list */
 //======================================================================================
   childrenColumnsAndRowsOfType(childrenType, typeDisplay) {
-    console.log("===========/home/geonatureadmin/geonature/external_modules/monitorings/frontend/app/class/monitoring-object.ts:"  );
-    console.log("childrenColumnsAndRowsOfType: childrentype: "+childrenType);
     const child0 = this.child0(childrenType);
     const childrenFieldLabels = child0.fieldLabels();
     const childrenFieldNames = child0.fieldNames(typeDisplay);
@@ -281,8 +276,7 @@ export class MonitoringObject extends MonitoringObjectBase {
         definition: childrenFieldDefinitons[fieldName],
       };
     });
-    console.log("columns");  //--------------------
-    console.log(columns);  //--------------------
+
 
 
 
@@ -291,7 +285,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 //-------------------------------------ROW
     let rows = [];
     
-    console.log(this.children);//-----------------------
+
     if (this.children[childrenType]) {
         rows = this.children[childrenType].map(child => {
         const row = Utils.mapArrayToDict(
@@ -303,8 +297,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       });
     }
    
-    console.log("rows");  //--------------------
-    console.log(rows);  //--------------------
+
     return {
       columns: columns,
       rows: rows

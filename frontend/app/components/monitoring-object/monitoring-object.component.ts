@@ -50,8 +50,7 @@ export class MonitoringObjectComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log("=============/home/geonatureadmin/geonature/external_modules/monitorings/frontend/app/components/monitoring-object/monitoring-object.component.ts");
-    const elements = document.getElementsByClassName(
+      const elements = document.getElementsByClassName(
       'monitoring-map-container'
     );
     if (elements.length >= 1) {
@@ -222,10 +221,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getDataObject(): Observable<any> {
-
-    console.log("777777777777777777777777777777777777777777777777");
-    console.log(this.obj);//-------------------------
-    return this.obj.get(1);
+   return this.obj.get(1);
     
   }
 

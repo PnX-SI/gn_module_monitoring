@@ -32,9 +32,6 @@ export class CacheService {
     if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
       return of(null);
     }
-     console.log("//////////////////////////////////////////////");
-     
-    console.log(this._config.backendModuleUrl() + '/' + urlRelative);
     
     // requete
     return this._http[requestType]<any>(this._config.backendModuleUrl() + '/' + urlRelative, data);

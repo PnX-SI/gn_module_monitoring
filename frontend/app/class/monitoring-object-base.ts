@@ -42,10 +42,7 @@ export class MonitoringObjectBase {
     id,
     objService: MonitoringObjectService
   ) {
-  /*  console.log("objet de base: "+objectType); 
-    console.log("module Path: "+modulePath);
-    console.log("id: "+id);
-    console.log(objService);*/
+
     if (!modulePath) {
      
       throw new Error('Monitoring object sans modulePath');
@@ -103,7 +100,7 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
-    //console.log("data table"); console.log(data);
+
 
 
     // TODO verifier!!

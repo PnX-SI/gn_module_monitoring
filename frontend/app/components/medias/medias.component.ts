@@ -34,7 +34,7 @@ export class MediasComponent implements OnInit {
   }
 
   setMediasType() {
-    console.log(this.medias)
+    //console.log(this.medias)
     for (const m of this.medias) {
       console.log(m)
       this.setMediaType(m);

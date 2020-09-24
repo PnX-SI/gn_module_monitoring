@@ -77,7 +77,7 @@ class MonitoringObjectBase():
             self._id = getattr(model, self.config_param('id_field_name'))
 
         self.set_model_from(model)
-        print(model)
+        #print(model)
     def set_model_from(self, model):
         if model:
             self._model = model
