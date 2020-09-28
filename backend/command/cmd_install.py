@@ -90,7 +90,7 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
 
     module_desc = config['module'].get('module_desc')
     module_label = config['module'].get('module_label')
-    synthese_object = config.get('synthese_object')
+    synthese_object = config.get('synthese_object') or 'observation' # pour retrouver la page depuis la synthese
 
     if not(module_desc and module_label):
         print(
@@ -123,7 +123,9 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         try:
             DB.engine.execute(
                 text(
-                    open(sql_script, 'r').read()
+                    open(sql_script, 'r')
+                    .read()
+                    .replace(":module_code", module_code)
                 ).execution_options(autocommit=True)
             )
         except Exception as e:
