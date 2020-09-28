@@ -132,4 +132,12 @@ export class DataMonitoringObjectService {
     return this._cacheService.request('get', url);
   }
 
+  /** Mise à jour de toute la synthèse du module
+   * (peut prendre du temps)
+   */
+  updateSynthese(moduleCode) {
+    const url = `synthese/${moduleCode}`;
+    return this._cacheService.request('post', url);
+  }
+
 }

@@ -47,11 +47,20 @@ class MonitoringObject(MonitoringObjectSerializer):
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
 
-    def process_synthese(self):
+    def process_synthese(self, process_module=False):
+
+        print(self, process_module, self.config().get('synthese'))
 
         # test du parametre synthese 
         if not self.config().get('synthese'):
             return
+
+        # on ne le fait pas en automatique pour les modules
+        # le process peut être trop long
+        # peut être fait avec une api exprès (TODO !!)
+        if self._object_type == 'module' and not process_module:
+            return
+
 
         print(self.config().get('synthese'))
 
@@ -78,7 +87,7 @@ class MonitoringObject(MonitoringObjectSerializer):
                 )
             )
 
-        return
+        return True
 
     def create_or_update(self, post_data):
         try:

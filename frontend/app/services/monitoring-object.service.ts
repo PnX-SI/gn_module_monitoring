@@ -308,4 +308,5 @@ export class MonitoringObjectService {
   configService(): ConfigService {
     return this._configService;
   }
+
 }

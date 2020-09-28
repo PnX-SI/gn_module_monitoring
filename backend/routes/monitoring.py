@@ -146,7 +146,6 @@ def breadcrumbs_object_api(module_code, object_type, id):
 
 
 # listes pour les formulaires par exemple
-# todo ajouter filtres
 @blueprint.route('list/<string:module_code>/<object_type>', methods=['GET'])
 @check_cruved_scope_monitoring('R', 1)
 @json_resp_accept_empty_list
@@ -156,4 +155,18 @@ def list_object_api(module_code, object_type):
         monitoring_definitions
         .monitoring_object_instance(module_code, object_type)
         .get_list(request.args)
+    )
+
+
+# mise à jour de la synthèse
+@blueprint.route('synthese/<string:module_code>', methods=['POST'])
+@check_cruved_scope_monitoring('E', 3)
+@json_resp
+def update_synthese_api(module_code):
+
+    return (
+        monitoring_definitions
+        .monitoring_object_instance(module_code, 'module')
+        .get()
+        .process_synthese(process_module=True)
     )

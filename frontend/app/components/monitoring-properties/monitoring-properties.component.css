@@ -13,3 +13,8 @@ td {
 .medias-tab {
   margin: 10px;
 }
+
+.hide-spinner {
+  display: none;
+}
+
