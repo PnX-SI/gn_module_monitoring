@@ -47,9 +47,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
 
-    def process_synthese(self, process_module=False):
-
-        print(self, process_module, self.config().get('synthese'))
+    def process_synthese(self, process_module=False, limit=100):
 
         # test du parametre synthese 
         if not self.config().get('synthese'):
@@ -61,16 +59,14 @@ class MonitoringObject(MonitoringObjectSerializer):
         if self._object_type == 'module' and not process_module:
             return
 
-
-        print(self.config().get('synthese'))
-
         table_name = 'vs_{}'.format(self._module_code)
         try:
             import_from_table(
                 'gn_monitoring',
                 table_name,
                 self.config_param('id_field_name'),
-                self.config_value('id_field_name')
+                self.config_value('id_field_name'),
+                limit
             )
         except ValueError as e:
             # warning

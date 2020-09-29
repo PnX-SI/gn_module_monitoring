@@ -45,7 +45,7 @@ export class MonitoringFormComponent implements OnInit {
     private _router: Router,
     private _configService: ConfigService,
     private _commonService: CommonService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this._configService.init(this.obj.moduleCode).subscribe(() => {
@@ -90,6 +90,15 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.formValues().subscribe((formValue) => {
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
+
+      console.log('init obj');
+      // emit change programmatically
+      // setTimeout(() => {
+      //   this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+      // }, 500);
+
+      //     this.objForm.patchValue({});
+      //     this.objForm.updateValueAndValidity();
     });
   }
   //
@@ -210,7 +219,7 @@ export class MonitoringFormComponent implements OnInit {
         this.obj.id,
       ]);
 
-    // autres cas
+      // autres cas
     } else {
       this._router.navigate([
         '/',
@@ -263,12 +272,12 @@ export class MonitoringFormComponent implements OnInit {
       console.log(
         'info',
         `${actionLabel} de ${this.obj.configParam('label')} ${
-          this.obj.id
+        this.obj.id
         } effectué`
       );
       this._commonService.regularToaster('success', `${actionLabel} de ${this.obj.configParam('label')} ${
         this.obj.id
-      } effectué`);
+        } effectué`);
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
       this.objChanged.emit(this.obj);
 
@@ -299,7 +308,7 @@ export class MonitoringFormComponent implements OnInit {
     this.bDeleteSpinner = true;
     const msg_delete = `${this.obj.template['label']} ${
       this.obj.id
-    } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
+      } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
     console.log(msg_delete);
     this._commonService.regularToaster('info', msg_delete);
 

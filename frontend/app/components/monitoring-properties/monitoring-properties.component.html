@@ -101,7 +101,8 @@
     *ngIf="
       !bEdit &&
       obj.objectType === 'module' &&
-      currentUser?.cruved.E >= 3
+      currentUser?.cruved.E >= 3 &&
+      obj.properties.b_synthese
     "
     matTooltip="Attention, cette opération peux prendre du temps"
   >
