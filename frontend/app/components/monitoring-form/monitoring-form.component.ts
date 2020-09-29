@@ -88,45 +88,11 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
     this.obj.formValues().subscribe((formValue) => {
+      console.log('init obj');
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
-
-      console.log('init obj');
-      // emit change programmatically
-      // setTimeout(() => {
-      //   this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
-      // }, 500);
-
-      //     this.objForm.patchValue({});
-      //     this.objForm.updateValueAndValidity();
     });
   }
-  //
-  /** TODO remove */
-  // isFormReady() {
-  //   let schemaFormSize = this.objFormsDefinition.filter(
-  //     (elem) => elem.type_widget
-  //   ).length;
-  //   if (this.obj.config["geometry_type"]) {
-  //     schemaFormSize += 1;
-  //   }
-  //   const formSize = Utils.dictSize(this.objForm.controls);
-  //   return schemaFormSize === formSize;
-  // }
-
-  // setFormValue(formValue) {
-  //   const objFormChangeSubscription = this.objForm.valueChanges.subscribe(
-  //     () => {
-  //       if (this.isFormReady()) {
-  //         objFormChangeSubscription.unsubscribe();
-  //         this.objForm.setValue(formValue);
-  //         this.setDefaultFormValue();
-  //       }
-  //     }
-  //   );
-  //   // emit change programmatically
-  //   this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
-  // }
 
   resetObjForm() {
     const keep = {};
