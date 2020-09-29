@@ -255,7 +255,6 @@ export class MonitoringMapComponent implements OnInit {
       const chng = changes[propName];
       const cur = chng.currentValue;
       const pre = chng.currentValue;
-      // console.log('map ngOnChanges ', propName, cur, pre)
       switch (propName) {
         case 'objectsStatus':
           if(!this.bListen) {

@@ -88,7 +88,6 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
     this.obj.formValues().subscribe((formValue) => {
-      console.log('init obj');
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
     });
@@ -239,11 +238,11 @@ export class MonitoringFormComponent implements OnInit {
         'info',
         `${actionLabel} de ${this.obj.configParam('label')} ${
         this.obj.id
-        } effectué`
+        } effectuée`
       );
       this._commonService.regularToaster('success', `${actionLabel} de ${this.obj.configParam('label')} ${
         this.obj.id
-        } effectué`);
+        } effectuée`);
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
       this.objChanged.emit(this.obj);
 
