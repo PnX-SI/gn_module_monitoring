@@ -101,6 +101,8 @@ export class DrawFormComponent implements OnInit {
   bindGeojsonForm(geojson) {
     this.geojson = geojson;
     this.parentFormControl.setValue(geojson.geometry);
+    console.log(this.parentFormControl);
+    
   }
 
   ngOnChanges(changes) {

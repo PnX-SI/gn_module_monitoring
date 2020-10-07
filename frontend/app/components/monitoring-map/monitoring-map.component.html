@@ -4,7 +4,11 @@
   [ngClass]="{ 'hide-draw-form': !bEdit}"
   
   >
-
+    <pnx-gps 
+      *ngIf="bEdit"
+      (markerChanged)="sendGeoInfo($event)"
+       >
+    </pnx-gps>
     <pnx-draw-form
       [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
       [geometryType]="obj && obj.config['geometry_type']"
@@ -18,22 +22,14 @@
       [zoomOnLayer]="true"
       [zoomOnFirstTime]="true"
     ></pnx-geojson>
-    
-    <pnx-gps 
-    *ngIf="bEdit" 
-    (markerChanged)="sendGeoInfo($event)"
-    
    
-    >
-  </pnx-gps>
-
-  <pnx-leaflet-filelayer
-  *ngIf="bEdit"
-  [editMode]="true"
-  (onLoad)="infoMessageFileLayer()"
-  (onGeomChange)="sendGeoInfo($event)"
-  [style]="{'color': 'green'}">
-</pnx-leaflet-filelayer> 
+    <pnx-leaflet-filelayer
+    *ngIf="bEdit"
+    [editMode]="true"
+    (onLoad)="infoMessageFileLayer()"
+    (onGeomChange)="sendGeoInfo($event)"
+    [style]="{'color': 'green'}">
+  </pnx-leaflet-filelayer> 
 
   </pnx-map>
 </div>

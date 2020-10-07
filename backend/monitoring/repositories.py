@@ -161,7 +161,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             )
 
     def breadcrumb(self):
-
+        print(self.config_param('label'))
         breadcrumb = {
             'id': self._id,
             'label': self.config_param('label'),

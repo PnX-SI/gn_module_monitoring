@@ -50,7 +50,7 @@ export class MonitoringFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this._configService
+       this._configService
       .init(this.obj.modulePath)
       .pipe(
         mergeMap(() => {
@@ -80,6 +80,10 @@ export class MonitoringFormComponent implements OnInit {
         }
         this.setFormValue(formValues);
       });
+      
+
+      
+  
   }
 
   keepDefinitions() {
@@ -111,6 +115,7 @@ export class MonitoringFormComponent implements OnInit {
     );
     // emit change programmatically
     this.objForm.updateValueAndValidity({ onlySelf: false, emitEvent: true });
+
   }
 
   resetObjForm() {

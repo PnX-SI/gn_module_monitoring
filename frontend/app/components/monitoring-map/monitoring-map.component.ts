@@ -91,16 +91,14 @@ export class MonitoringMapComponent implements OnInit {
 
 
 sendGeoInfo(geojson){
-  
-  this.objForm.value.geometry=geojson;
-  this.objForm.value.geometry_type=geojson.type;
-  //this.obj.config['geometry_type']="Point";
-
-
-  //console.log(this.objForm);
+   this.objForm.value.setCoordonates(geojson.geometry.coordonates);
+   this.objForm.value.setType(geojson.geometry.type);
+   //this.obj.config['geometry_type']=null;
+   
+   //this.objForm.setValue(geojson.geometry);
+ console.log(this.objForm);
+ console.log(geojson.geometry);
  
-  
-  
 }
 
 
