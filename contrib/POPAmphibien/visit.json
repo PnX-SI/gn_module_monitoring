@@ -1,0 +1,68 @@
+{
+  "display_properties": [
+    "visit_date_min",
+    "observers"
+  ],
+  "keep": [  ],
+  "specific": {
+    "id_base_site": {
+      "type_widget": "site",
+      "required": true,
+      "attribut_label": "Choix du site"
+    },
+    "temperature_air": {
+      "type_widget": "number",
+      "attribut_label": "Température de l’air (en °C)",
+      "required": true,
+      "min": -25,
+      "max": 60
+    },
+    "temperature_eau": {
+      "type_widget": "number",
+      "attribut_label": "Température de l’eau (en °C)",
+      "required": true,
+      "min": -25,
+      "max": 60
+    },
+    "pluviosite": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Pluviosité",
+      "values": ["Bruine", "Averse intermittente", "Pluie continue"]
+    },
+    "ensoleillement": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Ensoleillement (% de recouvrement nuageux)",
+      "values": ["0-25 %", "25-50 %", "50-75 %", "75-100 %"]
+    },
+    "vent": {
+      "type_widget": "selectTooltip",
+      "required": false,
+      "attribut_label": "Vent",
+      "values":  [
+        {"value":"Beaufort 0", "title":"Calme: Les feuilles des arbres ne témoignent aucun mouvement"}, 
+        {"value":"Beaufort 1", "title":"Très légère brise: Les girouettes ne s'orientent pas"},
+        {"value":"Beaufort 2", "title":"Légère brise: On sent le vent sur le visage. Les feuilles s'agitent. Les girouettes s'orientent"},
+        {"value":"Beaufort 3", "title":"Petite brise: Les feuilles sont sans cesse en mouvement"},
+        {"value":"Beaufort 4", "title":"Jolie brise: Les poussières s'envolent. Les petites branches plient"},
+        {"value":"Beaufort 5", "title":"Bonne brise: Le tronc des arbustes et arbrisseaux en feuilles balance. La cime de tous les arbres est agitée"},
+        {"value":"Beaufort 6", "title":"Vent frais: On entend siffler le vent. Les branches de large diamètre s'agitent. Les parapluies sont susceptibles de se retourner"},
+        {"value":"Beaufort 7", "title":"Grand frais: Tous les arbres balancent. La marche contre le vent peut devenir difficile"},
+        {"value":"Beaufort 8", "title":"Coup de vent: Les branches sont susceptibles de casser. La marche contre le vent est très difficile, voire impossible"},
+        {"value":"Beaufort 9", "title":"Fort coup de vent: Le vent peut légèrement endommager les bâtiments : envols de tuiles, d'ardoises, chutes de cheminées"},
+        {"value":"Beaufort 10", "title":"Tempête: Dégâts importants aux bâtiments. Les toits sont susceptibles de s'envoler. Certains arbres sont déracinés"},
+        {"value":"Beaufort 11", "title":"Violente tempête: Ravages étendus et importants"},
+        {"value":"Beaufort 12", "title":"Ouragan: Dégâts très importants de l'ordre de la catastrophe naturelle"}
+        ]	  
+    
+    },
+    "methode_de_prospection": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Méthode de prospection",
+      "values":  ["Identification à vue, de jour", "Capture à l’épuisette (dérogation préfectorale obligatoire)", 
+        "Capture par nasses (dérogation préfectorale obligatoire)", "Identification à vue, de nuit (lampe)", "Identification par écoute"]		
+    }
+  }
+}

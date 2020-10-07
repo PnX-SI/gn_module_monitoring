@@ -1,0 +1,87 @@
+{
+  "geometry_type": "Point",
+  "specific": {
+    "id_nomenclature_type_site": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Type site",
+      "code_nomenclature_type": "TYPE_SITE",
+      "type_util": "nomenclature",
+      "required": true
+    },
+    "contact_name": {
+      "type_widget": "text",
+      "attribut_label": "Commentaire"
+    },
+	  "milieu_aquatique": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Description du milieu aquatique",
+      "values": ["Source", "Marais saumâtre", "Ruisselet/Ruisseau (< 3 m de large)", "Canal navigable", "Etang (50 à 450 m²)", "Rivière (entre 3 et 10 m de large)", "Grand cours d’eau (> 10 m de large)",  "Mare (- de 50 m²)", "Fossé", "Marais / Tourbière", "Lac / Grand réservoir", "Milieu aquatique cultivé", "Prairie humide", "Estuaire"]
+    },
+    "turbidite": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Turbidité",
+      "values": ["Eutrophisation (présence d’algues filamenteuses)", "Turbidité (eau trouble)", "Eutrophisation et turbidité", "Eau claire"]
+    },
+    "variation_eau": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Variation du niveau d’eau",
+      "values": ["Assèchement périodique", "Niveau de l’eau très variable au cours de l’année", "Niveau de l’eau relativement constant au cours de l’année", "Inconnu"]
+    },
+    "courant": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Courant",
+      "values": ["Aucun (eau stagnante)", "Courant lent", "Courant rapide"]
+    },
+    "vegetation_aquatique_principale": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Végétation aquatique principale",
+      "values": ["Présence d’herbiers (végétation submergée)", "Présence d’hélophytes (appareil végétatif aérien)", "Présence de végétation flottante", "Absence de végétation aquatique"]
+    },
+    "rives": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Rives",
+      "values": ["Rives nues", "Rives avec végétation herbacée", "Rives avec végétation ligneuse"]
+    },
+    "habitat_terrestre_environnant": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Habitat terrestre environnant",
+      "values": ["Forêt de feuillus", "Forêt de conifères", "Forêt mixte", "Buissons / haies (< 5m de hauteur)", 
+        "Milieu ouvert non agricole (landes, steppes)", "Sol sans végétation (dune, sol rocheux)", "Urbains, espaces verts",
+        "Milieu agricole - prairie", "Milieu agricole – grande culture", "Milieu agricole – vergers, vignes, maraichers", "Milieu agricole – élevage", "Milieu agricole – autre"]
+    },
+    "activite_humaine": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Activité humaine",
+      "values": ["Sports nautiques / base de loisirs", "Pêche de loisirs", "Courant rapide", "Pisciculture", "Aucune activité humaine",
+        "Extraction de matériaux (carrière)", "Traitement des eaux usées", "Autre", "Inconnu", "Activité de conservation de la nature"]
+    },
+    "site_protege": {
+      "type_widget": "radio",
+      "attribut_label": "Site protégé",
+      "values": ["Oui", "Non", "Ne sait pas"]
+    },
+    "site_protege_oui": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Si oui, précisez",
+      "values": ["Réserve Naturelle Nationale", "Réserve Naturelle Régionale", "Arrêté de protection de biotope", "Parc Naturel Régional", 
+        "Parc National", "Conservatoire du Littoral", "Forêt domaniale", "Espace Naturel Sensible", "Réserve biologie intégrale", "Forêt communale",
+        "Site Natura 2000", "Autre (précisez)"]
+    },
+    "commenctaire_libre": {
+      "type_widget": "text",
+      "required": false,
+      "attribut_label": "Commentaire libre"
+    }
+  }
+}
+
+

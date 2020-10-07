@@ -1,0 +1,43 @@
+{
+  "display_properties": [
+    "visit_date_min",
+    "observers",
+    "meteo",
+    "comments",
+    "nb_observations"
+  ],
+  "keep": [
+    "meteo"
+  ],
+  "specific": {
+    "id_base_site": {
+      "type_widget": "site",
+      "required": true,
+      "attribut_label": "Choix du site"
+    },
+
+    "meteo": {
+      "type_widget": "text",
+      "attribut_label": "Météo"
+    },
+
+    "temperature": {
+      "type_widget": "int",
+      "attribut_label": "Température de l’air (en °C)",
+      "required": false
+    },
+    "ensoleillement": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Ensoleillement (pourcentage de recouvrement nuageux)",
+      "values": ["0-25 %", "25-50 %", "50-75 %", "75-100 %"]
+  },
+  "vent": {
+    "type_widget": "select",
+    "required": false,
+    "attribut_label": "Vent",
+    "values":  ["Beaufort 0", "Beaufort 1", "Beaufort 2", "Beaufort 3", "Beaufort 4", "Beaufort 5", "Beaufort 6", "Beaufort 7", "Beaufort 8", "Beaufort 9", "Beaufort 10", "Beaufort 11", "Beaufort 11" ]		
+   
+}
+  }
+}

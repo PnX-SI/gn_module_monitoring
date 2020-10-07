@@ -1,0 +1,12 @@
+{
+
+  "specific": {
+    "cd_nom": {
+      "type_widget": "taxonomy",
+      "attribut_label": "Espèce observée",
+      "type_util": "taxonomy",
+      "required": true,
+      "idComponent": "__ID_COMPONENT_TAXONOMY"
+  }
+  }
+}

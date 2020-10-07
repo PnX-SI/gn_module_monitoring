@@ -1,0 +1,10 @@
+{
+
+  "specific": {
+ 
+    "contact_name": {
+      "type_widget": "text",
+      "attribut_label": "Commentaire"
+    }
+  }
+}

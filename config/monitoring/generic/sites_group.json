@@ -1,0 +1,71 @@
+{
+  "id_field_name": "id_base_sites_groups",
+  "description_field_name": "id_base_sites_groups",
+  "label": "Aire suivie",
+  "uuid_field_name": "uuid_sites_groups",
+  "display_properties": [
+    "jeu_donnees",
+    "commune",
+    "nom_base_sites_groups"
+    
+    
+  
+    
+ 
+  ],
+  "display_list": [
+    "jeu_donnees",
+    "commune",
+    "nom_base_sites_groups"
+ 
+    
+  ],
+  "sorts": [
+    {"prop": "id_base_sites_groups", "dir": "desc"}
+  ],
+  "generic": {
+    "id_base_sites_groups": {
+      "type_widget": "text",
+      "attribut_label": "Id site groupe",
+      "hidden": true
+    },
+    "nom_base_sites_groups": {
+      "type_widget": "text",
+      "attribut_label": "Nom ou numéro de l'aire",
+      "required": true,
+      "definition": "Nom ou numéro de l'aire"
+    },
+    "jeu_donnees": {
+      "type_widget": "text",
+      "attribut_label": "Jeu de données",
+      "required": true,
+      "definition": "Jeu de données."
+    },
+    "commune": {
+      "type_widget": "municipality",
+      "attribut_label": "Commune",
+      "required": true,
+      "definition": "commune"
+    },
+    "id_inventor": {
+      "type_widget": "observers",
+      "attribut_label": "Descripteur",
+      "code_list": "__CODE_LIST_INVENTOR",
+      "max_length": 1,
+      "type_util": "user",
+      "required": true
+    },
+   
+    "description": {
+      "type_widget": "text",
+      "attribut_label": "Commentaire",
+      "definition": "description"
+    },
+ 
+    "uuid_sites_groups": {
+      "attribut_label": "uuid"
+    }
+  
+    
+  } 
+}

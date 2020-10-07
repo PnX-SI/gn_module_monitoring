@@ -1,0 +1,43 @@
+{
+
+  "specific": {
+    "presence": {
+      "type_widget": "radio",
+      "attribut_label": "Présence d’amphibiens",
+      "values": ["Oui", "Non"]
+    },
+    "cd_nom": {
+      "type_widget": "taxonomy",
+      "attribut_label": "Espèce observée",
+      "type_util": "taxonomy",
+      "required": true,
+      "idComponent": "__ID_COMPONENT_TAXONOMY"
+    },
+    "id_nomenclature_stade": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Stade",
+      "code_nomenclature_type": "STADE_VIE",
+      "group2inpn":"Amphibiens",
+      "required": true,
+      "type_util": "nomenclature"
+    },
+    "sexe": {
+      "type_widget": "radio",
+      "attribut_label": "Sexe",
+      "values": ["Mâle", "Femelle", "Indéterminé"]
+    },
+    "nombre_compte": {
+      "type_widget": "number",
+      "attribut_label": "Nombre (compté)",
+      "required": true,
+      "min": -25,
+      "max": 60
+    },
+    "nombre_estime": {
+      "type_widget": "select",
+      "required": false,
+      "attribut_label": "Nombre (estimé)",
+      "values": ["De 1 à 5", "De 6 à 10", "De 10 à 50", "De 50 à 100"]
+    }
+  }
+}
