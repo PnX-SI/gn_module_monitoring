@@ -1,4 +1,4 @@
-    CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
+﻿    CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
         
         id_module SERIAL NOT NULL,
         uuid_module_complement UUID DEFAULT uuid_generate_v4() NOT NULL,
@@ -23,11 +23,40 @@
             ON UPDATE CASCADE ON DELETE CASCADE
     );
 
-    CREATE TRIGGER tri_meta_dates_change_t_medias
+    DROP TRIGGER IF EXISTS tri_meta_dates_change_t_module_complements ON gn_monitoring.t_module_complements;
+    CREATE TRIGGER tri_meta_dates_change_t_module_complements
           BEFORE INSERT OR UPDATE
           ON gn_monitoring.t_module_complements
           FOR EACH ROW
           EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
+
+    -- Les groupes de site
+
+    CREATE TABLE IF NOT EXISTS gn_monitoring.t_sites_groups (
+        id_sites_group SERIAL NOT NULL,
+
+        id_module INTEGER NOT NULL,
+        sites_group_name character varying(255),
+        sites_group_code character varying(255),
+        sites_group_description TEXT,
+        uuid_sites_group UUID DEFAULT uuid_generate_v4() NOT NULL,
+        comments TEXT,
+        data JSONB,
+        meta_create_date timestamp without time zone DEFAULT now(),
+        meta_update_date timestamp without time zone DEFAULT now(),
+
+        CONSTRAINT pk_t_sites_groups PRIMARY KEY (id_sites_group),
+        CONSTRAINT fk_t_sites_groups_id_module FOREIGN KEY (id_module)
+            REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
+            ON UPDATE CASCADE ON DELETE CASCADE
+    );
+
+    DROP TRIGGER IF EXISTS tri_meta_dates_change_t_sites_groups ON gn_monitoring.t_sites_groups;
+    CREATE TRIGGER tri_meta_dates_change_t_sites_groups
+        BEFORE INSERT OR UPDATE
+        ON gn_monitoring.t_sites_groups
+        FOR EACH ROW
+        EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
 
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_site_complements (
 
@@ -104,46 +133,22 @@
     );
 
 
--- patch en attendant que la contrainte soit dans GN
-ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_table_location_schema_name_table_name;
-ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT unique_bib_table_location_schema_name_table_name UNIQUE (schema_name, table_name);
+    -- patch en attendant que la contrainte soit dans GN
+
+    ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_table_location_schema_name_table_name;
+    ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT unique_bib_table_location_schema_name_table_name UNIQUE (schema_name, table_name);
 
 
--- pour ne pas remettre des lignes qui existent déjà
-INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
-VALUES
-('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
-('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
-('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
-('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_sites_groups', 'id_sites_group', 'uuid_sites_group'),
-('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')
--- on evite de mettre 2 fois le meme couple (shema_name, table_name)
-ON CONFLICT(schema_name, table_name) DO NOTHING;
+    -- pour ne pas remettre des lignes qui existent déjà
+
+    INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
+    VALUES
+    ('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
+    ('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
+    ('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
+    ('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_sites_groups', 'id_sites_group', 'uuid_sites_group'),
+    ('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')
+    -- on evite de mettre 2 fois le meme couple (shema_name, table_name)
+    ON CONFLICT(schema_name, table_name) DO NOTHING;
 
 
--- Les groupes de site
-
-CREATE TABLE IF NOT EXISTS gn_monitoring.t_sites_groups (
-    id_sites_group SERIAL NOT NULL,
-
-    id_module INTEGER NOT NULL,
-    sites_group_name character varying(255),
-    sites_group_code character varying(255),
-    sites_group_description TEXT,
-    uuid_sites_group UUID DEFAULT uuid_generate_v4() NOT NULL,
-    comments TEXT,
-    data JSONB,
-    meta_create_date timestamp without time zone DEFAULT now(),
-    meta_update_date timestamp without time zone DEFAULT now(),
-
-    CONSTRAINT pk_t_sites_groups PRIMARY KEY (id_sites_group),
-    CONSTRAINT fk_t_sites_groups_id_module FOREIGN KEY (id_module)
-        REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
-        ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TRIGGER tri_meta_dates_change_t_sites_groups
-    BEFORE INSERT OR UPDATE
-    ON gn_monitoring.t_sites_groups
-    FOR EACH ROW
-    EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
