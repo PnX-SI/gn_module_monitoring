@@ -275,7 +275,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 .. code-block:: JSON
 
         "num_passage": {
-            "type_widget": "int",
+            "type_widget": "number",
             "attribut_label": "Numéro de passage",
             "required": true,
             "min": 1,
