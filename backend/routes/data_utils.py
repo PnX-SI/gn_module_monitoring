@@ -104,7 +104,7 @@ def get_util_from_id_api(type_util, id):
         revoie un champ d'un object de type nomenclature, taxonomy, utilisateur, ...
         renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
 
-        :param type_util: 'nomenclaure' | 'taoxonomy' | 'utilisateur'
+        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
         :param id: id de l'object requis
         :type type_util: str
         :type id: int
@@ -162,7 +162,7 @@ def get_util_from_ids_api(type_util, ids):
                 si separator_out == ' ,'
                 alors ['jean', 'pierre', 'paul'].join(separator_out) -> 'jean, pierre, paul'
 
-        :param type_util: 'nomenclaure' | 'taoxonomy' | 'utilisateur'
+        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
         :param ids: plusieurs id reliée par des '-' (ex: 1-123-3-4)
         :type type_util: str
         :type ids: str
