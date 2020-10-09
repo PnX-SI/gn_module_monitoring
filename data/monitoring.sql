@@ -1,4 +1,4 @@
-﻿-- schema qui complete gn_monitoring pour le module monitoring
+-- schema qui complete gn_monitoring pour le module monitoring
 
 CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
         
@@ -133,12 +133,6 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
             REFERENCES gn_monitoring.t_observations (id_observation) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE CASCADE
     );
-
-
-    -- patch en attendant que la contrainte soit dans GN
-
-    ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_table_location_schema_name_table_name;
-    ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT unique_bib_table_location_schema_name_table_name UNIQUE (schema_name, table_name);
 
 
     -- pour ne pas remettre des lignes qui existent déjà
