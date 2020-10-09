@@ -47,7 +47,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
 
-    def process_synthese(self, process_module=False, limit=100):
+    def process_synthese(self, process_module=False, limit=1000):
 
         # test du parametre synthese 
         if not self.config().get('synthese'):
@@ -58,6 +58,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         # peut être fait avec une api exprès (TODO !!)
         if self._object_type == 'module' and not process_module:
             return
+
 
         table_name = 'vs_{}'.format(self._module_code)
         try:

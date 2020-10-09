@@ -1,33 +1,30 @@
 # script pour mettre à jour les vues (dev)
 
-GN_PATH="$1"
+gn_path="$1"
 
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+module_code_in="$2"
 
-. $GN_PATH/config/settings.ini
+scriptpath="$( cd "$(dirname "$0")" ; pwd -P )"
 
-LOG_FILE="$GN_PATH/var/log/update_views.log"
+. ${gn_path}/config/settings.ini 
 
-echo "Add tables in schema gn_monitoring ..." > $LOG_FILE
-echo "--------------------" &>> $LOG_FILE
-echo "" &>> $LOG_FILE
+log_file="${gn_path}/var/log/update_views.log"
 
-export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $SCRIPTPATH/vues.sql &>> $LOG_FILE
-
+echo "Add views for synthese in schema gn_monitoring ..." > ${log_file}
+echo "--------------------" &>> ${log_file}
+echo "" &>> ${log_file}
 
 # boucle sur les fichiers synthese des sous-modules
 
-for nom_fichier in $(ls $SCRIPTPATH/../config/monitoring/*/synthese.sql)
-do
-[ -f "$nom_fichier" ] || continue
-# echo nom_fichier $SCRIPTPATH $nom_fichier
-module_code=${nom_fichier%/*}
-echo module_code $module_code
-module_code=${module_code##*/}
-echo module_code $module_code
 
+for nom_fichier in $(ls ${scriptpath}/../config/monitoring/*/synthese.sql)
+    do
+        [ -f "${nom_fichier}" ] || continue
+        module_code=${nom_fichier%/*}
+        module_code=${module_code##*/}
+        [ -n "${module_code_in}" ] && [ "${module_code_in}" != "${module_code}" ] && continue
+        echo "process synthese for module ${module_code}"
+        export PGPASSWORD=${user_pg_pass};psql -h ${db_host} -U ${user_pg} -d ${db_name} -f ${nom_fichier} --set=module_code=${module_code} &>> ${log_file}
+    done
 
-export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f $nom_fichier --set=module_code=${module_code} &>> $LOG_FILE
-done
-
-cat $LOG_FILE | grep ERROR
+    cat ${log_file} | grep ERROR

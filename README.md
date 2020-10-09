@@ -141,14 +141,16 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
 
   - Si on décide d'intégrer les données du sous-module dans la synthèse de GéoNature.
  
-- Affichage des taxon *(obligatoire)*?
+- Affichage des taxon *(obligatoire)* ?
   
-  - Défini comment sont affichés les taxon dans le module:
+  - Définit comment sont affichés les taxon dans le module:
       - `lb_nom`: Nom latin,
       - `nom_vern,lb_nom`: Nom vernaculaire par defaut s'il existe, sinon nom latin.
 
 - Afficher dans le menu ? *(non obligatoire, non affiché par défaut)*:
-  - On peut décider que le sous-module soit accessible depuis le menu de droite de GéoNature.
+  - On peut décider que le sous-module soit accessible directement depuis le menu de droite de GéoNature.
+  - `active_frontend`
 
 - Options spécifiques au sous-module:
   - Un sous module peut présenter des options qui lui sont propres.
+    - définies dans les paramêtres spécifiques du sous-module. 
