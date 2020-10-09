@@ -13,7 +13,7 @@ ALTER TABLE gn_monitoring.t_module_complements ADD CONSTRAINT fk_t_module_comple
             ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN b_synthese BOOLEAN DEFAULT TRUE;
-ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN taxonomie_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom';
+ALTER TABLE gn_monitoring.t_module_complements ADD COLUMN taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom';
 
 
 -- create update date for t_modules complements 
