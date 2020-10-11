@@ -9,13 +9,16 @@ TODO : A mettre à jour dans manifest.toml avant release.
 
 **Nouveautés**
 
+* Ajout de la notion de groupes de sites (encore un peu jeune)
+* Simplification de la procédure pour mettre les données dans la synthèse(un fichier à copier, un boutton à cocher et possibilité de customizer la vue pour un sous-module).
+* Passage de la complexité des méthodes de mise en base des données et de gestion des relation par liste d'`id` (observateurs, jdd du module, correlations site module) vers le module `Utils_Flask_SQLA` (amélioration de la méthode from_dict en mode récursif qui accepte des listes d'`id` et les traduit en liste de modèles) *(principalement dans `backend/monitoring/serializer.py`)*
 * Possibilité de renseigner le JDD à chaque visite (#30)
 * Possibilité pour les administrateurs d'associer les JDD à un sous-module directement depuis l'accueil du sous-module (#30)
 * Possibilité de créer des groupes de sites (#24)
 * Possibilité de créer une visite directement après la création d'un site, et d'une observation directement après la création d'une visite (#28)
 * Redirection sur sa page de détail après la création d'un objet, plutôt que sur la liste (#22)
 * Mise à jour du composant de gestion et d'affichage des médias
-* Ajout d'un composant de liste simple (``datalist``) pouvant interroger une API, utilisé pour les listes de taxons et d'observateurs (#44)
+* Ajout d'un composant de liste modulable (``datalist``) pouvant interroger une API, pouvant être utilisé pour les listes de taxons, d'observateurs, de jdd, de nomenclatures, de sites, de groupes de sites, etc... (#44)
 * Liste des observations : ajout d'un paramètre permettant d'afficher le nom latin des taxon observés (#36)
 * Suppression du fichier ``custom.json`` pour gérer son contenu dans les nouveaux champs de la table ``gn_monitoring.t_module_complements`` (#43)
 * Clarification et remplacement des ``module_path`` et ``module_code`` (#40)
