@@ -11,7 +11,7 @@ TODO : A mettre à jour dans manifest.toml avant release.
 
 * Ajout de la notion de groupes de sites (encore un peu jeune)
 * Simplification de la procédure pour mettre les données dans la synthèse(un fichier à copier, un boutton à cocher et possibilité de customizer la vue pour un sous-module).
-* Passage de la complexité des méthodes de mise en base des données et de gestion des relation par liste d'`id` (observateurs, jdd du module, correlations site module) vers le module `Utils_Flask_SQLA` (amélioration de la méthode from_dict en mode récursif qui accepte des listes d'`id` et les traduit en liste de modèles) *(principalement dans `backend/monitoring/serializer.py`)*
+* Passage de la complexité des méthodes de mise en base des données et de gestion des relation par liste d'``id`` (observateurs, jdd du module, correlations site module) vers le module `Utils_Flask_SQLA` (amélioration de la méthode from_dict en mode récursif qui accepte des listes d'`id` et les traduit en liste de modèles) *(principalement dans `backend/monitoring/serializer.py`)*
 * Possibilité de renseigner le JDD à chaque visite (#30)
 * Possibilité pour les administrateurs d'associer les JDD à un sous-module directement depuis l'accueil du sous-module (#30)
 * Possibilité de créer des groupes de sites (#24)
