@@ -3,7 +3,7 @@
 0.2.0 (Unreleased)
 ------------------
 
-Nécessite la version 2.5.0 de GeoNature minimum.
+Nécessite la version 2.5.2 de GeoNature minimum.
 
 TODO : A mettre à jour dans manifest.toml avant release.
 
@@ -25,6 +25,7 @@ TODO : A mettre à jour dans manifest.toml avant release.
 
 **Corrections**
 
+* amelioreration des modèles SLQA pour optimiser la partie sérialisation (`#46 <https://github.com/readthedocs/readthedocs.org/pull/7547>`__)
 * Renseignement de la table ``gn_synthese.t_sources`` à l'installation (#33)
 * Passage du commentaire de la visite en correspondance avec le champs ``comment_context`` de la Synthèse, dans la vue ``gn_monitoring.vs_visits`` (#31)
 * Remplissage de la table ``gn_commons.bib_tables_location`` pour les tables du schémas ``gn_monitoring`` si cela n'a pas été fait par GeoNature (#27)
