@@ -15,7 +15,7 @@ TODO : A mettre à jour dans manifest.toml avant release.
 * Possibilité de renseigner le JDD à chaque visite (`#30 <https://github.com/PnX-SI/gn_module_monitoring/issues/30>`__)
 * Possibilité pour les administrateurs d'associer les JDD à un sous-module directement depuis l'accueil du sous-module (`#30 <https://github.com/PnX-SI/gn_module_monitoring/issues/30>`__)
 * Possibilité de créer des groupes de sites (`#24 <https://github.com/PnX-SI/gn_module_monitoring/issues/24>`__)
-* Possibilité de créer une visite directement après la création d'un site, et d'une observation directement après la création d'une visite (`#28 <https://github.com/PnX-SI/gn_module_monitoring/issues/46>`__)
+* Possibilité de créer une visite directement après la création d'un site, et d'une observation directement après la création d'une visite (`#28 <https://github.com/PnX-SI/gn_module_monitoring/issues/28>`__)
 * Redirection sur sa page de détail après la création d'un objet, plutôt que sur la liste (`#22 <https://github.com/PnX-SI/gn_module_monitoring/issues/22>`__)
 * Mise à jour du composant de gestion et d'affichage des médias
 * Ajout d'un composant de liste modulable (``datalist``) pouvant interroger une API, pouvant être utilisé pour les listes de taxons, d'observateurs, de jdd, de nomenclatures, de sites, de groupes de sites, etc... (`#44 <https://github.com/PnX-SI/gn_module_monitoring/issues/44>`__)
