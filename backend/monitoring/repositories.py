@@ -2,14 +2,26 @@ from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
-
+from ..config.repositories import get_config
 import logging
 
 log = logging.getLogger(__name__)
 
+def check_config(f):
+    '''
+        decorateur pour s'assurer que la config est bien à jour des fichiers et de la base
+        evite la multiplication des appels à la base
+    '''
+    def _check_config(*args, **kwargs):
+        get_config(args[0]._module_code, verification_date=True)
+
+        return f(*args, **kwargs)
+
+    return _check_config
 
 class MonitoringObject(MonitoringObjectSerializer):
 
+    @check_config
     def get(self, value=None, field_name=None):
 
         # par defaut on filtre sur l'id
@@ -38,6 +50,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             raise GeoNatureError('MONITORING : get_object : {}'.format(e))
 
     def process_post_data_properties(self, post_data):
+
         # id_parent dans le cas d'heritage
 
         properties = post_data['properties']
@@ -47,6 +60,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
 
+    @check_config
     def process_synthese(self, process_module=False, limit=1000):
 
         # test du parametre synthese 
@@ -86,7 +100,9 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         return True
 
+    @check_config
     def create_or_update(self, post_data):
+
         try:
 
             # si id existe alors c'est un update
@@ -116,6 +132,7 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
+    @check_config
     def delete(self):
 
         if not self._id:
@@ -137,6 +154,7 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
+    @check_config
     def breadcrumb(self):
 
         breadcrumb = {
@@ -149,7 +167,9 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         return breadcrumb
 
+    @check_config
     def breadcrumbs(self):
+
         breadcrumbs = [self.breadcrumb()]
 
         parent = self.get_parent()
@@ -158,6 +178,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         return breadcrumbs
 
+    @check_config
     def get_list(self, args=None):
         '''
             renvoie une liste d'objet serialisés
@@ -188,7 +209,6 @@ class MonitoringObject(MonitoringObjectSerializer):
         for key in args:
             if hasattr(Model, key):
                 vals = args.getlist(key)
-                print(vals)
                 req = req.filter(getattr(Model, key).in_(vals))
 
         # TODO page etc...
@@ -198,7 +218,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             .limit(limit)
             .all()
         )
-        print(res)
         # TODO check if self.properties_names() == props et rel
         props = self.properties_names()
 

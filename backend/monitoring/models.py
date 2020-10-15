@@ -1,6 +1,8 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+from sqlalchemy import select, func
+from sqlalchemy.orm import column_property
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from uuid import uuid4
 
@@ -14,23 +16,7 @@ from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
-
-
-class CorSiteModule(DB.Model):
-    __tablename__ = 'cor_site_module'
-    __table_args__ = (
-        DB.PrimaryKeyConstraint('id_module', 'id_base_site'),
-        {'schema': 'gn_monitoring', 'extend_existing': True}
-    )
-
-    id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
-        primary_key=True
-    )
-    id_base_site = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
-        primary_key=True
-    )
+from pypnusershub.db.models import User
 
 
 class CorModuleDataset(DB.Model):
@@ -50,6 +36,7 @@ class CorModuleDataset(DB.Model):
     )
 
 
+
 class CorVisitObserver(DB.Model):
     __tablename__ = 'cor_visit_observer'
     __table_args__ = (
@@ -65,6 +52,8 @@ class CorVisitObserver(DB.Model):
         DB.ForeignKey('utilisateurs.t_roles.id_role'),
         primary_key=True
     )
+
+
 
 
 @serializable
@@ -101,6 +90,7 @@ class TObservations(DB.Model):
 
     medias = DB.relationship(
         TMedias,
+        lazy='joined',
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row])
 
@@ -147,19 +137,30 @@ class TMonitoringVisits(TBaseVisits):
 
     medias = DB.relationship(
         TMedias,
+        lazy='joined',
         primaryjoin=(TMedias.uuid_attached_row == TBaseVisits.uuid_base_visit),
         foreign_keys=[TMedias.uuid_attached_row])
 
+    observers = DB.relationship(
+        User,
+        'gn_monitoring.cor_visit_observer',
+        lazy='joined',
+        primaryjoin=(CorVisitObserver.id_base_visit == id_base_visit),
+        secondaryjoin=(CorVisitObserver.id_role == User.id_role),
+    )
+
     observations = DB.relation(
         "TMonitoringObservations",
+        lazy='select',
         primaryjoin=(TObservations.id_base_visit == TBaseVisits.id_base_visit),
         foreign_keys=[TObservations.id_base_visit],
         cascade="all,delete"
     )
 
-    @hybrid_property
-    def nb_observations(self):
-        return len(self.observations)
+    nb_observations = column_property(
+        select([func.count(TObservations.id_base_visit)]).\
+            where(TObservations.id_base_visit==id_base_visit)
+    )
 
 
 @geoserializable
@@ -191,6 +192,7 @@ class TMonitoringSites(TBaseSites):
 
     visits = DB.relationship(
         TMonitoringVisits,
+        lazy="select",
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
         cascade="all,delete"
@@ -198,25 +200,27 @@ class TMonitoringSites(TBaseSites):
 
     medias = DB.relationship(
         TMedias,
+        lazy='joined',
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
-        cascade="all"
+        cascade="all",
     )
 
-    @hybrid_property
-    def last_visit(self):
-        last_visit = None
-        if self.visits:
-            for visit in self.visits:
-                if not last_visit or last_visit < visit.visit_date_min:
-                    last_visit = visit.visit_date_min
+    last_visit = column_property(
+        select([func.min(TBaseVisits.visit_date_min)]).\
+            where(TBaseVisits.id_base_site==id_base_site)
+    )
 
-        return last_visit
+    nb_visits = column_property(
+        select([func.count(TBaseVisits.id_base_site)]).\
+            where(TBaseVisits.id_base_site==id_base_site)
+    )
 
-    @hybrid_property
-    def nb_visits(self):
-        return len(self.visits)
-
+    geom_geojson = column_property(
+        select([func.st_asgeojson(TBaseSites.geom)]).\
+            where(TBaseSites.id_base_site==id_base_site).\
+                correlate_except(TBaseSites)
+    )
 
 @serializable
 class TMonitoringSitesGroups(DB.Model):
@@ -250,14 +254,15 @@ class TMonitoringSitesGroups(DB.Model):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_sites_group),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy="select",
+        lazy="joined",
     )
 
     sites = DB.relationship(
         TMonitoringSites,
+        uselist=True,  # pourquoi pas par defaut ?
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
-        lazy="select",
+        lazy="joined",
     )
 
 
@@ -287,41 +292,41 @@ class TMonitoringModules(TModules):
     medias = DB.relationship(
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
-        foreign_keys=[TMedias.uuid_attached_row]
+        foreign_keys=[TMedias.uuid_attached_row],
+        lazy='joined'
     )
 
     sites = DB.relationship(
         'TMonitoringSites',
-        secondary='gn_monitoring.cor_site_module',
-        primaryjoin=(id_module == CorSiteModule.id_module),
-        secondaryjoin=TMonitoringSites.id_base_site == CorSiteModule.id_base_site,
-        join_depth=0,
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=TMonitoringSites.id_module == id_module,
+        foreign_keys=[id_module],
         lazy="select",
-        # backref='parents'
     )
 
     sites_groups = DB.relationship(
         'TMonitoringSitesGroups',
-        primaryjoin=(id_module == TMonitoringSitesGroups.id_module),
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=TMonitoringSitesGroups.id_module == id_module,
         foreign_keys=[id_module],
-        uselist=True,  # pourquoi pas par defaut
         lazy="select",
     )
 
     datasets = DB.relationship(
         'TDatasets',
         secondary='gn_commons.cor_module_dataset',
-        primaryjoin=id_module == CorModuleDataset.id_module,
         secondaryjoin=TDatasets.id_dataset == CorModuleDataset.id_dataset,
         join_depth=0,
-        lazy="select",
+        lazy="joined",
     )
 
     meta_create_date = DB.Column(DB.DateTime)
     meta_update_date = DB.Column(DB.DateTime)
 
 
+
 # add sites_group relationship to TMonitoringSites
+
 TMonitoringSites.sites_group = (
     DB.relationship(
         TMonitoringSitesGroups,
@@ -329,6 +334,7 @@ TMonitoringSites.sites_group = (
             TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group
         ),
         cascade="all",
+        lazy="select",
         uselist=False
     )
 )

@@ -100,7 +100,11 @@ export class MonitoringMapComponent implements OnInit {
           const fClick = this.onLayerClick(site);
           layer.off('click', fClick);
           layer.on('click', fClick);
+          //
+          layer.removeFrom(this._mapService.map);
+          layer.addTo(this._mapService.map);
         }
+
         this.setSitesStyle();
       }
     }, 0);
@@ -171,11 +175,12 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSitesStyle() {
-    if (this.objectsStatus['site'] && this._mapService.map) {
-      this.objectsStatus['site'].forEach(status => {
-        this.setSiteStyle(status);
-      });
-    }
+
+      if (this.objectsStatus['site'] && this._mapService.map) {
+        this.objectsStatus['site'].forEach(status => {
+          this.setSiteStyle(status);
+        });
+      }
   }
 
   setSiteStyle(status) {
@@ -190,13 +195,14 @@ export class MonitoringMapComponent implements OnInit {
       this.bEdit ? 'edit' :
       'default';
 
+
     const style = this.styles[style_name] || this.styles['default'];
 
     style['pane'] = this.panes[style_name];
     style['renderer'] = this.renderers[style_name];
-    layer.removeFrom(map);
+    // layer.removeFrom(map);
     layer.setStyle(style);
-    layer.addTo(map);
+    // layer.addTo(map);
 
 
     if (status['selected']) {
@@ -265,6 +271,7 @@ export class MonitoringMapComponent implements OnInit {
           break;
         case 'bEdit':
           this.setSitesStyle();
+
           break;
         case 'sites':
           this.initSites();

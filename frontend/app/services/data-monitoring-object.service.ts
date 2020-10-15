@@ -43,7 +43,7 @@ export class DataMonitoringObjectService {
       url = id ? `${apiType}/${moduleCode}/${objectType}/${id}` : `${apiType}/${moduleCode}/${objectType}`;
     }
 
-    if (depth) {
+    if (null != depth) {
       params['depth'] = depth;
     }
 

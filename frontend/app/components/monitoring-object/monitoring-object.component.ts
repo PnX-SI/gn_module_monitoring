@@ -108,6 +108,7 @@ export class MonitoringObjectComponent implements OnInit {
   getModuleSet() {
     // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
+
       const schema = this._configService.schema(this.module.moduleCode, 'module');
       const moduleFieldList = Object.keys(this._configService.schema(this.module.moduleCode, 'module'))
       .filter(key => schema[key].required);
@@ -117,7 +118,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initSites() {
-    return this.module.get(1).subscribe(() => {
+    return this.module.get(1).subscribe(() => { // TODO liste indépendantes carte et listes
 
       this.currentUser['cruved'] = this.module.cruved;
 
@@ -232,7 +233,6 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     if (obj['objectType'] === 'site') {
-      
       this.initSites();
     }
     this.getModuleSet()

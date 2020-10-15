@@ -82,7 +82,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 .serialize(depth)
                 for child_model in getattr(self._model, relation_name)
             ]
+
             children[children_type] = children_of_type
+
         return children
 
     def properties_names(self):
@@ -106,6 +108,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         properties = {}
         for field_name in self.properties_names():
+
+            # val = self._model.__dict__.get(field_name)
             val = getattr(self._model, field_name)
             if isinstance(val, (datetime.date, uuid.UUID)):
                 val = str(val)

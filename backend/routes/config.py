@@ -19,65 +19,6 @@ def get_config_api(module_code):
         route qui renvoie la config pour un module donné
     """
 
-    return get_config_frontend(module_code)
+    return get_config_frontend(module_code, verification_date=True)
 
 
-@blueprint.route('/config/test/<string:module_code>', methods=['GET'])
-# @check_cruved_scope_monitoring('R', 1)
-@json_resp
-def get_config_object_api(module_code):
-    """
-        route qui renvoie la config pour un module donné et un object donné (pour debug)
-    """
-
-    config = get_config(module_code)
-
-    object_type = request.args.get('object_type')
-    config_type = request.args.get('config_type')
-
-    out = config
-
-    if object_type:
-        out = {
-            'schema': config.get('schemas', {}).get(object_type),
-            'object': config.get('objects', {}).get(object_type)
-        }
-
-    if config_type:
-        out = config.get(config_type)
-
-    return out
-
-
-@blueprint.route('/config/test_tree/<string:module_code>', methods=['GET'])
-# @check_cruved_scope_monitoring('R', 1)
-@json_resp
-def test_config_tree_api(module_code):
-
-    config = get_config(module_code)
-
-    config_objects = config.get('objects')
-
-    d = {
-            (key):
-            (
-                {
-                    'parent_type': value.get('parent_type'),
-                    'children_type': value.get('children_types'),
-                }
-                if key != 'tree' else None
-            )
-            for key, value in config_objects.items()
-    }
-
-    return d
-
-
-@blueprint.route('/config/test_data/<string:module_code>', methods=['GET'])
-# @check_cruved_scope_monitoring('R', 1)
-@json_resp
-def test_config_data_api(module_code):
-
-    config = get_config(module_code)
-
-    return config['data_utils']['taxonomy']

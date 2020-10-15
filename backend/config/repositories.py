@@ -71,7 +71,7 @@ def config_object_from_files(module_code, object_type):
     return config_object
 
 
-def get_config(module_code=None):
+def get_config(module_code=None, verification_date=False):
     '''
         recupere la configuration pour le module monitoring
 
@@ -83,12 +83,22 @@ def get_config(module_code=None):
     '''
 
     module_code = module_code if module_code else 'generic'
-    module = get_monitoring_module(module_code)
 
     module_confg_dir_path = CONFIG_PATH + '/' + module_code
     # test si le repertoire existe
     if not os.path.exists(module_confg_dir_path):
         return None
+
+
+    config = current_app.config.get(config_cache_name, {}).get(module_code)
+
+    # pour ne pas verifier  a chaques fois
+    #  explosion du nombre d'appels à la base sinon
+    if config and not verification_date:
+        return config
+
+
+    module = get_monitoring_module(module_code)
 
     # derniere modification
     # fichiers
@@ -97,7 +107,6 @@ def get_config(module_code=None):
     last_modif = max(base_last_modif, file_last_modif)
 
     # test si present dans cache et pas modifée depuis le dernier appel
-    config = current_app.config.get(config_cache_name, {}).get(module_code)
 
     if config and config.get('last_modif', 0) >= last_modif:
         return config
@@ -205,7 +214,7 @@ def config_schema(module_code, object_type, type_schema="all"):
     return schema
 
 
-def get_config_frontend(module_code=None):
+def get_config_frontend(module_code=None, verification_date=True):
 
-    config = dict(get_config(module_code))
+    config = dict(get_config(module_code, verification_date))
     return config
