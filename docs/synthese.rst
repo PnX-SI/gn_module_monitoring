@@ -1,5 +1,3 @@
-.. rst_synthese
-
 Intégration des données dans la synthèse
 ########################################
 
@@ -33,11 +31,11 @@ Pour les autres type de module
   (et de créer le liens dans la synthèse vers la module monitoring qui a généré la ligne de la synthèse)
 
 
-Mettre à jour les vues
-**********************
+Mettre à jour les vues pour la synthese
+***************************************
 
 Tous les fichiers de vue pour la synthese peuvent être rejoués avec la commande
 
-- ``data/update_views <chemin absolu vers geonature>`` (tous les modules)
+- ``data/update_views.sh <chemin absolu vers geonature>`` (tous les modules)
 
-- ``data/update_views <chemin absolu vers geonature> <module_code>`` (un seul module)
+- ``data/update_views.sh <chemin absolu vers geonature> <module_code>`` (un seul module)

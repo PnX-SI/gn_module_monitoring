@@ -30,9 +30,9 @@ Sommaire
 
   * `Installation`_
   * `Gestion de la synthèse <docs/synthese.rst>`_
-  * `Documentation technique <docs/documentation_technique.md>`_
-  * `Création de sous-module <docs/sous_module.md>`_
-  * `Aide à la mise à jour du module <docs/MAJ.md>`_
+  * `Documentation technique <docs/documentation_technique.rst>`_
+  * `Création de sous-module <docs/sous_module.rst>`_
+  * `Aide à la mise à jour du module <docs/MAJ.rst>`_
 
 Installation
 ************
@@ -186,4 +186,4 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
     - ``active_frontend``
 
 - Options spécifiques du sous-module:
-    - Un sous module peut présenter des options qui lui sont propres et définies dans les paramêtres spécifiques du sous-module. 
+    - Un sous module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module. 
