@@ -253,6 +253,24 @@ def customize_config(elem, custom):
     return elem
 
 
+def get_nomenclature_types(config):
+    out = []
+
+    for object_type in config:
+        print(object_type)
+        if object_type in ['tree', 'data'] or not isinstance(config[object_type], dict):
+            continue
+        schema = dict(config[object_type].get('generic', {}))
+        schema.update(config[object_type].get('specific', {}))
+        for name in schema:
+            form = schema[name]
+            if form.get('type_widget') == 'nomenclature':
+                out.append(form['code_nomenclature_type'])
+            if form.get('type_widget') == 'datalist' and form.get('type_util') == "nomenclature":
+                nomenclature_type = form.get('api').split('/')[-1]
+                out.append(nomenclature_type)
+    return out
+
 def config_from_files_customized(type_config, module_code):
     config_type = config_from_files(type_config, module_code)
     custom = config_from_files('custom', module_code)

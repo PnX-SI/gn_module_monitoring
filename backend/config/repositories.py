@@ -15,6 +15,7 @@ from .utils import (
     process_schema,
     get_monitoring_module,
     get_monitorings_path,
+    get_nomenclature_types,
     CONFIG_PATH
 )
 
@@ -135,8 +136,8 @@ def get_config(module_code=None, verification_date=False):
 
         # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
         config['data'] = {
-            # 'user': [module.id_list_observer]
-            # 'no': 
+            'user': [module.id_list_observer],
+            'nomenclature': get_nomenclature_types(config) 
         }
 
     # mise en cache dans current_app.config[config_cache_name][module_code]

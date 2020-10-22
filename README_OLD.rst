@@ -354,10 +354,10 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
             "attribut_label": "Taxon",
             "type_util": "taxonomy",
             "required": true,
-            "idComponent": "__ID_COMPONENT_TAXONOMY"
+            "id_list": "__MODULE.__ID_COMPONENT_TAXONOMY"
         },
 
-La variable ``"idComponent": "__ID_COMPONENT_TAXONOMY"`` définit la liste de taxon.
+La variable ``"id_list": "__MODULE.__ID_COMPONENT_TAXONOMY"`` définit la liste de taxon.
 
 Il est important d'ajouter ``"type_util": "taxonomy",``.
 

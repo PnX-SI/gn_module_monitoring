@@ -5,7 +5,16 @@
 
 Nécessite la version 2.5.2 de GeoNature minimum.
 
-TODO : A mettre à jour dans manifest.toml avant release.
+**⚠️ Notes de version**
+
+Mise à jour de la base
+
+* Les fichiers custom.json ne sont plus utiles (la configuration spécifique a une installation (liste utilisateurs, etc..) 
+est en base dans la table `gn_monitoring.t_module_complements`
+
+* Dans les fichiers config.json, la variable data (pour précharger les données(nomenclatures, etc..)) est désormais calculée depuis la config. 
+
+* Pour passer à la nouvelle version de la base, il faut jouer le fichier ``data/migration/migration_0.1.0_0.2.0.sql``
 
 **Nouveautés**
 

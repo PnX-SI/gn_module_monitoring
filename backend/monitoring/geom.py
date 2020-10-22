@@ -16,10 +16,12 @@ class MonitoringObjectGeom(MonitoringObject):
         geometry = {}
 
         if hasattr(self._model, 'geom_geojson'):
+            geom_geojson = getattr(self._model, 'geom_geojson')
+             
             geometry = json.loads(
                 # self._model.__dict__.get('geom_geojson')
                 getattr(self._model, 'geom_geojson')
-            )
+            ) if geom_geojson else None
         if not self._id:
             geometry = None
 
