@@ -86,6 +86,14 @@ ALTER TABLE gn_monitoring.t_site_complements ADD CONSTRAINT
     REFERENCES gn_monitoring.t_sites_groups (id_sites_group) MATCH SIMPLE
     ON UPDATE CASCADE ON DELETE SET NULL;
 
+
+
+ALTER TABLE bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_tables_location_schema_name_table_name;
+
+ALTER TABLE bib_tables_location ADD CONSTRAINT unique_bib_tables_location_schema_name_table_name UNIQUE (schema_name, table_name);
+
+
+
 -- pour ajout de group site et au cas où il en manquerait
 INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
 VALUES
