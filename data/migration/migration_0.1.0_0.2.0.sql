@@ -88,9 +88,9 @@ ALTER TABLE gn_monitoring.t_site_complements ADD CONSTRAINT
 
 
 
-ALTER TABLE bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_tables_location_schema_name_table_name;
+ALTER TABLE gn_commons.bib_tables_location DROP CONSTRAINT IF EXISTS unique_bib_tables_location_schema_name_table_name;
 
-ALTER TABLE bib_tables_location ADD CONSTRAINT unique_bib_tables_location_schema_name_table_name UNIQUE (schema_name, table_name);
+ALTER TABLE gn_commons.bib_tables_location ADD CONSTRAINT unique_bib_tables_location_schema_name_table_name UNIQUE (schema_name, table_name);
 
 
 
