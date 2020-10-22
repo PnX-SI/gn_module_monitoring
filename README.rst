@@ -40,7 +40,7 @@ Installation
 Pré-requis
 ==========
 
-- Avoir GeoNature installé à la version 2.5
+- Avoir GeoNature installé à la version 2.5.2 ou plus.
 
 Récupération du dépôt
 =====================
