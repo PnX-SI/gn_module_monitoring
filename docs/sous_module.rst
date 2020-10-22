@@ -87,7 +87,7 @@ Par exemple :
   ],
 
 
-  Les schémas
+Les schémas
 ===========
 
 Les schémas génériques
@@ -163,7 +163,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
             "max": 2
         }
     
-* **utilisateur** : choix de plusieurs noms utilisateurs dans une liste
+* **utilisateur** : choix de plusieurs noms d'utilisateurs dans une liste
 
 .. code-block:: JSON
 
@@ -276,22 +276,22 @@ Pour renseigner la valeur de la nomenclature, on spécifie :
 ``datalists``
 -------------
 
-Pour pouvoir faire des composant de type select à partir d'un api, on peut utiliser le composant ``datalist``
+Pour pouvoir faire des composants de type select à partir d'une API, on peut utiliser le composant ``datalist``.
 
-les options supplémentaires pour ce widget: 
+Les options supplémentaires pour ce widget : 
 
-- ``api`` : api qui fournira la liste
-- ``application`` : ``GeoNature`` ou ``TaxHub`` permet de prefixer l'api avec l'url de l'api de l'application
+- ``api`` : API qui fournira la liste
+- ``application`` : ``GeoNature`` ou ``TaxHub`` permet de préfixer l'API avec l'URL de l'API de l'application
 - ``keyValue`` : champs renvoyé
 - ``keyLabel`` : champs affiché
-- ``type_util`` :``nomenclature``, ``dataset``, ``user``: pour le traitement des données par ailleur
-- ``data_path`` : si l'api renvoie les données de la forme ```data: [<les données>]``` alors ``data_path = "data"``
-- ``filter`` : permet de filtrer les données recu ({field_name: [value1, value2, ...]}
-- ``default`` : permet de donner une valeur par defaut ("default": {"cd_nomenclature": "1"} permettra de récupérer le premier objet de la liste qui correspond)
+- ``type_util`` : ``nomenclature``, ``dataset``, ``user`` : pour le traitement des données par ailleurs
+- ``data_path`` : si l'API renvoie les données de la forme ``data: [<les données>]`` alors ``data_path = "data"``
+- ``filter`` : permet de filtrer les données reçues (``{field_name: [value1, value2, ...]}``)
+- ``default`` : permet de donner une valeur par defaut (``"default": {"cd_nomenclature": "1"}`` permettra de récupérer le premier objet de la liste qui correspond)
 
-par exemple :
+Par exemple :
 
-* nomenclature avec sous liste et valeur par defaut
+* Nomenclature avec sous-liste et valeur par defaut
 
 .. code-block:: JSON
 
@@ -310,7 +310,7 @@ par exemple :
         }
     },
 
-* groupe de site
+* Groupe de sites
 
 .. code-block:: JSON
 
@@ -326,7 +326,7 @@ par exemple :
     },
 
 
-* jeux de données (pour les visites on veut la liste des JDD pour le module, d'où l'utilisation de ``"module_code": "__MODULE.MODULE_CODE"`` en paramètre ``GET`` de l'api
+* Jeux de données (pour les visites on veut la liste des JDD pour le module, d'où l'utilisation de ``"module_code": "__MODULE.MODULE_CODE"`` en paramètre ``GET`` de l'API
 
 .. code-block:: JSON
 
@@ -348,7 +348,9 @@ par exemple :
     },
 
 
-* utilisateur
+* Utilisateur
+
+.. code-block:: JSON
 
     "observers": {
       "type_widget": "datalist",
@@ -361,10 +363,6 @@ par exemple :
       "multiple": true,
       "required": true
     },
-
-
-.. code-block:: JSON
-
 
 ------------
 Nomenclature
