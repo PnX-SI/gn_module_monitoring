@@ -126,7 +126,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
                     open(sql_script, 'r')
                     .read()
                     .replace(":'module_code'", "'{}'".format(module_code))
-                    .replace(":module_code", "'{}'".format(module_code))
+                    .replace(":module_code", "{}".format(module_code))
                 ).execution_options(autocommit=True)
             )
         except Exception as e:

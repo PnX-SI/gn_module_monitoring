@@ -74,7 +74,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             return
 
 
-        table_name = 'vs_{}'.format(self._module_code)
+        table_name = 'v_synthese_{}'.format(self._module_code)
         try:
             import_from_table(
                 'gn_monitoring',
