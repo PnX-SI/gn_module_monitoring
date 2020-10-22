@@ -65,16 +65,16 @@ WITH source AS (
 	    id_nomenclature_grp_typ
 
         FROM gn_monitoring.t_base_visits
-	    LEFT JOIN LATERAL (
-            SELECT --
-                array_agg(r.id_role) AS ids_observers,
-                STRING_AGG(CONCAT(r.nom_role, ' ', prenom_role), ' ; ') AS observers
-            FROM gn_monitoring.cor_visit_observer cvo
-            JOIN utilisateurs.t_roles r
-            ON r.id_role = cvo.id_role
-            WHERE cvo.id_base_visit = id_base_visit
-        ) o ON true
 
+), observers AS (
+    SELECT
+        array_agg(r.id_role) AS ids_observers,
+        STRING_AGG(CONCAT(r.nom_role, ' ', prenom_role), ' ; ') AS observers,
+        id_base_visit
+    FROM gn_monitoring.cor_visit_observer cvo
+    JOIN utilisateurs.t_roles r
+    ON r.id_role = cvo.id_role
+    GROUP BY id_base_visit
 )
 
 SELECT
@@ -123,7 +123,7 @@ SELECT
 		v.date_max,
 		--validator
 		--validation_comment
-		observers,
+		obs.observers,
 		--determiner
 		v.id_digitiser,
 		--id_nomenclature_determination_method
@@ -134,7 +134,7 @@ SELECT
 		v.id_module,
 		v.comments AS comment_context,
 		o.comments AS comment_description,
-		ids_observers,
+		obs.ids_observers,
 		
 		-- ## Colonnes complémentaires qui ont leur utilité dans la fonction synthese.import_row_from_table
 		v.id_base_site,
@@ -151,6 +151,8 @@ SELECT
         ON t.cd_nom = o.cd_nom
 	JOIN source 
         ON TRUE
+	JOIN observers obs ON obs.id_base_visit = v.id_base_visit
+    
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(s.geom_local) alt (altitude_min, altitude_max)
         ON TRUE
     WHERE m.module_code = :'module_code'
