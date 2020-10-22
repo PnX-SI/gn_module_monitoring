@@ -135,10 +135,13 @@ def get_config(module_code=None, verification_date=False):
         customize_config(config, custom)
 
         # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-        config['data'] = {
-            'user': [module.id_list_observer],
-            'nomenclature': get_nomenclature_types(config) 
-        }
+        config['data'] = {}
+
+        if get_nomenclature_types(config):
+            config['data']['nomenclature'] = get_nomenclature_types(config) 
+
+        if module.id_list_observer:
+            config['data']['user'] = module.id_list_observer
 
     # mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(config_cache_name, {}):
