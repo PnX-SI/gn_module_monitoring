@@ -257,7 +257,6 @@ def get_nomenclature_types(config):
     out = []
 
     for object_type in config:
-        print(object_type)
         if object_type in ['tree', 'data'] or not isinstance(config[object_type], dict):
             continue
         schema = dict(config[object_type].get('generic', {}))
