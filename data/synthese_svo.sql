@@ -158,4 +158,3 @@ SELECT
 
 
 SELECT * FROM gn_monitoring.v_synthese_:module_code
-LIMIT 10;
