@@ -9,6 +9,7 @@ Création d'un sous-module
 * `Configuration générale`_
 * `Configuration des objets`_
 * `Nomenclature`_
+* `Gestion des droits`_
 
 ---------------------
 Structure d'un module
@@ -403,3 +404,15 @@ Exemple de fichier :
 
 
 **Attention** : si une nomenclature de même ``type`` et ``cd_nomenclature`` existe déjà elle ne sera pas modifiée.
+
+------------------
+Gestion des droits
+------------------
+
+Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS.
+
+- Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
+- Pour pouvoir modifier les paramètres d'un module, il faut que le CRUVED de l'utilisateur ait un U=3 pour ce sous-module.
+- Pour pouvoir créer des objets dans un sous-module, il faut un C>=1 
+- Pour pouvoir supprimer un média sur un objet, il faut un D>=1
+- Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
