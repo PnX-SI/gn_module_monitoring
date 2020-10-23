@@ -87,8 +87,8 @@
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
-        currentUser?.cruved.E >= 1 &&
-        (obj.objectType != 'module' || currentUser?.cruved.E >= 3)
+        currentUser?.cruved.U >= 1 &&
+        (obj.objectType != 'module' || currentUser?.cruved.U >= 3)
       "
     >
       Éditer {{ (obj.template.label || "").toLowerCase() }}
@@ -101,7 +101,7 @@
     *ngIf="
       !bEdit &&
       obj.objectType === 'module' &&
-      currentUser?.cruved.E >= 3 &&
+      currentUser?.cruved.U >= 3 &&
       obj.properties.b_synthese
     "
     matTooltip="Attention, cette opération peux prendre du temps"
