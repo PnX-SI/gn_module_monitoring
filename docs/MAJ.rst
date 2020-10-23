@@ -25,11 +25,18 @@ Mise à jour du module
 
    cp /home/`whoami`/gn_module_monitoring_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_monitoring/config/conf_gn_module.toml
 
-- Récupérez les sous-modules
+- Récupérez les sous-modules, recréer les liens symboliques pour la config et les assets (images)
 
 ::
 
    cp -r /home/`whoami`/gn_module_monitoring_old/contrib  /home/`whoami`/gn_module_monitoring/contrib
+   ln -s /home/`whoami`/gn_module_monitoring/contrib/* /home/`whoami`/gn_module_monitoring/config/monitoring/.
+
+   for f in $(ls /home/`whoami`/gn_modudule_monitoring/config/monitoring/*/img.jpg); do
+      module_path="$(dirname $f)"
+      ln -s $f /home/`whoami`/gn_modudule_monitoring/fronted/assets/${module_path##*/}.img
+   done
+
 
 - Relancez la compilation en mettant à jour la configuration
 
@@ -38,3 +45,14 @@ Mise à jour du module
    cd /home/`whoami`/geonature/backend
    source venv/bin/activate
    geonature update_module_configuration MONITORINGS
+
+
+- Jouer les scripts de migrations correspondant au changement de version
+
+dans /home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonciton des versions>
+
+- Recréer les vues pour la synthese
+
+::
+
+   /home/`whoami`/gn_module_monitoring/data/update_views /home/`whoami`/geonature
