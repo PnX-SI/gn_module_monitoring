@@ -57,7 +57,6 @@
       "keyValue": "id_dataset",
       "keyLabel": "dataset_shortname",
       "params": {
-        "active": true,
         "orderby": "dataset_name"
       },
       "data_path": "data",
