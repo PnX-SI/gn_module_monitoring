@@ -16,8 +16,6 @@ def gnmodule_install_app(gn_db, gn_app):
 
         gn_db.session.execute(open(str(ROOT_DIR / "data/monitoring.sql"), "r").read())
         gn_db.session.commit()
-        gn_db.session.execute(open(str(ROOT_DIR / "data/vues.sql"), "r").read())
-        gn_db.session.commit()
         gn_db.session.execute(open(str(ROOT_DIR / "data/delete_synthese.sql"), "r").read())
         gn_db.session.commit()
 
