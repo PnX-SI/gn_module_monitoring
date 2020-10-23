@@ -31,7 +31,7 @@ Sommaire
 * `Installation`_
 * `Gestion de la synthèse <docs/synthese.rst>`_
 * `Documentation technique <docs/documentation_technique.rst>`_
-* `Création de sous-module <docs/sous_module.rst>`_
+* `Création d'un sous-module <docs/sous_module.rst>`_
 * `Mise à jour du module <docs/MAJ.rst>`_
 
 Installation
@@ -118,7 +118,7 @@ Lancer la commande d'installation du sous-module
 
 - Par défaut la commande d'installation extrait le code du module depuis le chemin. 
 - Par exemple ``<chemin_absolu_vers_le_module_de_suivi>/contrib/test/`` donnera la valeur ``test`` à ``module_code``.
-- Le caractère ``/`` à la fin de ``<chemin_absolu_vers_le_sous_module>`` peut être présent ou non.
+- Le caractère ``/`` à la fin de ``<chemin_absolu_vers_le_sous_module>`` est optionnel.
 
 Si la commande précise que le module est déjà installé (test sur le ``module_code``) on peut préciser une valeur différente pour ``module_code`` avec la commande : 
 

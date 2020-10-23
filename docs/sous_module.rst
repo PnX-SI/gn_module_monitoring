@@ -340,7 +340,6 @@ Par exemple :
         "keyValue": "id_dataset",
         "keyLabel": "dataset_shortname",
         "params": {
-            "active": true,
             "orderby": "dataset_name",
             "module_code": "__MODULE.MODULE_CODE"
         },
