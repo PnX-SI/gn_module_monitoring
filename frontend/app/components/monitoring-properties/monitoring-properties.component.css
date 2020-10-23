@@ -9,3 +9,12 @@ td {
 .small-icon {
   font-size: 18px;
 }
+
+.medias-tab {
+  margin: 10px;
+}
+
+.hide-spinner {
+  display: none;
+}
+

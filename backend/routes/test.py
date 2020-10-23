@@ -13,7 +13,7 @@ from geonature.core.gn_permissions.tools import cruved_scope_for_user_in_module
 from ..utils.env import MODULE_MONITORINGS_CODE
 from geonature.utils.env import DB
 
-from ..models.monitoring import (
+from ..monitoring.models import (
     TMonitoringModules
 )
 

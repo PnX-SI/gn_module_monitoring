@@ -2,6 +2,8 @@
 
 -- Visites
 
+DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_visits() CASCADE;
+
 CREATE FUNCTION gn_synthese.fct_trg_delete_synthese_visits() RETURNS trigger AS $$
 BEGIN
     --Suppression des données dans la synthèse
@@ -15,6 +17,8 @@ CREATE TRIGGER trg_delete_synthese_visits AFTER DELETE ON gn_monitoring.t_base_v
 
 
 -- Observations
+DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_observations() CASCADE;
+
 CREATE FUNCTION gn_synthese.fct_trg_delete_synthese_observations() RETURNS trigger AS $$
 BEGIN
     --Suppression des données dans la synthèse

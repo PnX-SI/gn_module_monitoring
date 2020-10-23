@@ -1,0 +1,51 @@
+{
+    "id_field_name": "id_sites_group",
+    "description_field_name": "sites_group_name",
+    "label": "Groupe de sites",
+    "label_list": "Groupes de sites",
+    "uuid_field_name": "uuid_sites_group",
+    "display_properties": [
+      "sites_group_name",
+      "sites_group_code",
+      "comments"
+    ],
+    "sorts": [
+      {"prop": "sites_group_code", "dir": "desc"}
+    ],
+    "generic": {
+      "id_sites_group": {
+        "type_widget": "text",
+        "attribut_label": "Id site",
+        "hidden": true
+      },
+      "id_module": {
+        "type_widget": "text",
+        "attribut_label": "ID Module",
+        "hidden": true
+      },
+      "sites_group_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom",
+        "required": true,
+        "definition": "Nom du groupe site."
+      },
+      "sites_group_code": {
+        "type_widget": "text",
+        "attribut_label": "Code",
+        "required": true
+      },
+      "comments": {
+        "type_widget": "text",
+        "attribut_label": "Commentaires"
+      },
+      "uuid_sites_group": {
+        "attribut_label": "uuid"
+      },
+      "medias": {
+        "type_widget": "medias",
+        "attribut_label": "Médias",
+        "schema_dot_table": "gn_monitoring.t_sites_groups"
+      }
+    } 
+  }
+    

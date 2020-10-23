@@ -2,19 +2,6 @@
   margin: 0;
   margin-bottom: 10px;
   padding: 0;
-  line-height: 0.5rem;
-}
-
-:host ::ng-deep .obj-form small {
-  position: relative;
-  background-color: lightgray;
-  top: -5px;
-  padding: 1px 3px;
-  border-radius: 3px;
-}
-
-:host ::ng-deep .obj-form .input-group {
-  line-height: 1.5rem;
 }
 
 .hide-spinner {
@@ -29,15 +16,16 @@
 margin-left: 5px;
 }
 
+
+.float-left {
+  margin-right: 10px;
+  float: left;
+}
+
 form:invalid {
   outline: none;
 }
 
 form.ng-invalid {
   border: 0px !important;
-}
-
-.float-left {
-  margin-right: 10px;
-  float: left;
 }

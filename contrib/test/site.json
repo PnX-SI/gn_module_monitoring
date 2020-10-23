@@ -2,15 +2,28 @@
   "geometry_type": "Point",
   "specific": {
     "id_nomenclature_type_site": {
-      "type_widget": "nomenclature",
-      "attribut_label": "Type site",
-      "code_nomenclature_type": "TYPE_SITE",
-      "type_util": "nomenclature",
-      "required": true
+      "filters": {
+        "cd_nomenclature": ["1", "2", "3"]
+      },
+      "default": {
+        "cd_nomenclature": "1"
+      }
     },
     "contact_name": {
       "type_widget": "text",
-      "attribut_label": "Commentaire"
-    }
+      "attribut_label": "contact"
+    },
+    "id_nomenclature_type_site2": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Type site 2",
+      "type_util": "nomenclature",
+      "code_nomenclature_type": "TYPE_SITE",
+      "value": {
+          "code_nomenclature_type": "TYPE_SITE",
+          "cd_nomenclature": "1"
+      }
   }
+
+  }
+
 }

@@ -12,12 +12,12 @@ export class MonitoringObject extends MonitoringObjectBase {
   myClass = MonitoringObject;
 
   constructor(
-    modulePath: string,
+    moduleCode: string,
     objectType: string,
     id,
     objService: MonitoringObjectService
   ) {
-    super(modulePath, objectType, id, objService);
+    super(moduleCode, objectType, id, objService);
   }
 
   /** Initialisation de l'object à partir des données du serveur */
@@ -72,7 +72,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     for (const childData of childrenDataOfType) {
       const id = childData.properties[childIdFieldName];
       const child = new this.myClass(
-        this.modulePath,
+        this.moduleCode,
         childrenType,
         id,
         this._objService
@@ -98,7 +98,7 @@ export class MonitoringObject extends MonitoringObjectBase {
         }
         return this._objService
           .dataMonitoringObjectService()
-          .getObject(this.modulePath, this.objectType, this.id, depth);
+          .getObject(this.moduleCode, this.objectType, this.id, depth);
       }),
       mergeMap(postData => {
         if (!bFromCache) {
@@ -112,7 +112,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   post(formValue): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
-      .postObject(this.modulePath, this.objectType, this.postData(formValue))
+      .postObject(this.moduleCode, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap(postData => {
           this.id = postData['id'];
@@ -126,7 +126,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     return this._objService
       .dataMonitoringObjectService()
       .patchObject(
-        this.modulePath,
+        this.moduleCode,
         this.objectType,
         this.id,
         this.postData(formValue)
@@ -143,7 +143,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     this._objService.deleteCache(this);
     return this._objService
       .dataMonitoringObjectService()
-      .deleteObject(this.modulePath, this.objectType, this.id);
+      .deleteObject(this.moduleCode, this.objectType, this.id);
   }
 
   /** methodes pour obtenir les parent et enfants de l'object */
@@ -158,7 +158,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     this.parent = new this.myClass(
-      this.modulePath,
+      this.moduleCode,
       this.parentType(),
       this.parentId,
       this._objService

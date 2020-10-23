@@ -2,15 +2,26 @@ from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
-from .base import MonitoringObjectBase, monitoring_definitions
-
+from ..config.repositories import get_config
 import logging
 
 log = logging.getLogger(__name__)
 
+def check_config(f):
+    '''
+        decorateur pour s'assurer que la config est bien à jour des fichiers et de la base
+        evite la multiplication des appels à la base
+    '''
+    def _check_config(*args, **kwargs):
+        get_config(args[0]._module_code, verification_date=True)
+
+        return f(*args, **kwargs)
+
+    return _check_config
 
 class MonitoringObject(MonitoringObjectSerializer):
 
+    @check_config
     def get(self, value=None, field_name=None):
 
         # par defaut on filtre sur l'id
@@ -39,58 +50,38 @@ class MonitoringObject(MonitoringObjectSerializer):
             raise GeoNatureError('MONITORING : get_object : {}'.format(e))
 
     def process_post_data_properties(self, post_data):
+
         # id_parent dans le cas d'heritage
 
         properties = post_data['properties']
 
-        id_parent = post_data.get('id_parent')
+        id_parent = post_data.get('id_parent')  # TODO remove
         if id_parent:
             parent_id_field_name = self.parent_config_param('id_field_name')
             properties[parent_id_field_name] = post_data['id_parent']
 
-    def process_correlations(self, post_data):
-        # pour gérer et commiter les corrélations en tout genre
-        # à redefinir dans class fille à definir dans les modèles sqlalchemy
-        pass
+    @check_config
+    def process_synthese(self, process_module=False, limit=1000):
 
-    def process_correlation(self, cor_data_array, Cor, id_foreign_key_name):
-        '''
-            à mieux gérer avec sqlalchemy??
-        '''
-        id_field_name = self.config_param('id_field_name')
-
-        cors = (
-            DB.session.query(Cor)
-            .filter(getattr(Cor, id_field_name) == self._id)
-            .all()
-        )
-
-        for cor in cors:
-            if getattr(cor, id_foreign_key_name) not in cor_data_array:
-                DB.session.delete(cor)
-
-        for foreign_id in cor_data_array:
-            if int(foreign_id) not in [getattr(cor, id_foreign_key_name) for cor in cors]:
-                cor_new = Cor()
-                setattr(cor_new, id_foreign_key_name, foreign_id)
-                setattr(cor_new, id_field_name, self._id)
-                DB.session.add(cor_new)
-                # new_cor.id_base_visit = self.id_base_visit
-                # new_cor.id_role = id_role
-
-        DB.session.commit()
-
-    def process_synthese(self):
+        # test du parametre synthese 
         if not self.config().get('synthese'):
             return
 
-        table_name = 'vs_{}'.format(self._module_path)
+        # on ne le fait pas en automatique pour les modules
+        # le process peut être trop long
+        # peut être fait avec une api exprès (TODO !!)
+        if self._object_type == 'module' and not process_module:
+            return
+
+
+        table_name = 'v_synthese_{}'.format(self._module_code)
         try:
             import_from_table(
                 'gn_monitoring',
                 table_name,
                 self.config_param('id_field_name'),
-                self.config_value('id_field_name')
+                self.config_value('id_field_name'),
+                limit
             )
         except ValueError as e:
             # warning
@@ -107,9 +98,11 @@ class MonitoringObject(MonitoringObjectSerializer):
                 )
             )
 
-        return
+        return True
 
+    @check_config
     def create_or_update(self, post_data):
+
         try:
 
             # si id existe alors c'est un update
@@ -118,16 +111,16 @@ class MonitoringObject(MonitoringObjectSerializer):
             b_creation = not self._id
 
             # ajout de l'objet dans le cas d'une creation
-            if b_creation:
-                DB.session.add(self._model)
 
             # on assigne les données post à l'objet et on commite
             self.process_post_data_properties(post_data)
             self.populate(post_data)
-            DB.session.commit()
-            self._id = getattr(self._model, self.config_param('id_field_name'))
 
-            self.process_correlations(post_data)
+            if b_creation:
+                DB.session.add(self._model)
+            DB.session.commit()
+
+            self._id = getattr(self._model, self.config_param('id_field_name'))
 
             self.process_synthese()
 
@@ -139,6 +132,7 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
+    @check_config
     def delete(self):
 
         if not self._id:
@@ -160,19 +154,22 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
+    @check_config
     def breadcrumb(self):
 
         breadcrumb = {
             'id': self._id,
             'label': self.config_param('label'),
             'description': str(self.config_value('description_field_name')),
-            'module_path': self._module_path,
+            'module_code': self._module_code,
             'object_type': self._object_type,
         }
 
         return breadcrumb
 
+    @check_config
     def breadcrumbs(self):
+
         breadcrumbs = [self.breadcrumb()]
 
         parent = self.get_parent()
@@ -180,3 +177,51 @@ class MonitoringObject(MonitoringObjectSerializer):
             breadcrumbs = parent.breadcrumbs() + breadcrumbs
 
         return breadcrumbs
+
+    @check_config
+    def get_list(self, args=None):
+        '''
+            renvoie une liste d'objet serialisés
+            possibilité de filtrer
+            args arguments de requête get
+            get_list(request.args.to_dict())
+
+            TODO ajouter sort, page ou autres avec args
+            TODO traiter geojson ?? 
+            TODO filtrer par module ++++
+        '''
+
+        # test si présent dans le module 
+        # sinon []
+
+        if not self.config().get(self._object_type):
+            return []
+
+        Model = self.MonitoringModel()
+
+        limit = args.get('limit')
+
+        req = (
+            DB.session.query(Model)
+        )
+
+        # filtres
+        for key in args:
+            if hasattr(Model, key):
+                vals = args.getlist(key)
+                req = req.filter(getattr(Model, key).in_(vals))
+
+        # TODO page etc...
+
+        res = (
+            req
+            .limit(limit)
+            .all()
+        )
+        # TODO check if self.properties_names() == props et rel
+        props = self.properties_names()
+
+        return [
+            r.as_dict(True, columns=props, relationships=props)
+            for r in res
+        ]

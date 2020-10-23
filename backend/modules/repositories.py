@@ -11,7 +11,7 @@ from geonature.utils.errors import GeoNatureError
 
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_synthese.models import TSources
-from ..models.monitoring import (
+from ..monitoring.models import (
     TMonitoringModules
 )
 
@@ -20,7 +20,7 @@ def get_simple_module(field_name, value):
     récupere un module a partir d'un paramètre
 
     le paramètre pour la recherche par défaut est 'id_module'
-    on peut aussi utiliser 'module_code' ou 'module_path' selon les besoins
+    on peut aussi utiliser 'module_code' selon les besoins
 
     :param value: Valeur du paramêtre
     :param field_name: Nom du champs utilisé pour la recherche
@@ -38,7 +38,7 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
     récupere un module de protocole de suivi a partir d'un paramètre
 
     le paramètre pour la recherche par défaut est 'id_module'
-    on peut aussi utiliser 'module_code' ou 'module_path' selon les besoins
+    on peut aussi utiliser 'module_code' selon les besoins
 
     :param value: Valeur du paramêtre
     :param field_name: Nom du champs utilisé pour la recherche

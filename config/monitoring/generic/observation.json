@@ -3,7 +3,7 @@
   "description_field_name": "id_observation",
   "label": "Observation",
   "display_properties": ["cd_nom", "comments"],
-  "uuid_field_name": ["uuid_observation"],
+  "uuid_field_name": "uuid_observation",
   "generic": {
     "id_observation": {
       "type_widget": "text",
@@ -17,10 +17,10 @@
     },
     "cd_nom": {
       "type_widget": "taxonomy",
-      "attribut_label": "Taxon",
+      "attribut_label": "Espèce",
       "type_util": "taxonomy",
       "required": true,
-      "idComponent": "__ID_COMPONENT_TAXONOMY"
+      "id_list": "__MODULE.ID_LIST_TAXONOMY"
     },
     "comments": {
       "type_widget": "text",
@@ -28,6 +28,11 @@
     },
     "uuid_observation": {
       "attribut_label": "uuid"
+    },
+    "medias": {
+      "type_widget": "medias",
+      "attribut_label": "Médias",
+      "schema_dot_table": "gn_monitoring.t_observations"
     }
   }
 }

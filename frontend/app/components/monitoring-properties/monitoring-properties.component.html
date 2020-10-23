@@ -19,8 +19,9 @@
         role="tab"
         attr.aria-controls="medias"
         aria-selected="false"
-        >Médias
-        ({{ obj.medias && obj.medias.length || 0 }})
+        >Médias ({{
+          (obj.properties.medias && obj.properties.medias.length) || 0
+        }})
       </a>
     </div>
   </nav>
@@ -35,26 +36,21 @@
         <tr *ngFor="let fieldName of obj.template.fieldNames; let i = index">
           <th>
             {{ obj.template.fieldLabels[fieldName] }}
-              <i 
+            <i
               *ngIf="obj.template.fieldDefinitions[fieldName]"
-              class="material-icons small-icon" 
-              [matTooltip]="obj.template.fieldLabels[fieldName] + ' : ' + obj.template.fieldDefinitions[fieldName]"
+              class="material-icons small-icon"
+              [matTooltip]="
+                obj.template.fieldLabels[fieldName] +
+                ' : ' +
+                obj.template.fieldDefinitions[fieldName]
+              "
               matTooltipPosition="above"
-              >help</i>
+              >help</i
+            >
           </th>
           <td>{{ obj.resolvedProperties[fieldName] }}</td>
         </tr>
       </table>
-
-      <button
-        class="btn btn-success"
-        (click)="onEditClick()"
-        *ngIf="
-          !bEdit && obj.objectType != 'module' && currentUser?.cruved.E >= 1
-        "
-      >
-        Éditer {{(obj.template.label || '').toLowerCase()}}
-      </button>
     </div>
     <div
       class="tab-pane fade"
@@ -62,13 +58,64 @@
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
     >
-      <pnx-medias
-        [(medias)]="obj.medias"
-        [uuid_attached_row]="obj.template['uuid']"
-        [staticDirUrl]="backendUrl"
-        [idTableLocation]="obj.template.idTableLocation"
-        [currentUser]="currentUser"
-      ></pnx-medias>
+      <ng-container *ngFor="let media of obj.properties.medias; index as i">
+        <div class="medias-tab">
+          <div [matTooltip]="ms.toString(media)">
+            <a [href]="ms.href(media)" target="_blank">{{ media.title_fr }}</a>
+            <i>
+              ({{ ms.typeMedia(media)
+              }}<span *ngIf="media.author"> par {{ media.author }}</span
+              >)
+            </i>
+          </div>
+          <p *ngIf="media.description_fr">{{media.description_fr}}</p>
+          <div>
+            <pnx-display-medias
+              [medias]="obj.properties.medias"
+              [index]="i"
+              display="medium"
+              diaporama="true"
+            >
+            </pnx-display-medias>
+          </div>
+        </div>
+      </ng-container>
     </div>
+    
+    <button
+      class="btn btn-success"
+      (click)="onEditClick()"
+      *ngIf="
+        !bEdit &&
+        currentUser?.cruved.U >= 1 &&
+        (obj.objectType != 'module' || currentUser?.cruved.U >= 3)
+      "
+    >
+      Éditer {{ (obj.template.label || "").toLowerCase() }}
+    </button>
+
+    <!-- Mise à jour de la synthèse (Admin) -->
+    <button
+    class="btn btn-info float-right"
+    (click)="updateSynthese()"
+    *ngIf="
+      !bEdit &&
+      obj.objectType === 'module' &&
+      currentUser?.cruved.U >= 3 &&
+      obj.properties.b_synthese
+    "
+    matTooltip="Attention, cette opération peux prendre du temps"
+  >
+  <span
+  [ngClass]="{ 'hide-spinner': !bUpdateSyntheseSpinner }"
+  class="spinner-border spinner-border-sm float-right"
+  role="status"
+  aria-hidden="true"
+></span>
+
+    Mettre à jour la synthèse
+  </button>
+
+
   </div>
 </div>

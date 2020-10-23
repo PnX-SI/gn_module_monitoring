@@ -8,32 +8,41 @@
 """
 
 from flask import request
-from sqlalchemy import and_
+from sqlalchemy import and_, inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from geonature.core.taxonomie.models import Taxref, BibListes
+from geonature.core.users.models import TListes
+
 from pypnusershub.db.models import User
+
+
 from utils_flask_sqla.response import json_resp
 
-from geonature.core.taxonomie.models import Taxref
+from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
+
 from geonature.utils.errors import GeoNatureError
 
 from ..blueprint import blueprint
 
+from ..monitoring.models import TMonitoringSitesGroups
 
-object_dict = {
+model_dict = {
     'nomenclature': TNomenclatures,
     'user': User,
-    'taxonomy': Taxref
+    'taxonomy': Taxref,
+    'dataset': TDatasets,
+    'observer_list': TListes,
+    'taxonomy_list': BibListes,
+    'sites_group': TMonitoringSitesGroups,
     }
 
-
-id_field_name_dict = {
-    'nomenclature': 'id_nomenclature',
-    'user': 'id_role',
-    'taxonomy': 'cd_nom'
-}
+id_field_name_dict = dict( 
+    (k, inspect(Model).primary_key[0].name)
+    for (k, Model) in model_dict.items()
+)
 
 
 @blueprint.route('util/nomenclature/<string:code_nomenclature_type>/<string:cd_nomenclature>', methods=['GET'])
@@ -95,7 +104,7 @@ def get_util_from_id_api(type_util, id):
         revoie un champ d'un object de type nomenclature, taxonomy, utilisateur, ...
         renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
 
-        :param type_util: 'nomenclaure' | 'taoxonomy' | 'utilisateur'
+        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
         :param id: id de l'object requis
         :type type_util: str
         :type id: int
@@ -107,7 +116,7 @@ def get_util_from_id_api(type_util, id):
     field_name = request.args.get('field_name', 'all')
 
     # modèle SQLA
-    obj = object_dict.get(type_util)
+    obj = model_dict.get(type_util)
 
     if not hasattr(obj, field_name) and field_name != "all":
         raise GeoNatureError(
@@ -153,7 +162,7 @@ def get_util_from_ids_api(type_util, ids):
                 si separator_out == ' ,'
                 alors ['jean', 'pierre', 'paul'].join(separator_out) -> 'jean, pierre, paul'
 
-        :param type_util: 'nomenclaure' | 'taoxonomy' | 'utilisateur'
+        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
         :param ids: plusieurs id reliée par des '-' (ex: 1-123-3-4)
         :type type_util: str
         :type ids: str
@@ -167,7 +176,7 @@ def get_util_from_ids_api(type_util, ids):
     # tableau d'id depuis ids
     list_ids = list(ids.split('-'))
 
-    obj = object_dict.get(type_util)
+    obj = model_dict.get(type_util)
     id_field_name = id_field_name_dict.get(type_util)
 
     if not hasattr(obj, field_name) and field_name != "all":

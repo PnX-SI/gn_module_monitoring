@@ -1,15 +1,60 @@
-import os
+import os, datetime, time
 import json
 
 from sqlalchemy import and_
 
-from geonature.core.gn_commons.models import BibTablesLocation
+from geonature.core.gn_commons.models import BibTablesLocation, TModules
 from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
+
+from ..monitoring.models import TMonitoringModules
+
 
 # chemin ver le repertoire de la config
 CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
+
+
+def get_monitoring_module(module_code):
+    '''
+        ne doit pas lancer d'exception sinon plante l'install
+        -> all()[0]
+    '''
+    if module_code == 'generic':
+        return None
+
+    res = (
+        DB.session.query(TMonitoringModules)
+        .filter(TMonitoringModules.module_code == module_code)
+        .all()
+    )
+
+    return res[0] if len(res) else None
+
+def get_monitorings_path():
+    return (
+        DB.session.query(TModules.module_path)
+        .filter(TModules.module_code == 'MONITORINGS')
+        .one()[0]
+    )
+    
+def get_base_last_modif(module):
+    '''
+        renvoie (en seconde depuis le 1 1 1970) la date de modif du module
+        (i. e. de la ligne de gn_monitoring.t_module_complement )
+    '''
+    if not module:
+        return 0
+
+    now_timestamp = time.time()
+    # prise en compte du offset pour etre raccord avec la date des fichiers
+    offset = (
+        datetime.datetime.fromtimestamp(now_timestamp) - datetime.datetime.utcfromtimestamp(now_timestamp)
+    ).total_seconds()
+    date_module = getattr(module, 'meta_update_date') or getattr(module, 'meta_create_date')
+
+    return (date_module - datetime.datetime(1970, 1, 1)).total_seconds() - offset
+
 
 
 def get_id_table_location(object_type):
@@ -80,29 +125,29 @@ def json_from_file(file_path, result_default):
     return out
 
 
-def json_config_from_file(module_path, type_config):
+def json_config_from_file(module_code, type_config):
 
-    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_path, type_config)
+    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_code, type_config)
     return json_from_file(file_path, {})
 
 
-def json_schema_from_file(module_path, object_type):
+def json_schema_from_file(module_code, object_type):
 
-    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_path, object_type)
+    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_code, object_type)
     return json_from_file(file_path, {})
 
 
-def config_from_files(config_type, module_path):
+def config_from_files(config_type, module_code):
 
     generic_config_custom = json_config_from_file('generic', config_type)
-    specific_config_custom = {} if module_path == 'generic' else json_config_from_file(module_path, config_type)
+    specific_config_custom = {} if module_code == 'generic' else json_config_from_file(module_code, config_type)
 
     generic_config_custom.update(specific_config_custom)
 
     return generic_config_custom
 
 
-def directory_last_modif(dir_path):
+def get_directory_last_modif(dir_path):
     '''
         get the last modification time among all file in a directory
 
@@ -112,7 +157,7 @@ def directory_last_modif(dir_path):
         :rtype: float
     '''
     modification_time_max = 0
-    for (repertoire, sousRepertoires, fichiers) in os.walk(dir_path, followlinks=True):
+    for (repertoire, _, fichiers) in os.walk(dir_path, followlinks=True):
         for fichier in fichiers:
             modification_time = os.path.getmtime(repertoire + '/' + fichier)
             if modification_time > modification_time_max:
@@ -198,13 +243,34 @@ def customize_config(elem, custom):
         for key in elem:
             elem[key] = customize_config(elem[key], custom)
 
-    elif elem in custom:
-        elem = custom[elem]
+    else:
+        for key_custom in custom:
+            if elem == key_custom:
+                elem = custom[key_custom]
+            elif isinstance(elem, str) and key_custom in elem:
+                elem = elem.replace(key_custom, str(custom[key_custom]))
 
     return elem
 
 
-def config_from_files_customized(type_config, module_path):
-    config_type = config_from_files(type_config, module_path)
-    custom = config_from_files('custom', module_path)
+def get_nomenclature_types(config):
+    out = []
+
+    for object_type in config:
+        if object_type in ['tree', 'data'] or not isinstance(config[object_type], dict):
+            continue
+        schema = dict(config[object_type].get('generic', {}))
+        schema.update(config[object_type].get('specific', {}))
+        for name in schema:
+            form = schema[name]
+            if form.get('type_widget') == 'nomenclature':
+                out.append(form['code_nomenclature_type'])
+            if form.get('type_widget') == 'datalist' and form.get('type_util') == "nomenclature":
+                nomenclature_type = form.get('api').split('/')[-1]
+                out.append(nomenclature_type)
+    return out
+
+def config_from_files_customized(type_config, module_code):
+    config_type = config_from_files(type_config, module_code)
+    custom = config_from_files('custom', module_code)
     return customize_config(config_type, custom)

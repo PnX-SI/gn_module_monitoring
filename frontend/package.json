@@ -10,8 +10,6 @@
   "author": "",
   "description": "",
   "dependencies": {
-    "tslib": "^1.10.0",
-    "ngx-mat-select-search": "^2.2.0"
-
+    "tslib": "^1.10.0"
   }
 }

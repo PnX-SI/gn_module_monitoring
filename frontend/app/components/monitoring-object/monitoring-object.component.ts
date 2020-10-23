@@ -37,6 +37,8 @@ export class MonitoringObjectComponent implements OnInit {
   objectsStatus: Object = {};
   heightMap;
 
+  moduleSet = false;
+
   constructor(
     private _route: ActivatedRoute,
     private _objService: MonitoringObjectService,
@@ -85,12 +87,15 @@ export class MonitoringObjectComponent implements OnInit {
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
 
-        // si on est sur une création (pas d'id et id_parent ou pas de module_path pour module (root))
+        // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
         this.bEdit =
           this.bEdit ||
-          (this.obj.isRoot() && !this.obj.modulePath) ||
+          (this.obj.isRoot() && !this.obj.moduleCode) ||
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
+
+
+
         this.obj.bIsInitialized = true; // obj initialisé
         if (!this.sites) {
           this.initSites();
@@ -100,8 +105,21 @@ export class MonitoringObjectComponent implements OnInit {
       });
   }
 
+  getModuleSet() {
+    // Verifie si le module est configué
+    this.module.get(0).subscribe(() => {
+
+      const schema = this._configService.schema(this.module.moduleCode, 'module');
+      const moduleFieldList = Object.keys(this._configService.schema(this.module.moduleCode, 'module'))
+      .filter(key => schema[key].required);
+      this.moduleSet = moduleFieldList
+        .every(v => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v]));
+    });
+  }
+
   initSites() {
-    return this.module.get(1).subscribe(() => {
+    return this.module.get(1).subscribe(() => { // TODO liste indépendantes carte et listes
+
       this.currentUser['cruved'] = this.module.cruved;
 
       const sites = this.module['children']['site'];
@@ -158,7 +176,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initParams() {
-    console.log('initParams')
+    
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get('objectType')
@@ -166,18 +184,20 @@ export class MonitoringObjectComponent implements OnInit {
           : 'module';
 
         this.obj = new MonitoringObject(
-          params.get('modulePath'),
+          params.get('moduleCode'),
           objectType,
           params.get('id'),
           this._objService
         );
 
         this.module = new MonitoringObject(
-          params.get('modulePath'),
+          params.get('moduleCode'),
           'module',
           null,
           this._objService
         );
+
+        
 
         this.obj.parentId = params.get('parentId');
         return this._route.queryParamMap;
@@ -193,7 +213,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initConfig(): Observable<any> {
-    return this._configService.init(this.obj.modulePath).pipe(
+    return this._configService.init(this.obj.moduleCode).pipe(
       mergeMap(() => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
@@ -203,7 +223,8 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
-    return this._dataUtilsService.getInitData(this.obj.modulePath);
+    this.getModuleSet()
+    return this._dataUtilsService.getInitData(this.obj.moduleCode);
   }
 
   getDataObject(): Observable<any> {
@@ -212,8 +233,8 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     if (obj['objectType'] === 'site') {
-      console.log('monitoring object compute sites');
       this.initSites();
     }
+    this.getModuleSet()
   }
 }

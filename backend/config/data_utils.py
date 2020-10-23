@@ -13,21 +13,21 @@ from .utils import (
 )
 
 
-def config_data(module_path):
+def config_data(module_code):
 
-    return config_from_files_customized('data', module_path)
+    return config_from_files_customized('data', module_code)
 
 
-def get_data_utils(module_path):
+def get_data_utils(module_code):
     return {
-        'nomenclature': get_nomenclature(module_path),
-        'taxonomy': get_taxonomy(module_path),
+        'nomenclature': get_nomenclature(module_code),
+        'taxonomy': get_taxonomy(module_code),
         'users': {}
     }
 
 
-def get_nomenclature(module_path):
-    nomenclature_types = config_data(module_path).get('nomenclature')
+def get_nomenclature(module_code):
+    nomenclature_types = config_data(module_code).get('nomenclature')
 
     if not nomenclature_types:
         return {}
@@ -67,8 +67,8 @@ class CorNomListe(DB.Model):
     )
 
 
-def get_taxonomy(module_path):
-    id_list = config_data(module_path)['taxonomy'].get('id_list')
+def get_taxonomy(module_code):
+    id_list = config_data(module_code)['taxonomy'].get('id_list')
     taxonomy = get_taxonomy_from_id_list(id_list)
 
     return taxonomy
@@ -99,6 +99,6 @@ def get_taxonomy_from_id_list(id_list):
     }
 
 
-def get_users(module_path):
+def get_users(module_code):
     return {}
     pass

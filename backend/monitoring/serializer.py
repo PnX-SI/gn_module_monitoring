@@ -5,6 +5,8 @@ import datetime
 import uuid
 from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
+from ..routes.data_utils import id_field_name_dict
+from geonature.utils.env import DB
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
@@ -21,7 +23,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return (
             monitoring_definitions
             .monitoring_object_instance(
-                self._module_path,
+                self._module_code,
                 parent_type,
                 self.id_parent()
             )
@@ -59,34 +61,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         if data:
             properties['data'] = data
 
-    # def clean_properties(self, properties):
-    #     # clean properties
-
-    #     config_properties_keys = self.config_param('properties_keys')
-    #     properties_clean = {}
-    #     for key in properties:
-    #         if key in config_properties_keys:
-    #             properties_clean[key] = properties[key]
-    #     return properties_clean
-
-    # def patch_hybrid_properties(self, properties):
-    #     # TODO!! idéalement à faire dans utils_flask_slqalchemy
-    #     # patch pour les proprietes qui ne sortent pas avec le as_dict()
-    #     # par ex le site dans last visit qui est hybride
-
-    #     for key in self.config_param('properties_keys'):
-    #         if key in properties or not hasattr(self._model, key):
-    #             continue
-    #         val = getattr(self._model, key)
-    #         if isinstance(val, (datetime.date)):
-    #             val = str(val)
-    #         if not val:
-    #             val = None
-    #         properties[key] = val
-
     def serialize_children(self, depth):
         children_types = self.config_param('children_types')
-
         if not children_types:
             return
 
@@ -101,12 +77,14 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             children_of_type = [
                 monitoring_definitions
-                .monitoring_object_instance(self._module_path, children_type, model=child_model)
+                .monitoring_object_instance(self._module_code, children_type, model=child_model)
                 # .get()
                 .serialize(depth)
                 for child_model in getattr(self._model, relation_name)
             ]
+
             children[children_type] = children_of_type
+
         return children
 
     def properties_names(self):
@@ -115,7 +93,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return generic + data
 
     def serialize(self, depth=1):
-
+        # TODO faire avec un as_dict propre (avec props et relationships) 
         if depth is None:
             depth = 1
         depth = depth-1
@@ -130,6 +108,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         properties = {}
         for field_name in self.properties_names():
+
+            # val = self._model.__dict__.get(field_name)
             val = getattr(self._model, field_name)
             if isinstance(val, (datetime.date, uuid.UUID)):
                 val = str(val)
@@ -142,13 +122,31 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # processe properties
         self.flatten_specific_properties(properties)
 
+        schema = self.config_schema()
+        for key in schema:
+            definition = schema[key]
+            value = properties[key]
+            if not isinstance(value, list):
+                continue
+
+            type_util = definition.get('type_util')
+
+            # on passe d'une list d'objet à une liste d'id
+            # si type_util est defini pour ce champs
+            # si on a bien affaire à une liste de modèles sqla
+            properties[key] = [
+                getattr(v, id_field_name_dict[type_util]) if (isinstance(v, DB.Model) and type_util)
+                else v.as_dict() if (isinstance(v, DB.Model) and not type_util)
+                else v
+                for v in value
+            ]
+
         monitoring_object_dict = {
             'properties': properties,
             'object_type': self._object_type,
-            'module_path': self._module_path,
+            'module_code': self._module_code,
             'site_id': self.get_site_id(),
             'id': self._id,
-            'medias': [media.as_dict(True) for media in self._model.medias]
         }
 
         if self._object_type == 'module':
@@ -160,11 +158,23 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         return monitoring_object_dict
 
-    def populate(self, postData):
+    def preprocess_data(self, data):
+        # a redefinir dans la classe
+        pass
 
-        properties = postData['properties']
+    def populate(self, post_data):
+        # pour la partie sur les relationships mettre le from_dict dans utils_flask_sqla ???
+
+        properties = post_data['properties']
 
         # données spécifiques
         self.unflatten_specific_properties(properties)
 
-        self._model.from_dict(properties)
+        # pretraitement (pour t_base_site et cor_site_module)
+        self.preprocess_data(properties)
+
+        # ajout des données en base
+        if hasattr(self._model, 'from_geofeature'):
+            self._model.from_geofeature(post_data, True)
+        else:
+            self._model.from_dict(properties, True)

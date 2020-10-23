@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, forkJoin, of } from '@librairies/rxjs';
-import { concatMap , mergeMap } from '@librairies/rxjs/operators';
+import { concatMap, mergeMap } from '@librairies/rxjs/operators';
 
 import { Utils } from './../utils/utils';
 
@@ -48,13 +48,13 @@ export class DataUtilsService {
         mergeMap(
           value => {
             let out;
-            if ( fieldName === 'all') {
-              out =  value;
+            if (fieldName === 'all') {
+              out = value;
             } else if (fieldName.split(',').length >= 2) {
               // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
               for (const fieldNameInter of fieldName.split(',')) {
                 if (value[fieldNameInter]) {
-                  out =  value[fieldNameInter];
+                  out = value[fieldNameInter];
                   break;
                 }
               }
@@ -100,41 +100,45 @@ export class DataUtilsService {
   }
 
   /** Récupère les données qui seront utiles pour le module */
-  getInitData(modulePath): Observable<any> {
+  getInitData(moduleCode): Observable<any> {
     /** Les données à récupérer sont spécifiées dans la config du module
-     * config/<module_path>/data_config.json et
-     * config/<module_path>/custom_config.json
+     * config/<module_code>/data_config.json et
+     * config/<module_code>/custom_config.json
     */
+
+    if (!Object.keys(this._configService.configData(moduleCode)).length) {
+      return of(true);
+    }
 
     const cache = this._cacheService.cache();
     // test si la fonction a déjà été appelée
-    if (cache[modulePath] && cache[modulePath]['init_data']) {
+    if (cache[moduleCode] && cache[moduleCode]['init_data']) {
       return of(true);
     }
 
     const observables = {};
-    const configData = this._configService.configData(modulePath);
+    const configData = this._configService.configData(moduleCode);
 
     // Test if nomenclature is define
-    if (('nomenclature' in configData)  && (configData['nomenclature'].length > 0)) {
+    if (('nomenclature' in configData) && (configData['nomenclature'].length > 0)) {
       const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
       observables['nomenclature'] = nomenclatureRequest;
     }
 
     // Taxonomie (liste ou ensemble de )
-    const taxonomyRequests = [];
-    if (configData.taxonomy && configData.taxonomy.cd_noms) {
-      for (const cd_nom of configData.taxonomy.cd_noms) {
-        taxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
-      }
-    }
-    if (taxonomyRequests.length) {
-      observables['taxonomy'] = forkJoin(taxonomyRequests);
-    }
+    // const taxonomyRequests = [];
+    // if (configData.taxonomy && configData.taxonomy.cd_noms) {
+    //   for (const cd_nom of configData.taxonomy.cd_noms) {
+    //     taxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
+    //   }
+    // }
+    // if (taxonomyRequests.length) {
+    //   observables['taxonomy'] = forkJoin(taxonomyRequests);
+    // }
 
     const userRequests = [];
-    for (const codeList of configData['user']) {
-      userRequests.push(this._commonsDataFormService.getObserversFromCode(codeList));
+    for (const idMenu of (configData['user'] || [])) {
+      userRequests.push(this._commonsDataFormService.getObservers(idMenu));
     }
     if (userRequests.length) {
       observables['user'] = forkJoin(userRequests);
@@ -147,7 +151,7 @@ export class DataUtilsService {
 
           const nomenclatures = data['nomenclature'] as Array<any>;
           if (nomenclatures) {
-            for (const nomenclature_type of nomenclatures ) {
+            for (const nomenclature_type of nomenclatures) {
               for (const nomenclature of nomenclature_type.values) {
                 this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
               }
@@ -171,10 +175,10 @@ export class DataUtilsService {
           }
 
           // pour ne pas appeler la fonction deux fois
-          if (!cache[modulePath]) {
-            cache[modulePath] = {};
+          if (!cache[moduleCode]) {
+            cache[moduleCode] = {};
           }
-          cache[modulePath]['init_data'] = true;
+          cache[moduleCode]['init_data'] = true;
 
           return of(true);
         })

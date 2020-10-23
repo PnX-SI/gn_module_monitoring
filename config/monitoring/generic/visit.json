@@ -7,6 +7,7 @@
     "visit_date_min",
     "observers",
     "comments",
+    "dataset",
     "nb_observations"
   ],
   "sorts": [
@@ -29,10 +30,14 @@
       "hidden": true
     },
     "observers": {
+      "type_widget": "datalist",
       "attribut_label": "Observateurs",
-      "type_widget": "observers",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
       "type_util": "user",
-      "code_list": "__CODE_LIST_OBSERVER",
+      "multiple": true,
       "required": true
     },
     "id_digitiser": {
@@ -60,12 +65,27 @@
       "attribut_label": "uuid"
     },
     "id_dataset": {
-      "type_widget": "text",
-      "value": "__ID_DATASET_VISIT",
-      "hidden": true
+      "type_widget": "datalist",
+      "attribut_label": "Jeu de données",
+      "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "params": {
+        "orderby": "dataset_name",
+        "module_code": "__MODULE.MODULE_CODE"
+      },
+      "data_path": "data",
+      "required": true
     },
     "nb_observations": {
       "attribut_label": "Nombre d'observations"
+    },
+    "medias": {
+      "type_widget": "medias",
+      "attribut_label": "Médias",
+      "schema_dot_table": "gn_monitoring.t_base_visits"
     }
   }
 }

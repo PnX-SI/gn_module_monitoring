@@ -8,19 +8,6 @@
       }
     }
   },
-  "synthese": "__SYNTHESE",
-  "data": {
-    "nomenclature": [
-        "TYPE_SITE",
-        "STATUT_OBS"
-    ],
-    "taxonomy": {
-      "cd_noms": []
-    },
-    "user": [
-      "__CODE_LIST_INVENTOR",
-      "__CODE_LIST_OBSERVER"
-    ]
-  }
-  
+  "taxonomy_display_field_name": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+  "synthese": "__MODULE.B_SYNTHESE"  
 }

@@ -17,28 +17,34 @@ export class ConfigService {
 
   /** Configuration */
 
-  init(modulePath = null) {
+  init(moduleCode = null) {
 
     // a definir ailleurs
 
-    modulePath = modulePath || 'generic';
+    moduleCode = moduleCode || 'generic';
 
-    if (this._config && this._config[modulePath]) {
+    if (this._config && this._config[moduleCode]) {
       return of(true);
     } else {
-      const urlConfig = modulePath === 'generic' ? `${this.backendModuleUrl()}/config` : `${this.backendModuleUrl()}/config/${modulePath}`;
-      return this._http.get<any>(urlConfig)
-        .pipe(
-          mergeMap((config) => {
-            this._config = this._config || {};
-            this._config[modulePath] = config;
-            this._config['frontendParams'] = {
-              'bChainInput': false
-            };
-            return of(true);
-          })
-        );
+      return this.loadConfig(moduleCode);
     }
+  }
+
+  loadConfig(moduleCode) {
+    const urlConfig = moduleCode === 'generic'
+      ? `${this.backendModuleUrl()}/config`
+      : `${this.backendModuleUrl()}/config/${moduleCode}`;
+    return this._http.get<any>(urlConfig)
+      .pipe(
+        mergeMap((config) => {
+          this._config = this._config || {};
+          this._config[moduleCode] = config;
+          this._config['frontendParams'] = {
+            'bChainInput': false
+          };
+          return of(true);
+        })
+      );
   }
 
   /** Backend Url et static dir ??*/
@@ -65,9 +71,10 @@ export class ConfigService {
   }
 
   /** Config Object Schema */
-  schema(modulePath, objectType, typeSchema = 'all'): Object {
-    modulePath = modulePath || 'generic';
-    const configObject = this._config[modulePath][objectType];
+  schema(moduleCode, objectType, typeSchema = 'all'): Object {
+    moduleCode = moduleCode || 'generic';
+
+    const configObject = this._config[moduleCode][objectType];
 
     // patch media TODO fix
     if (!configObject) {
@@ -76,7 +83,7 @@ export class ConfigService {
 
     switch (typeSchema) {
       case 'all': {
-        return {...configObject.generic, ...configObject.specific};
+        return { ...configObject.generic, ...configObject.specific };
       }
       case 'generic': {
         return configObject.generic;
@@ -92,17 +99,17 @@ export class ConfigService {
    *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
-  configModuleObjectParam(modulePath: string, objectType: string, fieldName: string) {
-    modulePath = modulePath || 'generic';
-    const confObject = this._config[modulePath][objectType];
+  configModuleObjectParam(moduleCode: string, objectType: string, fieldName: string) {
+    moduleCode = moduleCode || 'generic';
+    const confObject = this._config[moduleCode][objectType];
     return confObject ? confObject[fieldName] : null;
   }
 
   /** config data : pour initialiser les données Nomenclature, Taxons, Users,...
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
   */
-  configData(modulePath) {
-    return this._config[modulePath]['data'];
+  configData(moduleCode) {
+    return this._config[moduleCode]['data'];
   }
 
   frontendParams() {
@@ -114,6 +121,11 @@ export class ConfigService {
       this._config.frontendParams[paramName] = paramValue;
     }
   }
+
+  config() {
+    return this._config;
+  }
+
 
   cache() {
     return this._config;

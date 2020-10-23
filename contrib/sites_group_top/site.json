@@ -1,0 +1,26 @@
+{
+  "geometry_type": "Point",
+  "specific": {
+    "id_nomenclature_type_site": {
+      "type_widget": "datalist",
+      "attribut_label": "Type site",
+      "api": "nomenclatures/nomenclature/TYPE_SITE",
+      "application": "GeoNature",
+      "filters": {
+        "cd_nomenclature": ["1", "2", "3"]
+      },
+      "keyValue": "id_nomenclature",
+      "keyLabel": "label_fr",
+      "data_path": "values",
+      "type_util": "nomenclature",
+      "required": true
+    },
+    "contact_name": {
+      "type_widget": "text",
+      "attribut_label": "Commentaire"
+    },
+    "id_sites_group": {
+      "hidden": false      
+    }
+  }
+}

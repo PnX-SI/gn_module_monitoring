@@ -20,10 +20,10 @@ from ..modules.repositories import (
 @json_resp
 def get_module_api(value):
     '''
-        Renvoie un module référencé par son champ module_path
+        Renvoie un module référencé par son champ module_code
         par default cherche par id_module
         on peut preciser field_name en parametre de requete GET
-        ?field_name=module_path pour avoir unmodule depuis son champs module_path
+        ?field_name=module_code pour avoir unmodule depuis son champs module_code
     '''
 
     depth = to_int(request.args.get('depth', 0))
@@ -33,7 +33,7 @@ def get_module_api(value):
     module_out = []
     if module:
         module_out = module.as_dict(depth=depth)
-        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_path)
+        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_code)
 
     return module_out
 
@@ -52,7 +52,7 @@ def get_modules_api():
     modules = get_modules()
     for module in modules:
         module_out = module.as_dict(depth=depth)
-        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_path)
+        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_code)
         modules_out.append(module_out)
 
     return modules_out
