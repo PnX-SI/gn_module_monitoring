@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+0.2.1 (unreleased)
+------------------
+
+**Corrections**
+
+* 
+
 0.2.0 (2020-10-23)
 ------------------
 
@@ -18,7 +25,7 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 * Ajout d'un composant de liste modulable (``datalist``) pouvant interroger une API, pouvant être utilisé pour les listes de taxons, d'observateurs, de jdd, de nomenclatures, de sites, de groupes de sites, etc... (`#44 <https://github.com/PnX-SI/gn_module_monitoring/issues/44>`__)
 * Liste des observations : ajout d'un paramètre permettant d'afficher le nom latin des taxons observés (`#36 <https://github.com/PnX-SI/gn_module_monitoring/issues/36>`__)
 * Simplification de la procédure pour mettre les données dans la synthèse (un fichier à copier, un bouton à cocher et possibilité de customiser la vue pour un sous-module)
-* Passage de la complexité des méthodes de mise en base des données et de gestion des relation par liste d'``id`` (observateurs, jdd du module, correlations site module) vers le module `Utils_Flask_SQLA` (amélioration de la méthode from_dict en mode récursif qui accepte des listes d'`id` et les traduit en liste de modèles) *(principalement dans ``backend/monitoring/serializer.py``)*
+* Passage de la complexité des méthodes de mise en base des données et de gestion des relation par liste d'``id`` (observateurs, jdd du module, correlations site module) vers le module `Utils_Flask_SQLA` (amélioration de la méthode ``from_dict`` en mode récursif qui accepte des listes d'``id`` et les traduit en liste de modèles), (principalement dans ``backend/monitoring/serializer.py``)
 * Suppression du fichier ``custom.json`` pour gérer son contenu dans les nouveaux champs de la table ``gn_monitoring.t_module_complements`` (`#43 <https://github.com/PnX-SI/gn_module_monitoring/issues/43>`__)
 * Clarification et remplacement des ``module_path`` et ``module_code`` (`#40 <https://github.com/PnX-SI/gn_module_monitoring/issues/40>`__)
 
@@ -27,13 +34,13 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 * Amélioration des modèles SLQA pour optimiser la partie sérialisation (`#46 <https://github.com/PnX-SI/gn_module_monitoring/issues/46>`__)
 * Renseignement de la table ``gn_synthese.t_sources`` à l'installation (`#33 <https://github.com/PnX-SI/gn_module_monitoring/issues/33>`__)
 * Passage du commentaire de la visite en correspondance avec le champs ``comment_context`` de la Synthèse, dans la vue ``gn_monitoring.vs_visits`` (`#31 <https://github.com/PnX-SI/gn_module_monitoring/issues/31>`__)
-* Remplissage de la table ``gn_commons.bib_tables_location`` pour les tables du schémas ``gn_monitoring`` si cela n'a pas été fait par GeoNature (`#27 <https://github.com/PnX-SI/gn_module_monitoring/issues/27>`__)
+* Remplissage de la table ``gn_commons.bib_tables_location`` pour les tables du schéma ``gn_monitoring`` si cela n'a pas été fait par GeoNature (`#27 <https://github.com/PnX-SI/gn_module_monitoring/issues/27>`__)
 * Corrections et optimisations diverses du code et de l'ergonomie
-* Corrections de la documentation et docstrongs (par @jbdesbas)
+* Corrections de la documentation et docstrings (par @jbdesbas)
 
 **⚠️ Notes de version**
 
-Si vous mettez à jour le module depuis la vers 0.1.0 :
+Si vous mettez à jour le module depuis la version 0.1.0 :
 
 * Les fichiers ``custom.json`` ne sont plus utiles (la configuration spécifique à une installation (liste utilisateurs, etc..) 
 est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
