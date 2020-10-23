@@ -47,11 +47,9 @@ Mise à jour du module
    geonature update_module_configuration MONITORINGS
 
 
-- Jouer les scripts de migrations correspondant au changement de version
+- Exécutez les éventuels scripts SQL de migration de la BDD, correspondant aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonction des versions>``
 
-dans /home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonciton des versions>
-
-- Recréer les vues pour la synthese
+- Recréer les vues alimentant la synthèse de GeoNature
 
 ::
 
