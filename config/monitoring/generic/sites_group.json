@@ -7,6 +7,7 @@
     "display_properties": [
       "sites_group_name",
       "sites_group_code",
+      "nb_sites",
       "comments"
     ],
     "sorts": [
@@ -40,6 +41,9 @@
       },
       "uuid_sites_group": {
         "attribut_label": "uuid"
+      },
+      "nb_sites": {
+        "attribut_label": "Nombre de site"
       },
       "medias": {
         "type_widget": "medias",

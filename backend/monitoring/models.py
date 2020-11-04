@@ -265,6 +265,12 @@ class TMonitoringSitesGroups(DB.Model):
         lazy="joined",
     )
 
+    nb_sites = column_property(
+        select([func.count(TMonitoringSites.id_sites_group)]).\
+            where(TMonitoringSites.id_sites_group==id_sites_group)
+    )
+
+
 
 @serializable
 class TMonitoringModules(TModules):

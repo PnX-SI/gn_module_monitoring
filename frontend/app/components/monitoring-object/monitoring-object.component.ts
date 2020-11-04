@@ -97,7 +97,8 @@ export class MonitoringObjectComponent implements OnInit {
 
 
         this.obj.bIsInitialized = true; // obj initialisé
-        if (!this.sites) {
+      
+        if ((!this.sites) || this.obj.children['site']) {
           this.initSites();
         } else {
           this.initObjectsStatus();
@@ -120,9 +121,10 @@ export class MonitoringObjectComponent implements OnInit {
   initSites() {
     return this.module.get(1).subscribe(() => { // TODO liste indépendantes carte et listes
 
+
       this.currentUser['cruved'] = this.module.cruved;
 
-      const sites = this.module['children']['site'];
+      const sites = this.module['children']['site'] || this.obj.children['site'];
 
       if(!sites) {
         return;
