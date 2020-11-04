@@ -47,7 +47,14 @@
       "required": true
     },
     "id_sites_group": {
-      "type_widget": "text",
+      "type_widget": "datalist",
+      "attribut_label": "Groupe de sites",
+      "type_util": "sites_group",
+      "keyValue": "id_sites_group",
+      "keyLabel": "sites_group_name",
+      "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+      "application": "GeoNature",
+      "required": false,
       "hidden": true
     },
     "id_nomenclature_type_site": {

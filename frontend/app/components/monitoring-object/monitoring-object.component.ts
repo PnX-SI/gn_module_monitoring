@@ -22,7 +22,7 @@ import { Utils } from '../../utils/utils';
 export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
-  sites: {};
+  sites;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -123,6 +123,10 @@ export class MonitoringObjectComponent implements OnInit {
       this.currentUser['cruved'] = this.module.cruved;
 
       const sites = this.module['children']['site'];
+
+      if(!sites) {
+        return;
+      }
       this.sites = {
         features: sites.map((site) => {
           site['id'] = site['properties']['id_base_site'];
@@ -199,7 +203,7 @@ export class MonitoringObjectComponent implements OnInit {
 
         
 
-        this.obj.parentId = params.get('parentId');
+        this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
         return this._route.queryParamMap;
       }),
       mergeMap((params) => {

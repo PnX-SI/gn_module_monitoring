@@ -1,16 +1,19 @@
 {
+  "display_properties": [
+    "base_site_name",
+    "base_site_code",
+    "id_nomenclature_type_site",
+    "id_inventor",
+    "id_sites_group",
+    "first_use_date",
+    "last_visit",
+    "nb_visits"
+  ],
   "geometry_type": "Point",
   "specific": {
     "id_sites_group": {
-      "type_widget": "datalist",
-      "attribut_label": "Groupe de sites",
-      "hidden": true,
-      "type_util": "sites_group",
-      "keyValue": "id_sites_group",
-      "keyLabel": "sites_group_name",
-      "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
-      "application": "GeoNature",
-      "required": false
+      "required": true,
+      "hidden": false
     },
     "id_nomenclature_type_site": {
       "type_widget": "datalist",
@@ -24,14 +27,12 @@
       "keyLabel": "label_fr",
       "data_path": "values",
       "type_util": "nomenclature",
-      "required": true
+      "required": true,
+      "hidden": false
     },
     "contact_name": {
       "type_widget": "text",
       "attribut_label": "Commentaire"
-    },
-    "id_sites_group": {
-      "hidden": false
     }
   }
 }
