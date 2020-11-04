@@ -43,7 +43,7 @@
         "attribut_label": "uuid"
       },
       "nb_sites": {
-        "attribut_label": "Nombre de site"
+        "attribut_label": "Nombre de sites"
       },
       "medias": {
         "type_widget": "medias",
