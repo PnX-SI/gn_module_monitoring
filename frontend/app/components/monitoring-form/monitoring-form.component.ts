@@ -57,20 +57,8 @@ export class MonitoringFormComponent implements OnInit {
     this._configService.init(this.obj.moduleCode).subscribe(() => {
       this.bChainInput = this._configService.frontendParams()['bChainInput'];
       const schema = this.obj.schema();
-
       // init objFormsDefinition
-      // this.objFormsDefinition = Object.keys(schema)
-      //   // medias toujours à la fin
-      //   .sort((a, b) => {
-      //     return a === 'medias' ? +1 : b === 'medias' ? -1 : 0;
-      //   })
-      //   .filter((attribut_name) => schema[attribut_name].type_widget)
-      //   .map((attribut_name) => {
-      //     const elem = schema[attribut_name];
-      //     elem['attribut_name'] = attribut_name;
-      //     return elem;
-      //   });
-
+      
         this.objFormsDefinition = this._dynformService.formDefinitionsdictToArray(
           schema, {
             nomenclatures: this._dataUtilsService.getNomenclatures(),
@@ -117,7 +105,6 @@ export class MonitoringFormComponent implements OnInit {
     }
 
     // TODO à faire comme il faut (popup config pour les valeurs à garder)
-    console.log('keep', keep);
 
     const parentId = this.obj.parentId;
     this.obj = new MonitoringObject(
@@ -244,19 +231,11 @@ export class MonitoringFormComponent implements OnInit {
     if (this.testChoixSite()) {
       this.obj.parentId = this.objForm.value['id_base_site'];
     }
-    console.log(this.objForm.value)
     const action = this.obj.id
       ? this.obj.patch(this.objForm.value)
       : this.obj.post(this.objForm.value);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
-      // TODO toaster service
-      console.log(
-        'info',
-        `${actionLabel} de ${this.obj.configParam('label')} ${
-        this.obj.id
-        } effectuée`
-      );
       this._commonService.regularToaster('success', `${actionLabel} de ${this.obj.configParam('label')} ${
         this.obj.id
         } effectuée`);
@@ -291,7 +270,6 @@ export class MonitoringFormComponent implements OnInit {
     const msg_delete = `${this.obj.template['label']} ${
       this.obj.id
       } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId}`;
-    console.log(msg_delete);
     this._commonService.regularToaster('info', msg_delete);
 
 

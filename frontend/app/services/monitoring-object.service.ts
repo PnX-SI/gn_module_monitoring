@@ -168,12 +168,6 @@ export class MonitoringObjectService {
     // children
     for (const childrenType of obj.childrenTypes()) {
       const childrenData = obj.children[childrenType] || [];
-      console.log(
-        obj.childrenTypes(),
-        obj.children,
-        childrenType,
-        childrenData
-      );
       for (const childData of childrenData) {
         const child = new MonitoringObject(
           obj.moduleCode,
