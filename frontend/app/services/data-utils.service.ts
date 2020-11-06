@@ -185,4 +185,7 @@ export class DataUtilsService {
       );
   }
 
+  getNomenclatures() {
+    return this._cacheService['_cache']['util']['nomenclature'];
+  }
 }

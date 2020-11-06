@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
         b_synthese BOOLEAN DEFAULT TRUE,
         taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom', 
 
+        data JSONB,
+
         meta_create_date timestamp without time zone NOT NULL,
         meta_update_date timestamp without time zone,
 

@@ -23,8 +23,9 @@ for nom_fichier in $(ls ${scriptpath}/../config/monitoring/*/synthese.sql)
         module_code=${nom_fichier%/*}
         module_code=${module_code##*/}
         [ -n "${module_code_in}" ] && [ "${module_code_in}" != "${module_code}" ] && continue
-        echo "process synthese for module ${module_code}"
+        echo "process synthese for module ${module_code}" "${nom_fichier}"
         export PGPASSWORD=${user_pg_pass};psql -h ${db_host} -U ${user_pg} -d ${db_name} -f ${nom_fichier} --set=module_code=${module_code} &>> ${log_file}
     done
 
-    cat ${log_file} | grep ERROR
+    cat $log_file
+    cat ${log_file} | grep ERR

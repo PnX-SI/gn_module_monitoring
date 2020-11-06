@@ -364,6 +364,66 @@ Par exemple :
       "required": true
     },
 
+
+Les paramètres dynamiques
+-------------------------
+
+
+Il est possible de définir des paramètre qui peuvent dépendre de plusieurs variables.
+La valeur de ce paramètre est alors une chaîne de caractère qui définie une fonction, qui utilise les variables suivantes
+
+**Ce cas n'est pris en compte que pour les composant spécifique, ou pour les composants redéfinis dans `specific`**
+
+* ``value``: les valeur du formulaire
+* ``attribut_name``: du composant concerné
+* ``meta``: un dictionnaire de données additionelles, et fourni au composant dynamicFormGenerator, il peut contenir des données sur 
+  * la nomenclature (pour avoir les valeurs des nomenclature à partir des id, ici un dictionnaire avec ``id_nomenclature`` comme clés.
+  * etc.. à redéfinir selon les besoin
+
+La chaine de caractère qui décrit la fonction doit être de la forme suivante:
+
+.. code-block:: JSON
+
+"hidden": ({value, attribut_name, }) => { return value.id == 't' }
+
+
+Exemples:
+
+* Afficher le composant ``test2`` et le rendre obligatoire seulement si ``test1`` a pour valeur ``t``:
+
+.. code-block:: JSON
+
+    "specific": {
+        "test": {
+            "type_widget": "text",
+            "attribut_label": "Test"
+          },   
+          "test2": {
+            "type_widget": "text",
+            "attribut_label": "Test 2",
+            "hidden": "({value}) => value.test != 't'",
+            "required": "({value}) => value.test != 't'"
+          }      
+    }
+
+* Ajouter un champs pour renseigner la profondeur d'une grotte si le type de site est une grotte
+
+.. code-block:: JSON
+
+    site.json
+
+"specific": {
+    ...
+    "profondeur_grotte": {
+      "type_widget": "number",
+      "attribut_label": "Profondeur de la grotte",
+      "hidden": "({value, meta}) => meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'",
+      "required": "({value, meta}) => (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature === '1'"
+    }
+    ...
+}
+
+
 ------------
 Nomenclature
 ------------

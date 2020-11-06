@@ -122,6 +122,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         # processe properties
         self.flatten_specific_properties(properties)
 
+
+
         schema = self.config_schema()
         for key in schema:
             definition = schema[key]

@@ -329,6 +329,8 @@ class TMonitoringModules(TModules):
     meta_create_date = DB.Column(DB.DateTime)
     meta_update_date = DB.Column(DB.DateTime)
 
+    data = DB.Column(JSONB)
+
 
 
 # add sites_group relationship to TMonitoringSites

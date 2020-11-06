@@ -111,7 +111,6 @@
       "attribut_label": "Afficher dans le menu ?",
       "definition": "Afficher le module dans le menu de GéoNature. (Recharger la page pour voir les modifications)."
     },
-    
     "medias": {
       "type_widget": "medias",
       "attribut_label": "Médias",

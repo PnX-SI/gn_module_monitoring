@@ -110,6 +110,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   post(formValue): Observable<any> {
+    console.log('postData', this.postData(formValue));
     return this._objService
       .dataMonitoringObjectService()
       .postObject(this.moduleCode, this.objectType, this.postData(formValue))
@@ -200,13 +201,17 @@ export class MonitoringObject extends MonitoringObjectBase {
     const propertiesData = {};
     const schema = this.schema();
     for (const attribut_name of Object.keys(schema)) {
+      console.log(attribut_name)
       const elem = schema[attribut_name];
       if (!elem.type_widget) {
+        console.log('plouf')
         continue;
       }
-      propertiesData[elem.attribut_name] = this._objService
-        .fromForm(elem, formValue[elem.attribut_name]);
+      propertiesData[attribut_name] = this._objService
+        .fromForm(elem, formValue[attribut_name]);
     }
+
+    console.log(propertiesData)
 
     const postData = {
       properties: propertiesData,

@@ -3,7 +3,9 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Router } from '@angular/router';
 import { ConfigService } from '../../services/config.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 import { CommonService } from '@geonature_common/service/common.service';
+import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
 
 
 @Component({
@@ -31,6 +33,8 @@ export class MonitoringFormComponent implements OnInit {
 
   objFormsDefinition;
 
+  meta: {}
+
   keepNames = [];
 
   public bSaveSpinner = false;
@@ -45,6 +49,8 @@ export class MonitoringFormComponent implements OnInit {
     private _router: Router,
     private _configService: ConfigService,
     private _commonService: CommonService,
+    private _dataUtilsService: DataUtilsService,
+    private _dynformService: DynamicFormService
   ) { }
 
   ngOnInit() {
@@ -53,17 +59,28 @@ export class MonitoringFormComponent implements OnInit {
       const schema = this.obj.schema();
 
       // init objFormsDefinition
-      this.objFormsDefinition = Object.keys(schema)
-        // medias toujours à la fin
-        .sort((a, b) => {
-          return a === 'medias' ? +1 : b === 'medias' ? -1 : 0;
-        })
-        .filter((attribut_name) => schema[attribut_name].type_widget)
-        .map((attribut_name) => {
-          const elem = schema[attribut_name];
-          elem['attribut_name'] = attribut_name;
-          return elem;
-        });
+      // this.objFormsDefinition = Object.keys(schema)
+      //   // medias toujours à la fin
+      //   .sort((a, b) => {
+      //     return a === 'medias' ? +1 : b === 'medias' ? -1 : 0;
+      //   })
+      //   .filter((attribut_name) => schema[attribut_name].type_widget)
+      //   .map((attribut_name) => {
+      //     const elem = schema[attribut_name];
+      //     elem['attribut_name'] = attribut_name;
+      //     return elem;
+      //   });
+
+        this.objFormsDefinition = this._dynformService.formDefinitionsdictToArray(
+          schema, {
+            nomenclatures: this._dataUtilsService.getNomenclatures(),
+          })
+          .filter(formDef => formDef.type_widget)
+          .sort((a, b) => {
+            return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
+          }) // medias à la fin
+  
+
       // set geometry
       if (this.obj.config['geometry_type']) {
         this.objForm.addControl(
@@ -227,7 +244,7 @@ export class MonitoringFormComponent implements OnInit {
     if (this.testChoixSite()) {
       this.obj.parentId = this.objForm.value['id_base_site'];
     }
-
+    console.log(this.objForm.value)
     const action = this.obj.id
       ? this.obj.patch(this.objForm.value)
       : this.obj.post(this.objForm.value);

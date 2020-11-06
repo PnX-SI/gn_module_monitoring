@@ -58,9 +58,6 @@ WITH source AS (
 	    COALESCE (visit_date_max, visit_date_min) AS date_max,
         comments,
 
-	    o.observers,
-	    o.ids_observers,
-
     	id_nomenclature_tech_collect_campanule,
 	    id_nomenclature_grp_typ
 

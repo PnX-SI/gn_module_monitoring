@@ -5,9 +5,13 @@ CHANGELOG
 0.2.1 (unreleased)
 ------------------
 
-**Corrections**
+**🚀 Nouveautés**
+  * pouvoir définir des champs *dynamiques*, dont les attributs peuvent dépendre des valeurs des autres composants (pour afficher un composant en fonction de la valeur d'autres composants)
+    * exemples dans test
+  * champs data JSONB dans module_complement
 
-* 
+**🐛 Corrections**
+  * correction vue synthese
 
 0.2.0 (2020-10-23)
 ------------------

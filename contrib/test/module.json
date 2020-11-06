@@ -1,4 +1,16 @@
 {
     "module_label":"Test",
-    "module_desc":"Module de test pour le module de suivi générique"
+    "module_desc":"Module de test pour le module de suivi générique",
+    "specific": {
+        "test": {
+            "type_widget": "text",
+            "attribut_label": "Test"
+          },   
+          "test2": {
+            "type_widget": "text",
+            "attribut_label": "Test 2",
+            "hidden": "({value}) => value.test != 't'"
+          }      
+    }
 }
+

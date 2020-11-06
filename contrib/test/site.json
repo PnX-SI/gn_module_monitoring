@@ -13,17 +13,11 @@
       "type_widget": "text",
       "attribut_label": "contact"
     },
-    "id_nomenclature_type_site2": {
-      "type_widget": "nomenclature",
-      "attribut_label": "Type site 2",
-      "type_util": "nomenclature",
-      "code_nomenclature_type": "TYPE_SITE",
-      "value": {
-          "code_nomenclature_type": "TYPE_SITE",
-          "cd_nomenclature": "1"
-      }
+    "profondeur_grotte": {
+      "type_widget": "number",
+      "attribut_label": "Profondeur de la grotte",
+      "hidden": "({value, meta}) => {return (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'}",
+      "required": "({value, meta}) => (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature === '1'"
+    }
   }
-
-  }
-
 }

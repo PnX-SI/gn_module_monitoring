@@ -70,11 +70,53 @@ export class ConfigService {
     return ModuleConfig.MODULE_CODE;
   }
 
+  /**
+   * Converti s en function js
+   *  
+   * 
+   * @param s chaine de caractere
+   */
+  toFunction(s) {
+    if(! (typeof(s) == 'string')) {
+      return
+    }
+
+    const tests = [ '(', ')', '{', '}', '=>']
+
+    if (!tests.every(test => s.includes(test))) {
+      return 
+    }
+
+    let func;
+
+    try {
+      func = eval(s);
+    } catch(error) {
+      console.error(`Erreur dans la définition de la fonction ${error}`);
+    }
+
+    return func;
+
+  } 
+
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
     moduleCode = moduleCode || 'generic';
 
     const configObject = this._config[moduleCode][objectType];
+
+    // gerer quand les paramètres ont un fonction comme valeur
+
+    for (const keyDef of Object.keys(configObject.specific)) {
+      const formDef = configObject.specific[keyDef];
+      for (const keyParam of Object.keys(formDef)) {
+        const func = this.toFunction(formDef[keyParam])
+        if(func) {
+          formDef[keyParam] = func;  
+        }
+      }
+    }
+
 
     // patch media TODO fix
     if (!configObject) {
