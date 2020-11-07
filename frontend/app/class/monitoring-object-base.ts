@@ -11,6 +11,11 @@ export class MonitoringObjectBase {
 
   cruved;
 
+  parentsPath=[];
+
+
+  deleted=false;
+
   idTableLocation;
   properties = {}; // liste des propriétés de type non géométrie
   geometry;
@@ -23,10 +28,9 @@ export class MonitoringObjectBase {
 
   children = {};
   _children0 = {};
-  parent: MonitoringObjectBase;
+  parents= {};
   myClass = MonitoringObjectBase;
 
-  parentId;
   siteId;
 
   template = {};
@@ -34,7 +38,7 @@ export class MonitoringObjectBase {
   configParams = ['geometry_type'];
   config = {};
 
-  protected _objService: MonitoringObjectService;
+  public _objService: MonitoringObjectService;
 
   constructor(
     moduleCode: string,
@@ -95,24 +99,33 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
-
-
-    // TODO verifier!!
-    if (!this.parentId) {
-        this.parentId = this.properties[this.parentIdFieldName()];
-    } else {
-        this.properties[this.parentIdFieldName()] = this.parentId;
-    }
   }
 
-  parentIdFieldName() {
-    return !this.parentType()
+  idFieldName() {
+    return this._objService
+        .configService()
+        .configModuleObjectParam(
+          this.moduleCode,
+          this.objectType,
+          'id_field_name'
+        );
+  }
+
+  parentId(parentType=null) {
+    if(!parentType) {
+      parentType = this.parentType()
+    }
+    return this.properties[this.parentIdFieldName(parentType)];
+  }
+
+  parentIdFieldName(parentType) {
+    return !parentType
       ? null
       : this._objService
         .configService()
         .configModuleObjectParam(
           this.moduleCode,
-          this.parentType(),
+          parentType,
           'id_field_name'
         );
   }
@@ -188,9 +201,18 @@ export class MonitoringObjectBase {
   }
 
 
-  parentType() {
-    return this.configParam('parent_type');
+  parentTypes() {
+    return this.configParam('parent_types');
   }
+
+  parentType() {
+    return (this.parentsPath && this.parentsPath.length) 
+    ? this.parentsPath[this.parentsPath.length -1]
+    : this.parentTypes().length
+    ? this.parentTypes()[0]
+    : null    
+  }
+
 
   child0(childrenType) {
     if (this._children0[childrenType]) {
@@ -282,6 +304,6 @@ export class MonitoringObjectBase {
   }
 
   isRoot() {
-    return !this.parentType() && this.childrenTypes();
+    return !this.parentTypes().length && this.childrenTypes();
   }
 }

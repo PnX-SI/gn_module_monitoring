@@ -1,11 +1,10 @@
-import { Observable, of, forkJoin } from '@librairies/rxjs';
-import { mergeMap, concatMap } from '@librairies/rxjs/operators';
+import { Observable, of, forkJoin } from "@librairies/rxjs";
+import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
+import { MonitoringObjectService } from "../services/monitoring-object.service";
+import { Utils } from "../utils/utils";
 
-import { MonitoringObjectService } from '../services/monitoring-object.service';
-import { Utils } from '../utils/utils';
-
-import { MonitoringObjectBase } from './monitoring-object-base';
+import { MonitoringObjectBase } from "./monitoring-object-base";
 
 export class MonitoringObject extends MonitoringObjectBase {
   parent: MonitoringObject;
@@ -46,7 +45,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     return forkJoin(
-      this.childrenTypes().map(childrenType => {
+      this.childrenTypes().map((childrenType) => {
         return this.initChildrenOfType(childrenType, childrenData);
       })
     );
@@ -54,7 +53,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   initChildrenOfType(childrenType, childrenData): Observable<any> {
     const childrenDataOfType = childrenData[childrenType];
-    if (!(childrenDataOfType)) {
+    if (!childrenDataOfType) {
       return of(true);
     }
 
@@ -65,7 +64,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     const childIdFieldName = this.child0(childrenType).configParam(
-      'id_field_name'
+      "id_field_name"
     );
 
     const observables = [];
@@ -77,7 +76,6 @@ export class MonitoringObject extends MonitoringObjectBase {
         id,
         this._objService
       );
-      child.parentId = this.id;
       child.parent = this;
       this.children[childrenType].push(child);
       observables.push(child.init(childData));
@@ -100,7 +98,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           .dataMonitoringObjectService()
           .getObject(this.moduleCode, this.objectType, this.id, depth);
       }),
-      mergeMap(postData => {
+      mergeMap((postData) => {
         if (!bFromCache) {
           this._objService.setCache(this, postData);
         }
@@ -114,8 +112,8 @@ export class MonitoringObject extends MonitoringObjectBase {
       .dataMonitoringObjectService()
       .postObject(this.moduleCode, this.objectType, this.postData(formValue))
       .pipe(
-        mergeMap(postData => {
-          this.id = postData['id'];
+        mergeMap((postData) => {
+          this.id = postData["id"];
           this._objService.setCache(this, postData);
           return this.init(postData);
         })
@@ -132,7 +130,7 @@ export class MonitoringObject extends MonitoringObjectBase {
         this.postData(formValue)
       )
       .pipe(
-        mergeMap(postData => {
+        mergeMap((postData) => {
           this._objService.setCache(this, postData);
           return this.init(postData);
         })
@@ -148,22 +146,28 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   /** methodes pour obtenir les parent et enfants de l'object */
 
-  getParent(depth = 0): Observable<any> {
-    if (
-      !this.parentType() ||
-      this.parent ||
-      !(this.parentId || this.parentType().includes('module'))
-    ) {
-      return of(true);
+  getParent(parentType = null, depth = 0): Observable<any> {
+    if (!parentType) {
+      parentType = this.parentType();
     }
 
-    this.parent = new this.myClass(
+    if (
+      !parentType ||
+      this.parents[parentType] ||
+      !(this.parentId(parentType) 
+      // || parentType.includes("module")
+      )
+    ) {
+      return of(this.parents[parentType]);
+    }
+
+    this.parents[parentType] = new this.myClass(
       this.moduleCode,
-      this.parentType(),
-      this.parentId,
+      parentType,
+      this.parentId(parentType),
       this._objService
     );
-    return this.parent.get(depth);
+    return this.parents[parentType].get(depth);
   }
 
   /** Formulaires  */
@@ -179,15 +183,18 @@ export class MonitoringObject extends MonitoringObjectBase {
       if (!elem.type_widget) {
         continue;
       }
-        observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
+      observables[attribut_name] = this._objService.toForm(
+        elem,
+        properties[attribut_name]
+      );
     }
 
     return forkJoin(observables).pipe(
-      concatMap(formValues_in => {
+      concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        if (this.config['geometry_type']) {
-          formValues['geometry'] = this.geometry; // copy???
+        if (this.config["geometry_type"]) {
+          formValues["geometry"] = this.geometry; // copy???
         }
         return of(formValues);
       })
@@ -204,18 +211,20 @@ export class MonitoringObject extends MonitoringObjectBase {
       if (!elem.type_widget) {
         continue;
       }
-      propertiesData[attribut_name] = this._objService
-        .fromForm(elem, formValue[attribut_name]);
+      propertiesData[attribut_name] = this._objService.fromForm(
+        elem,
+        formValue[attribut_name]
+      );
     }
 
     const postData = {
       properties: propertiesData,
-      id_parent: this.parentId
+      // id_parent: this.parentId
     };
 
-    if (this.config['geometry_type']) {
-      postData['geometry'] = formValue['geometry'];
-      postData['type'] = 'Feature';
+    if (this.config["geometry_type"]) {
+      postData["geometry"] = formValue["geometry"];
+      postData["type"] = "Feature";
     }
     return postData;
   }
@@ -227,7 +236,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       return null;
     }
 
-    return Utils.mapArrayToDict(this.childrenTypes(), childrenType => {
+    return Utils.mapArrayToDict(this.childrenTypes(), (childrenType) => {
       return this.child0(childrenType);
     });
   }
@@ -237,11 +246,10 @@ export class MonitoringObject extends MonitoringObjectBase {
       return null;
     }
 
-    return this.childrenTypes().map(childrenType => {
+    return this.childrenTypes().map((childrenType) => {
       return this.child0(childrenType);
     });
   }
-
 
   /** list */
 
@@ -251,7 +259,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     const childrenFieldNames = child0.fieldNames(typeDisplay);
     const childrenFieldDefinitons = child0.fieldDefinitions();
 
-    const columns = childrenFieldNames.map(fieldName => {
+    const columns = childrenFieldNames.map((fieldName) => {
       return {
         prop: fieldName,
         name: childrenFieldLabels[fieldName],
@@ -261,26 +269,25 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     let rows = [];
     if (this.children[childrenType]) {
-      rows = this.children[childrenType].map(child => {
+      rows = this.children[childrenType].map((child) => {
         const row = Utils.mapArrayToDict(
           childrenFieldNames,
-          fieldName => child.resolvedProperties[fieldName]
+          (fieldName) => child.resolvedProperties[fieldName]
         );
-        row['id'] = child.id;
+        row["id"] = child.id;
         return row;
       });
     }
 
     return {
       columns: columns,
-      rows: rows
+      rows: rows,
     };
   }
 
   childrenColumnsAndRows(typeDisplay) {
-    return Utils.mapArrayToDict(this.childrenTypes(), childrenType => {
+    return Utils.mapArrayToDict(this.childrenTypes(), (childrenType) => {
       return this.childrenColumnsAndRowsOfType(childrenType, typeDisplay);
     });
   }
-
 }

@@ -34,12 +34,26 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
 
     for object_type in tree:
         # config object
-        config[object_type] = config_object_from_files(module_code, object_type)
+        if not object_type in config: 
+            config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
-        children_types = tree[object_type] and list(tree[object_type].keys())
-        config[object_type]['children_types'] = children_types
-        config[object_type]['parent_type'] = parent_type
+        children_types = tree[object_type] and list(tree[object_type].keys()) or []
+
+        if not 'children_types' in config[object_type]:
+            config[object_type]['children_types'] = []
+        config[object_type]['children_types'] += children_types
+        config[object_type]['children_types'] = list(dict.fromkeys(config[object_type]['children_types']))
+
+        if not 'parent_types' in config[object_type]:
+            config[object_type]['parent_types'] = []
+            
+        if parent_type:
+            config[object_type]['parent_types'].append(parent_type)
+        config[object_type]['parent_types'] = list(dict.fromkeys(config[object_type]['parent_types']))
+
+
+        # config[object_type]['parent_type'] = parent_type
 
         # schema
         process_schema(object_type, config)

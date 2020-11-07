@@ -55,10 +55,10 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         properties = post_data['properties']
 
-        id_parent = post_data.get('id_parent')  # TODO remove
-        if id_parent:
-            parent_id_field_name = self.parent_config_param('id_field_name')
-            properties[parent_id_field_name] = post_data['id_parent']
+        # id_parent = post_data.get('id_parent')  # TODO remove
+        # if id_parent:
+        #     parent_id_field_name = self.parent_config_param('id_field_name')
+        #     properties[parent_id_field_name] = post_data['id_parent']
 
     @check_config
     def process_synthese(self, process_module=False, limit=1000):
@@ -155,7 +155,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             )
 
     @check_config
-    def breadcrumb(self):
+    def breadcrumb(self, params):
+
+        if not self._id:
+            return 
+
 
         breadcrumb = {
             'id': self._id,
@@ -165,16 +169,35 @@ class MonitoringObject(MonitoringObjectSerializer):
             'object_type': self._object_type,
         }
 
+        if params['parents_path']:
+            breadcrumb['params'] = {
+                'parents_path': [parent for parent in params['parents_path']]
+            }
+        print(params)
+    
         return breadcrumb
 
     @check_config
-    def breadcrumbs(self):
+    def breadcrumbs(self, params):
 
-        breadcrumbs = [self.breadcrumb()]
+        breadcrumb = self.breadcrumb(params)
 
-        parent = self.get_parent()
-        if parent:
-            breadcrumbs = parent.breadcrumbs() + breadcrumbs
+        breadcrumbs = [breadcrumb] if breadcrumb else []
+
+        next=None
+
+        if params['parents_path']:
+            object_type = params.get('parents_path', []).pop()
+            next = MonitoringObject(self._module_code, object_type)
+
+            id_field_name = next.config_param('id_field_name')
+            next._id = self.get_value(id_field_name) or params.get(id_field_name)
+            next.get(0)
+        else:
+            next = self.get_parent()
+
+        if next:
+            breadcrumbs = next.breadcrumbs(params) + breadcrumbs
 
         return breadcrumbs
 

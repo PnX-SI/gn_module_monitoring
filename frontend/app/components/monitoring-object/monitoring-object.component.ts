@@ -1,23 +1,23 @@
-import { Observable, of, forkJoin } from '@librairies/rxjs';
-import { mergeMap, concatMap } from '@librairies/rxjs/operators';
+import { Observable, of, forkJoin } from "@librairies/rxjs";
+import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
-import { MonitoringObject } from '../../class/monitoring-object';
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { MonitoringObject } from "../../class/monitoring-object";
+import { Component, OnInit } from "@angular/core";
+import { FormGroup, FormBuilder } from "@angular/forms";
 
 // services
-import { ActivatedRoute } from '@angular/router';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
-import { ConfigService } from '../../services/config.service';
-import { DataUtilsService } from '../../services/data-utils.service';
-import { MapService } from '@geonature_common/map/map.service';
-import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { ActivatedRoute } from "@angular/router";
+import { MonitoringObjectService } from "../../services/monitoring-object.service";
+import { ConfigService } from "../../services/config.service";
+import { DataUtilsService } from "../../services/data-utils.service";
+import { MapService } from "@geonature_common/map/map.service";
+import { AuthService, User } from "@geonature/components/auth/auth.service";
 
-import { Utils } from '../../utils/utils';
+import { Utils } from "../../utils/utils";
 @Component({
-  selector: 'pnx-object',
-  templateUrl: './monitoring-object.component.html',
-  styleUrls: ['./monitoring-object.component.css'],
+  selector: "pnx-object",
+  templateUrl: "./monitoring-object.component.html",
+  styleUrls: ["./monitoring-object.component.css"],
 })
 export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
@@ -51,7 +51,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   ngOnInit() {
     const elements = document.getElementsByClassName(
-      'monitoring-map-container'
+      "monitoring-map-container"
     );
     if (elements.length >= 1) {
       elements[0].remove();
@@ -59,18 +59,21 @@ export class MonitoringObjectComponent implements OnInit {
     }
 
     const height =
-      document.body.clientHeight - document.getElementById('object').offsetTop;
-    document.getElementById('object').style.height = height - 20 + 'px';
+      document.body.clientHeight - document.getElementById("object").offsetTop;
+    document.getElementById("object").style.height = height - 20 + "px";
 
-    this.heightMap = height - 60 + 'px';
+    this.heightMap = height - 60 + "px";
 
     this.currentUser = this._auth.getCurrentUser();
-    this.currentUser['cruved'] = {};
+    this.currentUser["cruved"] = {};
 
     of(true)
       .pipe(
         mergeMap(() => {
-          return this.initParams(); // parametres de route
+          return this.initRoutesParams(); // parametres de route
+        }),
+        mergeMap(() => {
+          return this.initRoutesQueryParams(); // parametres query de route
         }),
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
@@ -82,7 +85,7 @@ export class MonitoringObjectComponent implements OnInit {
 
         mergeMap(() => {
           return this.getDataObject(); // récupération des données de l'object selon le type (module, site, etc..)
-        })
+        }),
       )
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
@@ -94,11 +97,9 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
 
-
-
         this.obj.bIsInitialized = true; // obj initialisé
-      
-        if ((!this.sites) || this.obj.children['site']) {
+
+        if (!this.sites || this.obj.children["site"]) {
           this.initSites();
         } else {
           this.initObjectsStatus();
@@ -109,33 +110,41 @@ export class MonitoringObjectComponent implements OnInit {
   getModuleSet() {
     // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
-
-      const schema = this._configService.schema(this.module.moduleCode, 'module');
-      const moduleFieldList = Object.keys(this._configService.schema(this.module.moduleCode, 'module'))
-      .filter(key => schema[key].required);
-      this.moduleSet = moduleFieldList
-        .every(v => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v]));
+      const schema = this._configService.schema(
+        this.module.moduleCode,
+        "module"
+      );
+      const moduleFieldList = Object.keys(
+        this._configService.schema(this.module.moduleCode, "module")
+      ).filter((key) => schema[key].required);
+      this.moduleSet = moduleFieldList.every(
+        (v) =>
+          ![null, undefined].includes(
+            this.module.properties[v] || this.obj.properties[v]
+          )
+      );
     });
   }
 
   initSites() {
-    return this.module.get(1).subscribe(() => { // TODO liste indépendantes carte et listes
+    return this.module.get(1).subscribe(() => {
+      // TODO liste indépendantes carte et listes
 
+      this.currentUser["cruved"] = this.module.cruved;
 
-      this.currentUser['cruved'] = this.module.cruved;
+      const sites =
+        this.obj.children["site"] || this.module["children"]["site"];
 
-      const sites = this.module['children']['site'] || this.obj.children['site'];
-
-      if(!sites) {
+      if (!sites) {
         return;
       }
       this.sites = {
         features: sites.map((site) => {
-          site['id'] = site['properties']['id_base_site'];
-          site['type'] = 'Feature';
+          site["id"] = site["properties"]["id_base_site"];
+          site["type"] = "Feature";
           return site;
         }),
-        type: 'FeatureCollection',
+        type: "FeatureCollection",
       };
       this.initObjectsStatus();
     });
@@ -150,69 +159,68 @@ export class MonitoringObjectComponent implements OnInit {
             id: child.id,
             selected: false,
             visible: true,
-            current: false
+            current: false,
           };
         }
       );
     }
 
-
     // init site status
     if (this.obj.siteId) {
-      objectsStatus['site'] = [];
-      this.sites["features"].forEach(
-        (f) => {
-          // determination du site courrant
-          let cur = false;
-          if (f.properties.id_base_site == this.obj.siteId){
-            cur = true;
-          }
-
-          objectsStatus['site'].push({
-            id: f.properties.id_base_site,
-            selected: false,
-            visible: true,
-            current: cur
-          });
+      objectsStatus["site"] = [];
+      this.sites["features"].forEach((f) => {
+        // determination du site courrant
+        let cur = false;
+        if (f.properties.id_base_site == this.obj.siteId) {
+          cur = true;
         }
-      );
+
+        objectsStatus["site"].push({
+          id: f.properties.id_base_site,
+          selected: false,
+          visible: true,
+          current: cur,
+        });
+      });
     }
 
     this.objectsStatus = objectsStatus;
   }
 
-  initParams() {
-    
+  initRoutesQueryParams() {
+    return this._route.queryParamMap.pipe(
+      mergeMap((params) => {
+        this.obj.parentsPath = params.getAll("parents_path") || [];
+        return of(true);
+      })
+    );
+  }
+
+  initRoutesParams() {
     return this._route.paramMap.pipe(
       mergeMap((params) => {
-        const objectType = params.get('objectType')
-          ? params.get('objectType')
-          : 'module';
+        const objectType = params.get("objectType")
+          ? params.get("objectType")
+          : "module";
 
         this.obj = new MonitoringObject(
-          params.get('moduleCode'),
+          params.get("moduleCode"),
           objectType,
-          params.get('id'),
+          params.get("id"),
           this._objService
         );
 
         this.module = new MonitoringObject(
-          params.get('moduleCode'),
-          'module',
+          params.get("moduleCode"),
+          "module",
           null,
           this._objService
         );
-
-        
-
-        this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
-        return this._route.queryParamMap;
-      }),
-      mergeMap((params) => {
         this.objForm = this._formBuilder.group({});
         this.obj.bIsInitialized = false;
         this.bLoadingModal = true;
 
+        // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
         return of(true);
       })
     );
@@ -229,18 +237,21 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
-    this.getModuleSet()
+    this.getModuleSet();
     return this._dataUtilsService.getInitData(this.obj.moduleCode);
   }
 
   getDataObject(): Observable<any> {
-    return this.obj.get(1);
+    if (!this.obj.deleted) {
+      return this.obj.get(1);
+    }
+    return of(this.obj);
   }
 
   onObjChanged(obj: MonitoringObject) {
-    if (obj['objectType'] === 'site') {
+    if (obj["objectType"] === "site") {
       this.initSites();
     }
-    this.getModuleSet()
+    this.getModuleSet();
   }
 }

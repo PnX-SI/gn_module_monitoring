@@ -53,7 +53,7 @@ const routes: Routes = [
   },
   /** create object */
   {
-    path: "create_object/:moduleCode/:objectType/:parentId",
+    path: "create_object/:moduleCode/:objectType",
     component: MonitoringObjectComponent,
   },
 ];

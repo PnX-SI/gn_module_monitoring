@@ -13,22 +13,22 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def get_parent(self):
 
-        parent_type = self.config_param('parent_type')
+        parent_type = self.parent_type()
         if not parent_type:
             return
 
-        if self._parent:
-            return self._parent
-
-        return (
-            monitoring_definitions
-            .monitoring_object_instance(
-                self._module_code,
-                parent_type,
-                self.id_parent()
+        if not self._parent:
+            self._parent  = (
+                monitoring_definitions
+                .monitoring_object_instance(
+                    self._module_code,
+                    parent_type,
+                    self.id_parent()
+                )
+                .get()
             )
-            .get()
-        )
+
+        return self._parent
 
     def get_site_id(self):
         if not self._id:

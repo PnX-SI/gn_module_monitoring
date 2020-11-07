@@ -78,6 +78,8 @@ def create_or_update_object_api(module_code, object_type, id):
     # recupération des données post
     post_data = dict(request.get_json())
     module = get_module('module_code', module_code)
+
+    # on rajoute id_module s'il n'est pas renseigné par défaut ??
     post_data['properties']['id_module'] = module.id_module
 
     return (
@@ -129,6 +131,10 @@ def delete_object_api(module_code, object_type, id):
 
 # breadcrumbs
 @blueprint.route('breadcrumbs/<string:module_code>/<object_type>/<int:id>', methods=['GET'])
+@blueprint.route('breadcrumbs/<string:module_code>/<object_type>', 
+    defaults={'id': None},
+    methods=['GET']
+)
 @blueprint.route(
     '/breadcrumbs/<string:module_code>/module',
     defaults={'id': None, 'object_type': 'module'},
@@ -137,11 +143,14 @@ def delete_object_api(module_code, object_type, id):
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
 
+
+    query_params = dict(**request.args)
+    query_params['parents_path'] =  request.args.getlist('parents_path')
     return (
         monitoring_definitions
         .monitoring_object_instance(module_code, object_type, id)
         .get()
-        .breadcrumbs()
+        .breadcrumbs(query_params)
     )
 
 

@@ -25,6 +25,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
   @Input() sorts;
 
+  @Input() obj;
   @Input() child0;
   @Input() frontendModuleMonitoringUrl;
 
@@ -129,11 +130,12 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   navigateViewObject(objectType, id, bEdit) {
-    const queryParams = {};
 
     if (bEdit) {
       this.bEditChanged.emit(bEdit);
     }
+
+    const parentsPath = this.obj.parentsPath.concat([this.obj.objectType]);
 
     this._router.navigate([
       '/',
@@ -142,7 +144,12 @@ export class MonitoringDatatableComponent implements OnInit {
       this.child0.moduleCode,
       objectType,
       id
-    ]);
+      ], {
+        queryParams: {
+          parents_path: parentsPath
+        }
+      }
+    );
   }
 
   setSelected() {

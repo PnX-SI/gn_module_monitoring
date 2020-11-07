@@ -23,6 +23,9 @@
       "filters": {
         "cd_nomenclature": ["1", "2", "3"]
       },
+      "default": {
+        "cd_nomenclature": "1"
+      },
       "keyValue": "id_nomenclature",
       "keyLabel": "label_fr",
       "data_path": "values",

@@ -36,16 +36,17 @@
           *ngIf="obj.moduleCode && currentUser?.cruved.C >= 1"
         >
           <div class="btn-float-right">
-            <a
+            <a 
+            *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-success float-right"
               [routerLink]="[
                 '/',
                 frontendModuleMonitoringUrl,
                 'create_object',
                 obj.moduleCode,
-                child0.objectType,
-                obj.id
+                child0.objectType
               ]"
+              [queryParams]="queyParamsNewObject[child0.objectType]"
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label"] || "").toLowerCase() }}</a
             >
@@ -61,6 +62,7 @@
           [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
           (rowStatusChange)="onSelectedChildren(childrenType, $event)"
           [child0]="child0"
+          [obj]="obj"
           [sorts]="child0.configParam('sorts')"
           [currentUser]="currentUser"
         ></pnx-monitoring-datatable>

@@ -27,13 +27,22 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
    */
-  request(requestType: string, urlRelative: string, data = {}) {
+  request(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
     // verification de requestType
     if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
       return of(null);
     }
+
+    const url_params = Object.keys(queryParams)
+      .map(key => Array.isArray(queryParams[key])
+        ? queryParams[key].map(val => `${key}=${val}`).join('&')
+        : `${key}=${queryParams[key]}`
+        ).join('&')
+
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params 
+
     // requete
-    return this._http[requestType]<any>(this._config.backendModuleUrl() + '/' + urlRelative, data);
+    return this._http[requestType]<any>(url, postData);
   }
 
 

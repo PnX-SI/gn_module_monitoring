@@ -30,6 +30,8 @@ export class MonitoringListComponent implements OnInit {
   tempChildrenRows;
   childrenColumns;
 
+  queyParamsNewObject = {};
+
   // medias;
 
   @Input() objectsStatus: Object;
@@ -47,6 +49,12 @@ export class MonitoringListComponent implements OnInit {
   }
 
   initDataTable() {
+    for (const key of Object.keys(this.obj.children)) {
+      this.queyParamsNewObject[key] = {};
+      this.queyParamsNewObject[key][this.obj.idFieldName()] = this.obj.id;
+      this.queyParamsNewObject[key]['parents_path'] = this.obj.parentsPath.concat([this.obj.objectType]);
+    }
+
     this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
     this.backendUrl = this._configService.backendUrl();
 

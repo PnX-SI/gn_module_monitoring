@@ -15,6 +15,7 @@ import { ConfigService } from "../../services/config.service";
 
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Router } from "@angular/router";
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: "pnx-monitoring-breadcrumbs",
@@ -34,7 +35,8 @@ export class BreadcrumbsComponent implements OnInit {
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService,
-    private _router: Router
+    private _router: Router,
+    private _route: ActivatedRoute,    
   ) {}
 
   ngOnInit() {
@@ -42,26 +44,25 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   initBreadcrumbs() {
+      if(this.obj.deleted) {
+        return 
+    }
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
-        mergeMap(() => {
-          if (!this.obj.moduleCode) {
+        mergeMap(() => this._route.queryParamMap),
+        mergeMap((queryParams) => {
+          if (!this.obj.moduleCode || this.obj.deleted) {
             return of([]);
           }
 
-          if (!this.obj.id && this.obj.parentId) {
-            return this._dataMonitoringObjectService.getbreadcrumbs(
-              this.obj.moduleCode,
-              this.obj.parentType(),
-              this.obj.parentId
-            );
-          }
+          const params = queryParams['params']||{};
 
-          return this._dataMonitoringObjectService.getbreadcrumbs(
-            this.obj.moduleCode,
-            this.obj.objectType,
-            this.obj.id
+          return this._dataMonitoringObjectService.getBreadcrumbs(
+              this.obj.moduleCode,
+              this.obj.objectType,
+              this.obj.id,
+              params
           );
         })
       )
@@ -82,7 +83,10 @@ export class BreadcrumbsComponent implements OnInit {
           elem.module_code,
           elem.object_type,
           elem.id,
-        ]);
+        ],
+        {
+          queryParams: elem.params
+        });
       } else {
         this._router.navigate([
           "/",

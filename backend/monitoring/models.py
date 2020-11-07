@@ -184,7 +184,9 @@ class TMonitoringSites(TBaseSites):
     )
 
     id_sites_group = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_sites_groups.id_sites_group', ondelete='SET NULL'),
+        DB.ForeignKey('gn_monitoring.t_sites_groups.id_sites_group',
+        # ondelete='SET NULL'
+        ),
         nullable=False,
     )
 
