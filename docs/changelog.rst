@@ -11,7 +11,10 @@ CHANGELOG
   * pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
   * champs data JSONB dans module_complement
   * gestion des objets qui apparraissent plusieurs fois dans ``tree``
-
+  * par defaut pour les sites:
+    * ``id_inventor`` = ``currentUser.id_role`` si non défini
+    * ``id_digitizer`` = ``currentUser.id_role`` si non défini
+    * ``first_use_date`` = ``<date courante>`` si non défini
 
 **🐛 Corrections**
   * correction vue synthese

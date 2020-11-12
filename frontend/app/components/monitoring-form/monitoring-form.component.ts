@@ -73,6 +73,7 @@ export class MonitoringFormComponent implements OnInit {
         // ici pour avoir acces aux nomenclatures
         this.meta = {
             nomenclatures: this._dataUtilsService.getNomenclatures(),
+            id_role: this.currentUser.id_role,
         }
         this.objFormsDefinition = this._dynformService
           .formDefinitionsdictToArray(schema, this.meta)
@@ -152,14 +153,24 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   /** Pour donner des valeurs par defaut si la valeur n'est pas définie
-   * ici id_digitiser => current_user.id_role
+   * id_digitiser => current_user.id_role
+   * id_inventor => current_user.id_role
+   * date => today
    */
   setDefaultFormValue() {
-    const values = this.objForm.value;
-    const defaultValues = {
-      id_digitiser: values["id_digitiser"] || this.currentUser.id_role,
-    };
-    this.objForm.patchValue(defaultValues);
+    const value = this.objForm.value;
+    const date = new Date();
+    const defaultValue = {
+      id_digitiser: value["id_digitiser"] || this.currentUser.id_role,
+      id_inventor: value["id_inventor"] || this.currentUser.id_role,
+      first_use_date: value['first_use_date'] || {
+          year: date.getUTCFullYear(),
+          month: date.getUTCMonth() + 1,
+          day: date.getUTCDate(),
+        }
+      }
+    console.log(defaultValue)
+    this.objForm.patchValue(defaultValue);
   }
 
   /**
