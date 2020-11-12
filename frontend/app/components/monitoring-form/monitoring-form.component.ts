@@ -69,10 +69,13 @@ export class MonitoringFormComponent implements OnInit {
         const schema = this.obj.schema();
         // init objFormsDefinition
 
-        this.objFormsDefinition = this._dynformService
-          .formDefinitionsdictToArray(schema, {
+        // meta pour les parametres dynamiques
+        // ici pour avoir acces aux nomenclatures
+        this.meta = {
             nomenclatures: this._dataUtilsService.getNomenclatures(),
-          })
+        }
+        this.objFormsDefinition = this._dynformService
+          .formDefinitionsdictToArray(schema, this.meta)
           .filter((formDef) => formDef.type_widget)
           .sort((a, b) => {
             return a.attribut_name === "medias"
@@ -338,6 +341,16 @@ export class MonitoringFormComponent implements OnInit {
         this.navigateToParent();
       }, 100)
     });
+  }
+
+  onObjFormValueChange(event) {
+    const change = this.obj.change();
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({objForm:this.objForm, meta: this.meta})
+    }, 100);
   }
 
   /** bChainInput gardé dans config service */

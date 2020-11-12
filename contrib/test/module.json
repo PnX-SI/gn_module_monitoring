@@ -8,9 +8,22 @@
           },   
           "test2": {
             "type_widget": "text",
-            "attribut_label": "Test 2",
+            "attribut_label": "Test 2 (hidden)",
             "hidden": "({value}) => value.test != 't'"
-          }      
+          },
+          "test3": {
+            "type_widget": "text",
+            "attribut_label": "Test 3 (change)"
+          }
+    },
+    "change": [
+      "({objForm}) => {",
+      "const test3 = '' + (objForm.value.test || '') + '_' + (objForm.value.test2 || '');",
+      "if (!objForm.controls.test3.dirty) {",
+      "objForm.patchValue({test3})",
+      "}",
+      "}",
+      ""
+      ]
     }
-}
 

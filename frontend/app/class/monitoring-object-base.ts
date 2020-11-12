@@ -257,6 +257,12 @@ export class MonitoringObjectBase {
       .schema(this.moduleCode, this.objectType, typeSchema);
   }
 
+  change() {
+    return this._objService
+    .configService()
+    .change(this.moduleCode, this.objectType);
+  }
+
   fieldNames(typeDisplay = '') {
     if (['display_properties', 'display_list'].includes(typeDisplay)) {
       return this.configParam(typeDisplay);

@@ -173,7 +173,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             breadcrumb['params'] = {
                 'parents_path': [parent for parent in params['parents_path']]
             }
-        print(params)
     
         return breadcrumb
 

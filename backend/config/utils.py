@@ -236,8 +236,8 @@ def customize_config(elem, custom):
     if isinstance(elem, list):
         elem = [customize_config(e, custom) for e in elem]
         # patch remove doublons
-        if len(elem) and not isinstance(elem[0], dict):
-            elem = list(dict.fromkeys(elem))
+        # if len(elem) and not isinstance(elem[0], dict):
+        #     elem = list(dict.fromkeys(elem))
 
     elif isinstance(elem, dict):
         for key in elem:

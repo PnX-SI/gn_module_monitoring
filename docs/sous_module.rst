@@ -384,7 +384,25 @@ La chaine de caractère qui décrit la fonction doit être de la forme suivante:
 
 .. code-block:: JSON
 
-"hidden": ({value, attribut_name, }) => { return value.id == 't' }
+"hidden": "({value, attribut_name, }) => { return value.id == 't' }"
+
+
+Le format JSON ne permet pas les saut de ligne dans les chaines de caractère,
+et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractère:
+
+
+.. code-block:: JSON
+
+"hidden": [
+    "({value, attribut_name, }) => {",
+    "return value.id == 't'",
+    "}"
+]
+
+
+Le lignes seront coléés entre elle avec l'ajout de saut de lignes (caractère `\n`.
+
+Il faut être sur de sa fonction.
 
 
 Exemples:
@@ -423,6 +441,54 @@ Exemples:
     ...
 }
 
+
+**Le paramêtre ``value`` ne peut pas être dynamique, pour changer la valeur des variables en fonction d'autres variables, on peut définir ``change`` dans la config. Voir ci dessous**
+
+
+La variable ``change``
+----------------------
+
+On peut y définir une fonction qui sera appelée chaque fois que le formulaire change.
+
+Un exemple (module.json du module test):
+
+.. code-block:: JSON
+
+{
+    "module_label":"Test",
+    "module_desc":"Module de test pour le module de suivi générique",
+    "specific": {
+        "test": {
+            "type_widget": "text",
+            "attribut_label": "Test"
+          },
+          "test2": {
+            "type_widget": "text",
+            "attribut_label": "Test 2 (hidden)",
+            "hidden": "({value}) => value.test != 't'"
+          },
+          "test3": {
+            "type_widget": "text",
+            "attribut_label": "Test 3 (change)"
+          }
+    },
+    "change": [
+      "({objForm, meta}) => {",
+      "const test3 = '' + (objForm.value.test || '') + '_' + (objForm.value.test2 || '');",
+      "if (!objForm.controls.test3.dirty) {",
+      "objForm.patchValue({test3})",
+      "}",
+      "}",
+      ""
+      ]
+    }
+
+
+Ici on donne à la variable ``test3`` la valeur ``<test>_<test2>``.
+C'est valable tant que le ``test3`` n'a pas été modifé à la main (i. e. ``objForm.controls.test3.dirty`` n'est pas vrai).
+On peut donc modifer par la suite la valeur de test3 à la main
+
+Comme précemment on peut aussi avoir acces a meta
 
 ------------
 Nomenclature

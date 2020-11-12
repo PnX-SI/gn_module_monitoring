@@ -8,8 +8,10 @@ CHANGELOG
 **🚀 Nouveautés**
   * pouvoir définir des champs *dynamiques*, dont les attributs peuvent dépendre des valeurs des autres composants (pour afficher un composant en fonction de la valeur d'autres composants)
     * exemples dans test
+  * pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
   * champs data JSONB dans module_complement
   * gestion des objets qui apparraissent plusieurs fois dans ``tree``
+
 
 **🐛 Corrections**
   * correction vue synthese

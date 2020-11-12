@@ -74,6 +74,7 @@
         [myFormGroup]="objForm"
         [formsDefinition]="objFormsDefinition"
         (myFormGroupChange)="initForm()"
+        (change)="onObjFormValueChange($event)"
       ></pnx-dynamic-form-generator>
 
       <div>

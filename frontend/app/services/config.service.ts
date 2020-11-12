@@ -1,3 +1,4 @@
+import { MonitoringObjectComponent } from './../components/monitoring-object/monitoring-object.component';
 import { Utils } from './../utils/utils';
 // import _ from "lodash";
 import { Injectable } from '@angular/core';
@@ -76,7 +77,12 @@ export class ConfigService {
    * 
    * @param s chaine de caractere
    */
-  toFunction(s) {
+  toFunction(s_in) {
+
+    let s = Array.isArray(s_in)
+    ? s_in.join("\n")
+    : s_in;
+
     if(! (typeof(s) == 'string')) {
       return
     }
@@ -86,6 +92,8 @@ export class ConfigService {
     if (!tests.every(test => s.includes(test))) {
       return 
     }
+
+
 
     let func;
 
@@ -98,6 +106,19 @@ export class ConfigService {
     return func;
 
   } 
+
+  /**
+   * Pour récupérer la function change qui précise la procédure en cas de changement de valeur du formulaire
+   * @param moduleCode
+   * @param objectType
+   */
+  change(moduleCode, objectType) {
+    moduleCode = moduleCode || 'generic';
+
+    const configObject = this._config[moduleCode][objectType];
+    const change = configObject.change;
+    return this.toFunction(change);
+  }
 
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
