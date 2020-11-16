@@ -8,6 +8,7 @@
   "display_properties": [
     "base_site_name",
     "base_site_code",
+    "base_site_description",
     "id_nomenclature_type_site",
     "id_inventor",
     "first_use_date",
@@ -46,6 +47,11 @@
       "attribut_label": "Code",
       "required": true
     },
+    "base_site_description": {
+      "type_widget": "textarea",
+      "attribut_label": "Description"
+    },
+
     "id_sites_group": {
       "type_widget": "datalist",
       "attribut_label": "Groupe de sites",
