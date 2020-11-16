@@ -27,5 +27,4 @@ for nom_fichier in $(ls ${scriptpath}/../config/monitoring/*/synthese.sql)
         export PGPASSWORD=${user_pg_pass};psql -h ${db_host} -U ${user_pg} -d ${db_name} -f ${nom_fichier} --set=module_code=${module_code} &>> ${log_file}
     done
 
-    cat $log_file
     cat ${log_file} | grep ERR

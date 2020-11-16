@@ -287,7 +287,7 @@ Les options supplémentaires pour ce widget :
 - ``keyLabel`` : champs affiché
 - ``type_util`` : ``nomenclature``, ``dataset``, ``user`` : pour le traitement des données par ailleurs
 - ``data_path`` : si l'API renvoie les données de la forme ``data: [<les données>]`` alors ``data_path = "data"``
-- ``filter`` : permet de filtrer les données reçues (``{field_name: [value1, value2, ...]}``)
+- ``filters`` : permet de filtrer les données reçues (``{field_name: [value1, value2, ...]}``)
 - ``default`` : permet de donner une valeur par defaut (``"default": {"cd_nomenclature": "1"}`` permettra de récupérer le premier objet de la liste qui correspond)
 
 Par exemple :
