@@ -16,7 +16,7 @@ from geonature.core.taxonomie.models import Taxref, BibListes
 from geonature.core.users.models import TListes
 
 from pypnusershub.db.models import User
-
+from pypn_habref_api.models import Habref
 
 from utils_flask_sqla.response import json_resp
 
@@ -30,6 +30,7 @@ from ..blueprint import blueprint
 from ..monitoring.models import TMonitoringSitesGroups
 
 model_dict = {
+    'habitat': Habref,
     'nomenclature': TNomenclatures,
     'user': User,
     'taxonomy': Taxref,
@@ -104,7 +105,7 @@ def get_util_from_id_api(type_util, id):
         revoie un champ d'un object de type nomenclature, taxonomy, utilisateur, ...
         renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
 
-        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
+        :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur' | etc....
         :param id: id de l'object requis
         :type type_util: str
         :type id: int

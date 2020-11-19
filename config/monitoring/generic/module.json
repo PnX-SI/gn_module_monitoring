@@ -100,8 +100,13 @@
       "type_widget": "datalist",
       "attribut_label": "Affichage des taxon",
       "values": [
-        "nom_vern,lb_nom",
-        "lb_nom"
+        {
+          "label":"Nom vernaculaire ou nom latin",
+          "value":"nom_vern,lb_nom"
+        }, {
+          "label":"Nom latin",
+          "value": "lb_nom"
+        }
       ],
       "required": true
     },

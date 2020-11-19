@@ -45,6 +45,10 @@ export class MonitoringObjectService {
       sites_group: {
         fieldName: "sites_group_name",
       },
+      habitat: {
+        fieldName: "lb_hab_fr",
+      },
+
     };
   }
 

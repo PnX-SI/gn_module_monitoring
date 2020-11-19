@@ -1,4 +1,15 @@
 {
+  "display_properties": [
+    "base_site_name",
+    "base_site_code",
+    "base_site_description",
+    "id_nomenclature_type_site",
+    "cd_hab",
+    "id_inventor",
+    "first_use_date",
+    "last_visit",
+    "nb_visits"
+  ],
   "geometry_type": "Point",
   "specific": {
     "id_nomenclature_type_site": {
@@ -18,6 +29,19 @@
       "attribut_label": "Profondeur de la grotte",
       "hidden": "({value, meta}) => {return (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'}",
       "required": "({value, meta}) => (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature === '1'"
+    },
+    "cd_hab": {
+      "type_widget": "datalist",
+      "attribut_label": "Habitat",
+      "api": "habref/habitats/autocomplete",
+      "application": "GeoNature",
+      "keyValue": "cd_hab",
+      "keyLabel": "search_name",
+      "type_util": "habitat",
+      "params": {
+          "cd_typo": 7,
+          "search_name": ""
+      }
     }
   }
 }
