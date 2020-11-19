@@ -229,7 +229,8 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # filtres
         for key in args:
-            if hasattr(Model, key):
+            print(args[key])
+            if hasattr(Model, key) and args[key] not in ['', None, 'null', 'undefined']:
                 vals = args.getlist(key)
                 req = req.filter(getattr(Model, key).in_(vals))
 
