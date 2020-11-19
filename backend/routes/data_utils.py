@@ -30,7 +30,7 @@ from ..blueprint import blueprint
 
 from ..config.repositories import get_config
 
-from ..monitoring.models import TMonitoringSitesGroups
+from ..monitoring.models import TMonitoringSitesGroups, TMonitoringSites
 
 model_dict = {
     'habitat': Habref,
@@ -41,6 +41,7 @@ model_dict = {
     'observer_list': TListes,
     'taxonomy_list': BibListes,
     'sites_group': TMonitoringSitesGroups,
+    'site': TMonitoringSites,
     }
 
 id_field_name_dict = dict( 

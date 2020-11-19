@@ -1,7 +1,7 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from sqlalchemy.orm import column_property
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from uuid import uuid4
@@ -10,6 +10,7 @@ from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
+
 
 from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
@@ -272,6 +273,15 @@ class TMonitoringSitesGroups(DB.Model):
             where(TMonitoringSites.id_sites_group==id_sites_group)
     )
 
+    nb_visits = column_property(
+        select([func.count(TMonitoringVisits.id_base_site)]).\
+            where(and_(
+                TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+                TMonitoringSites.id_sites_group == id_sites_group
+                )
+        )
+    )
+
 
 
 @serializable
@@ -373,3 +383,11 @@ TMonitoringSitesGroups.visits = DB.relationship(
         secondary='gn_monitoring.t_site_complements',
     )
 
+TMonitoringSitesGroups.nb_visits = column_property(
+        select([func.count(TMonitoringVisits.id_base_site)]).\
+            where(and_(
+                TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+                TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group
+                )
+    )
+)

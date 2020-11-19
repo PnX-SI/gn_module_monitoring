@@ -8,6 +8,7 @@
       "sites_group_name",
       "sites_group_code",
       "nb_sites",
+      "nb_visits",
       "comments"
     ],
     "sorts": [
@@ -44,6 +45,9 @@
       },
       "nb_sites": {
         "attribut_label": "Nombre de sites"
+      },
+      "nb_visits": {
+        "attribut_label": "Nombre de visites"
       },
       "medias": {
         "type_widget": "medias",
