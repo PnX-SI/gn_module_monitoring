@@ -365,3 +365,11 @@ TMonitoringSites.sites_group = (
         uselist=False
     )
 )
+
+TMonitoringSitesGroups.visits = DB.relationship(
+        TMonitoringVisits,
+        primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
+        secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
+        secondary='gn_monitoring.t_site_complements',
+    )
+
