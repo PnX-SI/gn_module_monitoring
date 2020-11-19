@@ -130,7 +130,6 @@ export class DataUtilsService {
             this._cacheService.setCacheValue(`util|sites_group|${sitesGroup['id_sites_group']}`, sitesGroup);
           }
 
-          console.log(initData['dataset'])
           for (const dataset of (initData['dataset'] || [])) {
             this._cacheService.setCacheValue(`util|dataset|${dataset['id_dataset']}`, dataset);
           }
@@ -141,7 +140,6 @@ export class DataUtilsService {
             cache[moduleCode] = {};
           }
           cache[moduleCode]['init_data'] = true;
-          console.log('initData done')
           return of(true);
         }))
     }

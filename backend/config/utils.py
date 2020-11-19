@@ -226,9 +226,15 @@ def process_config_display(object_type, config):
         display_properties
     )
 
+    display_form = config_object.get(
+        'display_form',
+        []
+    )
+
     config_object['display_properties'] = display_properties
     config_object['display_list'] = display_list
     config_object['properties_keys'] = properties_keys
+    config_object['display_form'] = display_form
 
 
 def customize_config(elem, custom):

@@ -78,13 +78,25 @@ export class MonitoringFormComponent implements OnInit {
         this.objFormsDefinition = this._dynformService
           .formDefinitionsdictToArray(schema, this.meta)
           .filter((formDef) => formDef.type_widget)
-          .sort((a, b) => {
+          .sort((a, b) => { // medias à la fin
             return a.attribut_name === "medias"
               ? +1
               : b.attribut_name === "medias"
               ? -1
               : 0;
-          }); // medias à la fin
+          })
+
+        const displayForm = this.obj.configParam('display_form');
+        console.log(displayForm)
+        if (displayForm) {
+          this.objFormsDefinition.sort( (a, b) => {
+            let indexA = displayForm.reverse().findIndex(e => e == a.attribut_name);
+            let indexB = displayForm.reverse().findIndex(e => e == b.attribut_name);
+            console.log(indexA, indexB)
+            return indexB - indexA;
+          })
+        }           
+
 
         // set geometry
         if (this.obj.config["geometry_type"]) {
