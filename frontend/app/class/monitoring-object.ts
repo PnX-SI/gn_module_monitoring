@@ -147,6 +147,9 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   getParents(): Observable<any> {
     const promises = []
+    if (!this.parentTypes().length) {
+      return of(true);
+    }
     for (const parentType of this.parentTypes()) {
       promises.push(this.getParent(parentType))
     }
