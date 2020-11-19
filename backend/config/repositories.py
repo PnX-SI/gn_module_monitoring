@@ -112,7 +112,6 @@ def get_config(module_code=None, verification_date=False):
     if config and not verification_date:
         return config
 
-
     module = get_monitoring_module(module_code)
 
     # derniere modification

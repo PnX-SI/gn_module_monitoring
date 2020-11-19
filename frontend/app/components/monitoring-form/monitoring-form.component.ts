@@ -72,7 +72,6 @@ export class MonitoringFormComponent implements OnInit {
 
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
-        console.log(this.obj.parents)
         this.meta = {
             nomenclatures: this._dataUtilsService.getNomenclatures(),
             id_role: this.currentUser.id_role,
@@ -166,8 +165,6 @@ export class MonitoringFormComponent implements OnInit {
     for (const key of this.keepNames()) {
       keep[key] = this.obj.properties[key];
     }
-
-    console.log('Reset Form', keep)
 
     // nouvel object
     this.obj = new MonitoringObject(

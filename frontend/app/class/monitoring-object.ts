@@ -155,7 +155,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
     return forkJoin(promises).pipe(
       concatMap(() => {
-        console.log('parents', this.parents)
         // parentsget parents????
         return of(true);
       })

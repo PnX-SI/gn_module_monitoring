@@ -17,6 +17,9 @@ from .decorators import check_cruved_scope_monitoring
 from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
+from ..config.repositories import get_config
+
+
 
 
 @blueprint.route('/object/<string:module_code>/<string:object_type>/<int:id>', methods=['GET'])
@@ -48,11 +51,14 @@ def get_monitoring_object_api(module_code, object_type, id):
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
 
-    depth = to_int(request.args.get('depth', 1))
+    get_config(module_code, verification_date=True)
 
+
+    depth = to_int(request.args.get('depth', 1))
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
-        .get()
+        monitoring_definitions
+        .monitoring_object_instance(module_code, object_type, id)
+        .get(depth=depth)
         # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
@@ -97,6 +103,7 @@ def create_or_update_object_api(module_code, object_type, id):
 @check_cruved_scope_monitoring('U', 1)
 @json_resp
 def update_object_api(module_code, object_type, id):
+    get_config(module_code, verification_date=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -109,6 +116,7 @@ def update_object_api(module_code, object_type, id):
 @check_cruved_scope_monitoring('C', 1)
 @json_resp
 def create_object_api(module_code, object_type, id):
+    get_config(module_code, verification_date=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -121,6 +129,8 @@ def create_object_api(module_code, object_type, id):
 @check_cruved_scope_monitoring('D', 3)
 @json_resp
 def delete_object_api(module_code, object_type, id):
+
+    get_config(module_code, verification_date=True)
 
     return (
         monitoring_definitions
@@ -143,7 +153,7 @@ def delete_object_api(module_code, object_type, id):
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
 
-
+    get_config(module_code, verification_date=True)
     query_params = dict(**request.args)
     query_params['parents_path'] =  request.args.getlist('parents_path')
     return (
@@ -160,6 +170,8 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
 
+    get_config(module_code, verification_date=True)
+
     return (
         monitoring_definitions
         .monitoring_object_instance(module_code, object_type)
@@ -172,6 +184,8 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope_monitoring('E', 3)
 @json_resp
 def update_synthese_api(module_code):
+
+    get_config(module_code, verification_date=True)
 
     return (
         monitoring_definitions

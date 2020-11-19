@@ -5,7 +5,7 @@ from geonature.core.gn_commons.models import TModules
 
 class MonitoringModule(MonitoringObject):
 
-    def get(self, param_value=None, param_name=None):
+    def get(self, param_value=None, param_name=None, depth=0):
         '''
             pour récupérer le module sans l'id_module mais avec le module_code
         '''
@@ -13,7 +13,7 @@ class MonitoringModule(MonitoringObject):
             param_name = 'module_code'
             if not param_value:
                 param_value = self._module_code
-        MonitoringObject.get(self, param_value, param_name)
+        MonitoringObject.get(self, param_value, param_name, depth)
         self._id = self._model.id_module
         return self
 

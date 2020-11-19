@@ -59,7 +59,7 @@ def get_init_data(module_code):
     print('init_data')
     
     out = {}
-    config = get_config(module_code) 
+    config = get_config(module_code, True) 
     data = config.get('data')
 
     if not data:

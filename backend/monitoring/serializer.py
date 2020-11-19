@@ -3,6 +3,7 @@
 '''
 import datetime
 import uuid
+from flask import current_app
 from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
@@ -33,12 +34,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_site_id(self):
         if not self._id:
             return
-        if self._object_type == 'site':
+        if hasattr(self._model, 'id_base_site'):
             return self._model.id_base_site
-        parent = self.get_parent()
-        if not parent:
-            return
-        return parent.get_site_id()
+        return 
+        # parent = self.get_parent()
+        # if not parent:
+        #     return
+        # return parent.get_site_id()
 
     def as_dict(self, depth):
         return self._model.as_dict(depth=depth)
@@ -63,6 +65,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def serialize_children(self, depth):
         children_types = self.config_param('children_types')
+
         if not children_types:
             return
 
@@ -107,6 +110,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             self._model = Model()
 
         properties = {}
+
         for field_name in self.properties_names():
 
             # val = self._model.__dict__.get(field_name)
@@ -119,10 +123,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         if depth >= 0:
             children = self.serialize_children(depth)
 
+
         # processe properties
         self.flatten_specific_properties(properties)
-
-
 
         schema = self.config_schema()
         for key in schema:

@@ -113,10 +113,8 @@ export class DataUtilsService {
           
           const cache = this._cacheService.cache();
           if (cache[moduleCode] && cache[moduleCode]['init_data']) {
-                console.log('initData cache');
                 return of(true);
           }
-          console.log('initData request');
 
           for (const nomenclature of (initData['nomenclature'] || [])) {
             this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);

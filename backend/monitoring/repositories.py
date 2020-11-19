@@ -4,26 +4,16 @@ from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
 from ..config.repositories import get_config
 import logging
+from sqlalchemy.orm import joinedload
 
 log = logging.getLogger(__name__)
 
-def check_config(f):
-    '''
-        decorateur pour s'assurer que la config est bien à jour des fichiers et de la base
-        evite la multiplication des appels à la base
-    '''
-    def _check_config(*args, **kwargs):
-        get_config(args[0]._module_code, verification_date=True)
-
-        return f(*args, **kwargs)
-
-    return _check_config
 
 class MonitoringObject(MonitoringObjectSerializer):
 
-    @check_config
-    def get(self, value=None, field_name=None):
+    def get(self, value=None, field_name=None, depth=0):
 
+        print('get')
         # par defaut on filtre sur l'id
 
         if not field_name:
@@ -36,8 +26,20 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         try:
             Model = self.MonitoringModel()
-            self._model = (
+
+            req = (
                 DB.session.query(Model)
+            )   
+
+            # Test pour mettre les relations à joined
+            # if depth > 0:
+            #     options = []
+            #     for children_type in self.config_param('children_types'):
+            #         relation_name = children_type + 's'
+            #         req = req.options(joinedload(relation_name))
+
+            self._model = (
+                req
                 .filter(getattr(Model, field_name) == value)
                 .one()
             )
@@ -60,7 +62,6 @@ class MonitoringObject(MonitoringObjectSerializer):
         #     parent_id_field_name = self.parent_config_param('id_field_name')
         #     properties[parent_id_field_name] = post_data['id_parent']
 
-    @check_config
     def process_synthese(self, process_module=False, limit=1000):
 
         # test du parametre synthese 
@@ -100,7 +101,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         return True
 
-    @check_config
     def create_or_update(self, post_data):
 
         try:
@@ -132,7 +132,6 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
-    @check_config
     def delete(self):
 
         if not self._id:
@@ -154,7 +153,6 @@ class MonitoringObject(MonitoringObjectSerializer):
                 .format(self, str(e))
             )
 
-    @check_config
     def breadcrumb(self, params):
 
         if not self._id:
@@ -176,7 +174,6 @@ class MonitoringObject(MonitoringObjectSerializer):
     
         return breadcrumb
 
-    @check_config
     def breadcrumbs(self, params):
 
         breadcrumb = self.breadcrumb(params)
@@ -200,7 +197,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         return breadcrumbs
 
-    @check_config
     def get_list(self, args=None):
         '''
             renvoie une liste d'objet serialisés

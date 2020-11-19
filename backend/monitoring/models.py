@@ -333,6 +333,23 @@ class TMonitoringModules(TModules):
 
     data = DB.Column(JSONB)
 
+    # visits = DB.relationship(
+    #     TMonitoringVisits,
+    #     lazy="select",
+    #     primaryjoin=(TModules.id_module == TBaseVisits.id_module),
+    #     foreign_keys=[TBaseVisits.id_module],
+    #     cascade="all,delete"
+    # )
+
+
+
+TMonitoringModules.visits = DB.relationship(
+        TMonitoringVisits,
+        lazy="select",
+        primaryjoin=(TMonitoringModules.id_module == TMonitoringVisits.id_module),
+        foreign_keys=[TMonitoringVisits.id_module],
+        cascade="all"
+    )
 
 
 # add sites_group relationship to TMonitoringSites
