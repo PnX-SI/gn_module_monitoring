@@ -253,8 +253,13 @@ def customize_config(elem, custom):
     return elem
 
 
-def get_nomenclature_types(config):
-    out = []
+def get_data_preload(config, module):
+    out = {
+        'nomenclature': []
+    }
+
+    if module.id_list_observer:
+        out['user'] = module.id_list_observer
 
     for object_type in config:
         if object_type in ['tree', 'data'] or not isinstance(config[object_type], dict):
@@ -263,11 +268,33 @@ def get_nomenclature_types(config):
         schema.update(config[object_type].get('specific', {}))
         for name in schema:
             form = schema[name]
-            if form.get('type_widget') == 'nomenclature':
-                out.append(form['code_nomenclature_type'])
-            if form.get('type_widget') == 'datalist' and form.get('type_util') == "nomenclature":
-                nomenclature_type = form.get('api').split('/')[-1]
-                out.append(nomenclature_type)
+            type_util = form.get('type_util')
+            type_widget = form.get('type_widget')
+            value = form.get('value')
+
+            # composant nomenclature
+            if type_widget == 'nomenclature':                
+                out['nomenclature'].append(form['code_nomenclature_type'])
+            
+            # composant datalist
+            if type_widget == 'datalist':
+                if type_util == "nomenclature":
+                    # on récupère le code de nomenclature depuis l'api
+                    nomenclature_type = form.get('api').split('/')[-1]
+                    out['nomenclature'].append(nomenclature_type)
+
+                # if type_util == "sites_group":
+                #     out['sites_group'] = True                
+
+            if type_widget == 'text':
+                if type_util == 'nomenclature' and value:
+                    code_type = (value or {}).get('code_nomenclature_type')
+                    if code_type:
+                        out['nomenclature'].append(code_type)
+
+    # remove doublons
+    out['nomenclature'] = list(dict.fromkeys(out['nomenclature']))
+
     return out
 
 def config_from_files_customized(type_config, module_code):

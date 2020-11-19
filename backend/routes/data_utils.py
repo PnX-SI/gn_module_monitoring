@@ -12,8 +12,9 @@ from sqlalchemy import and_, inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from pypnnomenclature.repository import get_nomenclature_list
 from geonature.core.taxonomie.models import Taxref, BibListes
-from geonature.core.users.models import TListes
+from geonature.core.users.models import TListes, VUserslistForallMenu
 
 from pypnusershub.db.models import User
 from pypn_habref_api.models import Habref
@@ -26,6 +27,8 @@ from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 
 from ..blueprint import blueprint
+
+from ..config.repositories import get_config
 
 from ..monitoring.models import TMonitoringSitesGroups
 
@@ -44,6 +47,63 @@ id_field_name_dict = dict(
     (k, inspect(Model).primary_key[0].name)
     for (k, Model) in model_dict.items()
 )
+
+
+@blueprint.route('util/init_data/<string:module_code>', methods=['GET'])
+@json_resp
+def get_init_data(module_code):
+    '''
+        renvoie les données nomenclatures, etc à précharger par le module
+    '''
+
+    print('init_data')
+    
+    out = {}
+    config = get_config(module_code) 
+    data = config.get('data')
+
+    if not data:
+        return {}
+
+    id_module = config['custom']['__MODULE.ID_MODULE']
+
+    # nomenclature
+    if data.get('nomenclature'):
+        out['nomenclature'] = []
+        for code_type in data.get('nomenclature'):
+            nomenclature_list = get_nomenclature_list(code_type=code_type)
+            for nomenclature in nomenclature_list['values']:
+                nomenclature['code_type']=code_type
+                out['nomenclature'].append(nomenclature)
+
+    # user
+    if data.get('user'):
+        res_user = (
+            DB.session.query(VUserslistForallMenu)
+            .filter_by(id_menu=data.get('user'))
+            .all()
+        )
+        out['user'] = [user.as_dict() for user in res_user]
+
+    # sites_group
+    if 'sites_group' in config:
+        res_sites_group = (
+            DB.session.query(TMonitoringSitesGroups)
+            .filter_by(id_module=id_module)
+            .all()
+        )
+        out['sites_group'] = [sites_group.as_dict() for sites_group in res_sites_group]
+
+    # dataset (cruved ??)
+    res_dataset = (
+        DB.session.query(TDatasets)
+        .filter(TDatasets.modules.any(module_code=module_code))
+        .all()
+    )
+
+    out['dataset'] = [dataset.as_dict() for dataset in res_dataset]
+
+    return out
 
 
 @blueprint.route('util/nomenclature/<string:code_nomenclature_type>/<string:cd_nomenclature>', methods=['GET'])
@@ -111,6 +171,8 @@ def get_util_from_id_api(type_util, id):
         :type id: int
         :return object entier si field_name = all, la valeur du champs defini par field_name sinon
     '''
+
+    print('get_util_from_id_api', type_util, id)
 
     # paramètre de route
     # field_name vaut 'all' par défaut

@@ -42,7 +42,7 @@
       <pnx-monitoring-properties
         id="nav-properties"
         [obj]="obj"
-        *ngIf="!bEdit"
+        *ngIf="!bEdit && obj.bIsInitialized"
         [(bEdit)]="bEdit"
         [currentUser]="currentUser"
       ></pnx-monitoring-properties>

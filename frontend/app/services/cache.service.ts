@@ -138,7 +138,7 @@ export class CacheService {
         observer.next(valueCache);
         return observer.complete();
       }
-
+      // console.log('not in cache', urlRelative, sCachePaths, this._cache)
 
       let pendingSubject = this.getFromCache(sCachePaths, this._pendingCache);
       if (pendingSubject === undefined) {

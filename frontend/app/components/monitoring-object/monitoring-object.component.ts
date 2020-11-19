@@ -72,9 +72,9 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap(() => {
           return this.initRoutesParams(); // parametres de route
         }),
-        mergeMap(() => {
-          return this.initRoutesQueryParams(); // parametres query de route
-        }),
+        // mergeMap(() => {
+        //   return this.initRoutesQueryParams(); // parametres query de route
+        // }),
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
         }),
@@ -96,7 +96,6 @@ export class MonitoringObjectComponent implements OnInit {
           (this.obj.isRoot() && !this.obj.moduleCode) ||
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
-
         this.obj.bIsInitialized = true; // obj initialisé
 
         if (!this.sites || this.obj.children["site"]) {
@@ -187,16 +186,18 @@ export class MonitoringObjectComponent implements OnInit {
     this.objectsStatus = objectsStatus;
   }
 
-  initRoutesQueryParams() {
-    return this._route.queryParamMap.pipe(
-      mergeMap((params) => {
-        this.obj.parentsPath = params.getAll("parents_path") || [];
-        return of(true);
-      })
-    );
-  }
+  // initRoutesQueryParams() {
+
+  //   return this._route.queryParamMap.pipe(
+  //     mergeMap((params) => {
+  //       this.obj.parentsPath = params.getAll("parents_path") || [];
+  //       return of(true);
+  //     })
+  //   );
+  // }
 
   initRoutesParams() {
+
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get("objectType")
@@ -220,6 +221,10 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.bIsInitialized = false;
         this.bLoadingModal = true;
 
+        // query param snapshot
+        this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll("parents_path") || [];
+        // this.obj.parentsPath = params.getAll("parents_path") || [];
+
         // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
         return of(true);
       })
@@ -236,12 +241,13 @@ export class MonitoringObjectComponent implements OnInit {
     );
   }
 
-  initData(): Observable<any> {
+  initData(): Observable<any> {   
     this.getModuleSet();
     return this._dataUtilsService.getInitData(this.obj.moduleCode);
   }
 
   getDataObject(): Observable<any> {
+
     if (!this.obj.deleted) {
       return this.obj.get(1);
     }
