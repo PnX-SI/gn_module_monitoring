@@ -1,28 +1,27 @@
-import { MonitoringObjectComponent } from './../components/monitoring-object/monitoring-object.component';
-import { Utils } from './../utils/utils';
+import { MonitoringObjectComponent } from "./../components/monitoring-object/monitoring-object.component";
+import { Utils } from "./../utils/utils";
 // import _ from "lodash";
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { HttpClient } from '@angular/common/http';
-import { AppConfig } from '@geonature_config/app.config';
-import { ModuleConfig } from '../module.config';
+import { HttpClient } from "@angular/common/http";
+import { AppConfig } from "@geonature_config/app.config";
+import { ModuleConfig } from "../module.config";
 
-import { of } from '@librairies/rxjs';
-import { mergeMap } from '@librairies/rxjs/operators';
+import { of } from "@librairies/rxjs";
+import { mergeMap } from "@librairies/rxjs/operators";
 
 @Injectable()
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient) { }
+  constructor(private _http: HttpClient) {}
 
   /** Configuration */
 
   init(moduleCode = null) {
-
     // a definir ailleurs
 
-    moduleCode = moduleCode || 'generic';
+    moduleCode = moduleCode || "generic";
 
     if (this._config && this._config[moduleCode]) {
       return of(true);
@@ -32,20 +31,20 @@ export class ConfigService {
   }
 
   loadConfig(moduleCode) {
-    const urlConfig = moduleCode === 'generic'
-      ? `${this.backendModuleUrl()}/config`
-      : `${this.backendModuleUrl()}/config/${moduleCode}`;
-    return this._http.get<any>(urlConfig)
-      .pipe(
-        mergeMap((config) => {
-          this._config = this._config || {};
-          this._config[moduleCode] = config;
-          this._config['frontendParams'] = {
-            'bChainInput': false
-          };
-          return of(true);
-        })
-      );
+    const urlConfig =
+      moduleCode === "generic"
+        ? `${this.backendModuleUrl()}/config`
+        : `${this.backendModuleUrl()}/config/${moduleCode}`;
+    return this._http.get<any>(urlConfig).pipe(
+      mergeMap((config) => {
+        this._config = this._config || {};
+        this._config[moduleCode] = config;
+        this._config["frontendParams"] = {
+          bChainInput: false,
+        };
+        return of(true);
+      })
+    );
   }
 
   /** Backend Url et static dir ??*/
@@ -54,7 +53,7 @@ export class ConfigService {
   }
 
   urlApplication() {
-    return `${AppConfig.URL_APPLICATION}`
+    return `${AppConfig.URL_APPLICATION}`;
   }
 
   /** Backend Module Url */
@@ -73,39 +72,33 @@ export class ConfigService {
 
   /**
    * Converti s en function js
-   *  
-   * 
+   *
+   *
    * @param s chaine de caractere
    */
   toFunction(s_in) {
+    let s = Array.isArray(s_in) ? s_in.join("\n") : s_in;
 
-    let s = Array.isArray(s_in)
-    ? s_in.join("\n")
-    : s_in;
-
-    if(! (typeof(s) == 'string')) {
-      return
+    if (!(typeof s == "string")) {
+      return;
     }
 
-    const tests = [ '(', ')', '{', '}', '=>']
+    const tests = ["(", ")", "{", "}", "=>"];
 
-    if (!tests.every(test => s.includes(test))) {
-      return 
+    if (!tests.every((test) => s.includes(test))) {
+      return;
     }
-
-
 
     let func;
 
     try {
       func = eval(s);
-    } catch(error) {
+    } catch (error) {
       console.error(`Erreur dans la définition de la fonction ${error}`);
     }
 
     return func;
-
-  } 
+  }
 
   /**
    * Pour récupérer la function change qui précise la procédure en cas de changement de valeur du formulaire
@@ -113,7 +106,7 @@ export class ConfigService {
    * @param objectType
    */
   change(moduleCode, objectType) {
-    moduleCode = moduleCode || 'generic';
+    moduleCode = moduleCode || "generic";
 
     const configObject = this._config[moduleCode][objectType];
     const change = configObject.change;
@@ -121,23 +114,24 @@ export class ConfigService {
   }
 
   /** Config Object Schema */
-  schema(moduleCode, objectType, typeSchema = 'all'): Object {
-    moduleCode = moduleCode || 'generic';
+  schema(moduleCode, objectType, typeSchema = "all"): Object {
+    moduleCode = moduleCode || "generic";
 
     const configObject = this._config[moduleCode][objectType];
 
     // gerer quand les paramètres ont un fonction comme valeur
 
-    for (const keyDef of Object.keys(configObject.specific)) {
-      const formDef = configObject.specific[keyDef];
-      for (const keyParam of Object.keys(formDef)) {
-        const func = this.toFunction(formDef[keyParam])
-        if(func) {
-          formDef[keyParam] = func;  
+    for (const typeSchema of ["generic", "specific"]) {
+      for (const keyDef of Object.keys(configObject[typeSchema])) {
+        const formDef = configObject[typeSchema][keyDef];
+        for (const keyParam of Object.keys(formDef)) {
+          const func = this.toFunction(formDef[keyParam]);
+          if (func) {
+            formDef[keyParam] = func;
+          }
         }
       }
     }
-
 
     // patch media TODO fix
     if (!configObject) {
@@ -145,13 +139,13 @@ export class ConfigService {
     }
 
     switch (typeSchema) {
-      case 'all': {
+      case "all": {
         return { ...configObject.generic, ...configObject.specific };
       }
-      case 'generic': {
+      case "generic": {
         return configObject.generic;
       }
-      case 'specific': {
+      case "specific": {
         return configObject.specific;
       }
     }
@@ -162,17 +156,21 @@ export class ConfigService {
    *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
-  configModuleObjectParam(moduleCode: string, objectType: string, fieldName: string) {
-    moduleCode = moduleCode || 'generic';
+  configModuleObjectParam(
+    moduleCode: string,
+    objectType: string,
+    fieldName: string
+  ) {
+    moduleCode = moduleCode || "generic";
     const confObject = this._config[moduleCode][objectType];
     return confObject ? confObject[fieldName] : null;
   }
 
   /** config data : pour initialiser les données Nomenclature, Taxons, Users,...
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
-  */
+   */
   configData(moduleCode) {
-    return this._config[moduleCode]['data'];
+    return this._config[moduleCode]["data"];
   }
 
   frontendParams() {
@@ -189,10 +187,7 @@ export class ConfigService {
     return this._config;
   }
 
-
   cache() {
     return this._config;
   }
-
-
 }

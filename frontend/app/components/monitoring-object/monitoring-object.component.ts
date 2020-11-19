@@ -55,7 +55,6 @@ export class MonitoringObjectComponent implements OnInit {
     );
     if (elements.length >= 1) {
       elements[0].remove();
-      // elements[0].remove();
     }
 
     const height =
@@ -72,9 +71,6 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap(() => {
           return this.initRoutesParams(); // parametres de route
         }),
-        // mergeMap(() => {
-        //   return this.initRoutesQueryParams(); // parametres query de route
-        // }),
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
         }),
@@ -86,6 +82,10 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap(() => {
           return this.getDataObject(); // récupération des données de l'object selon le type (module, site, etc..)
         }),
+        mergeMap(() => {
+          return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
+        }),
+
       )
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
@@ -103,6 +103,7 @@ export class MonitoringObjectComponent implements OnInit {
         } else {
           this.initObjectsStatus();
         }
+        this.getParents();
       });
   }
 
@@ -126,6 +127,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initSites() {
+    console.log('initSites', this.obj.toString())
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
 
@@ -252,6 +254,17 @@ export class MonitoringObjectComponent implements OnInit {
       return this.obj.get(1);
     }
     return of(this.obj);
+  }
+
+  getParents(): Observable<any> {
+    const queryParams = this._route.snapshot.queryParams;
+    for (const key of Object.keys(queryParams)) {
+      const strToInt = parseInt(queryParams[key]);
+      if (strToInt != NaN) {
+        this.obj.properties[key] = strToInt;
+      }
+    }
+    return this.obj.getParents();
   }
 
   onObjChanged(obj: MonitoringObject) {

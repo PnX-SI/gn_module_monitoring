@@ -25,6 +25,9 @@
     class="cadre"
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
+  <pre>
+    <!-- {{objForm.value|json}} -->
+  </pre>
     <h3>
       {{ obj.id ? "Modification" : "Création" }}<span
         *ngIf="!obj.id"
@@ -42,10 +45,9 @@
         </mat-slide-toggle>
       </span>
     </h3>
-    <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
+    <!-- <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
       <mat-form-field>
         <mat-label>Garder les valeurs</mat-label>
-        <!-- [formControl]="toppings" -->
         <mat-select [(ngModel)]="keepNames" multiple>
           <mat-option
             *ngFor="let formDef of keepDefinitions()"
@@ -55,7 +57,7 @@
         </mat-select>
       </mat-form-field>
       <hr />
-    </div>
+    </div> -->
 
     <form [formGroup]="objForm">
       <p class="alert alert-warning" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">

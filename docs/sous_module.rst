@@ -378,6 +378,7 @@ La valeur de ce paramètre est alors une chaîne de caractère qui définie une 
 * ``attribut_name``: du composant concerné
 * ``meta``: un dictionnaire de données additionelles, et fourni au composant dynamicFormGenerator, il peut contenir des données sur 
   * la nomenclature (pour avoir les valeurs des nomenclature à partir des id, ici un dictionnaire avec ``id_nomenclature`` comme clés.
+  * ``bChainInput`` si on enchaine les releves
   * etc.. à redéfinir selon les besoin
 
 La chaine de caractère qui décrit la fonction doit être de la forme suivante:

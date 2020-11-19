@@ -144,8 +144,22 @@ export class MonitoringObject extends MonitoringObjectBase {
       .deleteObject(this.moduleCode, this.objectType, this.id);
   }
 
-  /** methodes pour obtenir les parent et enfants de l'object */
 
+  getParents(): Observable<any> {
+    const promises = []
+    for (const parentType of this.parentTypes()) {
+      promises.push(this.getParent(parentType))
+    }
+    return forkJoin(promises).pipe(
+      concatMap(() => {
+        console.log('parents', this.parents)
+        // parentsget parents????
+        return of(true);
+      })
+    );
+  }
+
+  /** methodes pour obtenir les parent et enfants de l'object */
   getParent(parentType = null, depth = 0): Observable<any> {
     if (!parentType) {
       parentType = this.parentType();

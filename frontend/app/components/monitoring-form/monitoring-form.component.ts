@@ -36,7 +36,6 @@ export class MonitoringFormComponent implements OnInit {
 
   meta: {};
 
-  keepNames = [];
 
   public bSaveSpinner = false;
   public bSaveAndAddChildrenSpinner = false;
@@ -60,20 +59,25 @@ export class MonitoringFormComponent implements OnInit {
   ngOnInit() {
     this._configService
       .init(this.obj.moduleCode)
-      .mergeMap(() => {
-        return this._route.queryParamMap;
-      })
-      .subscribe((queryParams) => {
-        this.queryParams = queryParams["params"] || {};
+      .pipe(
+      )
+      .subscribe(() => {
+        // return this._route.queryParamMap;
+      // })
+      // .subscribe((queryParams) => {
+        this.queryParams = this._route.snapshot.queryParams || {};
         this.bChainInput = this._configService.frontendParams()["bChainInput"];
         const schema = this.obj.schema();
         // init objFormsDefinition
 
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
+        console.log(this.obj.parents)
         this.meta = {
             nomenclatures: this._dataUtilsService.getNomenclatures(),
             id_role: this.currentUser.id_role,
+            bChainInput: this.bChainInput,
+            parents: this.obj.parents
         }
         this.objFormsDefinition = this._dynformService
           .formDefinitionsdictToArray(schema, this.meta)
@@ -86,16 +90,22 @@ export class MonitoringFormComponent implements OnInit {
               : 0;
           })
 
-        const displayForm = this.obj.configParam('display_form');
-        console.log(displayForm)
-        if (displayForm) {
+        // display_form pour customiser l'ordre dans le formulaire
+        // les éléments de display form sont placé en haut dans l'ordre du tableau
+        // tous les éléments non cachés restent affichés
+        let displayForm = this.obj.configParam('display_form');
+        if (displayForm && displayForm.length) {
+          displayForm.reverse();
           this.objFormsDefinition.sort( (a, b) => {
-            let indexA = displayForm.reverse().findIndex(e => e == a.attribut_name);
-            let indexB = displayForm.reverse().findIndex(e => e == b.attribut_name);
-            console.log(indexA, indexB)
+            let indexA = displayForm.findIndex(e => e == a.attribut_name);
+            let indexB = displayForm.findIndex(e => e == b.attribut_name);
             return indexB - indexA;
           })
         }           
+
+        // champs patch pour simuler un changement de valeur et déclencher le recalcul des propriété
+        // par exemple quand bChainInput change
+        this.objForm.addControl("patch_update", this._formBuilder.control(0))
 
 
         // set geometry
@@ -117,6 +127,9 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   setQueryParams() {
+    // par le biais des parametre query de route on donne l'id du ou des parents
+    // permet d'avoir un 'tree' ou un objet est sur plusieurs branches
+    // on attend des ids d'où test avec parseInt
     for (const key of Object.keys(this.queryParams)) {
       const strToInt = parseInt(this.queryParams[key]);
       if (strToInt != NaN) {
@@ -131,37 +144,49 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
 
+    // pour donner la valeur de idParent
     this.setQueryParams();
+
+    // pour donner la valeur de l'objet au formulaire
     this.obj.formValues().subscribe((formValue) => {
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
     });
   }
 
+  keepNames() {
+    return this.obj.configParam('keep')
+  }
+
   resetObjForm() {
+    // quand on enchaine les relevés
+
+    // les valeur que l'on garde d'une saisie à l'autre
     const keep = {};
-    for (const key of this.keepNames) {
+    for (const key of this.keepNames()) {
       keep[key] = this.obj.properties[key];
     }
 
-    // TODO à faire comme il faut (popup config pour les valeurs à garder)
+    console.log('Reset Form', keep)
 
-    // this.obj = new MonitoringObject(
-    //   this.obj.moduleCode,
-    //   this.obj.objectType,
-    //   null,
-    //   this.obj.monitoringObjectService()
-    // );
+    // nouvel object
+    this.obj = new MonitoringObject(
+      this.obj.moduleCode,
+      this.obj.objectType,
+      null,
+      this.obj.monitoringObjectService()
+    );
 
     this.obj.properties[this.obj.configParam("id_field_Name")] = null;
-    // this.obj.parentId = parentId;
-    this.obj.get(0).subscribe(() => {
+
+    // pq get ?????
+    // this.obj.get(0).subscribe(() => {
       this.obj.bIsInitialized = true;
-      for (const key of this.keepNames) {
+      for (const key of this.keepNames()) {
         this.obj.properties[key] = keep[key];
       }
       this.initForm();
-    });
+    // });
   }
 
   /** Pour donner des valeurs par defaut si la valeur n'est pas définie
@@ -181,7 +206,6 @@ export class MonitoringFormComponent implements OnInit {
           day: date.getUTCDate(),
         }
       }
-    console.log(defaultValue)
     this.objForm.patchValue(defaultValue);
   }
 
@@ -296,21 +320,9 @@ export class MonitoringFormComponent implements OnInit {
   //   }, 100);
   // }
 
-  /** TODO améliorer */
-  testChoixSite() {
-    const bCreation = !this.obj.id;
-    const bChoixSite =
-      this.obj.schema()["id_base_site"] &&
-      this.obj.schema()["id_base_site"].type_widget === "site";
-    return bCreation && bChoixSite && this.bChainInput;
-  }
-
+ 
   /** TODO améliorer site etc.. */
   onSubmit() {
-    // cas choix site
-    // if (this.testChoixSite()) {
-    //   this.obj.parentId = this.objForm.value["id_base_site"];
-    // }
     const action = this.obj.id
       ? this.obj.patch(this.objForm.value)
       : this.obj.post(this.objForm.value);
@@ -376,8 +388,17 @@ export class MonitoringFormComponent implements OnInit {
     }, 100);
   }
 
+  procesPatchUpdateForm() {
+    this.objForm.patchValue({'patch_update': this.objForm.value.patch_update + 1})
+  }
+
   /** bChainInput gardé dans config service */
   bChainInputChanged() {
+    for (const formDef of this.objFormsDefinition) {
+      formDef.meta.bChainInput = this.bChainInput
+    }
     this._configService.setFrontendParams("bChainInput", this.bChainInput);
+    // patch pour recalculers
+    this.procesPatchUpdateForm();
   }
 }
