@@ -131,7 +131,7 @@ export class MonitoringObjectComponent implements OnInit {
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
 
-      this.currentUser["cruved"] = this.module.cruved;
+      this.currentUser["cruved"] = this.module.userCruved;
 
       const sites =
         this.obj.children["site"] || this.module["children"]["site"];

@@ -73,7 +73,8 @@ export class MonitoringFormComponent implements OnInit {
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
         this.meta = {
-            nomenclatures: this._dataUtilsService.getNomenclatures(),
+            nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+            dataset: this._dataUtilsService.getDataUtil('dataset'),
             id_role: this.currentUser.id_role,
             bChainInput: this.bChainInput,
             parents: this.obj.parents
@@ -92,12 +93,12 @@ export class MonitoringFormComponent implements OnInit {
         // display_form pour customiser l'ordre dans le formulaire
         // les éléments de display form sont placé en haut dans l'ordre du tableau
         // tous les éléments non cachés restent affichés
-        let displayForm = this.obj.configParam('display_form');
-        if (displayForm && displayForm.length) {
-          displayForm.reverse();
+        let displayProperties = this.obj.configParam('display_properties');
+        if (displayProperties && displayProperties.length) {
+          displayProperties.reverse();
           this.objFormsDefinition.sort( (a, b) => {
-            let indexA = displayForm.findIndex(e => e == a.attribut_name);
-            let indexB = displayForm.findIndex(e => e == b.attribut_name);
+            let indexA = displayProperties.findIndex(e => e == a.attribut_name);
+            let indexB = displayProperties.findIndex(e => e == b.attribut_name);
             return indexB - indexA;
           })
         }           

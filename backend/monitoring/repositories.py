@@ -4,6 +4,8 @@ from geonature.core.gn_synthese.utils.process import import_from_table
 from .serializer import MonitoringObjectSerializer
 from ..config.repositories import get_config
 import logging
+from ..utils.utils import to_int
+
 from sqlalchemy.orm import joinedload
 
 log = logging.getLogger(__name__)
@@ -13,7 +15,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
     def get(self, value=None, field_name=None, depth=0):
 
-        print('get')
         # par defaut on filtre sur l'id
 
         if not field_name:
@@ -219,16 +220,28 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         limit = args.get('limit')
 
+        order_by = args.getlist('order_by')
+
+
+
         req = (
             DB.session.query(Model)
         )
 
         # filtres
         for key in args:
-            print(args[key])
             if hasattr(Model, key) and args[key] not in ['', None, 'null', 'undefined']:
                 vals = args.getlist(key)
                 req = req.filter(getattr(Model, key).in_(vals))
+
+        # order_by
+        for s in order_by:
+            if '*' in s:
+                continue # order by number
+            elif s[-1] == '-':
+                req = req.order_by(getattr(Model, s[:-1]).desc())
+            else:
+                req = req.order_by(getattr(Model, s))
 
         # TODO page etc...
 
@@ -240,7 +253,26 @@ class MonitoringObject(MonitoringObjectSerializer):
         # TODO check if self.properties_names() == props et rel
         props = self.properties_names()
 
-        return [
+        # patch order by number
+        out = [
             r.as_dict(True, columns=props, relationships=props)
             for r in res
         ]
+
+        # order by number
+        # pour les cas 1.2 truc muche
+
+        for s in order_by:
+            if '*' in s:
+                s2 = s.replace("-", "").replace("*", "")
+                def extract_number(x):
+                    try:
+                        n =x[s2].split(' ')[0].split('.')
+                        n0 = n[0]
+                        n1 = n[1]
+                        return to_int(n0)*1e5 + to_int(n1)
+                    except:
+                        return 0
+                out = sorted(out, key=extract_number)
+
+        return out

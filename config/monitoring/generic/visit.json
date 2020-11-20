@@ -1,15 +1,26 @@
 {
+  "cruved": {"C":1, "U":1, "D": 1},
   "id_field_name": "id_base_visit",
   "description_field_name": "visit_date_min",
   "label": "Visite",
   "uuid_field_name": "uuid_base_visit",
   "display_properties": [
+    "id_base_site",
     "visit_date_min",
     "observers",
     "comments",
     "dataset",
     "nb_observations"
   ],
+  "display_list": [
+    "id_base_site",
+    "visit_date_min",
+    "observers",
+    "comments",
+    "dataset",
+    "nb_observations"
+  ],
+ 
   "sorts": [
     {"prop": "visit_date_min", "dir": "desc"}
   ],

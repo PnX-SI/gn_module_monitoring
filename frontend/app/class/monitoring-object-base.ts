@@ -9,11 +9,10 @@ export class MonitoringObjectBase {
   objectType: string;
   id: number; // id de l'objet
 
-  cruved;
 
   parentsPath=[];
 
-
+  userCruved;
   deleted=false;
 
   idTableLocation;
@@ -92,7 +91,7 @@ export class MonitoringObjectBase {
   }
 
   setData(data) {
-    this.cruved = data.cruved;
+    this.userCruved = data.cruved;
     this.properties = data.properties;
     this.geometry = data.geometry;
     this.id = this.id || this.properties[this.configParam('id_field_name')];
@@ -172,6 +171,16 @@ export class MonitoringObjectBase {
         fieldName
       );
   }
+
+  cruved(c=null) {
+    const cruved = this.configParam('cruved') || {};
+    return c 
+      ? ![undefined, null].includes(cruved[c]) 
+        ? cruved[c]
+        : 1 
+      : cruved;
+  }
+
 
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];

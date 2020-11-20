@@ -31,9 +31,10 @@
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
       <div class="list-children" *ngIf="child0.objectType as childrenType">
+
         <div
           class="btn-height"
-          *ngIf="obj.moduleCode && currentUser?.cruved.C >= 1"
+          *ngIf="obj.moduleCode && currentUser?.cruved.C >= child0.cruved('C')"
         >
           <div class="btn-float-right">
             <a 

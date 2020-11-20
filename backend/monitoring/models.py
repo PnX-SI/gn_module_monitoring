@@ -210,7 +210,7 @@ class TMonitoringSites(TBaseSites):
     )
 
     last_visit = column_property(
-        select([func.min(TBaseVisits.visit_date_min)]).\
+        select([func.max(TBaseVisits.visit_date_min)]).\
             where(TBaseVisits.id_base_site==id_base_site)
     )
 

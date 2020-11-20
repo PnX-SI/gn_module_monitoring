@@ -57,8 +57,6 @@ def get_init_data(module_code):
         renvoie les données nomenclatures, etc à précharger par le module
     '''
 
-    print('init_data')
-    
     out = {}
     config = get_config(module_code, True) 
     data = config.get('data')

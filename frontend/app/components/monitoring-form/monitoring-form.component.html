@@ -124,7 +124,7 @@
         <button
           class="btn btn-danger float-left"
           (click)="bDeleteModal = true"
-          *ngIf="obj.id && currentUser?.cruved.D >= 1 && obj.objectType != 'module'"
+          *ngIf="obj.id && currentUser?.cruved.D >= obj.cruved('D')"
         >
           Supprimer
         </button>

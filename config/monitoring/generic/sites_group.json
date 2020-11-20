@@ -1,4 +1,5 @@
 {
+    "cruved": {"C":1, "U":1, "D": 1},
     "id_field_name": "id_sites_group",
     "description_field_name": "sites_group_name",
     "label": "Groupe de sites",
@@ -12,7 +13,7 @@
       "comments"
     ],
     "sorts": [
-      {"prop": "sites_group_code", "dir": "desc"}
+      {"prop": "sites_group_code"}
     ],
     "generic": {
       "id_sites_group": {
@@ -28,13 +29,16 @@
       "sites_group_name": {
         "type_widget": "text",
         "attribut_label": "Nom",
-        "required": true,
-        "definition": "Nom du groupe site."
+        "required": true
       },
       "sites_group_code": {
         "type_widget": "text",
         "attribut_label": "Code",
         "required": true
+      },
+      "sites_group_description": {
+        "type_widget": "textarea",
+        "attribut_label": "Description"
       },
       "comments": {
         "type_widget": "text",

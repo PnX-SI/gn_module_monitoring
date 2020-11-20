@@ -82,13 +82,13 @@
       </ng-container>
     </div>
     
+
     <button
       class="btn btn-success"
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
-        currentUser?.cruved.U >= 1 &&
-        (obj.objectType != 'module' || currentUser?.cruved.U >= 3)
+        currentUser?.cruved.U >= obj.cruved('U')
       "
     >
       Éditer {{ (obj.template.label || "").toLowerCase() }}

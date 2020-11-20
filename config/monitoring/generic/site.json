@@ -1,4 +1,5 @@
 {
+  "cruved": {"C":1, "U":1, "D": 1},
   "id_field_name": "id_base_site",
   "description_field_name": "base_site_name",
   "label": "Site",
@@ -39,8 +40,7 @@
     "base_site_name": {
       "type_widget": "text",
       "attribut_label": "Nom",
-      "required": true,
-      "definition": "Nom du site."
+      "required": true
     },
     "base_site_code": {
       "type_widget": "text",
