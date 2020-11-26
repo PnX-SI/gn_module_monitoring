@@ -118,8 +118,9 @@ export class MonitoringMapComponent implements OnInit {
     if (!this._mapService.map) {
       return 
     }
-    for (const key of Object.keys(this._mapService.map._layers)) {
-      const layer = this._mapService.map._layers[key];
+    const layers =this._mapService.map['_layers'];
+    for (const key of Object.keys(layers)) {
+      const layer = layers[key];
       if (layer.options.removeOnInit) {
         layer.removeFrom(this._mapService.map)
       }
