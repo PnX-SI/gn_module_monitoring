@@ -117,14 +117,25 @@ class MonitoringObjectBase():
     def config_param(self, param_name):
         return repositories_config_param(self._module_code, self._object_type, param_name)
 
-    def get_value(self, param_name):
+    def get_value_generic(self, param_name):
         if not hasattr(self._model, param_name):
             return None
         return getattr(self._model, param_name)
 
+    def get_value_specific(self, param_name):
+        return self._model.data and self._model.data.get(param_name)
+
+    def get_value(self, param_name):
+        schema_generic = self.config_schema('generic')
+        if param_name in schema_generic:
+            print('generic', param_name, self)
+            return self.get_value_generic(param_name)
+        print('specific', param_name, self)
+        return self.get_value_specific(param_name)
+
     def config_value(self, param_name):
         field_name = self.config_param(param_name)
-        return getattr(self._model, field_name)
+        return self.get_value(field_name)
 
     def parent_type(self): 
         '''
@@ -182,3 +193,16 @@ class MonitoringObjectBase():
 
     def get_cruved(self):
         return cruved_scope_for_user_in_monitoring_module(self._module_code)
+
+    def cond_filters(self):
+        filters = self.config_param('filters')
+
+        if not filters:
+            return True
+        print('filters', filters, self)
+
+        cond = True    
+        for key in filters:
+            cond = cond and self.get_value(key) == filters[key]
+
+        return cond

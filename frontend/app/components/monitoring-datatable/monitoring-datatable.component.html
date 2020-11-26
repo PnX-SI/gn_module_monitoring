@@ -1,4 +1,4 @@
-<div *ngIf="child0">
+<div *ngIf="child0 && row_save">
   <!-- <input
     type="text"
     style="padding:8px;margin:15px auto;width:30%;"
@@ -34,7 +34,7 @@
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
         <a
           class="nav-link link cell-link"
-          (click)="navigateViewObject(child0.objectType, row.id, false)"
+          (click)="child0.navigateToDetail(row.id)"
         >
           <i class="fa fa-info-circle" aria-hidden="true"></i>
         </a>

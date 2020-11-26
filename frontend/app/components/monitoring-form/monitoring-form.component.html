@@ -1,3 +1,6 @@
+<!-- <pre>
+  {{this.chainShow|json}}
+</pre> -->
 <pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="obj && obj.bIsInitialized">
   <h2>Attention</h2>
   <p>
@@ -25,9 +28,6 @@
     class="cadre"
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
-  <pre>
-    <!-- {{objForm.value|json}} -->
-  </pre>
     <h3>
       {{ obj.id ? "Modification" : "Création" }}<span
         *ngIf="!obj.id"

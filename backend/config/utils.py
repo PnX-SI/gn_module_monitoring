@@ -261,7 +261,7 @@ def customize_config(elem, custom):
 
 def get_data_preload(config, module):
     out = {
-        'nomenclature': []
+        'nomenclature': ['TYPE_MEDIA']
     }
 
     if module.id_list_observer:

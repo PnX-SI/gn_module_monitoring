@@ -228,11 +228,17 @@ class MonitoringObject(MonitoringObjectSerializer):
             DB.session.query(Model)
         )
 
-        # filtres
+        # filtres params get
         for key in args:
             if hasattr(Model, key) and args[key] not in ['', None, 'null', 'undefined']:
                 vals = args.getlist(key)
                 req = req.filter(getattr(Model, key).in_(vals))
+
+        # # filtres config
+
+        # filters_config = self.config_param('filters')
+        # if filters_config:
+        #     req = req.filter_by(**filters_config)
 
         # order_by
         for s in order_by:

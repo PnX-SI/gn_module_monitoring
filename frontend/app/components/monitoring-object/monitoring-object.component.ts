@@ -103,7 +103,6 @@ export class MonitoringObjectComponent implements OnInit {
         } else {
           this.initObjectsStatus();
         }
-        this.getParents();
       });
   }
 
@@ -126,15 +125,23 @@ export class MonitoringObjectComponent implements OnInit {
     });
   }
 
-  initSites() {
+    initSites() {
     console.log('initSites', this.obj.toString())
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
 
       this.currentUser["cruved"] = this.module.userCruved;
 
-      const sites =
-        this.obj.children["site"] || this.module["children"]["site"];
+      // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
+
+      let sites = null;
+      let cur = this.obj;
+      do {
+        console.log(cur.objectType, cur.id, cur.children);
+        sites = cur["children"]["site"];
+        cur = cur.parent();
+      }
+      while(!!cur && !sites)
 
       if (!sites) {
         return;
@@ -213,6 +220,7 @@ export class MonitoringObjectComponent implements OnInit {
           this._objService
         );
 
+        this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll("parents_path") || [];
         this.module = new MonitoringObject(
           params.get("moduleCode"),
           "module",
@@ -220,12 +228,8 @@ export class MonitoringObjectComponent implements OnInit {
           this._objService
         );
         this.objForm = this._formBuilder.group({});
-        this.obj.bIsInitialized = false;
-        this.bLoadingModal = true;
 
         // query param snapshot
-        this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll("parents_path") || [];
-        // this.obj.parentsPath = params.getAll("parents_path") || [];
 
         // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
         return of(true);
@@ -264,7 +268,7 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.properties[key] = strToInt;
       }
     }
-    return this.obj.getParents();
+    return this.obj.getParents(1);
   }
 
   onObjChanged(obj: MonitoringObject) {

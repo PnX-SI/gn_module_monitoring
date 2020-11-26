@@ -1,14 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-import { Observable, forkJoin, of } from '@librairies/rxjs';
-import { concatMap, mergeMap } from '@librairies/rxjs/operators';
+import { Observable, forkJoin, of } from "@librairies/rxjs";
+import { concatMap, mergeMap } from "@librairies/rxjs/operators";
 
-import { Utils } from './../utils/utils';
+import { Utils } from "./../utils/utils";
 
-import { CacheService } from './cache.service';
-import { ConfigService } from './config.service';
-import { DataFormService } from '@geonature_common/form/data-form.service';
-
+import { CacheService } from "./cache.service";
+import { ConfigService } from "./config.service";
+import { DataFormService } from "@geonature_common/form/data-form.service";
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -16,12 +15,11 @@ import { DataFormService } from '@geonature_common/form/data-form.service';
  */
 @Injectable()
 export class DataUtilsService {
-
   constructor(
     private _cacheService: CacheService,
     private _configService: ConfigService,
     private _commonsDataFormService: DataFormService
-  ) { }
+  ) {}
 
   /** Util (Nomenclature, User, Taxonomy) */
 
@@ -33,7 +31,6 @@ export class DataUtilsService {
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
   getUtil(typeUtil: string, id, fieldName: string) {
-
     if (Array.isArray(id)) {
       return this.getUtils(typeUtil, id, fieldName);
     }
@@ -43,26 +40,26 @@ export class DataUtilsService {
     // parametre pour le stockage dans le cache
     const sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
-    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths)
+    return this._cacheService
+      .cache_or_request("get", urlRelative, sCachePaths)
       .pipe(
-        mergeMap(
-          value => {
-            let out;
-            if (fieldName === 'all') {
-              out = value;
-            } else if (fieldName.split(',').length >= 2) {
-              // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
-              for (const fieldNameInter of fieldName.split(',')) {
-                if (value[fieldNameInter]) {
-                  out = value[fieldNameInter];
-                  break;
-                }
+        mergeMap((value) => {
+          let out;
+          if (fieldName === "all") {
+            out = value;
+          } else if (fieldName.split(",").length >= 2) {
+            // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
+            for (const fieldNameInter of fieldName.split(",")) {
+              if (value[fieldNameInter]) {
+                out = value[fieldNameInter];
+                break;
               }
-            } else {
-              out = value[fieldName];
             }
-            return of(out);
-          })
+          } else {
+            out = value[fieldName];
+          }
+          return of(out);
+        })
       );
   }
 
@@ -83,66 +80,76 @@ export class DataUtilsService {
       observables.push(this.getUtil(typeUtilObject, id, fieldName));
     }
     // renvoie un forkJoin du tableau d'observables
-    return forkJoin(observables)
-      .pipe(
-        concatMap(res => {
-          return of(res.join(', '));
-        })
-      );
+    return forkJoin(observables).pipe(
+      concatMap((res) => {
+        return of(res.join(", "));
+      })
+    );
   }
-
 
   /** Renvoie une nomenclature à partir de son type et son code */
   getNomenclature(typeNomenclature, codeNomenclature) {
     const urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
     const sCachePaths = `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
-    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
+    return this._cacheService.cache_or_request("get", urlRelative, sCachePaths);
   }
 
   /** Récupère les données qui seront utiles pour le module
    * ces données sont déduites automatiquement de la configuration du module
-  */
+   */
   getInitData(moduleCode): Observable<any> {
+    // parametre pour le stockage dans le cache
+    // récupération dans le cache ou requête si besoin
+    const cache = this._cacheService.cache();
 
-   const urlRelative = `util/init_data/${moduleCode}`;
-   // parametre pour le stockage dans le cache
-   // récupération dans le cache ou requête si besoin
-   return this._cacheService.request('get', urlRelative)
-     .pipe(
-       mergeMap( (initData) => {
-          
-          const cache = this._cacheService.cache();
-          if (cache[moduleCode] && cache[moduleCode]['init_data']) {
-                return of(true);
-          }
-
-          for (const nomenclature of (initData['nomenclature'] || [])) {
-            this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
-          }
-
-          for (const user of (initData['user'] || [])) {
-            this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
-          }
-  
-          for (const sitesGroup of (initData['sites_group'] || [])) {
-            this._cacheService.setCacheValue(`util|sites_group|${sitesGroup['id_sites_group']}`, sitesGroup);
-          }
-
-          for (const dataset of (initData['dataset'] || [])) {
-            this._cacheService.setCacheValue(`util|dataset|${dataset['id_dataset']}`, dataset);
-          }
-
-
-          // pour ne pas appeler la fonction deux fois
-          if (!cache[moduleCode]) {
-            cache[moduleCode] = {};
-          }
-          cache[moduleCode]['init_data'] = true;
-          return of(true);
-        }))
+    if (cache[moduleCode] && cache[moduleCode]["init_data"]) {
+      return of(true);
     }
 
+    const urlRelative = `util/init_data/${moduleCode}`;
+    return this._cacheService.request("get", urlRelative).pipe(
+      mergeMap((initData) => {
+        if (cache[moduleCode] && cache[moduleCode]["init_data"]) {
+          return of(true);
+        }
 
+        for (const nomenclature of initData["nomenclature"] || []) {
+          this._cacheService.setCacheValue(
+            `util|nomenclature|${nomenclature["id_nomenclature"]}`,
+            nomenclature
+          );
+        }
+
+        for (const user of initData["user"] || []) {
+          this._cacheService.setCacheValue(
+            `util|user|${user["id_role"]}`,
+            user
+          );
+        }
+
+        for (const sitesGroup of initData["sites_group"] || []) {
+          this._cacheService.setCacheValue(
+            `util|sites_group|${sitesGroup["id_sites_group"]}`,
+            sitesGroup
+          );
+        }
+
+        for (const dataset of initData["dataset"] || []) {
+          this._cacheService.setCacheValue(
+            `util|dataset|${dataset["id_dataset"]}`,
+            dataset
+          );
+        }
+
+        // pour ne pas appeler la fonction deux fois
+        if (!cache[moduleCode]) {
+          cache[moduleCode] = {};
+        }
+        cache[moduleCode]["init_data"] = true;
+        return of(true);
+      })
+    );
+  }
 
   // /** Récupère les données qui seront utiles pour le module */
   // getInitData(moduleCode): Observable<any> {
@@ -234,12 +241,11 @@ export class DataUtilsService {
   //     );
   // }
 
-
   getDataUtil(key) {
-    return this._cacheService['_cache']['util'][key];
+    return this._cacheService["_cache"]["util"][key];
   }
 
   getNomenclatures() {
-    return this._cacheService['_cache']['util']['nomenclature'];
+    return this._cacheService["_cache"]["util"]["nomenclature"];
   }
 }

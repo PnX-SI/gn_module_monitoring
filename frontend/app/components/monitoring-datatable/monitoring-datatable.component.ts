@@ -41,8 +41,8 @@ export class MonitoringDatatableComponent implements OnInit {
 
   row_save;
   selected = [];
+  filters= {}
   customColumnComparator;
-  filters = [];
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -50,7 +50,6 @@ export class MonitoringDatatableComponent implements OnInit {
 
 
   constructor(
-    private _router: Router,
     private _monitoring: MonitoringObjectService
   ) { }
 
@@ -59,12 +58,17 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   initDatatable() {
+    this.filters = this.child0.configParam('filters')
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
       this.filter();
     });
 
     this.customColumnComparator = this.customColumnComparator_();
     this.row_save = this.rows.map(e => e);
+    // on declenche les filtres (si filtre par defaut)
+    setTimeout(() => {
+      this.filter(true)
+    }, 500);
   }
 
   filterInput($event) {
@@ -75,7 +79,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
   }
 
-  filter() {
+  filter(bInitFilter=false) {
 
     // filter all
 
@@ -85,7 +89,7 @@ export class MonitoringDatatableComponent implements OnInit {
       let bCondVisible = true;
       for (const key of Object.keys(this.filters)) {
         let val = this.filters[key];
-        if (!val) {
+        if ([null, undefined].includes(val)) {
           continue;
         }
         val = String(val).toLowerCase();
@@ -100,7 +104,7 @@ export class MonitoringDatatableComponent implements OnInit {
       return bCondVisible;
     });
 
-    if (bChange) {
+    if (bChange || bInitFilter) {
       this.rowStatusChange.emit(this.rowStatus);
     }
     // update the rows
@@ -127,29 +131,6 @@ export class MonitoringDatatableComponent implements OnInit {
 
     this.setSelected();
     this.rowStatusChange.emit(this.rowStatus);
-  }
-
-  navigateViewObject(objectType, id, bEdit) {
-
-    if (bEdit) {
-      this.bEditChanged.emit(bEdit);
-    }
-
-    const parentsPath = this.obj.parentsPath.concat([this.obj.objectType]);
-
-    this._router.navigate([
-      '/',
-      this.frontendModuleMonitoringUrl,
-      'object',
-      this.child0.moduleCode,
-      objectType,
-      id
-      ], {
-        queryParams: {
-          parents_path: parentsPath
-        }
-      }
-    );
   }
 
   setSelected() {

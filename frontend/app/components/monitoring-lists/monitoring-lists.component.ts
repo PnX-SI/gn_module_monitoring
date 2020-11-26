@@ -59,6 +59,7 @@ export class MonitoringListComponent implements OnInit {
     this.backendUrl = this._configService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
+    console.log(this.children0Array)
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
@@ -74,6 +75,18 @@ export class MonitoringListComponent implements OnInit {
 
   onbEditChanged(event) {
     this.bEditChange.emit(event);
+  }
+
+  displayNumber(chidrenType) {
+    if(!this.objectsStatus[chidrenType]) {
+      return '';
+    }
+    const visibles = this.objectsStatus[chidrenType].filter(s => s.visible)
+    const nbSelected = visibles.length;
+    const nb = this.obj.children[chidrenType].length;
+    return nb == nbSelected
+    ? `(${nb})`
+    : `(${nbSelected}/${nb})`
   }
 
   ngOnChanges(changes: SimpleChanges) {

@@ -1,8 +1,7 @@
-import { mergeMap } from "@librairies/rxjs/operators";
 import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
-import { Router } from "@angular/router";
+// import { Router } from "@angular/router";
 import { ConfigService } from "../../services/config.service";
 import { DataUtilsService } from "../../services/data-utils.service";
 import { CommonService } from "@geonature_common/service/common.service";
@@ -43,12 +42,13 @@ export class MonitoringFormComponent implements OnInit {
   public bDeleteModal = false;
   public bChainInput = false;
   public bAddChildren = false;
+  public chainShow = []
+
 
   public queryParams = {};
 
   constructor(
     private _formBuilder: FormBuilder,
-    private _router: Router,
     private _route: ActivatedRoute,
     private _configService: ConfigService,
     private _commonService: CommonService,
@@ -115,6 +115,10 @@ export class MonitoringFormComponent implements OnInit {
             this._formBuilder.control("", Validators.required)
           );
         }
+
+        // pour donner la valeur de idParent
+        this.setQueryParams();
+
         this.initForm();
       });
   }
@@ -144,9 +148,6 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
 
-    // pour donner la valeur de idParent
-    this.setQueryParams();
-
     // pour donner la valeur de l'objet au formulaire
     this.obj.formValues().subscribe((formValue) => {
       this.objForm.patchValue(formValue);
@@ -160,6 +161,11 @@ export class MonitoringFormComponent implements OnInit {
 
   resetObjForm() {
     // quand on enchaine les relevés
+    const chainShow = this.obj.configParam('chain_show');
+    if (chainShow) {
+      this.chainShow.push(chainShow.map(key => this.obj.resolvedProperties[key]))
+      this.chainShow.push(this.obj.resolvedProperties)
+    }
 
     // les valeur que l'on garde d'une saisie à l'autre
     const keep = {};
@@ -176,6 +182,8 @@ export class MonitoringFormComponent implements OnInit {
     );
 
     this.obj.properties[this.obj.configParam("id_field_Name")] = null;
+
+    console.log(this.obj.properties)
 
     // pq get ?????
     // this.obj.get(0).subscribe(() => {
@@ -215,24 +223,8 @@ export class MonitoringFormComponent implements OnInit {
    * Valider et renseigner les enfants
    */
   navigateToAddChildren() {
-    const queryParamsAddChildren = {};
-    queryParamsAddChildren[this.obj.idFieldName()] = this.obj.id;
-    queryParamsAddChildren["parents_path"] = this.obj.parentsPath.concat(
-      this.obj.objectType
-    );
     this.bEditChange.emit(false);
-    this._router.navigate(
-      [
-        "/",
-        this._configService.frontendModuleMonitoringUrl(),
-        "create_object",
-        this.obj.moduleCode,
-        this.obj.uniqueChildrenType(),
-      ],
-      {
-        queryParams: queryParamsAddChildren,
-      }
-    );
+    this.obj.navigateToAddChildren();
   }
 
   /**
@@ -240,21 +232,7 @@ export class MonitoringFormComponent implements OnInit {
    */
   navigateToDetail() {
     this.bEditChange.emit(false); // patch bug navigation
-    this._router.navigate(
-      [
-        "/",
-        this._configService.frontendModuleMonitoringUrl(),
-        "object",
-        this.obj.moduleCode,
-        this.obj.objectType,
-        this.obj.id,
-      ],
-      {
-        queryParams: {
-          parents_path: this.obj.parentsPath,
-        },
-      }
-    );
+    this.obj.navigateToDetail()
   }
 
   /**
@@ -262,62 +240,8 @@ export class MonitoringFormComponent implements OnInit {
    */
   navigateToParent() {
     this.bEditChange.emit(false); // patch bug navigation
-
-    // cas module
-    if (this.obj.objectType.includes("module")) {
-      this._router.navigate([
-        "/",
-        this._configService.frontendModuleMonitoringUrl(),
-        "object",
-        this.obj.moduleCode,
-        "module",
-        this.obj.id,
-      ]);
-
-      // autres cas
-    } else {
-      const parentType =  this.obj.parentType();
-      this.obj.parentsPath.pop();
-      const parent = new MonitoringObject(
-        this.obj.moduleCode,
-        parentType,
-        null,
-        this.obj._objService
-      );
-      const parentId = this.obj.properties[parent.idFieldName()];
-      this._router.navigate(
-        [
-          "/",
-          this._configService.frontendModuleMonitoringUrl(),
-          "object",
-          this.obj.moduleCode,
-          parentType,
-          parentId,
-        ],
-        {
-          queryParams: {
-            parents_path: this.obj.parentsPath,
-          },
-        }
-      );
-    }
+    this.obj.navigateToParent();
   }
-
-  /** TODO remove */
-  // reload_create_route() {
-  //   this._router.navigate(['/']);
-  //   setTimeout(() => {
-  //     this._router.navigate([
-  //       '/',
-  //       this._configService.frontendModuleMonitoringUrl(),
-  //       'create_object',
-  //       this.obj.moduleCode,
-  //       this.obj.objectType,
-  //       this.obj.parentId,
-  //     ]);
-  //   }, 100);
-  // }
-
  
   /** TODO améliorer site etc.. */
   onSubmit() {

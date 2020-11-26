@@ -68,6 +68,9 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
         # id_table_location
         config[object_type]['id_table_location'] = get_id_table_location(object_type)
 
+        # filters
+        config[object_type]['filters'] = config[object_type].get('filters') or {}
+
         # recursif
         if tree[object_type]:
             get_config_objects(module_code, config, tree[object_type], object_type)

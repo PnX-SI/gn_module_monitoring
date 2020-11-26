@@ -12,10 +12,7 @@
         role="tab"
         attr.aria-controls="nav-{{ child0.objectType }}"
         aria-selected="true"
-        >{{ child0.template["label_list"] }} ({{
-          obj.children[child0.objectType].length
-        }})
-        <!-- ({{child0.objectType}}) -->
+        >{{ child0.template["label_list"] }} {{displayNumber(child0.objectType)}}
       </a>
     </div>
   </nav>
@@ -37,19 +34,12 @@
           *ngIf="obj.moduleCode && currentUser?.cruved.C >= child0.cruved('C')"
         >
           <div class="btn-float-right">
-            <a 
+            <button
             *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-success float-right"
-              [routerLink]="[
-                '/',
-                frontendModuleMonitoringUrl,
-                'create_object',
-                obj.moduleCode,
-                child0.objectType
-              ]"
-              [queryParams]="queyParamsNewObject[child0.objectType]"
+              (click)="obj.navigateToAddChildren(child0.objectType)" 
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-              {{ (child0.template["label"] || "").toLowerCase() }}</a
+              {{ (child0.template["label"] || "").toLowerCase() }}</button
             >
           </div>
         </div>

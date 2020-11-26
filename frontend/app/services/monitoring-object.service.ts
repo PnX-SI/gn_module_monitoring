@@ -7,13 +7,17 @@ import { DataMonitoringObjectService } from "./data-monitoring-object.service";
 import { DataUtilsService } from "./data-utils.service";
 import { Utils } from "../utils/utils";
 import { mergeMap } from "@librairies/rxjs/operators";
+import { Router } from "@angular/router";
+
 
 @Injectable()
 export class MonitoringObjectService {
   constructor(
     private _configService: ConfigService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _dataUtilsService: DataUtilsService
+    private _dataUtilsService: DataUtilsService,
+    private _router: Router,
+
   ) {}
 
   _cache = {};
@@ -311,5 +315,23 @@ export class MonitoringObjectService {
 
   configService(): ConfigService {
     return this._configService;
+  }
+
+  navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+    console.log(routeType, moduleCode, objectType, id, queryParams)
+    this._router.navigate(
+      [
+        "/",
+        this._configService.frontendModuleMonitoringUrl(),
+        routeType,
+        moduleCode,
+        objectType,
+        id,
+      ].filter(s => !!s),
+      {
+        queryParams,
+      }
+    );
+
   }
 }

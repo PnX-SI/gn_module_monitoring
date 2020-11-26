@@ -16,6 +16,7 @@ import { DataMonitoringObjectService } from '../../services/data-monitoring-obje
 
 import { MapService } from '@geonature_common/map/map.service';
 import { Utils } from '../../utils/utils';
+import * as L from 'leaflet';
 
 
 @Component({
@@ -36,6 +37,7 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() heightMap;
 
+  
   bListen = true;
   panes = {};
   renderers = {};
@@ -89,6 +91,8 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSites() {
+    console.log(this._mapService.map)
+    this.removeLabels();
     setTimeout(() => {
       this.initPanes();
       if (this.sites && this.sites['features']) {
@@ -108,6 +112,39 @@ export class MonitoringMapComponent implements OnInit {
         this.setSitesStyle();
       }
     }, 0);
+  }
+
+  removeLabels() {
+    if (!this._mapService.map) {
+      return 
+    }
+    for (const key of Object.keys(this._mapService.map._layers)) {
+      const layer = this._mapService.map._layers[key];
+      if (layer.options.removeOnInit) {
+        layer.removeFrom(this._mapService.map)
+      }
+    }
+  }
+
+  onEachFeature = (feature, layer) => {
+    const mapLabelFieldName = this.obj.configParam('map_label_field_name');
+    if(!mapLabelFieldName) {
+      return
+    }
+    const textValue = feature.resolvedProperties[mapLabelFieldName];
+    if(!textValue) {
+      return
+    }
+
+    var text = L.tooltip({
+      permanent: true,
+      direction: 'top',
+      className: 'text',
+      removeOnInit: true,
+  })
+    .setContent(textValue)
+    .setLatLng(layer.getLatLng());
+    text.addTo(this._mapService.map);
   }
 
   onLayerClick(site) {

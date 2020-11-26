@@ -1,3 +1,4 @@
+import { GeonaturePage } from "./../../../../../frontend/e2e/app.po";
 import { Observable, of, forkJoin } from "@librairies/rxjs";
 import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
@@ -7,7 +8,6 @@ import { Utils } from "../utils/utils";
 import { MonitoringObjectBase } from "./monitoring-object-base";
 
 export class MonitoringObject extends MonitoringObjectBase {
-  parent: MonitoringObject;
   myClass = MonitoringObject;
 
   constructor(
@@ -34,7 +34,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     return forkJoin(observables).pipe(
       concatMap(() => {
-        return of(true);
+        return of(this);
       })
     );
   }
@@ -76,7 +76,7 @@ export class MonitoringObject extends MonitoringObjectBase {
         id,
         this._objService
       );
-      child.parent = this;
+      child.parents[this.objectType] = this;
       this.children[childrenType].push(child);
       observables.push(child.init(childData));
     }
@@ -144,21 +144,29 @@ export class MonitoringObject extends MonitoringObjectBase {
       .deleteObject(this.moduleCode, this.objectType, this.id);
   }
 
-
-  getParents(): Observable<any> {
-    const promises = []
+  getParents(depth = 0): Observable<any> {
+    const promises = {};
     if (!this.parentTypes().length) {
-      return of(true);
+      return of({});
     }
     for (const parentType of this.parentTypes()) {
-      promises.push(this.getParent(parentType))
+      promises[parentType]=this.getParent(parentType, depth);
     }
-    return forkJoin(promises).pipe(
-      concatMap(() => {
-        // parentsget parents????
-        return of(true);
-      })
-    );
+    return forkJoin(promises);
+  }
+
+  parent(parentType=null) {
+    if (!parentType) {
+      parentType = this.parentType();
+    }
+
+    const parent =  this.parents[parentType];
+    if(!parent) {
+      return;
+    }
+    parent.parentsPath = [...this.parentsPath];
+    parent.parentsPath.pop();
+    return parent;
   }
 
   /** methodes pour obtenir les parent et enfants de l'object */
@@ -167,23 +175,42 @@ export class MonitoringObject extends MonitoringObjectBase {
       parentType = this.parentType();
     }
 
-    if (
-      !parentType ||
-      this.parents[parentType] ||
-      !(this.parentId(parentType) 
-      // || parentType.includes("module")
-      )
-    ) {
-      return of(this.parents[parentType]);
+    let parentOut = null
+
+    if(!parentType || !this.parentId(parentType)) {
+      return of(null)
     }
 
-    this.parents[parentType] = new this.myClass(
-      this.moduleCode,
-      parentType,
-      this.parentId(parentType),
-      this._objService
+    return of(true).pipe(
+      mergeMap(() => {
+        if (
+          this.parents[parentType]
+        ) {
+          return of(this.parents[parentType]);
+        } else {
+          return new this.myClass(
+            this.moduleCode,
+            parentType,
+            this.parentId(parentType),
+            this._objService
+          ).get(depth);
+        }
+      }),
+      mergeMap((parent) => {
+        parentOut = parent;
+        this.parents[parent.objectType] = parent;
+        return parent.getParents(depth);
+      }),
+      concatMap((parents) => {
+        for (const key of Object.keys(parents)
+          ) {
+            if(parents[key]) {
+              this.parents[key] = parents[key];
+            }
+        }
+        return of(parentOut)
+      })
     );
-    return this.parents[parentType].get(depth);
   }
 
   /** Formulaires  */

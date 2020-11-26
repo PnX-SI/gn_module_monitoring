@@ -50,13 +50,12 @@ export class BreadcrumbsComponent implements OnInit {
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
-        mergeMap(() => this._route.queryParamMap),
-        mergeMap((queryParams) => {
+        mergeMap(() => {
           if (!this.obj.moduleCode || this.obj.deleted) {
             return of([]);
           }
 
-          const params = queryParams['params']||{};
+          const params = this._route.snapshot.queryParams;
 
           return this._dataMonitoringObjectService.getBreadcrumbs(
               this.obj.moduleCode,

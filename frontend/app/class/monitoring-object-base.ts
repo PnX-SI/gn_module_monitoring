@@ -1,19 +1,18 @@
-import { Observable, of } from '@librairies/rxjs';
-import { concatMap } from '@librairies/rxjs/operators';
+import { Observable, of } from "@librairies/rxjs";
+import { concatMap } from "@librairies/rxjs/operators";
 
-import { MonitoringObjectService } from '../services/monitoring-object.service';
-import { Utils } from '../utils/utils';
+import { MonitoringObjectService } from "../services/monitoring-object.service";
+import { Utils } from "../utils/utils";
 
 export class MonitoringObjectBase {
   moduleCode: string;
   objectType: string;
   id: number; // id de l'objet
 
-
-  parentsPath=[];
+  parentsPath = [];
 
   userCruved;
-  deleted=false;
+  deleted = false;
 
   idTableLocation;
   properties = {}; // liste des propriétés de type non géométrie
@@ -27,14 +26,14 @@ export class MonitoringObjectBase {
 
   children = {};
   _children0 = {};
-  parents= {};
+  parents = {};
   myClass = MonitoringObjectBase;
 
   siteId;
 
   template = {};
 
-  configParams = ['geometry_type'];
+  configParams = ["geometry_type"];
   config = {};
 
   public _objService: MonitoringObjectService;
@@ -46,7 +45,7 @@ export class MonitoringObjectBase {
     objService: MonitoringObjectService
   ) {
     if (!moduleCode) {
-      throw new Error('Monitoring object sans moduleCode');
+      throw new Error("Monitoring object sans moduleCode");
     }
     this.objectType = objectType;
     this.moduleCode = moduleCode;
@@ -63,25 +62,23 @@ export class MonitoringObjectBase {
   }
 
   initTemplate() {
-    this.template['idTableLocation'] = this.configParam('id_table_location');
-    this.template['label'] = this.configParam('label');
-    this.template['label_list'] =
-      this.configParam('label_list') || this.configParam('label') + 's';
+    this.template["idTableLocation"] = this.configParam("id_table_location");
+    this.template["label"] = this.configParam("label");
+    this.template["label_list"] =
+      this.configParam("label_list") || this.configParam("label") + "s";
 
-    this.template['title'] = this.title();
+    this.template["title"] = this.title();
 
-    this.template['uuid'] = this.paramValue('uuid_field_name');
-    this.template['description'] = this.paramValue(
-      'description_field_name',
+    this.template["uuid"] = this.paramValue("uuid_field_name");
+    this.template["description"] = this.paramValue(
+      "description_field_name",
       true
     );
 
-
-
-    this.template['fieldLabels'] = this.fieldLabels();
-    this.template['fieldNames'] = this.fieldNames('display_properties');
-    this.template['fieldDefinitions'] = this.fieldDefinitions();
-    this.template['fieldNamesList'] = this.fieldNames('display_list');
+    this.template["fieldLabels"] = this.fieldLabels();
+    this.template["fieldNames"] = this.fieldNames("display_properties");
+    this.template["fieldDefinitions"] = this.fieldDefinitions();
+    this.template["fieldNamesList"] = this.fieldNames("display_list");
   }
 
   setConfig() {
@@ -94,7 +91,7 @@ export class MonitoringObjectBase {
     this.userCruved = data.cruved;
     this.properties = data.properties;
     this.geometry = data.geometry;
-    this.id = this.id || this.properties[this.configParam('id_field_name')];
+    this.id = this.id || this.properties[this.configParam("id_field_name")];
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
@@ -102,17 +99,17 @@ export class MonitoringObjectBase {
 
   idFieldName() {
     return this._objService
-        .configService()
-        .configModuleObjectParam(
-          this.moduleCode,
-          this.objectType,
-          'id_field_name'
-        );
+      .configService()
+      .configModuleObjectParam(
+        this.moduleCode,
+        this.objectType,
+        "id_field_name"
+      );
   }
 
-  parentId(parentType=null) {
-    if(!parentType) {
-      parentType = this.parentType()
+  parentId(parentType = null) {
+    if (!parentType) {
+      parentType = this.parentType();
     }
     return this.properties[this.parentIdFieldName(parentType)];
   }
@@ -121,18 +118,18 @@ export class MonitoringObjectBase {
     return !parentType
       ? null
       : this._objService
-        .configService()
-        .configModuleObjectParam(
-          this.moduleCode,
-          parentType,
-          'id_field_name'
-        );
+          .configService()
+          .configModuleObjectParam(
+            this.moduleCode,
+            parentType,
+            "id_field_name"
+          );
   }
 
   resolveProperty(elem, val): Observable<any> {
     const configUtil = this._objService.configUtils(elem, this.moduleCode);
 
-    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
+    if (elem.type_widget === "date" || (elem.type_util === "date" && val)) {
       val = Utils.formatDate(val);
     }
 
@@ -145,48 +142,45 @@ export class MonitoringObjectBase {
   }
 
   setResolvedProperties(): Observable<any> {
-
     const observables = {};
     const schema = this.schema();
     for (const attribut_name of Object.keys(schema)) {
-      observables[attribut_name] = this.resolveProperty(schema[attribut_name], this.properties[attribut_name]);
+      observables[attribut_name] = this.resolveProperty(
+        schema[attribut_name],
+        this.properties[attribut_name]
+      );
     }
     return Observable.forkJoin(observables).pipe(
-      concatMap(
-        resolvedProperties => {
-          for (const attribut_name of Object.keys(resolvedProperties)) {
-            this.resolvedProperties[attribut_name] = resolvedProperties[attribut_name];
-          }
-          return of(true);
-        })
+      concatMap((resolvedProperties) => {
+        for (const attribut_name of Object.keys(resolvedProperties)) {
+          this.resolvedProperties[attribut_name] =
+            resolvedProperties[attribut_name];
+        }
+        return of(true);
+      })
     );
   }
 
   configParam(fieldName) {
     return this._objService
       .configService()
-      .configModuleObjectParam(
-        this.moduleCode,
-        this.objectType,
-        fieldName
-      );
+      .configModuleObjectParam(this.moduleCode, this.objectType, fieldName);
   }
 
-  cruved(c=null) {
-    const cruved = this.configParam('cruved') || {};
-    return c 
-      ? ![undefined, null].includes(cruved[c]) 
+  cruved(c = null) {
+    const cruved = this.configParam("cruved") || {};
+    return c
+      ? ![undefined, null].includes(cruved[c])
         ? cruved[c]
-        : 1 
+        : 1
       : cruved;
   }
 
-
   childrenTypes(configParam: string = null): Array<string> {
-    let childrenTypes = this.configParam('children_types') || [];
+    let childrenTypes = this.configParam("children_types") || [];
 
     if (configParam) {
-      childrenTypes = childrenTypes.filter(TypeChildren => {
+      childrenTypes = childrenTypes.filter((TypeChildren) => {
         return this.child0(TypeChildren).config[configParam];
       });
     }
@@ -194,7 +188,7 @@ export class MonitoringObjectBase {
   }
 
   uniqueChildrenName() {
-    const childrenTypes = this.configParam('children_types') || [];
+    const childrenTypes = this.configParam("children_types") || [];
 
     if (childrenTypes.length === 1) {
       return this.child0(childrenTypes[0]).template.label_list;
@@ -202,26 +196,24 @@ export class MonitoringObjectBase {
   }
 
   uniqueChildrenType() {
-    const childrenTypes = this.configParam('children_types') || [];
+    const childrenTypes = this.configParam("children_types") || [];
 
     if (childrenTypes.length === 1) {
       return childrenTypes[0];
     }
   }
 
-
   parentTypes() {
-    return this.configParam('parent_types');
+    return this.configParam("parent_types");
   }
 
   parentType() {
-    return (this.parentsPath && this.parentsPath.length) 
-    ? this.parentsPath[this.parentsPath.length -1]
-    : this.parentTypes().length
-    ? this.parentTypes()[0]
-    : null    
+    return this.parentsPath && this.parentsPath.length
+      ? this.parentsPath[this.parentsPath.length - 1]
+      : this.parentTypes().length
+      ? this.parentTypes()[0]
+      : null;
   }
-
 
   child0(childrenType) {
     if (this._children0[childrenType]) {
@@ -233,6 +225,9 @@ export class MonitoringObjectBase {
       null,
       this._objService
     );
+    child0.parentsPath = [...this.parentsPath];
+    child0.parentsPath.push(this.objectType)
+
     child0.setConfig();
     child0.initTemplate();
     this._children0[childrenType] = child0;
@@ -240,8 +235,8 @@ export class MonitoringObjectBase {
   }
 
   childsLabel() {
-    return Utils.mapArrayToDict(this.childrenTypes(), childrenType => {
-      return this.child0(childrenType).configParam('label');
+    return Utils.mapArrayToDict(this.childrenTypes(), (childrenType) => {
+      return this.child0(childrenType).configParam("label");
     });
   }
 
@@ -255,12 +250,12 @@ export class MonitoringObjectBase {
   }
 
   title() {
-    const title = this.configParam('label');
-    const description = this.paramValue('description_field_name', true);
-    return description ? title + ' ' + description : title;
+    const title = this.configParam("label");
+    const description = this.paramValue("description_field_name", true);
+    return description ? title + " " + description : title;
   }
 
-  schema(typeSchema = 'all'): Object {
+  schema(typeSchema = "all"): Object {
     return this._objService
       .configService()
       .schema(this.moduleCode, this.objectType, typeSchema);
@@ -268,15 +263,15 @@ export class MonitoringObjectBase {
 
   change() {
     return this._objService
-    .configService()
-    .change(this.moduleCode, this.objectType);
+      .configService()
+      .change(this.moduleCode, this.objectType);
   }
 
-  fieldNames(typeDisplay = '') {
-    if (['display_properties', 'display_list'].includes(typeDisplay)) {
+  fieldNames(typeDisplay = "") {
+    if (["display_properties", "display_list"].includes(typeDisplay)) {
       return this.configParam(typeDisplay);
     }
-    if (typeDisplay === 'schema') {
+    if (typeDisplay === "schema") {
       return Object.keys(this.schema());
     }
   }
@@ -286,7 +281,7 @@ export class MonitoringObjectBase {
     const schema = this.schema();
     const fieldLabels = {};
     for (const key of Object.keys(schema)) {
-      fieldLabels[key] = schema[key]['attribut_label'];
+      fieldLabels[key] = schema[key]["attribut_label"];
     }
     return fieldLabels;
   }
@@ -295,30 +290,87 @@ export class MonitoringObjectBase {
     const schema = this.schema();
     const fieldDefinitions = {};
     for (const key of Object.keys(schema)) {
-      fieldDefinitions[key] = schema[key]['definition'];
+      fieldDefinitions[key] = schema[key]["definition"];
     }
     return fieldDefinitions;
   }
 
-
   geoFeature() {
     // patch
-    this.resolvedProperties['object_type'] = this.objectType;
-    this.resolvedProperties['description'] = this.paramValue(
-      'description_field_name',
+    this.resolvedProperties["object_type"] = this.objectType;
+    this.resolvedProperties["description"] = this.paramValue(
+      "description_field_name",
       true
     );
 
     return {
       id: this.id,
       object_type: this.objectType,
-      type: 'Feature',
+      type: "Feature",
       geometry: this.geometry,
-      properties: this.resolvedProperties
+      properties: this.resolvedProperties,
     };
   }
 
   isRoot() {
     return !this.parentTypes().length && this.childrenTypes();
+  }
+
+  /** navigation */
+
+  navigateToAddChildren(childrenType=null) {
+    
+    const queryParamsAddChildren = {};
+    queryParamsAddChildren[this.idFieldName()] = this.id;
+    queryParamsAddChildren["parents_path"] = this.parentsPath.concat(
+      this.objectType
+    );
+    this._objService.navigate(
+      "create_object",
+      this.moduleCode,
+      childrenType || this.uniqueChildrenType(),
+      null,
+      queryParamsAddChildren,
+    );
+  }
+
+  navigateToDetail(id = null) {
+    this._objService.navigate(
+      "object",
+      this.moduleCode,
+      this.objectType,
+      id || this.id,
+      {
+        parents_path: this.parentsPath
+      }
+    );
+  }
+
+  navigateToParent() {
+    // cas module
+    if (this.objectType.includes("module")) {
+      this.navigateToDetail();
+
+      // autres cas
+    } else {
+      const parentType = this.parentType();
+      this.parentsPath.pop();
+      const parent = new this.myClass(
+        this.moduleCode,
+        parentType,
+        null,
+        this._objService
+      );
+      const parentId = this.properties[parent.idFieldName()];
+      this._objService.navigate(
+        "object",
+        this.moduleCode,
+        parentType,
+        parentId,
+        {
+          parents_path: this.parentsPath,
+        }
+      );
+    }
   }
 }
