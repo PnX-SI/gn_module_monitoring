@@ -1,0 +1,50 @@
+{
+  "label": "Aire",
+  "label_list": "Aires",
+
+  "specific": {
+    "id_dataset": {
+      "type_widget": "datalist",
+      "attribut_label": "Jeu de données",
+      "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "params": {
+        "orderby": "dataset_name",
+        "module_code": "__MODULE.MODULE_CODE"
+      },
+      "data_path": "data",
+      "required": true
+    },
+    "commune": {
+        "type_widget": "municipality",
+        "attribut_label": "Commune",
+        "required": true,
+        "definition": "commune"
+      },
+      "categories_paysageres": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Catégories paysagères",
+        "code_nomenclature_type": "CATEGORIE_PAYSAGERE",
+        "required": false,
+        "type_util": "nomenclature"
+      },
+  
+     
+      "comments": {
+          "type_widget": "textarea",
+          "attribut_label": "Commentaires"
+       },
+
+       "sites_group_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom",
+        "required": true,
+        "definition": "Nom du groupe site."
+       
+      }
+     
+  }
+}   

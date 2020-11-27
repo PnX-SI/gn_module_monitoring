@@ -1,0 +1,187 @@
+{
+  "geometry_type": "Line",
+  "label": "Transect",
+  "display_list": [
+    "base_site_name",
+    "base_site_code",
+    "last_visit",
+    "nb_visits"
+  ],
+  "specific": {
+
+      "id_nomenclature_type_site": {
+        "required": false,
+        "hidden": true,
+      "filters": {
+        "cd_nomenclature": ["1", "2", "3"]
+      },
+      "default": {
+        "cd_nomenclature": "1"
+      }
+    },
+    "comments": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaire"
+    },
+    "Type de matériaux": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Type de matériaux",
+      "code_nomenclature_type": "TYPE_MATERIAUX",
+      "required": false,
+      "type_util": "nomenclature"
+
+       },
+  "Saison de prospection": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Saison de prospection",
+    "code_nomenclature_type": "SAISON_PROSPECTION",
+    "required": false,
+    "type_util": "nomenclature"
+    },	
+    "site_protege": {
+      "type_widget": "radio",
+      "attribut_label": "Site protégé",
+      "values": ["Oui", "Non", "Ne sait pas"]
+    },
+    "site_protege_oui": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Si oui, précisez",
+      "code_nomenclature_type": "SITE_PROTEGE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.site_protege != 'Oui'"
+            },
+      "site_protege_autre": {
+        "type_widget": "text",
+        "attribut_label": "Autre (precisez)",
+        "hidden": "({value}) => value.site_protege != 'Oui'"
+      },
+  
+    "longueur_transect": {
+      "type_widget": "number",
+      "attribut_label": "Longueur du transect (en mètres)"
+    },
+    "habitat_a":{
+      "type_widget": "datalist",
+      "attribut_label": "Habitat Eunis côté A",
+      "api": "habref/habitats/autocomplete",
+      "application": "GeoNature",
+      "keyValue": "cd_hab",
+      "keyLabel": "search_name",
+      "type_util": "habitat",
+      "params": {
+          "cd_typo": 7,
+          "search_name": ""
+      }
+    },
+      "habitat_b":{
+        "type_widget": "datalist",
+        "attribut_label": "Habitat Eunis côté B",
+        "api": "habref/habitats/autocomplete",
+        "application": "GeoNature",
+        "keyValue": "cd_hab",
+        "keyLabel": "search_name",
+        "type_util": "habitat",
+        "params": {
+            "cd_typo": 7,
+            "search_name": ""
+        }
+      },
+    "milieu_transect": {
+      "type_widget": "radio",
+      "attribut_label": "Type de milieu sur le transect",
+      "values": ["Milieux bordiers", "Milieux mosaïque végétale basse", "Milieux mosaïque végétale haute", "Milieux structuration végétale homogène", "Milieux Anthropiques"]
+    },
+    "milieu_bordier": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux bordiers",
+      "code_nomenclature_type": "MILIEUX_BORDIERS",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_transect != 'Milieux bordiers'"
+       },
+       "milieu_mosaique_basse": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Milieux mosaïque végétale basse",
+        "code_nomenclature_type": "MILIEUX_MOSAIQUE",
+        "required": false,
+        "type_util": "nomenclature",
+        "hidden": "({value}) => value.milieu_transect != 'Milieux mosaïque végétale basse'"
+      },
+      "milieu_mosaique_haute": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux mosaïque végétale haute",
+      "code_nomenclature_type": "MILIEUX_MOSAIQUE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_transect != 'Milieux mosaïque végétale haute'"
+      },
+      "milieu_homogene": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux structuration végétale homogène",
+      "code_nomenclature_type": "MILIEUX_HOMOGENE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_transect != 'Milieux structuration végétale homogène'"
+        },
+      "milieu_anthropique": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux Anthropiques",
+      "code_nomenclature_type": "MILIEUX_ANTHROPIQUE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_transect != 'Milieux Anthropiques'"
+        },
+        "milieu_transect_autre": {
+        "type_widget": "text",
+        "attribut_label": "Autres (définir)",
+        "hidden": "({value}) => value.milieu_transect != 'Milieux Anthropiques'"
+      },
+      "abri_visible": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Présence d’abris visibles",
+        "code_nomenclature_type": "ABRI_VISIBLE",
+        "required": false,
+        "type_util": "nomenclature"
+      },
+      "frequentation_humaine": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Fréquentation humaine",
+        "code_nomenclature_type": "FREQUENTATION_HUMAINE",
+        "required": false,
+        "type_util": "nomenclature"
+      },
+      "id_sites_group": {
+        "type_widget": "datalist",
+        "attribut_label": "Aire",
+        "type_util": "sites_group",
+        "keyValue": "id_sites_group",
+        "keyLabel": "sites_group_name",
+        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+        "application": "GeoNature",
+        "required": false,
+        "hidden": false
+      },
+      "id_inventor": {
+        "type_widget": "datalist",
+        "attribut_label": "Observateur principal",
+        "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+        "application": "GeoNature",
+        "keyValue": "id_role",
+        "keyLabel": "nom_complet",
+        "type_util": "user",
+        "required": true
+      },
+      "expertise": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Expertise",
+        "code_nomenclature_type": "EXPERTISE",
+        "required": false,
+        "hidden": true,
+        "type_util": "nomenclature"
+      }
+     
+
+    
+  }
+}
