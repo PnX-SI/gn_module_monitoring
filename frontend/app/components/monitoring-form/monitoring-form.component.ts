@@ -93,7 +93,7 @@ export class MonitoringFormComponent implements OnInit {
         // display_form pour customiser l'ordre dans le formulaire
         // les éléments de display form sont placé en haut dans l'ordre du tableau
         // tous les éléments non cachés restent affichés
-        let displayProperties = this.obj.configParam('display_properties');
+        let displayProperties = [ ...(this.obj.configParam('display_properties') || []) ];
         if (displayProperties && displayProperties.length) {
           displayProperties.reverse();
           this.objFormsDefinition.sort( (a, b) => {
