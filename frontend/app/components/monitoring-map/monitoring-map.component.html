@@ -1,9 +1,6 @@
 <div id="geometry" class="monitoring-map-container">
-  <pnx-map
-  [height]="heightMap"
-  [ngClass]="{ 'hide-draw-form': !bEdit }"
-  >
-
+  <pnx-map [height]="heightMap" [ngClass]="{ 'hide-draw-form': !(bEdit && obj && obj.config['geometry_type']) }">
+    
     <pnx-draw-form
       [parentFormControl]="
         objForm && objForm.controls && objForm.controls['geometry']

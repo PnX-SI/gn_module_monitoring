@@ -91,7 +91,6 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSites() {
-    console.log(this._mapService.map)
     this.removeLabels();
     setTimeout(() => {
       this.initPanes();
@@ -125,6 +124,11 @@ export class MonitoringMapComponent implements OnInit {
         layer.removeFrom(this._mapService.map)
       }
     }
+  }
+
+  sendGeoInfo(event) {
+    console.log(event);
+    this.objForm.patchValue({geometry: event})
   }
 
   onEachFeature = (feature, layer) => {

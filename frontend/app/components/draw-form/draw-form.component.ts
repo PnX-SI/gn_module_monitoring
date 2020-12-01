@@ -20,6 +20,8 @@ export class DrawFormComponent implements OnInit {
   public leafletDrawOptions = leafletDrawOptions;
   formValueChangeSubscription;
 
+  public displayed=false;
+
   @Input() parentFormControl: FormControl;
   /** Type de geomtrie parmi : 'Point', 'Polygon', 'LineString' */
   @Input() geometryType: string;
@@ -45,10 +47,12 @@ export class DrawFormComponent implements OnInit {
   initForm() {
 
     if (!(this.geometryType && this.parentFormControl)) {
+      // on cache
+      this.displayed = false;
       return;
     }
 
-
+    this.displayed = true;
     switch (this.geometryType) {
       case 'Point': {
         this.leafletDrawOptions.draw.marker = true;
