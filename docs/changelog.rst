@@ -2,22 +2,39 @@
 CHANGELOG
 =========
 
-0.2.1 (unreleased)
+0.3.0 (unreleased)
 ------------------
 
+* Voir https://github.com/PnX-SI/gn_module_monitoring/compare/develop
+* Version minimale de GeoNature nécessaire ?
+
 **🚀 Nouveautés**
-  * pouvoir définir des champs *dynamiques*, dont les attributs peuvent dépendre des valeurs des autres composants (pour afficher un composant en fonction de la valeur d'autres composants)
-    * exemples dans test
-  * pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
-  * champs data JSONB dans module_complement
-  * gestion des objets qui apparraissent plusieurs fois dans ``tree``
-  * par defaut pour les sites:
-    * ``id_inventor`` = ``currentUser.id_role`` si non défini
-    * ``id_digitizer`` = ``currentUser.id_role`` si non défini
-    * ``first_use_date`` = ``<date courante>`` si non défini
+
+* Amélioration des groupes de sites (#24)
+* Possibilité de charger un fichier GPS ou GeoJSON pour localiser un site (#13)
+* Alimentation massive de la synthèse depuis les données historiques d'un sous-module de suivi (#38)
+* Pouvoir définir des champs *dynamiques*, dont les attributs peuvent dépendre des valeurs des autres composants (pour afficher un composant en fonction de la valeur d'autres composants). Voir les exemples dans le sous-module ``test``
+* Pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
+* Champs data JSONB dans ``module_complement``
+* Gestion des objets qui apparraissent plusieurs fois dans ``tree``
+* Par defaut pour les sites :
+
+  * ``id_inventor`` = ``currentUser.id_role`` si non défini
+  * ``id_digitizer`` = ``currentUser.id_role`` si non défini
+  * ``first_use_date`` = ``<date courante>`` si non défini
 
 **🐛 Corrections**
-  * correction vue synthese
+
+* Correction vue synthese
+* Ajout du champs ``base_site_description`` au niveau de la configuration générique des sites (#58)
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module :
+
+* Autre chose à faire ?
+* Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.0_0.2.1.sql``
+* Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
 
 0.2.0 (2020-10-23)
 ------------------
