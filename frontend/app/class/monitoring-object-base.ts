@@ -301,7 +301,7 @@ export class MonitoringObjectBase {
       return
     }
     const date = new Date(s);
-    if(date == 'Invalid date') {
+    if(date == 'Invalid Date') {
       return
     }
 
