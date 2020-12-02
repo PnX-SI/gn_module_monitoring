@@ -183,7 +183,6 @@ export class MonitoringFormComponent implements OnInit {
 
     this.obj.properties[this.obj.configParam("id_field_Name")] = null;
 
-    console.log(this.obj.properties)
 
     // pq get ?????
     // this.obj.get(0).subscribe(() => {

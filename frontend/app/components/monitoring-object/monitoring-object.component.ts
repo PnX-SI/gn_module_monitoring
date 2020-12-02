@@ -137,7 +137,6 @@ export class MonitoringObjectComponent implements OnInit {
       let sites = null;
       let cur = this.obj;
       do {
-        console.log(cur.objectType, cur.id, cur.children);
         sites = cur["children"]["site"];
         cur = cur.parent();
       }

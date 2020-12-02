@@ -126,11 +126,6 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  sendGeoInfo(event) {
-    console.log(event);
-    this.objForm.patchValue({geometry: event})
-  }
-
   onEachFeature = (feature, layer) => {
     const mapLabelFieldName = this.obj.configParam('map_label_field_name');
     if(!mapLabelFieldName) {
