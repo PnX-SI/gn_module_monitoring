@@ -242,6 +242,10 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.navigateToParent();
   }
  
+  msgToaster(action) {
+    return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim()
+  }
+
   /** TODO améliorer site etc.. */
   onSubmit() {
     const action = this.obj.id
@@ -251,10 +255,8 @@ export class MonitoringFormComponent implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster(
         "success",
-        `${actionLabel} de ${this.obj.configParam("label")} ${
-          this.obj.id
-        } effectuée`
-      );
+        this.msgToaster(actionLabel)
+        );
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
       this.objChanged.emit(this.obj);
 
@@ -283,10 +285,7 @@ export class MonitoringFormComponent implements OnInit {
 
   onDelete() {
     this.bDeleteSpinner = true;
-    const msg_delete = `${this.obj.template["label"]} ${
-      this.obj.id
-    } supprimé. parent ${this.obj.parentType()} ${this.obj.parentId()}`;
-    this._commonService.regularToaster("info", msg_delete);
+    this._commonService.regularToaster("info", this.msgToaster('Suppression'));
 
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;

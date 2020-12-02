@@ -1,12 +1,9 @@
-<!-- <pre>
-  {{this.chainShow|json}}
-</pre> -->
 <pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="obj && obj.bIsInitialized">
   <h2>Attention</h2>
   <p>
-    Vous êtes sur le point de supprimer l'élément
-    {{ this.obj.template["label"] }}
-    {{ this.obj.template["description"] }}
+    Vous êtes sur le point de supprimer
+    {{ this.obj.template["label_art_def"] }}
+    <b>{{ this.obj.template["description"] }}</b>
   </p>
   <button class="btn btn-danger float-right" (click)="onDelete()">
     <span
@@ -28,23 +25,21 @@
     class="cadre"
     *ngIf="obj.bIsInitialized && objFormsDefinition"
   >
-    <h3>
-      {{ obj.id ? "Modification" : "Création" }}<span
-        *ngIf="!obj.id"
-        id="toggle-btn"
-        class="float-right"
-        matTooltip="Enchainer les saisies"
-        matTooltipPosition="left"
+    <span
+      *ngIf="!obj.id && obj.config['chained']"
+      id="toggle-btn"
+      class="float-right"
+      matTooltip="Enchainer les saisies"
+      matTooltipPosition="left"
+    >
+      <i class="fa fa-repeat" aria-hidden="true"></i>
+      <mat-slide-toggle
+        color="primary"
+        [(ngModel)]="bChainInput"
+        (change)="bChainInputChanged($event)"
       >
-        <i class="fa fa-repeat" aria-hidden="true"></i>
-        <mat-slide-toggle
-          color="primary"
-          [(ngModel)]="bChainInput"
-          (change)="bChainInputChanged($event)"
-        >
-        </mat-slide-toggle>
-      </span>
-    </h3>
+      </mat-slide-toggle>
+    </span>
     <!-- <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
       <mat-form-field>
         <mat-label>Garder les valeurs</mat-label>
@@ -58,17 +53,16 @@
       </mat-form-field>
       <hr />
     </div> -->
-
     <form [formGroup]="objForm">
-      <p class="alert alert-warning" *ngIf="obj.config['geometry_type'] && !objForm.value.geometry">
-          <span>
-            Veuillez saisir une géométrie sur la carte
-          </span>
+      <p
+        class="alert alert-warning"
+        *ngIf="obj.config['geometry_type'] && !objForm.value.geometry"
+      >
+        <span> Veuillez saisir une géométrie sur la carte </span>
       </p>
 
-      
       <!-- composant choix de site select + filtre -->
- 
+
       <pnx-dynamic-form-generator
         class="obj-form"
         #dynamicForm
@@ -80,29 +74,28 @@
       ></pnx-dynamic-form-generator>
 
       <div>
-
         <button
-        *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
-        class="btn btn-success float-right"
-        (click)="bSaveAndAddChildrenSpinner=bAddChildren=true; onSubmit();"
-        [disabled]="!objForm.valid"
-      >
-        <span
-          [ngClass]="{ 'hide-spinner': !bSaveAndAddChildrenSpinner }"
-          class="spinner-border spinner-border-sm float-right"
-          role="status"
-          aria-hidden="true"
-        ></span>
-
-        <span
-          >Valider et saisir des {{obj.uniqueChildrenName()}}</span
+          *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
+          class="btn btn-success float-right"
+          (click)="bSaveAndAddChildrenSpinner = bAddChildren = true; onSubmit()"
+          [disabled]="!objForm.valid"
         >
-      </button>
+          <span
+            [ngClass]="{ 'hide-spinner': !bSaveAndAddChildrenSpinner }"
+            class="spinner-border spinner-border-sm float-right"
+            role="status"
+            aria-hidden="true"
+          ></span>
 
+          <span
+            >Valider et saisir des
+            {{ obj.uniqueChildrenName().toLowerCase() }}</span
+          >
+        </button>
 
         <button
           class="btn btn-success float-right"
-          (click)="bSaveSpinner=true; onSubmit()"
+          (click)="bSaveSpinner = true; onSubmit()"
           [disabled]="!objForm.valid"
         >
           <span

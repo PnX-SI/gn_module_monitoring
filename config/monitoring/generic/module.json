@@ -3,6 +3,7 @@
   "id_field_name": "id_module",
   "description_field_name": "module_label",
   "label": "Module",
+  "genre": "M",
   "uuid_field_name": "uuid_module_complement",
   "display_properties": [ 
     "module_label",

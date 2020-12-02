@@ -6,7 +6,7 @@ CHANGELOG
 ------------------
 
 * Voir https://github.com/PnX-SI/gn_module_monitoring/compare/develop
-* Version minimale de GeoNature nécessaire ?
+* Version minimale de GeoNature nécessaire 2.5.5
 
 **🚀 Nouveautés**
 
@@ -17,7 +17,9 @@ CHANGELOG
 * Pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
 * Champs data JSONB dans ``module_complement``
 * Gestion des objets qui apparraissent plusieurs fois dans ``tree``
+  * un objet peut avoir plusieurs `parents`
 * Par defaut pour les sites :
+
 
   * ``id_inventor`` = ``currentUser.id_role`` si non défini
   * ``id_digitizer`` = ``currentUser.id_role`` si non défini

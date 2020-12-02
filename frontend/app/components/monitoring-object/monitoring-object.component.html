@@ -31,7 +31,7 @@
       ></pnx-monitoring-breadcrumbs>
 
       <div>
-        <h3>{{ obj.template['title'] }}</h3>
+        <span class='obj-title' *ngIf="obj.bIsInitialized" [innerHTML]="obj.titleHTML(this.bEdit)"></span>
       </div>
       <div *ngIf="!moduleSet && obj.bIsInitialized" class="alert alert-warning">
         <p>Le module n'est pas encore configuré.</p>

@@ -35,6 +35,7 @@
         <a
           class="nav-link link cell-link"
           (click)="child0.navigateToDetail(row.id)"
+          matTooltip="Consulter {{child0.template.label_art_def}}"
         >
           <i class="fa fa-info-circle" aria-hidden="true"></i>
         </a>
@@ -67,11 +68,11 @@
     </div>
     <div class="header-filter-span">
       <input
+        *ngIf="child0.config['display_filter']"
         [(ngModel)]="filters[column.prop]"
         (input)="filterInput($event)"
         type="text"
       />
-      <!-- {{ filters[column.prop] }} -->
     </div>
   </ng-template>
 </div>

@@ -2,7 +2,9 @@
   "cruved": {"C":1, "U":1, "D": 1},
   "id_field_name": "id_observation",
   "description_field_name": "id_observation",
+  "chained": true,
   "label": "Observation",
+  "genre": "F",
   "display_properties": ["cd_nom", "comments"],
   "uuid_field_name": "uuid_observation",
   "generic": {

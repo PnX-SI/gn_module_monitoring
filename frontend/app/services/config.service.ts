@@ -151,6 +151,11 @@ export class ConfigService {
     }
   }
 
+  configModuleObject(moduleCode: string, objectType: string) {
+    moduleCode = moduleCode || "generic";
+    return this._config[moduleCode][objectType];
+  }
+
   /**
    * Renvoie un element de configuration d'un objet pour un module donné
    *
@@ -161,8 +166,7 @@ export class ConfigService {
     objectType: string,
     fieldName: string
   ) {
-    moduleCode = moduleCode || "generic";
-    const confObject = this._config[moduleCode][objectType];
+    const confObject = this.configModuleObject(moduleCode, objectType);
     return confObject ? confObject[fieldName] : null;
   }
 

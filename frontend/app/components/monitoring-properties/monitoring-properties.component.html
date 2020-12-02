@@ -12,6 +12,7 @@
         >Propriétés</a
       >
       <a
+        *ngIf="obj.properties.medias && obj.properties.medias.length"
         class="nav-item nav-link"
         id="nav-medias-tab"
         data-toggle="tab"
@@ -57,6 +58,7 @@
       id="medias-tab"
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
+      *ngIf="obj.properties.medias && obj.properties.medias.length"
     >
       <ng-container *ngFor="let media of obj.properties.medias; index as i">
         <div class="medias-tab">
@@ -91,7 +93,7 @@
         currentUser?.cruved.U >= obj.cruved('U')
       "
     >
-      Éditer {{ (obj.template.label || "").toLowerCase() }}
+      Éditer {{ (obj.template.label_art_def || "") }}
     </button>
 
     <!-- Mise à jour de la synthèse (Admin) -->

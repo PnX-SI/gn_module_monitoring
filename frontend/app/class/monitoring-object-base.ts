@@ -1,5 +1,6 @@
 import { Observable, of } from "@librairies/rxjs";
 import { concatMap } from "@librairies/rxjs/operators";
+import { threadId } from "worker_threads";
 
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
@@ -33,7 +34,7 @@ export class MonitoringObjectBase {
 
   template = {};
 
-  configParams = ["geometry_type"];
+  // configParams = ["geometry_type", "chained"];
   config = {};
 
   public _objService: MonitoringObjectService;
@@ -61,19 +62,53 @@ export class MonitoringObjectBase {
     return `Object - ${this.moduleCode} ${this.objectType} ${this.id}`;
   }
 
+  labelArtDef() {
+    return (
+      (["aeiouy"].includes(this.configParam("label"))
+        ? "l'"
+        : this.configParam("genre") == "F"
+        ? "la "
+        : "le ") + this.configParam("label").toLowerCase()
+    );
+  }
+
+  labelDu() {
+    return (
+      (["aeiouy"].includes(this.configParam("label"))
+        ? "de l'"
+        : this.configParam("genre") == "F"
+        ? "de la "
+        : "du ") + this.configParam("label").toLowerCase()
+    );
+  }
+
+
+  labelArtUndef(newObj = false) {
+    const strNew =
+      (newObj && this.configParam("genre") == "F" ? "nouvelle " : "nouveau ") ||
+      "";
+
+    return (
+      (this.configParam("genre") == "F" ? `une ` : `un `) +
+      strNew +
+      this.configParam("label").toLowerCase()
+    );
+  }
+
+
   initTemplate() {
     this.template["idTableLocation"] = this.configParam("id_table_location");
     this.template["label"] = this.configParam("label");
+    this.template["label_art_def"] = this.labelArtDef();
+    this.template["label_art_undef"] = this.labelArtUndef();
+    this.template["label_art_undef_new"] = this.labelArtUndef(true);
     this.template["label_list"] =
       this.configParam("label_list") || this.configParam("label") + "s";
 
-    this.template["title"] = this.title();
+    // this.template["title"] = this.title();
 
     this.template["uuid"] = this.paramValue("uuid_field_name");
-    this.template["description"] = this.paramValue(
-      "description_field_name",
-      true
-    );
+    this.template["description"] = this.description()
 
     this.template["fieldLabels"] = this.fieldLabels();
     this.template["fieldNames"] = this.fieldNames("display_properties");
@@ -82,9 +117,10 @@ export class MonitoringObjectBase {
   }
 
   setConfig() {
-    for (const configParam of this.configParams) {
-      this.config[configParam] = this.configParam(configParam);
-    }
+    this.config = this._objService.configService().configModuleObject(this.moduleCode, this.objectType);
+    // for (const configParam of this.configParams) {
+    //   this.config[configParam] = this.configParam(configParam);
+    // }
   }
 
   setData(data) {
@@ -226,7 +262,7 @@ export class MonitoringObjectBase {
       this._objService
     );
     child0.parentsPath = [...this.parentsPath];
-    child0.parentsPath.push(this.objectType)
+    child0.parentsPath.push(this.objectType);
 
     child0.setConfig();
     child0.initTemplate();
@@ -249,10 +285,47 @@ export class MonitoringObjectBase {
     }
   }
 
-  title() {
-    const title = this.configParam("label");
-    const description = this.paramValue("description_field_name", true);
-    return description ? title + " " + description : title;
+  title(bEdit = false) {
+    const description = this.description();
+    const text = bEdit
+    ? this.id
+      ? `Modification ${this.labelDu()} ${description}`
+      : `Création d'${this.labelArtUndef(true)}`
+    : `Détails ${this.labelDu()} ${description}` ;
+    
+    return text.trim();
+  }
+
+  date(s) {
+    if (!s){
+      return
+    }
+    const date = new Date(s);
+    if(date == 'Invalid date') {
+      return
+    }
+
+    return `du ${date.toLocaleDateString()}`
+  }
+
+  description() {
+    // TODO process date ?? multi champs
+    let description = this.paramValue("description_field_name", true);
+    let sDate = this.date(description);
+    return sDate || description;
+
+  }
+
+  titleHTML(bEdit = false) {
+    let description = this.description();
+    description = description ? `<span class="obj-description">${description}</span>` : '';
+    const text = bEdit
+    ? this.id
+      ? `Modification ${this.labelDu()} ${description}`
+      : `Création d'${this.labelArtUndef(true)}`
+    : `Détails ${this.labelDu()} ${description}` ;
+    
+    return text.trim();
   }
 
   schema(typeSchema = "all"): Object {
@@ -298,10 +371,7 @@ export class MonitoringObjectBase {
   geoFeature() {
     // patch
     this.resolvedProperties["object_type"] = this.objectType;
-    this.resolvedProperties["description"] = this.paramValue(
-      "description_field_name",
-      true
-    );
+    this.resolvedProperties["description"] = this.description();
 
     return {
       id: this.id,
@@ -318,8 +388,7 @@ export class MonitoringObjectBase {
 
   /** navigation */
 
-  navigateToAddChildren(childrenType=null) {
-    
+  navigateToAddChildren(childrenType = null) {
     const queryParamsAddChildren = {};
     queryParamsAddChildren[this.idFieldName()] = this.id;
     queryParamsAddChildren["parents_path"] = this.parentsPath.concat(
@@ -330,7 +399,7 @@ export class MonitoringObjectBase {
       this.moduleCode,
       childrenType || this.uniqueChildrenType(),
       null,
-      queryParamsAddChildren,
+      queryParamsAddChildren
     );
   }
 
@@ -341,7 +410,7 @@ export class MonitoringObjectBase {
       this.objectType,
       id || this.id,
       {
-        parents_path: this.parentsPath
+        parents_path: this.parentsPath,
       }
     );
   }
