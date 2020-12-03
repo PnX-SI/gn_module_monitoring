@@ -18,6 +18,8 @@ CHANGELOG
 * Champs data JSONB dans ``module_complement``
 * Gestion des objets qui apparraissent plusieurs fois dans ``tree``
   * un objet peut avoir plusieurs `parents`
+* Améliorations grammaticales et possibilité de genrer les objets
+* choisir la possibilité d'afficher le bouton saisie multiple
 * Par defaut pour les sites :
 
 
@@ -27,6 +29,9 @@ CHANGELOG
 
 **🐛 Corrections**
 
+* Amélioration du titre
+  * lisibilité
+  * date francaise
 * Correction vue synthese
 * Ajout du champs ``base_site_description`` au niveau de la configuration générique des sites (#58)
 
