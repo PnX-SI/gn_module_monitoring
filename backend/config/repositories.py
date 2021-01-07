@@ -146,6 +146,9 @@ def get_config(module_code=None, verification_date=False):
             var_name = '__MODULE.{}'.format(field_name.upper())
             config['custom'][var_name] = getattr(module, field_name)
         config['custom']['__MONITORINGS_PATH'] = get_monitorings_path()
+
+        # Remplacement des variables __MODULE.XXX
+        #   par les valeurs spécifiées en base
         customize_config(config, config['custom'])
 
         # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
