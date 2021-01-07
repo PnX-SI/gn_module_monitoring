@@ -34,7 +34,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
 
     for object_type in tree:
         # config object
-        if not object_type in config: 
+        if not object_type in config:
             config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
@@ -47,7 +47,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
 
         if not 'parent_types' in config[object_type]:
             config[object_type]['parent_types'] = []
-            
+
         if parent_type:
             config[object_type]['parent_types'].append(parent_type)
         config[object_type]['parent_types'] = list(dict.fromkeys(config[object_type]['parent_types']))
@@ -107,7 +107,6 @@ def get_config(module_code=None, verification_date=False):
     if not os.path.exists(module_confg_dir_path):
         return None
 
-
     config = current_app.config.get(config_cache_name, {}).get(module_code)
 
     # pour ne pas verifier  a chaques fois
@@ -127,8 +126,6 @@ def get_config(module_code=None, verification_date=False):
 
     if config and config.get('last_modif', 0) >= last_modif:
         return config
-
-    print('config_get')
 
     config = config_from_files('config', module_code)
     get_config_objects(module_code, config)
@@ -153,7 +150,6 @@ def get_config(module_code=None, verification_date=False):
 
         # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
         config['data'] = get_data_preload(config, module)
-
 
     # mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(config_cache_name, {}):
