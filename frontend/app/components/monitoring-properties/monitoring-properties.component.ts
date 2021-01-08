@@ -39,10 +39,17 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   updateSynthese() {
     this.bUpdateSyntheseSpinner = true;
-    this._dataService.updateSynthese(this.obj.moduleCode).subscribe(() => {
-      this.bUpdateSyntheseSpinner = false;
-      this._commonService.regularToaster('success', `La syntèse à été mise à jour pour le module ${this.obj.moduleCode}`);
-    });
+    this._dataService.updateSynthese(this.obj.moduleCode).subscribe(
+      () => {
+        this.bUpdateSyntheseSpinner = false;
+        this._commonService.regularToaster('success', `La syntèse à été mise à jour pour le module ${this.obj.moduleCode}`);
+      },
+      (err) => {
+        console.log(err)
+        this.bUpdateSyntheseSpinner = false;
+        this._commonService.regularToaster('error', `Erreur lors de la mise à jour de la syntèse pour le module ${this.obj.moduleCode} - ${err.error.message}`);
+      }
+    );
   }
 
 }

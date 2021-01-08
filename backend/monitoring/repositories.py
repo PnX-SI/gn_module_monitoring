@@ -30,7 +30,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
             req = (
                 DB.session.query(Model)
-            )   
+            )
 
             # Test pour mettre les relations à joined
             # if depth > 0:
@@ -65,7 +65,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
     def process_synthese(self, process_module=False, limit=1000):
 
-        # test du parametre synthese 
+        # test du parametre synthese
         if not self.config().get('synthese'):
             return
 
@@ -99,6 +99,9 @@ class MonitoringObject(MonitoringObjectSerializer):
                     e
                 )
             )
+            return {"message": '{}'.format(e)}, 500
+        except Exception as e:
+            return {"message": '{}'.format(e)}, 500
 
         return True
 
@@ -157,7 +160,7 @@ class MonitoringObject(MonitoringObjectSerializer):
     def breadcrumb(self, params):
 
         if not self._id:
-            return 
+            return
 
 
         breadcrumb = {
@@ -172,7 +175,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             breadcrumb['params'] = {
                 'parents_path': [parent for parent in params['parents_path']]
             }
-    
+
         return breadcrumb
 
     def breadcrumbs(self, params):
@@ -206,11 +209,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             get_list(request.args.to_dict())
 
             TODO ajouter sort, page ou autres avec args
-            TODO traiter geojson ?? 
+            TODO traiter geojson ??
             TODO filtrer par module ++++
         '''
 
-        # test si présent dans le module 
+        # test si présent dans le module
         # sinon []
 
         if not self.config().get(self._object_type):
