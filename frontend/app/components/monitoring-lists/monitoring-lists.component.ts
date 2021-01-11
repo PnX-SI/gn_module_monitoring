@@ -20,7 +20,6 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() currentUser;
 
-
   frontendModuleMonitoringUrl;
   backendUrl: string;
 

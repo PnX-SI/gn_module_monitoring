@@ -27,7 +27,7 @@ def to_int_cruved(cruved):
     return cruved
 
 
-def cruved_scope_for_user_in_monitoring_module(module_code=None):
+def cruved_scope_for_user_in_monitoring_module(module_code=None, object_code=None):
     user = get_user_from_token_and_raise(request)
 
     cruved_module = {
@@ -51,11 +51,15 @@ def cruved_scope_for_user_in_monitoring_module(module_code=None):
     if module_code and module_code != 'null':
         module = get_module('module_code', module_code)
         if module:
-            cruved_module, herited = cruved_scope_for_user_in_module(user['id_role'], module.module_code, 'ALL')
+            # !! PB avec object_code = ALL donne la liste de tous les modules
+            # cruved_module, herited = cruved_scope_for_user_in_module(user['id_role'], module.module_code, 'ALL')
+            cruved_module, herited = cruved_scope_for_user_in_module(user['id_role'], module.module_code, object_code)
             if not herited:
                 return to_int_cruved(cruved_module)
 
-    cruved_monitorings, herited = cruved_scope_for_user_in_module(user['id_role'], 'MONITORINGS', 'ALL')
+    # !! PB avec object_code = ALL donne la liste de tous les modules
+    # cruved_monitorings, herited = cruved_scope_for_user_in_module(user['id_role'], 'MONITORINGS', 'ALL')
+    cruved_monitorings, herited = cruved_scope_for_user_in_module(user['id_role'], 'MONITORINGS', object_code)
     if not herited:
         return to_int_cruved(cruved_monitorings)
 
