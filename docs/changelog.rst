@@ -2,7 +2,16 @@
 CHANGELOG
 =========
 
-0.3.0 (unreleased)
+0.2.2 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+**🐛 Corrections**
+
+**⚠️ Notes de version**
+
+0.2.1 (2021-01-14)
 ------------------
 
 * Voir https://github.com/PnX-SI/gn_module_monitoring/compare/develop
