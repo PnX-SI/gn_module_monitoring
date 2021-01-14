@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-0.3.0 (unreleased)
+0.2.1
 ------------------
 
 * Voir https://github.com/PnX-SI/gn_module_monitoring/compare/develop
@@ -39,7 +39,6 @@ CHANGELOG
 
 Si vous mettez à jour le module :
 
-* Autre chose à faire ?
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.0_0.2.1.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
 
