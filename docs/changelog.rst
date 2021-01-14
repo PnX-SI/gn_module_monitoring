@@ -51,6 +51,7 @@ Si vous mettez à jour le module :
 * Autre chose à faire ?
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.0_0.2.1.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
+* Les fichiers config_data.json, custom.json, et/ou la variable data dans config.json ne sont plus nécessaire et ces données sont désormais gérée automatiquement depuis la config.
 
 0.2.0 (2020-10-23)
 ------------------
