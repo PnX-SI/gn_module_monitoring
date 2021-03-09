@@ -2,11 +2,11 @@
 CHANGELOG
 =========
 
-0.3.0 (unreleased)
+0.2.1 (2021-01-14)
+=======
 ------------------
 
-* Voir https://github.com/PnX-SI/gn_module_monitoring/compare/develop
-* Version minimale de GeoNature nécessaire 2.5.5
+* Version minimale de GeoNature nécessaire : 2.5.5
 
 **🚀 Nouveautés**
 
@@ -16,12 +16,10 @@ CHANGELOG
 * Pouvoir définir des champs *dynamiques*, dont les attributs peuvent dépendre des valeurs des autres composants (pour afficher un composant en fonction de la valeur d'autres composants). Voir les exemples dans le sous-module ``test``
 * Pouvoir definir une fonction ``change`` dans les fichiers ``<object_type>.json`` qui est exécutée à chaque changement du formulaire.
 * Champs data JSONB dans ``module_complement``
-* Gestion des objets qui apparraissent plusieurs fois dans ``tree``
-  * un objet peut avoir plusieurs `parents`
+* Gestion des objets qui apparraissent plusieurs fois dans ``tree``. Un objet peut avoir plusieurs `parents`
 * Améliorations grammaticales et possibilité de genrer les objets
-* choisir la possibilité d'afficher le bouton saisie multiple
+* Choisir la possibilité d'afficher le bouton saisie multiple
 * Par defaut pour les sites :
-
 
   * ``id_inventor`` = ``currentUser.id_role`` si non défini
   * ``id_digitizer`` = ``currentUser.id_role`` si non défini
@@ -29,19 +27,18 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Amélioration du titre
-  * lisibilité
-  * date francaise
-* Correction vue synthese
+* Amélioration du titre (lisibilité et date francaise)
+* Correction de la vue alimentant la synthèse
 * Ajout du champs ``base_site_description`` au niveau de la configuration générique des sites (#58)
 
 **⚠️ Notes de version**
 
 Si vous mettez à jour le module :
 
-* Autre chose à faire ?
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.0_0.2.1.sql``
+* Pour mettre à jour la base de données, exécutez le fichier ``data/migration/migration_0.2.0_0.2.1.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
+* Les fichiers ``config_data.json``, ``custom.json``, et/ou la variable `data` dans ``config.json`` ne sont plus nécessaires et ces données sont désormais gérées automatiquement depuis la configuration.
 
 0.2.0 (2020-10-23)
 ------------------
