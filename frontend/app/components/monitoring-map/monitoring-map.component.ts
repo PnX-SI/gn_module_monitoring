@@ -37,7 +37,7 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() heightMap;
 
-  
+
   bListen = true;
   panes = {};
   renderers = {};
@@ -115,7 +115,7 @@ export class MonitoringMapComponent implements OnInit {
 
   removeLabels() {
     if (!this._mapService.map) {
-      return 
+      return
     }
     const layers =this._mapService.map['_layers'];
     for (const key of Object.keys(layers)) {
@@ -141,10 +141,12 @@ export class MonitoringMapComponent implements OnInit {
       direction: 'top',
       className: 'text',
       removeOnInit: true,
-  })
+    })
     .setContent(textValue)
     .setLatLng(layer.getLatLng());
+    layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
+
   }
 
   onLayerClick(site) {
@@ -242,6 +244,7 @@ export class MonitoringMapComponent implements OnInit {
     // layer.addTo(map);
 
 
+
     if (status['selected']) {
 
       if (!layer._popup) {
@@ -253,6 +256,21 @@ export class MonitoringMapComponent implements OnInit {
 
     if (!status['visible'] || !status['selected']) {
       layer.closePopup();
+    }
+
+    // Affichage des tooltips uniquement si la feature est visible
+    if (layer.getTooltip) {
+      var toolTip = layer.getTooltip();
+      if (style_name == 'hidden') {
+          if (toolTip) {
+            map.closeTooltip(toolTip);
+          }
+      }
+      else {
+        if (toolTip) {
+          map.addLayer(toolTip);
+        }
+      }
     }
   }
 
