@@ -31,13 +31,13 @@
 
         <div
           class="btn-height"
-          *ngIf="obj.moduleCode && currentUser?.cruved.C >= child0.cruved('C')"
+          *ngIf="obj.moduleCode && currentUser?.cruved.R >= child0.cruved('R')"
         >
           <div class="btn-float-right">
             <button
             *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-info"
-              (click)="child0.config['display_filter'] = !child0.config['display_filter']" 
+              (click)="child0.config['display_filter'] = !child0.config['display_filter']"
               matTooltip="{{child0.config['display_filter'] ? 'Cacher' : 'Afficher'}} les filtres"
               ><i class="fa fa-filter" aria-hidden="true"></i></button
             >
@@ -45,7 +45,7 @@
             <button
             *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-success float-right"
-              (click)="obj.navigateToAddChildren(child0.objectType)" 
+              (click)="obj.navigateToAddChildren(child0.objectType)"
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label_art_undef_new"] || "") }}</button
             >
