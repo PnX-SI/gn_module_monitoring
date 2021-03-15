@@ -10,8 +10,10 @@ from flask.cli import AppGroup, with_appcontext
 from sqlalchemy import and_
 from sqlalchemy.sql import text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB
+from geonature.core.gn_permissions.models import CorObjectModule, TObjects
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from ..monitoring.models import TMonitoringModules
@@ -42,10 +44,10 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
 
     # on enleve le '/' de la fin de module_config_dir_path
     if module_config_dir_path[-1] == '/':
-        module_config_dir_path = module_config_dir_path[:-1]    
-    
+        module_config_dir_path = module_config_dir_path[:-1]
+
     module_code = module_code or module_config_dir_path.split('/')[-1]
-            
+
     print('Install module {}'.format(module_code))
 
     module_monitoring = get_simple_module('module_code', 'MONITORINGS')
@@ -115,6 +117,10 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     DB.session.add(module)
     DB.session.commit()
 
+    # Insert permission object
+    if "permission_objects" in config:
+        id_module = module.id_module
+        insert_permission_object(id_module, config)
 
     #  run specific sql
     if os.path.exists(module_config_dir_path + '/synthese.sql'):
@@ -172,6 +178,67 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     # TODO ++++ create specific tables
 
     return
+
+
+def insert_permission_object(id_module, permissions):
+    """ Insertion de l'association permission object
+
+        Args:
+            id_module ([type]): id du module
+            permissions ([type]): liste des permissions à associer au module
+
+        Raises:
+            e: [description]
+    """
+    for perm in permissions:
+        print(f"Insert perm {perm}")
+        #load object
+        try:
+            object = DB.session.query(TObjects).filter(TObjects.code_object==perm).one()
+             # save
+            obj_mod = CorObjectModule(id_module=id_module, id_object = object.id_object)
+
+            try:
+                DB.session.add(obj_mod)
+                DB.session.commit()
+                print(f"    Ok")
+            except IntegrityError:
+                DB.session.rollback()
+                print(f"    Impossible d'insérer la permission {perm} pour des raisons d'intégrités")
+        except NoResultFound as e:
+            print(f"    Permission {perm} does'nt exists")
+        except Exception as e:
+            print(f"    Impossible d'insérer la permission {perm} :{e}")
+
+
+
+@monitorings_cli.command('update_perm')
+@click.argument('module_code')
+@with_appcontext
+def update_perm_module_cmd(module_code):
+    try:
+        module = get_module('module_code', module_code)
+    except Exception:
+        print("le module n'existe pas")
+        return
+    path_module = CONFIG_PATH + '/' + module_code + '/module.json'
+
+    if not os.path.exists(path_module):
+        print(f"Il n'y a pas de fichier {path_module} pour ce module")
+        return
+    config_module = json_from_file(path_module, None)
+    if not config_module:
+        print('Il y a un problème avec le fichier {}'.format(path_module))
+        return
+
+    print(f"Insertion des objets de permissions pour le module {module_code}")
+    # Insert permission object
+    if "permission_objects" in config_module:
+        id_module = module.id_module
+        insert_permission_object(id_module, config_module["permission_objects"])
+    else:
+        print("no permission")
+
 
 
 @monitorings_cli.command('remove')
