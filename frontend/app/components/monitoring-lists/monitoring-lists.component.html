@@ -12,17 +12,18 @@
         role="tab"
         attr.aria-controls="nav-{{ child0.objectType }}"
         aria-selected="true"
+        (click)="changeActiveTab(child0.objectType)"
         >{{ child0.template["label_list"] }} {{displayNumber(child0.objectType)}}
       </a>
     </div>
   </nav>
 
   <!-- tab content -->
-  <div class="tab-content" id="nav-tabContent">
+  <div class="tab-content" id="nav-tabContent" >
     <div
       *ngFor="let child0 of children0Array; first as isFirst"
       class="tab-pane fade show"
-      [ngClass]="{ active: isFirst }"
+      [ngClass]="{ active: activetab == child0.objectType }"
       id="nav-{{ child0.objectType }}"
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
@@ -30,7 +31,7 @@
       <div class="list-children" *ngIf="child0.objectType as childrenType">
         <div
           class="btn-height"
-          *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')"
+          *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).R >= child0.cruved('R')"
         >
           <div class="btn-float-right">
             <button
