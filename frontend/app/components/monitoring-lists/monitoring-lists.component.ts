@@ -20,6 +20,7 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() currentUser;
 
+  activetab:string;
 
   frontendModuleMonitoringUrl;
   backendUrl: string;
@@ -59,6 +60,7 @@ export class MonitoringListComponent implements OnInit {
     this.backendUrl = this._configService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
+    this.activetab = this.children0Array[0].objectType;
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
@@ -67,11 +69,32 @@ export class MonitoringListComponent implements OnInit {
 
   onSelectedChildren(typeObject, event) {
     this.objectsStatus[typeObject] = event;
-    if (typeObject === 'site') {
-      this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
-    }
+    let status_type = Utils.copy(this.objectsStatus)
+    status_type["type"] = typeObject
+    this.objectsStatusChange.emit(status_type);
   }
 
+  changeActiveTab(typeObject) {
+    this.activetab = typeObject;
+    // Réinitialisation des données selectés
+    this.objectsStatusChange.emit(this.reInitStatut());
+  }
+
+  reInitStatut() {
+    let status_type = Utils.copy(this.objectsStatus)
+    for (let typeObject in status_type) {
+      if (Array.isArray(status_type[typeObject])) {
+        for (let i in status_type[typeObject]) {
+          try {
+            status_type[typeObject][i]["selected"] = false;
+          } catch (error) {
+            console.log(error.message,  status_type[typeObject][i])
+          }
+        }
+      }
+    }
+    return status_type
+  }
   onbEditChanged(event) {
     this.bEditChange.emit(event);
   }

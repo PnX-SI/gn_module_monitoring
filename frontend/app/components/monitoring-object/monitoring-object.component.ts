@@ -276,4 +276,5 @@ export class MonitoringObjectComponent implements OnInit {
     }
     this.getModuleSet();
   }
+
 }
