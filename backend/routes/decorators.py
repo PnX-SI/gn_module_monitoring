@@ -51,7 +51,7 @@ def cruved_scope_for_user_in_monitoring_module(module_code=None, object_code=Non
 
     cruved_module, herited = cruved_scope_for_user_in_module(
         id_role=user["id_role"],
-        module_code=module.module_code,
+        module_code=module_code,
         object_code=object_code,
         append_to_select=append,
     )
