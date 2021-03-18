@@ -389,7 +389,7 @@ La chaine de caractère qui décrit la fonction doit être de la forme suivante:
 
 .. code-block:: JSON
 
-"hidden": "({value, attribut_name, }) => { return value.id == 't' }"
+  "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 
 
 Le format JSON ne permet pas les saut de ligne dans les chaines de caractère,
@@ -398,11 +398,11 @@ et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut 
 
 .. code-block:: JSON
 
-"hidden": [
-    "({value, attribut_name, }) => {",
-    "return value.id == 't'",
-    "}"
-]
+    "hidden": [
+        "({value, attribut_name, }) => {",
+        "return value.id == 't'",
+        "}"
+    ]
 
 
 Le lignes seront coléés entre elle avec l'ajout de saut de lignes (caractère `\n`.
@@ -543,16 +543,16 @@ Actuellement le CRUVED est implémenté de manière partielle au niveau du modul
 
 Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
 Par défaut les valeurs définies du cruved sont :
- - `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
- - `site.json` : "cruved": {"C":1, "U":1, "D": 1},
- - `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
- - `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
- 
+
+- `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `site.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
+- `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
+
 
 Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
 
 .. code-block:: JSON
-  
   "cruved": {"C": 3, "U": 3, "D": 3},
 
 
