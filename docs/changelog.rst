@@ -2,6 +2,21 @@
 CHANGELOG
 =========
 
+0.2.2 (unrelease)
+=======
+
+* Version minimale de GeoNature nécessaire : 2.5.5
+
+**🚀 Nouveautés**
+
+* Gestion des permissions par objet (site, groupe de site, visite, observation)
+* Interraction carte liste pour les groupes de site
+
+**🐛 Corrections**
+
+* Affichage des tooltips pour les objets cachés #76
+
+
 0.2.1 (2021-01-14)
 =======
 ------------------
@@ -73,9 +88,9 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 
 Si vous mettez à jour le module depuis la version 0.1.0 :
 
-* Les fichiers ``custom.json`` ne sont plus utiles (la configuration spécifique à une installation (liste utilisateurs, etc..) 
+* Les fichiers ``custom.json`` ne sont plus utiles (la configuration spécifique à une installation (liste utilisateurs, etc..)
 est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
-* Dans les fichiers ``config.json``, la variable ``data`` (pour précharger les données (nomenclatures, etc..)) est désormais calculée depuis la configuration. 
+* Dans les fichiers ``config.json``, la variable ``data`` (pour précharger les données (nomenclatures, etc..)) est désormais calculée depuis la configuration.
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.1.0_0.2.0.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
 

@@ -216,6 +216,14 @@ def insert_permission_object(id_module, permissions):
 @click.argument('module_code')
 @with_appcontext
 def update_perm_module_cmd(module_code):
+    """
+       Mise à jour (uniquement insertion) des objets permissions associés au module
+       Défini par le paramètre permission_objects du fichier module.json
+
+    Args:
+        module_code ([string]): code du sous module
+
+    """
     try:
         module = get_module('module_code', module_code)
     except Exception:
