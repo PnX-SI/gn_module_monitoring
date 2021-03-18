@@ -33,6 +33,7 @@ Sommaire
 * `Documentation technique <docs/documentation_technique.rst>`_
 * `Création d'un sous-module <docs/sous_module.rst>`_
 * `Mise à jour du module <docs/MAJ.rst>`_
+* `Liste des commandes <docs/commandes.rst>`_
 
 Installation
 ************
