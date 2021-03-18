@@ -212,7 +212,7 @@ def insert_permission_object(id_module, permissions):
 
 
 
-@monitorings_cli.command('update_perm')
+@monitorings_cli.command('update_permission_objects')
 @click.argument('module_code')
 @with_appcontext
 def update_perm_module_cmd(module_code):
