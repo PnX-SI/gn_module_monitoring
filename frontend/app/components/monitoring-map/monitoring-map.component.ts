@@ -234,28 +234,33 @@ export class MonitoringMapComponent implements OnInit {
 
   setSitesStyle() {
       const type = this.objectsStatus["type"];
+      let openPopup=true;
       if (type == 'sites_group') {
         // find selected
         if (this.objectsStatus[type]) {
-        const selected = (this.objectsStatus[type] || []).filter(k => k.selected == true);
+          const selected = (this.objectsStatus[type] || []).filter(k => k.selected == true);
 
-        if (selected.length > 0 ) {
-          console.log(selected);
-          // find layer and zoom to
-          this.mapZoomToSelection(selected[0].id, type);this.objectsStatus['site'].forEach(status => {
-            this.setSiteStyle(status);
-          });
-        }
+          if (selected.length > 0 ) {
+            // find layer and zoom to
+            this.mapZoomToSelection(selected[0].id, type);
+            openPopup = false;
+          }
         }
       }
+
       if (this.objectsStatus['site'] && this._mapService.map) {
         this.objectsStatus['site'].forEach(status => {
-          this.setSiteStyle(status);
+          this.setSiteStyle(status, openPopup);
         });
       }
   }
 
-  setSiteStyle(status) {
+  setSiteStyle(status, openPopup=true) {
+    /*
+      Défini le style des éléments
+      statuts = statut de l'élément provient de objectsStatus
+      openPopup = indique si la popup doit s'afficher
+    */
     const map = this._mapService.map;
     let layer = this.findSiteLayer(status.id);
     if (!layer) { return; }
@@ -278,7 +283,7 @@ export class MonitoringMapComponent implements OnInit {
 
 
 
-    if (status['selected']) {
+    if (status['selected'] && openPopup == true) {
 
       if (!layer._popup) {
         this.setPopup(status.id);
@@ -287,7 +292,7 @@ export class MonitoringMapComponent implements OnInit {
       layer.openPopup();
     }
 
-    if (!status['visible'] || !status['selected']) {
+    if (!status['visible'] || !status['selected'] ) {
       layer.closePopup();
     }
 
