@@ -4,8 +4,8 @@ Module GeoNature de suivis génériques
 Module générique de gestion des données de protocoles de type suivis
 ********************************************************************
 
-Ce module permet de gérer de façon générique des données de protocoles "simples" articulés en 3 niveaux : 
-des sites (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs) 
+Ce module permet de gérer de façon générique des données de protocoles "simples" articulés en 3 niveaux :
+des sites (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs)
 dans lesquelles on peut faire des observations (espèces).
 
 Ces 3 niveaux peuvent être complétés des données spécifiques à chaque protocole, qui sont stockées dynamiquement dans la base de données sous forme de jsonb.
@@ -34,6 +34,7 @@ Sommaire
 * `Création d'un sous-module <docs/sous_module.rst>`_
 * `Mise à jour du module <docs/MAJ.rst>`_
 * `Liste des commandes <docs/commandes.rst>`_
+* `Permissions`_
 
 Installation
 ************
@@ -117,11 +118,11 @@ Lancer la commande d'installation du sous-module
 
   flask monitorings install <chemin_absolu_vers_le_sous_module>
 
-- Par défaut la commande d'installation extrait le code du module depuis le chemin. 
+- Par défaut la commande d'installation extrait le code du module depuis le chemin.
 - Par exemple ``<chemin_absolu_vers_le_module_de_suivi>/contrib/test/`` donnera la valeur ``test`` à ``module_code``.
 - Le caractère ``/`` à la fin de ``<chemin_absolu_vers_le_sous_module>`` est optionnel.
 
-Si la commande précise que le module est déjà installé (test sur le ``module_code``) on peut préciser une valeur différente pour ``module_code`` avec la commande : 
+Si la commande précise que le module est déjà installé (test sur le ``module_code``) on peut préciser une valeur différente pour ``module_code`` avec la commande :
 
 ::
 
@@ -160,9 +161,9 @@ Cliquez sur le bouton ``Éditer``
 --------------------------------
 
 Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable suivantes :
-  
+
 - Jeux de données *(obligatoire)* :
-  
+
   - Un module peut concerner plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
 
 - Liste des observateurs *(obligatoire)*:
@@ -177,9 +178,9 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
 - Activer la synthèse *(non obligatoire, désactivée par défaut)* ?
 
   - Si on décide d'intégrer les données du sous-module dans la synthèse de GeoNature.
- 
+
 - Affichage des taxons *(obligatoire)* ?
-  
+
   - Définit comment sont affichés les taxons dans le module :
 
     - ``lb_nom`` : Nom latin,
@@ -192,7 +193,7 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
 
 - Options spécifiques du sous-module :
 
-  - Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module. 
+  - Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module.
 
 Exemples de sous-modules
 ========================
@@ -202,3 +203,16 @@ D'autres exemples de sous-modules sont disponibles sur le dépôt https://github
 * Protocole de suivi des oedicnèmes,
 * Protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena;
 * Protocole Suivi Temporel des Oiseaux de Montagne (STOM)
+
+
+Permissions
+************
+
+Les permissions ne sont implémentées que partiellement, la notion de portée (mes données, les données de mon organisme, toutes les données) n'est pas prise en compte. Si un utilisateur à le droit de réaliser une action sur un type d'objet, il peut le faire sur l'ensemble des données.
+
+La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
+
+Il est possible de spéficier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations). Si aucune permission n'est associé à l'objet, le module utilisera les valeurs associé au module qui lui même hérite des permissions du supermodule Monitoring qui lui même hérite de GéoNature.
+
+Par défaut, dès qu'un utilisateur à un droit suppérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger cette configuration au niveau du sous module. (cf configuration des sous-modules).
+
