@@ -90,7 +90,7 @@
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
-        currentUser?.cruved.U >= obj.cruved('U')
+        (currentUser['cruved_object'][obj.objectType] || currentUser['cruved']).U >= obj.cruved('U')
       "
     >
       Éditer {{ (obj.template.label_art_def || "") }}

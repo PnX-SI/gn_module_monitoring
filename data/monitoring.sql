@@ -1,14 +1,14 @@
 -- schema qui complete gn_monitoring pour le module monitoring
 
 CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
-        
+
         id_module SERIAL NOT NULL,
-        uuid_module_complement UUID DEFAULT uuid_generate_v4() NOT NULL,    
-        
+        uuid_module_complement UUID DEFAULT uuid_generate_v4() NOT NULL,
+
         id_list_observer INTEGER,
         id_list_taxonomy INTEGER,
         b_synthese BOOLEAN DEFAULT TRUE,
-        taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom', 
+        taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom',
 
         data JSONB,
 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
     -- champs en complément de t_observation: relation 1-1
 
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_observation_complements (
-        
+
         id_observation INTEGER NOT NULL,
         data JSONB,
 
@@ -150,3 +150,11 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
     ON CONFLICT(schema_name, table_name) DO NOTHING;
 
 
+INSERT INTO gn_permissions.t_objects (code_object, description_object)
+VALUES
+('GNM_SITES', 'Permissions sur les sites'),
+('GNM_VISITES', 'Permissions sur les visites'),
+('GNM_OBSERVATIONS', 'Permissions sur les observation'),
+('GNM_GRP_SITES', 'Permissions sur les groupes de sites')
+    ON CONFLICT(code_object, description_object) DO NOTHING;
+;
