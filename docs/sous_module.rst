@@ -539,10 +539,22 @@ Exemple de fichier :
 Gestion des droits
 ------------------
 
-Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS.
+Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS : Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
 
-- Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
+Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
+Par défaut les valeurs définies du cruved sont :
+ - `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
+ - `site.json` : "cruved": {"C":1, "U":1, "D": 1},
+ - `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
+ - `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
+ 
+
+Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
+
+.. code-block:: JSON
+  
+  "cruved": {"C": 3, "U": 3, "D": 3},
+
+
 - Pour pouvoir modifier les paramètres d'un module, il faut que le CRUVED de l'utilisateur ait un U=3 pour ce sous-module.
-- Pour pouvoir créer des objets dans un sous-module, il faut un C>=1
-- Pour pouvoir supprimer un média sur un objet, il faut un D>=1
-- Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
+
