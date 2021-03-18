@@ -2,7 +2,7 @@ Commandes disponibles
 #########################
 
 .. warning::
- Pour pouvoir les commandes il faut s'assurer d'être à la racine de l'application ``GeoNature`` et que le virtualenv soit activé
+ Pour pouvoir lancer les commandes il faut s'assurer d'être à la racine de l'application ``GeoNature`` et que le virtualenv soit activé
  ``source backend/venv/bin/activate``
 
 
