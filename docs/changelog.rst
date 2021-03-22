@@ -10,11 +10,26 @@ CHANGELOG
 **🚀 Nouveautés**
 
 * Gestion des permissions par objet (site, groupe de site, visite, observation)
-* Interraction carte liste pour les groupes de site
+* Interaction carte liste pour les groupes de site
 
 **🐛 Corrections**
 
 * Affichage des tooltips pour les objets cachés #76
+
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module :
+
+* Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.1_0.2.2.sql``
+* Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
+* Nettoyer des résidus liées à l'ancienne versions :
+
+::
+
+  cd /home/`whoami`/geonature/frontend
+  npm uninstall test
+  npm ci /home/`whoami`/gn_module_monitoring/frontend/ --no-save
 
 
 0.2.1 (2021-01-14)
