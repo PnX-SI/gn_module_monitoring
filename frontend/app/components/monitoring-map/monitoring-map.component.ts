@@ -37,7 +37,7 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() heightMap;
 
-  
+
   bListen = true;
   panes = {};
   renderers = {};
@@ -87,6 +87,25 @@ export class MonitoringMapComponent implements OnInit {
   ) { }
 
 
+  mapZoomToSelection(id, type) {
+    //Find properties
+    if (type == "sites_group") {
+      let id_selection = "id_sites_group";
+      const layers = this.findSiteLayers(id, id_selection);
+      const coo = Object.keys(layers).map(key =>  layers[key].getLatLng());
+
+      // Sélection des sites
+      const selected_layers = Object.keys(layers).map(key => layers[key]["feature"]["properties"].id_base_site);
+      for (let key in this.objectsStatus["site"]) {
+        this.objectsStatus["site"][key].selected = (selected_layers.includes(this.objectsStatus["site"][key].id)) ? true: false;
+      }
+
+      //Zoom to bounds
+      this._mapService.map.fitBounds(coo);
+      return
+    }
+  }
+
   ngOnInit() {
   }
 
@@ -115,7 +134,7 @@ export class MonitoringMapComponent implements OnInit {
 
   removeLabels() {
     if (!this._mapService.map) {
-      return 
+      return
     }
     const layers =this._mapService.map['_layers'];
     for (const key of Object.keys(layers)) {
@@ -141,10 +160,12 @@ export class MonitoringMapComponent implements OnInit {
       direction: 'top',
       className: 'text',
       removeOnInit: true,
-  })
+    })
     .setContent(textValue)
     .setLatLng(layer.getLatLng());
+    layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
+
   }
 
   onLayerClick(site) {
@@ -212,15 +233,34 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setSitesStyle() {
+      const type = this.objectsStatus["type"];
+      let openPopup=true;
+      if (type == 'sites_group') {
+        // find selected
+        if (this.objectsStatus[type]) {
+          const selected = (this.objectsStatus[type] || []).filter(k => k.selected == true);
+
+          if (selected.length > 0 ) {
+            // find layer and zoom to
+            this.mapZoomToSelection(selected[0].id, type);
+            openPopup = false;
+          }
+        }
+      }
 
       if (this.objectsStatus['site'] && this._mapService.map) {
         this.objectsStatus['site'].forEach(status => {
-          this.setSiteStyle(status);
+          this.setSiteStyle(status, openPopup);
         });
       }
   }
 
-  setSiteStyle(status) {
+  setSiteStyle(status, openPopup=true) {
+    /*
+      Défini le style des éléments
+      statuts = statut de l'élément provient de objectsStatus
+      openPopup = indique si la popup doit s'afficher
+    */
     const map = this._mapService.map;
     let layer = this.findSiteLayer(status.id);
     if (!layer) { return; }
@@ -242,7 +282,8 @@ export class MonitoringMapComponent implements OnInit {
     // layer.addTo(map);
 
 
-    if (status['selected']) {
+
+    if (status['selected'] && openPopup == true) {
 
       if (!layer._popup) {
         this.setPopup(status.id);
@@ -251,8 +292,23 @@ export class MonitoringMapComponent implements OnInit {
       layer.openPopup();
     }
 
-    if (!status['visible'] || !status['selected']) {
+    if (!status['visible'] || !status['selected'] ) {
       layer.closePopup();
+    }
+
+    // Affichage des tooltips uniquement si la feature est visible
+    if (layer.getTooltip) {
+      var toolTip = layer.getTooltip();
+      if (style_name == 'hidden') {
+          if (toolTip) {
+            map.closeTooltip(toolTip);
+          }
+      }
+      else {
+        if (toolTip) {
+          map.addLayer(toolTip);
+        }
+      }
     }
   }
 
@@ -263,6 +319,19 @@ export class MonitoringMapComponent implements OnInit {
       return feature && (feature['id'] === id || feature.properties['id'] === id);
     });
     return layerKey && layers[layerKey];
+  }
+
+  findSiteLayers(value, property): Layer {
+    const layers = this._mapService.map['_layers'];
+
+    let filterlayers = Object.keys(layers)
+      .filter( key => layers[key].feature && layers[key]["feature"]["properties"][property] == value)
+      .map(key => ({ [key]: layers[key] }));
+
+    if (filterlayers.length > 0) {
+      return Object.assign(...filterlayers as [Object]);
+    }
+    return [];
   }
 
   setPopup(id) {

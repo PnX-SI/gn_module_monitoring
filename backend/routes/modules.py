@@ -53,6 +53,7 @@ def get_modules_api():
     for module in modules:
         module_out = module.as_dict(depth=depth)
         module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_code)
+
         modules_out.append(module_out)
 
     return modules_out

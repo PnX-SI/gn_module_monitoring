@@ -65,6 +65,7 @@ export class MonitoringObjectComponent implements OnInit {
 
     this.currentUser = this._auth.getCurrentUser();
     this.currentUser["cruved"] = {};
+    this.currentUser["cruved_objects"] = {};
 
     of(true)
       .pipe(
@@ -125,12 +126,12 @@ export class MonitoringObjectComponent implements OnInit {
     });
   }
 
-    initSites() {
-    console.log('initSites', this.obj.toString())
+  initSites() {
+    console.log('initSites', this.obj.toString());
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
-
       this.currentUser["cruved"] = this.module.userCruved;
+      this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
       // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
 
@@ -246,7 +247,7 @@ export class MonitoringObjectComponent implements OnInit {
     );
   }
 
-  initData(): Observable<any> {   
+  initData(): Observable<any> {
     this.getModuleSet();
     return this._dataUtilsService.getInitData(this.obj.moduleCode);
   }
@@ -276,4 +277,5 @@ export class MonitoringObjectComponent implements OnInit {
     }
     this.getModuleSet();
   }
+
 }

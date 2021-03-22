@@ -19,7 +19,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             return
 
         if not self._parent:
-            self._parent  = (
+            self._parent = (
                 monitoring_definitions
                 .monitoring_object_instance(
                     self._module_code,
@@ -161,6 +161,12 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         if self._object_type == 'module':
             monitoring_object_dict['cruved'] = self.get_cruved()
+            monitoring_object_dict['cruved_objects'] = {}
+            monitoring_object_dict['cruved_objects']['site'] = self.get_cruved("GNM_SITES")
+            monitoring_object_dict['cruved_objects']['sites_group'] = self.get_cruved("GNM_GRP_SITES")
+            monitoring_object_dict['cruved_objects']['visite'] = self.get_cruved("GNM_VISITES")
+            monitoring_object_dict['cruved_objects']['observation'] = self.get_cruved("GNM_OBSERVATIONS")
+
 
         properties['id_parent'] = to_int(self.id_parent())
         if(children):

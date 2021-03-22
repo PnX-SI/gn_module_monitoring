@@ -117,7 +117,7 @@
         <button
           class="btn btn-danger float-left"
           (click)="bDeleteModal = true"
-          *ngIf="obj.id && currentUser?.cruved.D >= obj.cruved('D')"
+          *ngIf="obj.id && (currentUser['cruved_object'][obj.objectType] || currentUser['cruved']).D >= obj.cruved('D')"
         >
           Supprimer
         </button>

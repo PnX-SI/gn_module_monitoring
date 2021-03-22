@@ -12,40 +12,40 @@
         role="tab"
         attr.aria-controls="nav-{{ child0.objectType }}"
         aria-selected="true"
+        (click)="changeActiveTab(child0.objectType)"
         >{{ child0.template["label_list"] }} {{displayNumber(child0.objectType)}}
       </a>
     </div>
   </nav>
 
   <!-- tab content -->
-  <div class="tab-content" id="nav-tabContent">
+  <div class="tab-content" id="nav-tabContent" >
     <div
       *ngFor="let child0 of children0Array; first as isFirst"
       class="tab-pane fade show"
-      [ngClass]="{ active: isFirst }"
+      [ngClass]="{ active: activetab == child0.objectType }"
       id="nav-{{ child0.objectType }}"
       role="tabpanel"
       attr.aria-labelledby="nav-{{ child0.objectType }}-tab"
     >
       <div class="list-children" *ngIf="child0.objectType as childrenType">
-
         <div
           class="btn-height"
-          *ngIf="obj.moduleCode && currentUser?.cruved.C >= child0.cruved('C')"
+          *ngIf="queyParamsNewObject[child0.objectType]"
         >
           <div class="btn-float-right">
             <button
-            *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-info"
-              (click)="child0.config['display_filter'] = !child0.config['display_filter']" 
+              (click)="child0.config['display_filter'] = !child0.config['display_filter']"
               matTooltip="{{child0.config['display_filter'] ? 'Cacher' : 'Afficher'}} les filtres"
+              *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).R >= child0.cruved('R')"
               ><i class="fa fa-filter" aria-hidden="true"></i></button
             >
 
             <button
-            *ngIf="queyParamsNewObject[child0.objectType]"
               class="btn btn-success float-right"
-              (click)="obj.navigateToAddChildren(child0.objectType)" 
+              (click)="obj.navigateToAddChildren(child0.objectType)"
+              *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')"
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label_art_undef_new"] || "") }}</button
             >

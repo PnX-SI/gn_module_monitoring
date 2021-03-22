@@ -27,7 +27,7 @@ Structure d'un module
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
 Le fichier ``img.jpg`` servira de vignette du sous-module sur la page d'accueil du module Monitorings.
-Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``frontend/src/external_assets/monitorings`` de GeoNature. 
+Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``frontend/src/external_assets/monitorings`` de GeoNature.
 
 Pour que l'image soit prise en compte, lors de l'installation du module ou si on la modifie, il faut relancer une compilation de GeoNature (avec la commande ``geonature frontend_build`` par exemple).
 
@@ -62,6 +62,10 @@ Dans le fichier ``module.json``, deux variables doivent obligatoirement être d�
 
 * ``module_code``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
 * ``module_desc``: une description succinte du module.
+
+Une variable optionnelle permet de configurer les objets faisant l'objet de permission:
+
+* ``permission_objects``: liste des objets permissions à associer au module. Elle peut contenir les valeurs suivantes ``["GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]``
 
 Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observation.json``) on peut redéfinir au besoin certaines variables.
 
@@ -163,7 +167,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
             "min": 1,
             "max": 2
         }
-    
+
 * **utilisateur** : choix de plusieurs noms d'utilisateurs dans une liste
 
 .. code-block:: JSON
@@ -243,7 +247,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 * Changer le label d'un élément et le rendre visible et obligatoire
 
 .. code-block:: JSON
-    
+
         "visit_date_max": {
             "attribut_label": "Date de fin de visite",
             "hidden": false,
@@ -279,7 +283,7 @@ Pour renseigner la valeur de la nomenclature, on spécifie :
 
 Pour pouvoir faire des composants de type select à partir d'une API, on peut utiliser le composant ``datalist``.
 
-Les options supplémentaires pour ce widget : 
+Les options supplémentaires pour ce widget :
 
 - ``api`` : API qui fournira la liste
 - ``application`` : ``GeoNature`` ou ``TaxHub`` permet de préfixer l'API avec l'URL de l'API de l'application
@@ -376,7 +380,7 @@ La valeur de ce paramètre est alors une chaîne de caractère qui définie une 
 
 * ``value``: les valeur du formulaire
 * ``attribut_name``: du composant concerné
-* ``meta``: un dictionnaire de données additionelles, et fourni au composant dynamicFormGenerator, il peut contenir des données sur 
+* ``meta``: un dictionnaire de données additionelles, et fourni au composant dynamicFormGenerator, il peut contenir des données sur
   * la nomenclature (pour avoir les valeurs des nomenclature à partir des id, ici un dictionnaire avec ``id_nomenclature`` comme clés.
   * ``bChainInput`` si on enchaine les releves
   * etc.. à redéfinir selon les besoin
@@ -385,7 +389,7 @@ La chaine de caractère qui décrit la fonction doit être de la forme suivante:
 
 .. code-block:: JSON
 
-"hidden": "({value, attribut_name, }) => { return value.id == 't' }"
+  "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 
 
 Le format JSON ne permet pas les saut de ligne dans les chaines de caractère,
@@ -394,11 +398,11 @@ et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut 
 
 .. code-block:: JSON
 
-"hidden": [
-    "({value, attribut_name, }) => {",
-    "return value.id == 't'",
-    "}"
-]
+    "hidden": [
+        "({value, attribut_name, }) => {",
+        "return value.id == 't'",
+        "}"
+    ]
 
 
 Le lignes seront coléés entre elle avec l'ajout de saut de lignes (caractère `\n`.
@@ -416,13 +420,13 @@ Exemples:
         "test": {
             "type_widget": "text",
             "attribut_label": "Test"
-          },   
+          },
           "test2": {
             "type_widget": "text",
             "attribut_label": "Test 2",
             "hidden": "({value}) => value.test != 't'",
             "required": "({value}) => value.test != 't'"
-          }      
+          }
     }
 
 * Ajouter un champs pour renseigner la profondeur d'une grotte si le type de site est une grotte
@@ -496,7 +500,7 @@ Nomenclature
 ------------
 
 Le fichier ``nomenclature.json`` permet de renseigner les nomenclatures spécifiques à chaque sous-module.
-Elles seront insérées dans la base de données lors de l'installation du sous-module (si elles n'existent pas déjà). 
+Elles seront insérées dans la base de données lors de l'installation du sous-module (si elles n'existent pas déjà).
 
 Exemple de fichier :
 
@@ -535,10 +539,22 @@ Exemple de fichier :
 Gestion des droits
 ------------------
 
-Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS.
+Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS : Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
 
-- Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
+Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
+Par défaut les valeurs définies du cruved sont :
+
+- `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `site.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
+- `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
+
+
+Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
+
+.. code-block:: JSON
+  "cruved": {"C": 3, "U": 3, "D": 3},
+
+
 - Pour pouvoir modifier les paramètres d'un module, il faut que le CRUVED de l'utilisateur ait un U=3 pour ce sous-module.
-- Pour pouvoir créer des objets dans un sous-module, il faut un C>=1 
-- Pour pouvoir supprimer un média sur un objet, il faut un D>=1
-- Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
+

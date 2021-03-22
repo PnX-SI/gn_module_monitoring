@@ -50,11 +50,10 @@ def get_monitoring_object_api(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-
     get_config(module_code, verification_date=True)
 
-
     depth = to_int(request.args.get('depth', 1))
+
     return (
         monitoring_definitions
         .monitoring_object_instance(module_code, object_type, id)
@@ -141,7 +140,7 @@ def delete_object_api(module_code, object_type, id):
 
 # breadcrumbs
 @blueprint.route('breadcrumbs/<string:module_code>/<object_type>/<int:id>', methods=['GET'])
-@blueprint.route('breadcrumbs/<string:module_code>/<object_type>', 
+@blueprint.route('breadcrumbs/<string:module_code>/<object_type>',
     defaults={'id': None},
     methods=['GET']
 )

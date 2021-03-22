@@ -13,6 +13,7 @@ export class MonitoringObjectBase {
   parentsPath = [];
 
   userCruved;
+  userCruvedObject;
   deleted = false;
 
   idTableLocation;
@@ -125,6 +126,7 @@ export class MonitoringObjectBase {
 
   setData(data) {
     this.userCruved = data.cruved;
+    this.userCruvedObject = data.cruved_objects;
     this.properties = data.properties;
     this.geometry = data.geometry;
     this.id = this.id || this.properties[this.configParam("id_field_name")];
@@ -292,7 +294,7 @@ export class MonitoringObjectBase {
       ? `Modification ${this.labelDu()} ${description}`
       : `Création d'${this.labelArtUndef(true)}`
     : `Détails ${this.labelDu()} ${description}` ;
-    
+
     return text.trim();
   }
 
@@ -324,7 +326,7 @@ export class MonitoringObjectBase {
       ? `Modification ${this.labelDu()} ${description}`
       : `Création d'${this.labelArtUndef(true)}`
     : `Détails ${this.labelDu()} ${description}` ;
-    
+
     return text.trim();
   }
 
