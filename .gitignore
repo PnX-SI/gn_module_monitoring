@@ -8,3 +8,16 @@ config/conf_gn_module.toml
 config/monitoring/*
 !config/monitoring/generic
 frontend/assets/*.jpg
+
+
+
+# Node
+.npm
+node_modules
+npm-debug.log
+coverage/
+node_modules/
+tmp/
+npm-debug.log*
+yarn-error.log*
+.ng_pkg_build/
