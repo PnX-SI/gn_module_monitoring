@@ -149,6 +149,12 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
     -- on evite de mettre 2 fois le meme couple (shema_name, table_name)
     ON CONFLICT(schema_name, table_name) DO NOTHING;
 
+-- Ajout contrainte sur la table des objets de permission
+-- Devrait être dans GN2
+-- TODO supprimer ces deux lignes une fois présentes dans GN2
+ALTER TABLE gn_permissions.t_objects DROP CONSTRAINT IF EXISTS unique_t_objects;
+ALTER TABLE gn_permissions.t_objects ADD CONSTRAINT unique_t_objects UNIQUE (code_object);
+
 
 INSERT INTO gn_permissions.t_objects (code_object, description_object)
 VALUES
