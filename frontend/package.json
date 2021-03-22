@@ -1,15 +1,11 @@
 {
-  "name": "test",
-  "version": "0.0.0",
-  "license": "MIT",
-  "private": true,
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "description": "",
+  "name": "monitoring",
+  "description": "Module générique de génération de formulaires de protocoles de suivis",
+  "version": "0.2.0",
+  "license": "GNU Affero General Public License v3.0",
   "dependencies": {
-    "tslib": "^1.10.0"
+    "tslib": "^1.10.0",
+    "protractor": "^5.4.3",
+    "ngx-mat-select-search": "^2.2.0"
   }
 }
