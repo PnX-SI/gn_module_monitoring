@@ -156,5 +156,4 @@ VALUES
 ('GNM_VISITES', 'Permissions sur les visites'),
 ('GNM_OBSERVATIONS', 'Permissions sur les observation'),
 ('GNM_GRP_SITES', 'Permissions sur les groupes de sites')
-    ON CONFLICT(code_object, description_object) DO NOTHING;
-;
+    ON CONFLICT(code_object) DO NOTHING;
