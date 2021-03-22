@@ -10,7 +10,6 @@ config/monitoring/*
 frontend/assets/*.jpg
 
 
-
 # Node
 .npm
 node_modules
