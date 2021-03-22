@@ -212,7 +212,11 @@ Les permissions ne sont implémentées que partiellement, la notion de portée (
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
-Il est possible de spéficier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations). Si aucune permission n'est associé à l'objet, le module utilisera les valeurs associé au module qui lui même hérite des permissions du supermodule Monitoring qui lui même hérite de GéoNature.
+Il est possible de spéficier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations). 
 
-Par défaut, dès qu'un utilisateur à un droit suppérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger cette configuration au niveau du sous module. (cf configuration des sous-modules).
+Si aucune permission n'est associé à l'objet, les permissions auront comme valeurs celles associées au module qui lui même hérite des permissions du supermodule Monitoring qui lui même hérite de GéoNature.
+
+
+
+Par défaut, dès qu'un utilisateur à un droit suppérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger les paramètres au niveau des fichiers de configuration des objets du module. (cf configuration des sous-modules).
 
