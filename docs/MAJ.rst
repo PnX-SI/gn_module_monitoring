@@ -53,4 +53,4 @@ Mise à jour du module
 
 ::
 
-   /home/`whoami`/gn_module_monitoring/data/update_views /home/`whoami`/geonature
+   /home/`whoami`/gn_module_monitoring/data/update_views.sh /home/`whoami`/geonature
