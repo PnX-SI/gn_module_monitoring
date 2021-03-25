@@ -43,7 +43,7 @@ def cruved_scope_for_user_in_monitoring_module(module_code=None, object_code=Non
     if module_code and module_code != "null":
         module = get_module("module_code", module_code)
         module_code = module.module_code
-        append = {15: ["MONOTORINGS", object_code], 25: ["MONOTORINGS", "ALL"]}
+        append = {15: ["MONITORINGS", object_code], 25: ["MONITORINGS", "ALL"]}
     else:
         module_code = "MONITORINGS"
         append = {}
