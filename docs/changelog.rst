@@ -3,21 +3,22 @@ CHANGELOG
 =========
 
 0.2.3 (2021-04-01)
-=======
+------------------
 
-* Version minimale de GeoNature nécessaire : 2.5.5
-*
+Version minimale de GeoNature nécessaire : 2.5.5
+
 **🐛 Corrections**
 
-
-* Problème héritage des permissions #78
+* Problème d'héritage des permissions (#78)
 
 **⚠️ Notes de version**
+
 Si vous mettez à jour le module :
+
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
 
 0.2.2 (2021-03-22)
-=======
+------------------
 
 * Version minimale de GeoNature nécessaire : 2.5.5
 
@@ -45,9 +46,7 @@ Si vous mettez à jour le module :
   npm uninstall test
   npm ci /home/`whoami`/gn_module_monitoring/frontend/ --no-save
 
-
 0.2.1 (2021-01-14)
-=======
 ------------------
 
 * Version minimale de GeoNature nécessaire : 2.5.5
