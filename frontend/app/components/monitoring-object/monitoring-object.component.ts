@@ -272,6 +272,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   onObjChanged(obj: MonitoringObject) {
+    this.obj = obj;
     if (obj["objectType"] === "site") {
       this.initSites();
     }

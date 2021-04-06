@@ -56,6 +56,7 @@
     <form [formGroup]="objForm">
       <p
         class="alert alert-warning"
+        style="display:inline-block;"
         *ngIf="obj.config['geometry_type'] && !objForm.value.geometry"
       >
         <span> Veuillez saisir une géométrie sur la carte </span>

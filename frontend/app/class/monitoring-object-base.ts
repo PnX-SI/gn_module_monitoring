@@ -30,7 +30,6 @@ export class MonitoringObjectBase {
   _children0 = {};
   parents = {};
   myClass = MonitoringObjectBase;
-
   siteId;
 
   template = {};
@@ -127,9 +126,9 @@ export class MonitoringObjectBase {
   setData(data) {
     this.userCruved = data.cruved;
     this.userCruvedObject = data.cruved_objects;
-    this.properties = data.properties;
+    this.properties = data.properties || {};
     this.geometry = data.geometry;
-    this.id = this.id || this.properties[this.configParam("id_field_name")];
+    this.id = this.id || this.properties && this.properties[this.configParam("id_field_name")];
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;

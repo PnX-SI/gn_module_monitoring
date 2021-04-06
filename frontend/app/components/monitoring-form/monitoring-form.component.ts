@@ -152,11 +152,12 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.formValues().subscribe((formValue) => {
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
+      // reset geom ?
     });
   }
 
   keepNames() {
-    return this.obj.configParam('keep')
+    return this.obj.configParam('keep') || {};
   }
 
   resetObjForm() {
@@ -169,7 +170,7 @@ export class MonitoringFormComponent implements OnInit {
 
     // les valeur que l'on garde d'une saisie à l'autre
     const keep = {};
-    for (const key of this.keepNames()) {
+    for (const key of this.keepNames() ) {
       keep[key] = this.obj.properties[key];
     }
 
@@ -180,9 +181,9 @@ export class MonitoringFormComponent implements OnInit {
       null,
       this.obj.monitoringObjectService()
     );
+    this.obj.init({});
 
     this.obj.properties[this.obj.configParam("id_field_Name")] = null;
-
 
     // pq get ?????
     // this.obj.get(0).subscribe(() => {
@@ -190,6 +191,9 @@ export class MonitoringFormComponent implements OnInit {
       for (const key of this.keepNames()) {
         this.obj.properties[key] = keep[key];
       }
+
+      this.objChanged.emit(this.obj);
+      this.objForm.patchValue({'geometry': null})
       this.initForm();
     // });
   }
