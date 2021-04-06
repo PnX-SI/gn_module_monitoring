@@ -134,7 +134,7 @@ On peut mettre en valeur de ces attribut des données de la configuration du mod
 Pour ce il faut utiliser les variables suivantes
 
 * ``__MONITORINGS_PATH``
-* ``__MODULE.__ID_COMPONENT_TAXONOMY``
+* ``__MODULE.ID_LIST_TAXONOMY``
 * ``__MODULE.MODULE_CODE``
 * ``__MODULE.ID_MODULE``
 * ``__MODULE.ID_LIST_OBSERVER``
@@ -230,10 +230,10 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
             "attribut_label": "Taxon",
             "type_util": "taxonomy",
             "required": true,
-            "id_list": "__MODULE.__ID_COMPONENT_TAXONOMY"
+            "id_list": "__MODULE.ID_LIST_TAXONOMY"
         },
 
-La variable ``"id_list": "__MODULE.__ID_COMPONENT_TAXONOMY"`` définit la liste de taxon.
+La variable ``"id_list": "__MODULE.ID_LIST_TAXONOMY"`` définit la liste de taxon.
 
 Il est important d'ajouter ``"type_util": "taxonomy",``.
 
