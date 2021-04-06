@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+0.2.4 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Problème de chainage des saisies
+
+Version minimale de GeoNature nécessaire : 2.5.5 ??
+
+
 0.2.3 (2021-04-01)
 ------------------
 
