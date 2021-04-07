@@ -117,7 +117,6 @@ export class MonitoringFormComponent implements OnInit {
         }
 
         // pour donner la valeur de idParent
-        this.setQueryParams();
 
         this.initForm();
       });
@@ -147,6 +146,8 @@ export class MonitoringFormComponent implements OnInit {
     if (!(this.objForm && this.obj.bIsInitialized)) {
       return;
     }
+
+    this.setQueryParams();
 
     // pour donner la valeur de l'objet au formulaire
     this.obj.formValues().subscribe((formValue) => {
