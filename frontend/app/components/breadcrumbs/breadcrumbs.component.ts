@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
+import { MonitoringConfigService } from "../../services/config.service";
 
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Router } from "@angular/router";
@@ -34,7 +34,7 @@ export class BreadcrumbsComponent implements OnInit {
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _router: Router,
     private _route: ActivatedRoute,    
   ) {}
@@ -47,7 +47,7 @@ export class BreadcrumbsComponent implements OnInit {
       if(this.obj.deleted) {
         return 
     }
-    this._configService
+    this._monitoringConfigService
       .init(this.obj.moduleCode)
       .pipe(
         mergeMap(() => {
@@ -66,7 +66,7 @@ export class BreadcrumbsComponent implements OnInit {
         })
       )
       .subscribe((breadcrumbs) => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
+        this.frontendModuleMonitoringUrl = this._monitoringConfigService.frontendModuleMonitoringUrl();
         this.breadcrumbs = breadcrumbs;
       });
   }
@@ -77,7 +77,7 @@ export class BreadcrumbsComponent implements OnInit {
       if (elem) {
         this._router.navigate([
           "/",
-          this._configService.frontendModuleMonitoringUrl(),
+          this._monitoringConfigService.frontendModuleMonitoringUrl(),
           "object",
           elem.module_code,
           elem.object_type,
@@ -89,7 +89,7 @@ export class BreadcrumbsComponent implements OnInit {
       } else {
         this._router.navigate([
           "/",
-          this._configService.frontendModuleMonitoringUrl(),
+          this._monitoringConfigService.frontendModuleMonitoringUrl(),
         ]);
       }
     }, 100);

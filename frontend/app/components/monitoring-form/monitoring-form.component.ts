@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
 // import { Router } from "@angular/router";
-import { ConfigService } from "../../services/config.service";
+import { MonitoringConfigService } from "../../services/config.service";
 import { DataUtilsService } from "../../services/data-utils.service";
 import { CommonService } from "@geonature_common/service/common.service";
 import { DynamicFormService } from "@geonature_common/form/dynamic-form-generator/dynamic-form.service";
@@ -50,14 +50,14 @@ export class MonitoringFormComponent implements OnInit {
   constructor(
     private _formBuilder: FormBuilder,
     private _route: ActivatedRoute,
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _commonService: CommonService,
     private _dataUtilsService: DataUtilsService,
     private _dynformService: DynamicFormService
   ) {}
 
   ngOnInit() {
-    this._configService
+    this._monitoringConfigService
       .init(this.obj.moduleCode)
       .pipe(
       )
@@ -66,7 +66,7 @@ export class MonitoringFormComponent implements OnInit {
       // })
       // .subscribe((queryParams) => {
         this.queryParams = this._route.snapshot.queryParams || {};
-        this.bChainInput = this._configService.frontendParams()["bChainInput"];
+        this.bChainInput = this._monitoringConfigService.frontendParams()["bChainInput"];
         const schema = this.obj.schema();
         // init objFormsDefinition
 
@@ -267,7 +267,7 @@ export class MonitoringFormComponent implements OnInit {
 
       /** si c'est un module : reset de la config */
       if (this.obj.objectType === "module") {
-        this._configService.loadConfig(this.obj.moduleCode).subscribe();
+        this._monitoringConfigService.loadConfig(this.obj.moduleCode).subscribe();
       }
 
       if (this.bChainInput) {
@@ -322,7 +322,7 @@ export class MonitoringFormComponent implements OnInit {
     for (const formDef of this.objFormsDefinition) {
       formDef.meta.bChainInput = this.bChainInput
     }
-    this._configService.setFrontendParams("bChainInput", this.bChainInput);
+    this._monitoringConfigService.setFrontendParams("bChainInput", this.bChainInput);
     // patch pour recalculers
     this.procesPatchUpdateForm();
   }

@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MonitoringObject } from '../../class/monitoring-object';
-import { ConfigService } from '../../services/config.service';
+import { MonitoringConfigService } from '../../services/config.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { MediaService } from '@geonature_common/service/media.service';
@@ -23,14 +23,14 @@ export class MonitoringPropertiesComponent implements OnInit {
   bUpdateSyntheseSpinner = false;
 
   constructor(
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     public ms: MediaService,
     private _dataService: DataMonitoringObjectService,
     private _commonService: CommonService,
   ) {}
 
   ngOnInit() {
-    this.backendUrl = this._configService.backendUrl();
+    this.backendUrl = this._monitoringConfigService.backendUrl();
   }
 
   onEditClick() {

@@ -117,7 +117,7 @@ export class MonitoringObjectBase {
   }
 
   setConfig() {
-    this.config = this._objService.configService().configModuleObject(this.moduleCode, this.objectType);
+    this.config = this._objService.MonitoringConfigService().configModuleObject(this.moduleCode, this.objectType);
     // for (const configParam of this.configParams) {
     //   this.config[configParam] = this.configParam(configParam);
     // }
@@ -136,7 +136,7 @@ export class MonitoringObjectBase {
 
   idFieldName() {
     return this._objService
-      .configService()
+      .MonitoringConfigService()
       .configModuleObjectParam(
         this.moduleCode,
         this.objectType,
@@ -155,7 +155,7 @@ export class MonitoringObjectBase {
     return !parentType
       ? null
       : this._objService
-          .configService()
+          .MonitoringConfigService()
           .configModuleObjectParam(
             this.moduleCode,
             parentType,
@@ -200,7 +200,7 @@ export class MonitoringObjectBase {
 
   configParam(fieldName) {
     return this._objService
-      .configService()
+      .MonitoringConfigService()
       .configModuleObjectParam(this.moduleCode, this.objectType, fieldName);
   }
 
@@ -331,13 +331,13 @@ export class MonitoringObjectBase {
 
   schema(typeSchema = "all"): Object {
     return this._objService
-      .configService()
+      .MonitoringConfigService()
       .schema(this.moduleCode, this.objectType, typeSchema);
   }
 
   change() {
     return this._objService
-      .configService()
+      .MonitoringConfigService()
       .change(this.moduleCode, this.objectType);
   }
 

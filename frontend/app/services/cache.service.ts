@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { Observable, of, Subject } from '@librairies/rxjs';
 
-import { ConfigService } from './config.service';
+import { MonitoringConfigService } from './config.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -16,7 +16,7 @@ export class CacheService {
   private _cache = {};
   private _pendingCache = {};
 
-  constructor(private _http: HttpClient, private _config: ConfigService) { }
+  constructor(private _http: HttpClient, private _config: MonitoringConfigService) { }
 
   /** http request */
 

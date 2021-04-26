@@ -4,7 +4,7 @@ import { mergeMap } from '@librairies/rxjs/operators';
 
 /** services */
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
-import { ConfigService } from '../../services/config.service';
+import { MonitoringConfigService } from '../../services/config.service';
 import { get } from 'https';
 
 @Component({
@@ -24,22 +24,22 @@ export class ModulesComponent implements OnInit {
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _configService: ConfigService
+    private _monitoringConfigService: MonitoringConfigService
   ) { }
 
   ngOnInit() {
     this.bLoading = true;
-    this._configService
+    this._monitoringConfigService
       .init()
       .pipe(
         mergeMap(this._dataMonitoringObjectService.getModules.bind(this._dataMonitoringObjectService))
       )
       .subscribe((modules: Array<any>) => {
         this.modules = modules.filter(m => m.cruved.R >= 1);
-        this.backendUrl = this._configService.backendUrl();
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
-        this.moduleMonitoringCode = this._configService.moduleMonitoringCode();
-        this.urlApplication = this._configService.urlApplication();
+        this.backendUrl = this._monitoringConfigService.backendUrl();
+        this.frontendModuleMonitoringUrl = this._monitoringConfigService.frontendModuleMonitoringUrl();
+        this.moduleMonitoringCode = this._monitoringConfigService.moduleMonitoringCode();
+        this.urlApplication = this._monitoringConfigService.urlApplication();
         this.bLoading = false;
       });
   }

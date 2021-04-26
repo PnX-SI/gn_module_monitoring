@@ -8,7 +8,7 @@ import { FormGroup, FormBuilder } from "@angular/forms";
 // services
 import { ActivatedRoute } from "@angular/router";
 import { MonitoringObjectService } from "../../services/monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
+import { MonitoringConfigService } from "../../services/config.service";
 import { DataUtilsService } from "../../services/data-utils.service";
 import { MapService } from "@geonature_common/map/map.service";
 import { AuthService, User } from "@geonature/components/auth/auth.service";
@@ -42,7 +42,7 @@ export class MonitoringObjectComponent implements OnInit {
   constructor(
     private _route: ActivatedRoute,
     private _objService: MonitoringObjectService,
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _dataUtilsService: DataUtilsService,
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
@@ -110,12 +110,12 @@ export class MonitoringObjectComponent implements OnInit {
   getModuleSet() {
     // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
-      const schema = this._configService.schema(
+      const schema = this._monitoringConfigService.schema(
         this.module.moduleCode,
         "module"
       );
       const moduleFieldList = Object.keys(
-        this._configService.schema(this.module.moduleCode, "module")
+        this._monitoringConfigService.schema(this.module.moduleCode, "module")
       ).filter((key) => schema[key].required);
       this.moduleSet = moduleFieldList.every(
         (v) =>
@@ -238,10 +238,10 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initConfig(): Observable<any> {
-    return this._configService.init(this.obj.moduleCode).pipe(
+    return this._monitoringConfigService.init(this.obj.moduleCode).pipe(
       mergeMap(() => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
-        this.backendUrl = this._configService.backendUrl();
+        this.frontendModuleMonitoringUrl = this._monitoringConfigService.frontendModuleMonitoringUrl();
+        this.backendUrl = this._monitoringConfigService.backendUrl();
         return of(true);
       })
     );

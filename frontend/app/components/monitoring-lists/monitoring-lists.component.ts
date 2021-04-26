@@ -1,6 +1,6 @@
 import { DataMonitoringObjectService } from './../../services/data-monitoring-object.service';
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
-import { ConfigService } from '../../services/config.service';
+import { MonitoringConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 
@@ -39,11 +39,11 @@ export class MonitoringListComponent implements OnInit {
   @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   constructor(
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
   ) { }
 
   ngOnInit() {
-    this._configService.init(this.obj.moduleCode)
+    this._monitoringConfigService.init(this.obj.moduleCode)
       .subscribe(() => {
         this.initDataTable();
       });
@@ -56,8 +56,8 @@ export class MonitoringListComponent implements OnInit {
       this.queyParamsNewObject[key]['parents_path'] = this.obj.parentsPath.concat([this.obj.objectType]);
     }
 
-    this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
-    this.backendUrl = this._configService.backendUrl();
+    this.frontendModuleMonitoringUrl = this._monitoringConfigService.frontendModuleMonitoringUrl();
+    this.backendUrl = this._monitoringConfigService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
     this.activetab = this.children0Array[0].objectType;

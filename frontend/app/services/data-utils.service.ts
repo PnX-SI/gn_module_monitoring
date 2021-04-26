@@ -6,7 +6,7 @@ import { concatMap, mergeMap } from "@librairies/rxjs/operators";
 import { Utils } from "./../utils/utils";
 
 import { CacheService } from "./cache.service";
-import { ConfigService } from "./config.service";
+import { MonitoringConfigService } from "./config.service";
 import { DataFormService } from "@geonature_common/form/data-form.service";
 
 /**
@@ -17,7 +17,7 @@ import { DataFormService } from "@geonature_common/form/data-form.service";
 export class DataUtilsService {
   constructor(
     private _cacheService: CacheService,
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _commonsDataFormService: DataFormService
   ) {}
 
@@ -158,7 +158,7 @@ export class DataUtilsService {
   //    * config/<module_code>/custom_config.json
   //   */
 
-  //   if (!Object.keys(this._configService.configData(moduleCode)).length) {
+  //   if (!Object.keys(this._monitoringConfigService.configData(moduleCode)).length) {
   //     return of(true);
   //   }
 
@@ -169,7 +169,7 @@ export class DataUtilsService {
   //   }
 
   //   const observables = {};
-  //   const configData = this._configService.configData(moduleCode);
+  //   const configData = this._monitoringConfigService.configData(moduleCode);
 
   //   // Test if nomenclature is define
   //   if (('nomenclature' in configData) && (configData['nomenclature'].length > 0)) {

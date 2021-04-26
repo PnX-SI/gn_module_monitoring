@@ -10,7 +10,7 @@ import {
 import { FormGroup } from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Layer, svg } from '@librairies/leaflet';
-import { ConfigService } from '../../services/config.service';
+import { MonitoringConfigService } from '../../services/config.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 
 
@@ -82,7 +82,7 @@ export class MonitoringMapComponent implements OnInit {
 
   constructor(
     protected _mapService: MapService,
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _data: DataMonitoringObjectService,
   ) { }
 
@@ -344,7 +344,7 @@ export class MonitoringMapComponent implements OnInit {
     //  Ne pose pas de soucis pour certaine configuration
     const url = [
       '#',
-      this._configService.frontendModuleMonitoringUrl(),
+      this._monitoringConfigService.frontendModuleMonitoringUrl(),
       'object',
       this.obj.moduleCode,
       'site',

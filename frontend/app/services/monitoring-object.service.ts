@@ -2,7 +2,7 @@ import { MonitoringObject } from "./../class/monitoring-object";
 import { Injectable } from "@angular/core";
 import { Observable, of } from "@librairies/rxjs";
 
-import { ConfigService } from "./config.service";
+import { MonitoringConfigService } from "./config.service";
 import { DataMonitoringObjectService } from "./data-monitoring-object.service";
 import { DataUtilsService } from "./data-utils.service";
 import { Utils } from "../utils/utils";
@@ -13,7 +13,7 @@ import { Router } from "@angular/router";
 @Injectable()
 export class MonitoringObjectService {
   constructor(
-    private _configService: ConfigService,
+    private _monitoringConfigService: MonitoringConfigService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _dataUtilsService: DataUtilsService,
     private _router: Router,
@@ -40,7 +40,7 @@ export class MonitoringObjectService {
       },
       taxonomy: {
         fieldName:
-          this._configService.config()[moduleCode]
+          this._monitoringConfigService.config()[moduleCode]
             .taxonomy_display_field_name || "nom_vern,lb_nom",
       },
       taxonomy_list: {
@@ -313,8 +313,8 @@ export class MonitoringObjectService {
     return this._dataUtilsService;
   }
 
-  configService(): ConfigService {
-    return this._configService;
+  MonitoringConfigService(): MonitoringConfigService {
+    return this._monitoringConfigService;
   }
 
   navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
@@ -322,7 +322,7 @@ export class MonitoringObjectService {
     this._router.navigate(
       [
         "/",
-        this._configService.frontendModuleMonitoringUrl(),
+        this._monitoringConfigService.frontendModuleMonitoringUrl(),
         routeType,
         moduleCode,
         objectType,

@@ -1,20 +1,21 @@
-import { MonitoringObjectComponent } from "./../components/monitoring-object/monitoring-object.component";
-import { Utils } from "./../utils/utils";
 // import _ from "lodash";
 import { Injectable } from "@angular/core";
 
 import { HttpClient } from "@angular/common/http";
-import { AppConfig } from "@geonature_config/app.config";
-import { ModuleConfig } from "../module.config";
+import { ConfigService } from '@geonature/utils/configModule/core';
 
 import { of } from "@librairies/rxjs";
 import { mergeMap } from "@librairies/rxjs/operators";
+import { MODULE_CODE } from "../module.code.config";
 
 @Injectable()
-export class ConfigService {
+export class MonitoringConfigService {
   private _config;
+  public appConfig: any;
 
-  constructor(private _http: HttpClient) {}
+  constructor(private _http: HttpClient, private _configService: ConfigService) {
+    this.appConfig = this._configService.getSettings();
+  }
 
   /** Configuration */
 
@@ -49,25 +50,25 @@ export class ConfigService {
 
   /** Backend Url et static dir ??*/
   backendUrl() {
-    return `${AppConfig.API_ENDPOINT}`;
+    return `${this.appConfig.API_ENDPOINT}`;
   }
 
   urlApplication() {
-    return `${AppConfig.URL_APPLICATION}`;
+    return `${this.appConfig.URL_APPLICATION}`;
   }
 
   /** Backend Module Url */
   backendModuleUrl() {
-    return `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+    return `${this.appConfig.API_ENDPOINT}/${this.appConfig[MODULE_CODE].MODULE_URL}`;
   }
 
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
-    return ModuleConfig.MODULE_URL;
+    return this.appConfig[MODULE_CODE].MODULE_URL;
   }
 
   moduleMonitoringCode() {
-    return ModuleConfig.MODULE_CODE;
+    return MODULE_CODE;
   }
 
   /**
