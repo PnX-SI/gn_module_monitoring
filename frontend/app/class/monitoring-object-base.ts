@@ -64,7 +64,7 @@ export class MonitoringObjectBase {
 
   labelArtDef() {
     return (
-      (["aeiouy"].includes(this.configParam("label"))
+      ("aeiouy".indexOf(this.configParam("label").toLowerCase()[0]) != -1
         ? "l'"
         : this.configParam("genre") == "F"
         ? "la "
@@ -74,7 +74,7 @@ export class MonitoringObjectBase {
 
   labelDu() {
     return (
-      (["aeiouy"].includes(this.configParam("label"))
+      ("aeiouy".indexOf(this.configParam("label").toLowerCase()[0]) != -1
         ? "de l'"
         : this.configParam("genre") == "F"
         ? "de la "
