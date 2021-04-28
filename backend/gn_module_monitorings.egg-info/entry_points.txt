@@ -1,0 +1,6 @@
+[gn_module]
+blueprint = gn_module_monitorings.blueprint:blueprint
+code = gn_module_monitorings:MODULE_CODE
+config_schema = gn_module_monitorings.conf_schema_toml:GnModuleSchemaConf
+migrations = gn_module_monitorings:migrations
+

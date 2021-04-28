@@ -12,7 +12,7 @@ with (root_dir / 'requirements.in').open() as f:
 
 
 setuptools.setup(
-    name='gn_module_monitoring',
+    name='gn_module_monitorings',
     version=version,
     description="This is an sample module.",
     long_description=long_description,
@@ -22,15 +22,15 @@ setuptools.setup(
     url='https://github.com/PnX-SI/gn_module_monitoring',
     packages=setuptools.find_packages('backend'),
     package_dir={'': 'backend'},
-    package_data={'gn_module_monitoring.migrations': ['data/*.sql']},
+    package_data={'gn_module_monitorings.migrations': ['data/*.sql']},
     install_requires=requirements,
     zip_safe=False,
     entry_points={
         'gn_module': [
-            'code = gn_module_monitoring:MODULE_CODE',
-            'blueprint = gn_module_monitoring.blueprint:blueprint',
-            'config_schema = gn_module_monitoring.conf_schema_toml:GnModuleSchemaConf',
-            'migrations = gn_module_monitoring:migrations',
+            'code = gn_module_monitorings:MODULE_CODE',
+            'blueprint = gn_module_monitorings.blueprint:blueprint',
+            'config_schema = gn_module_monitorings.conf_schema_toml:GnModuleSchemaConf',
+            'migrations = gn_module_monitorings:migrations',
         ],
     },
     classifiers=['Development Status :: 1 - Planning',

@@ -1,9 +1,7 @@
 {
-  "name": "gn_monitoring",
+  "name": "gn_module_monitorings",
   "description": "Module générique de génération de formulaires de protocoles de suivis",
-  "version": "0.2.0",
-  "license": "GNU Affero General Public License v3.0",
-  "dependencies": {
-    "tslib": "^1.10.0"
-  }
+  "version": "0.2.4",
+  "license": "GNU Affero General Public License v3.0"
 }
+  

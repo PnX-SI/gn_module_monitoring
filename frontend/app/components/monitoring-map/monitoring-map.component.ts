@@ -159,12 +159,13 @@ export class MonitoringMapComponent implements OnInit {
       permanent: true,
       direction: 'top',
       className: 'text',
-      removeOnInit: true,
+      // removeOnInit: true,
     })
     .setContent(textValue)
     .setLatLng(layer.getLatLng());
     layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
+    text['removeOnInit'] = true;
 
   }
 
