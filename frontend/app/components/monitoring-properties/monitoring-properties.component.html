@@ -86,7 +86,7 @@
     
 
     <button
-      class="btn btn-success"
+      class="btn btn-success mr-2"
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
@@ -95,7 +95,7 @@
     >
       Éditer {{ (obj.template.label_art_def || "") }}
     </button>
-
+    <button  (click)="getMapArea()" *ngIf='(obj.template.label || "").toLowerCase()==="aire"' type="button" class="btn btn-success mr-2" ><i class="fa fa-file-pdf-o"></i>&nbsp;Export en format cartographique (pdf)</button>
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
     class="btn btn-info float-right"
@@ -117,7 +117,46 @@
 
     Mettre à jour la synthèse
   </button>
-
+<!-- telechargement-->
+<button *ngIf='(obj.template.label || "").toLowerCase()==="module"' class="btn btn-success mr-2" color="primary" (click)="openModalDownload($event, modalDownload)"><i class="fa fa-arrow-down"></i>&nbsp;Téléchargements</button>	
 
   </div>
 </div>
+<!-- add mje modalDownload-->
+<ng-template #modalDownload id="modal-download" let-c="close" let-d="dismiss" >
+  <div class="modal-header">
+    <h5 class="modal-title" id="exampleModalLabel"> {{'DownloadData' | translate }}</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="modalReference.close();this.selectedDataSet=null">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <br>
+    <h5 class="underlined second-color">Télécharger les observations</h5>
+  
+    <div>
+      <small>Choisir un jeu de données à télécharger</small>
+      
+
+     <select 
+        class="form-control form-control-sm"
+       id="dataset-form "
+       [formControl]="parentFormControl"
+       [disableControl]="disabled"
+       (change)="selectChangeHandler($event)"
+     >
+
+       <option
+         *ngFor="let dataset_name of obj.resolvedProperties.datasets.split(',');index as i;"
+         [value]=" obj.properties.datasets[i]"
+       >{{ dataset_name }}</option>
+     </select> <br>
+    
+      <button *ngIf= 'this.selectedDataSet'  (click)="downloadAllObservations('csv','standard',this.selectedDataSet)" type="button" class="btn btn-success  mr-2" >Format standard CSV</button>
+      <button *ngIf= 'this.selectedDataSet' (click)="downloadAllObservations('csv','analyses',this.selectedDataSet)" type="button" class="btn btn-success  mr-1" >Format analyses CSV</button>
+      
+     </div> 
+  </div>
+</ng-template>
+
+<!-- end add mje -->

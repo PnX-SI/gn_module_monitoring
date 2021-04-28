@@ -89,8 +89,7 @@
           ></span>
 
           <span
-            >Valider et saisir des
-            {{ obj.uniqueChildrenName().toLowerCase() }}</span
+            >Valider et saisir des {{obj.uniqueChildrenName()=="Point d'observations"?"points d'observation":obj.uniqueChildrenName().toLowerCase()}} </span
           >
         </button>
 
