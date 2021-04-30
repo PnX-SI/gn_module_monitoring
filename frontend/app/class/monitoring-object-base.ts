@@ -62,9 +62,14 @@ export class MonitoringObjectBase {
     return `Object - ${this.moduleCode} ${this.objectType} ${this.id}`;
   }
 
+  testPremiereLettreVoyelle(s) {
+      return s && s[0] && "aeéiouy".includes(s[0].toLowerCase())
+  }
+
   labelArtDef() {
     return (
-      (["aeiouy"].includes(this.configParam("label"))
+      
+      (this.testPremiereLettreVoyelle(this.configParam("label"))
         ? "l'"
         : this.configParam("genre") == "F"
         ? "la "
@@ -73,13 +78,15 @@ export class MonitoringObjectBase {
   }
 
   labelDu() {
-    return (
-      (["aeiouy"].includes(this.configParam("label"))
-        ? "de l'"
-        : this.configParam("genre") == "F"
-        ? "de la "
-        : "du ") + this.configParam("label").toLowerCase()
+    const labelDu =  (
+      (this.testPremiereLettreVoyelle(this.configParam("label"))
+      ? "de l'"
+      : this.configParam("genre") == "F"
+      ? "de la "
+      : "du ") + this.configParam("label").toLowerCase()
     );
+    return labelDu;
+
   }
 
 
@@ -302,7 +309,7 @@ export class MonitoringObjectBase {
       return
     }
     const date = new Date(s);
-    if(date.toDateString() == 'Invalid Date') {
+    if(date.toDateString() == 'Invalid Date' || date.toDateString().includes('1970')) {
       return
     }
 
