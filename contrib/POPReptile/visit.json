@@ -24,7 +24,17 @@
     "nb_observations"
   ],
   "keep": [
-    "meteo"
+    "observers",
+    "visit_date_min",
+    "Heure_debut",
+    "Heure_fin",
+    "temperature_air",
+     "meteo",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "presence_reptile",
+    "comments"
   ],
   "specific": {
     "num_passage": {

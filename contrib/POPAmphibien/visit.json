@@ -24,7 +24,17 @@
     "nb_observations"
   ],
   "keep": [
-    "meteo"
+    "observers",
+    "visit_date_min",
+    "temperature_air",
+    "temperature_eau",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "methode_de_prospection",
+    "presence_amphibien",
+    "presence_poisson",
+    "comments"
   ],
   "specific": {
     "num_passage": {
