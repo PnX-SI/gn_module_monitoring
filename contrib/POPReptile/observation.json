@@ -1,5 +1,6 @@
 {
   "genre":"F",
+  "description_field_name":"cd_nom",
 "display_properties": [
   "cd_nom",
   "id_nomenclature_stade",

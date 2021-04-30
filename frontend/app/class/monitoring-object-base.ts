@@ -279,7 +279,7 @@ export class MonitoringObjectBase {
 
   paramValue(param, bResolved = false) {
     const fieldName = this.configParam(param);
-    if (bResolved) {
+    if (!bResolved) {
       return fieldName && this.properties[fieldName];
     } else {
       return fieldName && this.resolvedProperties[fieldName];
@@ -318,7 +318,7 @@ export class MonitoringObjectBase {
   }
 
   titleHTML(bEdit = false) {
-    let description = this.description();
+    let description = this.description(); 
     description = description ? `<span class="obj-description">${description}</span>` : '';
     const text = bEdit
     ? this.id
