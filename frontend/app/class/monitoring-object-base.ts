@@ -286,7 +286,7 @@ export class MonitoringObjectBase {
 
   paramValue(param, bResolved = false) {
     const fieldName = this.configParam(param);
-    if (bResolved) {
+    if (!bResolved) {
       return fieldName && this.properties[fieldName];
     } else {
       return fieldName && this.resolvedProperties[fieldName];

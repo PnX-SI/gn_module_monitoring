@@ -14,6 +14,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import CorObjectModule, TObjects
+from geonature.core.gn_synthese.models import TSources
+
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from ..monitoring.models import TMonitoringModules
@@ -142,30 +144,16 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     # insert nomenclature
     add_nomenclature(module_code)
 
-    # creation source pour la synthese
-    txt = ("""
-    INSERT INTO gn_synthese.t_sources(
-        name_source,
-        desc_source,
-        entity_source_pk_field,
-        url_source
-    )
-    VALUES (
-        'MONITORING_{0}',
-        'Données issues du module de suivi générique (sous-module: {1})',
-        'gn_monitoring.vs_{2}.entity_source_pk_value',
-        '#/{3}/object/{2}/{4}'
-    );
-        """.format(
-            module_code.upper(), # MONITORING_TEST
-            module_label.lower(), # module de test
-            module.module_code, # test
-            module_monitoring.module_path, # monitorings
-            synthese_object # observation
-        )
-    )
+    source_data= {
+        'name_source': 'MONITORING_{}'.format(module_code.upper()),
+        'desc_source': 'Données issues du module de suivi générique (sous-module: {})'.format(module_label.lower()),
+        'entity_source_pk_field': 'gn_monitoring.vs_{}.entity_source_pk_value'.format(module_code.lower()),
+        'url_source': '#/{}/object/{}/{}'.format(module_monitoring.module_path, module_code, synthese_object)
+    }
 
-    DB.engine.execution_options(autocommit=True).execute(txt)
+    source = TSources(**source_data)
+    DB.session.add(source)
+    DB.session.commit()
 
     # exec geonature (update img)
     if build:
