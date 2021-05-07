@@ -147,7 +147,7 @@ def get_config(module_code=None, verification_date=False):
             config['custom'][var_name] = getattr(module, field_name)
         config['custom']['__MONITORINGS_PATH'] = get_monitorings_path()
 
-        config['default_display_field_names'].update(config['display_field_names'] or {})
+        config['default_display_field_names'].update(config.get('display_field_names', {}))
         config['display_field_names'] = config['default_display_field_names']
 
         # Remplacement des variables __MODULE.XXX
