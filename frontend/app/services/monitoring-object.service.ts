@@ -22,43 +22,6 @@ export class MonitoringObjectService {
 
   _cache = {};
 
-  // TODO get config from backend!!!
-  // un peu comme avec taxonomy
-  configUtilsDict(moduleCode) {
-    return {
-      user: {
-        fieldName: "nom_complet",
-      },
-      nomenclature: {
-        fieldName: "label_fr",
-      },
-      dataset: {
-        fieldName: "dataset_name",
-      },
-      observer_list: {
-        fieldName: "nom_liste",
-      },
-      taxonomy: {
-        fieldName:
-          this._configService.config()[moduleCode]
-            .taxonomy_display_field_name || "nom_vern,lb_nom",
-      },
-      taxonomy_list: {
-        fieldName: "nom_liste",
-      },
-      sites_group: {
-        fieldName: "sites_group_name",
-      },
-      habitat: {
-        fieldName: "lb_hab_fr",
-      },
-      site: {
-        fieldName: "base_site_name",
-      },
-
-    };
-  }
-
   cache(moduleCode, objectType = null, id = null) {
     let cache = (this._cache[moduleCode] = this._cache[moduleCode] || {});
 
@@ -211,9 +174,7 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem, moduleCode) {
-    const confUtil =
-      elem.type_util && this.configUtilsDict(moduleCode)[elem.type_util];
-    return confUtil;
+    return this._configService.config()[moduleCode].display_field_names[elem.type_util]
   }
 
   toForm(elem, val): Observable<any> {

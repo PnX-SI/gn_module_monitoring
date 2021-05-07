@@ -171,8 +171,6 @@ def get_util_from_id_api(type_util, id):
         :return object entier si field_name = all, la valeur du champs defini par field_name sinon
     '''
 
-    print('get_util_from_id_api', type_util, id)
-
     # paramètre de route
     # field_name vaut 'all' par défaut
     field_name = request.args.get('field_name', 'all')

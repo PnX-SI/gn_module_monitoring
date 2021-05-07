@@ -128,9 +128,7 @@ class MonitoringObjectBase():
     def get_value(self, param_name):
         schema_generic = self.config_schema('generic')
         if param_name in schema_generic:
-            print('generic', param_name, self)
             return self.get_value_generic(param_name)
-        print('specific', param_name, self)
         return self.get_value_specific(param_name)
 
     def config_value(self, param_name):
@@ -199,7 +197,6 @@ class MonitoringObjectBase():
 
         if not filters:
             return True
-        print('filters', filters, self)
 
         cond = True
         for key in filters:

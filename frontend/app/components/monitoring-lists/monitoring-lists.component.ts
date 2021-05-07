@@ -88,7 +88,7 @@ export class MonitoringListComponent implements OnInit {
           try {
             status_type[typeObject][i]["selected"] = false;
           } catch (error) {
-            console.log(error.message,  status_type[typeObject][i])
+            console.error(error.message,  status_type[typeObject][i])
           }
         }
       }

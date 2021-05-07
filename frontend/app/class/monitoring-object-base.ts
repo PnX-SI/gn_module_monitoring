@@ -171,16 +171,16 @@ export class MonitoringObjectBase {
   }
 
   resolveProperty(elem, val): Observable<any> {
-    const configUtil = this._objService.configUtils(elem, this.moduleCode);
-
+    
     if (elem.type_widget === "date" || (elem.type_util === "date" && val)) {
       val = Utils.formatDate(val);
     }
-
-    if (val && configUtil && elem.type_widget) {
+    
+    const fieldName = this._objService.configUtils(elem, this.moduleCode);
+    if (val && fieldName && elem.type_widget) {
       return this._objService
         .dataUtilsService()
-        .getUtil(elem.type_util, val, configUtil.fieldName);
+        .getUtil(elem.type_util, val, fieldName);
     }
     return of(val);
   }
