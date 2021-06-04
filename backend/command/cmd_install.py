@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB
-from geonature.core.gn_permissions.models import CorObjectModule, TObjects
+from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_synthese.models import TSources
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -120,9 +120,9 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     DB.session.commit()
 
     # Insert permission object
-    if "permission_objects" in config:
+    if config['module'].get('permission_objects'):
         id_module = module.id_module
-        insert_permission_object(id_module, config)
+        insert_permission_object(id_module, config['module'].get('permission_objects'))
 
     #  run specific sql
     if os.path.exists(module_config_dir_path + '/synthese.sql'):
@@ -180,15 +180,20 @@ def insert_permission_object(id_module, permissions):
     """
     for perm in permissions:
         print(f"Insert perm {perm}")
-        #load object
+        # load object
         try:
-            object = DB.session.query(TObjects).filter(TObjects.code_object==perm).one()
-             # save
-            obj_mod = CorObjectModule(id_module=id_module, id_object = object.id_object)
-
+            object = DB.session.query(TObjects).filter(TObjects.code_object == perm).one()
+            # save
+            txt = ("""
+                    INSERT INTO gn_permissions.cor_object_module (id_module, id_object)
+                    VALUES ({id_module}, {id_object})
+                """.format(
+                    id_module=id_module,
+                    id_object=object.id_object
+                )
+            )
             try:
-                DB.session.add(obj_mod)
-                DB.session.commit()
+                DB.engine.execution_options(autocommit=True).execute(txt)
                 print(f"    Ok")
             except IntegrityError:
                 DB.session.rollback()
