@@ -2,14 +2,15 @@
 CHANGELOG
 =========
 
-0.2.4 (unreleased)
+0.2.4 (2021-06-15)
 ------------------
 
 **🐛 Corrections**
 
 * Problème de chainage des saisies
+* Configuration de l'affichage des taxons lb_nom pris en compte
 
-Version minimale de GeoNature nécessaire : 2.5.5 ??
+Version minimale de GeoNature nécessaire : 2.6.2
 
 
 0.2.3 (2021-04-01)
