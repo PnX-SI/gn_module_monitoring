@@ -34,7 +34,7 @@ Mise à jour du module
 
    for f in $(ls /home/`whoami`/gn_module_monitoring/config/monitoring/*/img.jpg); do
       module_path="$(dirname $f)"
-      ln -s $f /home/`whoami`/gn_module_monitoring/fronted/assets/${module_path##*/}.img
+      ln -s $f /home/`whoami`/gn_module_monitoring/frontend/assets/${module_path##*/}.img
    done
 
 
