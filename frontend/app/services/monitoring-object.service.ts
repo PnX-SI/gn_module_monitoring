@@ -282,7 +282,6 @@ export class MonitoringObjectService {
     console.log(routeType, moduleCode, objectType, id, queryParams)
     this._router.navigate(
       [
-        "/",
         this._configService.frontendModuleMonitoringUrl(),
         routeType,
         moduleCode,

@@ -76,7 +76,6 @@ export class BreadcrumbsComponent implements OnInit {
     setTimeout(() => {
       if (elem) {
         this._router.navigate([
-          "/",
           this._configService.frontendModuleMonitoringUrl(),
           "object",
           elem.module_code,
@@ -88,7 +87,6 @@ export class BreadcrumbsComponent implements OnInit {
         });
       } else {
         this._router.navigate([
-          "/",
           this._configService.frontendModuleMonitoringUrl(),
         ]);
       }
