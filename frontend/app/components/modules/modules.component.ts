@@ -19,6 +19,7 @@ export class ModulesComponent implements OnInit {
   frontendModuleMonitoringUrl: string;
   urlApplication: string;
   moduleMonitoringCode: string;
+  assetsDirectory: string;
 
   bLoading = false;
 
