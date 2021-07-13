@@ -2,6 +2,7 @@
 Mise à jour du module
 =====================
 
+
 - Téléchargez la nouvelle version du module
 
 ::
@@ -25,17 +26,21 @@ Mise à jour du module
 
    cp /home/`whoami`/gn_module_monitoring_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_monitoring/config/conf_gn_module.toml
 
-- Récupérez les sous-modules, recréer les liens symboliques pour la config et les assets (images)
+- Récupérez les sous-modules, recréer les liens symboliques pour la config
 
 ::
 
    cp -r /home/`whoami`/gn_module_monitoring_old/contrib/*  /home/`whoami`/gn_module_monitoring/contrib
    ln -s /home/`whoami`/gn_module_monitoring/contrib/* /home/`whoami`/gn_module_monitoring/config/monitoring/.
 
-   for f in $(ls /home/`whoami`/gn_module_monitoring/config/monitoring/*/img.jpg); do
-      module_path="$(dirname $f)"
-      ln -s $f /home/`whoami`/gn_module_monitoring/frontend/assets/${module_path##*/}.img
-   done
+
+- Recréez les liens des images des modules dans le dossier backend/static/monitorings/assets
+
+::
+   cd /home/`whoami`/geonature/backend
+   source venv/bin/activate
+   export FLASK_APP=/home/`whoami`/geonature/backend/geonature/app.py
+   flask monitorings process_img
 
 
 - Relancez la compilation en mettant à jour la configuration

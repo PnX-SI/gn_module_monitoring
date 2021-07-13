@@ -12,7 +12,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
-from geonature.utils.env import DB
+from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_synthese.models import TSources
 
@@ -23,16 +23,49 @@ from ..config.repositories import config_param, get_config
 from ..config.utils import json_from_file, CONFIG_PATH
 from ..modules.repositories import get_module, get_simple_module, get_source_by_code
 
+from pathlib import Path
+
 app = Flask(__name__)
 monitorings_cli = AppGroup('monitorings')
+
+def process_img_modules():
+    '''
+    function qui met à jour toutes les images pour les modules
+    '''
+
+    # creation du fichier d'asset dans le repertoire static du backend 
+    assets_static_dir = BACKEND_DIR / 'static/monitorings/assets/'
+    assets_static_dir.mkdir(exist_ok=True, parents=True)
+
+    for root, dirs, files in os.walk(CONFIG_PATH, followlinks=True):
+        img_file = root / Path('img.jpg', )
+        if not img_file.is_file():
+            continue
+
+        module_code = str(img_file).split('/')[-2].lower()
+
+        symlink(
+            img_file,
+            assets_static_dir / Path(module_code + '.jpg')
+        )
+
+
+
+@monitorings_cli.command('process_img')
+def cmd_process_img():
+    '''
+    Met à jour les images pour tout les modules
+    '''
+    process_img_modules()
+
+
 
 
 @monitorings_cli.command('install')
 @click.argument('module_config_dir_path')
 @click.argument('module_code', type=str, required=False, default='')
-@click.option("--build", type=bool, required=False, default=True)
 @with_appcontext
-def install_monitoring_module(module_config_dir_path, module_code, build):
+def install_monitoring_module(module_config_dir_path, module_code):
     '''
         Module de suivi générique : installation d'un sous module
 
@@ -41,7 +74,6 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
             - module_config_dir_path (str) : chemin du répertoire
                     où se situe les fichiers de configuration du module
             - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
-            - build: si on relance un build du frontend après l'installation du sous-module
     '''
 
     # on enleve le '/' de la fin de module_config_dir_path
@@ -75,12 +107,9 @@ def install_monitoring_module(module_config_dir_path, module_code, build):
     # symlink to config dir
     symlink(module_config_dir_path, CONFIG_PATH + '/' + module_code)
 
-    # symlink image menu modules de suivi
-    if os.path.exists(module_config_dir_path + '/img.jpg'):
-        symlink(
-            module_config_dir_path + '/img.jpg',
-            CONFIG_PATH + '/../../frontend/assets/' + module_code + '.jpg'
-        )
+    # process img modules
+    process_img_modules()
+
 
     config = get_config(module_code)
 
@@ -154,14 +183,6 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     source = TSources(**source_data)
     DB.session.add(source)
     DB.session.commit()
-
-    # exec geonature (update img)
-    if build:
-        subprocess.call(
-            [
-                "geonature frontend_build"
-            ],
-            shell=True)
 
     # TODO ++++ create specific tables
 
@@ -309,13 +330,11 @@ def remove_monitoring_module(module_code):
 
 def removesymlink(path):
     if(os.path.islink(path)):
-        print('remove link ' + path)
         os.remove(path)
 
 
 def symlink(path_source, path_dest):
     if(os.path.islink(path_dest)):
-        print('remove link ' + path_dest)
         os.remove(path_dest)
     os.symlink(path_source, path_dest)
 

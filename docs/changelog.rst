@@ -3,6 +3,27 @@ CHANGELOG
 =========
 
 
+0.2.6 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+* Assets déplacés dans le dossier ``backend/static/monitorings/assets`` static de geonature +++
+
+**⚠️ Notes de version**
+
+* L'emplacement des images des modules (dans la page d'accueil qui permet de choisir un module) change.
+Ils sont placés dans ``backend/static/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
+
+* Pour les mettre à jour, veuillez exécuter la commande suivante : 
+
+::
+   cd /home/`whoami`/geonature/backend
+   source venv/bin/activate
+   export FLASK_APP=/home/`whoami`/geonature/backend/geonature/app.py
+   flask monitorings process_img
+
+
 0.2.5 (2021-07-12)
 ------------------
 
