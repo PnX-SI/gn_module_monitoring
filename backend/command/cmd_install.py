@@ -1,24 +1,16 @@
 import os
 import click
-from pathlib import Path
-import subprocess
 
 from flask.cli import AppGroup, with_appcontext
-from sqlalchemy import and_
 from sqlalchemy.sql import text
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB, BACKEND_DIR
-from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_synthese.models import TSources
 
-from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
-
 from ..monitoring.models import TMonitoringModules
-from ..config.repositories import config_param, get_config
+from ..config.repositories import get_config
 from ..config.utils import json_from_file, CONFIG_PATH
-from ..modules.repositories import get_module, get_simple_module, get_source_by_code
+from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
     process_img_modules,
