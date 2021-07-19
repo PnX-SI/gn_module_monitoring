@@ -239,6 +239,10 @@ export class MonitoringObjectBase {
     }
   }
 
+  hasChildren() {
+    return !!this.configParam("children_types");
+  }
+
   uniqueChildrenType() {
     const childrenTypes = this.configParam("children_types") || [];
 
@@ -260,12 +264,15 @@ export class MonitoringObjectBase {
   }
 
   child0(childrenType) {
+    if(!(this.childrenTypes().length)) {
+      return;
+    }
     if (this._children0[childrenType]) {
       return this._children0[childrenType];
     }
     const child0 = new this.myClass(
       this.moduleCode,
-      childrenType,
+      childrenType || this.uniqueChildrenType(),
       null,
       this._objService
     );
@@ -396,12 +403,13 @@ export class MonitoringObjectBase {
 
   /** navigation */
 
-  navigateToAddChildren(childrenType = null) {
+  navigateToAddChildren(childrenType = null, id = null) {
     const queryParamsAddChildren = {};
-    queryParamsAddChildren[this.idFieldName()] = this.id;
+    queryParamsAddChildren[this.idFieldName()] = this.id || id;
     queryParamsAddChildren["parents_path"] = this.parentsPath.concat(
       this.objectType
     );
+    console.log(queryParamsAddChildren)
     this._objService.navigate(
       "create_object",
       this.moduleCode,

@@ -37,7 +37,15 @@
           (click)="child0.navigateToDetail(row.id)"
           matTooltip="Consulter {{child0.template.label_art_def}}"
         >
-          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          <i class="fa fa-eye" aria-hidden="true"></i>
+        </a>
+        <a
+          *ngIf="child0.child0()"
+          class="nav-link link cell-link"
+          (click)="child0.navigateToAddChildren(null, row.id)"
+          matTooltip="Ajouter {{child0.child0().labelArtUndef(true)}}"
+        >
+          <i class="fa fa-plus" aria-hidden="true"></i>
         </a>
       </ng-template>
     </ngx-datatable-column>
