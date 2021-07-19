@@ -8,7 +8,13 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Assets déplacés dans le dossier ``backend/static/external_assets/monitorings/assets`` static de geonature +++
+* Assets déplacés dans le dossier ``backend/static/external_assets/monitorings/`` static de geonature +++
+* Dans les listes d'objets ajout d'un bouton plus pouraccéder directement à la création d'un enfant
+  * par exemple depuis la liste des sites on peux accéder directement à la création d'une nouvelle visite.
+
+**🐛 Corrections**
+
+* Chargement des commandes flasks
 
 **⚠️ Notes de version**
 
@@ -18,9 +24,8 @@ Ils sont placés dans ``backend/static/external_assets/monitorings/assets``, l'a
 * Pour les mettre à jour, veuillez exécuter la commande suivante : 
 
 ::
-   cd /home/`whoami`/geonature/backend
-   source venv/bin/activate
-   export FLASK_APP=/home/`whoami`/geonature/backend/geonature/app.py
+   source /home/`whoami`/geonature/backend/venv/bin/activate
+   export FLASK_APP=geonature
    flask monitorings process_img
 
 
