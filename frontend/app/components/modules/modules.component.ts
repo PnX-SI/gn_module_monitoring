@@ -41,7 +41,7 @@ export class ModulesComponent implements OnInit {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.moduleMonitoringCode = this._configService.moduleMonitoringCode();
         this.urlApplication = this._configService.urlApplication();
-        this.assetsDirectory = this._configService.backendUrl() + '/static/monitorings/assets/';  
+        this.assetsDirectory = this._configService.backendUrl() + '/static/external_assets/monitorings/';
         this.bLoading = false;
       });
   }

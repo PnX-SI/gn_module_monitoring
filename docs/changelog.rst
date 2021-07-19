@@ -8,12 +8,12 @@ CHANGELOG
 
 **🚀 Nouveautés**
 
-* Assets déplacés dans le dossier ``backend/static/monitorings/assets`` static de geonature +++
+* Assets déplacés dans le dossier ``backend/static/external_assets/monitorings/assets`` static de geonature +++
 
 **⚠️ Notes de version**
 
 * L'emplacement des images des modules (dans la page d'accueil qui permet de choisir un module) change.
-Ils sont placés dans ``backend/static/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
+Ils sont placés dans ``backend/static/external_assets/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
 
 * Pour les mettre à jour, veuillez exécuter la commande suivante : 
 

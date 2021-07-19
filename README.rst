@@ -111,6 +111,15 @@ Activer le venv de GeoNature
   source backend/venv/bin/activate
 
 
+Vérifier que la variable ``FLASK_APP`` est bien définie
+-------------------------------------------------------
+
+Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
+
+::
+  export FLASK_APP=<path_to_geonature>/backend/geonature/app.py
+
+
 Lancer la commande d'installation du sous-module
 ------------------------------------------------
 

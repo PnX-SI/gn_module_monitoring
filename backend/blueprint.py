@@ -4,10 +4,12 @@
 """
 
 from flask import Blueprint, current_app
-
-from .command.cmd_install import monitorings_cli
+from .command.cmd_install import commands
 
 blueprint = Blueprint("monitorings", __name__)
 from .routes import * # noqa
 
-current_app.cli.add_command(monitorings_cli)
+blueprint.cli.short_help = 'Commandes pour l''administration du module MONITORINGS'
+for cmd in commands:
+    blueprint.cli.add_command(cmd)
+
