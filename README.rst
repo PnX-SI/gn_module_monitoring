@@ -116,8 +116,10 @@ Vérifier que la variable ``FLASK_APP`` est bien définie
 
 Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
 
+- comme ``geonature`` est désormais un module python(depuis la 2.7), la commande suivante suffit:
+
 ::
-  export FLASK_APP=<path_to_geonature>/backend/geonature/app.py
+  export FLASK_APP=geonature
 
 
 Lancer la commande d'installation du sous-module
