@@ -34,7 +34,7 @@ Mise à jour du module
 
    for f in $(ls /home/`whoami`/gn_module_monitoring/config/monitoring/*/img.jpg); do
       module_path="$(dirname $f)"
-      ln -s $f /home/`whoami`/gn_module_monitoring/fronted/assets/${module_path##*/}.img
+      ln -s $f /home/`whoami`/gn_module_monitoring/frontend/assets/${module_path##*/}.img
    done
 
 
@@ -47,7 +47,7 @@ Mise à jour du module
    geonature update_module_configuration MONITORINGS
 
 
-- Exécutez les éventuels scripts SQL de migration de la BDD, correspondant aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonction des versions>``
+- Exécutez les éventuels scripts SQL de migration de la BDD, correspondant aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/data/migrations/<choisir le(s) bon(s) en fonction des versions>``
 
 - Recréer les vues alimentant la synthèse de GeoNature
 
