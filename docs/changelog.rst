@@ -2,32 +2,40 @@
 CHANGELOG
 =========
 
-
 0.2.6 (2021-07-23)
 ------------------
 
 **🚀 Nouveautés**
 
-* Assets déplacés dans le dossier ``backend/static/external_assets/monitorings/`` static de geonature +++
-* Dans les listes d'objets ajout d'un bouton plus pouraccéder directement à la création d'un enfant
-  * par exemple depuis la liste des sites on peux accéder directement à la création d'une nouvelle visite.
+* Assets déplacés dans le dossier ``static`` (``backend/static/external_assets/monitorings/``) de GeoNature (#102)
+* Dans les listes d'objets, ajout d'un bouton plus pour accéder directement à la création d'un enfant (#97)
+
+  * par exemple depuis la liste des sites on peut accéder directement à la création d'une nouvelle visite
 
 **🐛 Corrections**
 
-* Chargement des commandes flasks
+* Chargement des commandes Flask
 
 **⚠️ Notes de version**
 
 * L'emplacement des images des modules (dans la page d'accueil qui permet de choisir un module) change.
-Ils sont placés dans ``backend/static/external_assets/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
+Elles sont placées dans ``backend/static/external_assets/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
 
 * Pour les mettre à jour, veuillez exécuter la commande suivante : 
 
 ::
+
    source /home/`whoami`/geonature/backend/venv/bin/activate
    export FLASK_APP=geonature
    flask monitorings process_img
 
+ou bien à partir de GeoNature 2.7.3 :
+
+::
+
+   source /home/`whoami`/geonature/backend/venv/bin/activate
+   export FLASK_APP=geonature
+   geonature monitorings process_img
 
 0.2.5 (2021-07-12)
 ------------------
@@ -45,7 +53,6 @@ Problème de route frontend (#100)
 * Configuration de l'affichage des taxons lb_nom pris en compte
 
 Version minimale de GeoNature nécessaire : 2.6.2
-
 
 0.2.3 (2021-04-01)
 ------------------
