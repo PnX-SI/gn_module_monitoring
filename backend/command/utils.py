@@ -9,7 +9,8 @@ from geonature.core.gn_permissions.models import TObjects
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
-from ..config.utils import CONFIG_PATH
+from ..config.utils import json_from_file, CONFIG_PATH
+
 from ..modules.repositories import get_module, get_source_by_code
 
 

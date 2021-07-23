@@ -60,7 +60,7 @@ export class MonitoringListComponent implements OnInit {
     this.backendUrl = this._configService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
-    this.activetab = this.children0Array[0].objectType;
+    this.activetab = this.children0Array[0] && this.children0Array[0].objectType;
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
