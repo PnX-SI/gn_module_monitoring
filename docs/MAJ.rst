@@ -37,6 +37,7 @@ Mise à jour du module
 - Recréez les liens des images des modules dans le dossier backend/static/monitorings/assets
 
 ::
+
    cd /home/`whoami`/geonature/backend
    source venv/bin/activate
    export FLASK_APP=/home/`whoami`/geonature/backend/geonature/app.py
