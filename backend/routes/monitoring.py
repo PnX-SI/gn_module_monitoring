@@ -3,8 +3,8 @@
         site, visit, observation, ...
 '''
 
-from flask import request
 
+from flask import request, send_from_directory
 from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
@@ -18,6 +18,13 @@ from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+from utils_flask_sqla_geo.generic import GenericTableGeo
+from geonature.utils.env import DB, ROOT_DIR
+import datetime as dt
+from utils_flask_sqla.response import to_csv_resp, to_json_resp
+from utils_flask_sqla.generic import serializeQuery
+import geonature.utils.filemanager as fm
+from pathlib import Path
 
 
 
@@ -192,3 +199,86 @@ def update_synthese_api(module_code):
         .get()
         .process_synthese(process_module=True)
     )
+# export add mje
+# export all observations
+@blueprint.route('/module/<module_code>/<type>/<method>/<jd>', methods=['GET'])
+@check_cruved_scope_monitoring('R', 1)
+def export_all_observations(module_code, type, method,jd):
+    """
+    Export all the observations made on a site group.
+    Following formats are available:
+    * csv
+    * geojson
+    * shapefile
+    """
+    
+    view = GenericTableGeo(
+        tableName="v_export_" + module_code.lower()+"_"+method, 
+        schemaName="gn_monitoring", 
+        engine=DB.engine
+
+    )
+    columns = view.tableDef.columns
+    q = DB.session.query(*columns)
+    #data = q.all()
+    #----------------------------
+    data = DB.session.query(*columns).filter(columns.id_dataset == jd).all()
+    #-------------------------------------
+
+    filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
+
+    if type == 'csv':
+        return to_csv_resp(
+            filename,
+            data=serializeQuery(data, q.column_descriptions),
+            separator=";",
+            columns=[db_col.key for db_col in columns if db_col.key != 'geom'], # Exclude the geom column from CSV
+        )
+    elif type == 'geojson':
+        results = FeatureCollection([view.as_geofeature(d, columns=columns) for d in data])
+        return to_json_resp(results, as_file=True, filename=filename, indent=4, extension='geojson')
+    elif type == 'shp':
+        try:
+            fm.delete_recursively(
+                str(ROOT_DIR / "backend/static/shapefiles"), excluded_files=[".gitkeep"]
+            )
+            db_cols = [db_col for db_col in view.db_cols if db_col.key in columns]
+            dir_path = str(ROOT_DIR / "backend/static/shapefiles")
+            view.as_shape(
+                db_cols=db_cols, data=data, dir_path=dir_path, file_name=filename
+            )
+            return send_from_directory(dir_path, filename + ".zip", as_attachment=True)
+
+        except GeonatureApiError as e:
+            return render_template(
+                "error.html",
+                error=str(e),
+                redirect=current_app.config["URL_APPLICATION"] + "/#/cmr",
+            )
+    else:
+        raise NotFound("type export not found")
+
+
+@blueprint.route('/module/<module_code>/maparea/<int:id_area>', methods=['POST'])
+def get_area_map(module_code, id_area):
+    """
+    Export the fiche individu as a PDF file.
+    Need to push the map image in the post data to be present in PDF.
+    Need to set a template in sub-module.
+    """
+    depth = to_int(request.args.get('depth', 0))
+    area= monitoring_definitions.monitoring_object_instance(module_code, "sites_group", id_area).get(depth=depth).get(value=id_area, field_name = "id_sites_group").serialize(depth)
+    
+    df = {}
+    df['module_code'] = module_code
+    df['id_area'] = id_area
+    df['area'] = area
+    df['map_image'] = request.json['map']
+    df['id_inventor'] = request.json['id_inventor']
+
+    pdf_file = fm.generate_pdf("monitoring/"+module_code+"/fiche_individu.html", df, "map_area.pdf")
+    pdf_file_posix = Path(pdf_file)
+    try:
+	    return send_from_directory(str(pdf_file_posix.parent), pdf_file_posix.name, as_attachment=True)
+    except Exception as e:
+	    return str(e)

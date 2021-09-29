@@ -3,6 +3,8 @@ import { Observable, of } from '@librairies/rxjs';
 import { Injectable } from '@angular/core';
 
 import { CacheService } from './cache.service';
+import { ConfigService } from './config.service';
+import { HttpClient } from "@angular/common/http";
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -11,7 +13,7 @@ import { CacheService } from './cache.service';
 @Injectable()
 export class DataMonitoringObjectService {
 
-  constructor(private _cacheService: CacheService) { }
+  constructor(private _cacheService: CacheService, private _http: HttpClient, private _config:ConfigService) { }
 
   /** Modules */
 
@@ -126,5 +128,16 @@ export class DataMonitoringObjectService {
     const url = `synthese/${moduleCode}`;
     return this._cacheService.request('post', url);
   }
+ //add mje
+ downloadAllObservations(moduleCode, type,method,jd ) {
+  const url = `module/${moduleCode}/${type}/${method}/${jd}`;
+  this._cacheService.requestExport('get', url);
+ }
+  getMapArea(module_code, id_aire, id_inventor, map_image) {
+    let dt = new Date().toString();  // Add date of call to URL to ensure no cache used.
+    const url = `module/${module_code}/maparea/${id_aire}`;
+    this._cacheService.requestExportCreatedPdf('post', url, {postData:{map: map_image, id_inventor:id_inventor}} );
+ }
+ 
 
 }

@@ -1,6 +1,6 @@
 import { ObserversComponent } from './../../../../../frontend/src/app/GN2CommonModule/form/observers/observers.component';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable, of, Subject } from '@librairies/rxjs';
 
@@ -173,4 +173,36 @@ export class CacheService {
     return this._cache;
   }
 
+
+  requestExport(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+    // verification de requestType
+   
+   
+
+    const url_params = Object.keys(queryParams)
+      .map(key => Array.isArray(queryParams[key])
+        ? queryParams[key].map(val => `${key}=${val}`).join('&')
+        : `${key}=${queryParams[key]}`
+        ).join('&')
+
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params 
+  
+        // requete
+        window.open(url);
+  }
+
+//add mje: export pdf
+requestExportCreatedPdf(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+  
+const httpHeaders: HttpHeaders = new HttpHeaders({ 'Accept': 'application/pdf'   });
+const url = this._config.backendModuleUrl() + '/' + urlRelative ;
+ 
+return this._http[requestType]<any>(url, postData, {responseType: 'arraybuffer', headers:httpHeaders}
+      
+    ).subscribe(file => {
+      let blob = new Blob([file] , {type: 'application/pdf'}); 
+      let url = window.URL.createObjectURL(blob); 
+      window.open(url);
+});
+}
 }

@@ -110,7 +110,15 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSites() {
+    var points = []; 
+    var polygon;
+    var area;
+    var readableArea;
+    var l1;
+    
     this.removeLabels();
+    const layers = this._mapService.map['_layers'];
+    for (const key of Object.keys(layers)) {const layer = layers[key]; try{ layer.unbindTooltip();}catch{}}
     setTimeout(() => {
       this.initPanes();
       if (this.sites && this.sites['features']) {
@@ -125,6 +133,43 @@ export class MonitoringMapComponent implements OnInit {
           //
           layer.removeFrom(this._mapService.map);
           layer.addTo(this._mapService.map);
+          layer.bindTooltip(layer.feature.properties["base_site_name"], {permanent: true, direction: 'right'});
+          l1=layer;
+          try{
+          var x = layer._latlng.lat; var y = layer._latlng.lng; points.push({x, y});
+          }catch{} 
+          
+        }
+        if(points.length>2){
+            // Get the center (mean value) using reduce
+            const center = points.reduce((acc, { x, y }) => {
+              acc.x += x / points.length;
+              acc.y += y / points.length;
+              return acc;
+            }, { x: 0, y: 0 });
+
+            // Add an angle property to each point using tan(angle) = y/x
+            const angles = points.map(({ x, y }) => {
+              return { x, y, angle: Math.atan2(y - center.y, x - center.x) * 180 / Math.PI };
+            });
+
+            // Sort your points by angle
+            const pointsSorted = angles.sort((a, b) => a.angle - b.angle);
+            const pointsSorted1 = pointsSorted.map(({x, y}) => {
+              return [x, y];
+            });
+           
+
+            
+            polygon= L.polygon(pointsSorted1,{removeOnInit: true,"fillOpacity": .0, color: 'red', dashArray: '5, 5'}).addTo(this._mapService.map);;
+            area  = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]);
+            readableArea = L.GeometryUtil.readableArea(area, true);
+            var center1 = polygon.getBounds().getCenter();
+            //polygon.bindTooltip(readableArea, {permanent: true, direction: 'center', offset: [10, 0],});
+            L.marker(center1, { opacity: 0 }).bindTooltip(readableArea, {permanent: true, direction: 'center'}).addTo(this._mapService.map);
+            
+           
+            
         }
 
         this.setSitesStyle();

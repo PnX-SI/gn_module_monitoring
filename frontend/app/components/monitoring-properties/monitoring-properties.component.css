@@ -18,3 +18,9 @@ td {
   display: none;
 }
 
+.tab-content  {
+  background-color: #E1FFFE;
+}
+.nav-item.active { 
+   background-color: #E1FFFE; 
+} 

@@ -58,7 +58,8 @@ export class ConfigService {
 
   /** Backend Module Url */
   backendModuleUrl() {
-    return `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+    
+    return `${AppConfig.API_ENDPOINT}${ModuleConfig.MODULE_URL}`;
   }
 
   /** Frontend Module Monitoring Url */
