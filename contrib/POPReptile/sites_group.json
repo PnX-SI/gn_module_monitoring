@@ -1,0 +1,108 @@
+{
+  "genre":"F",
+  "label": "Aire",
+  "label_list": "Aires",
+  "display_properties": [
+    "id_dataset",
+    "id_inventor",
+    "expertise",
+    "commune",
+    "sites_group_name",
+    "habitat_principal",
+    "comments"
+  ],
+  "display_list": [
+    "sites_group_name",
+    "nb_sites"
+  ],
+  "specific": {
+
+    "id_inventor": {
+      "type_widget": "datalist",
+      "attribut_label": "Observateur principal",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
+      "type_util": "user",
+      "required": true
+    },
+    "expertise": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Expertise",
+      "code_nomenclature_type": "EXPERTISE",
+      "required": false,
+      "hidden": false,
+      "type_util": "nomenclature"
+    },
+    "id_dataset": {
+      "type_widget": "datalist",
+      "attribut_label": "Jeu de données",
+      "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "data_path": "data",
+      "required": true,
+
+      "params": {
+        "orderby": "dataset_name",
+        "module_code": "__MODULE.MODULE_CODE"
+      }
+      
+    },
+
+    "commune": {
+      "type_widget": "municipalities",
+      "attribut_label": "Commune",
+      "required": true,
+      "title":"Veuillez saisir les principales communes concernées par l'aire"  
+    },
+      "sites_group_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom de l'aire",
+        "required": true,
+        "definition": "Nom du groupe site."
+       
+      },
+     
+      "comments": {
+        "type_widget": "textarea",
+        "attribut_label": "Commentaire"
+      },
+
+      "habitat_principal":{
+        "type_widget": "datalist",
+        "attribut_label": "Habitat principal",
+        "api": "habref/habitats/autocomplete",
+        "application": "GeoNature",
+        "keyValue": "cd_hab",
+        "keyLabel": "search_name",
+        "type_util": "habitat",
+        "definition":"Veuillez préciser l'habitat principal de l'aire",
+        "params": {
+            "cd_typo": 7,
+            "search_name": ""
+        }
+
+      },
+      "sites_group_description": {
+        "type_widget": "textarea",
+        "attribut_label": "Description",
+        "hidden":true
+      },
+      "sites_group_code": {
+        "type_widget": "text",
+        "attribut_label": "Numéro de l'aire",
+        "required": false,
+        "hidden":true
+      },
+      "nb_visits": {
+        "attribut_label": "Nombre de passages"
+      }
+    
+ 
+         
+  }
+}   

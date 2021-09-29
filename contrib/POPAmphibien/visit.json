@@ -1,0 +1,133 @@
+{
+  "genre":"M",
+  "label": "Passage",
+  "label_list": "Passages",
+  "display_properties": [
+
+    "observers",
+    "num_passage",
+    "visit_date_min",
+    "temperature_air",
+    "temperature_eau",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "methode_de_prospection",
+    "presence_amphibien",
+    "presence_poisson",
+    "comments"
+  ],
+  "display_list": [
+    "num_passage",
+    "visit_date_min",
+    "observers",
+    "nb_observations"
+  ],
+  "keep": [
+    "observers",
+    "visit_date_min",
+    "temperature_air",
+    "temperature_eau",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "methode_de_prospection",
+    "presence_amphibien",
+    "presence_poisson",
+    "comments"
+  ],
+  "specific": {
+    "num_passage": {
+      "type_widget": "text",
+      "required": true,
+      "attribut_label": "Numéro de passage"
+    },
+    "id_base_site": {
+      "type_widget": "site",
+      "required": true,
+      "attribut_label": "Site"
+    },
+    "temperature_air": {
+      "type_widget": "number",
+      "attribut_label": "Température de l’air (en °C)",
+      "required": false,
+      "min": -25,
+      "max": 60
+    },
+    "temperature_eau": {
+      "type_widget": "number",
+      "attribut_label": "Température de l’eau (en °C)",
+      "required": false,
+      "min": -25,
+      "max": 60
+    },
+    "pluviosite": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Pluviosité",
+      "code_nomenclature_type": "PLUVIOSITE",
+	    "required": false,
+      "type_util": "nomenclature"
+    },
+    "ensoleillement": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Ensoleillement (% de recouvrement nuageux)",
+      "code_nomenclature_type": "ENSOLEILLEMENT",
+	    "required": false,
+      "type_util": "nomenclature"
+
+    },
+
+    "vent": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Vent",
+      "code_nomenclature_type": "VENT",
+	    "required": false,
+      "type_util": "nomenclature"    
+    },
+    "methode_de_prospection": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Méthode de prospection",
+      "code_nomenclature_type": "METHODE_PROSPECTION",
+	    "required": false,
+      "type_util": "nomenclature"
+        },
+    "comments": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaire"
+    },
+    "presence_amphibien": {
+      "type_widget": "radio",
+      "attribut_label": "Présence d’amphibiens",
+      "values": ["Oui", "Non"]
+    },
+    "presence_poisson": {
+      "type_widget": "radio",
+      "attribut_label": "Présence de poissons",
+      "values": ["Oui", "Non"]
+    },
+    "id_dataset": {
+     
+      "type_widget": "datalist",
+      "attribut_label": "Jeu de données",
+      "type_util": "dataset",
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
+      "params": {
+        "orderby": "dataset_name",
+        "module_code": "__MODULE.MODULE_CODE"
+      },
+      "data_path": "data",
+      "required": true
+    },  
+     "visit_date_min": {
+      "type_widget": "date",
+      "attribut_label": "Date du passage",
+      "required": true
+    },
+    "nb_observations": {
+      "attribut_label": "Nb. d'observations"
+    }
+  }
+}

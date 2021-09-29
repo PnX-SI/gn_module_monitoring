@@ -1,0 +1,118 @@
+{
+  "genre":"M",
+  "label": "Passage",
+  "label_list": "Passages",
+  "display_properties": [
+
+    "observers",
+    "num_passage",
+    "visit_date_min",
+    "Heure_debut",
+    "Heure_fin",
+    "temperature_air",
+     "meteo",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "presence_reptile",
+    "comments"
+  ],
+  "display_list": [
+    "num_passage",
+    "visit_date_min",
+    "observers",
+    "nb_observations"
+  ],
+  "keep": [
+    "observers",
+    "visit_date_min",
+    "Heure_debut",
+    "Heure_fin",
+    "temperature_air",
+     "meteo",
+    "pluviosite",
+    "ensoleillement",
+    "vent",
+    "presence_reptile",
+    "comments"
+  ],
+  "specific": {
+    "num_passage": {
+      "type_widget": "text",
+      "required": true,
+      "attribut_label": "Numéro de passage"
+    },
+    "id_base_site": {
+      "type_widget": "site",
+      "required": false,
+      "attribut_label": "Point d'obs."
+    },
+    "Heure_debut": {
+      "type_widget": "time",
+      "attribut_label": "Heure de début",
+      "required": false
+    },
+    "Heure_fin": {
+      "type_widget": "time",
+      "attribut_label": "Heure de fin",
+      "required": false
+    },
+    "temperature_air": {
+      "type_widget": "number",
+      "attribut_label": "Température de l’air (en °C)",
+      "required": false,
+      "min": -25,
+      "max": 60
+    },
+    "meteo": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Météo",
+      "code_nomenclature_type": "METEO",
+	    "required": false,
+      "type_util": "nomenclature"
+    },
+
+    "pluviosite": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Pluviosité",
+      "code_nomenclature_type": "PLUVIOSITE",
+	    "required": false,
+      "type_util": "nomenclature"
+    },
+    "ensoleillement": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Ensoleillement (% de recouvrement nuageux)",
+      "code_nomenclature_type": "ENSOLEILLEMENT",
+	    "required": false,
+      "type_util": "nomenclature"
+
+    },
+
+    "vent": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Vent",
+      "code_nomenclature_type": "VENT",
+	    "required": false,
+      "type_util": "nomenclature"    
+    },
+
+    "comments": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaire"
+    },
+    "presence_reptile": {
+      "type_widget": "radio",
+      "attribut_label": "Présence de reptiles",
+      "values": ["Oui", "Non"]
+    },
+    "visit_date_min": {
+      "type_widget": "date",
+      "attribut_label": "Date du passage",
+      "required": true
+    },
+    "nb_observations": {
+      "attribut_label": "Nb. d'observations"
+    }
+
+  }
+}
