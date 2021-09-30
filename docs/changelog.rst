@@ -2,7 +2,14 @@
 CHANGELOG
 =========
 
-
+**🚀 Nouveautés POPAmphibien  POPReptile**
+*Ajout des sous modules POPAmphibien et POPReptile
+* Modification de la couleur de la partie superieure des detailles en bleu
+* Dans la partie map, joindre les sites par une des lignes pour former une aire si le nombre des points est suerieur à 2
+* Ajout le bouton de l'export PDF de la partie aire
+* Ajout le bouton de telechargement des données standard et d'analyse pour chaque sous module en format CSV via un modale
+* Correction de "Point d'observations" par "Points d'observation"
+* alter table gn_monitoring.t_base_sites alter column id_nomenclature_type_site drop not null; 
 0.2.6 (2021-07-23)
 ------------------
 
