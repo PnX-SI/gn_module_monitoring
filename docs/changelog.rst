@@ -3,7 +3,7 @@ CHANGELOG
 =========
 
 **🚀 Nouveautés POPAmphibien  POPReptile**
-*Ajout des sous modules POPAmphibien et POPReptile
+* Ajout des sous modules POPAmphibien et POPReptile
 * Modification de la couleur de la partie superieure des detailles en bleu
 * Dans la partie map, joindre les sites par une des lignes pour former une aire si le nombre des points est suerieur à 2
 * Ajout le bouton de l'export PDF de la partie aire
