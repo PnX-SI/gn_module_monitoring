@@ -1,0 +1,131 @@
+@page {
+    size: 29.7cm 21.0cm !important;
+    margin: 2.5cm 0.5cm 1.3cm 0.5cm !important;
+}
+* {
+    font-family: Verdana, sans-serif !important;
+}
+body {
+    font-size: 11px;
+}
+.italic {
+    font-style: italic;
+	color: black;
+}
+
+.title{
+	font-size: 25px black;
+	text-align: right;
+}
+div.header {
+    position: fixed;
+    top: -2.1cm;
+    color: #578799;
+	width:28.2cm;
+	border: solid 1px black;
+	background-color:#A0C300;
+}
+div.footer {
+    position: fixed;
+    bottom: -1cm;
+    width: 99%;
+    display: flex;
+    justify-content: space-between;
+}
+h1 {
+    font-style: italic;
+    margin-top: 0px;
+}
+
+h1, h2 {
+    color: #000000;
+}
+h3 {
+    color: #000000;
+}
+
+strong, th {
+    color: #578799;
+}
+.analyses strong {
+    color: black;
+}
+
+table.bordered {
+    border-collapse: collapse;
+}
+table.bordered th,
+table.bordered td {
+    border: solid 1px black;
+    padding: 4px 4px;
+}
+.analyses-container {
+    display: flex;
+}
+.analyses {
+    border: solid 1px black;
+    border-radius: 3px;
+    padding: 10px;
+    margin-right: 20px;
+    background-color: #DFEFF6;
+}
+.flex {
+    display: flex;
+    width: 100%;
+	
+	
+}
+/*.flex div {
+    width: 50%;
+}*/
+.map {
+    text-align: left;
+
+}
+.map img {
+	border: 1px solid black;
+    width: 20cm;
+    height: 16cm;
+	padding: 5px;
+}
+.north img {
+	width: 1cm;
+    height: 2cm;
+}
+.site img {
+	width: 0.5cm;
+    height: 0.5cm;
+}
+.fich {
+	border: 1px solid black;
+    width: 7cm;
+	padding: 10px;
+
+	
+  
+}
+.legend {
+	border: 1px solid black;
+    width: 7cm;
+	padding: 10px;
+	
+  
+}
+.media-img {
+    display: block;
+    max-width:12cm;
+    max-height:8cm;
+    width: auto;
+    height: auto;
+}
+.column {
+    float: left;
+    width: 50%;
+}
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+ }
+
