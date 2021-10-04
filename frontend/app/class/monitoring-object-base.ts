@@ -104,6 +104,8 @@ export class MonitoringObjectBase {
 
 
   initTemplate() {
+    this.template["export_pdf"] = this.configParam("export_pdf");
+    this.template["color"] = this.configParam("color");
     this.template["idTableLocation"] = this.configParam("id_table_location");
     this.template["label"] = this.configParam("label");
     this.template["label_art_def"] = this.labelArtDef();

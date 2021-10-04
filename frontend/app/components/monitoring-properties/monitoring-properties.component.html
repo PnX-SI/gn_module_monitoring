@@ -26,7 +26,7 @@
       </a>
     </div>
   </nav>
-  <div class="tab-content" id="nav-tabContent">
+  <div class="tab-content" id="nav-tabContent" [ngStyle]="{'background-color': obj.template.color}" >
     <div
       class="tab-pane fade active show"
       id="properties-tab"
@@ -95,7 +95,7 @@
     >
       Éditer {{ (obj.template.label_art_def || "") }}
     </button>
-    <button  (click)="getMapArea()" *ngIf='(obj.template.label || "").toLowerCase()==="aire"' type="button" class="btn btn-success mr-2" ><i class="fa fa-file-pdf-o"></i>&nbsp;Export en format cartographique (pdf)</button>
+    <button  (click)="getMapArea()" *ngIf='(obj.template.label || "").toLowerCase()==="aire" && obj.template.export_pdf' type="button" class="btn btn-success mr-2" ><i class="fa fa-file-pdf-o"></i>&nbsp;Export en format cartographique (pdf)</button>
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
     class="btn btn-info float-right"

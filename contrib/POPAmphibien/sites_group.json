@@ -2,6 +2,7 @@
   "genre":"F",
   "label": "Aire",
   "label_list": "Aires",
+  "export_pdf": true,
   "display_properties": [
     "id_dataset",
     "id_inventor",

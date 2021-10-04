@@ -1,5 +1,6 @@
 {
     "module_label":"POPAmphibien",
     "module_desc":"Module de suivi du Protocole POPAmphibien",
-    "genre":"M"
+    "genre":"M",
+    "color":"#e1fffe"
 }
