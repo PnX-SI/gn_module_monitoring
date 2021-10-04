@@ -2,6 +2,7 @@
   "genre":"M",
   "geometry_type": "Line",
   "label": "Point d'observation",
+  "label_list": "Points d'observation",
   "display_properties": [
     
     "id_inventor",

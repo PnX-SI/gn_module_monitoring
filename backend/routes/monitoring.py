@@ -234,27 +234,6 @@ def export_all_observations(module_code, type, method,jd):
             separator=";",
             columns=[db_col.key for db_col in columns if db_col.key != 'geom'], # Exclude the geom column from CSV
         )
-    elif type == 'geojson':
-        results = FeatureCollection([view.as_geofeature(d, columns=columns) for d in data])
-        return to_json_resp(results, as_file=True, filename=filename, indent=4, extension='geojson')
-    elif type == 'shp':
-        try:
-            fm.delete_recursively(
-                str(ROOT_DIR / "backend/static/shapefiles"), excluded_files=[".gitkeep"]
-            )
-            db_cols = [db_col for db_col in view.db_cols if db_col.key in columns]
-            dir_path = str(ROOT_DIR / "backend/static/shapefiles")
-            view.as_shape(
-                db_cols=db_cols, data=data, dir_path=dir_path, file_name=filename
-            )
-            return send_from_directory(dir_path, filename + ".zip", as_attachment=True)
-
-        except GeonatureApiError as e:
-            return render_template(
-                "error.html",
-                error=str(e),
-                redirect=current_app.config["URL_APPLICATION"] + "/#/cmr",
-            )
     else:
         raise NotFound("type export not found")
 
