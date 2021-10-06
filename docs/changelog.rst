@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+0.2.7 (unreleased)
+------------------
+
+**🚀 Nouveautés**
+
+* compatible avec GN >= 2.7
+* suppression des colonnes `meta_create_date` et `meta_update_date` (déplacées dans `gn_commons.t_modules`)
+
 0.2.6 (2021-07-23)
 ------------------
 

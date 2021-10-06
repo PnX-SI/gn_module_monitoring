@@ -13,7 +13,6 @@ import { DataUtilsService } from "./services/data-utils.service";
 import { CacheService } from "./services/cache.service";
 import { MonitoringObjectService } from "./services/monitoring-object.service";
 import { ConfigService } from "./services/config.service";
-
 // Component
 import { BreadcrumbsComponent } from "./components/breadcrumbs/breadcrumbs.component";
 import { ModulesComponent } from "./components/modules/modules.component";

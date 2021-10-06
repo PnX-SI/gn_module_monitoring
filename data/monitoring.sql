@@ -12,9 +12,6 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
 
         data JSONB,
 
-        meta_create_date timestamp without time zone NOT NULL,
-        meta_update_date timestamp without time zone,
-
         CONSTRAINT pk_t_module_complements PRIMARY KEY (id_module),
         CONSTRAINT fk_t_module_complements_id_module FOREIGN KEY (id_module)
             REFERENCES gn_commons.t_modules (id_module) MATCH SIMPLE
