@@ -24,7 +24,8 @@ export class Utils {
   }
 
   static formatDate(val) {
-    return val ? new Date(val).toLocaleString('fr-FR', { timeZone: 'UTC' }).replace(',', '').split(' ')[0] : val;
+    // return val ? new Date(val).toLocaleString('fr-FR', { timeZone: 'UTC' }).replace(',', '').split(' ')[0] : val;
+    return val ? val.split('-').reverse().join('/') : val;
   }
 
   static mapDictToArray(dictIn: Object, processFunc= null, fieldName: string = null): Array<any> {
