@@ -2,5 +2,9 @@
     "module_label":"POPReptile",
     "module_desc":"Module de suivi du Protocole POPReptile",
     "genre":"M",
-    "color":"#e1fffe"
+    "color":"#e1fffe",
+    "export_csv": [
+        { "label": "Format standard CSV", "type":"csv" , "method": "standart" },
+        { "label": "Format analyse CSV", "type":"csv" , "method": "analyse" },
+      ]
 }
