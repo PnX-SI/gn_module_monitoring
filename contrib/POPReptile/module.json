@@ -5,6 +5,6 @@
     "color":"#e1fffe",
     "export_csv": [
         { "label": "Format standard CSV", "type":"csv" , "method": "standart" },
-        { "label": "Format analyse CSV", "type":"csv" , "method": "analyse" },
+        { "label": "Format analyse CSV", "type":"csv" , "method": "analyse" }
       ]
 }

@@ -117,7 +117,7 @@
 
     Mettre à jour la synthèse
   </button>
-  <button *ngIf='(obj.template.label || "").toLowerCase()==="module" ' class="btn btn-success mr-2" color="primary" (click)="openModalDownload($event, modalDownload)"><i class="fa fa-arrow-down"></i>&nbsp;Téléchargements</button>	
+  <button *ngIf='(obj.template.label || "").toLowerCase()==="module" && obj.template.export_csv' class="btn btn-success mr-2" color="primary" (click)="openModalDownload($event, modalDownload)"><i class="fa fa-arrow-down"></i>&nbsp;Téléchargements</button>	
 
   </div>
 </div>
