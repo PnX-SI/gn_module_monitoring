@@ -150,11 +150,8 @@
          [value]=" obj.properties.datasets[i]"
        >{{ dataset_name }}</option>
      </select> <br>
-    
-      <button *ngIf= 'this.selectedDataSet'  (click)="downloadAllObservations('csv','standard',this.selectedDataSet)" type="button" class="btn btn-success  mr-2" >Format standard CSV</button>
-      <button *ngIf= 'this.selectedDataSet' (click)="downloadAllObservations('csv','analyses',this.selectedDataSet)" type="button" class="btn btn-success  mr-1" >Format analyses CSV</button>
-      
-     </div> 
+     <span *ngFor="let exp of (this.selectedDataSet?obj.template['export_csv']: null);index as i;" (click)="downloadAllObservations(obj.template['export_csv'][i].type,obj.template['export_csv'][i].method,this.selectedDataSet)" type="button" class="btn btn-success  mr-2" >{{obj.template['export_csv'][i].label}}   </span>
+    </div> 
   </div>
 </ng-template>
 
