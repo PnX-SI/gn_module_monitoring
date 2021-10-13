@@ -26,18 +26,7 @@
     "nb_visits"
   ],
   "specific": {
-    "id_nomenclature_type_site": {
-      "type_widget": "datalist",
-      "attribut_label": "Type site",
-      "api": "nomenclatures/nomenclature/TYPE_SITE",
-      "application": "GeoNature",
-      "keyValue": "id_nomenclature",
-      "keyLabel": "label_fr",
-      "data_path": "values",
-      "type_util": "nomenclature",
-      "required": false,
-      "hidden":true
-    },
+
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Commentaire"
@@ -150,7 +139,18 @@
         "attribut_label": "Numéro du transect",
         "required": false,
         "hidden": true
-      }
+      },
+
+    "id_nomenclature_type_site": {
+      "type_widget": "text",
+      "attribut_label": "Type site",
+      "type_util": "nomenclature",
+      "value": {
+          "code_nomenclature_type": "TYPE_SITE",
+          "cd_nomenclature": "7"
+      },
+      "hidden": true
+    }
 
 
 
