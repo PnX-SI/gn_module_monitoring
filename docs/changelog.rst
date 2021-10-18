@@ -5,6 +5,8 @@ CHANGELOG
 0.2.6 (2021-07-23)
 ------------------
 
+Compatible avec GeoNature à partir de sa version 2.6.2 (dont GeoNature 2.8).
+
 **🚀 Nouveautés**
 
 * Assets déplacés dans le dossier ``static`` (``backend/static/external_assets/monitorings/``) de GeoNature (#102)
