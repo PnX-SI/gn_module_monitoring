@@ -7,6 +7,7 @@ import { MediaService } from '@geonature_common/service/media.service';
 import html2canvas from 'html2canvas';
 import { MapService } from "@geonature_common/map/map.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 
 
 @Component({
@@ -22,11 +23,14 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   @Input() currentUser;
 
+
+  datasetForm: FormGroup;
+  datasetFormDef = [];
   backendUrl: string;
   bUpdateSyntheseSpinner = false;
 
   public modalReference;
-  selectedDataSet: string = '';
+  selectedDataSet=null;
 
   constructor(
     private _configService: ConfigService,
@@ -39,6 +43,29 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   ngOnInit() {
     this.backendUrl = this._configService.backendUrl();
+    this.setDatasetFormDef();
+
+  }
+
+  setDatasetFormDef() {
+    this.datasetFormDef = [
+      {
+          "attribut_name": "id_dataset",
+          "type_widget": "datalist",
+          "attribut_label": "Choisir un jeu de données à télécharger",
+          "type_util": "dataset",
+          "api": "meta/datasets",
+          "application": "GeoNature",
+          "keyValue": "id_dataset",
+          "keyLabel": "dataset_shortname",
+          "params": {
+            "orderby": "dataset_name",
+            "module_code": this.obj.moduleCode
+          },
+          "data_path": "data",
+          "required": true
+        },
+    ];
   }
 
   onEditClick() {
@@ -59,52 +86,72 @@ export class MonitoringPropertiesComponent implements OnInit {
     );
   }
   // add mje: show dowload modal
-  openModalDownload(event, modal) {
+  openModalExportCsv(event, modal) {
     this.modalReference = this.ngbModal.open(modal, { size: "lg" });
   }
-  selectChangeHandler (event: any) {
+
+  onDatasetChanged(event: any) {
     //update the ui
-    this.selectedDataSet = event.target.value;
+    console.log(event)
+    this.selectedDataSet = event.id_dataset;
   }
 
-   downloadAllObservations(type,method,jd) {
-    this._dataService.downloadAllObservations(this.obj.moduleCode,type,method,jd);
+   getExportCsv(type,method,jd) {
+     console.log(jd)
+    this._dataService.getExportCsv(this.obj.moduleCode,type,method,jd);
   }
 
       //mje: generate PDF export
-getMapArea() {
-  var map=this.mapservice.map;
-  const me=this;
+  processExportPdf(exportPdfConfig) {
 
-//-------------------------
-//var code_commune=(this.obj.resolvedProperties['commune'][0]);
-//var commune=this._dataService.getCommune(code_commune);
+    var map=this.mapservice.map;
+    const $this=this;
 
-   try{
-    var zoomInElement = document.querySelector('#monitoring-map-container .leaflet-control-zoom-in');
-    var snapshotelement=document.getElementById("geometry"); 
-    var config= {
-        allowTaint:true,
-        useCORS: true  ,
-        ignoreElements: function (element) {
-            if ( element.classList[0] =='leaflet-control-zoom-in' || element.classList[0] =='leaflet-control-zoom-out' || element.classList[0] == 'leaflet-control-layers-toggle' ||element.title=='A JS library for interactive maps' || element.placeholder=='Rechercher un lieu')  {
-              
+    try {
+      var zoomInElement = document.querySelector('#monitoring-map-container .leaflet-control-zoom-in');
+      var snapshotElement=document.getElementById("geometry");
+      var config= {
+          allowTaint:true,
+          useCORS: true  ,
+          ignoreElements: function (element) {
+              return element.classList[0] =='leaflet-control-zoom-in'
+                  || element.classList[0] =='leaflet-control-zoom-out'
+                  || element.classList[0] == 'leaflet-control-layers-toggle'
+                  || element.title=='A JS library for interactive maps'
+                  || element.placeholder=='Rechercher un lieu'
+          },
+          logging: false
+        }
 
-                return true;
-            }else {
-                return false;
-            }
-        } 
-    };
-   //  leafletImage(map, function(err, canvas) {
-    html2canvas(snapshotelement,config).then(function(canvas) {
-      var imgData = canvas.toDataURL("image/png");
-      me._dataService.getMapArea(me.obj.moduleCode, me.obj.id, me.obj.resolvedProperties["id_inventor"], imgData);
-    });
-    
-  }catch{console.log('Element could not be drawn on canvas'); }
- 
-}
+      html2canvas(snapshotElement,config).then(function(canvas) {
+        var imgData = canvas.toDataURL("image/png");
+        const extra_data = {
+          resolved_properties: $this.obj.resolvedProperties
+        }
+        $this._dataService
+          .postPdfExport(
+            $this.obj.moduleCode,
+            $this.obj.objectType,
+            $this.obj.id,
+            exportPdfConfig.template,
+            imgData,
+            extra_data
+          ).subscribe(() => {
+            $this._commonService.regularToaster(
+              "success",
+              "L'export pdf est prêt à être récupéré dans le dossier de Téléchargement"
+            );
+          });
+      });
+
+    } catch{
+      $this._commonService.regularToaster(
+        "error",
+        "Une erreur est survenue durant l'export pdf"
+      );
+    }
+
+  }
 
 
 

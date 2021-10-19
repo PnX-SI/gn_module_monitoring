@@ -15,6 +15,9 @@ Création d'un sous-module
 Structure d'un module
 ---------------------
 
+La configuration
+----------------
+
 * ``config.json`` `(configuration générale)`
 * ``module.json`` `(configuration du module)`
 * ``site.json`` `(configuration des sites)`
@@ -23,6 +26,18 @@ Structure d'un module
 * ``observation.json`` `(configuration des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
 * ``synthese.sql`` `(vue pour la synchronisation avec la synthèse)` voir
+
+Les exports
+-----------
+
+* ``exports``
+    * ``csv``
+        * *fichiers sql* qui permettent de définir les vues qui serviront aux exports ``csv``
+        * le nommage des vues doit être ``"v_export_<module_code>_<method>``
+          * ``<method>`` est une chaine de caratère qui permet de caractriser différentes vues et différents exports pour un module
+    * ``pdf``
+        * *fichiers html/img/css*
+           * ces fichiers definissent un template pour l'export pdf et tous les assets nécessaires (images, style, etc..)
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
@@ -558,3 +573,56 @@ Pour surcoucher les permissions il faut rajouter la variable cruved dans les fic
 
 - Pour pouvoir modifier les paramètres d'un module, il faut que le CRUVED de l'utilisateur ait un U=3 pour ce sous-module.
 
+-----------------------
+Exports
+-----------------------
+
+Il est possible de configurer des exports (csv ou pdf)
+
+PDF
+-----------
+
+les fichiers de template (``.html``)  et assets (images, style, etc..) pour l'export pdf sont à placer dans le dossier ``<module_code>/exports/pdf/``
+
+* Dans le fichier de config d'un object (par exemple ``sites_group.json``:
+   * ajouter la variable ``export_pdf``:
+
+::
+
+    "export_pdf": [
+        {
+            "template": "fiche_aire.html",
+            "label": "Export PDF"
+        }
+    ]
+
+* Dans les fichiers template on a accès à la variable ``data`` un dictionnaire contenant:
+    * ``static_pdf_dir`` : chemin du dossier des assets de l'export pdf
+    * ``map_image`` : l'image tirée de la carte leaflet
+    * ``monitoring_object.properties``: propriété de l'objet courant
+
+* La commande ``geonature monitorings process_pdf <module_code>`` permet de:
+    * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
+    * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
+
+
+
+CSV
+-----------
+
+les fichier ``.sql`` qui définissent les vue pour l'export csv sont placé dans le dossier ``<module_code>/exports/csv/``
+
+* Dans le fichier de config d'un object (par exemple ``sites_group.json``:
+   * ajouter la variable ``export_csv``:
+
+::
+
+    "export_csv": [
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" },
+        { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
+    ],
+
+
+* La commande ``geonature monitorings process_csv <module_code>`` permet de:
+    * jouer tous les fichiers sql de ce répertoire
+    * les vues doivent être nommées ``v_export_<module_code>_<method>``

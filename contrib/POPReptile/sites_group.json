@@ -1,7 +1,12 @@
 {
   "genre":"F",
   "label": "Aire",
-  "export_pdf": true,
+  "export_pdf": [
+    {
+      "template": "fiche_aire.html",
+      "label": "Export PDF"
+    }
+  ],
   "label_list": "Aires",
   "display_properties": [
     "id_dataset",

@@ -9,10 +9,12 @@ from geonature.core.gn_synthese.models import TSources
 
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
-from ..config.utils import json_from_file, CONFIG_PATH
+from ..config.utils import json_from_file, MONITORING_CONFIG_PATH
 from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
+    process_export_pdf,
+    process_export_csv,
     process_img_modules,
     insert_permission_object,
     remove_monitoring_module,
@@ -27,6 +29,26 @@ def cmd_process_img():
     Met à jour les images pour tout les modules
     '''
     process_img_modules()
+
+
+@click.command('process_export_pdf')
+@click.argument('module_code', type=str, required=False, default='')
+def cmd_process_export_pdf(module_code):
+    '''
+    Met à jour les fichiers pour les exports pdf
+    '''
+    process_export_pdf(module_code)
+
+
+@click.command('process_export_csv')
+@click.argument('module_code', type=str, required=False, default='')
+@with_appcontext
+def cmd_process_export_csv(module_code):
+    '''
+    Met à jour les fichiers pour les exports pdf
+    '''
+    process_export_csv(module_code)
+
 
 
 @click.command('install')
@@ -73,13 +95,18 @@ def cmd_install_monitoring_module(module_config_dir_path, module_code):
         return
 
     # symlink to config dir
-    symlink(module_config_dir_path, CONFIG_PATH + '/' + module_code)
+    symlink(module_config_dir_path, MONITORING_CONFIG_PATH + '/' + module_code)
 
     # process img modules
     process_img_modules()
 
+    # process export pdf
+    process_export_pdf(module_code)
 
-    config = get_config(module_code)
+    # process export csv
+    process_export_csv(module_code)
+
+    config = get_config(module_code, force=True)
 
     if not config:
         print(
@@ -101,13 +128,12 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         return
 
     module_data = {
+        'module_picto': 'fa-puzzle-piece',
+        **config['module'],
         'module_code': module_code,
         'module_path': '{}/module/{}'.format(module_monitoring.module_path, module_code),
-        'module_label': module_label,
-        'module_desc': module_desc,
         'active_frontend': False,
         'active_backend': False,
-        'module_picto': 'fa-puzzle-piece'
     }
 
     print('ajout du module {} en base'.format(module_code))
@@ -174,7 +200,7 @@ def cmd_update_perm_module_cmd(module_code):
     except Exception:
         print("le module n'existe pas")
         return
-    path_module = CONFIG_PATH + '/' + module_code + '/module.json'
+    path_module = MONITORING_CONFIG_PATH + '/' + module_code + '/module.json'
 
     if not os.path.exists(path_module):
         print(f"Il n'y a pas de fichier {path_module} pour ce module")
@@ -218,6 +244,8 @@ def cmd_add_module_nomenclature_cli(module_code):
 
 
 commands = [
+    cmd_process_export_csv,
+    cmd_process_export_pdf,
     cmd_process_img,
     cmd_install_monitoring_module,
     cmd_update_perm_module_cmd,

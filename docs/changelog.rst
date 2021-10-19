@@ -4,13 +4,30 @@ CHANGELOG
 
 **🚀 Nouveautés POPAmphibien  POPReptile**
 
-* Ajout des sous modules POPAmphibien et POPReptile
-* Modification de la couleur de la partie superieure des detailles en bleu
-* Dans la partie map, joindre les sites par des lignes pour former une aire et calculer sa superficie (si le nombre des points est suerieur à 2)
-* Ajout d'un bouton pour l'export PDF de la partie aire
-* Ajout d'un bouton pour le telechargement des données standard et d'analyse pour chaque sous module en format CSV via un modale
-* Correction de "Point d'observations" par "Points d'observation"
-* alter table gn_monitoring.t_base_sites alter column id_nomenclature_type_site drop not null; 
+* A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings`` un fois que l'on a activé le ``venv``
+* Nouvelles commandes:
+    * ``geonature monitorings process_export_pdf <?module_code>``
+    * ``geonature monitorings process_export_csv <?module_code>``
+    * Pour gérer et mettre à jour les exports ``pdf`` et ``csv`` pour un module si ``module_code`` est précisé ou pour tous les modules
+
+* Ajout des sous modules POPAmphibien et POPReptile (idéalement à déplacer dans un autre dépôt)
+* Possibilité de choisir la couleur du tableau pour les détails d'un objet (champs `color` dans le fichier <object_type>.json)
+* Dans la partie map, possibilité de joindre les sites par des lignes pour former une aire et calculer sa superficie
+    * (si le nombre des points est suerieur à 2)
+    * configurable depuis l'édition du module (`dessin des groupe de site`)
+
+* Possibilité de choisir l'icône du module dans le menu depuis l'édition du module
+
+* export PDF configurables
+  * boutton accessible depuis les détails
+* export CSV configurables
+  * boutton accessible depuis les détails
+  * modal pour choisir le JDD concerné par l'export
+
+**🐛 Corrections**
+
+* Rechargement de la configuration quand on modifie le module par le formulaire d'édition.
+
 
 0.2.6 (2021-07-23)
 ------------------
@@ -28,14 +45,15 @@ CHANGELOG
 **⚠️ Notes de version**
 
 * L'emplacement des images des modules (dans la page d'accueil qui permet de choisir un module) change.
-Ils sont placés dans ``backend/static/external_assets/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
+    * Ils sont placés dans ``backend/static/external_assets/monitorings/assets``, l'avantage est qu'il n'est plus nécessaire de rebuild le frontend à l'installation d'un sous module.
 
-* Pour les mettre à jour, veuillez exécuter la commande suivante : 
+* Pour les mettre à jour, veuillez exécuter la commande suivante :
 
 ::
-   source /home/`whoami`/geonature/backend/venv/bin/activate
-   export FLASK_APP=geonature
-   flask monitorings process_img
+
+    source /home/`whoami`/geonature/backend/venv/bin/activate
+    export FLASK_APP=geonature
+    flask monitorings process_img
 
 
 0.2.5 (2021-07-12)

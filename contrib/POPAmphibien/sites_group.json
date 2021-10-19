@@ -2,7 +2,12 @@
   "genre":"F",
   "label": "Aire",
   "label_list": "Aires",
-  "export_pdf": true,
+  "export_pdf": [
+    {
+      "template": "fiche_aire.html",
+      "label": "Export PDF"
+    }
+  ],
   "display_properties": [
     "id_dataset",
     "id_inventor",
@@ -10,7 +15,6 @@
     "sites_group_name",
     "categories_paysageres",
     "comments"
-    
   ],
   "display_list": [
     "sites_group_name",

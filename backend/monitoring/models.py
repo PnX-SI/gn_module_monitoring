@@ -306,6 +306,7 @@ class TMonitoringModules(TModules):
 
     taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
+    b_draw_sites_group = DB.Column(DB.Boolean)
 
     medias = DB.relationship(
         TMedias,
@@ -338,8 +339,8 @@ class TMonitoringModules(TModules):
         lazy="joined",
     )
 
-    meta_create_date = DB.Column(DB.DateTime)
-    meta_update_date = DB.Column(DB.DateTime)
+    # meta_create_date = DB.Column(DB.DateTime)
+    # meta_update_date = DB.Column(DB.DateTime)
 
     data = DB.Column(JSONB)
 

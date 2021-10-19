@@ -2,6 +2,7 @@
     module de gestion de la configuarion des protocoles de suivi
 """
 
+import json
 import os
 from flask import current_app
 from .utils import (
@@ -16,7 +17,7 @@ from .utils import (
     get_monitoring_module,
     get_monitorings_path,
     get_data_preload,
-    CONFIG_PATH
+    MONITORING_CONFIG_PATH
 )
 
 
@@ -89,7 +90,7 @@ def config_object_from_files(module_code, object_type):
     return config_object
 
 
-def get_config(module_code=None, verification_date=False):
+def get_config(module_code=None, force=False):
     '''
         recupere la configuration pour le module monitoring
 
@@ -102,7 +103,7 @@ def get_config(module_code=None, verification_date=False):
 
     module_code = module_code if module_code else 'generic'
 
-    module_confg_dir_path = CONFIG_PATH + '/' + module_code
+    module_confg_dir_path = MONITORING_CONFIG_PATH + '/' + module_code
     # test si le repertoire existe
     if not os.path.exists(module_confg_dir_path):
         return None
@@ -111,25 +112,25 @@ def get_config(module_code=None, verification_date=False):
 
     # pour ne pas verifier  a chaques fois
     #  explosion du nombre d'appels à la base sinon
-    if config and not verification_date:
+    if config and not force:
         return config
+
 
     module = get_monitoring_module(module_code)
 
     # derniere modification
     # fichiers
-    file_last_modif = get_directory_last_modif(CONFIG_PATH)
-    base_last_modif = get_base_last_modif(module)
-    last_modif = max(base_last_modif, file_last_modif)
+    # file_last_modif = get_directory_last_modif(MONITORING_CONFIG_PATH)
+    # base_last_modif = get_base_last_modif(module)
+    # last_modif = max(base_last_modif, file_last_modif)
 
     # test si present dans cache et pas modifée depuis le dernier appel
 
-    if config and config.get('last_modif', 0) >= last_modif:
-        return config
+    # if config and config.get('last_modif', 0) >= last_modif:
+        # return config
 
     config = config_from_files('config', module_code)
     get_config_objects(module_code, config)
-    config['last_modif'] = last_modif
 
     # customize config
     if module:
@@ -140,11 +141,14 @@ def get_config(module_code=None, verification_date=False):
             'id_list_observer',
             'id_list_taxonomy',
             'b_synthese',
+            'b_draw_sites_group',
             'taxonomy_display_field_name',
             'id_module'
         ]:
             var_name = '__MODULE.{}'.format(field_name.upper())
             config['custom'][var_name] = getattr(module, field_name)
+            config['module'][field_name] = getattr(module, field_name)
+
         config['custom']['__MONITORINGS_PATH'] = get_monitorings_path()
 
         config['default_display_field_names'].update(config.get('display_field_names', {}))
@@ -232,7 +236,7 @@ def config_schema(module_code, object_type, type_schema="all"):
     return schema
 
 
-def get_config_frontend(module_code=None, verification_date=True):
+def get_config_frontend(module_code=None, force=True):
 
-    config = dict(get_config(module_code, verification_date))
+    config = dict(get_config(module_code, force))
     return config

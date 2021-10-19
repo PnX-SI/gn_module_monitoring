@@ -45,6 +45,13 @@
       "hidden": true
     },
 
+    "module_picto": {
+      "type_widget": "text",
+      "attribut_label": "Icone dans le menu",
+      "required": true
+    },
+
+
     "uuid_module_complement": {
       "attribut_label": "uuid"
     },
@@ -97,6 +104,14 @@
       "attribut_label": "Activer la synthèse ?",
       "definition": "Insertion automatique des nouvelles données dans la synthèse."
     },
+
+    "b_draw_sites_group": {
+      "type_widget": "bool_checkbox",
+      "attribut_label": "Dessiner les groupes de sites",
+      "definition": "Affichage des groupes de site en dessinant l'enveloppe des sites du groupe et en affichant l'aire du groupe de sites",
+      "hidden": true
+    },
+
 
     "taxonomy_display_field_name": {
       "type_widget": "datalist",

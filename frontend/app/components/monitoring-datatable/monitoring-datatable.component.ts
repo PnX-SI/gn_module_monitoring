@@ -98,6 +98,10 @@ export class MonitoringDatatableComponent implements OnInit {
           bCondVisible = bCondVisible && (String(row[key]) || '').toLowerCase().includes(v);
         }
       }
+
+      if (!this.rowStatus) {
+        return bCondVisible;
+      }
       bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
       this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;

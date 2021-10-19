@@ -50,7 +50,7 @@ export class DataMonitoringObjectService {
   paramsMonitoring(objectType, queryParams={}) {
     if (objectType.includes('module')) {
       queryParams['field_name'] = 'module_code';
-    }    
+    }
     return queryParams;
   }
 
@@ -129,15 +129,34 @@ export class DataMonitoringObjectService {
     return this._cacheService.request('post', url);
   }
  //add mje
- downloadAllObservations(moduleCode, type,method,jd ) {
-  const url = `module/${moduleCode}/${type}/${method}/${jd}`;
+ getExportCsv(moduleCode, type,method,jd ) {
+  const url = `exports/csv/${moduleCode}/${type}/${method}/${jd}`;
   this._cacheService.requestExport('get', url);
  }
-  getMapArea(module_code, id_aire, id_inventor, map_image) {
-    let dt = new Date().toString();  // Add date of call to URL to ensure no cache used.
-    const url = `module/${module_code}/maparea/${id_aire}`;
-    this._cacheService.requestExportCreatedPdf('post', url, {postData:{map: map_image, id_inventor:id_inventor}} );
+
+  /**
+   * Export pdf
+   *
+   * template :  nom du fichier de template pour l'export pdf (.html)
+   * map_image : image de la carte leaflet
+   * id_inventor ???
+   *
+   **/
+  postPdfExport(module_code, object_type, id, template, map_image, extra_data = {}) {
+
+    const url = `exports/pdf/${module_code}/${object_type}/${id}`;
+    return this._cacheService.requestExportCreatedPdf(
+      'post',
+      url,
+      {
+        postData: {
+          map: map_image,
+          template,
+          extra_data
+        }
+      }
+    );
  }
- 
+
 
 }

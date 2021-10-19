@@ -109,13 +109,17 @@ export class MonitoringMapComponent implements OnInit {
   ngOnInit() {
   }
 
+  drawSitesGroup() {
+
+  }
+
   initSites() {
-    var points = []; 
+    var points = [];
     var polygon;
     var area;
     var readableArea;
     var l1;
-    
+
     this.removeLabels();
     const layers = this._mapService.map['_layers'];
     for (const key of Object.keys(layers)) {const layer = layers[key]; try{ layer.unbindTooltip();}catch{}}
@@ -137,10 +141,10 @@ export class MonitoringMapComponent implements OnInit {
           l1=layer;
           try{
           var x = layer._latlng.lat; var y = layer._latlng.lng; points.push({x, y});
-          }catch{} 
-          
+          }catch{}
         }
-        if(points.length>2){
+        console.log(this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group'] )
+        if(points.length>2 && this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']){
             // Get the center (mean value) using reduce
             const center = points.reduce((acc, { x, y }) => {
               acc.x += x / points.length;
@@ -158,18 +162,18 @@ export class MonitoringMapComponent implements OnInit {
             const pointsSorted1 = pointsSorted.map(({x, y}) => {
               return [x, y];
             });
-           
 
-            
+
+
             polygon= L.polygon(pointsSorted1,{removeOnInit: true,"fillOpacity": .0, color: 'red', dashArray: '5, 5'}).addTo(this._mapService.map);;
             area  = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]);
             readableArea = L.GeometryUtil.readableArea(area, true);
             var center1 = polygon.getBounds().getCenter();
             //polygon.bindTooltip(readableArea, {permanent: true, direction: 'center', offset: [10, 0],});
             L.marker(center1, { opacity: 0 }).bindTooltip(readableArea, {permanent: true, direction: 'center'}).addTo(this._mapService.map);
-            
-           
-            
+
+
+
         }
 
         this.setSitesStyle();
@@ -408,6 +412,9 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (! this._mapService.map) {
+      return;
+    }
     for (const propName of Object.keys(changes)) {
       const chng = changes[propName];
       const cur = chng.currentValue;
