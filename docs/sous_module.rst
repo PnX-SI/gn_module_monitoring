@@ -10,6 +10,7 @@ Création d'un sous-module
 * `Configuration des objets`_
 * `Nomenclature`_
 * `Gestion des droits`_
+* `Exports`_
 
 ---------------------
 Structure d'un module
@@ -56,7 +57,7 @@ Dans le fichier ``config.json`` :
 * ``tree`` définit les relations entre les objets
 
 
-.. code-block:: JSON
+::
 
     {
         "tree": {
@@ -96,7 +97,7 @@ Si ``display_list`` n'est pas défini, il prend la valeur de ``display_propertie
 
 Par exemple :
 
-.. code-block:: JSON
+::
 
   "display_properties": [
     "visit_date_min",
@@ -104,11 +105,10 @@ Par exemple :
     "meteo",
     "comments",
     "nb_observations"
-  ],
+  ]
 
 
-Les schémas
-===========
+
 
 Les schémas génériques
 ----------------------
@@ -119,7 +119,7 @@ Pour la suite nous prendrons exemple sur la configuration des sites, qui sera si
 
 Par exemple dans le fichier ``site.json`` de ce repertoire on trouve la variable "generic" :
 
-.. code-block:: JSON
+::
 
         "id_base_site": {
             "type_widget": "text",
@@ -164,7 +164,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **texte** : une variable facultative
 
-.. code-block:: JSON
+::
 
         nom_contact": {
             "type_widget": "text",
@@ -173,7 +173,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **entier** : exemple avec un numéro du passage compris entre 1 et 2 est obligatoire
 
-.. code-block:: JSON
+::
 
         "num_passage": {
             "type_widget": "number",
@@ -185,7 +185,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **utilisateur** : choix de plusieurs noms d'utilisateurs dans une liste
 
-.. code-block:: JSON
+::
 
         "observers": {
             "attribut_label": "Observateurs",
@@ -199,7 +199,7 @@ Il est important d'ajouter ``"type_util": "user",``.
 
 * **nomenclature** : un choix obligatoire parmi une liste définie par un type de nomenclature
 
-.. code-block:: JSON
+::
 
         "id_nomenclature_nature_observation": {
             "type_widget": "nomenclature",
@@ -215,7 +215,7 @@ Il est important d'ajouter ``"type_util": "nomenclature",``.
 
 * **liste** : une liste déroulante simple, non basée sur une nomenclature
 
-.. code-block:: JSON
+::
 
         "rain": {
             "type_widget": "select",
@@ -228,7 +228,7 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
 
 * **radio** : bouton radio pour un choix unique parmi plusieurs possibilités
 
-.. code-block:: JSON
+::
 
         "beginner": {
             "type_widget": "radio",
@@ -238,7 +238,7 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
 
 * **taxonomie** : une liste de taxons
 
-.. code-block:: JSON
+::
 
         "cd_nom": {
             "type_widget": "taxonomy",
@@ -261,7 +261,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 * Changer le label d'un élément et le rendre visible et obligatoire
 
-.. code-block:: JSON
+::
 
         "visit_date_max": {
             "attribut_label": "Date de fin de visite",
@@ -273,7 +273,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
   Dans le cas où la variable ``type_widget`` est redéfinie, il faut redéfinir toutes les variables.
 
-.. code-block:: JSON
+::
 
         "id_nomenclature_type_site": {
             "type_widget": "text",
@@ -313,7 +313,7 @@ Par exemple :
 
 * Nomenclature avec sous-liste et valeur par defaut
 
-.. code-block:: JSON
+::
 
     "id_nomenclature_determination_method": {
         "type_widget": "datalist",
@@ -332,7 +332,7 @@ Par exemple :
 
 * Groupe de sites
 
-.. code-block:: JSON
+::
 
     "id_sites_group": {
         "type_widget": "datalist",
@@ -348,7 +348,7 @@ Par exemple :
 
 * Jeux de données (pour les visites on veut la liste des JDD pour le module, d'où l'utilisation de ``"module_code": "__MODULE.MODULE_CODE"`` en paramètre ``GET`` de l'API
 
-.. code-block:: JSON
+::
 
     "id_dataset": {
         "type_widget": "datalist",
@@ -369,7 +369,7 @@ Par exemple :
 
 * Utilisateur
 
-.. code-block:: JSON
+::
 
     "observers": {
       "type_widget": "datalist",
@@ -402,7 +402,7 @@ La valeur de ce paramètre est alors une chaîne de caractère qui définie une 
 
 La chaine de caractère qui décrit la fonction doit être de la forme suivante:
 
-.. code-block:: JSON
+::
 
   "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 
@@ -411,7 +411,7 @@ Le format JSON ne permet pas les saut de ligne dans les chaines de caractère,
 et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractère:
 
 
-.. code-block:: JSON
+::
 
     "hidden": [
         "({value, attribut_name, }) => {",
@@ -429,7 +429,7 @@ Exemples:
 
 * Afficher le composant ``test2`` et le rendre obligatoire seulement si ``test1`` a pour valeur ``t``:
 
-.. code-block:: JSON
+::
 
     "specific": {
         "test": {
@@ -446,20 +446,20 @@ Exemples:
 
 * Ajouter un champs pour renseigner la profondeur d'une grotte si le type de site est une grotte
 
-.. code-block:: JSON
+::
 
     site.json
 
-"specific": {
-    ...
-    "profondeur_grotte": {
-      "type_widget": "number",
-      "attribut_label": "Profondeur de la grotte",
-      "hidden": "({value, meta}) => meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'",
-      "required": "({value, meta}) => (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature === '1'"
+    "specific": {
+        ...
+        "profondeur_grotte": {
+        "type_widget": "number",
+        "attribut_label": "Profondeur de la grotte",
+        "hidden": "({value, meta}) => meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'",
+        "required": "({value, meta}) => (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature === '1'"
+        }
+        ...
     }
-    ...
-}
 
 
 **Le paramêtre ``value`` ne peut pas être dynamique, pour changer la valeur des variables en fonction d'autres variables, on peut définir ``change`` dans la config. Voir ci dessous**
@@ -472,35 +472,35 @@ On peut y définir une fonction qui sera appelée chaque fois que le formulaire 
 
 Un exemple (module.json du module test):
 
-.. code-block:: JSON
+::
 
-{
-    "module_label":"Test",
-    "module_desc":"Module de test pour le module de suivi générique",
-    "specific": {
-        "test": {
-            "type_widget": "text",
-            "attribut_label": "Test"
-          },
-          "test2": {
-            "type_widget": "text",
-            "attribut_label": "Test 2 (hidden)",
-            "hidden": "({value}) => value.test != 't'"
-          },
-          "test3": {
-            "type_widget": "text",
-            "attribut_label": "Test 3 (change)"
-          }
-    },
-    "change": [
-      "({objForm, meta}) => {",
-      "const test3 = '' + (objForm.value.test || '') + '_' + (objForm.value.test2 || '');",
-      "if (!objForm.controls.test3.dirty) {",
-      "objForm.patchValue({test3})",
-      "}",
-      "}",
-      ""
-      ]
+    {
+        "module_label":"Test",
+        "module_desc":"Module de test pour le module de suivi générique",
+        "specific": {
+            "test": {
+                "type_widget": "text",
+                "attribut_label": "Test"
+            },
+            "test2": {
+                "type_widget": "text",
+                "attribut_label": "Test 2 (hidden)",
+                "hidden": "({value}) => value.test != 't'"
+            },
+            "test3": {
+                "type_widget": "text",
+                "attribut_label": "Test 3 (change)"
+            }
+        },
+        "change": [
+            "({objForm, meta}) => {",
+                "const test3 = '' + (objForm.value.test || '') + '_' + (objForm.value.test2 || '');",
+                "if (!objForm.controls.test3.dirty) {",
+                    "objForm.patchValue({test3})",
+                "}",
+            "}",
+            ""
+        ]
     }
 
 
@@ -519,7 +519,7 @@ Elles seront insérées dans la base de données lors de l'installation du sous-
 
 Exemple de fichier :
 
-.. code-block:: JSON
+::
 
     {
     "types": [
@@ -567,7 +567,7 @@ Par défaut les valeurs définies du cruved sont :
 
 Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
 
-.. code-block:: JSON
+::
   "cruved": {"C": 3, "U": 3, "D": 3},
 
 

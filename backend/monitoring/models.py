@@ -339,8 +339,6 @@ class TMonitoringModules(TModules):
         lazy="joined",
     )
 
-    # meta_create_date = DB.Column(DB.DateTime)
-    # meta_update_date = DB.Column(DB.DateTime)
 
     data = DB.Column(JSONB)
 

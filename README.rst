@@ -111,8 +111,11 @@ Activer le venv de GeoNature
   source backend/venv/bin/activate
 
 
-Vérifier que la variable ``FLASK_APP`` est bien définie
--------------------------------------------------------
+Si la version de GN est inférieure à 2.7.5
+-------------------------------------------
+
+- Vérifier que la variable ``FLASK_APP`` est bien définie
+
 
 Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
 
@@ -120,6 +123,9 @@ Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
 
 ::
   export FLASK_APP=geonature
+  flask monitorings
+
+pour la suite remplacer ``geonature monitorings`` par ``flask monitorings``
 
 
 Lancer la commande d'installation du sous-module
@@ -127,7 +133,7 @@ Lancer la commande d'installation du sous-module
 
 ::
 
-  flask monitorings install <chemin_absolu_vers_le_sous_module>
+  geonature monitorings install <chemin_absolu_vers_le_sous_module>
 
 - Par défaut la commande d'installation extrait le code du module depuis le chemin.
 - Par exemple ``<chemin_absolu_vers_le_module_de_suivi>/contrib/test/`` donnera la valeur ``test`` à ``module_code``.
@@ -137,22 +143,8 @@ Si la commande précise que le module est déjà installé (test sur le ``module
 
 ::
 
-  flask monitorings install <chemin_absolu_vers_le_sous_module> <module_code>
+  geonature monitorings install <chemin_absolu_vers_le_sous_module> <module_code>
 
-
-Enfin si on choisit d'installer plusieurs sous-modules, pour aller plus vite on peut faire
-
-::
-
-  flask monitorings install <chemin_absolu_vers_le_sous_module> --build=false
-
-
-Cela évite de reconstruire le frontend à chaque fois.
-Une fois tous les modules installés on peut faire (afin d'avoir les images dans le menu des sous-modules).
-
-::
-
-  geonature frontend_build
 
 
 Configurer le sous-module

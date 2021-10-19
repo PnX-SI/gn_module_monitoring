@@ -3,6 +3,22 @@ Mise à jour du module
 =====================
 
 
+Gestion du code avec git
+========================
+
+Une autre façon de gérer les mises à jour du module (au moins au niveau du code) est de faire :
+
+- à l'installation
+    - récupérer le code du module avec ``git clone https://github.com/PnX-SI/gn_module_monitoring/``
+    - passer au tag voulu : ``git co 0.2.6``
+
+- à la mise à jour
+    - passer au tag voulu : ``git co 0.2.7``
+
+
+Méthode classique
+=================
+
 - Téléchargez la nouvelle version du module
 
 ::
@@ -10,6 +26,7 @@ Mise à jour du module
    wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
    unzip X.Y.Z.zip
    rm X.Y.Z.zip
+
 
 
 - Renommez l'ancien et le nouveau répertoire
@@ -20,36 +37,35 @@ Mise à jour du module
    mv /home/`whoami`/gn_module_monitoring-X.Y.Z /home/`whoami`/gn_module_monitoring
 
 
-- Rapatriez le fichier de configuration du module
-
-::
-
-   cp /home/`whoami`/gn_module_monitoring_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_monitoring/config/conf_gn_module.toml
 
 - Récupérez les sous-modules, recréer les liens symboliques pour la config
+  - Ne jamais faire de modifications directement dans generic
 
 ::
 
-   cp -r /home/`whoami`/gn_module_monitoring_old/contrib/*  /home/`whoami`/gn_module_monitoring/contrib
-   ln -s /home/`whoami`/gn_module_monitoring/contrib/* /home/`whoami`/gn_module_monitoring/config/monitoring/.
+   rsync -av /home/`whoami`/gn_module_monitoring_old/config/monitoring/ /home/`whoami`/gn_module_monitoring/config/monitoring/ --exclude=generic
 
 
-- Recréez les liens des images des modules dans le dossier backend/static/monitorings/assets
+
+- Recréez les liens des images des modules dans le dossier ``<geonature>/backend/static/external_assets/monitorings/``
 
 ::
-   cd /home/`whoami`/geonature/backend
-   source venv/bin/activate
-   export FLASK_APP=/home/`whoami`/geonature/backend/geonature/app.py
-   flask monitorings process_img
+
+   source /home/`whoami`/geonature/backend/venv/bin/activate
+   geonature monitorings process_img
+
+
+
+ - si la version de GeoNature est antérieure à 2.7.5 utiliser ``flask monitorings process_img``
 
 
 - Relancez la compilation en mettant à jour la configuration
 
 ::
 
-   cd /home/`whoami`/geonature/backend
-   source venv/bin/activate
+   source <geonature>/backendvenv/bin/activate
    geonature update_module_configuration MONITORINGS
+
 
 
 - Exécutez les éventuels scripts SQL de migration de la BDD, correspondant aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonction des versions>``

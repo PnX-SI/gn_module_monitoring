@@ -1,7 +1,7 @@
 import os
 import click
 
-from flask.cli import AppGroup, with_appcontext
+from flask.cli import with_appcontext
 from sqlalchemy.sql import text
 
 from geonature.utils.env import DB, BACKEND_DIR
