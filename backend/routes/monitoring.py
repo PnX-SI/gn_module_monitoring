@@ -3,8 +3,8 @@
         site, visit, observation, ...
 '''
 
-from flask import request
 
+from flask import request, send_from_directory
 from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
@@ -18,6 +18,13 @@ from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+from utils_flask_sqla_geo.generic import GenericTableGeo
+from geonature.utils.env import DB, ROOT_DIR
+import datetime as dt
+from utils_flask_sqla.response import to_csv_resp, to_json_resp
+from utils_flask_sqla.generic import serializeQuery
+import geonature.utils.filemanager as fm
+from pathlib import Path
 
 
 
@@ -50,7 +57,7 @@ def get_monitoring_object_api(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
 
     depth = to_int(request.args.get('depth', 1))
 
@@ -102,7 +109,7 @@ def create_or_update_object_api(module_code, object_type, id):
 @check_cruved_scope_monitoring('U', 1)
 @json_resp
 def update_object_api(module_code, object_type, id):
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -115,7 +122,7 @@ def update_object_api(module_code, object_type, id):
 @check_cruved_scope_monitoring('C', 1)
 @json_resp
 def create_object_api(module_code, object_type, id):
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -129,7 +136,7 @@ def create_object_api(module_code, object_type, id):
 @json_resp
 def delete_object_api(module_code, object_type, id):
 
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
 
     return (
         monitoring_definitions
@@ -152,7 +159,7 @@ def delete_object_api(module_code, object_type, id):
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
 
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
     query_params = dict(**request.args)
     query_params['parents_path'] =  request.args.getlist('parents_path')
     return (
@@ -169,7 +176,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
 
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
 
     return (
         monitoring_definitions
@@ -184,7 +191,7 @@ def list_object_api(module_code, object_type):
 @json_resp
 def update_synthese_api(module_code):
 
-    get_config(module_code, verification_date=True)
+    get_config(module_code, force=True)
 
     return (
         monitoring_definitions
@@ -192,3 +199,79 @@ def update_synthese_api(module_code):
         .get()
         .process_synthese(process_module=True)
     )
+# export add mje
+# export all observations
+@blueprint.route('/exports/csv/<module_code>/<type>/<method>/<jd>', methods=['GET'])
+@check_cruved_scope_monitoring('R', 1)
+def export_all_observations(module_code, type, method,jd):
+    """
+    Export all the observations made on a site group.
+    Following formats are available:
+    * csv
+    * geojson
+    * shapefile
+    """
+
+    view = GenericTableGeo(
+        tableName="v_export_" + module_code.lower()+"_"+method,
+        schemaName="gn_monitoring",
+        engine=DB.engine
+
+    )
+    columns = view.tableDef.columns
+    q = DB.session.query(*columns)
+    #data = q.all()
+    #----------------------------
+    data = DB.session.query(*columns).filter(columns.id_dataset == jd).all()
+    #-------------------------------------
+
+    filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
+
+    if type == 'csv':
+        return to_csv_resp(
+            filename,
+            data=serializeQuery(data, q.column_descriptions),
+            separator=";",
+            columns=[db_col.key for db_col in columns if db_col.key != 'geom'], # Exclude the geom column from CSV
+        )
+    else:
+        raise NotFound("type export not found")
+
+
+@blueprint.route('/exports/pdf/<module_code>/<object_type>/<int:id>', methods=['POST'])
+def post_export_pdf(module_code, object_type, id):
+    """
+    Export the fiche individu as a PDF file.
+    Need to push the map image in the post data to be present in PDF.
+    Need to set a template in sub-module.
+    """
+
+    depth = to_int(request.args.get('depth', 0))
+    monitoring_object= (
+        monitoring_definitions
+        .monitoring_object_instance(module_code, object_type, id
+        ).get()
+        .serialize(depth)
+    )
+
+    df = {
+        'module_code': module_code,
+        'monitoring_object': monitoring_object,
+        'extra_data': request.json['extra_data'],
+        'static_pdf_dir': "static/external_assets/monitorings/{}/exports/pdf/".format(module_code),
+        'map_image': request.json['map']
+
+    }
+
+    template = request.json['template']
+
+    pdf_file = fm.generate_pdf(
+        "modules/monitorings/{}/{}".format(module_code, template),
+        df,
+        "map_area.pdf"
+    )
+    pdf_file_posix = Path(pdf_file)
+    try:
+	    return send_from_directory(str(pdf_file_posix.parent), pdf_file_posix.name, as_attachment=True)
+    except Exception as e:
+	    return str(e)

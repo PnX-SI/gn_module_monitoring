@@ -3,6 +3,8 @@ import { Observable, of } from '@librairies/rxjs';
 import { Injectable } from '@angular/core';
 
 import { CacheService } from './cache.service';
+import { ConfigService } from './config.service';
+import { HttpClient } from "@angular/common/http";
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -11,7 +13,7 @@ import { CacheService } from './cache.service';
 @Injectable()
 export class DataMonitoringObjectService {
 
-  constructor(private _cacheService: CacheService) { }
+  constructor(private _cacheService: CacheService, private _http: HttpClient, private _config:ConfigService) { }
 
   /** Modules */
 
@@ -48,7 +50,7 @@ export class DataMonitoringObjectService {
   paramsMonitoring(objectType, queryParams={}) {
     if (objectType.includes('module')) {
       queryParams['field_name'] = 'module_code';
-    }    
+    }
     return queryParams;
   }
 
@@ -126,5 +128,35 @@ export class DataMonitoringObjectService {
     const url = `synthese/${moduleCode}`;
     return this._cacheService.request('post', url);
   }
+ //add mje
+ getExportCsv(moduleCode, type,method,jd ) {
+  const url = `exports/csv/${moduleCode}/${type}/${method}/${jd}`;
+  this._cacheService.requestExport('get', url);
+ }
+
+  /**
+   * Export pdf
+   *
+   * template :  nom du fichier de template pour l'export pdf (.html)
+   * map_image : image de la carte leaflet
+   * id_inventor ???
+   *
+   **/
+  postPdfExport(module_code, object_type, id, template, map_image, extra_data = {}) {
+
+    const url = `exports/pdf/${module_code}/${object_type}/${id}`;
+    return this._cacheService.requestExportCreatedPdf(
+      'post',
+      url,
+      {
+        postData: {
+          map: map_image,
+          template,
+          extra_data
+        }
+      }
+    );
+ }
+
 
 }

@@ -1,8 +1,9 @@
 import { ObserversComponent } from './../../../../../frontend/src/app/GN2CommonModule/form/observers/observers.component';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable, of, Subject } from '@librairies/rxjs';
+import { mergeMap, concatMap } from "@librairies/rxjs/operators";
 
 import { ConfigService } from './config.service';
 
@@ -39,7 +40,7 @@ export class CacheService {
         : `${key}=${queryParams[key]}`
         ).join('&')
 
-    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params 
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params
 
     // requete
     return this._http[requestType]<any>(url, postData);
@@ -138,7 +139,6 @@ export class CacheService {
         observer.next(valueCache);
         return observer.complete();
       }
-      // console.log('not in cache', urlRelative, sCachePaths, this._cache)
 
       let pendingSubject = this.getFromCache(sCachePaths, this._pendingCache);
       if (pendingSubject === undefined) {
@@ -173,4 +173,46 @@ export class CacheService {
     return this._cache;
   }
 
+
+  requestExport(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+    // verification de requestType
+
+    const url_params = Object.keys(queryParams)
+      .map(key => Array.isArray(queryParams[key])
+        ? queryParams[key].map(val => `${key}=${val}`).join('&')
+        : `${key}=${queryParams[key]}`
+        ).join('&')
+
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
+
+    // requete
+    window.open(url);
+  }
+
+//add mje: export pdf
+requestExportCreatedPdf(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+
+  const httpHeaders: HttpHeaders = new HttpHeaders({ 'Accept': 'application/pdf'   });
+  const url = this._config.backendModuleUrl() + '/' + urlRelative ;
+
+  return this._http[requestType]<any>(
+    url,
+    postData,
+    {
+      responseType: 'arraybuffer',
+      headers:httpHeaders
+    }).pipe(
+      mergeMap( file => {
+        let blob = new Blob(
+          [file as BlobPart] ,
+          {
+            type: 'application/pdf'
+          }
+        );
+        let url = window.URL.createObjectURL(blob);
+        window.open(url);
+        return of(true);
+      })
+    );
+  }
 }

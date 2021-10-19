@@ -19,6 +19,6 @@ def get_config_api(module_code):
         route qui renvoie la config pour un module donné
     """
 
-    return get_config_frontend(module_code, verification_date=True)
+    return get_config_frontend(module_code, force=True)
 
 

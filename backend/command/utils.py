@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from sqlalchemy import and_
+from sqlalchemy import and_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -9,7 +9,7 @@ from geonature.core.gn_permissions.models import TObjects
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
-from ..config.utils import json_from_file, CONFIG_PATH
+from ..config.utils import json_from_file, MONITORING_CONFIG_PATH
 
 from ..modules.repositories import get_module, get_source_by_code
 
@@ -20,6 +20,106 @@ utils.py
 fonctions pour les commandes du module monitoring
 '''
 
+
+def process_for_all_module(process_func):
+    '''
+        boucle sur les répertoire des module
+            et exécute la fonction <process_func> pour chacun
+            (sauf generic)
+    '''
+    for root, dirs, files in os.walk(Path(MONITORING_CONFIG_PATH), followlinks=True):
+        for d in dirs:
+            if d == 'generic':
+                continue
+            process_func(d)
+        break # walk depth = 1
+    return
+
+
+
+def process_export_csv(module_code=None):
+    '''
+        fonction qui va chercher les fichier sql de exports/csv et qui les joue
+    '''
+
+    if not module_code:
+        '''
+            pour tous les modules
+        '''
+        return process_for_all_module(process_export_csv)
+
+    export_csv_dir = Path(MONITORING_CONFIG_PATH) / module_code / 'exports/csv'
+
+    if not export_csv_dir.is_dir():
+        return
+
+    for root, dirs, files in os.walk(export_csv_dir, followlinks=True):
+        for f in files:
+            if not f.endswith('.sql'):
+                continue
+
+            try:
+                DB.engine.execute(
+                    text(
+                        open(Path(root) / f, 'r')
+                        .read()
+                    ).execution_options(autocommit=True)
+                )
+                print('{} - export csv file : {}'.format(module_code, f))
+
+            except Exception as e:
+                print('{} - export csv erreur dans le script {} : {}'.format(module_code, f ,e))
+
+
+def process_export_pdf(module_code=None):
+    '''
+        fonction qui place les fichiers pour les exports pdf
+
+        template dans le dossier :
+        images, css dans le dossier : static/external_assets/monitorings/<module_code.lower()>/exports/pdf/
+    '''
+
+
+    if not module_code:
+        '''
+            pour tous les modules
+        '''
+        return process_for_all_module(process_export_pdf)
+
+    # static (css img etc.)
+
+    export_pdf_assets_static_dir = BACKEND_DIR / 'static/external_assets/monitorings/{}/exports/pdf'.format(module_code)
+    export_pdf_assets_static_dir.parent.mkdir(exist_ok=True, parents=True)
+
+    export_pdf_dir = Path(MONITORING_CONFIG_PATH) / module_code / 'exports/pdf'
+
+    if not export_pdf_dir.is_dir():
+        return
+
+    symlink(
+        export_pdf_dir,
+        export_pdf_assets_static_dir
+    )
+
+
+    # template html
+
+    template_dir = BACKEND_DIR / 'geonature/templates/modules/monitorings/{}'.format(module_code)
+    template_dir.mkdir(exist_ok=True, parents=True)
+
+    for root, dirs, files in os.walk(export_pdf_dir, followlinks=True):
+        for f in files:
+            if not  f.endswith('.html'):
+                continue
+            print('{} - export pdf template : {}'.format(module_code, f))
+            symlink(
+                Path(root) / f,
+                template_dir / f
+            )
+
+
+
+
 def process_img_modules():
     '''
     function qui met à jour toutes les images pour les modules
@@ -29,7 +129,7 @@ def process_img_modules():
     assets_static_dir = BACKEND_DIR / 'static/external_assets/monitorings/'
     assets_static_dir.mkdir(exist_ok=True, parents=True)
 
-    for root, dirs, files in os.walk(CONFIG_PATH, followlinks=True):
+    for root, dirs, files in os.walk(MONITORING_CONFIG_PATH, followlinks=True):
         img_file = root / Path('img.jpg', )
         if not img_file.is_file():
             continue
@@ -105,11 +205,11 @@ def remove_monitoring_module(module_code):
         raise(e)
 
     # remove symlink config
-    if os.path.exists(CONFIG_PATH + '/' + module_code):
-        removesymlink(CONFIG_PATH + '/' + module_code)
+    if os.path.exists(MONITORING_CONFIG_PATH + '/' + module_code):
+        removesymlink(MONITORING_CONFIG_PATH + '/' + module_code)
 
     # remove symlink image menu modules de suivi
-    img_link = CONFIG_PATH + '/../../frontend/assets/' + module_code + '.jpg'
+    img_link = MONITORING_CONFIG_PATH + '/../../frontend/assets/' + module_code + '.jpg'
     if os.path.exists(img_link):
         removesymlink(img_link)
 
@@ -139,7 +239,7 @@ def symlink(path_source, path_dest):
 
 
 def add_nomenclature(module_code):
-    path_nomenclature = CONFIG_PATH + '/' + module_code + '/nomenclature.json'
+    path_nomenclature = MONITORING_CONFIG_PATH + '/' + module_code + '/nomenclature.json'
 
     if not os.path.exists(path_nomenclature):
         print("Il n'y a pas de nomenclature à insérer pour ce module")

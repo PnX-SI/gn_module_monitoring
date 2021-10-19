@@ -1,0 +1,51 @@
+<!doctype html>
+
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Carte de l'Aire </title>
+    <link rel="stylesheet" type="text/css" href="{{ data.static_pdf_dir }}/fiche_aire.css">
+</head>
+<body>
+	<div class="header">
+		<table>
+		<tr>
+		   <td><img class="bandeau" src="{{ data.static_pdf_dir }}/images/LOGO_SHF_micro.png" alt="Bandeau"></td>
+			<td style="text-align:right; font-size:20px; font-weight:bold; color:black"><p >Suivi {{data.module_code}}</p></td>
+		</tr>
+
+		</table>
+	</div>
+
+	<div class="content" >
+		<div class="flex">
+			<div class="map">
+				<img src="{{data.map_image}}" />
+			</div>
+
+			<div style="padding-left:10px">
+				<div style="display: flex; justify-content: flex-end; height: 1.8cm ;width: 7cm;">
+					<h2>POPAmphibien – Aire "{{data.monitoring_object.properties.sites_group_name}}"</h2>
+				</div>
+					<div class="fich"  style="border: 1px solid black;height: 3cm ;width: 7cm;">
+							<h2>Fiche de l'Aire</h2>
+
+							<div><strong>Nom de l'Aire: </strong>{{data.monitoring_object.properties.sites_group_name}}</div>
+							<div><strong>Observateur principal: </strong>{{data.extra_data.resolved_properties.id_inventor}}</div>
+							<div><strong>Commune(s): </strong>{{data.monitoring_object.properties.commune | replace("['","")| replace("']","")| replace("'","")}}</div>
+
+					</div>
+					<br>
+					<div class="legend" style="border: 1px solid black; height: 10cm ;width: 7cm;">
+						<h2>Légende</h2>
+						<div class="site"><img  src="{{ data.static_pdf_dir }}/images/site.png" alt="site"  > <label style="font-size: 16px;">Sites suivis </label></div>
+						<div class="site"><img  src="{{ data.static_pdf_dir }}/images/aire.png" alt="aire"  > <label style="font-size: 16px;">Aire suivie </label></div>
+						<div style="align: center">______________________</div>
+						<div class="north"><img  src="{{ data.static_pdf_dir }}/images/north.png" alt="north"  /></div>
+
+					</div>
+			</div>
+		</div>
+	</div>
+</body>

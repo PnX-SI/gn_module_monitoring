@@ -1,0 +1,212 @@
+{
+  "genre":"M",
+  "geometry_type": "Line",
+  "label": "Point d'observation",
+  "label_list": "Points d'observation",
+  "display_properties": [
+    
+    "id_inventor",
+    "first_use_date",
+    "base_site_name",
+    "base_site_description",
+    "type_materiaux",
+    "saison_prospection",
+    "site_protege",
+    "site_protege_oui",
+    "site_protege_autre",
+    "habitat_a",
+    "habitat_b",
+    "milieu_ptobs",
+    "milieu_bordier",
+    "milieu_mosaique_basse",
+    "milieu_mosaique_haute",
+    "milieu_homogene",
+    "milieu_anthropique",
+    "milieu_ptobs_autre",
+    "abri_visible",
+    "frequentation_humaine",
+    "base_site_description"
+  ],
+  "display_list": [
+    "base_site_name",
+    "id_sites_group",
+    "last_visit",
+    "nb_visits"
+  ],
+  "specific": {
+    "id_nomenclature_type_site": {
+      "type_widget": "text",
+      "attribut_label": "Type site",
+      "type_util": "nomenclature",
+      "value": {
+          "code_nomenclature_type": "TYPE_SITE",
+          "cd_nomenclature": "7"
+      },
+      "hidden": true
+    },
+    
+    "base_site_description": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaire"
+      
+    },
+    "type_materiaux": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Type de matériaux",
+      "code_nomenclature_type": "TYPE_MATERIAUX",
+      "required": false,
+      "type_util": "nomenclature"
+
+       },
+  "saison_prospection": {
+    "type_widget": "nomenclature",
+    "attribut_label": "Saison de prospection",
+    "code_nomenclature_type": "SAISON_PROSPECTION",
+    "required": false,
+    "type_util": "nomenclature"
+    },	
+    "site_protege": {
+      "type_widget": "radio",
+      "attribut_label": "Site protégé",
+      "values": ["Oui", "Non", "Ne sait pas"]
+    },
+    "site_protege_oui": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Si oui, précisez",
+      "code_nomenclature_type": "SITE_PROTEGE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.site_protege != 'Oui'"
+            },
+      "site_protege_autre": {
+        "type_widget": "text",
+        "attribut_label": "Autre (precisez)",
+        "hidden": "({value}) => value.site_protege != 'Oui'"
+      },
+  
+     "habitat_a":{
+      "type_widget": "datalist",
+      "attribut_label": "Type d’habitat autour du point d'observation (jusqu'à 30 mètres) côté gauche",
+      "api": "habref/habitats/autocomplete",
+      "application": "GeoNature",
+      "keyValue": "cd_hab",
+      "keyLabel": "search_name",
+      "type_util": "habitat",
+      "params": {
+          "cd_typo": 7,
+          "search_name": ""
+      }
+    },
+      "habitat_b":{
+        "type_widget": "datalist",
+        "attribut_label": "Type d’habitat autour du point d'observation (jusqu'à 30 mètres) côté droite",
+        "api": "habref/habitats/autocomplete",
+        "application": "GeoNature",
+        "keyValue": "cd_hab",
+        "keyLabel": "search_name",
+        "type_util": "habitat",
+        "params": {
+            "cd_typo": 7,
+            "search_name": ""
+        }
+      },
+    "milieu_ptobs": {
+      "type_widget": "radio",
+      "attribut_label": "Type de milieu sur le point d'obs.",
+      "values": ["Milieux bordiers", "Milieux mosaïque végétale basse", "Milieux mosaïque végétale haute", "Milieux structuration végétale homogène", "Milieux Anthropiques"]
+    },
+    "milieu_bordier": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux bordiers",
+      "code_nomenclature_type": "MILIEUX_BORDIERS",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_ptobs != 'Milieux bordiers'"
+       },
+       "milieu_mosaique_basse": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Milieux mosaïque végétale basse",
+        "code_nomenclature_type": "MILIEUX_MOSAIQUE",
+        "required": false,
+        "type_util": "nomenclature",
+        "hidden": "({value}) => value.milieu_ptobs != 'Milieux mosaïque végétale basse'"
+      },
+      "milieu_mosaique_haute": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux mosaïque végétale haute",
+      "code_nomenclature_type": "MILIEUX_MOSAIQUE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_ptobs != 'Milieux mosaïque végétale haute'"
+      },
+      "milieu_homogene": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux structuration végétale homogène",
+      "code_nomenclature_type": "MILIEUX_HOMOGENE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_ptobs != 'Milieux structuration végétale homogène'"
+        },
+      "milieu_anthropique": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Milieux Anthropiques",
+      "code_nomenclature_type": "MILIEUX_ANTHROPIQUE",
+      "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.milieu_ptobs != 'Milieux Anthropiques'"
+        },
+        "milieu_ptobs_autre": {
+        "type_widget": "text",
+        "attribut_label": "Autres (définir)",
+        "hidden": "({value}) => value.milieu_ptobs != 'Milieux Anthropiques'"
+      },
+      "abri_visible": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Présence d’abris visibles",
+        "code_nomenclature_type": "ABRI_VISIBLE",
+        "required": false,
+        "type_util": "nomenclature"
+      },
+      "frequentation_humaine": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Fréquentation humaine",
+        "code_nomenclature_type": "FREQUENTATION_HUMAINE",
+        "required": false,
+        "type_util": "nomenclature"
+      },
+      "id_sites_group": {
+        "type_widget": "datalist",
+        "attribut_label": "Aire",
+        "type_util": "sites_group",
+        "keyValue": "id_sites_group",
+        "keyLabel": "sites_group_name",
+        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+        "application": "GeoNature",
+        "required": false,
+        "hidden": false
+      },
+      "base_site_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom du Point d'obs.",
+        "required": true
+      },
+      "base_site_code": {
+        "type_widget": "text",
+        "attribut_label": "Numéro du Point d'obs.",
+        "required": false,
+        "hidden": true
+      },
+      "nb_visits": {
+        "attribut_label": "Nb. de passages"
+      },
+      "last_visit": {
+        "attribut_label": "Dernier passage",
+        "type_util": "date"
+      }
+
+      
+     
+
+    
+  }
+}

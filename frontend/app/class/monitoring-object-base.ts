@@ -68,7 +68,7 @@ export class MonitoringObjectBase {
 
   labelArtDef() {
     return (
-      
+
       (this.testPremiereLettreVoyelle(this.configParam("label"))
         ? "l'"
         : this.configParam("genre") == "F"
@@ -104,6 +104,9 @@ export class MonitoringObjectBase {
 
 
   initTemplate() {
+    this.template["export_pdf"] = this.configParam("export_pdf");
+    this.template["export_csv"] = this.configParam("export_csv");
+    this.template["color"] = this.configParam("color");
     this.template["idTableLocation"] = this.configParam("id_table_location");
     this.template["label"] = this.configParam("label");
     this.template["label_art_def"] = this.labelArtDef();
@@ -171,11 +174,11 @@ export class MonitoringObjectBase {
   }
 
   resolveProperty(elem, val): Observable<any> {
-    
+
     if (elem.type_widget === "date" || (elem.type_util === "date" && val)) {
       val = Utils.formatDate(val);
     }
-    
+
     const fieldName = this._objService.configUtils(elem, this.moduleCode);
     if (val && fieldName && elem.type_widget) {
       return this._objService
@@ -409,7 +412,6 @@ export class MonitoringObjectBase {
     queryParamsAddChildren["parents_path"] = this.parentsPath.concat(
       this.objectType
     );
-    console.log(queryParamsAddChildren)
     this._objService.navigate(
       "create_object",
       this.moduleCode,

@@ -11,7 +11,7 @@ from ..monitoring.models import TMonitoringModules
 
 
 # chemin ver le repertoire de la config
-CONFIG_PATH = os.path.dirname(os.path.abspath(
+MONITORING_CONFIG_PATH = os.path.dirname(os.path.abspath(
     __file__)) + '/../../config/monitoring'
 
 
@@ -127,13 +127,13 @@ def json_from_file(file_path, result_default):
 
 def json_config_from_file(module_code, type_config):
 
-    file_path = "{}/{}/{}.json".format(CONFIG_PATH, module_code, type_config)
+    file_path = "{}/{}/{}.json".format(MONITORING_CONFIG_PATH, module_code, type_config)
     return json_from_file(file_path, {})
 
 
 def json_schema_from_file(module_code, object_type):
 
-    file_path = "{}/{}/schema_{}.json".format(CONFIG_PATH, module_code, object_type)
+    file_path = "{}/{}/schema_{}.json".format(MONITORING_CONFIG_PATH, module_code, object_type)
     return json_from_file(file_path, {})
 
 

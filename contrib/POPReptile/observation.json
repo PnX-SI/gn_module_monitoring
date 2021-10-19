@@ -1,0 +1,81 @@
+{
+  "description_field_name":"cd_nom",
+  "genre":"F",
+"display_properties": [
+  "cd_nom",
+  "id_nomenclature_stade",
+  "sexe",
+  "nombre",
+  "nombre_compte",
+  "nombre_estime",
+  "observation",
+  "sous_plaque",
+  "a_vue",
+  "comments"
+],
+"display_list": [
+  "cd_nom",
+  "nombre_compte",
+  "nombre_estime"
+],
+
+  "specific": {
+
+    "cd_nom": {
+      "type_widget": "taxonomy",
+      "attribut_label": "Espèces observées",
+      "keyValue": "cd_nom",
+      "keyLabel": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+      "multiple": false,
+      "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
+      "application": "TaxHub",
+      "required": true,
+      "type_util": "taxonomy"
+    } ,
+    "id_nomenclature_stade": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Stade",
+      "code_nomenclature_type": "STADE_VIE_REPTILE",
+	     "required": true,
+      "type_util": "nomenclature"
+      
+    },
+    "sexe": {
+      "type_widget": "radio",
+      "attribut_label": "Sexe",
+      "values": ["Mâle", "Femelle", "Indéterminé"]
+    },
+    "nombre": {
+      "type_widget": "radio",
+      "attribut_label": "Nombre",
+      "values": ["Compté", "Estimé"]
+    },
+    "nombre_compte": {
+      "type_widget": "number",
+      "attribut_label": "Nombre (compté)",
+      "required": false,
+      "min": -25,
+      "max": 60,
+      "hidden": "({value}) => value.nombre != 'Compté'"
+    },
+    "nombre_estime": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Nombre (estimé)",
+      "code_nomenclature_type": "NOMBRE_ESTIME",
+	    "required": false,
+      "type_util": "nomenclature",
+      "hidden": "({value}) => value.nombre != 'Estimé'"
+    },
+    "comments": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaire"
+    },
+
+   "a_vue": {
+    "type_widget": "text",
+    "required": false,
+    "attribut_label": "Observation à vue"
+    
+  }
+}
+}

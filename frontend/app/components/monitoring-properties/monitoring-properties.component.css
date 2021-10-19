@@ -18,3 +18,8 @@ td {
   display: none;
 }
 
+
+::ng-deep .cdk-global-overlay-wrapper,
+::ng-deep .cdk-overlay-container {
+    z-index: 99999 !important;
+}

@@ -1,0 +1,16 @@
+{
+    "module_label":"POPReptile",
+    "module_desc":"Module de suivi du Protocole POPReptile",
+    "b_draw_sites_group": true,
+    "genre":"M",
+    "color":"#e1fffe",
+    "export_csv": [
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" },
+        { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
+    ],
+    "specific": {
+      "b_draw_sites_group": {
+        "hidden": false
+      }
+    }
+}

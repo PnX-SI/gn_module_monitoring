@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
         id_list_taxonomy INTEGER,
         b_synthese BOOLEAN DEFAULT TRUE,
         taxonomy_display_field_name CHARACTER VARYING DEFAULT 'nom_vern,lb_nom',
+        b_draw_sites_group BOOLEAN,
 
         data JSONB,
 
