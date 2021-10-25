@@ -601,7 +601,7 @@ les fichiers de template (``.html``)  et assets (images, style, etc..) pour l'ex
     * ``map_image`` : l'image tirée de la carte leaflet
     * ``monitoring_object.properties``: propriété de l'objet courant
 
-* La commande ``geonature monitorings process_pdf <module_code>`` permet de:
+* La commande ``geonature monitorings process_export_pdf <module_code>`` permet de:
     * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
     * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
 
@@ -623,6 +623,6 @@ les fichier ``.sql`` qui définissent les vue pour l'export csv sont placé dans
     ],
 
 
-* La commande ``geonature monitorings process_csv <module_code>`` permet de:
+* La commande ``geonature monitorings process_export_csv <module_code>`` permet de:
     * jouer tous les fichiers sql de ce répertoire
     * les vues doivent être nommées ``v_export_<module_code>_<method>``
