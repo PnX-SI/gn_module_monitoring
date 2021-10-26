@@ -25,13 +25,6 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
             ON UPDATE CASCADE ON DELETE CASCADE
     );
 
-    DROP TRIGGER IF EXISTS tri_meta_dates_change_t_module_complements ON gn_monitoring.t_module_complements;
-    CREATE TRIGGER tri_meta_dates_change_t_module_complements
-          BEFORE INSERT OR UPDATE
-          ON gn_monitoring.t_module_complements
-          FOR EACH ROW
-          EXECUTE PROCEDURE public.fct_trg_meta_dates_change();
-
     -- Les groupes de site
 
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_sites_groups (
