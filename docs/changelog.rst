@@ -2,6 +2,9 @@
 CHANGELOG
 =========
 
+0.2.6 (2021-10-26)
+------------------
+
 **⚠️ Notes de version**
 
 Si vous mettez à jour le module :
