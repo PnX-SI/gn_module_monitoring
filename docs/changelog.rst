@@ -10,7 +10,7 @@ CHANGELOG
 Si vous mettez à jour le module :
 
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
-
+* Mettre à jour les modules js en effectuant la commande ``npm ci`` depuis le répertoire ``<gn_module_monitotring>/frontend``
 
 **🚀 Nouveautés POPAmphibien  POPReptile**
 
