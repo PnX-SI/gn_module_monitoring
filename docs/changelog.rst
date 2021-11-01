@@ -12,32 +12,31 @@ Si vous mettez à jour le module :
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
 * Mettre à jour les modules js en effectuant la commande ``npm ci`` depuis le répertoire ``<gn_module_monitotring>/frontend``
 
-**🚀 Nouveautés POPAmphibien  POPReptile**
+**🚀 Nouveautés POPAmphibien - POPReptile**
 
-* A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings`` un fois que l'on a activé le ``venv``
-* Nouvelles commandes:
+* A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings`` une fois que l'on a activé le ``venv``
+* Nouvelles commandes :
     * ``geonature monitorings process_export_pdf <?module_code>``
     * ``geonature monitorings process_export_csv <?module_code>``
     * Pour gérer et mettre à jour les exports ``pdf`` et ``csv`` pour un module si ``module_code`` est précisé ou pour tous les modules
 
-* Ajout des sous modules POPAmphibien et POPReptile (idéalement à déplacer dans un autre dépôt)
-* Possibilité de choisir la couleur du tableau pour les détails d'un objet (champs `color` dans le fichier <object_type>.json)
-* Dans la partie map, possibilité de joindre les sites par des lignes pour former une aire et calculer sa superficie
-    * (si le nombre des points est suerieur à 2)
+* Ajout des sous-modules POPAmphibien et POPReptile (idéalement à déplacer dans un autre dépôt)
+* Possibilité de choisir la couleur du tableau pour les détails d'un objet (champs ``color`` dans le fichier ``<object_type>.json``)
+* Dans la partie map, possibilité de joindre les sites par des lignes pour former automatiquement une aire et calculer sa superficie
+    * (si le nombre des points est supérieur à 2)
     * configurable depuis l'édition du module (`dessin des groupe de site`)
 
 * Possibilité de choisir l'icône du module dans le menu depuis l'édition du module
 
 * export PDF configurables
-  * boutton accessible depuis les détails
+  * bouton accessible depuis les détails
 * export CSV configurables
-  * boutton accessible depuis les détails
-  * modal pour choisir le JDD concerné par l'export
+  * bouton accessible depuis les détails
+  * modale pour choisir le JDD concerné par l'export
 
 **🐛 Corrections**
 
 * Rechargement de la configuration quand on modifie le module par le formulaire d'édition.
-
 
 0.2.6 (2021-07-23)
 ------------------
