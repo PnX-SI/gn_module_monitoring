@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+0.2.8 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Suppression du trigger ``tri_meta_dates_change_t_module_complements`` dans le script d'installation du module (#118 et #120)
+* Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
+
 0.2.7 (2021-10-26)
 ------------------
 
@@ -14,7 +22,7 @@ Si vous mettez à jour le module :
 
 **🚀 Nouveautés POPAmphibien - POPReptile**
 
-* A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings`` une fois que l'on a activé le ``venv``
+* A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings``, une fois que l'on a activé le ``venv``
 * Nouvelles commandes :
     * ``geonature monitorings process_export_pdf <?module_code>``
     * ``geonature monitorings process_export_csv <?module_code>``
