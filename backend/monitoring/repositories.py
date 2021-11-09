@@ -225,11 +225,19 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         order_by = args.getlist('order_by')
 
-
-
         req = (
             DB.session.query(Model)
         )
+
+        # Traitement de la liste des colonnes à retourner
+        fields_list = args.getlist("fields")
+        props = self.properties_names()
+        if not fields_list:
+            # TODO check if self.properties_names() == props et rel
+            fields_list = props
+        else:
+            fields_list = [field for field in fields_list if field in props]
+
 
         # filtres params get
         for key in args:
@@ -259,12 +267,10 @@ class MonitoringObject(MonitoringObjectSerializer):
             .limit(limit)
             .all()
         )
-        # TODO check if self.properties_names() == props et rel
-        props = self.properties_names()
 
         # patch order by number
         out = [
-            r.as_dict(True, columns=props, relationships=props)
+            r.as_dict(fields=fields_list)
             for r in res
         ]
 

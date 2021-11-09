@@ -94,7 +94,7 @@ export class ConfigService {
     try {
       func = eval(s);
     } catch (error) {
-      console.error(`Erreur dans la définition de la fonction ${error}`);
+      console.error(`Erreur dans la définition de la fonction ${error} ${s}`);
     }
 
     return func;
