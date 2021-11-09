@@ -326,7 +326,7 @@ Par exemple :
         "type_util": "sites_group",
         "keyValue": "id_sites_group",
         "keyLabel": "sites_group_name",
-        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name"",
         "application": "GeoNature"
     },
 
