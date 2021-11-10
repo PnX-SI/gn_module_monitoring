@@ -10,7 +10,15 @@ CHANGELOG
 Si vous mettez à jour le module :
 
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
-* Les exports necessecitent l'installation du module html2canvas. Il peut être necessaire de mettre à jour les modules js avec la commande ``npm install`` ou la commande ``npm ci`` depuis le dossier ``<gn_module_monitoring>/frontend``
+* Les exports necessecitent l'installation du module html2canvas. Il peut être necessaire de mettre à jour les modules js:
+
+::
+
+    cd <modulemonitoring>/frontend
+    rm -R node_modules
+    npm install
+   
+* Vérifier que html2canevas est bien présent dans le dossier ``node_module`` : ``ls node_modules/html2canvas``
 
 
 **🚀 Nouveautés POPAmphibien  POPReptile**
