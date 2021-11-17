@@ -16,7 +16,7 @@ Si vous mettez à jour le module :
 
     cd <modulemonitoring>/frontend
     rm -R node_modules
-    npm install
+    npm install html2canvas
    
 * Vérifier que html2canevas est bien présent dans le dossier ``node_module`` : ``ls node_modules/html2canvas``
 
