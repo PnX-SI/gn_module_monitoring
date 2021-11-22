@@ -137,14 +137,18 @@ export class MonitoringMapComponent implements OnInit {
           //
           layer.removeFrom(this._mapService.map);
           layer.addTo(this._mapService.map);
-          layer.bindTooltip(layer.feature.properties["base_site_name"], {permanent: true, direction: 'right'});
-          l1=layer;
-          try{
-          var x = layer._latlng.lat; var y = layer._latlng.lng; points.push({x, y});
-          }catch{}
+          // layer.bindTooltip(layer.feature.properties["base_site_name"], {permanent: true, direction: 'right'});
+          l1 = layer;
+          // console.log(layer)
+          try {
+            var x = layer._latlng.lat;
+            var y = layer._latlng.lng;
+            points.push({x, y});
+          } catch
+          {}
         }
-        console.log(this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group'] )
-        if(points.length>2 && this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']){
+        // Calcul de l'emprise des groupes de sites
+        if (points.length>2 && this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']){
             // Get the center (mean value) using reduce
             const center = points.reduce((acc, { x, y }) => {
               acc.x += x / points.length;
@@ -163,16 +167,20 @@ export class MonitoringMapComponent implements OnInit {
               return [x, y];
             });
 
-
-
-            polygon= L.polygon(pointsSorted1,{removeOnInit: true,"fillOpacity": .0, color: 'red', dashArray: '5, 5'}).addTo(this._mapService.map);;
+            polygon = L.polygon(
+              pointsSorted1,
+              {removeOnInit: true,"fillOpacity": .0, color: 'red', dashArray: '5, 5'}
+            ).addTo(this._mapService.map);;
             area  = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]);
             readableArea = L.GeometryUtil.readableArea(area, true);
             var center1 = polygon.getBounds().getCenter();
             //polygon.bindTooltip(readableArea, {permanent: true, direction: 'center', offset: [10, 0],});
-            L.marker(center1, { opacity: 0 }).bindTooltip(readableArea, {permanent: true, direction: 'center'}).addTo(this._mapService.map);
-
-
+            L.marker(
+              center1, { opacity: 0 }
+            ).bindTooltip(
+              readableArea,
+              {permanent: true, direction: 'center'}
+            ).addTo(this._mapService.map);
 
         }
 
@@ -203,7 +211,6 @@ export class MonitoringMapComponent implements OnInit {
     if(!textValue) {
       return
     }
-
     var text = L.tooltip({
       permanent: true,
       direction: 'top',
@@ -314,13 +321,15 @@ export class MonitoringMapComponent implements OnInit {
     let layer = this.findSiteLayer(status.id);
     if (!layer) { return; }
 
-    const style_name =
-      !status['visible'] ? 'hidden' :
-      status['current'] ? 'current' :
-      status['selected'] ? 'selected' :
-      this.bEdit ? 'edit' :
-      'default';
-
+    const style_name = !status['visible']
+      ? 'hidden'
+      : status['current']
+        ? 'current'
+        : status['selected']
+          ? 'selected'
+          : this.bEdit
+            ? 'edit'
+            : 'default';
 
     const style = this.styles[style_name] || this.styles['default'];
 
