@@ -58,8 +58,12 @@ export class ConfigService {
 
   /** Backend Module Url */
   backendModuleUrl() {
-    
-    return `${AppConfig.API_ENDPOINT}${ModuleConfig.MODULE_URL}`;
+    // Test if api endpoint have a final slash
+    let api_url = AppConfig.API_ENDPOINT;
+    if (api_url.substring(api_url.length -1 , 1) == "/") {
+      api_url = api_url + "/"
+    }
+    return `${api_url}${ModuleConfig.MODULE_URL}`;
   }
 
   /** Frontend Module Monitoring Url */
