@@ -1,8 +1,9 @@
 {
   "genre":"M",
   "geometry_type": "Point",
+  "map_label_field_name": "base_site_name",
   "display_properties": [
-   
+
     "id_inventor",
     "first_use_date",
     "base_site_name",
@@ -30,9 +31,9 @@
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Commentaire"
-      
+
     },
- 
+
     "milieu_aquatique": {
       "type_widget": "nomenclature",
       "attribut_label": "Description du milieu aquatique",

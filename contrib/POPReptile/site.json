@@ -3,8 +3,9 @@
   "geometry_type": "Line",
   "label": "Point d'observation",
   "label_list": "Points d'observation",
+  "map_label_field_name": "base_site_name",
   "display_properties": [
-    
+
     "id_inventor",
     "first_use_date",
     "base_site_name",
@@ -44,11 +45,11 @@
       },
       "hidden": true
     },
-    
+
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Commentaire"
-      
+
     },
     "type_materiaux": {
       "type_widget": "nomenclature",
@@ -64,7 +65,7 @@
     "code_nomenclature_type": "SAISON_PROSPECTION",
     "required": false,
     "type_util": "nomenclature"
-    },	
+    },
     "site_protege": {
       "type_widget": "radio",
       "attribut_label": "Site protégé",
@@ -83,7 +84,7 @@
         "attribut_label": "Autre (precisez)",
         "hidden": "({value}) => value.site_protege != 'Oui'"
       },
-  
+
      "habitat_a":{
       "type_widget": "datalist",
       "attribut_label": "Type d’habitat autour du point d'observation (jusqu'à 30 mètres) côté gauche",
@@ -204,9 +205,9 @@
         "type_util": "date"
       }
 
-      
-     
 
-    
+
+
+
   }
 }

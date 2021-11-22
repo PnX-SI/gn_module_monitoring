@@ -1,6 +1,7 @@
 {
   "genre":"F",
   "label": "Aire",
+  "map_label_field_name": "base_site_name",
   "export_pdf": [
     {
       "template": "fiche_aire.html",
@@ -56,23 +57,23 @@
         "orderby": "dataset_name",
         "module_code": "__MODULE.MODULE_CODE"
       }
-      
+
     },
 
     "commune": {
       "type_widget": "municipalities",
       "attribut_label": "Commune",
       "required": true,
-      "title":"Veuillez saisir les principales communes concernées par l'aire"  
+      "title":"Veuillez saisir les principales communes concernées par l'aire"
     },
       "sites_group_name": {
         "type_widget": "text",
         "attribut_label": "Nom de l'aire",
         "required": true,
         "definition": "Nom du groupe site."
-       
+
       },
-     
+
       "comments": {
         "type_widget": "textarea",
         "attribut_label": "Commentaire"
@@ -107,8 +108,8 @@
       "nb_visits": {
         "attribut_label": "Nombre de passages"
       }
-    
- 
-         
+
+
+
   }
-}   
+}

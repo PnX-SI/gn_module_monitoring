@@ -2,6 +2,7 @@
   "genre":"F",
   "label": "Aire",
   "label_list": "Aires",
+  "map_label_field_name": "base_site_name",
   "export_pdf": [
     {
       "template": "fiche_aire.html",
@@ -50,7 +51,7 @@
         "type_widget": "municipalities",
         "attribut_label": "Commune",
         "required": true,
-        "title":"Veuillez saisir les principales communes concernées par l'aire" 
+        "title":"Veuillez saisir les principales communes concernées par l'aire"
       },
       "categories_paysageres": {
         "type_widget": "nomenclature",
@@ -85,6 +86,6 @@
       "nb_visits": {
         "attribut_label": "Nombre de passages"
       }
-     
+
   }
-}   
+}

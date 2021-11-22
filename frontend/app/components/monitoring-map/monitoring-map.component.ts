@@ -137,9 +137,9 @@ export class MonitoringMapComponent implements OnInit {
           //
           layer.removeFrom(this._mapService.map);
           layer.addTo(this._mapService.map);
-          // layer.bindTooltip(layer.feature.properties["base_site_name"], {permanent: true, direction: 'right'});
+
           l1 = layer;
-          // console.log(layer)
+
           try {
             var x = layer._latlng.lat;
             var y = layer._latlng.lng;
