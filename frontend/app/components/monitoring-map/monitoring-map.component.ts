@@ -46,8 +46,8 @@ export class MonitoringMapComponent implements OnInit {
   currentSiteId: Number;
 
   // Layer des contours groupes de sites
-  polygonSitesGroup;
-  pointLabelSitesGroup;
+  sitesGroupEmprisePoly = [];
+  sitesGroupEmpriseLabel = [];
 
 
   // todo mettre en config
@@ -115,10 +115,14 @@ export class MonitoringMapComponent implements OnInit {
   ngOnInit() {
   }
 
-  drawSitesGroup(points) {
+  drawSitesGroup(id_groupe_site, points) {
     // Fonction qui permet d'afficher l'emprise des sites
     //    d'un groupe de site
 
+    // Si moins de 2 sites => pas de calcul
+    if (points.length <= 2) {
+      return
+    }
     // Get the center (mean value) using reduce
     const center = points.reduce(
       (acc, { x, y }) => {
@@ -144,7 +148,7 @@ export class MonitoringMapComponent implements OnInit {
       return [x, y];
     });
 
-    this.polygonSitesGroup = L.polygon(
+    const siteGrpEmprise = L.polygon(
       pointsSorted1,
       {
         removeOnInit: true,
@@ -153,55 +157,76 @@ export class MonitoringMapComponent implements OnInit {
         dashArray: '5, 5'
       }
     )
-    this.polygonSitesGroup.addTo(this._mapService.map);
+    this.sitesGroupEmprisePoly.push(siteGrpEmprise);
+    siteGrpEmprise.addTo(this._mapService.map);
 
     // Calcul de l'aire et affichage au centre du polygone
-    const area  = L.GeometryUtil.geodesicArea(this.polygonSitesGroup.getLatLngs()[0]);
+    const area  = L.GeometryUtil.geodesicArea(siteGrpEmprise.getLatLngs()[0]);
     const readableArea = L.GeometryUtil.readableArea(area, true);
 
-    const center_point = this.polygonSitesGroup.getBounds().getCenter();
-    this.pointLabelSitesGroup = L.marker(
+    const center_point = siteGrpEmprise.getBounds().getCenter();
+    this.sitesGroupEmpriseLabel[id_groupe_site] = L.marker(
       center_point, { opacity: 0 }
     );
-    this.pointLabelSitesGroup.bindTooltip(
+    this.sitesGroupEmpriseLabel[id_groupe_site].bindTooltip(
       readableArea,
       {permanent: true, direction: 'center'}
     ).addTo(this._mapService.map);
-
   }
 
   initDrawSitesGroup() {
+    // Initialisation de l'affichage cartographique
+    if (this.sitesGroupEmprisePoly) {
+      this.sitesGroupEmprisePoly.forEach(element => {
+        this._mapService.map.removeLayer(element);
 
-    if (this.polygonSitesGroup) {
-      this._mapService.map.removeLayer(this.polygonSitesGroup);
-      this._mapService.map.removeLayer(this.pointLabelSitesGroup);
+      });
     }
+    if (this.sitesGroupEmpriseLabel) {
+      this.sitesGroupEmpriseLabel.forEach(element => {
+        this._mapService.map.removeLayer(element);
 
+      });
+    }
   }
 
   calculatePointFordrawSitesGroup() {
+    // Calcul de la liste des points pour chaque groupe de site
+    // et affichage de l'emprise et de l'aire du groupe sur la carte
+
+
     this.initDrawSitesGroup();
 
-    let points = [];
     // Si le dessin des groupes de sites n'est pas actif => pas de calcul
     if (! this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']) {
       return
     }
+
+    let pointsOfSiteGroup = {};
+    // Pour chaque site visible sur la carte
+    //  calcul de son centroid
     this.objectsStatus['site'].forEach(status => {
       if (status['visible']) {
         let layer = this.findSiteLayer(status.id);
-        try {
-          var x = layer._latlng.lat;
-          var y = layer._latlng.lng;
-          points.push({x, y});
-        } catch
-        {}
+        if (layer) {
+          const id_sites_group = layer.feature.properties.id_sites_group;
+          if (!(id_sites_group in pointsOfSiteGroup)) {
+            pointsOfSiteGroup[id_sites_group] = [];
+          }
+          try {
+            var x = layer._latlng.lat;
+            var y = layer._latlng.lng;
+            pointsOfSiteGroup[id_sites_group].push({x, y});
+          } catch
+          {}
+        }
       }
     })
-    // Si moins de 2 sites => pas de calcul
-    if (points.length >= 2) {
-      this.drawSitesGroup(points);
-    }
+
+    // Pour chaque groupe de site : affichage de son emprise sur la carte
+    Object.keys(pointsOfSiteGroup).forEach(id_sites_group => {
+      this.drawSitesGroup(id_sites_group, pointsOfSiteGroup[id_sites_group]);
+    });
   }
 
   initSites() {
