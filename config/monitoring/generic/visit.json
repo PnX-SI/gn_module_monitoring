@@ -53,6 +53,16 @@
       "multiple": true,
       "required": true
     },
+    "observers_txt": {
+      "type_widget": "text",
+      "attribut_label": "Observateurs",
+      "application": "GeoNature",
+      "keyValue": "observers_txt",
+      "keyLabel": "nom_complet",
+      "multiple": false,
+      "schema_dot_table": "gn_monitoring.t_visit_complements",
+      "required": false
+    },
     "id_digitiser": {
       "type_widget": "text",
       "attribut_label": "Digitiser",

@@ -150,6 +150,8 @@ class TMonitoringVisits(TBaseVisits):
         secondaryjoin=(CorVisitObserver.id_role == User.id_role),
     )
 
+    observers_txt = DB.Column(DB.String)
+
     observations = DB.relation(
         "TMonitoringObservations",
         lazy='select',
