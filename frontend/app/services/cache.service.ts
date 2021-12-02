@@ -34,13 +34,15 @@ export class CacheService {
       return of(null);
     }
 
-    const url_params = Object.keys(queryParams)
-      .map(key => Array.isArray(queryParams[key])
-        ? queryParams[key].map(val => `${key}=${val}`).join('&')
-        : `${key}=${queryParams[key]}`
-        ).join('&')
+    const url_params = Object.keys(queryParams).length
+      ? '?' + Object.keys(queryParams)
+          .map(key => Array.isArray(queryParams[key])
+          ? queryParams[key].map(val => `${key}=${val}`).join('&')
+          : `${key}=${queryParams[key]}`
+          ).join('&')
+      : ''
 
-    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params
+    const url = this._config.backendModuleUrl() + '/' + urlRelative +  url_params
 
     // requete
     return this._http[requestType]<any>(url, postData);
