@@ -49,7 +49,13 @@ CHANGELOG
 Si vous mettez à jour le module :
 
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
-* Les exports nécessitent l'installation du module html2canvas. Il peut être nécessaire de mettre à jour les modules js avec la commande ``npm install`` ou la commande ``npm ci`` depuis le dossier ``<gn_module_monitoring>/frontend``
+* Les exports nécessitent l'installation du module html2canvas. Il peut être nécessaire de mettre à jour les modules js en suivant la procédure suivante :
+
+::
+
+  cd path_to_geonature/frontend
+  npm install external_modules/monitorings/frontend --no-save
+ 
 
 0.2.6 (2021-07-23)
 ------------------
