@@ -32,7 +32,7 @@ CHANGELOG
 * Dans la partie map, possibilité de joindre les sites par des lignes pour former automatiquement une aire et calculer sa superficie
 
   - (si le nombre des points est supérieur à 2)
-  - configurable depuis l'édition du module (`dessin des groupe de site`)
+  - configurable depuis l'édition du module (``dessin des groupes de site``)
 
 * Possibilité de choisir l'icône du module dans le menu depuis l'édition du module
 
