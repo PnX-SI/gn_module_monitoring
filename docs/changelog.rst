@@ -8,6 +8,11 @@ CHANGELOG
 **🐛 Corrections**
 
 * Suppression du trigger ``tri_meta_dates_change_t_module_complements`` dans le script d'installation du module (#118 et #120)
+* Modification de la fonction contour des sites : 
+
+  - Un contour pour chaque groupe de sites
+  - Prise en compte uniquement des sites visibles sur la carte (non filtrés) dans le calcul
+  
 * Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
 
 0.2.7 (2021-10-26)
