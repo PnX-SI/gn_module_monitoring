@@ -202,6 +202,11 @@ export class MonitoringMapComponent implements OnInit {
       return
     }
 
+    // Test si la liste des sites est initialisée
+    if (this.objectsStatus['site'] == undefined) {
+      return
+    }
+
     let pointsOfSiteGroup = {};
     // Pour chaque site visible sur la carte
     //  calcul de son centroid
