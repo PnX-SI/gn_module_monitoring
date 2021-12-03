@@ -8,7 +8,7 @@
 """
 
 from flask import request
-from sqlalchemy import and_, inspect
+from sqlalchemy import and_, inspect, cast
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -22,6 +22,7 @@ from pypn_habref_api.models import Habref
 from utils_flask_sqla.response import json_resp
 
 from geonature.core.gn_meta.models import TDatasets
+from geonature.core.ref_geo.models import LAreas, LiMunicipalities
 from geonature.utils.env import DB
 
 from geonature.utils.errors import GeoNatureError
@@ -42,13 +43,19 @@ model_dict = {
     'taxonomy_list': BibListes,
     'sites_group': TMonitoringSitesGroups,
     'site': TMonitoringSites,
-    }
+    'area': LAreas,
+    'municipality': LiMunicipalities,
+}
 
-id_field_name_dict = dict( 
+
+# id_field_name = pk_key (trouvé avec insect)
+id_field_name_dict = dict(
     (k, inspect(Model).primary_key[0].name)
     for (k, Model) in model_dict.items()
 )
 
+# patch municipalities
+id_field_name_dict['municipality'] = 'id_area'
 
 @blueprint.route('util/init_data/<string:module_code>', methods=['GET'])
 @json_resp
@@ -58,7 +65,7 @@ def get_init_data(module_code):
     '''
 
     out = {}
-    config = get_config(module_code, True) 
+    config = get_config(module_code, True)
     data = config.get('data')
 
     if not data:
@@ -184,7 +191,7 @@ def get_util_from_id_api(type_util, id):
             .format(type_util, field_name)
         )
 
-    id_field_name = id_field_name_dict.get(type_util)
+    id_field_name =  request.args.get('id_field_name', id_field_name_dict.get(type_util))
 
     if not obj or not id_field_name:
         return None
@@ -194,7 +201,7 @@ def get_util_from_id_api(type_util, id):
     try:
         res = (
             DB.session.query(scope)
-            .filter(getattr(obj, id_field_name) == id)
+            .filter(cast(getattr(obj, id_field_name), DB.String) == str(id))
             .one()
         )
 

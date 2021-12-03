@@ -18,6 +18,8 @@
     "taxonomy_list": "nom_liste",
     "sites_group": "sites_group_name",
     "habitat": "lb_hab_fr",
+    "area": "area_name",
+    "municipality": "nom_com_dept",
     "site": "base_site_name"
   }
 }

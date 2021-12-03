@@ -183,7 +183,7 @@ export class MonitoringObjectBase {
     if (val && fieldName && elem.type_widget) {
       return this._objService
         .dataUtilsService()
-        .getUtil(elem.type_util, val, fieldName);
+        .getUtil(elem.type_util, val, fieldName, elem.value_field_name);
     }
     return of(val);
   }
