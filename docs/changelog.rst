@@ -14,6 +14,8 @@ CHANGELOG
   - Prise en compte uniquement des sites visibles sur la carte (non filtrés) dans le calcul
   
 * Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
+* Les modules POPAmphibien et POPReptile ont été déplacés dans le dépot https://github.com/PnCevennes/protocoles_suivi
+
 
 0.2.7 (2021-10-26)
 ------------------
