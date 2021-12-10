@@ -2,6 +2,21 @@
 CHANGELOG
 =========
 
+0.2.8 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Suppression du trigger ``tri_meta_dates_change_t_module_complements`` dans le script d'installation du module (#118 et #120)
+* Modification de la fonction contour des sites :
+
+  - Un contour pour chaque groupe de sites
+  - Prise en compte uniquement des sites visibles sur la carte (non filtrés) dans le calcul
+
+* Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
+* Les modules POPAmphibien et POPReptile ont été déplacés dans le dépot https://github.com/PnCevennes/protocoles_suivi
+
+
 0.2.7 (2021-10-26)
 ------------------
 
@@ -9,16 +24,7 @@ CHANGELOG
 
 Si vous mettez à jour le module :
 
-* Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
-* Les exports necessecitent l'installation du module html2canvas. Il peut être necessaire de mettre à jour les modules js:
-
-::
-
-    cd <modulemonitoring>/frontend
-    rm -R node_modules
-    npm install html2canvas
-   
-* Vérifier que html2canevas est bien présent dans le dossier ``node_module`` : ``ls node_modules/html2canvas``
+* Nouvelles commandes pour gérer et mettre à jour les exports ``pdf`` et ``csv`` pour un module si ``module_code`` est précisé ou pour tous les modules :
 
 **🚀 Nouveautés POPAmphibien - POPReptile**
 
@@ -44,7 +50,20 @@ Si vous mettez à jour le module :
 
 **🐛 Corrections**
 
-* Rechargement de la configuration quand on modifie le module par le formulaire d'édition.
+* Rechargement de la configuration quand on modifie le module par le formulaire d'édition
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module :
+
+* Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.2.6_0.2.7.sql``
+* Les exports nécessitent l'installation du module html2canvas. Il peut être nécessaire de mettre à jour les modules js en suivant la procédure suivante :
+
+::
+
+  cd path_to_geonature/frontend
+  npm install external_modules/monitorings/frontend --no-save
+
 
 0.2.6 (2021-07-23)
 ------------------

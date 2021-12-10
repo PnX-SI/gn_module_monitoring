@@ -86,10 +86,13 @@ Une variable optionnelle permet de configurer les objets faisant l'objet de perm
 Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observation.json``) on peut redéfinir au besoin certaines variables.
 
 * ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site,
+
 * ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
     * ``"visit_date_min"`` pour une visite,
     * ``"base_site_name"`` pour un site;
+    
 * ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
+* ``b_draw_sites_group`` : pour spécifier si l'on veut afficher un contour autour des sites d'un groupe de site.
 
 Les variables ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichées (pour la page d'un objet ou pour les listes et dans quel ordre).
 
@@ -341,7 +344,7 @@ Par exemple :
         "type_util": "sites_group",
         "keyValue": "id_sites_group",
         "keyLabel": "sites_group_name",
-        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name"",
         "application": "GeoNature"
     },
 

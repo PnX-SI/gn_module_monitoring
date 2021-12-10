@@ -58,8 +58,12 @@ export class ConfigService {
 
   /** Backend Module Url */
   backendModuleUrl() {
-    
-    return `${AppConfig.API_ENDPOINT}${ModuleConfig.MODULE_URL}`;
+    // Test if api endpoint have a final slash
+    let api_url = AppConfig.API_ENDPOINT;
+    if (api_url.substring(api_url.length -1 , 1) !== "/") {
+      api_url = api_url + "/"
+    }
+    return `${api_url}${ModuleConfig.MODULE_URL}`;
   }
 
   /** Frontend Module Monitoring Url */
@@ -95,7 +99,7 @@ export class ConfigService {
     try {
       func = eval(s);
     } catch (error) {
-      console.error(`Erreur dans la définition de la fonction ${error}`);
+      console.error(`Erreur dans la définition de la fonction ${error} ${s}`);
     }
 
     return func;

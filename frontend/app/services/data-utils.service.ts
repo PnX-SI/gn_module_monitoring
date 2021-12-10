@@ -30,13 +30,18 @@ export class DataUtilsService {
    * @param id identifiant de l'objet
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtil(typeUtil: string, id, fieldName: string) {
+  getUtil(typeUtil: string, id, fieldName: string, idFieldName: string=null) {
     if (Array.isArray(id)) {
-      return this.getUtils(typeUtil, id, fieldName);
+      return this.getUtils(typeUtil, id, fieldName, idFieldName);
     }
 
     // url relative
-    const urlRelative = `util/${typeUtil}/${id}`;
+    var urlRelative = `util/${typeUtil}/${id}`;
+
+    if (idFieldName) {
+      urlRelative += `?id_field_name=${idFieldName}`
+    }
+
     // parametre pour le stockage dans le cache
     const sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
@@ -70,14 +75,14 @@ export class DataUtilsService {
    * @param ids tableau d'identifiant des objets
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtils(typeUtilObject, ids, fieldName) {
+  getUtils(typeUtilObject, ids, fieldName, idFieldName=null) {
     if (!ids.length) {
       return of(null);
     }
     const observables = [];
     // applique getUtil pour chaque id de ids
     for (const id of ids) {
-      observables.push(this.getUtil(typeUtilObject, id, fieldName));
+      observables.push(this.getUtil(typeUtilObject, id, fieldName, idFieldName));
     }
     // renvoie un forkJoin du tableau d'observables
     return forkJoin(observables).pipe(
