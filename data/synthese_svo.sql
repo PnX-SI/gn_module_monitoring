@@ -1,6 +1,6 @@
 
 -- Vue générique pour alimenter la synthèse dans le cadre d'un protocole site-visite-observation
--- 
+--
 -- Ce fichier peut être copié dans le dossier du sous-module et renommé en synthese.sql (et au besoin personnalisé)
 -- le fichier sera joué à l'installation avec la valeur de module_code qui sera attribué automatiquement
 --
@@ -44,9 +44,9 @@ WITH source AS (
         FROM gn_monitoring.t_base_sites
 
 ), visits AS (
-    
+
     SELECT
-    
+
         id_base_visit,
         uuid_base_visit,
         id_module,
@@ -75,8 +75,8 @@ WITH source AS (
 )
 
 SELECT
-		
-        o.uuid_observation AS unique_id_sinp, 
+
+        o.uuid_observation AS unique_id_sinp,
 		v.uuid_base_visit AS unique_id_sinp_grp,
 		source.id_source,
 		o.id_observation AS entity_source_pk_value,
@@ -97,7 +97,7 @@ SELECT
  		ref_nomenclatures.get_id_nomenclature('IND', 'OBJ_DENBR') AS id_nomenclature_obj_count,
  		ref_nomenclatures.get_id_nomenclature('TYP_DENBR', 'Es') AS id_nomenclature_type_count,
  		-- id_nomenclature_sensitivity, --SENSIBILITE
- 		ref_nomenclatures.get_id_nomenclature('STATUT_OBS', 'Pr') AS id_nomenclature_observation_status, 
+ 		ref_nomenclatures.get_id_nomenclature('STATUT_OBS', 'Pr') AS id_nomenclature_observation_status,
 		-- id_nomenclature_blurring, -- DEE_FLOU
         -- id_nomenclature_behaviour, -- OCC_COMPORTEMENT
 		ref_nomenclatures.get_id_nomenclature('STATUT_SOURCE', 'Te') AS id_nomenclature_source_status,
@@ -105,7 +105,7 @@ SELECT
 
 		1 AS count_min,
 		1 AS count_max,
-		id_observation,
+		o.id_observation,
 		o.cd_nom,
 		t.nom_complet AS nom_cite,
 		--meta_v_taxref
@@ -132,7 +132,7 @@ SELECT
 		v.comments AS comment_context,
 		o.comments AS comment_description,
 		obs.ids_observers,
-		
+
 		-- ## Colonnes complémentaires qui ont leur utilité dans la fonction synthese.import_row_from_table
 		v.id_base_site,
 		v.id_base_visit
@@ -140,20 +140,20 @@ SELECT
     FROM gn_monitoring.t_observations o
     JOIN visits v
         ON v.id_base_visit = o.id_base_visit
-    JOIN sites s 
+    JOIN sites s
         ON s.id_base_site = v.id_base_site
-	JOIN gn_commons.t_modules m 
+	JOIN gn_commons.t_modules m
         ON m.id_module = v.id_module
-	JOIN taxonomie.taxref t 
+	JOIN taxonomie.taxref t
         ON t.cd_nom = o.cd_nom
-	JOIN source 
+	JOIN source
         ON TRUE
 	JOIN observers obs ON obs.id_base_visit = v.id_base_visit
-    
+
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(s.geom_local) alt (altitude_min, altitude_max)
         ON TRUE
     WHERE m.module_code = :'module_code'
     ;
 
 
-SELECT * FROM gn_monitoring.v_synthese_:module_code
+--SELECT * FROM gn_monitoring.v_synthese_:module_code
