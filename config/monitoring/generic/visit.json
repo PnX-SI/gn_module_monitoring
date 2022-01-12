@@ -77,21 +77,15 @@
     "uuid_base_visit": {
       "attribut_label": "uuid"
     },
+
     "id_dataset": {
-      "type_widget": "datalist",
-      "attribut_label": "Jeu de données",
+      "type_widget": "dataset",
       "type_util": "dataset",
-      "api": "meta/datasets",
-      "application": "GeoNature",
-      "keyValue": "id_dataset",
-      "keyLabel": "dataset_shortname",
-      "params": {
-        "orderby": "dataset_name",
-        "module_code": "__MODULE.MODULE_CODE"
-      },
-      "data_path": "data",
-      "required": true
+      "attribut_label": "Jeu de données",
+      "required": true,
+      "module_code": "__MODULE.MODULE_CODE"
     },
+
     "nb_observations": {
       "attribut_label": "Nombre d'observations"
     },
