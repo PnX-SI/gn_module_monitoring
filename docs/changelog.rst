@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+0.2.9 (2022-01-13)
+------------------
+
+Compatibilité avec GeoNature version 2.9.0 et plus.
+
+**🐛 Corrections**
+
+* Correction de la vue ``gn_monitoring.synthese_svo.sql`` permettant d'alimenter la Synthèse de GeoNature (#64)
+* Reprise du composant de la liste déroulante de sélection des jeux de données, suite au passage à ``ng-select2`` dans GeoNature 2.9.0
+
 0.2.8 (2021-12-10)
 ------------------
 
@@ -30,23 +40,27 @@ Si vous mettez à jour le module :
 
 * A partir de la version de GeoNature 2.7.5, les commandes de gestion du module ``monitorings`` sont accessibles depuis la commande ``geonature monitorings`` une fois que l'on a activé le ``venv``
 * Nouvelles commandes :
-    * ``geonature monitorings process_export_pdf <?module_code>``
-    * ``geonature monitorings process_export_csv <?module_code>``
-    * Pour gérer et mettre à jour les exports ``pdf`` et ``csv`` pour un module si ``module_code`` est précisé ou pour tous les modules
+
+  - ``geonature monitorings process_export_pdf <?module_code>``
+  - ``geonature monitorings process_export_csv <?module_code>``
+  - Pour gérer et mettre à jour les exports ``pdf`` et ``csv`` pour un module si ``module_code`` est précisé ou pour tous les modules
 
 * Ajout des sous-modules POPAmphibien et POPReptile (idéalement à déplacer dans un autre dépôt)
 * Possibilité de choisir la couleur du tableau pour les détails d'un objet (champs ``color`` dans le fichier ``<object_type>.json``)
 * Dans la partie map, possibilité de joindre les sites par des lignes pour former automatiquement une aire et calculer sa superficie
-    * (si le nombre des points est supérieur à 2)
-    * configurable depuis l'édition du module (`dessin des groupe de site`)
+
+  - (si le nombre des points est supérieur à 2)
+  - configurable depuis l'édition du module (`dessin des groupe de site`)
 
 * Possibilité de choisir l'icône du module dans le menu depuis l'édition du module
+* Export PDF configurables
 
-* export PDF configurables
-  * bouton accessible depuis les détails
-* export CSV configurables
-  * bouton accessible depuis les détails
-  * modale pour choisir le JDD concerné par l'export
+  - Bouton accessible depuis les détails
+  
+* Export CSV configurables
+
+  - Bouton accessible depuis les détails
+  - Modale pour choisir le JDD concerné par l'export
 
 **🐛 Corrections**
 

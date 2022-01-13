@@ -57,20 +57,13 @@
     },
 
     "datasets": {
-      "type_widget": "datalist",
-      "attribut_label": "Jeux de données",
-      "multiple": true,
+      "type_widget": "dataset",
+      "multi_select": true,
       "type_util": "dataset",
-      "api": "meta/datasets",
-      "application": "GeoNature",
-      "keyValue": "id_dataset",
-      "keyLabel": "dataset_shortname",
-      "params": {
-        "orderby": "dataset_name"
-      },
-      "data_path": "data",
+      "attribut_label": "Jeux de données",
       "required": true
     },
+
 
     "id_list_observer": {
       "type_widget": "datalist",
