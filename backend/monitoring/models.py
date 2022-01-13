@@ -16,46 +16,9 @@ from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
-from geonature.core.gn_commons.models import TModules
+from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
-
-
-class CorModuleDataset(DB.Model):
-    __tablename__ = 'cor_module_dataset'
-    __table_args__ = (
-        DB.PrimaryKeyConstraint('id_module', 'id_dataset'),
-        {'schema': 'gn_commons', 'extend_existing': True}
-    )
-
-    id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
-        primary_key=True
-    )
-    id_dataset = DB.Column(
-        DB.ForeignKey('gn_meta.t_datasets.id_dataset'),
-        primary_key=True
-    )
-
-
-
-class CorVisitObserver(DB.Model):
-    __tablename__ = 'cor_visit_observer'
-    __table_args__ = (
-        DB.PrimaryKeyConstraint('id_base_visit', 'id_role'),
-        {'schema': 'gn_monitoring', 'extend_existing': True}
-    )
-
-    id_base_visit = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_visits.id_base_visit'),
-        primary_key=True
-    )
-    id_role = DB.Column(
-        DB.ForeignKey('utilisateurs.t_roles.id_role'),
-        primary_key=True
-    )
-
-
-
+from geonature.core.gn_monitoring.models import corVisitObserver
 
 @serializable
 class TMonitoringObservationDetails(DB.Model):
@@ -144,10 +107,8 @@ class TMonitoringVisits(TBaseVisits):
 
     observers = DB.relationship(
         User,
-        'gn_monitoring.cor_visit_observer',
         lazy='joined',
-        primaryjoin=(CorVisitObserver.id_base_visit == id_base_visit),
-        secondaryjoin=(CorVisitObserver.id_role == User.id_role),
+        secondary=corVisitObserver
     )
 
     observations = DB.relation(
@@ -333,8 +294,7 @@ class TMonitoringModules(TModules):
 
     datasets = DB.relationship(
         'TDatasets',
-        secondary='gn_commons.cor_module_dataset',
-        secondaryjoin=TDatasets.id_dataset == CorModuleDataset.id_dataset,
+        secondary=cor_module_dataset,
         join_depth=0,
         lazy="joined",
     )
