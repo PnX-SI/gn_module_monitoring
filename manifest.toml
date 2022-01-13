@@ -1,6 +1,6 @@
 package_format_version = '1'
 module_code = 'MONITORINGS'
-module_version = '0.2.8'
-min_geonature_version = '2.7.5'
+module_version = '0.2.9'
+min_geonature_version = '2.9.0'
 max_geonature_version = '3.0.0'
 exclude_geonature_versions = [ ]
