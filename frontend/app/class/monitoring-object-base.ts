@@ -1,7 +1,7 @@
 import { Observable, of } from "@librairies/rxjs";
 import { concatMap } from "@librairies/rxjs/operators";
 import { threadId } from "worker_threads";
-
+import { forkJoin } from 'rxjs'
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
 
@@ -197,7 +197,7 @@ export class MonitoringObjectBase {
         this.properties[attribut_name]
       );
     }
-    return Observable.forkJoin(observables).pipe(
+    return forkJoin(observables).pipe(
       concatMap((resolvedProperties) => {
         for (const attribut_name of Object.keys(resolvedProperties)) {
           this.resolvedProperties[attribut_name] =
