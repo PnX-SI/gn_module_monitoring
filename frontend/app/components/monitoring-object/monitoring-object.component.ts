@@ -10,8 +10,10 @@ import { ActivatedRoute } from "@angular/router";
 import { MonitoringObjectService } from "../../services/monitoring-object.service";
 import { ConfigService } from "../../services/config.service";
 import { DataUtilsService } from "../../services/data-utils.service";
-import { MapService } from "@geonature_common/map/map.service";
 import { AuthService, User } from "@geonature/components/auth/auth.service";
+import { CommonService } from "@geonature_common/service/common.service"
+import { MapService } from "@geonature_common/map/map.service";
+
 
 import { Utils } from "../../utils/utils";
 @Component({
@@ -46,8 +48,17 @@ export class MonitoringObjectComponent implements OnInit {
     private _dataUtilsService: DataUtilsService,
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
-    private _auth: AuthService
+    private _auth: AuthService,
+    private _commonService: CommonService,
   ) {}
+
+  ngAfterViewInit() {
+    const container = document.getElementById("object");
+    const height = this._commonService.calcCardContentHeight();
+    container.style.height = height - 20 + "px";
+    this.heightMap = height - 60 + "px";
+    this.mapservice.map.invalidateSize();
+  }
 
   ngOnInit() {
     const elements = document.getElementsByClassName(
@@ -56,13 +67,6 @@ export class MonitoringObjectComponent implements OnInit {
     if (elements.length >= 1) {
       elements[0].remove();
     }
-
-    const height =
-      document.body.clientHeight - document.getElementById("object").offsetTop;
-    document.getElementById("object").style.height = height - 20 + "px";
-
-    this.heightMap = height - 60 + "px";
-
     this.currentUser = this._auth.getCurrentUser();
     this.currentUser["cruved"] = {};
     this.currentUser["cruved_objects"] = {};
@@ -218,6 +222,8 @@ export class MonitoringObjectComponent implements OnInit {
           params.get("id"),
           this._objService
         );
+        console.log("LAAAA", this.obj);
+        
 
         this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll("parents_path") || [];
         this.module = new MonitoringObject(
