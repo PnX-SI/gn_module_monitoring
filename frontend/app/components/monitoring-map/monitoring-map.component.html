@@ -17,5 +17,11 @@
       [zoomOnFirstTime]="true"
       [onEachFeature]="onEachFeature"
     ></pnx-geojson>
+    <pnx-geojson
+      *ngIf="publicDisplaySitesGroup && sitesGroup && sitesGroup['features']"
+      [geojson]="sitesGroup"
+      [zoomOnLayer]="true"
+      [zoomOnFirstTime]="true"
+    ></pnx-geojson>
   </pnx-map>
 </div>
