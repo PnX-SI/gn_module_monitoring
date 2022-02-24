@@ -245,6 +245,7 @@ class TMonitoringSitesGroups(DB.Model):
 
 
 
+
 @serializable
 class TMonitoringModules(TModules):
     __tablename__ = 't_module_complements'
@@ -350,3 +351,16 @@ TMonitoringSitesGroups.nb_visits = column_property(
                 )
     )
 )
+
+# note the alias is mandotory otherwise the where is done on the subquery table
+# and not the global TMonitoring table
+TMonitoringSitesGroups.geom_geojson = column_property(
+        select(
+            [func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))]
+        ).select_from(TMonitoringSitesGroups.__table__.alias("subquery").join(
+            TMonitoringSites,
+            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group
+        )).where(
+            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+        )
+    )
