@@ -25,6 +25,7 @@ export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
   sites;
+  sitesGroup;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -92,7 +93,7 @@ export class MonitoringObjectComponent implements OnInit {
         }),
 
       )
-      .subscribe(() => {
+      .subscribe(() => {        
         this.obj.initTemplate(); // pour le html
 
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
@@ -136,13 +137,27 @@ export class MonitoringObjectComponent implements OnInit {
       this.currentUser["cruved"] = this.module.userCruved;
       this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
+      // affichage des groupes de site uniquement si l'objet est un module
+      console.log(this.obj.objectType);
+      
+      if(this.obj.objectType == "module") {
+        const sitesGroup = this.obj["children"]["sites_group"];
+        this.sitesGroup = {
+          features : sitesGroup.map((group) => {
+            group["id"] = group["properties"]["id_sites_group"];
+            group["type"] = "Feature";
+            return group
+          } ),
+          type: "FeatureCollection",
+        };
+      }
       // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
-
       let sites = null;
       let cur = this.obj;
-      do {
+      do {        
         sites = cur["children"]["site"];
         cur = cur.parent();
+        
       }
       while(!!cur && !sites)
 
@@ -262,6 +277,7 @@ export class MonitoringObjectComponent implements OnInit {
     if (!this.obj.deleted) {
       return this.obj.get(1);
     }
+    
     return of(this.obj);
   }
 
