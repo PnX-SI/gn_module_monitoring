@@ -5,7 +5,7 @@
   "label": "Module",
   "genre": "M",
   "uuid_field_name": "uuid_module_complement",
-  "display_properties": [ 
+  "display_properties": [
     "module_label",
     "module_desc",
     "datasets"
@@ -13,7 +13,7 @@
   "generic": {
     "id_module": {
       "type_widget": "text",
-      "attribut_label": "ID", 
+      "attribut_label": "ID",
       "hidden": true
     },
 
@@ -57,13 +57,16 @@
     },
 
     "datasets": {
-      "type_widget": "dataset",
-      "multi_select": true,
-      "type_util": "dataset",
+      "type_widget": "datalist",
       "attribut_label": "Jeux de données",
+      "type_util": "dataset",
+      "multiple": true,
+      "api": "meta/datasets",
+      "application": "GeoNature",
+      "keyValue": "id_dataset",
+      "keyLabel": "dataset_shortname",
       "required": true
     },
-
 
     "id_list_observer": {
       "type_widget": "datalist",
@@ -73,7 +76,7 @@
       "multiple": false,
       "api" : "users/listes",
       "application": "GeoNature",
-      "required": true, 
+      "required": true,
       "type_util": "observer_list",
       "definition": "Liste des observateurs. À gérer dans UsersHub."
     },
@@ -86,7 +89,7 @@
       "multiple": false,
       "api" : "biblistes/",
       "application": "TaxHub",
-      "required": true, 
+      "required": true,
       "type_util": "taxonomy_list",
       "data_path": "data",
       "definition": "Liste des taxons. À gérer dans TaxHub."

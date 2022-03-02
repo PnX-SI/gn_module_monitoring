@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+0.2.10 (2022-03-02)
+
+**🐛 Corrections**
+
+* Reprise de la config pour les champs de jeux de données et les observateurs
+* Prise en compte du changement de l'api pour les jdd pour le choix des jdd de l'export
+
 0.2.9 (2022-01-13)
 ------------------
 
@@ -56,7 +63,7 @@ Si vous mettez à jour le module :
 * Export PDF configurables
 
   - Bouton accessible depuis les détails
-  
+
 * Export CSV configurables
 
   - Bouton accessible depuis les détails
