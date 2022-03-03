@@ -10,6 +10,15 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature
 **Evolutions**
 
 * Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#135)
+* Ajout commande process_all. Permet de régénérer toute la configuration d'un module quand il est déjà installé en base de données
+
+0.2.10 (2022-03-02)
+-------------------
+
+**🐛 Corrections**
+
+* Reprise de la config pour les champs de jeux de données et les observateurs
+* Prise en compte du changement de l'api pour les jdd pour le choix des jdd de l'export
 
 0.2.9 (2022-01-13)
 ------------------
@@ -65,7 +74,7 @@ Si vous mettez à jour le module :
 * Export PDF configurables
 
   - Bouton accessible depuis les détails
-  
+
 * Export CSV configurables
 
   - Bouton accessible depuis les détails

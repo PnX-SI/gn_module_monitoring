@@ -62,7 +62,6 @@ export class MonitoringPropertiesComponent implements OnInit {
             "orderby": "dataset_name",
             "module_code": this.obj.moduleCode
           },
-          "data_path": "data",
           "required": true
         },
     ];
