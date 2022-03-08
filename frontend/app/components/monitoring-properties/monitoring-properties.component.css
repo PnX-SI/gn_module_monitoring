@@ -1,5 +1,13 @@
+table {
+  font-size: small;
+}
+
 th {
   text-align: right;
+}
+
+.key {
+  font-weight: bold;
 }
 
 td {
