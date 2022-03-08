@@ -69,6 +69,7 @@ export class MonitoringObjectComponent implements OnInit {
       elements[0].remove();
     }
     this.currentUser = this._auth.getCurrentUser();
+    
     this.currentUser["cruved"] = {};
     this.currentUser["cruved_objects"] = {};
 
@@ -137,10 +138,8 @@ export class MonitoringObjectComponent implements OnInit {
       this.currentUser["cruved"] = this.module.userCruved;
       this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
-      // affichage des groupes de site uniquement si l'objet est un module
-      console.log(this.obj.objectType);
-      
-      if(this.obj.objectType == "module") {
+      // affichage des groupes de site uniquement si l'objet est un module      
+      if(this.obj.objectType == "module" && this.obj["children"]["sites_group"]) {
         const sitesGroup = this.obj["children"]["sites_group"];
         this.sitesGroup = {
           features : sitesGroup.map((group) => {
