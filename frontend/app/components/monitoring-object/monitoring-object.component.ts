@@ -56,9 +56,8 @@ export class MonitoringObjectComponent implements OnInit {
   ngAfterViewInit() {
     const container = document.getElementById("object");
     const height = this._commonService.calcCardContentHeight();
-    container.style.height = height - 20 + "px";
-    this.heightMap = height - 60 + "px";
-    this.mapservice.map.invalidateSize();
+    container.style.height = height - 40 + "px";
+    this.heightMap = height - 80 + "px";
   }
 
   ngOnInit() {
