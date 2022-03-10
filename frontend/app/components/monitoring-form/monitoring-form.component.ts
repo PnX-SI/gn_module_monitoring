@@ -239,6 +239,8 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.navigateToDetail()
   }
 
+  
+
   /**
    * Valider et aller à la page de l'objet
    */
@@ -274,8 +276,12 @@ export class MonitoringFormComponent implements OnInit {
         this.resetObjForm();
       } else if (this.bAddChildren) {
         this.navigateToAddChildren();
-      } else {
-        this.navigateToDetail();
+      } else {        
+        if(this.obj.configParam('redirect_to_parent')) {
+          this.navigateToParent();
+        } else {
+          this.navigateToDetail();
+        }
       }
     });
   }
