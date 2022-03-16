@@ -22,7 +22,7 @@ from pypn_habref_api.models import Habref
 from utils_flask_sqla.response import json_resp
 
 from geonature.core.gn_meta.models import TDatasets
-from geonature.core.ref_geo.models import LAreas, LiMunicipalities
+from ref_geo.models import LAreas, LiMunicipalities
 from geonature.utils.env import DB
 
 from geonature.utils.errors import GeoNatureError
