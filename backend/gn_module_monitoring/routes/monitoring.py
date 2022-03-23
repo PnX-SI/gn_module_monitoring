@@ -220,11 +220,9 @@ def export_all_observations(module_code, type, method,jd):
     )
     columns = view.tableDef.columns
     q = DB.session.query(*columns)
-    #data = q.all()
-    #----------------------------
-    data = DB.session.query(*columns).filter(columns.id_dataset == jd).all()
-    #-------------------------------------
-
+    if "dataset" in columns:
+        data =q.filter(columns.id_dataset == jd)
+    data = q.all()
     filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
 
     if type == 'csv':
