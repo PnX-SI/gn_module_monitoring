@@ -146,8 +146,9 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  onEachFeature = (feature, layer) => {
+  onEachFeature = (feature, layer) => {    
     const mapLabelFieldName = this.obj.configParam('map_label_field_name');
+    
     if(!mapLabelFieldName) {
       return
     }
@@ -155,6 +156,15 @@ export class MonitoringMapComponent implements OnInit {
     if(!textValue) {
       return
     }
+
+    let coordinates
+    if(feature.geometry.type == 'Point') {
+      coordinates = layer.getLatLng();
+    } else {      
+      coordinates = layer.getBounds().getCenter();
+    }
+    
+
     var text = L.tooltip({
       permanent: true,
       direction: 'top',
@@ -162,7 +172,7 @@ export class MonitoringMapComponent implements OnInit {
       removeOnInit: true,
     })
     .setContent(textValue)
-    .setLatLng(layer.getLatLng());
+    .setLatLng(coordinates);
     layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
 
@@ -335,8 +345,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setPopup(id) {
-    const layer = this.findSiteLayer(id);
-
+    const layer = this.findSiteLayer(id);    
     if (layer._popup) {
       return;
     }
