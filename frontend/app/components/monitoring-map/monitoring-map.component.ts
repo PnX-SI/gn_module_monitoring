@@ -345,9 +345,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   setPopup(id) {
-    const layer = this.findSiteLayer(id);
-    console.log(layer);
-    
+    const layer = this.findSiteLayer(id);    
     if (layer._popup) {
       return;
     }
