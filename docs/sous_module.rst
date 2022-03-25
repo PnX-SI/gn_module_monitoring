@@ -553,6 +553,19 @@ Exemple de fichier :
 
 **Attention** : si une nomenclature de même ``type`` et ``cd_nomenclature`` existe déjà elle ne sera pas modifiée.
 
+-------------------------
+Configuration de la carte 
+-------------------------
+
+Il est possible d'afficher des popups sur la carte et de choisir la valeur à afficher.
+Pour cela éditez le fichier de configuration associé (module.json, site.json, visite.json) et rajoutez la variable suivante :
+
+::
+
+      "map_label_field_name": <nom_du_champs>,
+
+NB: pour ajouter une popup sur la liste des sites, editez le fichier module.json, pour la liste des visites le fichier site.json etc...
+
 ------------------
 Gestion des droits
 ------------------
