@@ -64,6 +64,7 @@ def process_export_csv(module_code=None):
                         open(Path(root) / f, 'r')
                         .read()
                     ).execution_options(autocommit=True)
+                    .bindparams(module_code=module_code)
                 )
                 print('{} - export csv file : {}'.format(module_code, f))
 
