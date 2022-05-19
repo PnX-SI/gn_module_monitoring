@@ -1,7 +1,7 @@
 import { Observable, of } from "@librairies/rxjs";
 import { concatMap } from "@librairies/rxjs/operators";
 import { threadId } from "worker_threads";
-import { forkJoin } from 'rxjs'
+import { forkJoin } from "rxjs";
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
 
@@ -63,12 +63,11 @@ export class MonitoringObjectBase {
   }
 
   testPremiereLettreVoyelle(s) {
-      return s && s[0] && "aeéiouy".includes(s[0].toLowerCase())
+    return s && s[0] && "aeéiouy".includes(s[0].toLowerCase());
   }
 
   labelArtDef() {
     return (
-
       (this.testPremiereLettreVoyelle(this.configParam("label"))
         ? "l'"
         : this.configParam("genre") == "F"
@@ -78,17 +77,14 @@ export class MonitoringObjectBase {
   }
 
   labelDu() {
-    const labelDu =  (
+    const labelDu =
       (this.testPremiereLettreVoyelle(this.configParam("label"))
-      ? "de l'"
-      : this.configParam("genre") == "F"
-      ? "de la "
-      : "du ") + this.configParam("label").toLowerCase()
-    );
+        ? "de l'"
+        : this.configParam("genre") == "F"
+        ? "de la "
+        : "du ") + this.configParam("label").toLowerCase();
     return labelDu;
-
   }
-
 
   labelArtUndef(newObj = false) {
     const strNew =
@@ -101,7 +97,6 @@ export class MonitoringObjectBase {
       this.configParam("label").toLowerCase()
     );
   }
-
 
   initTemplate() {
     this.template["export_pdf"] = this.configParam("export_pdf");
@@ -118,7 +113,7 @@ export class MonitoringObjectBase {
     // this.template["title"] = this.title();
 
     this.template["uuid"] = this.paramValue("uuid_field_name");
-    this.template["description"] = this.description()
+    this.template["description"] = this.description();
 
     this.template["fieldLabels"] = this.fieldLabels();
     this.template["fieldNames"] = this.fieldNames("display_properties");
@@ -127,7 +122,9 @@ export class MonitoringObjectBase {
   }
 
   setConfig() {
-    this.config = this._objService.configService().configModuleObject(this.moduleCode, this.objectType);
+    this.config = this._objService
+      .configService()
+      .configModuleObject(this.moduleCode, this.objectType);
     // for (const configParam of this.configParams) {
     //   this.config[configParam] = this.configParam(configParam);
     // }
@@ -138,7 +135,9 @@ export class MonitoringObjectBase {
     this.userCruvedObject = data.cruved_objects;
     this.properties = data.properties || {};
     this.geometry = data.geometry;
-    this.id = this.id || this.properties && this.properties[this.configParam("id_field_name")];
+    this.id =
+      this.id ||
+      (this.properties && this.properties[this.configParam("id_field_name")]);
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
@@ -174,7 +173,6 @@ export class MonitoringObjectBase {
   }
 
   resolveProperty(elem, val): Observable<any> {
-
     if (elem.type_widget === "date" || (elem.type_util === "date" && val)) {
       val = Utils.formatDate(val);
     }
@@ -267,7 +265,7 @@ export class MonitoringObjectBase {
   }
 
   child0(childrenType) {
-    if(!(this.childrenTypes().length)) {
+    if (!this.childrenTypes().length) {
       return;
     }
     if (this._children0[childrenType]) {
@@ -306,42 +304,29 @@ export class MonitoringObjectBase {
   title(bEdit = false) {
     const description = this.description();
     const text = bEdit
-    ? this.id
-      ? `Modification ${this.labelDu()} ${description}`
-      : `Création d'${this.labelArtUndef(true)}`
-    : `Détails ${this.labelDu()} ${description}` ;
+      ? this.id
+        ? `Modification ${this.labelDu()} ${description}`
+        : `Création d'${this.labelArtUndef(true)}`
+      : `Détails ${this.labelDu()} ${description}`;
 
     return text.trim();
   }
 
-  date(s) {
-    if (!s){
-      return
-    }
-    const date = new Date(s);
-    if(date.toDateString() == 'Invalid Date' || date.toDateString().includes('1970')) {
-      return
-    }
-
-    return `du ${date.toLocaleDateString()}`
-  }
-
   description() {
-    // TODO process date ?? multi champs
     let description = this.paramValue("description_field_name", true);
-    let sDate = this.date(description);
-    return sDate || description;
-
+    return description;
   }
 
   titleHTML(bEdit = false) {
     let description = this.description();
-    description = description ? `<span class="obj-description">${description}</span>` : '';
+    description = description
+      ? `<span class="obj-description">${description}</span>`
+      : "";
     const text = bEdit
-    ? this.id
-      ? `Modification ${this.labelDu()} ${description}`
-      : `Création d'${this.labelArtUndef(true)}`
-    : `Détails ${this.labelDu()} ${description}` ;
+      ? this.id
+        ? `Modification ${this.labelDu()} ${description}`
+        : `Création d'${this.labelArtUndef(true)}`
+      : `Détails ${this.labelDu()} ${description}`;
 
     return text.trim();
   }
