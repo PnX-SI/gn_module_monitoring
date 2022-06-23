@@ -1,4 +1,5 @@
 import os
+from pydoc import cli
 import click
 
 from pathlib import Path
@@ -279,6 +280,10 @@ def cmd_add_module_nomenclature_cli(module_code):
 @click.option("--offset", default=100, help="Nb of data insert at each interation")
 @with_appcontext
 def synchronize_synthese(module_code, offset):
+    """
+    Synchronise les données d'un module dans la synthese
+    """
+    click.secho(f"Start synchronize data for module {module_code} ...", fg="green")
     module = TModules.query.filter_by(module_code=module_code).one()
     table_name = "v_synthese_{}".format(module_code)
     import_from_table(
@@ -288,6 +293,7 @@ def synchronize_synthese(module_code, offset):
         module.id_module,
         offset,
     )
+    click.secho("DONE", fg="green")
 
 
 commands = [
