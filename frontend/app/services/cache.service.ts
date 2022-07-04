@@ -1,11 +1,11 @@
-import { ObserversComponent } from './../../../../../frontend/src/app/GN2CommonModule/form/observers/observers.component';
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ObserversComponent } from "./../../../../../frontend/src/app/GN2CommonModule/form/observers/observers.component";
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 
-import { Observable, of, Subject } from '@librairies/rxjs';
-import { mergeMap, concatMap } from "@librairies/rxjs/operators";
+import { Observable, of, Subject } from "rxjs";
+import { mergeMap, concatMap } from "rxjs/operators";
 
-import { ConfigService } from './config.service';
+import { ConfigService } from "./config.service";
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -13,11 +13,10 @@ import { ConfigService } from './config.service';
  */
 @Injectable()
 export class CacheService {
-
   private _cache = {};
   private _pendingCache = {};
 
-  constructor(private _http: HttpClient, private _config: ConfigService) { }
+  constructor(private _http: HttpClient, private _config: ConfigService) {}
 
   /** http request */
 
@@ -28,26 +27,33 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
    */
-  request(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+  request(
+    requestType: string,
+    urlRelative: string,
+    { postData = {}, queryParams = {} } = {}
+  ) {
     // verification de requestType
-    if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
+    if (!["get", "post", "patch", "delete"].includes(requestType)) {
       return of(null);
     }
 
     const url_params = Object.keys(queryParams).length
-      ? '?' + Object.keys(queryParams)
-          .map(key => Array.isArray(queryParams[key])
-          ? queryParams[key].map(val => `${key}=${val}`).join('&')
-          : `${key}=${queryParams[key]}`
-          ).join('&')
-      : ''
+      ? "?" +
+        Object.keys(queryParams)
+          .map((key) =>
+            Array.isArray(queryParams[key])
+              ? queryParams[key].map((val) => `${key}=${val}`).join("&")
+              : `${key}=${queryParams[key]}`
+          )
+          .join("&")
+      : "";
 
-    const url = this._config.backendModuleUrl() + '/' + urlRelative +  url_params
+    const url =
+      this._config.backendModuleUrl() + "/" + urlRelative + url_params;
 
     // requete
     return this._http[requestType]<any>(url, postData);
   }
-
 
   /** Cache
     * Essaye de recupérer un donnée depuis le cache
@@ -58,10 +64,9 @@ export class CacheService {
 
      */
   getFromCache(sCachePaths: string, cache = null) {
+    cache = cache || this._cache;
 
-    cache = cache || this._cache;
-
-    const cachePaths = sCachePaths.split('|');
+    const cachePaths = sCachePaths.split("|");
 
     // parcours du dictionnaire _cache
     let current = cache;
@@ -73,7 +78,6 @@ export class CacheService {
     }
     return current;
   }
-
 
   /**
      * Renseigne une donnée dans le cache
@@ -90,9 +94,8 @@ export class CacheService {
      *  setCacheValue('utils|taxonomy|591558', 'nom_francais')
      */
   setCacheValue(sCachePaths: string, value: any, cache = null) {
-
-    cache = cache || this._cache;
-    const cachePaths = sCachePaths.split('|');
+    cache = cache || this._cache;
+    const cachePaths = sCachePaths.split("|");
 
     const key = cachePaths.pop();
 
@@ -101,13 +104,13 @@ export class CacheService {
     for (const path of cachePaths) {
       current = current[path] = current[path] ? current[path] : {};
     }
-      current[key] = value;
+    current[key] = value;
   }
 
   removeCacheValue(sCachePaths: string, cache = null) {
-    cache = cache || this._cache;
+    cache = cache || this._cache;
 
-    const cachePaths = sCachePaths.split('|');
+    const cachePaths = sCachePaths.split("|");
 
     const key = cachePaths.pop();
     // parcours du cache
@@ -116,9 +119,7 @@ export class CacheService {
       current = current[path] = current[path] ? current[path] : {};
     }
     delete current[key];
-
   }
-
 
   /**
    * recupere le resultat d'une requete en cache
@@ -130,10 +131,13 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param sCachePaths chaine de caractères tableau qui permet de parcourir le dictionnaire _cache
    */
-  cache_or_request(requestType: string, urlRelative: string, sCachePaths: string) {
+  cache_or_request(
+    requestType: string,
+    urlRelative: string,
+    sCachePaths: string
+  ) {
     // on renvoie un observable
-    return new Observable(observer => {
-
+    return new Observable((observer) => {
       // recuperation depuis le cache
       const valueCache = this.getFromCache(sCachePaths, this._cache);
       if (valueCache !== undefined) {
@@ -146,27 +150,22 @@ export class CacheService {
       if (pendingSubject === undefined) {
         pendingSubject = new Subject();
         this.setCacheValue(sCachePaths, pendingSubject, this._pendingCache);
-        this.request(requestType, urlRelative)
-        .subscribe(
-          value => {
-            // stockage de la donnée en cache
-            this.setCacheValue(sCachePaths, value, this._cache);
+        this.request(requestType, urlRelative).subscribe((value) => {
+          // stockage de la donnée en cache
+          this.setCacheValue(sCachePaths, value, this._cache);
 
-            // envoie de la valeur à l'observer
-            pendingSubject.next(value);
-            pendingSubject.complete();
-            observer.next(value);
-            return observer.complete();
-          }
-          );
-        } else {
-          pendingSubject
-          .asObservable()
-          .subscribe((value) => {
-            observer.next(value);
-            return observer.complete();
-          });
-        }
+          // envoie de la valeur à l'observer
+          pendingSubject.next(value);
+          pendingSubject.complete();
+          observer.next(value);
+          return observer.complete();
+        });
+      } else {
+        pendingSubject.asObservable().subscribe((value) => {
+          observer.next(value);
+          return observer.complete();
+        });
+      }
       // si la donnée n'est pas dans le cache on effectue la requête
     });
   }
@@ -175,42 +174,47 @@ export class CacheService {
     return this._cache;
   }
 
-
-  requestExport(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+  requestExport(
+    requestType: string,
+    urlRelative: string,
+    { postData = {}, queryParams = {} } = {}
+  ) {
     // verification de requestType
 
     const url_params = Object.keys(queryParams)
-      .map(key => Array.isArray(queryParams[key])
-        ? queryParams[key].map(val => `${key}=${val}`).join('&')
-        : `${key}=${queryParams[key]}`
-        ).join('&')
+      .map((key) =>
+        Array.isArray(queryParams[key])
+          ? queryParams[key].map((val) => `${key}=${val}`).join("&")
+          : `${key}=${queryParams[key]}`
+      )
+      .join("&");
 
-    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
+    const url =
+      this._config.backendModuleUrl() + "/" + urlRelative + "?" + url_params;
 
     // requete
     window.open(url);
   }
 
-//add mje: export pdf
-requestExportCreatedPdf(requestType: string, urlRelative: string,{ postData = {}, queryParams= {} }={}) {
+  //add mje: export pdf
+  requestExportCreatedPdf(
+    requestType: string,
+    urlRelative: string,
+    { postData = {}, queryParams = {} } = {}
+  ) {
+    const httpHeaders: HttpHeaders = new HttpHeaders({
+      Accept: "application/pdf",
+    });
+    const url = this._config.backendModuleUrl() + "/" + urlRelative;
 
-  const httpHeaders: HttpHeaders = new HttpHeaders({ 'Accept': 'application/pdf'   });
-  const url = this._config.backendModuleUrl() + '/' + urlRelative ;
-
-  return this._http[requestType]<any>(
-    url,
-    postData,
-    {
-      responseType: 'arraybuffer',
-      headers:httpHeaders
+    return this._http[requestType]<any>(url, postData, {
+      responseType: "arraybuffer",
+      headers: httpHeaders,
     }).pipe(
-      mergeMap( file => {
-        let blob = new Blob(
-          [file as BlobPart] ,
-          {
-            type: 'application/pdf'
-          }
-        );
+      mergeMap((file) => {
+        let blob = new Blob([file as BlobPart], {
+          type: "application/pdf",
+        });
         let url = window.URL.createObjectURL(blob);
         window.open(url);
         return of(true);

@@ -7,8 +7,8 @@ import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "@geonature_config/app.config";
 import { ModuleConfig } from "../module.config";
 
-import { of } from "@librairies/rxjs";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { of } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 
 @Injectable()
 export class ConfigService {
@@ -60,8 +60,8 @@ export class ConfigService {
   backendModuleUrl() {
     // Test if api endpoint have a final slash
     let api_url = AppConfig.API_ENDPOINT;
-    if (api_url.substring(api_url.length -1 , 1) !== "/") {
-      api_url = api_url + "/"
+    if (api_url.substring(api_url.length - 1, 1) !== "/") {
+      api_url = api_url + "/";
     }
     return `${api_url}${ModuleConfig.MODULE_URL}`;
   }

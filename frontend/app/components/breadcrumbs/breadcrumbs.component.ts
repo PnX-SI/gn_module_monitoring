@@ -1,5 +1,5 @@
-import { of } from "@librairies/rxjs";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { of } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 
 import {
   Component,
@@ -15,7 +15,7 @@ import { ConfigService } from "../../services/config.service";
 
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Router } from "@angular/router";
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: "pnx-monitoring-breadcrumbs",
@@ -36,7 +36,7 @@ export class BreadcrumbsComponent implements OnInit {
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService,
     private _router: Router,
-    private _route: ActivatedRoute,    
+    private _route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -44,8 +44,8 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   initBreadcrumbs() {
-      if(this.obj.deleted) {
-        return 
+    if (this.obj.deleted) {
+      return;
     }
     this._configService
       .init(this.obj.moduleCode)
@@ -58,15 +58,16 @@ export class BreadcrumbsComponent implements OnInit {
           const params = this._route.snapshot.queryParams;
 
           return this._dataMonitoringObjectService.getBreadcrumbs(
-              this.obj.moduleCode,
-              this.obj.objectType,
-              this.obj.id,
-              params
+            this.obj.moduleCode,
+            this.obj.objectType,
+            this.obj.id,
+            params
           );
         })
       )
       .subscribe((breadcrumbs) => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
+        this.frontendModuleMonitoringUrl =
+          this._configService.frontendModuleMonitoringUrl();
         this.breadcrumbs = breadcrumbs;
       });
   }
@@ -75,16 +76,18 @@ export class BreadcrumbsComponent implements OnInit {
     this.bEditChange.emit(false);
     setTimeout(() => {
       if (elem) {
-        this._router.navigate([
-          this._configService.frontendModuleMonitoringUrl(),
-          "object",
-          elem.module_code,
-          elem.object_type,
-          elem.id,
-        ],
-        {
-          queryParams: elem.params
-        });
+        this._router.navigate(
+          [
+            this._configService.frontendModuleMonitoringUrl(),
+            "object",
+            elem.module_code,
+            elem.object_type,
+            elem.id,
+          ],
+          {
+            queryParams: elem.params,
+          }
+        );
       } else {
         this._router.navigate([
           this._configService.frontendModuleMonitoringUrl(),

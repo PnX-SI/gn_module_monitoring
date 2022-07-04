@@ -1,5 +1,5 @@
-import { Observable, of } from "@librairies/rxjs";
-import { concatMap } from "@librairies/rxjs/operators";
+import { Observable, of } from "rxjs";
+import { concatMap } from "rxjs/operators";
 import { threadId } from "worker_threads";
 import { forkJoin } from "rxjs";
 import { MonitoringObjectService } from "../services/monitoring-object.service";

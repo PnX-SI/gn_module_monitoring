@@ -1,5 +1,5 @@
-import { Observable, of, forkJoin } from "@librairies/rxjs";
-import { mergeMap, concatMap } from "@librairies/rxjs/operators";
+import { Observable, of, forkJoin } from "rxjs";
+import { mergeMap, concatMap } from "rxjs/operators";
 
 import { MonitoringObject } from "../../class/monitoring-object";
 import { Component, OnInit } from "@angular/core";
@@ -11,9 +11,8 @@ import { MonitoringObjectService } from "../../services/monitoring-object.servic
 import { ConfigService } from "../../services/config.service";
 import { DataUtilsService } from "../../services/data-utils.service";
 import { AuthService, User } from "@geonature/components/auth/auth.service";
-import { CommonService } from "@geonature_common/service/common.service"
+import { CommonService } from "@geonature_common/service/common.service";
 import { MapService } from "@geonature_common/map/map.service";
-
 
 import { Utils } from "../../utils/utils";
 @Component({
@@ -50,7 +49,7 @@ export class MonitoringObjectComponent implements OnInit {
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
     private _auth: AuthService,
-    private _commonService: CommonService,
+    private _commonService: CommonService
   ) {}
 
   ngAfterViewInit() {
@@ -68,7 +67,7 @@ export class MonitoringObjectComponent implements OnInit {
       elements[0].remove();
     }
     this.currentUser = this._auth.getCurrentUser();
-    
+
     this.currentUser["cruved"] = {};
     this.currentUser["cruved_objects"] = {};
 
@@ -90,10 +89,9 @@ export class MonitoringObjectComponent implements OnInit {
         }),
         mergeMap(() => {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
-        }),
-
+        })
       )
-      .subscribe(() => {        
+      .subscribe(() => {
         this.obj.initTemplate(); // pour le html
 
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
@@ -137,27 +135,28 @@ export class MonitoringObjectComponent implements OnInit {
       this.currentUser["cruved"] = this.module.userCruved;
       this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
-      // affichage des groupes de site uniquement si l'objet est un module      
-      if(this.obj.objectType == "module" && this.obj["children"]["sites_group"]) {
+      // affichage des groupes de site uniquement si l'objet est un module
+      if (
+        this.obj.objectType == "module" &&
+        this.obj["children"]["sites_group"]
+      ) {
         const sitesGroup = this.obj["children"]["sites_group"];
         this.sitesGroup = {
-          features : sitesGroup.map((group) => {
+          features: sitesGroup.map((group) => {
             group["id"] = group["properties"]["id_sites_group"];
             group["type"] = "Feature";
-            return group
-          } ),
+            return group;
+          }),
           type: "FeatureCollection",
         };
       }
       // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
       let sites = null;
       let cur = this.obj;
-      do {        
+      do {
         sites = cur["children"]["site"];
         cur = cur.parent();
-        
-      }
-      while(!!cur && !sites)
+      } while (!!cur && !sites);
 
       if (!sites) {
         return;
@@ -222,7 +221,6 @@ export class MonitoringObjectComponent implements OnInit {
   // }
 
   initRoutesParams() {
-
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get("objectType")
@@ -236,9 +234,9 @@ export class MonitoringObjectComponent implements OnInit {
           this._objService
         );
         console.log("LAAAA", this.obj);
-        
 
-        this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll("parents_path") || [];
+        this.obj.parentsPath =
+          this._route.snapshot.queryParamMap.getAll("parents_path") || [];
         this.module = new MonitoringObject(
           params.get("moduleCode"),
           "module",
@@ -258,7 +256,8 @@ export class MonitoringObjectComponent implements OnInit {
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.moduleCode).pipe(
       mergeMap(() => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
+        this.frontendModuleMonitoringUrl =
+          this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
         return of(true);
       })
@@ -271,11 +270,10 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getDataObject(): Observable<any> {
-
     if (!this.obj.deleted) {
       return this.obj.get(1);
     }
-    
+
     return of(this.obj);
   }
 
@@ -297,5 +295,4 @@ export class MonitoringObjectComponent implements OnInit {
     }
     this.getModuleSet();
   }
-
 }
