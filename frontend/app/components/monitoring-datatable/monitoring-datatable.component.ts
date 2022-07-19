@@ -1,4 +1,4 @@
-import { DatatableComponent } from '@librairies/@swimlane/ngx-datatable';
+import { DatatableComponent } from "@swimlane/ngx-datatable";
 import {
   Component,
   OnInit,
@@ -8,16 +8,16 @@ import {
   ViewChild,
   SimpleChanges,
   TemplateRef,
-} from '@angular/core';
-import { Router } from '@angular/router';
-import { MonitoringObjectService } from './../../services/monitoring-object.service';
-import { Subject } from '@librairies/rxjs';
-import { catchError, map, tap, take, debounceTime } from '@librairies/rxjs/operators';
+} from "@angular/core";
+import { Router } from "@angular/router";
+import { MonitoringObjectService } from "./../../services/monitoring-object.service";
+import { Subject } from "rxjs";
+import { catchError, map, tap, take, debounceTime } from "rxjs/operators";
 
 @Component({
-  selector: 'pnx-monitoring-datatable',
-  templateUrl: './monitoring-datatable.component.html',
-  styleUrls: ['./monitoring-datatable.component.css']
+  selector: "pnx-monitoring-datatable",
+  templateUrl: "./monitoring-datatable.component.html",
+  styleUrls: ["./monitoring-datatable.component.css"],
 })
 export class MonitoringDatatableComponent implements OnInit {
   @Input() rows;
@@ -41,33 +41,30 @@ export class MonitoringDatatableComponent implements OnInit {
 
   row_save;
   selected = [];
-  filters= {}
+  filters = {};
   customColumnComparator;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
-  @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
-  @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
+  @ViewChild("actionsTemplate") actionsTemplate: TemplateRef<any>;
+  @ViewChild("hdrTpl") hdrTpl: TemplateRef<any>;
 
-
-  constructor(
-    private _monitoring: MonitoringObjectService
-  ) { }
+  constructor(private _monitoring: MonitoringObjectService) {}
 
   ngOnInit() {
     this.initDatatable();
   }
 
   initDatatable() {
-    this.filters = this.child0.configParam('filters')
+    this.filters = this.child0.configParam("filters");
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
       this.filter();
     });
 
     this.customColumnComparator = this.customColumnComparator_();
-    this.row_save = this.rows.map(e => e);
+    this.row_save = this.rows.map((e) => e);
     // on declenche les filtres (si filtre par defaut)
     setTimeout(() => {
-      this.filter(true)
+      this.filter(true);
     }, 500);
   }
 
@@ -75,17 +72,13 @@ export class MonitoringDatatableComponent implements OnInit {
     this.filterSubject.next();
   }
 
-  sort() {
+  sort() {}
 
-  }
-
-  filter(bInitFilter=false) {
-
+  filter(bInitFilter = false) {
     // filter all
 
     let bChange = false;
     const temp = this.row_save.filter((row, index) => {
-
       let bCondVisible = true;
       for (const key of Object.keys(this.filters)) {
         let val = this.filters[key];
@@ -93,9 +86,10 @@ export class MonitoringDatatableComponent implements OnInit {
           continue;
         }
         val = String(val).toLowerCase();
-        const vals = val.split(' ');
+        const vals = val.split(" ");
         for (const v of vals) {
-          bCondVisible = bCondVisible && (String(row[key]) || '').toLowerCase().includes(v);
+          bCondVisible =
+            bCondVisible && (String(row[key]) || "").toLowerCase().includes(v);
         }
       }
 
@@ -103,8 +97,9 @@ export class MonitoringDatatableComponent implements OnInit {
         return bCondVisible;
       }
       bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
-      this.rowStatus[index]['visible'] = bCondVisible;
-      this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;
+      this.rowStatus[index]["visible"] = bCondVisible;
+      this.rowStatus[index]["selected"] =
+        this.rowStatus[index]["selected"] && bCondVisible;
       return bCondVisible;
     });
 
@@ -119,7 +114,7 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   onRowClick(event) {
-    if (!(event && event.type === 'click')) {
+    if (!(event && event.type === "click")) {
       return;
     }
     const id = event.row && event.row.id;
@@ -130,7 +125,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
     this.rowStatus.forEach((status) => {
       const bCond = status.id === id;
-      status['selected'] = bCond && !status['selected'];
+      status["selected"] = bCond && !status["selected"];
     });
 
     this.setSelected();
@@ -144,18 +139,20 @@ export class MonitoringDatatableComponent implements OnInit {
       return;
     }
 
-    const status_selected = this.rowStatus.find(status => status.selected);
+    const status_selected = this.rowStatus.find((status) => status.selected);
     if (!status_selected) {
       return;
     }
 
-    const index_row_selected = this.table._internalRows.findIndex(row => row.id === status_selected.id);
+    const index_row_selected = this.table._internalRows.findIndex(
+      (row) => row.id === status_selected.id
+    );
     if (index_row_selected === -1) {
       return;
     }
 
     this.selected = [this.table._internalRows[index_row_selected]];
-    this.table.offset = Math.floor((index_row_selected) / this.table._limit);
+    this.table.offset = Math.floor(index_row_selected / this.table._limit);
   }
 
   ngOnDestroy() {
@@ -164,7 +161,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
   tooltip(column) {
     return this.child0.template.fieldDefinitions[column.prop]
-      ? column.name + ' : ' +  this.child0.template.fieldDefinitions[column.prop]
+      ? column.name + " : " + this.child0.template.fieldDefinitions[column.prop]
       : column.name;
   }
 
@@ -174,31 +171,36 @@ export class MonitoringDatatableComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case 'rowStatus':
+        case "rowStatus":
           this.setSelected();
           break;
-        case 'child0':
+        case "child0":
           this.customColumnComparator = this.customColumnComparator_();
           break;
       }
     }
   }
 
-
   customColumnComparator_() {
     return (propA, propB, colA, colB, sortDirection) => {
+      let x1 = propA,
+        x2 = propB;
 
-      let x1 = propA, x2 = propB;
+      const res = 1 - Number(sortDirection === "asc") * 2;
 
-      const res = 1 - Number(sortDirection === 'asc') * 2;
+      if (!x1 && !x2) {
+        return 0;
+      }
+      if (!x1 && x2) {
+        return -res;
+      }
+      if (x1 && !x2) {
+        return res;
+      }
 
-      if (!x1 && !x2) { return 0; }
-      if (!x1 && x2) { return -res; }
-      if (x1 && !x2) { return res; }
+      let out = x1 === x2 ? 0 : x1 > x2 ? 1 : -1;
 
-      let out = (x1 === x2) ? 0 : (x1 > x2) ? 1 : -1;
-
-      const prop = Object.keys(colA).find(key => colA[key] === x1);
+      const prop = Object.keys(colA).find((key) => colA[key] === x1);
       if (!prop) {
         return out;
       }
@@ -211,18 +213,18 @@ export class MonitoringDatatableComponent implements OnInit {
       const typeUtil = elem.type_widget || elem.type_util;
 
       switch (typeUtil) {
-        case 'date':
+        case "date":
           x1 = this._monitoring.dateFromString(x1);
           x2 = this._monitoring.dateFromString(x2);
-          out = (x1 === x2) ? 0 : (x1 > x2) ? 1 : -1;
+          out = x1 === x2 ? 0 : x1 > x2 ? 1 : -1;
           break;
-        case 'text':
+        case "text":
           // quand les propriete sont de la forme "1.1 Nom_site"
           const v1 = this._monitoring.numberFromString(x1);
           const v2 = this._monitoring.numberFromString(x2);
           if (v1 && v2) {
             if (v1[0] === v2[0]) {
-              out = (v1[1] === v2[1]) ? 0 : (v1[1] > v2[1]) ? 1 : -1;
+              out = v1[1] === v2[1] ? 0 : v1[1] > v2[1] ? 1 : -1;
             } else {
               out = v1[0] > v2[0] ? 1 : -1;
             }

@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 
-import { Observable, forkJoin, of } from "@librairies/rxjs";
-import { concatMap, mergeMap } from "@librairies/rxjs/operators";
+import { Observable, forkJoin, of } from "rxjs";
+import { concatMap, mergeMap } from "rxjs/operators";
 
 import { Utils } from "./../utils/utils";
 
@@ -30,7 +30,7 @@ export class DataUtilsService {
    * @param id identifiant de l'objet
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtil(typeUtil: string, id, fieldName: string, idFieldName: string=null) {
+  getUtil(typeUtil: string, id, fieldName: string, idFieldName: string = null) {
     if (Array.isArray(id)) {
       return this.getUtils(typeUtil, id, fieldName, idFieldName);
     }
@@ -39,7 +39,7 @@ export class DataUtilsService {
     var urlRelative = `util/${typeUtil}/${id}`;
 
     if (idFieldName) {
-      urlRelative += `?id_field_name=${idFieldName}`
+      urlRelative += `?id_field_name=${idFieldName}`;
     }
 
     // parametre pour le stockage dans le cache
@@ -75,14 +75,16 @@ export class DataUtilsService {
    * @param ids tableau d'identifiant des objets
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtils(typeUtilObject, ids, fieldName, idFieldName=null) {
+  getUtils(typeUtilObject, ids, fieldName, idFieldName = null) {
     if (!ids.length) {
       return of(null);
     }
     const observables = [];
     // applique getUtil pour chaque id de ids
     for (const id of ids) {
-      observables.push(this.getUtil(typeUtilObject, id, fieldName, idFieldName));
+      observables.push(
+        this.getUtil(typeUtilObject, id, fieldName, idFieldName)
+      );
     }
     // renvoie un forkJoin du tableau d'observables
     return forkJoin(observables).pipe(

@@ -1,14 +1,13 @@
 import { MonitoringObject } from "./../class/monitoring-object";
 import { Injectable } from "@angular/core";
-import { Observable, of } from "@librairies/rxjs";
+import { Observable, of } from "rxjs";
 
 import { ConfigService } from "./config.service";
 import { DataMonitoringObjectService } from "./data-monitoring-object.service";
 import { DataUtilsService } from "./data-utils.service";
 import { Utils } from "../utils/utils";
-import { mergeMap } from "@librairies/rxjs/operators";
+import { mergeMap } from "rxjs/operators";
 import { Router } from "@angular/router";
-
 
 @Injectable()
 export class MonitoringObjectService {
@@ -16,8 +15,7 @@ export class MonitoringObjectService {
     private _configService: ConfigService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _dataUtilsService: DataUtilsService,
-    private _router: Router,
-
+    private _router: Router
   ) {}
 
   _cache = {};
@@ -70,7 +68,7 @@ export class MonitoringObjectService {
       }
     }
 
-    for (const parentType of obj.parentTypes( )) {
+    for (const parentType of obj.parentTypes()) {
       obj.getParent(parentType, 1).subscribe(() => {
         this.setParentCache(obj, objData, parentType);
       });
@@ -93,7 +91,12 @@ export class MonitoringObjectService {
 
         // update nb_child
         const key = Object.keys(parent.properties).find((k) =>
-          ["nb_visits", "nb_observations", "nb_sites", "nb_sites_groups"].includes(k)
+          [
+            "nb_visits",
+            "nb_observations",
+            "nb_sites",
+            "nb_sites_groups",
+          ].includes(k)
         );
         if (key) {
           console.log("up cache", parent.properties.base_site_name, key);
@@ -104,7 +107,11 @@ export class MonitoringObjectService {
   }
 
   getParentFromCache(obj: MonitoringObject, parentType) {
-    const parentData = this.cache(obj.moduleCode, parentType, obj.parentId(parentType));
+    const parentData = this.cache(
+      obj.moduleCode,
+      parentType,
+      obj.parentId(parentType)
+    );
     if (!(parentData && parentData.children)) {
       return;
     }
@@ -174,7 +181,9 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem, moduleCode) {
-    return this._configService.config()[moduleCode].display_field_names[elem.type_util]
+    return this._configService.config()[moduleCode].display_field_names[
+      elem.type_util
+    ];
   }
 
   toForm(elem, val): Observable<any> {
@@ -286,11 +295,10 @@ export class MonitoringObjectService {
         moduleCode,
         objectType,
         id,
-      ].filter(s => !!s),
+      ].filter((s) => !!s),
       {
         queryParams,
       }
     );
-
   }
 }
