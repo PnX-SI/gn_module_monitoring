@@ -87,7 +87,7 @@ def get_modules():
 
     try:
         res = (
-            DB.session.query(TMonitoringModules)
+            DB.session.query(TMonitoringModules).order_by(TMonitoringModules.module_label)
             .all()
         )
 
