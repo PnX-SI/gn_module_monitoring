@@ -1,4 +1,5 @@
 import os
+from pydoc import cli
 import click
 
 from pathlib import Path
@@ -7,6 +8,9 @@ from sqlalchemy.sql import text
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.gn_synthese.models import TSources
+from geonature.core.gn_synthese.utils.process import import_from_table
+from geonature.core.gn_commons.models import TModules
+
 
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
@@ -152,7 +156,9 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         "module_picto": "fa-puzzle-piece",
         **config["module"],
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "module_path": "{}/module/{}".format(
+            module_monitoring.module_path, module_code
+        ),
         "active_frontend": False,
         "active_backend": False,
     }
@@ -269,6 +275,27 @@ def cmd_add_module_nomenclature_cli(module_code):
     return add_nomenclature(module_code)
 
 
+@click.command("synchronize_synthese")
+@click.argument("module_code")
+@click.option("--offset", default=100, help="Nb of data insert at each interation")
+@with_appcontext
+def synchronize_synthese(module_code, offset):
+    """
+    Synchronise les données d'un module dans la synthese
+    """
+    click.secho(f"Start synchronize data for module {module_code} ...", fg="green")
+    module = TModules.query.filter_by(module_code=module_code).one()
+    table_name = "v_synthese_{}".format(module_code)
+    import_from_table(
+        "gn_monitoring",
+        table_name,
+        "id_module",
+        module.id_module,
+        offset,
+    )
+    click.secho("DONE", fg="green")
+
+
 commands = [
     cmd_process_export_csv,
     cmd_process_export_pdf,
@@ -278,4 +305,5 @@ commands = [
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
     cmd_process_all,
+    synchronize_synthese,
 ]
