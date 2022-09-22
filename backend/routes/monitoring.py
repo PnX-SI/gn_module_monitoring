@@ -9,6 +9,8 @@ from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
 
+from werkzeug.exceptions import NotFound
+
 from ..blueprint import blueprint
 
 from .decorators import check_cruved_scope_monitoring
@@ -222,10 +224,9 @@ def export_all_observations(module_code, type, method, jd=None):
     columns = view.tableDef.columns
     q = DB.session.query(*columns)
     if hasattr(columns, "id_dataset") and jd:
-        print("filter_dataset", jd)
-        data =q.filter(columns.id_dataset == jd)
+        data = q.filter(columns.id_dataset == jd)
     data = q.all()
-    filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
+    filename = module_code + "_" + method + "_" + dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
 
     if type == 'csv':
         return to_csv_resp(
@@ -235,7 +236,7 @@ def export_all_observations(module_code, type, method, jd=None):
             columns=[db_col.key for db_col in columns if db_col.key != 'geom'], # Exclude the geom column from CSV
         )
     else:
-        raise NotFound("type export not found")
+        raise NotFound
 
 
 @blueprint.route('/exports/pdf/<module_code>/<object_type>/<int:id>', methods=['POST'])
