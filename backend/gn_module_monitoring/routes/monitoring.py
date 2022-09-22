@@ -9,6 +9,8 @@ from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
 
+from werkzeug.exceptions import NotFound
+
 from ..blueprint import blueprint
 
 from .decorators import check_cruved_scope_monitoring
@@ -199,41 +201,60 @@ def update_synthese_api(module_code):
         .get()
         .process_synthese(process_module=True)
     )
+
+
 # export add mje
 # export all observations
-@blueprint.route('/exports/csv/<module_code>/<type>/<method>/<jd>', methods=['GET'])
+@blueprint.route('/exports/csv/<module_code>/<type>/<method>', methods=['GET'])
+@blueprint.route(
+    '/exports/csv/<module_code>/<type>/<method>/<int:id_dataset>',
+    methods=['GET']
+)
 @check_cruved_scope_monitoring('R', 1)
-def export_all_observations(module_code, type, method,jd):
+def export_all_observations(module_code, type, method, id_dataset=None):
     """
-    Export all the observations made on a site group.
-    Following formats are available:
-    * csv
-    * geojson
-    * shapefile
+    Export all data in csv of a custom module view
+
+
+    :params module_code: Code of the module
+    :type module_code: str
+    :param type: Export format. Only one value is possible : csv
+    :type type: str
+    :param method: Name of the view without module code prefix
+    :type method: str
+    :param id_dataset: Id of the dataset
+    :type id_dataset: int
+
+    :returns: Array of dict
     """
 
     view = GenericTableGeo(
-        tableName="v_export_" + module_code.lower()+"_"+method,
+        tableName=f"v_export_{module_code.lower()}_{method}",
         schemaName="gn_monitoring",
         engine=DB.engine
 
     )
     columns = view.tableDef.columns
     q = DB.session.query(*columns)
-    if "dataset" in columns:
-        data =q.filter(columns.id_dataset == jd)
+    # Filter with dataset if is set
+    if hasattr(columns, "id_dataset") and id_dataset:
+        data = q.filter(columns.id_dataset == id_dataset)
     data = q.all()
-    filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
+
+    timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
+    filename = f"{module_code}_{method}_{timestamp}"
 
     if type == 'csv':
         return to_csv_resp(
             filename,
             data=serializeQuery(data, q.column_descriptions),
             separator=";",
-            columns=[db_col.key for db_col in columns if db_col.key != 'geom'], # Exclude the geom column from CSV
+            columns=[
+                db_col.key for db_col in columns if db_col.key != 'geom'
+            ],  # Exclude the geom column from CSV
         )
     else:
-        raise NotFound("type export not found")
+        raise NotFound
 
 
 @blueprint.route('/exports/pdf/<module_code>/<object_type>/<int:id>', methods=['POST'])

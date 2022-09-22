@@ -16,7 +16,7 @@ export class DataMonitoringObjectService {
     private _cacheService: CacheService,
     private _http: HttpClient,
     private _config: ConfigService
-  ) {}
+  ) { }
 
   /** Modules */
 
@@ -131,7 +131,10 @@ export class DataMonitoringObjectService {
   }
   //add mje
   getExportCsv(moduleCode, type, method, jd) {
-    const url = `exports/csv/${moduleCode}/${type}/${method}/${jd}`;
+    let url = `exports/csv/${moduleCode}/${type}/${method}`;
+    if (jd !== undefined) {
+      url = `${url}/${jd}`
+    }
     this._cacheService.requestExport("get", url);
   }
 

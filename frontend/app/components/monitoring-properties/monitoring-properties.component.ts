@@ -30,7 +30,7 @@ export class MonitoringPropertiesComponent implements OnInit {
   bUpdateSyntheseSpinner = false;
 
   public modalReference;
-  selectedDataSet=null;
+  selectedDataSet = [];
 
   constructor(
     private _configService: ConfigService,
@@ -39,7 +39,7 @@ export class MonitoringPropertiesComponent implements OnInit {
     private _commonService: CommonService,
     public ngbModal: NgbModal,
     public mapservice: MapService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.backendUrl = this._configService.backendUrl();
@@ -50,20 +50,20 @@ export class MonitoringPropertiesComponent implements OnInit {
   setDatasetFormDef() {
     this.datasetFormDef = [
       {
-          "attribut_name": "id_dataset",
-          "type_widget": "datalist",
-          "attribut_label": "Choisir un jeu de données à télécharger",
-          "type_util": "dataset",
-          "api": "meta/datasets",
-          "application": "GeoNature",
-          "keyValue": "id_dataset",
-          "keyLabel": "dataset_shortname",
-          "params": {
-            "orderby": "dataset_name",
-            "module_code": this.obj.moduleCode
-          },
-          "required": true
+        "attribut_name": "id_dataset",
+        "type_widget": "datalist",
+        "attribut_label": "Choisir un jeu de données à télécharger",
+        "type_util": "dataset",
+        "api": "meta/datasets",
+        "application": "GeoNature",
+        "keyValue": "id_dataset",
+        "keyLabel": "dataset_shortname",
+        "params": {
+          "orderby": "dataset_name",
+          "module_code": this.obj.moduleCode
         },
+        "required": true
+      },
     ];
   }
 
@@ -86,43 +86,42 @@ export class MonitoringPropertiesComponent implements OnInit {
   }
   // add mje: show dowload modal
   openModalExportCsv(event, modal) {
+    this.selectedDataSet = [];
     this.modalReference = this.ngbModal.open(modal, { size: "lg" });
   }
 
-  onDatasetChanged(event: any) {
+  onDatasetChanged(event: any, i) {
     //update the ui
-    console.log(event)
-    this.selectedDataSet = event.id_dataset;
+    this.selectedDataSet[i] = event.id_dataset;
   }
 
-   getExportCsv(type,method,jd) {
-     console.log(jd)
-    this._dataService.getExportCsv(this.obj.moduleCode,type,method,jd);
+  getExportCsv(type, method, jd) {
+    this._dataService.getExportCsv(this.obj.moduleCode, type, method, jd);
   }
 
-      //mje: generate PDF export
+  //mje: generate PDF export
   processExportPdf(exportPdfConfig) {
 
-    var map=this.mapservice.map;
-    const $this=this;
+    var map = this.mapservice.map;
+    const $this = this;
 
     try {
       var zoomInElement = document.querySelector('#monitoring-map-container .leaflet-control-zoom-in');
-      var snapshotElement=document.getElementById("geometry");
-      var config= {
-          allowTaint:true,
-          useCORS: true  ,
-          ignoreElements: function (element) {
-              return element.classList[0] =='leaflet-control-zoom-in'
-                  || element.classList[0] =='leaflet-control-zoom-out'
-                  || element.classList[0] == 'leaflet-control-layers-toggle'
-                  || element.title=='A JS library for interactive maps'
-                  || element.placeholder=='Rechercher un lieu'
-          },
-          logging: false
-        }
+      var snapshotElement = document.getElementById("geometry");
+      var config = {
+        allowTaint: true,
+        useCORS: true,
+        ignoreElements: function (element) {
+          return element.classList[0] == 'leaflet-control-zoom-in'
+            || element.classList[0] == 'leaflet-control-zoom-out'
+            || element.classList[0] == 'leaflet-control-layers-toggle'
+            || element.title == 'A JS library for interactive maps'
+            || element.placeholder == 'Rechercher un lieu'
+        },
+        logging: false
+      }
 
-      html2canvas(snapshotElement,config).then(function(canvas) {
+      html2canvas(snapshotElement, config).then(function (canvas) {
         var imgData = canvas.toDataURL("image/png");
         const extra_data = {
           resolved_properties: $this.obj.resolvedProperties
@@ -143,7 +142,7 @@ export class MonitoringPropertiesComponent implements OnInit {
           });
       });
 
-    } catch{
+    } catch {
       $this._commonService.regularToaster(
         "error",
         "Une erreur est survenue durant l'export pdf"

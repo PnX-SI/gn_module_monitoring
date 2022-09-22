@@ -639,10 +639,16 @@ les fichier ``.sql`` qui définissent les vue pour l'export csv sont placé dans
 ::
 
     "export_csv": [
-        { "label": "Format standard CSV", "type":"csv" , "method": "standard" },
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" , "filter_dataset": true},
         { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
     ],
 
+
+
+* Paramètres:
+    * label : Nom de l'export
+    * method : Nom de la vue sans le code du module
+    * filter_dataset (true|false) : Ajoute le filtre des datasets. Dans ce cas il faut que la vue est un champ id_dataset
 
 * La commande ``geonature monitorings process_export_csv <module_code>`` permet de:
     * jouer tous les fichiers sql de ce répertoire
