@@ -201,9 +201,10 @@ def update_synthese_api(module_code):
     )
 # export add mje
 # export all observations
+@blueprint.route('/exports/csv/<module_code>/<type>/<method>', methods=['GET'])
 @blueprint.route('/exports/csv/<module_code>/<type>/<method>/<jd>', methods=['GET'])
 @check_cruved_scope_monitoring('R', 1)
-def export_all_observations(module_code, type, method,jd):
+def export_all_observations(module_code, type, method, jd=None):
     """
     Export all the observations made on a site group.
     Following formats are available:
@@ -220,7 +221,8 @@ def export_all_observations(module_code, type, method,jd):
     )
     columns = view.tableDef.columns
     q = DB.session.query(*columns)
-    if "dataset" in columns:
+    if hasattr(columns, "id_dataset") and jd:
+        print("filter_dataset", jd)
         data =q.filter(columns.id_dataset == jd)
     data = q.all()
     filename = module_code+"_"+method+"_"+dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
