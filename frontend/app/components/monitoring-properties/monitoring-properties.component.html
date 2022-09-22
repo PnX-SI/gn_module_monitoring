@@ -148,7 +148,14 @@
   </div>
   <div class="modal-body">
     <div *ngFor="let exp of (obj.template['export_csv'] || []);index as i;" class="row mb-3">
-     <h5 class="underlined second-color col-md-12">{{obj.template['export_csv'][i].label}}</h5>
+     <h5 class="underlined second-color col-md-12">{{obj.template['export_csv'][i].label}}
+      <button
+          (click)="getExportCsv(obj.template['export_csv'][i].type,obj.template['export_csv'][i].method,this.selectedDataSet[i])"
+          type="button" class="btn btn-success  mr-2 float-right"
+          [disabled]="!selectedDataSet[i] && obj.template['export_csv'][i].filter_dataset"
+          >
+        Télécharger
+      </button></h5>
         <pnx-dynamic-form-generator
           *ngIf="obj.template['export_csv'][i].filter_dataset"
           class="obj-form col-md-12"
@@ -159,15 +166,7 @@
           (change)="onDatasetChanged($event, i)"
         ></pnx-dynamic-form-generator>
 
-      <div class="col-md-12">
-        <button
-            (click)="getExportCsv(obj.template['export_csv'][i].type,obj.template['export_csv'][i].method,this.selectedDataSet[i])"
-            type="button" class="btn btn-success  mr-2 float-right"
-            [disabled]="!selectedDataSet[i] && obj.template['export_csv'][i].filter_dataset"
-            >
-          Télécharger
-        </button>
-      </div>
+      <hr/>
     </div>
   </div>
 </ng-template>
