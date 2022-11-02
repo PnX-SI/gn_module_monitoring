@@ -14,15 +14,15 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnnomenclature.repository import get_nomenclature_list
 from geonature.core.taxonomie.models import Taxref, BibListes
-from geonature.core.users.models import TListes, VUserslistForallMenu
+from geonature.core.users.models import VUserslistForallMenu
 
-from pypnusershub.db.models import User
+from pypnusershub.db.models import User, UserList
 from pypn_habref_api.models import Habref
 
 from utils_flask_sqla.response import json_resp
 
 from geonature.core.gn_meta.models import TDatasets
-from geonature.core.ref_geo.models import LAreas, LiMunicipalities
+from ref_geo.models import LAreas, LiMunicipalities
 from geonature.utils.env import DB
 
 from geonature.utils.errors import GeoNatureError
@@ -39,7 +39,7 @@ model_dict = {
     'user': User,
     'taxonomy': Taxref,
     'dataset': TDatasets,
-    'observer_list': TListes,
+    'observer_list': UserList,
     'taxonomy_list': BibListes,
     'sites_group': TMonitoringSitesGroups,
     'site': TMonitoringSites,

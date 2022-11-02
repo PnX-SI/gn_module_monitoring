@@ -37,7 +37,7 @@ MonitoringObjects_dict = {
     'visit': MonitoringObject,
     'observation': MonitoringObject,
     'observation_detail': MonitoringObject,
-    'sites_group': MonitoringObject,
+    'sites_group': MonitoringObjectGeom,
 }
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)

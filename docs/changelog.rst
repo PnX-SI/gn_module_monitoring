@@ -2,7 +2,35 @@
 CHANGELOG
 =========
 
+0.3.0 (2022-11-02)
+------------------
+
+Nécessite la version 2.10.0 (ou plus) de GeoNature.
+
+**Evolutions**
+
+* Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#135)
+* Ajout de la commande ``synchronize_synthese`` permettant de synchroniser les données d'un sous-module vers la Synthèse (#176)
+* Tri de la liste des sous-modules par nom sur la page d'accueil du module (#182)
+* Ajout des champs ``altitude_min`` et ``altitude_max`` dans les informations affichables au niveau des sites (``generic/site.json``) (#170)
+* Calcul de la géometrie des groupes de sites basculé au niveau backend (avec la fonction ``ST_ConvexHull`` de PostGIS qui prend l'enveloppe convexe des sites du groupe - #149)
+* Amélioration du style des informations sur les fiches des objets (#151)
+* Ajout d'un paramètre ``redirect_to_parent`` au niveau de ``observation.json`` permettant de rediriger vers la fiche de la visite à la fin de la saisie en mode "Enchainer les saisies", plutôt que vers la fiche de l'observation (#152)
+* Ajout de la commande ``process_all`` permettant de régénérer toute la configuration d'un sous-module quand il est déjà installé en base de données
+* Possibilité de transmettre la valeur du code du module dans l'export (#168)
+
+**🐛 Corrections**
+
+* Correction de la hauteur aléatoire du container principal (#146)
+* Correction du zoom sur un objet de la carte au clic sur l'objet dans la liste (#149)
+* Correction de l'affichage des tooltips quand la géométrie est un polygone (#159)
+* Correction de la transformation des chaines de caractère en date (#170)
+* Suppression de l'alias ``@librairies`` (#178)
+
 0.2.10 (2022-03-02)
+-------------------
+
+Compatible avec GeoNature version 2.9.2 maximum.
 
 **🐛 Corrections**
 
@@ -32,7 +60,6 @@ Compatibilité avec GeoNature version 2.9.0 et plus.
 
 * Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
 * Les modules POPAmphibien et POPReptile ont été déplacés dans le dépot https://github.com/PnCevennes/protocoles_suivi
-
 
 0.2.7 (2021-10-26)
 ------------------
@@ -84,7 +111,6 @@ Si vous mettez à jour le module :
 
   cd path_to_geonature/frontend
   npm install external_modules/monitorings/frontend --no-save
-
 
 0.2.6 (2021-07-23)
 ------------------
@@ -169,7 +195,6 @@ Si vous mettez à jour le module :
 **🐛 Corrections**
 
 * Affichage des tooltips pour les objets cachés #76
-
 
 **⚠️ Notes de version**
 

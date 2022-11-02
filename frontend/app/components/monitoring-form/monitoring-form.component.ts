@@ -158,7 +158,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   keepNames() {
-    return this.obj.configParam('keep') || {};
+    return this.obj.configParam('keep') || [];
   }
 
   resetObjForm() {
@@ -239,6 +239,8 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.navigateToDetail()
   }
 
+  
+
   /**
    * Valider et aller à la page de l'objet
    */
@@ -256,7 +258,7 @@ export class MonitoringFormComponent implements OnInit {
     const action = this.obj.id
       ? this.obj.patch(this.objForm.value)
       : this.obj.post(this.objForm.value);
-    const actionLabel = this.obj.id ? "Modification" : "Création";
+    const actionLabel = this.obj.id ? "Modification" : "Création";    
     action.subscribe((objData) => {
       this._commonService.regularToaster(
         "success",
@@ -274,8 +276,12 @@ export class MonitoringFormComponent implements OnInit {
         this.resetObjForm();
       } else if (this.bAddChildren) {
         this.navigateToAddChildren();
-      } else {
-        this.navigateToDetail();
+      } else {        
+        if(this.obj.configParam('redirect_to_parent')) {
+          this.navigateToParent();
+        } else {
+          this.navigateToDetail();
+        }
       }
     });
   }

@@ -1,6 +1,6 @@
 import { GeonaturePage } from "./../../../../../frontend/e2e/app.po";
-import { Observable, of, forkJoin } from "@librairies/rxjs";
-import { mergeMap, concatMap } from "@librairies/rxjs/operators";
+import { Observable, of, forkJoin } from "rxjs";
+import { mergeMap, concatMap } from "rxjs/operators";
 
 import { MonitoringObjectService } from "../services/monitoring-object.service";
 import { Utils } from "../utils/utils";
@@ -63,9 +63,8 @@ export class MonitoringObject extends MonitoringObjectBase {
       return of(true);
     }
 
-    const childIdFieldName = this.child0(childrenType).configParam(
-      "id_field_name"
-    );
+    const childIdFieldName =
+      this.child0(childrenType).configParam("id_field_name");
 
     const observables = [];
     for (const childData of childrenDataOfType) {
@@ -150,18 +149,18 @@ export class MonitoringObject extends MonitoringObjectBase {
       return of({});
     }
     for (const parentType of this.parentTypes()) {
-      promises[parentType]=this.getParent(parentType, depth);
+      promises[parentType] = this.getParent(parentType, depth);
     }
     return forkJoin(promises);
   }
 
-  parent(parentType=null) {
+  parent(parentType = null) {
     if (!parentType) {
       parentType = this.parentType();
     }
 
-    const parent =  this.parents[parentType];
-    if(!parent) {
+    const parent = this.parents[parentType];
+    if (!parent) {
       return;
     }
     parent.parentsPath = [...this.parentsPath];
@@ -175,17 +174,15 @@ export class MonitoringObject extends MonitoringObjectBase {
       parentType = this.parentType();
     }
 
-    let parentOut = null
+    let parentOut = null;
 
-    if(!parentType || !this.parentId(parentType)) {
-      return of(null)
+    if (!parentType || !this.parentId(parentType)) {
+      return of(null);
     }
 
     return of(true).pipe(
       mergeMap(() => {
-        if (
-          this.parents[parentType]
-        ) {
+        if (this.parents[parentType]) {
           return of(this.parents[parentType]);
         } else {
           return new this.myClass(
@@ -202,13 +199,12 @@ export class MonitoringObject extends MonitoringObjectBase {
         return parent.getParents(depth);
       }),
       concatMap((parents) => {
-        for (const key of Object.keys(parents)
-          ) {
-            if(parents[key]) {
-              this.parents[key] = parents[key];
-            }
+        for (const key of Object.keys(parents)) {
+          if (parents[key]) {
+            this.parents[key] = parents[key];
+          }
         }
-        return of(parentOut)
+        return of(parentOut);
       })
     );
   }

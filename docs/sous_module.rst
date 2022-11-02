@@ -90,9 +90,9 @@ Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observa
 * ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
     * ``"visit_date_min"`` pour une visite,
     * ``"base_site_name"`` pour un site;
-    
+
 * ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
-* ``b_draw_sites_group`` : pour spécifier si l'on veut afficher un contour autour des sites d'un groupe de site.
+* ``b_draw_sites_group`` : pour spécifier si l'on veut afficher un contour autour des sites d'un groupe de site. Ce paramètre est également configurable dans l'interface de configuration du module.
 
 Les variables ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichées (pour la page d'un objet ou pour les listes et dans quel ordre).
 
@@ -552,6 +552,19 @@ Exemple de fichier :
 
 
 **Attention** : si une nomenclature de même ``type`` et ``cd_nomenclature`` existe déjà elle ne sera pas modifiée.
+
+-------------------------
+Configuration de la carte 
+-------------------------
+
+Il est possible d'afficher des popups sur la carte et de choisir la valeur à afficher.
+Pour cela éditez le fichier de configuration associé (module.json, site.json, visite.json) et rajoutez la variable suivante :
+
+::
+
+      "map_label_field_name": <nom_du_champs>,
+
+NB: pour ajouter une popup sur la liste des sites, editez le fichier module.json, pour la liste des visites le fichier site.json etc...
 
 ------------------
 Gestion des droits

@@ -1,8 +1,6 @@
-import { Observable } from '@librairies/rxjs/Observable';
-
+import { Observable } from "rxjs/Observable";
 
 export class Utils {
-
   /** Fonction pour copier un objet de type dictionnaire */
   static copy(object) {
     if ([undefined].includes(object)) {
@@ -20,15 +18,19 @@ export class Utils {
   }
 
   static isObject(x) {
-    return typeof x === 'object' && x != null;
+    return typeof x === "object" && x != null;
   }
 
   static formatDate(val) {
     // return val ? new Date(val).toLocaleString('fr-FR', { timeZone: 'UTC' }).replace(',', '').split(' ')[0] : val;
-    return val ? val.split('-').reverse().join('/') : val;
+    return val ? val.split("-").reverse().join("/") : val;
   }
 
-  static mapDictToArray(dictIn: Object, processFunc= null, fieldName: string = null): Array<any> {
+  static mapDictToArray(
+    dictIn: Object,
+    processFunc = null,
+    fieldName: string = null
+  ): Array<any> {
     if (!dictIn) {
       return null;
     }
@@ -36,7 +38,7 @@ export class Utils {
     return Object.keys(dictIn).map((key) => {
       let elem = dictIn[key];
       const condKey = Utils.isObject(elem) && fieldName;
-      if ( condKey ) {
+      if (condKey) {
         elem[fieldName] = key;
       }
       elem = processFunc ? processFunc(elem) : elem;
@@ -48,17 +50,20 @@ export class Utils {
    * (opt) processFunc modifie les elements de arrayIn
    * (opt) field name pour prendre comme cle du dictOut elem[field_name]
    */
-  static mapArrayToDict(arrayIn: Array<any>, processFunc= null, fieldName: string = null): Object {
+  static mapArrayToDict(
+    arrayIn: Array<any>,
+    processFunc = null,
+    fieldName: string = null
+  ): Object {
     if (!arrayIn) {
       return null;
     }
     const dictOut = {};
-      arrayIn.forEach((elem) => {
-        const condKey = Utils.isObject(elem) && fieldName in elem;
-        const key = condKey ? elem[fieldName] : elem;
-        dictOut[key] = processFunc ? processFunc(elem) : elem;
-      });
+    arrayIn.forEach((elem) => {
+      const condKey = Utils.isObject(elem) && fieldName in elem;
+      const key = condKey ? elem[fieldName] : elem;
+      dictOut[key] = processFunc ? processFunc(elem) : elem;
+    });
     return dictOut;
   }
-
 }

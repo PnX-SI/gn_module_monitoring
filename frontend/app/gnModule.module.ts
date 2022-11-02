@@ -26,13 +26,12 @@ import { MonitoringListComponent } from "./components/monitoring-lists/monitorin
 import { MonitoringPropertiesComponent } from "./components/monitoring-properties/monitoring-properties.component";
 import { MonitoringDatatableComponent } from "./components/monitoring-datatable/monitoring-datatable.component";
 
-import {
-  MatSlideToggleModule,
-  MatFormFieldModule,
-  MatAutocompleteModule,
-  MatSelectModule,
-  MatInputModule,
-} from "@angular/material";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import  { MatFormFieldModule} from "@angular/material/form-field";
+import { MatAutocompleteModule} from "@angular/material/autocomplete";
+import { MatSelectModule} from "@angular/material/select";
+import { MatInputModule} from "@angular/material/input";
+
 
 
 
