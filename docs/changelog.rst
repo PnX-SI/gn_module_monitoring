@@ -11,6 +11,7 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature.
 
 * Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#135)
 * Ajout de la commande ``synchronize_synthese`` permettant de synchroniser les données d'un sous-module vers la Synthèse (#176)
+* Tri de la liste des sous-modules par nom sur la page d'accueil du module (#182)
 * Ajout des champs ``altitude_min`` et ``altitude_max`` dans les informations affichables au niveau des sites (``generic/site.json``) (#170)
 * Calcul de la géometrie des groupes de sites basculé au niveau backend (avec la fonction ``ST_ConvexHull`` de PostGIS qui prend l'enveloppe convexe des sites du groupe - #149)
 * Amélioration du style des informations sur les fiches des objets (#151)
