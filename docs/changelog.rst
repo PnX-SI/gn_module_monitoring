@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-0.3.0 (unreleased)
+0.3.0 (2022-11-02)
 ------------------
 
 Nécessite la version 2.10.0 (ou plus) de GeoNature.
@@ -61,7 +61,6 @@ Compatibilité avec GeoNature version 2.9.0 et plus.
 * Complément des notes de version de la 0.2.7 (#119 par @maximetoma)
 * Les modules POPAmphibien et POPReptile ont été déplacés dans le dépot https://github.com/PnCevennes/protocoles_suivi
 
-
 0.2.7 (2021-10-26)
 ------------------
 
@@ -112,7 +111,6 @@ Si vous mettez à jour le module :
 
   cd path_to_geonature/frontend
   npm install external_modules/monitorings/frontend --no-save
-
 
 0.2.6 (2021-07-23)
 ------------------
@@ -197,7 +195,6 @@ Si vous mettez à jour le module :
 **🐛 Corrections**
 
 * Affichage des tooltips pour les objets cachés #76
-
 
 **⚠️ Notes de version**
 
