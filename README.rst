@@ -42,7 +42,7 @@ Installation
 Pré-requis
 ==========
 
-- Avoir GeoNature installé à la version 2.5.2 ou plus.
+- Avoir GeoNature installé en version compatible avec la version du module Monitoring souhaité.
 
 Récupération du dépôt
 =====================
@@ -54,7 +54,7 @@ Téléchargement
 
 ::
 
-  get https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
+  wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
   unzip X.Y.Z.zip
 
 
