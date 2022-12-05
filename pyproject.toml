@@ -1,0 +1,17 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "backend",
+]
+
+[tool.coverage.run]
+source = [
+    "gn_module_monitoring",
+]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+]
+
+[tool.black]
+line-length = 99
