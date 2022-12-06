@@ -13,7 +13,6 @@ from sqlalchemy.sql import text, and_
 
 from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_commons.models.base import BibTablesLocation
-from geonature.utils.env import DB
 
 # revision identifiers, used by Alembic.
 revision = "362cf9d504ec"
