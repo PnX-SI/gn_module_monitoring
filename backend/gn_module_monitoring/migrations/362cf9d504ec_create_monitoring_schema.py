@@ -42,21 +42,17 @@ def downgrade():
     op.drop_table("t_sites_groups", monitorings_schema)
     op.drop_table("t_visit_complements", monitorings_schema)
 
-    bind = op.get_bind()
-    session = sa.orm.Session(bind=bind)
-
     # Remove all GNM related objects
-    query = session.query(TObjects).filter(TObjects.code_object.like("GNM_%"))
-    session.delete(query)
+    statement = sa.delete(TObjects).where(TObjects.code_object.like("GNM_%"))
+    op.execute(statement)
 
     # Remove monitorings related rows in bib_table_locations
-    query = session.query(BibTablesLocation).filter(
+    statement = sa.delete(BibTablesLocation).where(
         and_(
             BibTablesLocation.schema_name == monitorings_schema,
             BibTablesLocation.table_name.in_(
-                "t_module_complements", "t_observations", "t_sites_groups"
+                ("t_module_complements", "t_observations", "t_sites_groups")
             ),
         )
     )
-    session.delete(query)
-    session.commit()
+    op.execute(statement)
