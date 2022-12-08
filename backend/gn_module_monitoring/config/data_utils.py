@@ -1,5 +1,5 @@
 # from pypnusershub.db.models import User
-from geonature.core.taxonomie.models import Taxref
+from apptax.taxonomie.models import Taxref, CorNomListe
 
 from pypnnomenclature.models import (
     TNomenclatures,
@@ -48,24 +48,6 @@ def get_nomenclature(module_code):
         d.id_nomenclature: d.as_dict()
         for d in q
     }
-
-
-class CorNomListe(DB.Model):
-    __tablename__ = "cor_nom_liste"
-    __table_args__ = {"schema": "taxonomie"}
-    id_liste = DB.Column(
-        DB.Integer,
-        DB.ForeignKey("taxonomie.bib_listes.id_liste"),
-        nullable=False,
-        primary_key=True,
-    )
-    id_nom = DB.Column(
-        DB.Integer,
-        DB.ForeignKey("taxonomie.bib_noms.id_nom"),
-        nullable=False,
-        primary_key=True,
-    )
-
 
 def get_taxonomy(module_code):
     id_list = config_data(module_code)['taxonomy'].get('id_list')
