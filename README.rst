@@ -87,7 +87,7 @@ Lancer la commande d'installation d'un module GeoNature
 
   geonature install_gn_module <path_to_module_monitoring> monitorings
 
-*Cela lance un rebuild du frontend que vous pouvez éviter (et faire ultérieurement) en faisant :*
+* Cela lance un rebuild du frontend que vous pouvez éviter (et faire ultérieurement) en faisant :*
 
 ::
 
@@ -119,13 +119,14 @@ Si la version de GN est inférieure à 2.7.5
 
 Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
 
-- comme ``geonature`` est désormais un module python(depuis la 2.7), la commande suivante suffit:
+- comme ``geonature`` est désormais un module python (depuis sa version 2.7), la commande suivante suffit :
 
 ::
+
   export FLASK_APP=geonature
   flask monitorings
 
-pour la suite remplacer ``geonature monitorings`` par ``flask monitorings``
+Pour la suite remplacer, ``geonature monitorings`` par ``flask monitorings``
 
 
 Lancer la commande d'installation du sous-module
@@ -201,12 +202,12 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
 Exemples de sous-modules
 ========================
 
-D'autres exemples de sous-modules sont disponibles sur le dépôt https://github.com/PnCevennes/protocoles_suivi :
+D'autres exemples de sous-modules sont disponibles sur le dépôt https://github.com/PnX-SI/protocoles_suivi/ :
 
 * Protocole de suivi des oedicnèmes,
 * Protocole de suivi des mâles chanteurs de l'espèce chevêche d'Athena;
 * Protocole Suivi Temporel des Oiseaux de Montagne (STOM)
-
+* Autres...
 
 Permissions
 ************
