@@ -20,6 +20,16 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 
+
+@serializable
+class BibCategorieSite(DB.Model):
+    __tablename__ = "bib_categorie_site"
+    __table_args__ = {"schema": "gn_monitoring"}
+    id_categorie = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
+    label = DB.Column(DB.String, nullable=False)
+    config = DB.Column(JSONB)
+
+
 @serializable
 class TMonitoringObservationDetails(DB.Model):
     __tablename__ = "t_observation_details"
