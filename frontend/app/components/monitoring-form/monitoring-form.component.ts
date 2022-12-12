@@ -7,6 +7,21 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
 import { ActivatedRoute } from '@angular/router';
+import { JsonData } from '../../types/jsondata';
+import { SitesService } from '../../services/api-geom.service';
+import {
+  concatMap,
+  distinctUntilChanged,
+  exhaustMap,
+  mergeMap,
+  switchMap,
+  tap,
+  toArray,
+} from 'rxjs/operators';
+import { EMPTY, from, iif, of } from 'rxjs';
+import { FormService } from '../../services/form.service';
+import { Router } from '@angular/router';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-form',
@@ -35,6 +50,15 @@ export class MonitoringFormComponent implements OnInit {
 
   meta: {};
 
+  objFormDynamic: FormGroup = this._formBuilder.group({});
+  objFormsDefinitionDynamic;
+  typesSiteConfig: JsonData = {};
+  schemaUpdate = {};
+  idsTypesSite: number[] = [];
+  lastGeom = {};
+  dataComplement = {};
+  schemaGeneric = {};
+
   public bSaveSpinner = false;
   public bSaveAndAddChildrenSpinner = false;
   public bDeleteSpinner = false;
@@ -45,28 +69,49 @@ export class MonitoringFormComponent implements OnInit {
 
   public queryParams = {};
 
+  canDelete: boolean;
+  canUpdate: boolean;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
   constructor(
     private _formBuilder: FormBuilder,
     private _route: ActivatedRoute,
     private _configService: ConfigService,
     private _commonService: CommonService,
     private _dataUtilsService: DataUtilsService,
-    private _dynformService: DynamicFormService
+    private _dynformService: DynamicFormService,
+    private _siteService: SitesService,
+    private _formService: FormService,
+    private _router: Router
   ) {}
 
   ngOnInit() {
+    this.initPermission();
     this._configService
       .init(this.obj.moduleCode)
-      .pipe()
-      .subscribe(() => {
+      .pipe(
+        mergeMap(() =>
+          iif(
+            () => this.obj.objectType == 'site' && this.obj.id != undefined,
+            this._siteService.getTypesSiteByIdSite(this.obj.id),
+            of(null)
+          )
+        )
+      )
+      .subscribe((typesSites) => {
         // return this._route.queryParamMap;
         // })
         // .subscribe((queryParams) => {
         this.queryParams = this._route.snapshot.queryParams || {};
         this.bChainInput = this._configService.frontendParams()['bChainInput'];
-        const schema = this.obj.schema();
+        this.schemaGeneric = this.obj.schema();
+        this.obj.objectType == 'site' ? delete this.schemaGeneric['types_site'] : null;
+        this.obj.id != undefined && this.obj.objectType == 'site'
+          ? this.initExtraSchema(typesSites)
+          : null;
         // init objFormsDefinition
 
+        const schema = this.schemaGeneric;
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
         this.meta = {
@@ -107,8 +152,8 @@ export class MonitoringFormComponent implements OnInit {
         }
 
         // pour donner la valeur de idParent
-
-        this.initForm();
+        this.obj.objectType == 'site' ? this.initObjFormDef() : null;
+        this.obj.objectType == 'site' ? this.firstInitForm() : this.initForm();
       });
   }
 
@@ -147,6 +192,49 @@ export class MonitoringFormComponent implements OnInit {
     });
   }
 
+  firstInitForm() {
+    if (
+      !(this.objFormDynamic && this.obj.bIsInitialized) &&
+      !(this.objForm && this.obj.bIsInitialized)
+    ) {
+      return;
+    }
+
+    this.setQueryParams();
+    // pour donner la valeur de l'objet au formulaire
+    this.obj
+      .formValues()
+      .pipe(
+        exhaustMap((formValue) => {
+          this.objForm.patchValue(formValue);
+          this.setDefaultFormValue();
+          return of(true);
+        }),
+        concatMap(() => {
+          return this.obj.formValues(this.schemaUpdate);
+        })
+      )
+      .subscribe((formValue) => {
+        formValue.types_site = this.idsTypesSite;
+        this.objFormDynamic.disable();
+        this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
+        this.objFormDynamic.enable();
+      });
+  }
+
+  initFormDynamic() {
+    if (!(this.objFormDynamic && this.obj.bIsInitialized)) {
+      return;
+    }
+    // pour donner la valeur de l'objet au formulaire
+    this.obj.formValues(this.schemaUpdate).subscribe((formValue) => {
+      formValue.types_site = this.idsTypesSite;
+      this.objFormDynamic.disable();
+      this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
+      this.objFormDynamic.enable();
+      // reset geom ?
+    });
+  }
   keepNames() {
     return this.obj.configParam('keep') || [];
   }
@@ -242,10 +330,23 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   /** TODO améliorer site etc.. */
-  onSubmit() {
+  onSubmit(isAddChildrend = false) {
+    isAddChildrend
+      ? (this.bSaveAndAddChildrenSpinner = this.bAddChildren = true)
+      : (this.bSaveSpinner = true);
+    if (this.obj.objectType == 'site') {
+      this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
+    }
+    let objFormValueGroup = {};
+    this.obj.objectType == 'site'
+      ? (objFormValueGroup = { ...this.objForm.value, ...this.objFormDynamic.value })
+      : (objFormValueGroup = this.objForm.value);
+    this.obj.objectType == 'site'
+      ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
+      : null;
     const action = this.obj.id
-      ? this.obj.patch(this.objForm.value)
-      : this.obj.post(this.objForm.value);
+      ? this.obj.patch(objFormValueGroup, this.dataComplement)
+      : this.obj.post(objFormValueGroup, this.dataComplement);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
@@ -273,6 +374,11 @@ export class MonitoringFormComponent implements OnInit {
 
   onCancelEdit() {
     if (this.obj.id) {
+      const urlTree = this._router.parseUrl(this._router.url);
+      const urlWithoutParams = urlTree.root.children['primary'].segments
+        .map((it) => it.path)
+        .join('/');
+      this._router.navigate([urlWithoutParams]);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();
@@ -281,13 +387,11 @@ export class MonitoringFormComponent implements OnInit {
 
   onDelete() {
     this.bDeleteSpinner = true;
-    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
-
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.obj.deleted = true;
       this.objChanged.emit(this.obj);
-
+      this._commonService.regularToaster('info', this.msgToaster('Suppression'));
       setTimeout(() => {
         this.navigateToParent();
       }, 100);
@@ -295,6 +399,21 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onObjFormValueChange(event) {
+    // Check si types_site est modifié
+    const change = this.obj.change();
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({ objForm: this.objForm, meta: this.meta });
+    }, 100);
+  }
+
+  onObjFormValueChangeDynamic(event) {
+    // Check si types_site est modifié
+    if (event.types_site != null && event.types_site.length != this.idsTypesSite.length) {
+      this.checkChangedTypeSite();
+    }
     const change = this.obj.change();
     if (!change) {
       return;
@@ -316,5 +435,248 @@ export class MonitoringFormComponent implements OnInit {
     this._configService.setFrontendParams('bChainInput', this.bChainInput);
     // patch pour recalculers
     this.procesPatchUpdateForm();
+  }
+
+  initExtraSchema(typeSiteObj) {
+    let keysConfigToExclude: string[] = [];
+    for (const typeSite of typeSiteObj) {
+      this.idsTypesSite.push(typeSite.id_nomenclature_type_site);
+      this.typesSiteConfig[typeSite.label] = typeSite;
+      keysConfigToExclude.push(
+        ...Object.keys(this.typesSiteConfig[typeSite.label].config.specific)
+      );
+      Object.assign(this.schemaUpdate, this.typesSiteConfig[typeSite.label].config.specific);
+    }
+    if (!this.obj.id) {
+      this.schemaUpdate = keysConfigToExclude
+        .filter((key) => !Object.keys(this.schemaGeneric).includes(key))
+        .reduce((obj, key) => {
+          obj[key] = this.schemaUpdate[key];
+          return obj;
+        }, {});
+    }
+
+    this.schemaGeneric = Object.keys(this.schemaGeneric)
+      .filter((key) => !keysConfigToExclude.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = this.schemaGeneric[key];
+        return obj;
+      }, {});
+  }
+
+  checkChangedTypeSite() {
+    console.log(this.typesSiteConfig);
+    if ('types_site' in this.objFormDynamic.controls) {
+      this.objFormDynamic.controls['types_site'].valueChanges
+        .pipe(
+          distinctUntilChanged(),
+          switchMap((idsTypesSite) =>
+            iif(
+              () => idsTypesSite == undefined || idsTypesSite.length == 0,
+              of(null),
+              from(idsTypesSite).pipe(
+                mergeMap((idTypeSite: number) => {
+                  return this._siteService.getTypesSiteById(idTypeSite);
+                }),
+                toArray()
+              )
+            )
+          )
+        )
+        .subscribe(
+          (typeSiteArray) => {
+            if (typeSiteArray == null) {
+              this.removExtrForm();
+            } else {
+              for (const typeSite of typeSiteArray) {
+                this.typesSiteConfig[typeSite.label] = typeSite;
+              }
+              this.updateObj();
+            }
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+    }
+  }
+
+  updateObj() {
+    this.dataComplement = {};
+    const currentIdsTypeSite = this.objFormDynamic.controls.types_site.value;
+    let schema = {};
+    let objKeysFormToRemove: string[] = [];
+    let objKeysFormToAdd = [];
+    let schemObjToUpdate = {};
+    let objFormToAdd = {};
+    let htmlToIgnore: string[] = [];
+    if (this.idsTypesSite.length == 0) {
+      schema = this.schemaUpdate;
+      this.idsTypesSite = [];
+      for (const keysType of Object.keys(this.typesSiteConfig)) {
+        for (const keysConfig of Object.keys(this.typesSiteConfig[keysType].config.specific)) {
+          if (this.typesSiteConfig[keysType].config.specific[keysConfig].type_widget != 'html') {
+            objFormToAdd[keysConfig] = null;
+          }
+          // schema[keysConfig] = this.typesSiteConfig[keysType].config.specific[keysConfig]
+        }
+        Object.assign(schema, this.typesSiteConfig[keysType].config.specific);
+        let idNomencalature = this.typesSiteConfig[keysType]['id_nomenclature_type_site'];
+        this.idsTypesSite.push(idNomencalature);
+      }
+      this.objFormDynamic.disable();
+      this.objFormDynamic.patchValue(objFormToAdd, { onlySelf: true, emitEvent: false });
+      this.objFormDynamic.enable();
+    } else if (
+      this.idsTypesSite.length > 0 &&
+      currentIdsTypeSite.length < this.idsTypesSite.length
+    ) {
+      schema = {};
+      const schemaObj = this.obj.schema();
+      schema['types_site'] = schemaObj['types_site'];
+      let newTypeSiteConfig = {};
+      for (const keysType of Object.keys(this.typesSiteConfig)) {
+        // for (const keysConfig of Object.keys(this.typesSiteConfig[keysType].config.specific)){
+        if (
+          !currentIdsTypeSite.includes(this.typesSiteConfig[keysType]['id_nomenclature_type_site'])
+        ) {
+          objKeysFormToRemove.push(...Object.keys(this.typesSiteConfig[keysType].config.specific));
+        } else {
+          newTypeSiteConfig[keysType] = this.typesSiteConfig[keysType];
+          newTypeSiteConfig['types_site'] =
+            this.typesSiteConfig[keysType]['id_nomenclature_type_site'];
+          Object.assign(schema, this.typesSiteConfig[keysType].config.specific);
+        }
+      }
+      this.idsTypesSite = this.idsTypesSite.filter((elem) => currentIdsTypeSite.includes(elem));
+      const objFiltered = Object.keys(this.objFormDynamic.value)
+        .filter((key) => !objKeysFormToRemove.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = this.objFormDynamic.value[key];
+          return obj;
+        }, {});
+      this.typesSiteConfig = newTypeSiteConfig;
+      this.objFormDynamic.disable();
+      this.objFormDynamic.patchValue(objFiltered, { onlySelf: true, emitEvent: false });
+      this.objFormDynamic.enable();
+    } else {
+      schema = this.schemaUpdate;
+      for (const keysType of Object.keys(this.typesSiteConfig)) {
+        for (const keysConfig of Object.keys(this.typesSiteConfig[keysType].config.specific)) {
+          if (this.typesSiteConfig[keysType].config.specific[keysConfig].type_widget == 'html')
+            htmlToIgnore.push(keysConfig);
+        }
+        objKeysFormToAdd.push(...Object.keys(this.typesSiteConfig[keysType].config.specific));
+        Object.assign(schemObjToUpdate, this.typesSiteConfig[keysType].config.specific);
+      }
+      const schemaObjFilter = Object.keys(schemObjToUpdate)
+        .filter((key) => !Object.keys(schema).includes(key) && key)
+        .reduce((obj, key) => {
+          obj[key] = schemObjToUpdate[key];
+          return obj;
+        }, {});
+
+      Object.assign(schema, schemaObjFilter);
+      this.idsTypesSite = currentIdsTypeSite;
+      const objFormToAdd = objKeysFormToAdd
+        .filter((key) => !Object.keys(this.objFormDynamic.value).includes(key))
+        .reduce((obj, key) => {
+          obj[key] = null;
+          return obj;
+        }, {});
+      Object.keys(objFormToAdd).length == 0
+        ? null
+        : (this.objFormDynamic.disable(),
+          this.objFormDynamic.patchValue(objFormToAdd, { onlySelf: true, emitEvent: false }),
+          this.objFormDynamic.enable());
+    }
+
+    this.initObjFormDef(schema);
+    // this.objFormsDefinitionDynamic = this._dynformService
+    //   .formDefinitionsdictToArray(schema, this.meta)
+    //   .filter((formDef) => formDef.type_widget)
+    //   .sort((a, b) => {
+    //     // medias à la fin
+    //     return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
+    //   });
+
+    // display_form pour customiser l'ordre dans le formulaire
+    // les éléments de display form sont placé en haut dans l'ordre du tableau
+    // tous les éléments non cachés restent affichés
+    let displayProperties = [...(this.obj.configParam('display_properties') || [])];
+    if (displayProperties && displayProperties.length) {
+      displayProperties.reverse();
+      this.objFormsDefinitionDynamic.sort((a, b) => {
+        let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
+        let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
+        return indexB - indexA;
+      });
+      // this.initForm()
+    }
+    this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
+  }
+
+  removExtrForm() {
+    this.schemaUpdate = {};
+    let objKeysFormToRemove: string[] = [];
+    const currentIdsTypeSite = this.objFormDynamic.controls.types_site.value;
+    // Cas ou plus aucun types site
+    if (currentIdsTypeSite.length == 0) {
+      this.idsTypesSite = [];
+      for (const keysType of Object.keys(this.typesSiteConfig)) {
+        if (keysType != 'types_site') {
+          objKeysFormToRemove.push(...Object.keys(this.typesSiteConfig[keysType].config.specific));
+        }
+      }
+    }
+
+    const objFiltered = Object.keys(this.objFormDynamic.value)
+      .filter((key) => !objKeysFormToRemove.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = this.objFormDynamic.value[key];
+        return obj;
+      }, {});
+
+    this.initObjFormDef();
+
+    this.objFormDynamic.disable();
+    this.objFormDynamic.patchValue(objFiltered, { onlySelf: true, emitEvent: false });
+    this.objFormDynamic.enable();
+    this.typesSiteConfig = {};
+    this.dataComplement = {};
+  }
+
+  initObjFormDef(schema = null) {
+    if (schema) {
+      this.schemaUpdate = schema;
+    } else {
+      const schema = this.obj.schema();
+      this.schemaUpdate['types_site'] = schema['types_site'];
+    }
+
+    this.objFormsDefinitionDynamic = this._dynformService
+      .formDefinitionsdictToArray(this.schemaUpdate, this.meta)
+      .filter((formDef) => formDef.type_widget)
+      .sort((a, b) => {
+        return a.attribut_name === 'types_site' ? -1 : b.attribut_name === 'types_site' ? +1 : 0;
+      });
+  }
+
+  initPermission() {
+    this.canDelete =
+      this.obj.objectType == 'module'
+        ? this.currentUser?.moduleCruved[this.obj.objectType]['D'] > 0
+        : this.obj.cruved['D'] && !['site', 'sites_group'].includes(this.obj.objectType);
+    this.canUpdate =
+      this.obj.objectType == 'module'
+        ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
+        : this.obj.cruved['U'];
+  }
+
+  notAllowedMessage() {
+    this._commonService.translateToaster(
+      'warning',
+      "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
+    );
   }
 }

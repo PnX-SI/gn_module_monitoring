@@ -8,7 +8,7 @@ Create Date: 2023-01-02 16:44:18.715547
 from alembic import op
 import sqlalchemy as sa
 
-
+# TODO: voir les discussions sur element patrinat pour voir si on a statué
 # revision identifiers, used by Alembic.
 revision = "e78003460441"
 down_revision = "2003e18f248a"

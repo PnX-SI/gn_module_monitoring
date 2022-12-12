@@ -22,11 +22,6 @@
         "attribut_label": "Id site",
         "hidden": true
       },
-      "id_module": {
-        "type_widget": "text",
-        "attribut_label": "ID Module",
-        "hidden": true
-      },
       "sites_group_name": {
         "type_widget": "text",
         "attribut_label": "Nom",

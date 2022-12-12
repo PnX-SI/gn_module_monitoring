@@ -1,8 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 
 import { leafletDrawOptions } from './leaflet-draw.options';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
+import { FormService } from '../../services/form.service';
 
 @Component({
   selector: 'pnx-draw-form',
@@ -30,7 +31,7 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
-  constructor() {}
+  constructor(private _formService: FormService) {}
 
   ngOnInit() {
     // choix du type de geometrie
@@ -99,7 +100,16 @@ export class DrawFormComponent implements OnInit {
   // suivi composant => formControl
   bindGeojsonForm(geojson) {
     this.geojson = geojson;
-    this.parentFormControl.setValue(geojson.geometry);
+    if (!this.parentFormControl) {
+      this._formService.currentFormMap.subscribe((dataForm) => {
+        if ('geometry' in dataForm.frmGp.controls) {
+          this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl;
+          this.parentFormControl.setValue(geojson.geometry);
+        }
+      });
+    } else {
+      this.parentFormControl.setValue(geojson.geometry);
+    }
   }
 
   ngOnChanges(changes) {

@@ -9,6 +9,12 @@ import { ConfigService } from '../../services/config.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
+import { ObjectService } from '../../services/object.service';
+import { SiteSiteGroup } from '../../interfaces/objObs';
+import { IBreadCrumb } from '../../interfaces/object';
+import { breadCrumbBase } from '../../class/breadCrumb';
+
+export const breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSiteGroups.value;
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -16,24 +22,32 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./breadcrumbs.component.css'],
 })
 export class BreadcrumbsComponent implements OnInit {
-  public breadcrumbs;
-
+  public breadcrumbs: IBreadCrumb[] = [];
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 
   public frontendModuleMonitoringUrl: string;
-
+  public newLabel: string;
+  public new_desc: string;
   @Input() obj: MonitoringObject;
+  // Specific to the site access
+  siteSiteGroup: SiteSiteGroup | null = null;
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService,
     private _router: Router,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
+    private _objectService: ObjectService
   ) {}
 
   ngOnInit() {
-    // this.initBreadcrumbs();
+    if (this.obj === undefined) {
+      this._objectService.currentDataBreadCrumb.subscribe(
+        (breadCrumb) => (this.breadcrumbs = breadCrumb)
+      );
+      return;
+    }
   }
 
   initBreadcrumbs() {
@@ -68,18 +82,23 @@ export class BreadcrumbsComponent implements OnInit {
     this.bEditChange.emit(false);
     setTimeout(() => {
       if (elem) {
-        this._router.navigate(
-          [
-            this._configService.frontendModuleMonitoringUrl(),
-            'object',
-            elem.module_code,
-            elem.object_type,
-            elem.id,
-          ],
-          {
-            queryParams: elem.params,
-          }
-        );
+        if (this.obj == undefined) {
+          const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');
+          this._router.navigateByUrl(url);
+        } else {
+          this._router.navigate(
+            [
+              this._configService.frontendModuleMonitoringUrl(),
+              'object',
+              elem.module_code,
+              elem.object_type,
+              elem.id,
+            ],
+            {
+              queryParams: elem.params,
+            }
+          );
+        }
       } else {
         this._router.navigate([this._configService.frontendModuleMonitoringUrl()]);
       }

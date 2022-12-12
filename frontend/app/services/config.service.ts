@@ -7,17 +7,17 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 
 @Injectable()
 export class ConfigService {
-  private _config;
+  protected _config;
 
   constructor(
-    private _http: HttpClient,
-    private _moduleService: ModuleService,
+    protected _http: HttpClient,
+    protected _moduleService: ModuleService,
     public appConfig: GnConfigService
   ) {}
 
   /** Configuration */
 
-  init(moduleCode = null) {
+  init(moduleCode: string | null = null) {
     // a definir ailleurs
 
     moduleCode = moduleCode || 'generic';
@@ -46,6 +46,11 @@ export class ConfigService {
     );
   }
 
+  loadConfigSpecificConfig(obj) {
+    const urlConfig = `${this.backendModuleUrl()}/sites/${obj.id}/types`;
+    return this._http.get<any>(urlConfig);
+  }
+
   /** Backend Url et static dir ??*/
   backendUrl() {
     return `${this.appConfig.API_ENDPOINT}`;
@@ -65,6 +70,16 @@ export class ConfigService {
     return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
+  descriptionModule() {
+    return this.appConfig.MONITORINGS.DESCRIPTION_MODULE;
+  }
+  titleModule() {
+    return this.appConfig.MONITORINGS.TITLE_MODULE;
+  }
+
+  codeListObservers() {
+    return this.appConfig.MONITORINGS.CODE_OBSERVERS_LIST;
+  }
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;
@@ -133,18 +148,27 @@ export class ConfigService {
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
     moduleCode = moduleCode || 'generic';
-
     const configObject = this._config[moduleCode][objectType];
-
     // gerer quand les paramètres ont un fonction comme valeur
-
-    for (const typeSchema of ['generic', 'specific']) {
-      for (const keyDef of Object.keys(configObject[typeSchema])) {
-        const formDef = configObject[typeSchema][keyDef];
-        for (const keyParam of Object.keys(formDef)) {
-          const func = this.toFunction(formDef[keyParam]);
-          if (func) {
-            formDef[keyParam] = func;
+    if (configObject) {
+      for (const typeSchema of ['generic', 'specific']) {
+        for (const keyDef of Object.keys(configObject[typeSchema])) {
+          const formDef = configObject[typeSchema][keyDef];
+          for (const keyParam of Object.keys(formDef)) {
+            const func = this.toFunction(formDef[keyParam]);
+            const [varNameConfig, varValueConfig] = this.extractVariable(
+              keyParam,
+              formDef[keyParam]
+            );
+            if (func) {
+              formDef[keyParam] = func;
+            }
+            if (varValueConfig) {
+              configObject[typeSchema][keyDef][keyParam] = formDef[keyParam].replace(
+                varNameConfig,
+                varValueConfig
+              );
+            }
           }
         }
       }
@@ -206,5 +230,87 @@ export class ConfigService {
 
   cache() {
     return this._config;
+  }
+
+  addSpecificConfig(types_site) {
+    let schemaSpecificType = {};
+    let schemaTypeMerged = {};
+    let keyHtmlToPop = '';
+    for (let type_site of types_site) {
+      if ('specific' in type_site['config']) {
+        for (const prop in type_site['config']['specific']) {
+          if (
+            'type_widget' in type_site['config']['specific'][prop] &&
+            type_site['config']['specific'][prop]['type_widget'] == 'html'
+          ) {
+            keyHtmlToPop = prop;
+          }
+        }
+        const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
+        Object.assign(schemaSpecificType, specificObjWithoutHtml);
+        Object.assign(schemaTypeMerged, type_site['config']);
+      }
+    }
+
+    const fieldNames = schemaTypeMerged['display_properties'];
+    const fieldNamesList = schemaTypeMerged['display_list'];
+    const fieldLabels = this.fieldLabels(schemaSpecificType);
+    const fieldDefinitions = this.fieldDefinitions(schemaSpecificType);
+    const obj = {};
+    obj['template_specific'] = {};
+    obj['template_specific']['fieldNames'] = fieldNames;
+    obj['template_specific']['fieldNamesList'] = fieldNamesList;
+    obj['template_specific']['schema'] = schemaSpecificType;
+    obj['template_specific']['fieldLabels'] = fieldLabels;
+    obj['template_specific']['fieldDefinitions'] = fieldDefinitions;
+    obj['template_specific']['fieldNamesList'] = fieldNamesList;
+
+    return obj['template_specific'];
+  }
+
+  fieldLabels(schema) {
+    const fieldLabels = {};
+    for (const key of Object.keys(schema)) {
+      fieldLabels[key] = schema[key]['attribut_label'];
+    }
+    return fieldLabels;
+  }
+
+  fieldNames(moduleCode, objectType, typeDisplay = '', confObject = {}) {
+    if (['display_properties', 'display_list'].includes(typeDisplay)) {
+      if (Object.keys(confObject).length > 0) {
+        return confObject[typeDisplay];
+      }
+      return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);
+    }
+    if (typeDisplay === 'schema') {
+      return Object.keys(this.schema(moduleCode, objectType));
+    }
+  }
+
+  fieldDefinitions(schema) {
+    const fieldDefinitions = {};
+    for (const key of Object.keys(schema)) {
+      fieldDefinitions[key] = schema[key]['definition'];
+    }
+    return fieldDefinitions;
+  }
+
+  extractVariable(keyParam: string, KeyValue: string) {
+    let varToReplace;
+    let keyVarToChange;
+    let keyParamsToIgnore: string[] = ['api'];
+    for (const [varConfigName, varCOnfigValue] of Object.entries(this.appConfig.MONITORINGS)) {
+      const isVariableToChange =
+        !keyParamsToIgnore.includes(keyParam) &&
+        typeof KeyValue === 'string' &&
+        KeyValue.includes(varConfigName);
+      varToReplace = isVariableToChange ? varCOnfigValue : null;
+      keyVarToChange = isVariableToChange ? varConfigName : null;
+      if (isVariableToChange) {
+        break;
+      }
+    }
+    return [keyVarToChange, varToReplace];
   }
 }

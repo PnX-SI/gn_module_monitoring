@@ -13,6 +13,9 @@ import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
 import { Subject } from 'rxjs';
 import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
+import { CommonService } from '@geonature_common/service/common.service';
+import { ObjectService } from '../../services/object.service';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -48,10 +51,27 @@ export class MonitoringDatatableComponent implements OnInit {
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
   @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
 
-  constructor(private _monitoring: MonitoringObjectService) {}
+  rowSelected;
+  bDeleteModal: boolean = false;
+  bDeleteSpinner: boolean = false;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  canCreateChild: boolean = false;
+
+  constructor(
+    private _monitoring: MonitoringObjectService,
+    private _commonService: CommonService,
+    private _objectService: ObjectService
+  ) {}
 
   ngOnInit() {
     this.initDatatable();
+    this.initPermission();
+  }
+
+  initPermission() {
+    // TODO: Attention ici l'ajout avec l'icon ne se fait que sur un enfant (si plusieurs enfants au même niveau , le premier sera pris pour le moment)
+    const childrenType = this.child0.config.children_types[0];
+    this.canCreateChild = this.currentUser?.moduleCruved[childrenType]['C'];
   }
 
   initDatatable() {
@@ -233,5 +253,24 @@ export class MonitoringDatatableComponent implements OnInit {
       }
       return out;
     };
+  }
+
+  msgToaster(action) {
+    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
+    return `${action}  effectuée`.trim();
+  }
+
+  onDelete(row) {
+    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+    this._objectService.changeDisplayingDeleteModal(this.bDeleteModal);
+    this._objectService.changeSelectRow({ rowSelected: row, objectType: this.child0.objectType });
+    this._objectService.currentDeleteModal.subscribe(
+      (deletedModal) => (this.bDeleteModal = deletedModal)
+    );
+  }
+
+  alertMessage(row) {
+    this.rowSelected = row;
+    this.bDeleteModal = true;
   }
 }

@@ -3,6 +3,7 @@
         d'utilisateurs
         de nomenclature
         de taxonomie
+
         TODO cache
 """
 
@@ -32,8 +33,13 @@ from geonature.utils.errors import GeoNatureError
 from ..blueprint import blueprint
 
 from ..config.repositories import get_config
-
-from ..monitoring.models import TMonitoringSitesGroups, TMonitoringSites
+from gn_module_monitoring.utils.routes import get_sites_groups_from_module_id
+from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
+from gn_module_monitoring.monitoring.models import (
+    BibTypeSite,
+    TMonitoringSites,
+    TMonitoringSitesGroups,
+)
 
 model_dict = {
     "habitat": Habref,
@@ -41,6 +47,7 @@ model_dict = {
     "user": User,
     "taxonomy": Taxref,
     "dataset": TDatasets,
+    "types_site": BibTypeSite,
     "observer_list": UserList,
     "taxonomy_list": BibListes,
     "sites_group": TMonitoringSitesGroups,
@@ -91,10 +98,9 @@ def get_init_data(module_code):
 
     # sites_group
     if "sites_group" in config:
-        res_sites_group = (
-            DB.session.query(TMonitoringSitesGroups).filter_by(id_module=id_module).all()
-        )
-        out["sites_group"] = [sites_group.as_dict() for sites_group in res_sites_group]
+        sites_groups = get_sites_groups_from_module_id(id_module)
+        schema = MonitoringSitesGroupsSchema()
+        out["sites_group"] = [schema.dump(sites_group) for sites_group in sites_groups]
 
     # dataset (cruved ??)
     res_dataset = (
@@ -115,6 +121,7 @@ def get_util_nomenclature_api(code_nomenclature_type, cd_nomenclature):
     revoie un champ d'un object de type nomenclature
         à partir de son type  et de son cd_nomenclature
     renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
+
     :param code_nomenclature_type:
     :param cd_nomenclature:
     :return object entier si field_name = all, la valeur du champs defini par field_name sinon
@@ -164,6 +171,7 @@ def get_util_from_id_api(type_util, id):
     """
     revoie un champ d'un object de type nomenclature, taxonomy, utilisateur, ...
     renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
+
     :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur' | etc....
     :param id: id de l'object requis
     :type type_util: str
@@ -207,6 +215,7 @@ def get_util_from_ids_api(type_util, ids):
     """
     variante de get_util_from_id_api pour plusieurs id
     renvoie un tableau de valeur (ou de dictionnaire si key est 'all')
+
     parametre get
         key: all renvoie tout l'objet
             sinon renvoie un champ
@@ -214,11 +223,13 @@ def get_util_from_ids_api(type_util, ids):
             pour reformer une chaine de caractere a partir du tableau résultat de la requete
             si separator_out == ' ,'
             alors ['jean', 'pierre', 'paul'].join(separator_out) -> 'jean, pierre, paul'
+
     :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
     :param ids: plusieurs id reliée par des '-' (ex: 1-123-3-4)
     :type type_util: str
     :type ids: str
     :return list si key=all ou chaine de caratere
+
     """
 
     field_name = request.args.get("field_name", "all")

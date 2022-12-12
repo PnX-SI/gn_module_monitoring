@@ -5,7 +5,7 @@
 
 
 from pathlib import Path
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Forbidden
 from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
@@ -18,7 +18,7 @@ from utils_flask_sqla.generic import serializeQuery
 
 
 from ..blueprint import blueprint
-
+from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
 from geonature.core.gn_permissions.models import TObjects, Permission
@@ -31,6 +31,9 @@ from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+from gn_module_monitoring.utils.routes import (
+    query_all_types_site_from_site_id,
+)
 
 
 @blueprint.url_value_preprocessor
@@ -71,17 +74,15 @@ def set_current_module(endpoint, values):
 
 
 @blueprint.route("/object/<string:module_code>/<string:object_type>/<int:id>", methods=["GET"])
-@blueprint.route(
-    "/object/<string:module_code>/<string:object_type>", defaults={"id": None}, methods=["GET"]
-)
+@blueprint.route("/object/<string:module_code>/<string:object_type>", methods=["GET"])
 @blueprint.route(
     "/object/module",
-    defaults={"module_code": None, "object_type": "module", "id": None},
     methods=["GET"],
 )
 @check_cruved_scope("R")
 @json_resp
-def get_monitoring_object_api(module_code, object_type, id):
+@permissions.check_cruved_scope("R", get_scope=True)
+def get_monitoring_object_api(scope, module_code=None, object_type="module", id=None):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -98,9 +99,30 @@ def get_monitoring_object_api(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    get_config(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
+
+    if id != None and object_type == "site":
+        types_site_obj = query_all_types_site_from_site_id(id)
+        list_types_sites_dict = [
+            values
+            for res in types_site_obj
+            for (key_type_site, values) in res.as_dict().items()
+            if key_type_site == "config"
+        ]
+        customConfig = {"specific": {}}
+        for specific_config in list_types_sites_dict:
+            customConfig["specific"].update(specific_config["specific"])
+
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
 
     return (
         monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
@@ -142,6 +164,77 @@ def create_or_update_object_api(module_code, object_type, id):
     )
 
 
+def create_or_update_object_api_sites_sites_group(module_code, object_type, id=None):
+    """
+    route pour la création ou la modification d'un objet
+    si id est renseigné, c'est une création (PATCH)
+    sinon c'est une modification (POST)
+
+    :param module_code: reference le module concerne
+    :param object_type: le type d'object (site, visit, obervation)
+    :param id : l'identifiant de l'object (de id_base_site pour site)
+    :type module_code: str
+    :type object_type: str
+    :type id: int
+    :return: renvoie l'object crée ou modifié
+    :rtype: dict
+    """
+    depth = to_int(request.args.get("depth", 1))
+
+    # recupération des données post
+    post_data = dict(request.get_json())
+    if module_code != "generic":
+        module = get_module("module_code", module_code)
+    else:
+        module = {"id_module": "generic"}
+        # TODO : A enlever une fois que le post_data contiendra geometry et type depuis le front
+        if object_type == "site" and not "geometry" in post_data:
+            post_data["geometry"] = {"type": "Point", "coordinates": [2.5, 50]}
+            post_data["type"] = "Feature"
+    # on rajoute id_module s'il n'est pas renseigné par défaut ??
+    if "id_module" not in post_data["properties"]:
+        module["id_module"] = "generic"
+        post_data["properties"]["id_module"] = module["id_module"]
+    else:
+        post_data["properties"]["id_module"] = module.id_module
+
+    return (
+        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        .create_or_update(post_data)
+        .serialize(depth)
+    )
+
+
+def get_config_object(module_code, object_type, id):
+    """
+    renvoie un object, à partir de type de l'object et de son id
+
+    :param module_code: reference le module concerne
+    :param object_type: le type d'object (site, visit, obervation)
+    :param id : l'identifiant de l'object (de id_base_site pour site)
+    :type module_code: str
+    :type object_type: str
+    :type id: int
+
+    :return: renvoie l'object requis
+    :rtype: dict
+    """
+
+    # field_name = param.get('field_name')
+    # value = module_code if object_type == 'module'
+    get_config(module_code, force=True)
+
+    depth = to_int(request.args.get("depth", 1))
+
+    return (
+        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
+            depth=depth
+        )
+        # .get(value=value, field_name = field_name)
+        .serialize(depth)
+    )
+
+
 # update object
 @blueprint.route("object/<string:module_code>/<object_type>/<int:id>", methods=["PATCH"])
 @blueprint.route(
@@ -151,8 +244,27 @@ def create_or_update_object_api(module_code, object_type, id):
 )
 @check_cruved_scope("U")
 @json_resp
-def update_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+@permissions.check_cruved_scope("U", get_scope=True)
+def update_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
+
+    customConfig = {"specific": {}}
+    post_data = dict(request.get_json())
+    if "dataComplement" in post_data:
+        for keys in post_data["dataComplement"].keys():
+            if "config" in post_data["dataComplement"][keys]:
+                customConfig["specific"].update(
+                    post_data["dataComplement"][keys]["config"]["specific"]
+                )
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -168,7 +280,17 @@ def update_object_api(module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+    customConfig = {"specific": {}}
+    post_data = dict(request.get_json())
+    if "dataComplement" in post_data:
+        for keys in post_data["dataComplement"].keys():
+            if "config" in post_data["dataComplement"][keys]:
+                customConfig["specific"].update(
+                    post_data["dataComplement"][keys]["config"]["specific"]
+                )
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -181,9 +303,22 @@ def create_object_api(module_code, object_type, id):
 )
 @check_cruved_scope("D")
 @json_resp
-def delete_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+@permissions.check_cruved_scope("D", get_scope=True)
+def delete_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
 
+    if object_type in ("site", "sites_group"):
+        raise Exception(
+            f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
+        )
+    get_config(module_code, force=True)
+    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
     return monitoring_definitions.monitoring_object_instance(module_code, object_type, id).delete()
 
 

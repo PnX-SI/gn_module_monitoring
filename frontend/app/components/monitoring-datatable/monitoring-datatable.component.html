@@ -1,3 +1,21 @@
+<pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="rowSelected">
+  <h2>Attention</h2>
+  <p>
+    Vous êtes sur le point de supprimer
+    {{ this.child0.template['label_art_def'] }}
+    <b>{{ this.child0.template['description'] }}</b>
+  </p>
+  <button class="btn btn-danger float-right" (click)="onDelete(rowSelected)">
+    <span
+      [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
+      class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>
+    Confirmer la suppression
+  </button>
+  <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
+</pnx-modal-msg>
 <div *ngIf="child0 && row_save">
   <!-- <input
     type="text"
@@ -19,17 +37,13 @@
     [selected]="selected"
     (activate)="onRowClick($event)"
     [sorts]="sorts"
-    [messages]= "{
+    [messages]="{
       emptyMessage: 'Pas de données disponibles',
       totalMessage: 'total',
       selectedMessage: 'selection'
     }"
   >
-    <ngx-datatable-column
-      [cellClass]="'cell-link'"
-      prop="Action"
-      class="object-link"
-    >
+    <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
         <a
           class="nav-link link cell-link"
@@ -39,14 +53,53 @@
         >
           <i class="fa fa-eye" aria-hidden="true"></i>
         </a>
+        <!-- TO CHECK currentUser.moduleCruved[child0.child0().objectType].C >= 1 -->
         <a
+          *ngIf="child0.child0()"
+          [ngClass]="{ isDisableBtn: !canCreateChild }"
           class="nav-link link cell-link"
-          (click)="child0.navigateToAddChildren(null, row.id)"
-          *ngIf="child0.child0() && currentUser.moduleCruved[child0.child0().objectType].C >= 1"
-          matTooltip="Ajouter {{child0.child0().labelArtUndef(true)}}"
+          (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id) : null"
+          [matTooltip]="
+            canCreateChild ? 'Ajouter' + child0.child0().labelArtUndef(true) : toolTipNotAllowed
+          "
         >
-          <i class="fa fa-plus" aria-hidden="true"></i>
+          <i
+            [ngClass]="{ isDisableIcon: !canCreateChild }"
+            class="fa fa-plus"
+            aria-hidden="true"
+          ></i>
         </a>
+        <!-- TODO: rajouter les permission currentUser  *ngIf="currentUser?.moduleCruved[child0.objectType].U >= child0.config.cruved('U')" -->
+        <a
+          [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
+          class="nav-link link cell-link"
+          (click)="row.cruved['U'] ? child0.navigateToDetail(row.id, true) : null"
+          [matTooltip]="
+            row.cruved['U'] ? 'Editer' + child0.template.label_art_def : toolTipNotAllowed
+          "
+        >
+          <i
+            [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
+            class="fa fa-edit"
+            aria-hidden="true"
+          ></i>
+        </a>
+        <ng-container *ngIf="child0.objectType == 'visit' ? true : row['nb_visits'] == 0">
+          <a
+            [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
+            class="nav-link link cell-link"
+            (click)="row.cruved['D'] ? alertMessage(row) : null"
+            [matTooltip]="
+              row.cruved['D'] ? 'Supprimer' + child0.template.label_art_def : toolTipNotAllowed
+            "
+          >
+            <i
+              [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
+              class="fa fa-trash"
+              aria-hidden="true"
+            ></i>
+          </a>
+        </ng-container>
       </ng-template>
     </ngx-datatable-column>
 
@@ -61,18 +114,19 @@
 
   <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
     <div class="header-sort-span" (click)="sortFn()">
-      {{column.definition}}
-      <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
+      {{ column.definition }}
+      <i
+        class="material-icons icon-sort"
+        [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"
+      ></i>
       <i
         *ngIf="child0.template.fieldDefinitions[column.prop]"
         class="material-icons icon-sort"
         [matTooltip]="tooltip(column)"
         matTooltipPosition="above"
-        >help</i>
-      <span
-        [matTooltip]="tooltip(column)"
-        matTooltipPosition="above"
-        > {{ column.name }}</span>
+        >help</i
+      >
+      <span [matTooltip]="tooltip(column)" matTooltipPosition="above"> {{ column.name }}</span>
     </div>
     <div class="header-filter-span">
       <input
