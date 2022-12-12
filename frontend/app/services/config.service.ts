@@ -66,6 +66,12 @@ export class ConfigService {
     return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
+  descriptionModule() {
+    return ModuleConfig.DESCRIPTION_MODULE;
+  }
+  titleModule() {
+    return ModuleConfig.TITLE_MODULE;
+  }
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;
