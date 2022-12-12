@@ -1,1 +1,5 @@
 # Fichier listant les paramètres du module et leurs valeurs par défaut
+
+#Possibilité de rajouter une description au module de suivi
+#DESCRIPTION_MODULE = "ceci est une description"
+#TITLE_MODULE = "Module de suivi"
