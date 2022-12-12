@@ -38,14 +38,14 @@ h2 {
 }
 
 a {
-  text-decoration:none;
-  color:initial;
+  text-decoration: none;
+  color: initial;
 }
 
 .flex-item:hover {
-    opacity: 1;
-    box-shadow: 0px 0px 10px black;
-    transition: opacity 0.2s, box-shadow 0.2s;
+  opacity: 1;
+  box-shadow: 0px 0px 10px black;
+  transition: opacity 0.2s, box-shadow 0.2s;
 }
 
 .module h2 {
@@ -53,16 +53,14 @@ a {
 }
 
 
-.module-card:hover
-{
-    border: 1px solid #303030;
-    padding: 5px;
-    color:gray;
-    transition: 1s ease;
+.module-card:hover {
+  border: 1px solid #303030;
+  padding: 5px;
+  color: gray;
+  transition: 1s ease;
 }
 
-.module-card
-{
-  background-color:#71717129;
+.module-card {
+  background-color: #71717129;
   transition: 1s ease;
 }

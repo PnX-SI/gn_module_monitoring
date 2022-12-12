@@ -6,6 +6,7 @@ import { mergeMap } from "rxjs/operators";
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
 import { ConfigService } from "../../services/config.service";
 import { get } from "https";
+import { AuthService, User } from "@geonature/components/auth/auth.service";
 
 @Component({
   selector: "pnx-monitoring-modules",
@@ -13,6 +14,12 @@ import { get } from "https";
   styleUrls: ["./modules.component.css"],
 })
 export class ModulesComponent implements OnInit {
+
+
+  currentUser: User;
+
+  description: string;
+  titleModule: string;
   modules: Array<any> = [];
 
   backendUrl: string;
@@ -24,9 +31,10 @@ export class ModulesComponent implements OnInit {
   bLoading = false;
 
   constructor(
+    private _auth: AuthService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.bLoading = true;
@@ -50,6 +58,19 @@ export class ModulesComponent implements OnInit {
           this._configService.backendUrl() +
           "/static/external_assets/monitorings/";
         this.bLoading = false;
+        this.description = this._configService.descriptionModule();
+        this.titleModule = this._configService.titleModule();
       });
+
+    this.currentUser = this._auth.getCurrentUser();
+
+    this.currentUser["cruved"] = {};
+    this.currentUser["cruved_objects"] = {};
   }
+
+  onAccessSitesClick(modules) {
+    console.log("accès aux sites avec droits ")
+    console.log(modules)
+  }
+
 }
