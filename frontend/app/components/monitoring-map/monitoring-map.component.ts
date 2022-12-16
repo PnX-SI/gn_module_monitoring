@@ -155,14 +155,14 @@ export class MonitoringMapComponent implements OnInit {
       coordinates = layer.getBounds().getCenter();
     }
 
-    var text = L.tooltip({
+    var text: any = L.tooltip({
       permanent: true,
       direction: "top",
       className: "text",
-      removeOnInit: true,
     })
       .setContent(textValue)
       .setLatLng(coordinates);
+    text.options.removeOnInit = true;
     layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
   };
@@ -181,7 +181,7 @@ export class MonitoringMapComponent implements OnInit {
     for (const key of Object.keys(this.styles)) {
       const style = this.styles[key];
       map.createPane(key);
-      const pane = map.getPane(key);
+      const pane: any = map.getPane(key);
       pane.style.zIndex = style.zIndex;
       const renderer = svg({ pane: pane });
       this.panes[key] = pane;
@@ -313,7 +313,7 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  findSiteLayer(id, objectType = "site"): Layer {
+  findSiteLayer(id, objectType = "site"): any {
     const layers = this._mapService.map["_layers"];
     const layerKey = Object.keys(layers)
       .filter((key) => {
@@ -329,7 +329,7 @@ export class MonitoringMapComponent implements OnInit {
     return layerKey && layers[layerKey];
   }
 
-  findSiteLayers(value, property): Layer {
+  findSiteLayers(value, property): any {
     const layers = this._mapService.map["_layers"];
 
     let filterlayers = Object.keys(layers)

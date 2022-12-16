@@ -1,4 +1,3 @@
-import { GeonaturePage } from "./../../../../../frontend/e2e/app.po";
 import { Observable, of, forkJoin } from "rxjs";
 import { mergeMap, concatMap } from "rxjs/operators";
 
