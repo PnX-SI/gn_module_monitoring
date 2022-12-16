@@ -9,7 +9,7 @@ import {
 
 import { FormGroup } from "@angular/forms";
 import { MonitoringObject } from "../../class/monitoring-object";
-import { Layer, svg } from "leaflet";
+import { Layer, svg, Path } from "leaflet";
 import { ConfigService } from "../../services/config.service";
 import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
 
@@ -131,7 +131,7 @@ export class MonitoringMapComponent implements OnInit {
     const layers = this._mapService.map["_layers"];
     for (const key of Object.keys(layers)) {
       const layer = layers[key];
-      if (layer.options.removeOnInit) {
+      if (layer.options.permanent) {
         layer.removeFrom(this._mapService.map);
       }
     }
@@ -139,7 +139,6 @@ export class MonitoringMapComponent implements OnInit {
 
   onEachFeature = (feature, layer) => {
     const mapLabelFieldName = this.obj.configParam("map_label_field_name");
-
     if (!mapLabelFieldName) {
       return;
     }
@@ -155,14 +154,13 @@ export class MonitoringMapComponent implements OnInit {
       coordinates = layer.getBounds().getCenter();
     }
 
-    var text: any = L.tooltip({
+    var text = L.tooltip({
       permanent: true,
       direction: "top",
       className: "text",
     })
       .setContent(textValue)
       .setLatLng(coordinates);
-    text.options.removeOnInit = true;
     layer.bindTooltip(text).openTooltip();
     text.addTo(this._mapService.map);
   };
@@ -178,14 +176,14 @@ export class MonitoringMapComponent implements OnInit {
 
   initPanes() {
     const map = this._mapService.map;
-    for (const key of Object.keys(this.styles)) {
-      const style = this.styles[key];
-      map.createPane(key);
-      const pane: any = map.getPane(key);
+    for (const paneKey of Object.keys(this.styles)) {
+      const style = this.styles[paneKey];
+      map.createPane(paneKey);
+      const pane = map.getPane(paneKey);
       pane.style.zIndex = style.zIndex;
-      const renderer = svg({ pane: pane });
-      this.panes[key] = pane;
-      this.renderers[key] = renderer;
+      const renderer = svg({ pane: paneKey });
+      this.panes[paneKey] = pane;
+      this.renderers[paneKey] = renderer;
     }
   }
 
@@ -287,7 +285,7 @@ export class MonitoringMapComponent implements OnInit {
     }
 
     if (status["selected"] && openPopup == true) {
-      if (!layer._popup) {
+      if (!(layer as any)._popup) {
         this.setPopup(status.id);
         layer = this.findSiteLayer(status.id, objectType);
       }
@@ -313,7 +311,7 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  findSiteLayer(id, objectType = "site"): any {
+  findSiteLayer(id, objectType = "site"): Path {
     const layers = this._mapService.map["_layers"];
     const layerKey = Object.keys(layers)
       .filter((key) => {
@@ -329,7 +327,7 @@ export class MonitoringMapComponent implements OnInit {
     return layerKey && layers[layerKey];
   }
 
-  findSiteLayers(value, property): any {
+  findSiteLayers(value, property): Array<Layer> {
     const layers = this._mapService.map["_layers"];
 
     let filterlayers = Object.keys(layers)
@@ -348,7 +346,7 @@ export class MonitoringMapComponent implements OnInit {
 
   setPopup(id) {
     const layer = this.findSiteLayer(id);
-    if (layer._popup) {
+    if (layer['_popup']) {
       return;
     }
     // TODO verifier si le fait de spécifier # en dur
@@ -359,7 +357,7 @@ export class MonitoringMapComponent implements OnInit {
       "object",
       this.obj.moduleCode,
       "site",
-      layer["feature"].properties.id_base_site,
+      layer['feature'].properties.id_base_site,
     ].join("/");
 
     const sPopup = `
