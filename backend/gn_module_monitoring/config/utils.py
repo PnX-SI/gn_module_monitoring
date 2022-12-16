@@ -12,7 +12,7 @@ from ..monitoring.models import TMonitoringModules
 
 # chemin ver le repertoire de la config
 MONITORING_CONFIG_PATH = os.path.dirname(os.path.abspath(
-    __file__)) + '/../../config/monitoring'
+    __file__)) + '/../../../config/monitoring'
 
 
 def get_monitoring_module(module_code):

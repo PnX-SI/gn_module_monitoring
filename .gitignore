@@ -8,7 +8,7 @@ config/conf_gn_module.toml
 config/monitoring/*
 !config/monitoring/generic
 frontend/assets/*.jpg
-
+*.egg-info
 
 # Node
 .npm
