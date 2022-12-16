@@ -2,6 +2,20 @@
 CHANGELOG
 =========
 
+0.4.0 (unreleased)
+------------------
+
+Nécessite la version 2.11.0 (ou plus) de GeoNature.
+
+
+**Evolutions**
+* Packaging du module
+* Gestion de la base de données avec Alembic
+
+
+**Corrections**
+* Marqueur leaflet non visible lors de la création d'un point sur la carte
+
 0.3.0 (2022-11-02)
 ------------------
 
