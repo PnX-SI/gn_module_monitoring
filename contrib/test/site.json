@@ -10,6 +10,7 @@
     "last_visit",
     "nb_visits"
   ],
+  "map_label_field_name": "base_site_name",
   "geometry_type": "Point",
   "specific": {
     "base_site_code": {

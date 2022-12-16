@@ -1,27 +1,27 @@
-import { MonitoringObjectComponent } from "./../components/monitoring-object/monitoring-object.component";
-import { Utils } from "./../utils/utils";
+import { MonitoringObjectComponent } from './../components/monitoring-object/monitoring-object.component';
+import { Utils } from './../utils/utils';
 // import _ from "lodash";
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 
-import { HttpClient } from "@angular/common/http";
-import { AppConfig } from "@geonature_config/app.config";
-import { ModuleConfig } from "../module.config";
-
-import { of } from "rxjs";
-import { mergeMap } from "rxjs/operators";
+import { HttpClient } from '@angular/common/http';
+import { AppConfig } from '@geonature_config/app.config';
+import { ModuleConfig } from '../module.config';
+import { ModuleService } from '@geonature/services/module.service';
+import { of } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient) {}
+  constructor(private _http: HttpClient, private _moduleService: ModuleService) {}
 
   /** Configuration */
 
   init(moduleCode = null) {
     // a definir ailleurs
 
-    moduleCode = moduleCode || "generic";
+    moduleCode = moduleCode || 'generic';
 
     if (this._config && this._config[moduleCode]) {
       return of(true);
@@ -32,14 +32,14 @@ export class ConfigService {
 
   loadConfig(moduleCode) {
     const urlConfig =
-      moduleCode === "generic"
+      moduleCode === 'generic'
         ? `${this.backendModuleUrl()}/config`
         : `${this.backendModuleUrl()}/config/${moduleCode}`;
     return this._http.get<any>(urlConfig).pipe(
       mergeMap((config) => {
         this._config = this._config || {};
         this._config[moduleCode] = config;
-        this._config["frontendParams"] = {
+        this._config['frontendParams'] = {
           bChainInput: false,
         };
         return of(true);
@@ -60,15 +60,15 @@ export class ConfigService {
   backendModuleUrl() {
     // Test if api endpoint have a final slash
     let api_url = AppConfig.API_ENDPOINT;
-    if (api_url.substring(api_url.length - 1, 1) !== "/") {
-      api_url = api_url + "/";
+    if (api_url.substring(api_url.length - 1, 1) !== '/') {
+      api_url = api_url + '/';
     }
-    return `${api_url}${ModuleConfig.MODULE_URL}`;
+    return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
-    return ModuleConfig.MODULE_URL;
+    return this._moduleService.currentModule.module_path;
   }
 
   moduleMonitoringCode() {
@@ -82,13 +82,13 @@ export class ConfigService {
    * @param s chaine de caractere
    */
   toFunction(s_in) {
-    let s = Array.isArray(s_in) ? s_in.join("\n") : s_in;
+    let s = Array.isArray(s_in) ? s_in.join('\n') : s_in;
 
-    if (!(typeof s == "string")) {
+    if (!(typeof s == 'string')) {
       return;
     }
 
-    const tests = ["(", ")", "{", "}", "=>"];
+    const tests = ['(', ')', '{', '}', '=>'];
 
     if (!tests.every((test) => s.includes(test))) {
       return;
@@ -111,7 +111,7 @@ export class ConfigService {
    * @param objectType
    */
   change(moduleCode, objectType) {
-    moduleCode = moduleCode || "generic";
+    moduleCode = moduleCode || 'generic';
 
     const configObject = this._config[moduleCode][objectType];
     const change = configObject.change;
@@ -119,14 +119,14 @@ export class ConfigService {
   }
 
   /** Config Object Schema */
-  schema(moduleCode, objectType, typeSchema = "all"): Object {
-    moduleCode = moduleCode || "generic";
+  schema(moduleCode, objectType, typeSchema = 'all'): Object {
+    moduleCode = moduleCode || 'generic';
 
     const configObject = this._config[moduleCode][objectType];
 
     // gerer quand les paramètres ont un fonction comme valeur
 
-    for (const typeSchema of ["generic", "specific"]) {
+    for (const typeSchema of ['generic', 'specific']) {
       for (const keyDef of Object.keys(configObject[typeSchema])) {
         const formDef = configObject[typeSchema][keyDef];
         for (const keyParam of Object.keys(formDef)) {
@@ -144,20 +144,20 @@ export class ConfigService {
     }
 
     switch (typeSchema) {
-      case "all": {
+      case 'all': {
         return { ...configObject.generic, ...configObject.specific };
       }
-      case "generic": {
+      case 'generic': {
         return configObject.generic;
       }
-      case "specific": {
+      case 'specific': {
         return configObject.specific;
       }
     }
   }
 
   configModuleObject(moduleCode: string, objectType: string) {
-    moduleCode = moduleCode || "generic";
+    moduleCode = moduleCode || 'generic';
     return this._config[moduleCode][objectType];
   }
 
@@ -166,11 +166,7 @@ export class ConfigService {
    *
    * ex: getconfigModuleObjectParam('objects', 'oedic', 'site', 'descrition_field_name') renvoie 'base_site_name'
    */
-  configModuleObjectParam(
-    moduleCode: string,
-    objectType: string,
-    fieldName: string
-  ) {
+  configModuleObjectParam(moduleCode: string, objectType: string, fieldName: string) {
     const confObject = this.configModuleObject(moduleCode, objectType);
     return confObject ? confObject[fieldName] : null;
   }
@@ -179,7 +175,7 @@ export class ConfigService {
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
    */
   configData(moduleCode) {
-    return this._config[moduleCode]["data"];
+    return this._config[moduleCode]['data'];
   }
 
   frontendParams() {
