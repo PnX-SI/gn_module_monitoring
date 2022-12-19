@@ -195,10 +195,6 @@ class TMonitoringSitesGroups(DB.Model):
 
     id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
 
-    id_module = DB.Column(
-        DB.ForeignKey("gn_commons.t_modules.id_module"), nullable=False, unique=True
-    )
-
     uuid_sites_group = DB.Column(UUID(as_uuid=True), default=uuid4)
 
     sites_group_name = DB.Column(DB.Unicode)
@@ -271,21 +267,22 @@ class TMonitoringModules(TModules):
         lazy="joined",
     )
 
-    sites = DB.relationship(
-        "TMonitoringSites",
-        uselist=True,  # pourquoi pas par defaut ?
-        primaryjoin=TMonitoringSites.id_module == id_module,
-        foreign_keys=[id_module],
-        lazy="select",
-    )
+    # TODO: restore it with CorCategorySite
+    # sites = DB.relationship(
+    #     'TMonitoringSites',
+    #     uselist=True,  # pourquoi pas par defaut ?
+    #     primaryjoin=TMonitoringSites.id_module == id_module,
+    #     foreign_keys=[id_module],
+    #     lazy="select",
+    # )
 
-    sites_groups = DB.relationship(
-        "TMonitoringSitesGroups",
-        uselist=True,  # pourquoi pas par defaut ?
-        primaryjoin=TMonitoringSitesGroups.id_module == id_module,
-        foreign_keys=[id_module],
-        lazy="select",
-    )
+    # sites_groups = DB.relationship(
+    #     'TMonitoringSitesGroups',
+    #     uselist=True,  # pourquoi pas par defaut ?
+    #     primaryjoin=TMonitoringSitesGroups.id_module == id_module,
+    #     foreign_keys=[id_module],
+    #     lazy="select",
+    # )
 
     datasets = DB.relationship(
         "TDatasets",
