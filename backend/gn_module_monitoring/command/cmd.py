@@ -161,6 +161,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         ),
         "active_frontend": False,
         "active_backend": False,
+        "type": "monitoring_module"
     }
 
     print("ajout du module {} en base".format(module_code))
