@@ -58,14 +58,13 @@ Méthode classique
    source /home/`whoami`/geonature/backend/venv/bin/activate
    geonature monitorings process_img
 
-   - si la version de GeoNature est antérieure à 2.7.5, utiliser la commande ``flask monitorings process_img``
-
 - Relancez la compilation en mettant à jour la configuration
 
 ::
 
-   source <geonature>/backendvenv/bin/activate
-   geonature update_module_configuration MONITORINGS
+   source <geonature>/backend/venv/bin/activate
+   geonature install-gn-module gn_module_monitoring MONITORINGS
+   sudo systemctl reload geonature
 
 - Exécutez les éventuels scripts SQL de migration de la BDD indiqués dans les notes de version, correspondants aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonction des versions>``
 
