@@ -82,7 +82,8 @@ class TMonitoringObservations(TObservations):
         nullable=False,
         )
 
-
+TBaseVisits.dataset = DB.relationship(TDatasets)
+    
 @serializable
 class TMonitoringVisits(TBaseVisits):
     __tablename__ = "t_visit_complements"
