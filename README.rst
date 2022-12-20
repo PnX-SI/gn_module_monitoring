@@ -42,7 +42,7 @@ Installation
 Pré-requis
 ==========
 
-- Avoir GeoNature installé à la version 2.5.2 ou plus.
+- Avoir GeoNature installé dans une version compatible avec celle de la version du module.
 
 Récupération du dépôt
 =====================
@@ -54,7 +54,7 @@ Téléchargement
 
 ::
 
-  get https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
+  wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
   unzip X.Y.Z.zip
 
 
@@ -71,28 +71,12 @@ Clonage du dépôt
 Installation du module
 ======================
 
-Activer le venv de GeoNature
-----------------------------
-
 ::
 
   cd <path_to_geonature>
   source backend/venv/bin/activate
-
-
-Lancer la commande d'installation d'un module GeoNature
--------------------------------------------------------
-
-::
-
-  geonature install_gn_module <path_to_module_monitoring> monitorings
-
-* Cela lance un rebuild du frontend que vous pouvez éviter (et faire ultérieurement) en faisant :*
-
-::
-
-  geonature install_gn_module <path_to_module_monitoring> monitorings --build=false
-
+  geonature install-gn-module <path_to_module_monitoring> MONITORINGS
+  sudo systemctl restart geonature
 
 Installation d'un sous-module
 =============================
@@ -110,25 +94,6 @@ Activer le venv de GeoNature
   cd <path_to_geonature>
   source backend/venv/bin/activate
 
-
-Si la version de GN est inférieure à 2.7.5
--------------------------------------------
-
-- Vérifier que la variable ``FLASK_APP`` est bien définie
-
-
-Afin de pouvoir lancer la commande ``flask`` depuis n'importe quel répertoire
-
-- comme ``geonature`` est désormais un module python (depuis sa version 2.7), la commande suivante suffit :
-
-::
-
-  export FLASK_APP=geonature
-  flask monitorings
-
-Pour la suite remplacer, ``geonature monitorings`` par ``flask monitorings``
-
-
 Lancer la commande d'installation du sous-module
 ------------------------------------------------
 
@@ -140,7 +105,7 @@ Lancer la commande d'installation du sous-module
 - Par exemple ``<chemin_absolu_vers_le_module_de_suivi>/contrib/test/`` donnera la valeur ``test`` à ``module_code``.
 - Le caractère ``/`` à la fin de ``<chemin_absolu_vers_le_sous_module>`` est optionnel.
 
-Si la commande précise que le module est déjà installé (test sur le ``module_code``) on peut préciser une valeur différente pour ``module_code`` avec la commande :
+Si la commande précise que le module est déjà installé (test sur le ``module_code``), on peut préciser une valeur différente pour ``module_code`` avec la commande :
 
 ::
 
