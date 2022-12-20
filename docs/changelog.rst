@@ -7,14 +7,29 @@ CHANGELOG
 
 Nécessite la version 2.11.0 (ou plus) de GeoNature.
 
-
 **Evolutions**
-* Packaging du module
-* Gestion de la base de données avec Alembic
 
+* Packaging du module (#190)
+* Gestion de la base de données avec Alembic (#190)
+* Améliorations du typage frontend
 
 **Corrections**
-* Marqueur leaflet non visible lors de la création d'un point sur la carte
+
+* Correction du marqueur Leaflet non visible lors de la création d'un point sur la carte (#187)
+* Peuplement du champs ``gn_monitoring.t_module_complements.type`` avec la valeur ``monitoring_module`` pour les sous-modules de Monitoring (#193)
+* Correction de l'utilisation des modèles de TaxRef
+* Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165)
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module, vous devez indiquer à Alembic l’état de votre base de données :
+
+::
+
+  cd
+  source geonature/backend/venv/bin/activate
+  geonature db stamp 362cf9d504ec
+  deactivate
 
 0.3.0 (2022-11-02)
 ------------------
