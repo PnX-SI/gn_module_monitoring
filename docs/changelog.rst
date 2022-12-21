@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+0.4.1 (unreleased)
+------------------
+
+**Corrections**
+
+* 
+
 0.4.0 (2022-12-21)
 ------------------
 
@@ -23,7 +30,7 @@ Nécessite la version 2.11.0 (ou plus) de GeoNature.
 **⚠️ Notes de version**
 
 Si vous mettez à jour le module, il vous faut passer à Alembic.
-Pour cela, une fois la version 2.11 de GeoNature installée :
+Pour cela, une fois la version 2.11 (ou plus) de GeoNature installée :
 
 * Entrer dans le virtualenv :
 
