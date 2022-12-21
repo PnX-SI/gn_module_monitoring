@@ -22,15 +22,32 @@ Nécessite la version 2.11.0 (ou plus) de GeoNature.
 
 **⚠️ Notes de version**
 
-Si vous mettez à jour le module, vous devez indiquer à Alembic que votre base de données est en version 0.3.0
-puis lui demander de la mettre à jour en version 0.4.0 :
+Si vous mettez à jour le module, il vous faut passer à Alembic.
+Pour cela, une fois la version 2.11 de GeoNature installée :
+
+* Entrer dans le virtualenv :
 
 .. code-block:: bash
 
   source ~/geonature/backend/venv/bin/activate
+
+* Installer la nouvelle version de Monitoring avec le paramètre ``--upgrade-db=false`` :
+
+.. code-block:: bash
+
+  geonature install-gn-module --upgrade-db=false <path_to_monitoring> MONITORINGS
+
+* Indiquer à Alembic que votre base de données est en version 0.3.0 :
+
+.. code-block:: bash
+
   geonature db stamp 362cf9d504ec                   # monitorings 0.3.0
+
+* Mettre à jour la base de données en version 0.4.0 :
+
+.. code-block:: bash
+
   geonature db upgrade monitorings@head
-  deactivate
 
 0.3.0 (2022-11-02)
 ------------------
