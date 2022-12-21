@@ -22,13 +22,14 @@ Nécessite la version 2.11.0 (ou plus) de GeoNature.
 
 **⚠️ Notes de version**
 
-Si vous mettez à jour le module, vous devez indiquer à Alembic l’état de votre base de données :
+Si vous mettez à jour le module, vous devez indiquer à Alembic que votre base de données est en version 0.3.0
+puis lui demander de la mettre à jour en version 0.4.0 :
 
-::
+.. code-block:: bash
 
-  cd
-  source geonature/backend/venv/bin/activate
-  geonature db stamp 362cf9d504ec
+  source ~/geonature/backend/venv/bin/activate
+  geonature db stamp 362cf9d504ec                   # monitorings 0.3.0
+  geonature db upgrade monitorings@head
   deactivate
 
 0.3.0 (2022-11-02)
@@ -310,7 +311,7 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 Si vous mettez à jour le module depuis la version 0.1.0 :
 
 * Les fichiers ``custom.json`` ne sont plus utiles (la configuration spécifique à une installation (liste utilisateurs, etc..)
-est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
+  est désormais gérée dans la base de données, dans la table ``gn_monitoring.t_module_complements``)
 * Dans les fichiers ``config.json``, la variable ``data`` (pour précharger les données (nomenclatures, etc..)) est désormais calculée depuis la configuration.
 * Pour mettre à jour la base de données, il faut exécuter le fichier ``data/migration/migration_0.1.0_0.2.0.sql``
 * Suivez la procédure classique de mise à jour du module (``docs/MAJ.rst``)
