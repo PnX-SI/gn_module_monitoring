@@ -9,8 +9,18 @@ from gn_module_monitoring.monitoring.models import BibCategorieSite
 
 
 @pytest.fixture()
-def categories():
-    categories = [{"label": "gite", "config": {}}, {"label": "eolienne", "config": {}}]
+def site_type():
+    return TNomenclatures.query.filter(
+        BibNomenclaturesTypes.mnemonique == "TYPE_SITE", TNomenclatures.mnemonique == "Grotte"
+    ).one()
+
+
+@pytest.fixture()
+def categories(site_type):
+    categories = [
+        {"label": "gite", "config": {}, "site_type": [site_type]},
+        {"label": "eolienne", "config": {}, "site_type": [site_type]},
+    ]
 
     categories = {cat["label"]: BibCategorieSite(**cat) for cat in categories}
 
