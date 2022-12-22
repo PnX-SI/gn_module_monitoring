@@ -129,6 +129,21 @@
       "attribut_label": "Afficher dans le menu ?",
       "definition": "Afficher le module dans le menu de GéoNature. (Recharger la page pour voir les modifications)."
     },
+
+    "categories": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste des catégories",
+      "type_util": "categorie",
+      "keyValue": "id_categorie",
+      "keyLabel": "label",
+      "multiple": true,
+      "api" : "__MONITORINGS_PATH/sites/categories",
+      "application": "GeoNature",
+      "required": true,
+      "data_path": "categories",
+      "definition": "Permet de paramétrer la compatibilité de ce module avec les catégories de sites"
+    },
+    
     "medias": {
       "type_widget": "medias",
       "attribut_label": "Médias",
