@@ -10,17 +10,18 @@ def get_limit_offset(params: MultiDict) -> Tuple[int]:
     return params.pop("limit", 50), params.pop("offset", 1)
 
 
-def paginate(query: Query, object_name: str, limit: int, page: int) -> Response:
+def paginate(query: Query, object_name: str, limit: int, page: int, depth: int = 0) -> Response:
     result = query.paginate(page=page, error_out=False, max_per_page=limit)
     data = {
-        object_name: [res.as_dict() for res in result.items],
+        object_name: [res.as_dict(depth=depth) for res in result.items],
         "count": result.total,
         "limit": limit,
         "offset": page - 1,
     }
     return jsonify(data)
 
-def filter_params(query: Query, params: MultiDict) -> Query: 
+
+def filter_params(query: Query, params: MultiDict) -> Query:
     if len(params) != 0:
         query = query.filter_by(**params)
     return query

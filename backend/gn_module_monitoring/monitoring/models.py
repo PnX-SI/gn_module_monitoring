@@ -11,7 +11,7 @@ from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
-
+from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
 from geonature.core.gn_meta.models import TDatasets
@@ -20,6 +20,35 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 
+cor_module_categorie = DB.Table(
+    "cor_module_categorie",
+    DB.Column(
+        "id_module",
+        DB.Integer,
+        DB.ForeignKey("gn_commons.t_modules.id_module"),
+        primary_key=True,
+    ),
+        DB.Column(
+        "id_categorie",
+        DB.Integer,
+        DB.ForeignKey("gn_monitoring.bib_categorie_site.id_categorie"),
+        primary_key=True,
+    ), schema="gn_monitoring")
+
+cor_site_type_categorie = DB.Table(
+    "cor_site_type_categorie",
+    DB.Column(
+        "id_nomenclature",
+        DB.Integer,
+        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
+        primary_key=True,
+    ),
+        DB.Column(
+        "id_categorie",
+        DB.Integer,
+        DB.ForeignKey("gn_monitoring.bib_categorie_site.id_categorie"),
+        primary_key=True,
+    ), schema="gn_monitoring")
 
 @serializable
 class TMonitoringObservationDetails(DB.Model):
