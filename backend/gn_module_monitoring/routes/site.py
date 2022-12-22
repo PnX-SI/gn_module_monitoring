@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from flask import request
 from flask.json import jsonify
 from geonature.core.gn_monitoring.models import TBaseSites
@@ -7,8 +5,7 @@ from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import BibCategorieSite
-from gn_module_monitoring.utils.routes import (filter_params, get_limit_offset,
-                                               paginate)
+from gn_module_monitoring.utils.routes import filter_params, get_limit_offset, paginate
 
 
 @blueprint.route("/sites/categories", methods=["GET"])
@@ -18,7 +15,8 @@ def get_categories():
 
     query = filter_params(query=BibCategorieSite.query, params=params)
     query = query.order_by(BibCategorieSite.id_categorie)
-    return paginate(query=query, object_name="categories", limit=limit, page=page)
+
+    return paginate(query=query, object_name="categories", limit=limit, page=page, depth=1)
 
 
 @blueprint.route("/sites/categories/<int:id_categorie>", methods=["GET"])
