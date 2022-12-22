@@ -1,7 +1,7 @@
 import pytest
 from flask import url_for
 
-from gn_module_monitoring.tests.fixtures.site import categories, sites
+from gn_module_monitoring.tests.fixtures.site import categories, site_type, sites
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
@@ -20,13 +20,13 @@ class TestSite:
         r = self.client.get(url_for("monitorings.get_categories"))
 
         assert r.json["count"] >= len(categories)
-        assert all([cat.as_dict() in r.json["categories"] for cat in categories.values()])
+        assert all([cat.as_dict(depth=1) in r.json["categories"] for cat in categories.values()])
 
     def test_get_categories_label(self, categories):
         label = list(categories.keys())[0]
 
         r = self.client.get(url_for("monitorings.get_categories"), query_string={"label": label})
-        assert categories[label].as_dict() in r.json["categories"]
+        assert categories[label].as_dict(depth=1) in r.json["categories"]
 
     def test_get_sites(self, sites):
         r = self.client.get(url_for("monitorings.get_sites"))
