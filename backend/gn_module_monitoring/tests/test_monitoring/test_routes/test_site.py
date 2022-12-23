@@ -1,8 +1,6 @@
 import pytest
 from flask import url_for
 
-from gn_module_monitoring.tests.fixtures.site import categories, site_type, sites
-
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestSite:
