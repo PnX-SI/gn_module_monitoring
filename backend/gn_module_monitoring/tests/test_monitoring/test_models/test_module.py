@@ -2,8 +2,6 @@ import pytest
 from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.tests.fixtures.module import monitoring_module
-from gn_module_monitoring.tests.fixtures.site import categories, site_type
 
 
 @pytest.mark.usefixtures("temporary_transaction")
