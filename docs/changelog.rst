@@ -7,7 +7,7 @@ CHANGELOG
 
 **Corrections**
 
-* 
+* Correction du modèle Observation détail qui permet d'ajouter des informations sous le niveau observation
 
 0.4.0 (2022-12-21)
 ------------------

@@ -25,6 +25,7 @@ La configuration
 * ``group_site.json`` `(configuration des groupes de sites)`
 * ``visit.json`` `(configuration des visites)`
 * ``observation.json`` `(configuration des observations)`
+* ``observation_detail.json`` `(configuration des détails des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
 * ``synthese.sql`` `(vue pour la synchronisation avec la synthèse)` voir
 
@@ -63,9 +64,12 @@ Dans le fichier ``config.json`` :
         "tree": {
             "module": {
                 "site": {
-                "visit": {
-                    "observation": null
-                },
+                    "visit": {
+                        "observation": {
+                            "observation_detail": null
+                        },
+                    },
+                }
             }
         }
     }
@@ -554,7 +558,7 @@ Exemple de fichier :
 **Attention** : si une nomenclature de même ``type`` et ``cd_nomenclature`` existe déjà elle ne sera pas modifiée.
 
 -------------------------
-Configuration de la carte 
+Configuration de la carte
 -------------------------
 
 Il est possible d'afficher des popups sur la carte et de choisir la valeur à afficher.
@@ -577,8 +581,9 @@ Par défaut les valeurs définies du cruved sont :
 
 - `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
 - `site.json` : "cruved": {"C":1, "U":1, "D": 1},
-- `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
+- `visit.json` : "cruved": {"C":1, "U":1, "D": 1},
 - `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `observation_detail.json` : "cruved": {"C":1, "U":1, "D": 1},
 
 
 Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
