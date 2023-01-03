@@ -27,7 +27,7 @@ MonitoringModels_dict = {
     'site': TMonitoringSites,
     'visit': TMonitoringVisits,
     'observation': TMonitoringObservations,
-    'detail': TMonitoringObservationDetails,
+    'observation_detail': TMonitoringObservationDetails,
     'sites_group': TMonitoringSitesGroups
 }
 
