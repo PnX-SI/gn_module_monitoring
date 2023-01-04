@@ -22,9 +22,7 @@ class TestSite:
         r = self.client.get(url_for("monitorings.get_categories"))
 
         assert r.json["count"] >= len(categories)
-        assert all(
-            [schema.dump(cat) in r.json["items"] for cat in categories.values()]
-        )
+        assert all([schema.dump(cat) in r.json["items"] for cat in categories.values()])
 
     def test_get_categories_label(self, categories):
         label = list(categories.keys())[0]
@@ -46,6 +44,24 @@ class TestSite:
         r = self.client.get(url_for("monitorings.get_sites", limit=limit))
 
         assert len(r.json["items"]) == limit
+
+    def test_get_sites_base_site_name(self, sites):
+        site = list(sites.values())[0]
+        base_site_name = site.base_site_name
+
+        r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
+
+        assert len(r.json["items"]) == 1
+        assert r.json["items"][0]["base_site_name"] == base_site_name
+
+    def test_get_sites_id_base_site(self, sites):
+        site = list(sites.values())[0]
+        id_base_site = site.id_base_site
+
+        r = self.client.get(url_for("monitorings.get_sites", id_base_site=id_base_site))
+
+        assert len(r.json["items"]) == 1
+        assert r.json["items"][0]["id_base_site"] == id_base_site
 
     def test_get_module_sites(self):
         module_code = "TEST"
