@@ -155,7 +155,7 @@ class TMonitoringVisits(TBaseVisits):
     )
 
 
-@geoserializable
+@geoserializable(geoCol="geom", idCol="id_base_site")
 class TMonitoringSites(TBaseSites):
     __tablename__ = "t_site_complements"
     __table_args__ = {"schema": "gn_monitoring"}
@@ -167,10 +167,6 @@ class TMonitoringSites(TBaseSites):
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
     )
 
-    id_module = DB.Column(
-        DB.ForeignKey("gn_commons.t_modules.id_module"),
-        nullable=False,
-    )
 
     id_sites_group = DB.Column(
         DB.ForeignKey(
