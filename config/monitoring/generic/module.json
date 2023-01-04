@@ -132,7 +132,7 @@
 
     "categories": {
       "type_widget": "datalist",
-      "attribut_label": "Liste des catégories",
+      "attribut_label": "Catégories de sites",
       "type_util": "categorie",
       "keyValue": "id_categorie",
       "keyLabel": "label",
