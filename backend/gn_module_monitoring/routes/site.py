@@ -5,6 +5,7 @@ from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import BibCategorieSite
+from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema,BibCategorieSiteSchema
 from gn_module_monitoring.utils.routes import filter_params, get_limit_offset, paginate
 
 
@@ -16,15 +17,20 @@ def get_categories():
     query = filter_params(query=BibCategorieSite.query, params=params)
     query = query.order_by(BibCategorieSite.id_categorie)
 
-    return paginate(query=query, object_name="categories", limit=limit, page=page, depth=1)
+    return paginate(
+        query=query,
+        schema=BibCategorieSiteSchema,
+        limit=limit,
+        page=page,
+    )
 
 
 @blueprint.route("/sites/categories/<int:id_categorie>", methods=["GET"])
 def get_categories_by_id(id_categorie):
     query = BibCategorieSite.query.filter_by(id_categorie=id_categorie)
     res = query.first()
-
-    return jsonify(res.as_dict())
+    schema = BibCategorieSiteSchema()
+    return schema.dump(res)
 
 
 @blueprint.route("/sites", methods=["GET"])
@@ -36,7 +42,12 @@ def get_sites():
         BibCategorieSite, TBaseSites.id_categorie == BibCategorieSite.id_categorie
     )
     query = filter_params(query=query, params=params)
-    return paginate(query=query, object_name="sites", limit=limit, page=page)
+    return paginate(
+        query=query,
+        schema=MonitoringSitesSchema,
+        limit=limit,
+        page=page,
+    )
 
 
 @blueprint.route("/sites/module/<string:module_code>", methods=["GET"])
