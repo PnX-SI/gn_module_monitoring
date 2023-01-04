@@ -1,6 +1,8 @@
 import pytest
 from flask import url_for
 
+from gn_module_monitoring.monitoring.schemas import BibCategorieSiteSchema, MonitoringSitesSchema
+
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestSite:
@@ -15,22 +17,28 @@ class TestSite:
             assert r.json["label"] == cat.label
 
     def test_get_categories(self, categories):
+        schema = BibCategorieSiteSchema()
+
         r = self.client.get(url_for("monitorings.get_categories"))
 
         assert r.json["count"] >= len(categories)
-        assert all([cat.as_dict(depth=1) in r.json["categories"] for cat in categories.values()])
+        assert all(
+            [schema.dump(cat) in r.json["items"] for cat in categories.values()]
+        )
 
     def test_get_categories_label(self, categories):
         label = list(categories.keys())[0]
-
+        schema = BibCategorieSiteSchema()
         r = self.client.get(url_for("monitorings.get_categories"), query_string={"label": label})
-        assert categories[label].as_dict(depth=1) in r.json["categories"]
+        assert schema.dump(categories[label]) in r.json["items"]
 
     def test_get_sites(self, sites):
+        schema = MonitoringSitesSchema()
+
         r = self.client.get(url_for("monitorings.get_sites"))
 
         assert r.json["count"] >= len(sites)
-        assert any([site.as_dict() in r.json["sites"] for site in sites.values()])
+        assert any([schema.dump(site) in r.json["items"] for site in sites.values()])
 
     def test_get_module_sites(self):
         module_code = "TEST"
