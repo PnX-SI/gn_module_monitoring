@@ -40,6 +40,13 @@ class TestSite:
         assert r.json["count"] >= len(sites)
         assert any([schema.dump(site) in r.json["items"] for site in sites.values()])
 
+    def test_get_sites_limit(self, sites):
+        limit = 34
+
+        r = self.client.get(url_for("monitorings.get_sites", limit=limit))
+
+        assert len(r.json["items"]) == limit
+
     def test_get_module_sites(self):
         module_code = "TEST"
         r = self.client.get(url_for("monitorings.get_module_sites", module_code=module_code))
