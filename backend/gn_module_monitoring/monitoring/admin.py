@@ -1,9 +1,12 @@
 from flask_admin.contrib.sqla import ModelView
 from geonature.core.admin.admin import CruvedProtectedMixin
-from geonature.core.gn_commons.models import TNomenclatures
 from geonature.utils.env import DB
+from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring.monitoring.models import BibCategorieSite
+
+
+SITE_TYPE = "TYPE_SITE"
 
 
 class BibCategorieSiteView(CruvedProtectedMixin, ModelView):
@@ -21,7 +24,8 @@ class BibCategorieSiteView(CruvedProtectedMixin, ModelView):
     def get_only_type_site_asc():
         return (
             DB.session.query(TNomenclatures)
-            .filter(TNomenclatures.id_type == 116)
+            .join(TNomenclatures.nomenclature_type)
+            .filter(BibNomenclaturesTypes.mnemonique == SITE_TYPE)
             .order_by(TNomenclatures.label_fr.asc())
         )
 
