@@ -20,6 +20,8 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 
+from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
+
 cor_module_categorie = DB.Table(
     "cor_module_categorie",
     DB.Column(
@@ -162,6 +164,7 @@ class TMonitoringSites(TBaseSites):
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_site",
     }
+    query_class = MonitoringQuery
 
     id_base_site = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
@@ -215,8 +218,9 @@ class TMonitoringSites(TBaseSites):
 
 @serializable
 class TMonitoringSitesGroups(DB.Model):
-    __tablename__ = "t_sites_groups"
-    __table_args__ = {"schema": "gn_monitoring"}
+    __tablename__ = 't_sites_groups'
+    __table_args__ = {'schema': 'gn_monitoring'}
+    query_class = MonitoringQuery
 
     id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
 
