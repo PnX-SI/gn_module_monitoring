@@ -1,23 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
-import { MonitoringObject } from "../../class/monitoring-object";
-import { ConfigService } from "../../services/config.service";
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { CommonService } from "@geonature_common/service/common.service";
-import { MediaService } from "@geonature_common/service/media.service";
-import html2canvas from "html2canvas";
-import { MapService } from "@geonature_common/map/map.service";
-import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import {
-  FormGroup,
-  FormControl,
-  FormBuilder,
-  Validators,
-} from "@angular/forms";
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { ConfigService } from '../../services/config.service';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { CommonService } from '@geonature_common/service/common.service';
+import { MediaService } from '@geonature_common/service/media.service';
+import html2canvas from 'html2canvas';
+import { MapService } from '@geonature_common/map/map.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
-  selector: "pnx-monitoring-properties",
-  templateUrl: "./monitoring-properties.component.html",
-  styleUrls: ["./monitoring-properties.component.css"],
+  selector: 'pnx-monitoring-properties',
+  templateUrl: './monitoring-properties.component.html',
+  styleUrls: ['./monitoring-properties.component.css'],
 })
 export class MonitoringPropertiesComponent implements OnInit {
   @Input() obj: MonitoringObject;
@@ -56,14 +51,14 @@ export class MonitoringPropertiesComponent implements OnInit {
       () => {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
-          "success",
+          'success',
           `La syntèse à été mise à jour pour le module ${this.obj.moduleCode}`
         );
       },
       (err) => {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
-          "error",
+          'error',
           `Erreur lors de la mise à jour de la syntèse pour le module ${this.obj.moduleCode} - ${err.error.message}`
         );
       }
@@ -72,7 +67,7 @@ export class MonitoringPropertiesComponent implements OnInit {
   // add mje: show dowload modal
   openModalExportCsv(event, modal) {
     this.selectedDataSet = [];
-    this.modalReference = this.ngbModal.open(modal, { size: "lg" });
+    this.modalReference = this.ngbModal.open(modal, { size: 'lg' });
   }
 
   onDatasetChanged(id_dataset: any, i) {
@@ -91,26 +86,26 @@ export class MonitoringPropertiesComponent implements OnInit {
 
     try {
       var zoomInElement = document.querySelector(
-        "#monitoring-map-container .leaflet-control-zoom-in"
+        '#monitoring-map-container .leaflet-control-zoom-in'
       );
-      var snapshotElement = document.getElementById("geometry");
+      var snapshotElement = document.getElementById('geometry');
       var config = {
         allowTaint: true,
         useCORS: true,
         ignoreElements: function (element) {
           return (
-            element.classList[0] == "leaflet-control-zoom-in" ||
-            element.classList[0] == "leaflet-control-zoom-out" ||
-            element.classList[0] == "leaflet-control-layers-toggle" ||
-            element.title == "A JS library for interactive maps" ||
-            element.placeholder == "Rechercher un lieu"
+            element.classList[0] == 'leaflet-control-zoom-in' ||
+            element.classList[0] == 'leaflet-control-zoom-out' ||
+            element.classList[0] == 'leaflet-control-layers-toggle' ||
+            element.title == 'A JS library for interactive maps' ||
+            element.placeholder == 'Rechercher un lieu'
           );
         },
         logging: false,
       };
 
       html2canvas(snapshotElement, config).then(function (canvas) {
-        var imgData = canvas.toDataURL("image/png");
+        var imgData = canvas.toDataURL('image/png');
         const extra_data = {
           resolved_properties: $this.obj.resolvedProperties,
         };
@@ -125,16 +120,13 @@ export class MonitoringPropertiesComponent implements OnInit {
           )
           .subscribe(() => {
             $this._commonService.regularToaster(
-              "success",
+              'success',
               "L'export pdf est prêt à être récupéré dans le dossier de Téléchargement"
             );
           });
       });
     } catch {
-      $this._commonService.regularToaster(
-        "error",
-        "Une erreur est survenue durant l'export pdf"
-      );
+      $this._commonService.regularToaster('error', "Une erreur est survenue durant l'export pdf");
     }
   }
 }
