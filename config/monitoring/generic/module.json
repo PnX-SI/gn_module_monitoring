@@ -140,7 +140,7 @@
       "api" : "__MONITORINGS_PATH/sites/categories",
       "application": "GeoNature",
       "required": true,
-      "data_path": "categories",
+      "data_path": "items",
       "definition": "Permet de paramétrer la compatibilité de ce module avec les catégories de sites"
     },
     
