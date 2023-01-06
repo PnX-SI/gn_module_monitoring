@@ -80,7 +80,7 @@ export class MonitoringPropertiesComponent implements OnInit {
     this.selectedDataSet[i] = id_dataset;
   }
 
-  getExportCsv(exportDef: any, jd: bigint) {
+  getExportCsv(exportDef: any, jd: number) {
     const queryParams = jd != null ? { id_dataset: jd } : {};
     this._dataService.getExportCsv(
       this.obj.moduleCode,
