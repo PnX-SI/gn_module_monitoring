@@ -5,9 +5,24 @@ CHANGELOG
 0.4.1 (unreleased)
 ------------------
 
+**Evolutions**
+
+* Configuration des exports pour rendre optionel la selection du jeux de données
+
 **Corrections**
 
 * Correction du modèle Observation détail qui permet d'ajouter des informations sous le niveau observation
+
+**⚠️ Notes de version**
+
+Si vous souhaitez que les exports soient liés aux jeux de données il faut rajouter un paramètre au niveau de la configuration des modules.
+
+::
+
+    "export_csv": [
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" , "filter_dataset": true},
+        { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
+    ],
 
 0.4.0 (2022-12-21)
 ------------------
