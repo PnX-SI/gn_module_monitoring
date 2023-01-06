@@ -12,6 +12,7 @@ CHANGELOG
 **Corrections**
 
 * Correction du modèle Observation détail qui permet d'ajouter des informations sous le niveau observation
+* Amélioration des performances du chargement des observations (#142)
 
 **⚠️ Notes de version**
 
