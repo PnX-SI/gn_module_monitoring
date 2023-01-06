@@ -16,7 +16,7 @@ export class DataMonitoringObjectService {
     private _cacheService: CacheService,
     private _http: HttpClient,
     private _config: ConfigService
-  ) { }
+  ) {}
 
   /** Modules */
 
@@ -129,13 +129,22 @@ export class DataMonitoringObjectService {
     const url = `synthese/${moduleCode}`;
     return this._cacheService.request("post", url);
   }
-  //add mje
-  getExportCsv(moduleCode, type, method, jd) {
-    let url = `exports/csv/${moduleCode}/${type}/${method}`;
-    if (jd !== undefined) {
-      url = `${url}/${jd}`
-    }
-    this._cacheService.requestExport("get", url);
+
+  /**
+   * Export csv
+   *
+   *  moduleCode : code du module
+   *  method : nom de l'export
+   **/
+
+  getExportCsv(moduleCode: string, method: string, queryParams: {}) {
+    const url = `exports/csv/${moduleCode}/${method}`;
+    const params = {
+      postData: {},
+      queryParams: queryParams,
+    };
+
+    this._cacheService.requestExport("get", url, params);
   }
 
   /**

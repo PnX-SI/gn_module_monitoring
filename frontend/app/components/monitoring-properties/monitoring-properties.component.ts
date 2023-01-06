@@ -80,8 +80,13 @@ export class MonitoringPropertiesComponent implements OnInit {
     this.selectedDataSet[i] = id_dataset;
   }
 
-  getExportCsv(type, method, jd) {
-    this._dataService.getExportCsv(this.obj.moduleCode, type, method, jd);
+  getExportCsv(exportDef: any, jd: bigint) {
+    const queryParams = jd != null ? { id_dataset: jd } : {};
+    this._dataService.getExportCsv(
+      this.obj.moduleCode,
+      exportDef.method,
+      queryParams
+    );
   }
 
   //mje: generate PDF export

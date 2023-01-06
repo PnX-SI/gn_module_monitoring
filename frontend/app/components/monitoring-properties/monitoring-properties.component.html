@@ -158,19 +158,19 @@
           (onChange)="onDatasetChanged($event, i)"
         >
         </pnx-datasets>
-          
+
         </mat-card-content>
         <mat-card-actions align="end">
             <button
-            (click)="getExportCsv(obj.template['export_csv'][i].type,obj.template['export_csv'][i].method,this.selectedDataSet[i])"
+            (click)="getExportCsv(obj.template['export_csv'][i], this.selectedDataSet[i])"
             type="button" class="btn btn-success" matTooltip="Télécharger"
-            [disabled]="!selectedDataSet[i] && obj.template['export_csv'][i].filter_dataset"
+            [disabled]="obj.template['export_csv'][i].filter_dataset && !selectedDataSet[i]"
             >
             Téléchargement
           </button>
         </mat-card-actions>
     </mat-card>
-      
+
     </div>
   </div>
 </ng-template>
