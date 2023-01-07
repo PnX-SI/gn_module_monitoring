@@ -7,16 +7,16 @@ CHANGELOG
 
 **Evolutions**
 
-* Configuration des exports pour rendre optionel la selection du jeux de données
+* Configuration des exports pour rendre optionnel la sélection du jeu de données (#158)
 
 **Corrections**
 
-* Correction du modèle Observation détail qui permet d'ajouter des informations sous le niveau observation
 * Amélioration des performances du chargement des observations (#142)
+* Correction du modèle "Observation détail" qui permet d'ajouter des informations sous le niveau observation
 
 **⚠️ Notes de version**
 
-Si vous souhaitez que les exports soient liés aux jeux de données il faut rajouter un paramètre au niveau de la configuration des modules.
+Si vous souhaitez que les exports soient liés aux jeux de données, il faut rajouter un paramètre au niveau de la configuration des modules.
 
 ::
 
