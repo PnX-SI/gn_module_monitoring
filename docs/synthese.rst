@@ -45,9 +45,10 @@ Mettre à jour la synthèse après une intégration massive de données
 
 Deux options:
 
-- `SQL` : exécuter la commande: 
-```
-SELECT SELECT gn_synthese.import_row_from_table('id_module', '<id_du module>', 'gn_monitoring.<nom de la vue>')
-```
+- `SQL` : exécuter la commande :
+
+  ::
+    
+    SELECT SELECT gn_synthese.import_row_from_table('id_module', '<id_du module>', 'gn_monitoring.<nom de la vue>')
 
 - `frontend` : sur la page du module (en mode admin), appuyer sur le boutton `mettre à jour la synthèse`
