@@ -7,7 +7,7 @@ CHANGELOG
 
 **Evolutions**
 
-* Configuration des exports pour rendre optionnel la sélection du jeu de données (#158)
+* Configuration des exports pour rendre optionnel la sélection du jeu de données avec le nouveau paramètre ``filter_dataset`` (#158)
 
 **Corrections**
 
@@ -16,7 +16,7 @@ CHANGELOG
 
 **⚠️ Notes de version**
 
-Si vous souhaitez que les exports soient liés aux jeux de données, il faut rajouter un paramètre au niveau de la configuration des modules.
+Si vous souhaitez que les exports soient filtrables par jeux de données, il faut rajouter le nouveau paramètre ``filter_dataset`` dans la variable ``export_csv``, défini à ``true`` au niveau de la configuration des modules concernés (dans leur fichier ``module.json``). Exemple :
 
 ::
 
