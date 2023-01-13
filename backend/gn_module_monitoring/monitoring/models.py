@@ -19,11 +19,10 @@ from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
-
 from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
 
-cor_module_categorie = DB.Table(
-    "cor_module_categorie",
+cor_module_type = DB.Table(
+    "cor_module_type",
     DB.Column(
         "id_module",
         DB.Integer,
@@ -31,42 +30,43 @@ cor_module_categorie = DB.Table(
         primary_key=True,
     ),
         DB.Column(
-        "id_categorie",
+        "id_type_site",
         DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_categorie_site.id_categorie"),
+        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature"),
         primary_key=True,
     ), schema="gn_monitoring")
 
-cor_site_type_categorie = DB.Table(
-    "cor_site_type_categorie",
+cor_type_site = DB.Table(
+    "cor_type_site",
     DB.Column(
-        "id_nomenclature",
+        "id_base_site",
         DB.Integer,
-        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
+        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"),
         primary_key=True,
     ),
         DB.Column(
-        "id_categorie",
+        "id_type_site",
         DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_categorie_site.id_categorie"),
+        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature"),
         primary_key=True,
     ), schema="gn_monitoring")
 
+
 @serializable
-class BibCategorieSite(DB.Model):
-    __tablename__ = "bib_categorie_site"
+class BibTypeSite(DB.Model):
+    __tablename__ = "bib_type_site"
     __table_args__ = {"schema": "gn_monitoring"}
     query_class = MonitoringQuery
     
-    id_categorie = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
-    label = DB.Column(DB.String, nullable=False)
+    id_nomenclature = DB.Column(DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"), 
+                                nullable=False,
+                                primary_key=True)
     config = DB.Column(JSONB)
-    site_type = DB.relationship(
-        "TNomenclatures",
-        secondary=cor_site_type_categorie,
-        lazy="joined",
+    nomenclature = DB.relationship(
+        TNomenclatures,
+        uselist=False,
+        backref=DB.backref('bib_type_site', uselist=False)
     )
-
   
 @serializable
 class TMonitoringObservationDetails(DB.Model):
@@ -240,6 +240,11 @@ class TMonitoringSites(TBaseSites):
             where(TBaseSites.id_base_site==id_base_site).\
                 correlate_except(TBaseSites)
     )
+    types_site = DB.relationship(
+        "BibTypeSite",
+        secondary=cor_type_site,
+        lazy="joined"
+    )
 
 @serializable
 class TMonitoringSitesGroups(DB.Model):
@@ -351,9 +356,9 @@ class TMonitoringModules(TModules):
         lazy="joined",
     )
 
-    categories = DB.relationship(
-        "BibCategorieSite",
-        secondary=cor_module_categorie,
+    types_site = DB.relationship(
+        "BibTypeSite",
+        secondary=cor_module_type,
         lazy="joined"
     )
 
