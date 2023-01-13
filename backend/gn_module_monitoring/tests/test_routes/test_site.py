@@ -1,34 +1,28 @@
 import pytest
 from flask import url_for
 
-from gn_module_monitoring.monitoring.schemas import BibCategorieSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestSite:
-    def test_get_categories_by_id(self, categories):
-        for cat in categories.values():
+    def test_get_type_site_by_id(self, types_site):
+        for type_site in types_site.values():
             r = self.client.get(
                 url_for(
-                    "monitorings.get_categories_by_id",
-                    id_categorie=cat.id_categorie,
+                    "monitorings.get_type_site_by_id",
+                    id_type_site=type_site.id_nomenclature,
                 )
             )
-            assert r.json["label"] == cat.label
+            assert r.json["id_nomenclature"] == type_site.id_nomenclature
 
-    def test_get_categories(self, categories):
-        schema = BibCategorieSiteSchema()
+    def test_get_types_site(self, types_site):
+        schema = BibTypeSiteSchema()
 
-        r = self.client.get(url_for("monitorings.get_categories"))
+        r = self.client.get(url_for("monitorings.get_types_site"))
 
-        assert r.json["count"] >= len(categories)
-        assert all([schema.dump(cat) in r.json["items"] for cat in categories.values()])
-
-    def test_get_categories_label(self, categories):
-        label = list(categories.keys())[0]
-        schema = BibCategorieSiteSchema()
-        r = self.client.get(url_for("monitorings.get_categories"), query_string={"label": label})
-        assert schema.dump(categories[label]) in r.json["items"]
+        assert r.json["count"] >= len(types_site)
+        assert all([schema.dump(cat) in r.json["items"] for cat in types_site.values()])
 
     def test_get_sites(self, sites):
         schema = MonitoringSitesSchema()
