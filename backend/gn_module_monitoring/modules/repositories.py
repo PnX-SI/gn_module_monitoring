@@ -4,6 +4,7 @@
     get_modules
 """
 
+from sqlalchemy.orm import Load
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
