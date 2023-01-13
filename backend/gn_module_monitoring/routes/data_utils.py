@@ -32,7 +32,7 @@ from geonature.utils.errors import GeoNatureError
 from ..blueprint import blueprint
 
 from ..config.repositories import get_config
-from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringSites, BibCategorieSite
+from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringSites, BibTypeSite
 
 model_dict = {
     "habitat": Habref,
@@ -40,7 +40,7 @@ model_dict = {
     "user": User,
     "taxonomy": Taxref,
     "dataset": TDatasets,
-    "categorie": BibCategorieSite,
+    "types_site": BibTypeSite,
     "observer_list": UserList,
     "taxonomy_list": BibListes,
     "sites_group": TMonitoringSitesGroups,
