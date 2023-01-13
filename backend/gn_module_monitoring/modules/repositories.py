@@ -4,6 +4,7 @@
     get_modules
 """
 
+from sqlalchemy.orm import Load
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
@@ -87,7 +88,12 @@ def get_modules():
 
     try:
         res = (
-            DB.session.query(TMonitoringModules).order_by(TMonitoringModules.module_label)
+            DB.session.query(TMonitoringModules)
+            .options(
+                # Raise load not to load any relationship
+                Load(TMonitoringModules).raiseload("*")
+            )
+            .order_by(TMonitoringModules.module_label)
             .all()
         )
 
