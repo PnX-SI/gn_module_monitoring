@@ -22,7 +22,7 @@ def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
     result = query.paginate(page=page, error_out=False, per_page=limit)
     pagination_schema = paginate_schema(schema)
     data = pagination_schema().dump(
-        dict(items=result.items, count=result.total, limit=limit, offset=page - 1)
+        dict(items=result.items, count=result.total, limit=limit, offset=page)
     )
     return jsonify(data)
 
