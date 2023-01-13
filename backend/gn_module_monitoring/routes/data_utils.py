@@ -3,6 +3,7 @@
         d'utilisateurs
         de nomenclature
         de taxonomie
+
         TODO cache
 """
 
@@ -115,6 +116,7 @@ def get_util_nomenclature_api(code_nomenclature_type, cd_nomenclature):
     revoie un champ d'un object de type nomenclature
         à partir de son type  et de son cd_nomenclature
     renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
+
     :param code_nomenclature_type:
     :param cd_nomenclature:
     :return object entier si field_name = all, la valeur du champs defini par field_name sinon
@@ -164,6 +166,7 @@ def get_util_from_id_api(type_util, id):
     """
     revoie un champ d'un object de type nomenclature, taxonomy, utilisateur, ...
     renvoie l'objet entier si field_name renseigné en paramètre de route est 'all'
+
     :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur' | etc....
     :param id: id de l'object requis
     :type type_util: str
@@ -207,6 +210,7 @@ def get_util_from_ids_api(type_util, ids):
     """
     variante de get_util_from_id_api pour plusieurs id
     renvoie un tableau de valeur (ou de dictionnaire si key est 'all')
+
     parametre get
         key: all renvoie tout l'objet
             sinon renvoie un champ
@@ -214,11 +218,13 @@ def get_util_from_ids_api(type_util, ids):
             pour reformer une chaine de caractere a partir du tableau résultat de la requete
             si separator_out == ' ,'
             alors ['jean', 'pierre', 'paul'].join(separator_out) -> 'jean, pierre, paul'
+
     :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur'
     :param ids: plusieurs id reliée par des '-' (ex: 1-123-3-4)
     :type type_util: str
     :type ids: str
     :return list si key=all ou chaine de caratere
+
     """
 
     field_name = request.args.get("field_name", "all")
