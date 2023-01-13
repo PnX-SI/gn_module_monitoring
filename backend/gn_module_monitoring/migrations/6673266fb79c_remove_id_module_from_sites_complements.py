@@ -1,7 +1,7 @@
 """remove_id_module_from_sites_complements
 
 Revision ID: 6673266fb79c
-Revises: 
+Revises: a54bafb13ce8
 Create Date: 2022-12-13 16:00:00.512562
 
 """
@@ -12,7 +12,7 @@ from gn_module_monitoring import MODULE_CODE
 
 # revision identifiers, used by Alembic.
 revision = "6673266fb79c"
-down_revision = "e64bafb13ce8"
+down_revision = "a54bafb13ce8"
 branch_labels = None
 depends_on = None
 
