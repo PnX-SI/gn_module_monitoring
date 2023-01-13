@@ -6,7 +6,7 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from pypnnomenclature.schemas import NomenclatureSchema
 
 from gn_module_monitoring.monitoring.models import (
-    BibCategorieSite,
+    BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
 )
@@ -46,12 +46,15 @@ class MonitoringSitesSchema(SQLAlchemyAutoSchema):
             return geojson.dumps(obj.as_geofeature().get("geometry"))
 
 
-class BibCategorieSiteSchema(SQLAlchemyAutoSchema):
-    site_type = fields.Nested(
-        NomenclatureSchema(only=("id_nomenclature", "label_fr")), many=True, dump_only=True
-    )
+class BibTypeSiteSchema(SQLAlchemyAutoSchema):
+    label = fields.Method("get_label_from_type_site")
+    # See if useful in the future:
+    # type_site = fields.Nested(NomenclatureSchema(only=("label_fr",)), dump_only=True)
+
+    def get_label_from_type_site(self, obj):
+        return obj.nomenclature.label_fr
 
     class Meta:
-        model = BibCategorieSite
+        model = BibTypeSite
         include_fk = True
         load_instance = True
