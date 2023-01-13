@@ -25,8 +25,8 @@ def upgrade():
             "id_type_site",
             sa.Integer(),
             sa.ForeignKey(
-                f"{monitorings_schema}.bib_type_site.id_nomenclature_type_site",
-                name="fk_cor_module_type_id_nomenclature_type_site",
+                f"{monitorings_schema}.bib_type_site.id_nomenclature",
+                name="fk_cor_module_type_id_nomenclature",
                 ondelete="CASCADE",
                 onupdate="CASCADE",
             ),
@@ -44,11 +44,6 @@ def upgrade():
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id_type_site", "id_module", name="pk_cor_module_type"),
-        schema=monitorings_schema,
-    )
-    op.create_table_comment(
-        "cor_module_type",
-        "Table d'association des types de sites potentiellement associés à un module",
         schema=monitorings_schema,
     )
 
