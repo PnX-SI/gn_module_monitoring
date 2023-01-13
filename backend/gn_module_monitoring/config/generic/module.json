@@ -122,18 +122,18 @@
       "definition": "Afficher le module dans le menu de GeoNature. (Recharger la page pour voir les modifications)."
     },
 
-    "categories": {
+    "types_site": {
       "type_widget": "datalist",
-      "attribut_label": "Catégories de sites",
-      "type_util": "categorie",
-      "keyValue": "id_categorie",
+      "attribut_label": "Types de sites",
+      "type_util": "types_site",
+      "keyValue": "id_nomenclature",
       "keyLabel": "label",
       "multiple": true,
-      "api" : "__MONITORINGS_PATH/sites/categories",
+      "api" : "__MONITORINGS_PATH/sites/types",
       "application": "GeoNature",
       "required": true,
       "data_path": "items",
-      "definition": "Permet de paramétrer la compatibilité de ce module avec les catégories de sites"
+      "definition": "Permet de paramétrer la compatibilité de ce module avec les types de sites"
     },
     
     "medias": {
