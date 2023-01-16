@@ -17,8 +17,6 @@ depends_on = None
 monitorings_schema = "gn_monitoring"
 nomenclature_schema = "ref_nomenclatures"
 
-TYPE_SITE = "TYPE_SITE"
-
 
 def upgrade():
     op.create_table(
@@ -38,34 +36,13 @@ def upgrade():
         schema=monitorings_schema,
     )
 
-    statement = sa.text(
-        f"""
-        CREATE OR REPLACE FUNCTION {monitorings_schema}.ck_bib_type_site_id_nomenclature()
-        RETURNS trigger
-        LANGUAGE plpgsql
-        AS $function$
-        BEGIN
-                perform {nomenclature_schema}.check_nomenclature_type_by_mnemonique(NEW.id_nomenclature, :mnemonique );
-                RETURN NEW;
-        END;
-        $function$
-        ;
-        DROP TRIGGER IF EXISTS ck_bib_type_site_id_nomenclature on gn_monitoring.bib_type_site;
-        CREATE TRIGGER ck_bib_type_site_id_nomenclature BEFORE
-        INSERT
-            OR
-        UPDATE ON {monitorings_schema}.bib_type_site FOR EACH ROW EXECUTE PROCEDURE {monitorings_schema}.ck_bib_type_site_id_nomenclature();
-        """
-    ).bindparams(mnemonique=TYPE_SITE)
-    op.execute(statement)
+    op.create_check_constraint(
+        "ck_bib_type_site_id_nomenclature",
+        "bib_type_site",
+        f"{nomenclature_schema}.check_nomenclature_type_by_mnemonique(id_nomenclature,'TYPE_SITE')",
+        schema=monitorings_schema,
+    )
 
 
 def downgrade():
-
     op.drop_table("bib_type_site", schema=monitorings_schema)
-    statement = sa.text(
-        f"""
-        DROP FUNCTION IF EXISTS {monitorings_schema}.ck_bib_type_site_id_nomenclature;
-        """
-    )
-    op.execute(statement)
