@@ -1,5 +1,5 @@
 from flask_sqlalchemy import BaseQuery
-from sqlalchemy import Integer, and_
+from sqlalchemy import Unicode, and_
 from werkzeug.datastructures import MultiDict
 
 
@@ -21,10 +21,10 @@ class Query(BaseQuery):
         and_list = []
         for key, value in params.items():
             column = getattr(model, key)
-            if isinstance(column.type, Integer):
-                and_list.append(column == value)
-            else:
+            if isinstance(column.type, Unicode):
                 and_list.append(column.ilike(f"%{value}%"))
+            else:
+                and_list.append(column == value)
         and_query = and_(*and_list)
         return self.filter(and_query)
 
