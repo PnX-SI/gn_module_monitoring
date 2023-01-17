@@ -36,12 +36,26 @@ def upgrade():
         schema=monitorings_schema,
     )
 
-    op.create_check_constraint(
-        "ck_bib_type_site_id_nomenclature",
-        "bib_type_site",
-        f"{nomenclature_schema}.check_nomenclature_type_by_mnemonique(id_nomenclature,'TYPE_SITE')",
-        schema=monitorings_schema,
+    # FIXME: if sqlalchemy >= 1.4.32, it should work with postgresql_not_valid=True: cleaner
+    # op.create_check_constraint(
+    #     "ck_bib_type_site_id_nomenclature",
+    #     "bib_type_site",
+    #     f"{nomenclature_schema}.check_nomenclature_type_by_mnemonique(id_nomenclature,'TYPE_SITE')",
+    #     schema=monitorings_schema,
+    #     postgresql_not_valid=True
+    # )
+    statement = sa.text(
+        f"""
+        ALTER TABLE {monitorings_schema}.bib_type_site 
+        ADD
+          CONSTRAINT ck_bib_type_site_id_nomenclature CHECK (
+            {nomenclature_schema}.check_nomenclature_type_by_mnemonique(
+              id_nomenclature, 'TYPE_SITE' :: character varying
+            )
+          ) NOT VALID
+        """
     )
+    op.execute(statement)
 
 
 def downgrade():
