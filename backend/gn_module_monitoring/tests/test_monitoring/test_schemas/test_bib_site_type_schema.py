@@ -11,4 +11,4 @@ class TestBibSiteTypeSchema:
         schema = BibTypeSiteSchema()
         type_site = schema.dump(one_type_site)
 
-        assert type_site["id_nomenclature"] == one_type_site.id_nomenclature
+        assert type_site["id_nomenclature_type_site"] == one_type_site.id_nomenclature_type_site

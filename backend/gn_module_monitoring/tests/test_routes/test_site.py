@@ -11,10 +11,10 @@ class TestSite:
             r = self.client.get(
                 url_for(
                     "monitorings.get_type_site_by_id",
-                    id_type_site=type_site.id_nomenclature,
+                    id_type_site=type_site.id_nomenclature_type_site,
                 )
             )
-            assert r.json["id_nomenclature"] == type_site.id_nomenclature
+            assert r.json["id_nomenclature_type_site"] == type_site.id_nomenclature_type_site
 
     def test_get_types_site(self, types_site):
         schema = BibTypeSiteSchema()
