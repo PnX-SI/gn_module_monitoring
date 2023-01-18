@@ -16,7 +16,7 @@ def paginate_schema(schema):
     class PaginationSchema(Schema):
         count = fields.Integer()
         limit = fields.Integer()
-        offset = fields.Integer()
+        page = fields.Integer()
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
