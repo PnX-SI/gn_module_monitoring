@@ -24,8 +24,8 @@ def upgrade():
             "id_type_site",
             sa.Integer(),
             sa.ForeignKey(
-                f"{monitorings_schema}.bib_type_site.id_nomenclature",
-                name="fk_cor_type_site_id_nomenclature",
+                f"{monitorings_schema}.bib_type_site.id_nomenclature_type_site",
+                name="fk_cor_type_site_id_nomenclature_type_site",
                 ondelete="CASCADE",
                 onupdate="CASCADE",
             ),
