@@ -19,7 +19,7 @@ def sites(users, types_site, sites_groups):
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
             geom=geom_4326,
-            id_nomenclature_type_site=types_site[key].id_nomenclature,
+            id_nomenclature_type_site=types_site[key].id_nomenclature_type_site,
             types_site=[types_site[key]],
             id_sites_group=sites_groups["Site_Groupe"].id_sites_group,
         )

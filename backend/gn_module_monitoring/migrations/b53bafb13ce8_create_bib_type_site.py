@@ -22,25 +22,25 @@ def upgrade():
     op.create_table(
         "bib_type_site",
         sa.Column(
-            "id_nomenclature",
+            "id_nomenclature_type_site",
             sa.Integer(),
             sa.ForeignKey(
                 f"{nomenclature_schema}.t_nomenclatures.id_nomenclature",
-                name="fk_t_nomenclatures_id_nomenclature",
+                name="fk_t_nomenclatures_id_nomenclature_type_site",
             ),
             nullable=False,
             unique=True,
         ),
-        sa.PrimaryKeyConstraint("id_nomenclature"),
+        sa.PrimaryKeyConstraint("id_nomenclature_type_site"),
         sa.Column("config", sa.JSON(), nullable=True),
         schema=monitorings_schema,
     )
 
     # FIXME: if sqlalchemy >= 1.4.32, it should work with postgresql_not_valid=True: cleaner
     # op.create_check_constraint(
-    #     "ck_bib_type_site_id_nomenclature",
+    #     "ck_bib_type_site_id_nomenclature_type_site",
     #     "bib_type_site",
-    #     f"{nomenclature_schema}.check_nomenclature_type_by_mnemonique(id_nomenclature,'TYPE_SITE')",
+    #     f"{nomenclature_schema}.check_nomenclature_type_by_mnemonique(id_nomenclature_type_site,'TYPE_SITE')",
     #     schema=monitorings_schema,
     #     postgresql_not_valid=True
     # )
@@ -48,9 +48,9 @@ def upgrade():
         f"""
         ALTER TABLE {monitorings_schema}.bib_type_site 
         ADD
-          CONSTRAINT ck_bib_type_site_id_nomenclature CHECK (
+          CONSTRAINT ck_bib_type_site_id_nomenclature_type_site CHECK (
             {nomenclature_schema}.check_nomenclature_type_by_mnemonique(
-              id_nomenclature, 'TYPE_SITE' :: character varying
+              id_nomenclature_type_site, 'TYPE_SITE' :: character varying
             )
           ) NOT VALID
         """
