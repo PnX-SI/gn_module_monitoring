@@ -10,8 +10,8 @@ from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
 from gn_module_monitoring.monitoring.schemas import paginate_schema
 
 
-def get_limit_offset(params: MultiDict) -> Tuple[int]:
-    return int(params.pop("limit", 50)), int(params.pop("offset", 1))
+def get_limit_page(params: MultiDict) -> Tuple[int]:
+    return int(params.pop("limit", 50)), int(params.pop("page", 1))
 
 
 def get_sort(params: MultiDict, default_sort: str, default_direction) -> Tuple[str]:
@@ -22,7 +22,7 @@ def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
     result = query.paginate(page=page, error_out=False, per_page=limit)
     pagination_schema = paginate_schema(schema)
     data = pagination_schema().dump(
-        dict(items=result.items, count=result.total, limit=limit, offset=page)
+        dict(items=result.items, count=result.total, limit=limit, page=page)
     )
     return jsonify(data)
 
