@@ -32,7 +32,7 @@ cor_module_type = DB.Table(
         DB.Column(
         "id_type_site",
         DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature"),
+        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
         primary_key=True,
     ), schema="gn_monitoring")
 
@@ -47,7 +47,7 @@ cor_type_site = DB.Table(
         DB.Column(
         "id_type_site",
         DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature"),
+        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
         primary_key=True,
     ), schema="gn_monitoring")
 
@@ -58,7 +58,7 @@ class BibTypeSite(DB.Model):
     __table_args__ = {"schema": "gn_monitoring"}
     query_class = MonitoringQuery
     
-    id_nomenclature = DB.Column(DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"), 
+    id_nomenclature_type_site = DB.Column(DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"), 
                                 nullable=False,
                                 primary_key=True)
     config = DB.Column(JSONB)

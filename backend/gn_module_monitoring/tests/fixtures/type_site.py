@@ -31,7 +31,7 @@ def nomenclature_types_site():
 def types_site(nomenclature_types_site):
     types_site = {
         nomenc_type_site.mnemonique: BibTypeSite(
-            id_nomenclature=nomenc_type_site.id_nomenclature, config={}
+            id_nomenclature_type_site=nomenc_type_site.id_nomenclature, config={}
         )
         for nomenc_type_site in nomenclature_types_site
     }

@@ -11,18 +11,22 @@ SITE_TYPE = "TYPE_SITE"
 
 
 class Unique:
-    """ validator that checks field uniqueness """
-    def __init__(self, model, field, message=None):
+    """validator that checks field uniqueness"""
+
+    def __init__(self, model, field, compare_field, message=None):
         self.model = model
         self.field = field
+        self.compare_field = compare_field
         if not message:
-            message = u'A type is already created with this nomenclature'
+            message = "A type is already created with this nomenclature"
         self.message = message
 
     def __call__(self, form, field):
         if field.object_data == field.data:
             return
-        if self.model.query.filter(getattr(self.model, self.field) == getattr(field.data, self.field)).first():
+        if self.model.query.filter(
+            getattr(self.model, self.field) == getattr(field.data, self.compare_field)
+        ).first():
             raise ValidationError(self.message)
 
 
@@ -60,9 +64,12 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
     column_hide_backrefs = False
 
     form_args = dict(
-        nomenclature=dict(query_factory=get_only_nomenclature_asc, get_label=get_label_fr_nomenclature,
-        validators=[Unique(BibTypeSite, "id_nomenclature")])
+        nomenclature=dict(
+            query_factory=get_only_nomenclature_asc,
+            get_label=get_label_fr_nomenclature,
+            validators=[Unique(BibTypeSite, "id_nomenclature_type_site", "id_nomenclature")],
+        )
     )
 
-    column_list = ("nomenclature","config")
+    column_list = ("nomenclature", "config")
     column_formatters = dict(nomenclature=list_label_nomenclature_formatter)
