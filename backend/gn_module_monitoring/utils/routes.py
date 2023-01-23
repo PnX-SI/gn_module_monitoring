@@ -2,7 +2,10 @@ from typing import Tuple
 
 from flask import Response
 from flask.json import jsonify
+from geonature.utils.env import DB
 from marshmallow import Schema
+from sqlalchemy import cast, func, text
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Query
 from werkzeug.datastructures import MultiDict
 
@@ -37,3 +40,20 @@ def sort(query: MonitoringQuery, sort: str, sort_dir: str) -> MonitoringQuery:
     if sort_dir in ["desc", "asc"]:
         query = query.sort(label=sort, direction=sort_dir)
     return query
+
+
+def geojson_query(subquery) -> bytes:
+    subquery_name = "q"
+    subquery = subquery.alias(subquery_name)
+    query = DB.session.query(
+        func.json_build_object(
+            text("'type'"),
+            text("'FeatureCollection'"),
+            text("'features'"),
+            func.json_agg(cast(func.st_asgeojson(subquery), JSON)),
+        )
+    )
+    result = query.first()
+    if len(result) > 0:
+        return result[0]
+    return b""
