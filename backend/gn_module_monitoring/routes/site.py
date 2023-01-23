@@ -4,14 +4,15 @@ from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import BibTypeSite, TMonitoringSites
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.utils.routes import (
     filter_params,
+    geojson_query,
     get_limit_page,
     get_sort,
     paginate,
     sort,
 )
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema,BibTypeSiteSchema
 
 
 @blueprint.route("/sites/types", methods=["GET"])
@@ -58,6 +59,25 @@ def get_sites():
         limit=limit,
         page=page,
     )
+
+
+@blueprint.route("/sites/geometries", methods=["GET"])
+def get_all_site_geometries():
+    params = MultiDict(request.args)
+    subquery = (
+        TMonitoringSites.query.with_entities(
+            TMonitoringSites.id_base_site,
+            TMonitoringSites.base_site_name,
+            TMonitoringSites.geom,
+            TMonitoringSites.id_sites_group,
+        )
+        .filter_by_params(params)
+        .subquery()
+    )
+
+    result = geojson_query(subquery)
+
+    return jsonify(result)
 
 
 @blueprint.route("/sites/module/<string:module_code>", methods=["GET"])
