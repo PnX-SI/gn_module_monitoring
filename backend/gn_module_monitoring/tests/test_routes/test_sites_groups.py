@@ -39,3 +39,18 @@ class TestSitesGroups:
         ).all()
         schema = MonitoringSitesGroupsSchema()
         assert [schema.dump(site) for site in groups]
+
+    def test_get_sites_groups_geometries(self, sites, site_group_with_sites):
+        r = self.client.get(url_for("monitorings.get_sites_group_geometries"))
+
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.content_type == "application/json"
+        assert json_resp.get("type") == "FeatureCollection"
+        assert len(features) >= 1
+        id_ = [
+            obj["properties"]
+            for obj in features
+            if obj["properties"]["sites_group_name"] == site_group_with_sites.sites_group_name
+        ][0]["id_sites_group"]
+        assert id_ == site_group_with_sites.id_sites_group

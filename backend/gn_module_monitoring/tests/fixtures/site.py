@@ -7,7 +7,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringSites
 
 
 @pytest.fixture()
-def sites(users, types_site, sites_groups):
+def sites(users, types_site, site_group_with_sites):
     user = users["user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
@@ -21,7 +21,7 @@ def sites(users, types_site, sites_groups):
             geom=geom_4326,
             id_nomenclature_type_site=types_site[key].id_nomenclature_type_site,
             types_site=[types_site[key]],
-            id_sites_group=sites_groups["Site_Groupe"].id_sites_group,
+            id_sites_group=site_group_with_sites.id_sites_group,
         )
     with db.session.begin_nested():
         db.session.add_all(sites.values())
