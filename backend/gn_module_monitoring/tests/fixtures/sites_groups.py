@@ -14,3 +14,13 @@ def sites_groups():
         db.session.add_all(groups.values())
 
     return groups
+
+
+@pytest.fixture
+def site_group_with_sites(sites_groups):
+    return sites_groups["Site_Groupe"]
+
+
+@pytest.fixture
+def site_group_without_sites(sites_groups):
+    return sites_groups["Site_eolien"]
