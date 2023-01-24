@@ -1,20 +1,16 @@
-import { MonitoringObjectComponent } from './../components/monitoring-object/monitoring-object.component';
-import { Utils } from './../utils/utils';
-// import _ from "lodash";
 import { Injectable } from '@angular/core';
-
 import { HttpClient } from '@angular/common/http';
-import { AppConfig } from '@geonature_config/app.config';
 import { ModuleConfig } from '../module.config';
 import { ModuleService } from '@geonature/services/module.service';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
+import { ConfigService } from '@geonature/services/config.service';
 
 @Injectable()
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient, private _moduleService: ModuleService) {}
+  constructor(private _http: HttpClient, private _moduleService: ModuleService, public cs: ConfigService) {}
 
   /** Configuration */
 
@@ -49,17 +45,17 @@ export class ConfigService {
 
   /** Backend Url et static dir ??*/
   backendUrl() {
-    return `${AppConfig.API_ENDPOINT}`;
+    return `${this.cs.API_ENDPOINT}`;
   }
 
   urlApplication() {
-    return `${AppConfig.URL_APPLICATION}`;
+    return `${this.cs.URL_APPLICATION}`;
   }
 
   /** Backend Module Url */
   backendModuleUrl() {
     // Test if api endpoint have a final slash
-    let api_url = AppConfig.API_ENDPOINT;
+    let api_url = this.cs.API_ENDPOINT;
     if (api_url.substring(api_url.length - 1, 1) !== '/') {
       api_url = api_url + '/';
     }
