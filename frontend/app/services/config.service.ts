@@ -10,7 +10,7 @@ import { ConfigService } from '@geonature/services/config.service';
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient, private _moduleService: ModuleService, public cs: ConfigService) {}
+  constructor(private _http: HttpClient, private _moduleService: ModuleService, public appConfig: ConfigService) {}
 
   /** Configuration */
 
@@ -45,17 +45,17 @@ export class ConfigService {
 
   /** Backend Url et static dir ??*/
   backendUrl() {
-    return `${this.cs.API_ENDPOINT}`;
+    return `${this.appConfig.API_ENDPOINT}`;
   }
 
   urlApplication() {
-    return `${this.cs.URL_APPLICATION}`;
+    return `${this.appConfig.URL_APPLICATION}`;
   }
 
   /** Backend Module Url */
   backendModuleUrl() {
     // Test if api endpoint have a final slash
-    let api_url = this.cs.API_ENDPOINT;
+    let api_url = this.appConfig.API_ENDPOINT;
     if (api_url.substring(api_url.length - 1, 1) !== '/') {
       api_url = api_url + '/';
     }
