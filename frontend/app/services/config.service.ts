@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ModuleConfig } from '../module.config';
 import { ModuleService } from '@geonature/services/module.service';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
@@ -68,7 +67,7 @@ export class ConfigService {
   }
 
   moduleMonitoringCode() {
-    return ModuleConfig.MODULE_CODE;
+    return this.appConfig.MONITORINGS.MODULE_CODE;
   }
 
   /**
