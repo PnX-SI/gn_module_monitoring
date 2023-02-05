@@ -111,7 +111,7 @@
 
     "taxonomy_display_field_name": {
       "type_widget": "datalist",
-      "attribut_label": "Affichage des taxon",
+      "attribut_label": "Affichage des taxons",
       "values": [
         {
           "label":"Nom vernaculaire ou nom latin",
@@ -127,7 +127,7 @@
     "active_frontend": {
       "type_widget": "bool_checkbox",
       "attribut_label": "Afficher dans le menu ?",
-      "definition": "Afficher le module dans le menu de GéoNature. (Recharger la page pour voir les modifications)."
+      "definition": "Afficher le module dans le menu de GeoNature. (Recharger la page pour voir les modifications)."
     },
 
     "types_site": {
