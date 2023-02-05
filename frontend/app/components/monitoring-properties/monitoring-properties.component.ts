@@ -57,14 +57,14 @@ export class MonitoringPropertiesComponent implements OnInit {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
           "success",
-          `La syntèse à été mise à jour pour le module ${this.obj.moduleCode}`
+          `La synthèse a été mise à jour pour le module ${this.obj.moduleCode}`
         );
       },
       (err) => {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
           "error",
-          `Erreur lors de la mise à jour de la syntèse pour le module ${this.obj.moduleCode} - ${err.error.message}`
+          `Erreur lors de la mise à jour de la synthèse pour le module ${this.obj.moduleCode} - ${err.error.message}`
         );
       }
     );
@@ -131,14 +131,14 @@ export class MonitoringPropertiesComponent implements OnInit {
           .subscribe(() => {
             $this._commonService.regularToaster(
               "success",
-              "L'export pdf est prêt à être récupéré dans le dossier de Téléchargement"
+              "L'export PDF est prêt à être récupéré dans le dossier de Téléchargement"
             );
           });
       });
     } catch {
       $this._commonService.regularToaster(
         "error",
-        "Une erreur est survenue durant l'export pdf"
+        "Une erreur est survenue durant l'export PDF"
       );
     }
   }
