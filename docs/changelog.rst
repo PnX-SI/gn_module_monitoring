@@ -2,6 +2,29 @@
 CHANGELOG
 =========
 
+0.4.1 (2023-02-05)
+------------------
+
+**Evolutions**
+
+* Configuration des exports pour rendre optionnelle la sélection du jeu de données avec le nouveau paramètre ``filter_dataset`` (#158)
+
+**Corrections**
+
+* Amélioration des performances du chargement des observations (#142)
+* Correction du modèle "Observation détail" qui permet d'ajouter des informations sous le niveau observation
+
+**⚠️ Notes de version**
+
+Si vous souhaitez que les exports soient filtrables par jeux de données, il faut rajouter le nouveau paramètre ``filter_dataset`` dans la variable ``export_csv``, définie à ``true`` au niveau de la configuration des modules concernés (dans leur fichier ``module.json``). Exemple :
+
+::
+
+    "export_csv": [
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" , "filter_dataset": true},
+        { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
+    ],
+
 0.4.0 (2022-12-21)
 ------------------
 
@@ -23,7 +46,7 @@ Nécessite la version 2.11.0 (ou plus) de GeoNature.
 **⚠️ Notes de version**
 
 Si vous mettez à jour le module, il vous faut passer à Alembic.
-Pour cela, une fois la version 2.11 de GeoNature installée :
+Pour cela, une fois la version 2.11 (ou plus) de GeoNature installée :
 
 * Entrer dans le virtualenv :
 

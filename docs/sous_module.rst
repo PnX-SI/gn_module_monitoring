@@ -25,6 +25,7 @@ La configuration
 * ``group_site.json`` `(configuration des groupes de sites)`
 * ``visit.json`` `(configuration des visites)`
 * ``observation.json`` `(configuration des observations)`
+* ``observation_detail.json`` `(configuration des détails des observations)`
 * ``nomenclature.json`` `(pour l'ajout de nomenclatures spécifiques au sous-module)`
 * ``synthese.sql`` `(vue pour la synchronisation avec la synthèse)` voir
 
@@ -32,13 +33,20 @@ Les exports
 -----------
 
 * ``exports``
-    * ``csv``
-        * *fichiers sql* qui permettent de définir les vues qui serviront aux exports ``csv``
-        * le nommage des vues doit être ``"v_export_<module_code>_<method>``
-          * ``<method>`` est une chaine de caratère qui permet de caractriser différentes vues et différents exports pour un module
-    * ``pdf``
-        * *fichiers html/img/css*
-           * ces fichiers definissent un template pour l'export pdf et tous les assets nécessaires (images, style, etc..)
+
+  * ``csv``
+  
+    * *fichiers sql* qui permettent de définir les vues qui serviront aux exports ``csv``
+  
+    * le nommage des vues doit être ``"v_export_<module_code>_<method>``
+    
+      * ``<method>`` est une chaine de caratère qui permet de caractriser différentes vues et différents exports pour un module
+   
+  * ``pdf``
+   
+    * *fichiers html/img/css*
+     
+      * ces fichiers definissent un template pour l'export pdf et tous les assets nécessaires (images, style, etc..)
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
@@ -56,16 +64,18 @@ Dans le fichier ``config.json`` :
 
 * ``tree`` définit les relations entre les objets
 
-
 ::
 
     {
         "tree": {
             "module": {
                 "site": {
-                "visit": {
-                    "observation": null
-                },
+                    "visit": {
+                        "observation": {
+                            "observation_detail": null
+                        },
+                    },
+                }
             }
         }
     }
@@ -77,6 +87,7 @@ Configuration des objets
 Dans le fichier ``module.json``, deux variables doivent obligatoirement être définies dans ce fichier :
 
 * ``module_code``: un nom cours, en minuscule et simple, par exemple ``cheveches`` ou ``oedic`` pour les protocoles chevêches ou oedicnèmes.
+
 * ``module_desc``: une description succinte du module.
 
 Une variable optionnelle permet de configurer les objets faisant l'objet de permission:
@@ -88,10 +99,13 @@ Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observa
 * ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site,
 
 * ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
-    * ``"visit_date_min"`` pour une visite,
-    * ``"base_site_name"`` pour un site;
+  
+  * ``"visit_date_min"`` pour une visite,
+  
+  * ``"base_site_name"`` pour un site;
 
 * ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
+
 * ``b_draw_sites_group`` : pour spécifier si l'on veut afficher un contour autour des sites d'un groupe de site. Ce paramètre est également configurable dans l'interface de configuration du module.
 
 Les variables ``display_properties`` et ``display_list`` sont à définir pour indiquer quelles variables seront affichées (pour la page d'un objet ou pour les listes et dans quel ordre).
@@ -138,27 +152,42 @@ Par exemple dans le fichier ``site.json`` de ce repertoire on trouve la variable
 Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_site"``, ``"id_nomenclature_type_site"``, etc...)
 
 * les attributs obligatoires :
-    * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir le  paragraphe `Définir une nouvelle variable`_.
-    * ``attribut_label`` : associe un nom à la variable, comme ``"Type de site"`` pour ``id_nomenclature_type_site``,
-* les attributs facultatifs :
-    * ``hidden`` : permet de cacher la variable ou l'input du formulaire,
-    * ``value`` : permet d'attribuer une valeur par défaut,
-    * ``required`` : permet de rendre un input obligatoire.
-    * ``definition`` : permet d'ajouter une définiton à la variable pour aider l'utilisateur.
-* les attributs `spéciaux` :
-    * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'une id (d'une nomenclature) et de traiter cette variable en fonction.
 
-On peut mettre en valeur de ces attribut des données de la configuration du module.
-Pour ce il faut utiliser les variables suivantes
+  * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir le  paragraphe `Définir une nouvelle variable`_.
+  
+  * ``attribut_label`` : associe un nom à la variable, comme ``"Type de site"`` pour ``id_nomenclature_type_site``,
+
+* les attributs facultatifs :
+
+  * ``hidden`` : permet de cacher la variable ou l'input du formulaire
+  
+  * ``value`` : permet d'attribuer une valeur par défaut
+  
+  * ``required`` : permet de rendre un input obligatoire
+  
+  * ``definition`` : permet d'ajouter une définiton à la variable pour aider l'utilisateur
+
+* les attributs `spéciaux` :
+
+  * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'un id (d'une nomenclature) et de traiter cette variable en fonction.
+
+On peut mettre en valeur de ces attributs des données de la configuration du module.
+
+Pour cela il faut utiliser les variables suivantes :
 
 * ``__MONITORINGS_PATH``
+
 * ``__MODULE.ID_LIST_TAXONOMY``
+
 * ``__MODULE.MODULE_CODE``
+
 * ``__MODULE.ID_MODULE``
+
 * ``__MODULE.ID_LIST_OBSERVER``
+
 * ``__MODULE.TAXONOMY_DISPLAY_FIELD_NAME``
 
-qui peuvent servir dans la définition des formulaire (en particulier pour les datalist) voir ci dessous
+qui peuvent servir dans la définition des formulaires (en particulier pour les datalist). Voir ci dessous
 
 Définir une nouvelle variable
 -----------------------------
@@ -167,7 +196,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **texte** : une variable facultative
 
-::
+  ::
 
         nom_contact": {
             "type_widget": "text",
@@ -176,7 +205,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **entier** : exemple avec un numéro du passage compris entre 1 et 2 est obligatoire
 
-::
+  ::
 
         "num_passage": {
             "type_widget": "number",
@@ -188,7 +217,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
 * **utilisateur** : choix de plusieurs noms d'utilisateurs dans une liste
 
-::
+  ::
 
         "observers": {
             "attribut_label": "Observateurs",
@@ -197,12 +226,11 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
             "code_list": "__MODULE.ID_LIST_OBSERVER",
         },
 
-
-Il est important d'ajouter ``"type_util": "user",``.
+  Il est important d'ajouter ``"type_util": "user",``.
 
 * **nomenclature** : un choix obligatoire parmi une liste définie par un type de nomenclature
 
-::
+  ::
 
         "id_nomenclature_nature_observation": {
             "type_widget": "nomenclature",
@@ -212,13 +240,13 @@ Il est important d'ajouter ``"type_util": "user",``.
             "type_util": "nomenclature"
         },
 
-La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nomenclature.
+  La variable ``"code_nomenclature_type": "OED_NAT_OBS",`` définit le type de nomenclature.
 
-Il est important d'ajouter ``"type_util": "nomenclature",``.
+  Il est important d'ajouter ``"type_util": "nomenclature",``.
 
 * **liste** : une liste déroulante simple, non basée sur une nomenclature
 
-::
+  ::
 
         "rain": {
             "type_widget": "select",
@@ -227,11 +255,11 @@ Il est important d'ajouter ``"type_util": "nomenclature",``.
             "values": ["Absente", "Intermittente", "Continue"]
         },
 
-Il est possible de définir une valeur par défaut pré-selectionnée avec le paramètre ``value`` (exemple : ``"value": "Absente"``).
+  Il est possible de définir une valeur par défaut pré-selectionnée avec le paramètre ``value`` (exemple : ``"value": "Absente"``).
 
 * **radio** : bouton radio pour un choix unique parmi plusieurs possibilités
 
-::
+  ::
 
         "beginner": {
             "type_widget": "radio",
@@ -241,7 +269,7 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
 
 * **taxonomie** : une liste de taxons
 
-::
+  ::
 
         "cd_nom": {
             "type_widget": "taxonomy",
@@ -251,9 +279,9 @@ Il est possible de définir une valeur par défaut pré-selectionnée avec le pa
             "id_list": "__MODULE.ID_LIST_TAXONOMY"
         },
 
-La variable ``"id_list": "__MODULE.ID_LIST_TAXONOMY"`` définit la liste de taxon.
+  La variable ``"id_list": "__MODULE.ID_LIST_TAXONOMY"`` définit la liste de taxon.
 
-Il est important d'ajouter ``"type_util": "taxonomy",``.
+  Il est important d'ajouter ``"type_util": "taxonomy",``.
 
 Redéfinir une variable existante
 --------------------------------
@@ -264,7 +292,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
 * Changer le label d'un élément et le rendre visible et obligatoire
 
-::
+  ::
 
         "visit_date_max": {
             "attribut_label": "Date de fin de visite",
@@ -276,7 +304,7 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
 
   Dans le cas où la variable ``type_widget`` est redéfinie, il faut redéfinir toutes les variables.
 
-::
+  ::
 
         "id_nomenclature_type_site": {
             "type_widget": "text",
@@ -289,10 +317,12 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
             "hidden": true
         }
 
-Il est important d'ajouter ``"type_util": "nomenclature",``.
+  Il est important d'ajouter ``"type_util": "nomenclature",``.
 
-Pour renseigner la valeur de la nomenclature, on spécifie :
+  Pour renseigner la valeur de la nomenclature, on spécifie :
+  
     * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
+    
     * le code de la nomenclature ``"cd_nomenclature"``
 
 
@@ -316,7 +346,7 @@ Par exemple :
 
 * Nomenclature avec sous-liste et valeur par defaut
 
-::
+  ::
 
     "id_nomenclature_determination_method": {
         "type_widget": "datalist",
@@ -335,7 +365,7 @@ Par exemple :
 
 * Groupe de sites
 
-::
+  ::
 
     "id_sites_group": {
         "type_widget": "datalist",
@@ -351,7 +381,7 @@ Par exemple :
 
 * Jeux de données (pour les visites on veut la liste des JDD pour le module, d'où l'utilisation de ``"module_code": "__MODULE.MODULE_CODE"`` en paramètre ``GET`` de l'API
 
-::
+  ::
 
     "id_dataset": {
         "type_widget": "datalist",
@@ -372,7 +402,7 @@ Par exemple :
 
 * Utilisateur
 
-::
+  ::
 
     "observers": {
       "type_widget": "datalist",
@@ -397,10 +427,15 @@ La valeur de ce paramètre est alors une chaîne de caractère qui définie une 
 **Ce cas n'est pris en compte que pour les composant spécifique, ou pour les composants redéfinis dans `specific`**
 
 * ``value``: les valeur du formulaire
+
 * ``attribut_name``: du composant concerné
+
 * ``meta``: un dictionnaire de données additionelles, et fourni au composant dynamicFormGenerator, il peut contenir des données sur
+
   * la nomenclature (pour avoir les valeurs des nomenclature à partir des id, ici un dictionnaire avec ``id_nomenclature`` comme clés.
+
   * ``bChainInput`` si on enchaine les releves
+  
   * etc.. à redéfinir selon les besoin
 
 La chaine de caractère qui décrit la fonction doit être de la forme suivante:
@@ -411,8 +446,7 @@ La chaine de caractère qui décrit la fonction doit être de la forme suivante:
 
 
 Le format JSON ne permet pas les saut de ligne dans les chaines de caractère,
-et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractère:
-
+et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractères :
 
 ::
 
@@ -423,16 +457,16 @@ et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut 
     ]
 
 
-Le lignes seront coléés entre elle avec l'ajout de saut de lignes (caractère `\n`.
+Le lignes seront coléés entre elles avec l'ajout de saut de lignes (caractère `\n`).
 
-Il faut être sur de sa fonction.
+Il faut être certain de sa fonction.
 
 
-Exemples:
+Exemples :
 
 * Afficher le composant ``test2`` et le rendre obligatoire seulement si ``test1`` a pour valeur ``t``:
 
-::
+  ::
 
     "specific": {
         "test": {
@@ -449,7 +483,7 @@ Exemples:
 
 * Ajouter un champs pour renseigner la profondeur d'une grotte si le type de site est une grotte
 
-::
+  ::
 
     site.json
 
@@ -473,7 +507,7 @@ La variable ``change``
 
 On peut y définir une fonction qui sera appelée chaque fois que le formulaire change.
 
-Un exemple (module.json du module test):
+Un exemple (``module.json`` du module test):
 
 ::
 
@@ -508,16 +542,19 @@ Un exemple (module.json du module test):
 
 
 Ici on donne à la variable ``test3`` la valeur ``<test>_<test2>``.
-C'est valable tant que le ``test3`` n'a pas été modifé à la main (i. e. ``objForm.controls.test3.dirty`` n'est pas vrai).
-On peut donc modifer par la suite la valeur de test3 à la main
 
-Comme précemment on peut aussi avoir acces a meta
+C'est valable tant que le ``test3`` n'a pas été modifé à la main (i. e. ``objForm.controls.test3.dirty`` n'est pas vrai).
+
+On peut donc modifer par la suite la valeur de test3 à la main.
+
+Comme précemment on peut aussi avoir accès à meta.
 
 ------------
 Nomenclature
 ------------
 
 Le fichier ``nomenclature.json`` permet de renseigner les nomenclatures spécifiques à chaque sous-module.
+
 Elles seront insérées dans la base de données lors de l'installation du sous-module (si elles n'existent pas déjà).
 
 Exemple de fichier :
@@ -554,34 +591,37 @@ Exemple de fichier :
 **Attention** : si une nomenclature de même ``type`` et ``cd_nomenclature`` existe déjà elle ne sera pas modifiée.
 
 -------------------------
-Configuration de la carte 
+Configuration de la carte
 -------------------------
 
 Il est possible d'afficher des popups sur la carte et de choisir la valeur à afficher.
-Pour cela éditez le fichier de configuration associé (module.json, site.json, visite.json) et rajoutez la variable suivante :
+
+Pour cela éditez le fichier de configuration associé (``module.json``, ``site.json``, ``visite.json``) et rajoutez la variable suivante :
 
 ::
 
       "map_label_field_name": <nom_du_champs>,
 
-NB: pour ajouter une popup sur la liste des sites, editez le fichier module.json, pour la liste des visites le fichier site.json etc...
+NB : pour ajouter une popup sur la liste des sites, éditez le fichier ``module.json``, pour la liste des visites le fichier ``site.json`` etc...
 
 ------------------
 Gestion des droits
 ------------------
 
-Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS : Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données
+Actuellement le CRUVED est implémenté de manière partielle au niveau du module MONITORINGS. Il n'y a actuellement pas de vérification des portées, les droits s'appliquent sur toutes les données.
 
 Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce sous-module le CRUVED définit au niveau de tout le module Monitorings.
-Par défaut les valeurs définies du cruved sont :
+
+Par défaut les valeurs définies du CRUVED sont :
 
 - `site_group.json` : "cruved": {"C":1, "U":1, "D": 1},
 - `site.json` : "cruved": {"C":1, "U":1, "D": 1},
-- `visit.son` : "cruved": {"C":1, "U":1, "D": 1},
+- `visit.json` : "cruved": {"C":1, "U":1, "D": 1},
 - `observation.json` : "cruved": {"C":1, "U":1, "D": 1},
+- `observation_detail.json` : "cruved": {"C":1, "U":1, "D": 1},
 
 
-Pour surcoucher les permissions il faut rajouter la variable cruved dans les fichiers de configuration du module (site_group.json, site.json, ...)
+Pour surcoucher les permissions, il faut rajouter la variable cruved dans les fichiers de configuration du module (``site_group.json``, ``site.json``, ...)
 
 ::
   "cruved": {"C": 3, "U": 3, "D": 3},
@@ -593,17 +633,18 @@ Pour surcoucher les permissions il faut rajouter la variable cruved dans les fic
 Exports
 -----------------------
 
-Il est possible de configurer des exports (csv ou pdf)
+Il est possible de configurer des exports (CSV ou PDF).
 
 PDF
 -----------
 
-les fichiers de template (``.html``)  et assets (images, style, etc..) pour l'export pdf sont à placer dans le dossier ``<module_code>/exports/pdf/``
+Les fichiers de template (``.html``) et assets (images, style, etc..) pour l'export PDF sont à placer dans le dossier ``<module_code>/exports/pdf/``
 
 * Dans le fichier de config d'un object (par exemple ``sites_group.json``:
-   * ajouter la variable ``export_pdf``:
 
-::
+  * ajouter la variable ``export_pdf``:
+
+  ::
 
     "export_pdf": [
         {
@@ -612,33 +653,46 @@ les fichiers de template (``.html``)  et assets (images, style, etc..) pour l'ex
         }
     ]
 
-* Dans les fichiers template on a accès à la variable ``data`` un dictionnaire contenant:
-    * ``static_pdf_dir`` : chemin du dossier des assets de l'export pdf
-    * ``map_image`` : l'image tirée de la carte leaflet
-    * ``monitoring_object.properties``: propriété de l'objet courant
+* Dans les fichiers template on a accès à la variable ``data`` un dictionnaire contenant :
 
-* La commande ``geonature monitorings process_export_pdf <module_code>`` permet de:
-    * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
-    * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
+  * ``static_pdf_dir`` : chemin du dossier des assets de l'export pdf
+  
+  * ``map_image`` : l'image tirée de la carte leaflet
+  
+  * ``monitoring_object.properties``: propriété de l'objet courant
 
+* La commande ``geonature monitorings process_export_pdf <module_code>`` permet de :
 
+  * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
+  
+  * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
 
 CSV
 -----------
 
-les fichier ``.sql`` qui définissent les vue pour l'export csv sont placé dans le dossier ``<module_code>/exports/csv/``
+les fichiers ``.sql`` qui définissent les vues pour l'export CSV sont placés dans le dossier ``<module_code>/exports/csv/``.
 
-* Dans le fichier de config d'un object (par exemple ``sites_group.json``:
-   * ajouter la variable ``export_csv``:
+* Dans le fichier de config du module (``module.json``) ou d'un objet (par exemple ``sites_group.json``) :
 
-::
+  * ajouter la variable ``export_csv``:
+
+  ::
 
     "export_csv": [
-        { "label": "Format standard CSV", "type":"csv" , "method": "standard" },
+        { "label": "Format standard CSV", "type":"csv" , "method": "standard" , "filter_dataset": true},
         { "label": "Format analyses CSV", "type":"csv" , "method": "analyses" }
     ],
 
+* Paramètres :
 
-* La commande ``geonature monitorings process_export_csv <module_code>`` permet de:
-    * jouer tous les fichiers sql de ce répertoire
-    * les vues doivent être nommées ``v_export_<module_code>_<method>``
+  * label : Nom de l'export
+  
+  * method : Nom de la vue sans le code du module
+  
+  * filter_dataset (true|false) : Ajoute le filtre des datasets. Dans ce cas il faut que la vue ait un champ ``id_dataset``
+
+* La commande ``geonature monitorings process_export_csv <module_code>`` permet de :
+
+  * jouer tous les fichiers SQL de ce répertoire
+  
+  * les vues doivent être nommées ``v_export_<module_code>_<method>``

@@ -34,6 +34,13 @@ class TMonitoringObservationDetails(DB.Model):
 
     id_observation = DB.Column(DB.ForeignKey('gn_monitoring.t_observations.id_observation'))
     data = DB.Column(JSONB)
+    uuid_observation_detail = DB.Column(UUID(as_uuid=True), default=uuid4)
+
+    medias = DB.relationship(
+        TMedias,
+        lazy='joined',
+        primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
+        foreign_keys=[TMedias.uuid_attached_row])
 
 
 @serializable
@@ -58,7 +65,7 @@ class TObservations(DB.Model):
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row])
 
-    t_observation_details = DB.relation(
+    observation_details = DB.relation(
         TMonitoringObservationDetails,
         primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
         foreign_keys=[TMonitoringObservationDetails.id_observation],
@@ -81,6 +88,9 @@ class TMonitoringObservations(TObservations):
         primary_key=True,
         nullable=False,
         )
+
+
+TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable

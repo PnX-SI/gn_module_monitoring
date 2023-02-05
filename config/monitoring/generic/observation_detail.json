@@ -1,0 +1,30 @@
+{
+  "cruved": {"C":1, "U":1, "D": 1},
+  "id_field_name": "id_observation_detail",
+  "description_field_name": "id_observation_detail",
+  "chained": true,
+  "label": "Observation détail",
+  "genre": "F",
+  "display_properties": ["uuid_observation_detail"],
+  "uuid_field_name": "uuid_observation_detail",
+  "generic": {
+    "id_observation_detail": {
+      "type_widget": "text",
+      "attribut_label": "Id observation",
+      "hidden": true
+    },
+    "id_observation": {
+      "type_widget": "text",
+      "attribut_label": "Id visite",
+      "hidden": true
+    },
+    "uuid_observation_detail": {
+      "attribut_label": "uuid"
+    },
+    "medias": {
+      "type_widget": "medias",
+      "attribut_label": "Médias",
+      "schema_dot_table": "gn_monitoring.t_observations_details"
+    }
+  }
+}

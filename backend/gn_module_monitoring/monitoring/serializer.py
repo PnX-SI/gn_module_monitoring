@@ -36,7 +36,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             return
         if hasattr(self._model, 'id_base_site'):
             return self._model.id_base_site
-        return 
+        return
         # parent = self.get_parent()
         # if not parent:
         #     return
@@ -78,18 +78,14 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             if not hasattr(self._model, relation_name):
                 continue
 
-            
             children_of_type = []
 
             for child_model in getattr(self._model, relation_name):
-                child = ( 
+                child = (
                     monitoring_definitions
                     .monitoring_object_instance(self._module_code, children_type, model=child_model)
                 )
-                children_of_type.append(child.serialize(depth))    
-            
-
-
+                children_of_type.append(child.serialize(depth))
 
             children[children_type] = children_of_type
 
@@ -101,7 +97,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return generic + data
 
     def serialize(self, depth=1):
-        # TODO faire avec un as_dict propre (avec props et relationships) 
+        # TODO faire avec un as_dict propre (avec props et relationships)
         if depth is None:
             depth = 1
         depth = depth-1
