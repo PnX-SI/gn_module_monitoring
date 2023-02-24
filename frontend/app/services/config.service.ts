@@ -129,7 +129,6 @@ export class ConfigService {
     moduleCode = moduleCode || 'generic';
 
     const configObject = this._config[moduleCode][objectType];
-
     // gerer quand les paramètres ont un fonction comme valeur
 
     for (const typeSchema of ['generic', 'specific']) {

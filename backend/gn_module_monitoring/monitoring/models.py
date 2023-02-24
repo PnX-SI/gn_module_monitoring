@@ -2,7 +2,7 @@
     Modèles SQLAlchemy pour les modules de suivi
 """
 from sqlalchemy import select, func, and_
-from sqlalchemy.orm import column_property
+from sqlalchemy.orm import column_property, ColumnProperty, RelationshipProperty, class_mapper
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from uuid import uuid4
 
@@ -10,6 +10,7 @@ from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.declarative import declared_attr
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from geonature.core.gn_commons.models import TMedias
@@ -20,6 +21,42 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
+
+
+class GenericModel:
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    @classmethod
+    def set_id(cls) -> None:
+        pk_string = class_mapper(cls).primary_key[0].name
+        if hasattr(cls,"id_g") ==False:
+            pk_value= getattr(cls,pk_string)
+            setattr(cls,"id_g",pk_value)
+
+    @classmethod
+    def get_id(cls) -> None:
+        pk_string = class_mapper(cls).primary_key[0].name
+        # print('======= ==>', pk_string)
+        if hasattr(cls,"id_g") ==False:
+            pk_value= getattr(cls,pk_string)
+            setattr(cls,"id_g",pk_value)
+        return pk_string
+
+    @classmethod
+    def find_by_id(cls, _id: int) -> "GenericModel":
+        cls.set_id()
+        return cls.query.get_or_404(_id)
+
+    @classmethod
+    def attribute_names(cls):
+        return [
+            prop.key
+            for prop in class_mapper(cls).iterate_properties
+            if isinstance(prop, ColumnProperty)
+        ]
+
 
 cor_module_type = DB.Table(
     "cor_module_type",
@@ -53,7 +90,7 @@ cor_type_site = DB.Table(
 
 
 @serializable
-class BibTypeSite(DB.Model):
+class BibTypeSite(DB.Model, GenericModel):
     __tablename__ = "bib_type_site"
     __table_args__ = {"schema": "gn_monitoring"}
     query_class = MonitoringQuery
@@ -247,7 +284,7 @@ class TMonitoringSites(TBaseSites):
     )
 
 @serializable
-class TMonitoringSitesGroups(DB.Model):
+class TMonitoringSitesGroups(DB.Model, GenericModel):
     __tablename__ = 't_sites_groups'
     __table_args__ = {'schema': 'gn_monitoring'}
     query_class = MonitoringQuery
