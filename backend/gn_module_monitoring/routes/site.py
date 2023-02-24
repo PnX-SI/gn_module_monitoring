@@ -36,8 +36,7 @@ def get_types_site():
 
 @blueprint.route("/sites/types/<int:id_type_site>", methods=["GET"])
 def get_type_site_by_id(id_type_site):
-    query = BibTypeSite.query.filter_by(id_nomenclature_type_site=id_type_site)
-    res = query.first()
+    res = BibTypeSite.find_by_id(id_type_site)
     schema = BibTypeSiteSchema()
     return schema.dump(res)
 

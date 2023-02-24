@@ -18,16 +18,6 @@
       {"prop": "sites_group_code"}
     ],
     "generic": {
-      "id_sites_group": {
-        "type_widget": "text",
-        "attribut_label": "Id site",
-        "hidden": true
-      },
-      "id_module": {
-        "type_widget": "text",
-        "attribut_label": "ID Module",
-        "hidden": true
-      },
       "sites_group_name": {
         "type_widget": "text",
         "attribut_label": "Nom",
@@ -54,11 +44,6 @@
       },
       "nb_visits": {
         "attribut_label": "Nombre de visites"
-      },
-      "medias": {
-        "type_widget": "medias",
-        "attribut_label": "Médias",
-        "schema_dot_table": "gn_monitoring.t_sites_groups"
       }
     } 
   }
