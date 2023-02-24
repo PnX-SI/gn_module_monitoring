@@ -1,0 +1,33 @@
+table {
+  font-size: small;
+}
+
+th {
+  text-align: right;
+}
+
+.key {
+  font-weight: bold;
+}
+
+td {
+  padding-left: 20px;
+}
+
+.small-icon {
+  font-size: 18px;
+}
+
+.medias-tab {
+  margin: 10px;
+}
+
+.hide-spinner {
+  display: none;
+}
+
+
+::ng-deep .cdk-global-overlay-wrapper,
+::ng-deep .cdk-overlay-container {
+    z-index: 99999 !important;
+}

@@ -281,13 +281,11 @@ export class MonitoringFormComponent implements OnInit {
 
   onDelete() {
     this.bDeleteSpinner = true;
-    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
-
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.obj.deleted = true;
       this.objChanged.emit(this.obj);
-
+      this._commonService.regularToaster('info', this.msgToaster('Suppression'));
       setTimeout(() => {
         this.navigateToParent();
       }, 100);
