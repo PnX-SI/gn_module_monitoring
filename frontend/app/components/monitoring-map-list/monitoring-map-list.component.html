@@ -1,0 +1,13 @@
+<div class="row">
+  <div class="col-6">
+    <div id="geometry" class="monitoring-map-container" class="cadre" *ngIf="displayMap">
+      <pnx-map height="80vh"> </pnx-map>
+    </div>
+  </div>
+  <div [ngClass]="displayMap ? 'col-6' : 'col-12'">
+    <div class="mr-3">
+      <!-- <button (click)="displayMap = !displayMap">HIDE MAP</button> -->
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,78 @@
+.flex-container {
+    background-color: rgb(240, 240, 240);
+    display: flex;
+  }
+  
+  .flex-container > div {
+    width: 50%;
+    padding: 10px;
+    margin: 10px;
+  }
+  
+  .flex-container > div:first-child {
+    margin-right: 0;
+  }
+  
+  .scroll {
+    overflow-y: scroll;
+  }
+  
+  :host ::ng-deep .cadre {
+    background-color: white;
+    /* border: 1px solid grey;*/
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+    /* display: inline-block; */
+  }
+  
+  /* TABLE */
+  
+  .cell-link {
+    cursor: pointer;
+  }
+  
+  :host::ng-deep .datatable-body-row.active .datatable-row-group {
+    background-color: rgb(117, 227, 118) !important;
+  }
+  
+  .link:hover {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    transition: background-color 0.5;
+  }
+  
+  .link {
+    display: inline;
+    transition: background-color 0.5s;
+    border-radius: 5px;
+  }
+  
+  .header-filter-span > input {
+    width: 100%;
+  }
+  
+  .header-sort-span {
+    /* width: 100%; */
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  
+  .header-sort-span:hover {
+    background-color: rgb(245, 245, 245);
+  }
+  
+  .icon-sort {
+      font-size: 1.2em;
+      float: right;
+  }
+  
+  :host::ng-deep .sort-btn {
+      display: none !important;
+  }
+  
+  .custom-dt {
+      box-shadow: none !important;
+  }
+  
