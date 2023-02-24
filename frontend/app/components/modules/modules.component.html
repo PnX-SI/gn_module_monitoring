@@ -14,7 +14,7 @@
     <div class="col-md-4 col-sm-12 des-module"> {{description}}</div>
     <!-- <div class="w-100 d-none d-sm-block"></div> -->
     <div class="btn-module col-md-8 col-sm-12 text-center">
-      <button class="btn btn-success mr-2" (click)="onAccessSitesClick(modules)" *ngIf="currentUser">
+      <button class="btn btn-success mr-2" [routerLink]="'sites_group'" *ngIf="currentUser">
         Accès aux sites
       </button>
       <div class="container py-5 border rounded m-2">
