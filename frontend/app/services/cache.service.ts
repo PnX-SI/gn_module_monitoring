@@ -2,8 +2,8 @@ import { ObserversComponent } from '@geonature_common/form/observers/observers.c
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-import { Observable, of, Subject } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
+import { Observable, of, Subject } from "rxjs";
+import { mergeMap} from "rxjs/operators";
 
 import { ConfigService } from './config.service';
 
@@ -30,10 +30,14 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
    */
-  request(requestType: string, urlRelative: string, { postData = {}, queryParams = {} } = {}) {
+  request<Return = Observable<any>>(
+    requestType: string,
+    urlRelative: string,
+    { postData = {}, queryParams = {} } = {}
+  ): Return {
     // verification de requestType
-    if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
-      return of(null);
+    if (!["get", "post", "patch", "delete"].includes(requestType)) {
+      throw console.error("Request must be get, post, patch or delete");
     }
 
     const url_params = Object.keys(queryParams).length
@@ -50,7 +54,7 @@ export class CacheService {
     const url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
 
     // requete
-    return this._http[requestType]<any>(url, postData);
+    return this._http[requestType]<Return>(url, postData);
   }
 
   /** Cache

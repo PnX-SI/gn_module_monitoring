@@ -1,0 +1,48 @@
+.cell-link {
+    cursor: pointer;
+}
+
+:host::ng-deep .datatable-body-row.active .datatable-row-group {
+    background-color: rgb(117, 227, 118) !important;
+}
+
+.link:hover {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    transition: background-color 0.5;
+}
+
+.link {
+    display: inline;
+    transition: background-color 0.5s;
+    border-radius: 5px;
+}
+
+.header-filter-span > input {
+    width: 100%;
+}
+
+.header-sort-span {
+    /* width: 100%; */
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space:nowrap
+}
+
+
+.header-sort-span:hover {
+    background-color: rgb(245, 245, 245);
+}
+
+.icon-sort {
+    font-size: 1.2em;
+    float: right;
+}
+
+:host::ng-deep .sort-btn {
+    display: none !important;
+}
+
+.custom-dt {
+    box-shadow: none !important;
+}
