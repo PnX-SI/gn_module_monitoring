@@ -7,6 +7,16 @@ from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestSitesGroups:
+    def test_get_sites_group_by_id(self, sites_groups):
+        sites_group = list(sites_groups.values())[0]
+        id_sites_group = sites_group.id_sites_group
+        r = self.client.get(
+            url_for("monitorings.get_sites_group_by_id", id_sites_group=id_sites_group)
+        )
+
+        assert r.json["id_sites_group"] == id_sites_group
+        assert r.json["sites_group_name"] == sites_group.sites_group_name
+
     def test_get_sites_groups(self, sites_groups):
         r = self.client.get(url_for("monitorings.get_sites_groups"))
 
