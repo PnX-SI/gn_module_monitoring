@@ -1,0 +1,25 @@
+<pnx-monitoring-properties-g
+  [objectType]="objectType"
+  *ngIf="!bEdit"
+  [(bEdit)]="bEdit"
+  [selectedObj]="sitesGroup"
+>
+</pnx-monitoring-properties-g>
+<pnx-monitoring-form-g
+  [obj]="sitesGroup"
+  (objChanged)="onObjChanged($event)"
+  *ngIf="bEdit"
+  [(bEdit)]="bEdit"
+  [objForm]="objForm"
+></pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g
+  [rows]="sites"
+  [colsname]="colsName"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [obj]="sites"
+  (rowStatusChange)="onSelect($event)"
+  (onDetailsRow)="seeDetails($event)"
+></pnx-monitoring-datatable-g>

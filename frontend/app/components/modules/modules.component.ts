@@ -14,8 +14,6 @@ import { AuthService, User } from "@geonature/components/auth/auth.service";
   styleUrls: ['./modules.component.css'],
 })
 export class ModulesComponent implements OnInit {
-
-
   currentUser: User;
 
   description: string;
@@ -34,7 +32,7 @@ export class ModulesComponent implements OnInit {
     private _auth: AuthService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.bLoading = true;
@@ -64,10 +62,4 @@ export class ModulesComponent implements OnInit {
     this.currentUser["cruved"] = {};
     this.currentUser["cruved_objects"] = {};
   }
-
-  onAccessSitesClick(modules) {
-    console.log("accès aux sites avec droits ")
-    console.log(modules)
-  }
-
 }

@@ -1,0 +1,31 @@
+:host ::ng-deep .obj-form {
+  margin: 0;
+  margin-bottom: 10px;
+  padding: 0;
+}
+
+.hide-spinner {
+  display: none;
+}
+
+.btn-height {
+  height: 39px;
+}
+
+.float-right {
+margin-left: 5px;
+}
+
+
+.float-left {
+  margin-right: 10px;
+  float: left;
+}
+
+form:invalid {
+  outline: none;
+}
+
+form.ng-invalid {
+  border: 0px !important;
+}

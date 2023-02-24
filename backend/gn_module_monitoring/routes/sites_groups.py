@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from geonature.utils.env import db
+from marshmallow import ValidationError
 from sqlalchemy import func
 from werkzeug.datastructures import MultiDict
 
@@ -14,6 +15,7 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
 )
+from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 
 
 @blueprint.route("/sites_groups", methods=["GET"])
@@ -32,6 +34,13 @@ def get_sites_groups():
         limit=limit,
         page=page,
     )
+
+
+@blueprint.route("/sites_groups/<int:id_sites_group>", methods=["GET"])
+def get_sites_group_by_id(id_sites_group: int):
+    schema = MonitoringSitesGroupsSchema()
+    result = TMonitoringSitesGroups.find_by_id(id_sites_group)
+    return jsonify(schema.dump(result))
 
 
 @blueprint.route("/sites_groups/geometries", methods=["GET"])
@@ -53,3 +62,45 @@ def get_sites_group_geometries():
     result = geojson_query(subquery)
 
     return jsonify(result)
+
+
+@blueprint.route("/sites_groups/<int:_id>", methods=["PATCH"])
+def patch(_id):
+    item_schema = MonitoringSitesGroupsSchema()
+    item_json = request.get_json()
+    item = TMonitoringSitesGroups.find_by_id(_id)
+    fields = TMonitoringSitesGroups.attribute_names()
+    for field in item_json:
+        if field in fields:
+            setattr(item, field, item_json[field])
+    item_schema.load(item_json)
+    db.session.add(item)
+
+    db.session.commit()
+    return item_schema.dump(item), 201
+
+
+@blueprint.route("/sites_groups/<int:_id>", methods=["DELETE"])
+def delete(_id):
+    item_schema = MonitoringSitesGroupsSchema()
+    item = TMonitoringSitesGroups.find_by_id(_id)
+    TMonitoringSitesGroups.query.filter_by(id_g=_id).delete()
+    db.session.commit()
+    return item_schema.dump(item), 201
+
+
+@blueprint.route("/sites_groups", methods=["POST"])
+def post():
+    item_schema = MonitoringSitesGroupsSchema()
+    item_json = request.get_json()
+    item = item_schema.load(item_json)
+    db.session.add(item)
+    db.session.commit()
+    return item_schema.dump(item), 201
+
+
+@blueprint.errorhandler(ValidationError)
+def handle_validation_error(error):
+    return InvalidUsage(
+        "Fields cannot be validated, message : {}".format(error.messages), status_code=422, payload=error.data
+    ).to_dict()
