@@ -5,6 +5,10 @@ CHANGELOG
 0.4.2 (unreleased)
 ------------------
 
+**Evolutions**
+
+* Utilisation du décorateur de route classique ``check_cruved_scope``
+
 **Corrections**
 
 * Correction de l'api ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (bug signalé dans #175)

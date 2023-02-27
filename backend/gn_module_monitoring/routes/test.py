@@ -10,7 +10,7 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_permissions.tools import get_user_from_token_and_raise
 from geonature.core.gn_permissions.tools import cruved_scope_for_user_in_module
 
-from ..utils.env import MODULE_MONITORINGS_CODE
+from gn_module_monitoring import MODULE_CODE
 from geonature.utils.env import DB
 
 from ..monitoring.models import (
@@ -21,7 +21,7 @@ from ..blueprint import blueprint
 
 
 @blueprint.route('/routes_list', methods=['GET'])
-@check_cruved_scope('R', module_code=MODULE_MONITORINGS_CODE)
+@check_cruved_scope('R', module_code=MODULE_CODE)
 @json_resp
 def get_route_list():
     '''
@@ -33,7 +33,7 @@ def get_route_list():
     rules = current_app.url_map.iter_rules()
     if s_filter:
         rules = filter(lambda x: s_filter in str(x), current_app.url_map.iter_rules())
-    # module_url = current_app.config[MODULE_MONITORINGS_CODE]['MODULE_URL']
+    # module_url = current_app.config[MODULE_CODE]['MODULE_URL']
     # rules = filter(lambda x: module_url in str(x), current_app.url_map.iter_rules())
 
     out = []
@@ -54,7 +54,7 @@ def test_permission():
     '''
     user = get_user_from_token_and_raise(request)
     id_role = user['id_role']
-    cruved_monitoring = cruved_scope_for_user_in_module(id_role, MODULE_MONITORINGS_CODE, "ALL")
+    cruved_monitoring = cruved_scope_for_user_in_module(id_role, MODULE_CODE, "ALL")
     cruved_test = cruved_scope_for_user_in_module(id_role, 'TEST', "ALL")
     return {
         'cruved_test': cruved_test,

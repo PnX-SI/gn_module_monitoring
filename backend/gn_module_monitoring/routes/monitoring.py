@@ -4,7 +4,7 @@
 '''
 
 
-from flask import request, send_from_directory, url_for
+from flask import request, send_from_directory, url_for, g
 from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
@@ -13,13 +13,15 @@ from werkzeug.exceptions import NotFound
 
 from ..blueprint import blueprint
 
-from .decorators import check_cruved_scope_monitoring
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+from geonature.core.gn_commons.models.base import TModules
 
 # from geonature.utils.errors import GeoNatureError
 from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+from gn_module_monitoring import MODULE_CODE
 from utils_flask_sqla_geo.generic import GenericTableGeo
 from geonature.utils.env import DB, ROOT_DIR
 import datetime as dt
@@ -30,6 +32,13 @@ from pathlib import Path
 
 
 
+@blueprint.url_value_preprocessor
+def set_current_module(endpoint, values):
+    requested_module = values.get("module_code") or MODULE_CODE
+
+    g.current_module = TModules.query.filter_by(module_code=requested_module).first_or_404(
+        f"No module name {requested_module} {endpoint}"
+    )
 
 @blueprint.route('/object/<string:module_code>/<string:object_type>/<int:id>', methods=['GET'])
 @blueprint.route(
@@ -40,7 +49,7 @@ from pathlib import Path
     '/object/module',
     defaults={'module_code': None, 'object_type': 'module', 'id': None},
     methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R')
 @json_resp
 def get_monitoring_object_api(module_code, object_type, id):
     '''
@@ -108,7 +117,7 @@ def create_or_update_object_api(module_code, object_type, id):
     '/object/<string:module_code>/module',
     defaults={'id': None, 'object_type': 'module'},
     methods=['PATCH'])
-@check_cruved_scope_monitoring('U', 1)
+@check_cruved_scope('U')
 @json_resp
 def update_object_api(module_code, object_type, id):
     get_config(module_code, force=True)
@@ -121,7 +130,7 @@ def update_object_api(module_code, object_type, id):
     '/object/module',
     defaults={'module_code': None, 'object_type': 'module', 'id': None},
     methods=['POST'])
-@check_cruved_scope_monitoring('C', 1)
+@check_cruved_scope('C')
 @json_resp
 def create_object_api(module_code, object_type, id):
     get_config(module_code, force=True)
@@ -134,7 +143,7 @@ def create_object_api(module_code, object_type, id):
     '/object/<string:module_code>/module',
     defaults={'id': None, 'object_type': 'module'},
     methods=['DELETE'])
-@check_cruved_scope_monitoring('D', 3)
+@check_cruved_scope('D')
 @json_resp
 def delete_object_api(module_code, object_type, id):
 
@@ -157,7 +166,7 @@ def delete_object_api(module_code, object_type, id):
     '/breadcrumbs/<string:module_code>/module',
     defaults={'id': None, 'object_type': 'module'},
     methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R')
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
 
@@ -174,7 +183,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
 
 # listes pour les formulaires par exemple
 @blueprint.route('list/<string:module_code>/<object_type>', methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R')
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
 
@@ -189,7 +198,7 @@ def list_object_api(module_code, object_type):
 
 # mise à jour de la synthèse
 @blueprint.route('synthese/<string:module_code>', methods=['POST'])
-@check_cruved_scope_monitoring('E', 3)
+@check_cruved_scope('E')
 @json_resp
 def update_synthese_api(module_code):
 
@@ -206,7 +215,7 @@ def update_synthese_api(module_code):
 # export add mje
 # export all observations
 @blueprint.route('/exports/csv/<module_code>/<method>', methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R')
 def export_all_observations(module_code, method):
     """
     Export all data in csv of a custom module view

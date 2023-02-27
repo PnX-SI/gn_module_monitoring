@@ -1,7 +1,5 @@
 from geonature.utils.errors import GeoNatureError
 
-from ..routes.decorators import cruved_scope_for_user_in_monitoring_module
-
 from ..config.repositories import (
     config_param as repositories_config_param,
     config_schema as repositories_config_schema,
@@ -188,9 +186,6 @@ class MonitoringObjectBase():
             return self._module_code
 
         return getattr(self._model, self.id_parent_fied_name())
-
-    def get_cruved(self, object_type=None):
-        return cruved_scope_for_user_in_monitoring_module(self._module_code, object_type)
 
     def cond_filters(self):
         filters = self.config_param('filters')

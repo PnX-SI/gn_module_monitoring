@@ -6,8 +6,12 @@ from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
 
 from ..blueprint import blueprint
-from ..routes.decorators import check_cruved_scope_monitoring, cruved_scope_for_user_in_monitoring_module
 from ..utils.utils import to_int
+
+from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+
+from gn_module_monitoring import MODULE_CODE
 
 from ..modules.repositories import (
     get_module,
@@ -16,7 +20,7 @@ from ..modules.repositories import (
 
 
 @blueprint.route('/module/<value>', methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R', module_code=MODULE_CODE)
 @json_resp
 def get_module_api(value):
     '''
@@ -33,13 +37,13 @@ def get_module_api(value):
     module_out = []
     if module:
         module_out = module.as_dict(depth=depth)
-        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_code)
+        module_out['cruved'] = get_scopes_by_action(module_code=module.module_code)
 
     return module_out
 
 
 @blueprint.route('/modules', methods=['GET'])
-@check_cruved_scope_monitoring('R', 1)
+@check_cruved_scope('R', module_code=MODULE_CODE)
 @json_resp_accept_empty_list
 def get_modules_api():
     '''
@@ -52,7 +56,7 @@ def get_modules_api():
     modules = get_modules()
     for module in modules:
         module_out = module.as_dict(depth=depth)
-        module_out['cruved'] = cruved_scope_for_user_in_monitoring_module(module.module_code)
+        module_out['cruved'] = get_scopes_by_action(module_code=module.module_code)
 
         modules_out.append(module_out)
 
