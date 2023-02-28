@@ -160,7 +160,7 @@ def get_util_nomenclature_api(code_nomenclature_type, cd_nomenclature):
         )
 
 
-@blueprint.route("util/<string:type_util>/<int:id>", methods=["GET"])
+@blueprint.route("util/<string:type_util>/<string:id>", methods=["GET"])
 @json_resp
 def get_util_from_id_api(type_util, id):
     """
