@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+0.4.2 (unreleased)
+------------------
+
+**Corrections**
+
+* Correction de l'api ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (bug signalé dans #175)
+
+
 0.4.1 (2023-02-05)
 ------------------
 
