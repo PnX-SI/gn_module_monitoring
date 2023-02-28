@@ -160,7 +160,7 @@ def get_util_nomenclature_api(code_nomenclature_type, cd_nomenclature):
         )
 
 
-@blueprint.route("util/<string:type_util>/<int:id>", methods=["GET"])
+@blueprint.route("util/<string:type_util>/<string:id>", methods=["GET"])
 @json_resp
 def get_util_from_id_api(type_util, id):
     """
@@ -170,7 +170,7 @@ def get_util_from_id_api(type_util, id):
     :param type_util: 'nomenclature' | 'taxonomy' | 'utilisateur' | etc....
     :param id: id de l'object requis
     :type type_util: str
-    :type id: int
+    :type id: str
     :return object entier si field_name = all, la valeur du champs defini par field_name sinon
     """
 
@@ -194,7 +194,7 @@ def get_util_from_id_api(type_util, id):
     try:
         res = (
             DB.session.query(scope)
-            .filter(cast(getattr(obj, id_field_name), DB.String) == str(id))
+            .filter(cast(getattr(obj, id_field_name), DB.String) == id)
             .one()
         )
 
