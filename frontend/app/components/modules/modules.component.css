@@ -66,3 +66,9 @@ a {
   background-color:#71717129;
   transition: 1s ease;
 }
+
+.card-img-top {
+  height: 200px;
+  width: 100%;
+  object-fit: cover;
+}
