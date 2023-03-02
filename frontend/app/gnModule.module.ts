@@ -46,7 +46,6 @@ import {
   SitesService,
   ApiGeomService,
 } from "./services/api-geom.service";
-import { MonitoringVisitsComponent } from "./components/monitoring-visits/monitoring-visits.component";
 import { MonitoringSitesGroupsCreateComponent } from "./components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component";
 
 // my module routing
