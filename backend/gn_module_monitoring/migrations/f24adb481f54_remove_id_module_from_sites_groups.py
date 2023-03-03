@@ -41,13 +41,32 @@ def downgrade():
     )
     # Cannot use orm here because need the model to be "downgraded" as well
     # Need to set nullable True above for existing rows
-    # FIXME: find a better way because need to assign a module...
+    # Get data from core_site_module
+    # LIMITATION: Assume that current use is one site associated to one module associated to one site_group
     statement = sa.text(
         f"""
-         update {monitorings_schema}.t_sites_groups
-         set id_module = (select id_module 
-                          from gn_commons.t_modules tm 
-                          where module_code = :module_code);
+        WITH sgm AS (
+            SELECT id_sites_group , csm.id_module
+            FROM gn_monitoring.t_site_complements AS tsc
+            JOIN gn_monitoring.cor_site_module AS csm
+            ON tsc.id_base_site = csm.id_base_site
+            WHERE NOT id_sites_group IS NULL
+        )
+        UPDATE gn_monitoring.t_sites_groups AS tsg
+            SET id_module = sgm.id_module
+        FROM sgm
+        WHERE tsg.id_sites_group = sgm.id_sites_group;
+        """
+    )
+    op.execute(statement)
+
+    statement = sa.text(
+        f"""
+        UPDATE {monitorings_schema}.t_sites_groups
+        SET id_module = (select id_module
+                          from gn_commons.t_modules tm
+                          where module_code = :module_code)
+        WHERE id_module IS NULL;
         """
     ).bindparams(module_code=MODULE_CODE)
     op.execute(statement)
