@@ -46,7 +46,7 @@ def upgrade():
     # )
     statement = sa.text(
         f"""
-        ALTER TABLE {monitorings_schema}.bib_type_site 
+        ALTER TABLE {monitorings_schema}.bib_type_site
         ADD
           CONSTRAINT ck_bib_type_site_id_nomenclature_type_site CHECK (
             {nomenclature_schema}.check_nomenclature_type_by_mnemonique(
@@ -56,6 +56,12 @@ def upgrade():
         """
     )
     op.execute(statement)
+    op.create_table_comment(
+        "bib_type_site",
+        "Table de définition des champs associés aux types de sites",
+        schema=monitorings_schema,
+    )
+
 
 
 def downgrade():
