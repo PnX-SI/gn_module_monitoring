@@ -46,6 +46,11 @@ def upgrade():
         sa.PrimaryKeyConstraint("id_type_site", "id_module", name="pk_cor_module_type"),
         schema=monitorings_schema,
     )
+    op.create_table_comment(
+        "cor_module_type",
+        "Table d'association des types de sites potentiellement associés à un module",
+        schema=monitorings_schema
+    )
 
 
 def downgrade():
