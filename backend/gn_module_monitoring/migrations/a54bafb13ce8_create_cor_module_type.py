@@ -49,7 +49,7 @@ def upgrade():
     op.create_table_comment(
         "cor_module_type",
         "Table d'association des types de sites potentiellement associés à un module",
-        schema=monitorings_schema
+        schema=monitorings_schema,
     )
 
 
