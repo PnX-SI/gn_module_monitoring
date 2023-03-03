@@ -15,9 +15,10 @@ from ..blueprint import blueprint
 
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
+from geonature.core.gn_permissions.models import TObjects
 
 # from geonature.utils.errors import GeoNatureError
-from ..monitoring.definitions import monitoring_definitions
+from ..monitoring.definitions import monitoring_definitions, MonitoringPermissions_dict
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
@@ -34,11 +35,18 @@ from pathlib import Path
 
 @blueprint.url_value_preprocessor
 def set_current_module(endpoint, values):
-    requested_module = values.get("module_code") or MODULE_CODE
 
+    requested_module = values.get("module_code") or MODULE_CODE
     g.current_module = TModules.query.filter_by(module_code=requested_module).first_or_404(
-        f"No module name {requested_module} {endpoint}"
+        f"No module with code {requested_module} {endpoint}"
     )
+
+    object_type = values.get("object_type")
+    if object_type:
+        request_code_object = MonitoringPermissions_dict.get(object_type, 'ALL')
+        g.current_object = TObjects.query.filter_by(code_object=request_code_object).first_or_404(
+            f"No permission object with code {request_code_object} {endpoint}"
+        )
 
 @blueprint.route('/object/<string:module_code>/<string:object_type>/<int:id>', methods=['GET'])
 @blueprint.route(
