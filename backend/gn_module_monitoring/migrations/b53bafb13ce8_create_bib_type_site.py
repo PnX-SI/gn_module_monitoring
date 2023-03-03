@@ -63,6 +63,5 @@ def upgrade():
     )
 
 
-
 def downgrade():
     op.drop_table("bib_type_site", schema=monitorings_schema)
