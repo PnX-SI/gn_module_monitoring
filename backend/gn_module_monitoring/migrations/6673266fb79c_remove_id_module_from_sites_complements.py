@@ -20,6 +20,20 @@ monitorings_schema = "gn_monitoring"
 
 
 def upgrade():
+    # Transfert data to core_site_module table
+    statement = sa.text(
+        f"""
+        INSERT INTO {monitorings_schema}.cor_site_module (id_module, id_base_site)
+        SELECT tsc.id_module, tsc.id_base_site
+        FROM {monitorings_schema}.t_site_complements AS tsc
+        LEFT JOIN  {monitorings_schema}.cor_site_module AS csm
+        ON tsc.id_base_site = csm.id_base_site
+        WHERE csm.id_base_site IS NULL;
+        """
+    )
+    op.execute(statement)
+
+    # Drop column id_module
     op.drop_column("t_site_complements", "id_module", schema=monitorings_schema)
 
 
@@ -41,14 +55,19 @@ def downgrade():
     )
     # Cannot use orm here because need the model to be "downgraded" as well
     # Need to set nullable True above for existing rows
-    # FIXME: find a better way because need to assign a module...
+    # LIMITATION: Assume that current use is one site associated to one module
     statement = sa.text(
         f"""
-         update {monitorings_schema}.t_site_complements
-         set id_module = (select id_module 
-                          from gn_commons.t_modules tm 
-                          where module_code = :module_code);
+        WITH sm AS (
+            SELECT min(id_module) AS first_id_module, id_base_site
+            FROM {monitorings_schema}.cor_site_module AS csm
+            GROUP BY id_base_site
+        )
+        UPDATE {monitorings_schema}.t_site_complements sc
+            SET id_module = sm.first_id_module
+        FROM sm
+        WHERE sm.id_base_site = sc.id_base_site;
         """
-    ).bindparams(module_code=MODULE_CODE)
+    )
     op.execute(statement)
     op.alter_column("t_site_complements", "id_module", nullable=False, schema=monitorings_schema)
