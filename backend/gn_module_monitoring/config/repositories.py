@@ -105,6 +105,7 @@ def get_config(module_code=None, force=False):
 
     module_confg_dir_path = MONITORING_CONFIG_PATH + '/' + module_code
     # test si le repertoire existe
+
     if not os.path.exists(module_confg_dir_path):
         return None
 
