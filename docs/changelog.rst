@@ -5,13 +5,17 @@ CHANGELOG
 0.4.2 (unreleased)
 ------------------
 
+Nécessite GeoNature version 2.12.0 (ou plus)
+
 **Evolutions**
 
-* Utilisation du décorateur de route classique ``check_cruved_scope``
+* Compatibilité avec GeoNature 2.12 (Passage à la version 15 d'Angular et révision des permissions)
+* Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
+* Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
 
 **Corrections**
 
-* Correction de l'api ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (bug signalé dans #175)
+* Correction de l'API ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (#175)
 
 
 0.4.1 (2023-02-05)
