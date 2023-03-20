@@ -1,24 +1,24 @@
-import { Observable, of, forkJoin } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
+import { Observable, of, forkJoin } from "rxjs";
+import { mergeMap, concatMap } from "rxjs/operators";
 
-import { MonitoringObject } from '../../class/monitoring-object';
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { MonitoringObject } from "../../class/monitoring-object";
+import { Component, OnInit } from "@angular/core";
+import { FormGroup, FormBuilder } from "@angular/forms";
 
 // services
-import { ActivatedRoute } from '@angular/router';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
-import { ConfigService } from '../../services/config.service';
-import { DataUtilsService } from '../../services/data-utils.service';
-import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { CommonService } from '@geonature_common/service/common.service';
-import { MapService } from '@geonature_common/map/map.service';
+import { ActivatedRoute } from "@angular/router";
+import { MonitoringObjectService } from "../../services/monitoring-object.service";
+import { ConfigService } from "../../services/config.service";
+import { DataUtilsService } from "../../services/data-utils.service";
+import { AuthService, User } from "@geonature/components/auth/auth.service";
+import { CommonService } from "@geonature_common/service/common.service";
+import { MapService } from "@geonature_common/map/map.service";
 
-import { Utils } from '../../utils/utils';
+import { Utils } from "../../utils/utils";
 @Component({
-  selector: 'pnx-object',
-  templateUrl: './monitoring-object.component.html',
-  styleUrls: ['./monitoring-object.component.css'],
+  selector: "pnx-object",
+  templateUrl: "./monitoring-object.component.html",
+  styleUrls: ["./monitoring-object.component.css"],
 })
 export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
@@ -53,21 +53,23 @@ export class MonitoringObjectComponent implements OnInit {
   ) {}
 
   ngAfterViewInit() {
-    const container = document.getElementById('object');
+    const container = document.getElementById("object");
     const height = this._commonService.calcCardContentHeight();
-    container.style.height = height - 40 + 'px';
-    this.heightMap = height - 80 + 'px';
+    container.style.height = height - 40 + "px";
+    this.heightMap = height - 80 + "px";
   }
 
   ngOnInit() {
-    const elements = document.getElementsByClassName('monitoring-map-container');
+    const elements = document.getElementsByClassName(
+      "monitoring-map-container"
+    );
     if (elements.length >= 1) {
       elements[0].remove();
     }
     this.currentUser = this._auth.getCurrentUser();
 
-    this.currentUser['cruved'] = {};
-    this.currentUser['cruved_objects'] = {};
+    this.currentUser["cruved"] = {};
+    this.currentUser["cruved_objects"] = {};
 
     of(true)
       .pipe(
@@ -100,7 +102,7 @@ export class MonitoringObjectComponent implements OnInit {
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
 
-        if (!this.sites || this.obj.children['site']) {
+        if (!this.sites || this.obj.children["site"]) {
           this.initSites();
         } else {
           this.initObjectsStatus();
@@ -111,12 +113,18 @@ export class MonitoringObjectComponent implements OnInit {
   getModuleSet() {
     // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
-      const schema = this._configService.schema(this.module.moduleCode, 'module');
+      const schema = this._configService.schema(
+        this.module.moduleCode,
+        "module"
+      );
       const moduleFieldList = Object.keys(
-        this._configService.schema(this.module.moduleCode, 'module')
+        this._configService.schema(this.module.moduleCode, "module")
       ).filter((key) => schema[key].required);
       this.moduleSet = moduleFieldList.every(
-        (v) => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v])
+        (v) =>
+          ![null, undefined].includes(
+            this.module.properties[v] || this.obj.properties[v]
+          )
       );
     });
   }
@@ -124,26 +132,29 @@ export class MonitoringObjectComponent implements OnInit {
   initSites() {
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
-      this.currentUser['cruved'] = this.module.userCruved;
-      this.currentUser['cruved_object'] = this.module.userCruvedObject;
+      this.currentUser["cruved"] = this.module.userCruved;
+      this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
       // affichage des groupes de site uniquement si l'objet est un module
-      if (this.obj.objectType == 'module' && this.obj['children']['sites_group']) {
-        const sitesGroup = this.obj['children']['sites_group'];
+      if (
+        this.obj.objectType == "module" &&
+        this.obj["children"]["sites_group"]
+      ) {
+        const sitesGroup = this.obj["children"]["sites_group"];
         this.sitesGroup = {
           features: sitesGroup.map((group) => {
-            group['id'] = group['properties']['id_sites_group'];
-            group['type'] = 'Feature';
+            group["id"] = group["properties"]["id_sites_group"];
+            group["type"] = "Feature";
             return group;
           }),
-          type: 'FeatureCollection',
+          type: "FeatureCollection",
         };
       }
       // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
       let sites = null;
       let cur = this.obj;
       do {
-        sites = cur['children']['site'];
+        sites = cur["children"]["site"];
         cur = cur.parent();
       } while (!!cur && !sites);
 
@@ -152,11 +163,11 @@ export class MonitoringObjectComponent implements OnInit {
       }
       this.sites = {
         features: sites.map((site) => {
-          site['id'] = site['properties']['id_base_site'];
-          site['type'] = 'Feature';
+          site["id"] = site["properties"]["id_base_site"];
+          site["type"] = "Feature";
           return site;
         }),
-        type: 'FeatureCollection',
+        type: "FeatureCollection",
       };
       this.initObjectsStatus();
     });
@@ -165,27 +176,29 @@ export class MonitoringObjectComponent implements OnInit {
   initObjectsStatus() {
     const objectsStatus = {};
     for (const childrenType of Object.keys(this.obj.children)) {
-      objectsStatus[childrenType] = this.obj.children[childrenType].map((child) => {
-        return {
-          id: child.id,
-          selected: false,
-          visible: true,
-          current: false,
-        };
-      });
+      objectsStatus[childrenType] = this.obj.children[childrenType].map(
+        (child) => {
+          return {
+            id: child.id,
+            selected: false,
+            visible: true,
+            current: false,
+          };
+        }
+      );
     }
 
     // init site status
     if (this.obj.siteId) {
-      objectsStatus['site'] = [];
-      this.sites['features'].forEach((f) => {
+      objectsStatus["site"] = [];
+      this.sites["features"].forEach((f) => {
         // determination du site courrant
         let cur = false;
         if (f.properties.id_base_site == this.obj.siteId) {
           cur = true;
         }
 
-        objectsStatus['site'].push({
+        objectsStatus["site"].push({
           id: f.properties.id_base_site,
           selected: false,
           visible: true,
@@ -210,20 +223,22 @@ export class MonitoringObjectComponent implements OnInit {
   initRoutesParams() {
     return this._route.paramMap.pipe(
       mergeMap((params) => {
-        const objectType = params.get('objectType') ? params.get('objectType') : 'module';
+        const objectType = params.get("objectType")
+          ? params.get("objectType")
+          : "module";
 
         this.obj = new MonitoringObject(
-          params.get('moduleCode'),
+          params.get("moduleCode"),
           objectType,
-          params.get('id'),
+          params.get("id"),
           this._objService
         );
-        console.log('LAAAA', this.obj);
 
-        this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll('parents_path') || [];
+        this.obj.parentsPath =
+          this._route.snapshot.queryParamMap.getAll("parents_path") || [];
         this.module = new MonitoringObject(
-          params.get('moduleCode'),
-          'module',
+          params.get("moduleCode"),
+          "module",
           null,
           this._objService
         );
@@ -240,7 +255,8 @@ export class MonitoringObjectComponent implements OnInit {
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.moduleCode).pipe(
       mergeMap(() => {
-        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
+        this.frontendModuleMonitoringUrl =
+          this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
         return of(true);
       })
@@ -273,7 +289,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    if (obj['objectType'] === 'site') {
+    if (obj["objectType"] === "site") {
       this.initSites();
     }
     this.getModuleSet();

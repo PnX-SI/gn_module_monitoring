@@ -76,6 +76,8 @@
 
       <div>
         <button
+          mat-raised-button
+          color="primary"
           *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
           class="btn btn-success float-right"
           (click)="bSaveAndAddChildrenSpinner = bAddChildren = true; onSubmit()"
@@ -94,7 +96,9 @@
         </button>
 
         <button
-          class="btn btn-success float-right"
+          mat-raised-button
+          color="primary"
+          class="float-right"
           (click)="bSaveSpinner = true; onSubmit()"
           [disabled]="!objForm.valid"
         >
@@ -111,11 +115,16 @@
           <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
 
-        <button class="btn btn-primary float-left" (click)="onCancelEdit()">
+        <button 
+          mat-raised-button
+          color="accent"
+          class="float-left" (click)="onCancelEdit()">
           Annuler
         </button>
         <button
-          class="btn btn-danger float-left"
+          mat-raised-button
+          color="warn"
+          class="float-left"
           (click)="bDeleteModal = true"
           *ngIf="obj.id && (currentUser['cruved_object'][obj.objectType] || currentUser['cruved']).D >= obj.cruved('D')"
         >
