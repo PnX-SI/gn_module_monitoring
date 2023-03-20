@@ -83,13 +83,8 @@ export class MonitoringListComponent implements OnInit {
 
   changeActiveTab(typeObject, tab) {
     this.activetab = typeObject;
-    // // Réinitialisation des données selectés
-    // this.objectsStatusChange.emit(this.reInitStatut());
-    // const tabs = document.getElementsByClassName("nav-item list");
-    // Array.from(tabs).forEach((t) => {
-    //   t.classList.remove("active");
-    // });
-    // tab.classList.add("active");
+    // Réinitialisation des données selectés
+    this.objectsStatusChange.emit(this.reInitStatut());
   }
 
   reInitStatut() {
