@@ -73,7 +73,7 @@
 
 
     <button
-      mat-raised-button
+      mat-stroked-button
       color="primary"
       class="mr-2"
       (click)="onEditClick()"
@@ -87,7 +87,7 @@
 
     <!-- export pdf -->
     <button
-      mat-raised-button
+      mat-stroked-button
       color="primary"
       *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])"
       (click)="processExportPdf(exportPdfConfig)"
@@ -99,7 +99,7 @@
 
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
-    mat-raised-button
+    mat-stroked-button
     color="primary"
     class="float-right"
     (click)="updateSynthese()"
@@ -119,10 +119,11 @@
 ></span>
 
     Mettre à jour la synthèse
+    <mat-icon>sync</mat-icon>
   </button>
 
   <button
-    mat-raised-button
+    mat-stroked-button
     *ngIf="obj.template['export_csv']"
     class="mr-2"
     color="primary"
@@ -156,8 +157,10 @@
         </mat-card-content>
         <mat-card-actions align="end">
             <button
+            mat-raised-button
+            color="primary"
             (click)="getExportCsv(obj.template['export_csv'][i], this.selectedDataSet[i])"
-            type="button" class="btn btn-success" matTooltip="Télécharger"
+            type="button"  matTooltip="Télécharger"
             [disabled]="obj.template['export_csv'][i].filter_dataset && !selectedDataSet[i]"
             >
             Téléchargement
