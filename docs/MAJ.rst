@@ -36,11 +36,11 @@ Méthode classique
    mv /home/`whoami`/gn_module_monitoring /home/`whoami`/gn_module_monitoring_old
    mv /home/`whoami`/gn_module_monitoring-X.Y.Z /home/`whoami`/gn_module_monitoring
 
-- Récupérez le fichier de configuration du module
+- Si vous avez encore votre configuration du module dans les dossiers du module, rapatriez le fichier de configuration dans le dossier de configuration centralisée de GeoNature (depuis sa version 2.11) :
 
 ::
 
-   cp /home/`whoami`/gn_module_monitoring_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_monitoring/config/conf_gn_module.toml
+   cp ~/gn_module_monitoring_old/config/conf_gn_module.toml  ~/geonature/config/monitorings_config.toml
 
 
 - Récupérez les sous-modules, recréer les liens symboliques pour la config
@@ -58,15 +58,13 @@ Méthode classique
    source /home/`whoami`/geonature/backend/venv/bin/activate
    geonature monitorings process_img
 
-- Relancez la compilation en mettant à jour la configuration
+- Lancez la mise à jour du module
 
 ::
 
-   source <geonature>/backend/venv/bin/activate
+   source ~/geonature/backend/venv/bin/activate
    geonature install-gn-module gn_module_monitoring MONITORINGS
    sudo systemctl reload geonature
-
-- Exécutez les éventuels scripts SQL de migration de la BDD indiqués dans les notes de version, correspondants aux évolutions de structure des données de la nouvelle version, dans ``/home/`whoami`/gn_module_monitoring/migrations/<choisir le(s) bon(s) en fonction des versions>``
 
 - Recréer les vues alimentant la synthèse de GeoNature
 
