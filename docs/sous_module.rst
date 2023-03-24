@@ -283,7 +283,7 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
   Il est important d'ajouter ``"type_util": "taxonomy",``.
 
-* **dataset** : une liste de taxons
+* **dataset** : une liste de jeux de données
 
   ::
 
