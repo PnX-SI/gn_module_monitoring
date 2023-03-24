@@ -20,7 +20,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 **⚠️ Notes de version**
 
-L'utilisation du widget ``datalist`` est déconseillé pour les jeux de données. Il faut modifier les fichiers de configuration et le remplacer par le widget ``dataset``
+L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichier de configuration, il faut les modifier en remplaçant par le widget ``dataset``. 
 
 ::
 
