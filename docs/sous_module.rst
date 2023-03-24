@@ -35,17 +35,17 @@ Les exports
 * ``exports``
 
   * ``csv``
-  
+
     * *fichiers sql* qui permettent de définir les vues qui serviront aux exports ``csv``
-  
+
     * le nommage des vues doit être ``"v_export_<module_code>_<method>``
-    
+
       * ``<method>`` est une chaine de caratère qui permet de caractriser différentes vues et différents exports pour un module
-   
+
   * ``pdf``
-   
+
     * *fichiers html/img/css*
-     
+
       * ces fichiers definissent un template pour l'export pdf et tous les assets nécessaires (images, style, etc..)
 
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
@@ -99,9 +99,9 @@ Dans le cas général (``module.json``, ``site.json``, ``visit.json``, ``observa
 * ``label`` : permet de nommer les objets, par exemple ``"Site"`` pour site,
 
 * ``description_field_name`` : le nom du champs qui servira à décrire le site (pour le titre du site), par exemple :
-  
+
   * ``"visit_date_min"`` pour une visite,
-  
+
   * ``"base_site_name"`` pour un site;
 
 * ``geometry_type``: pour les sites seulement, peut prendre la valeur ``Point``, ``LineString`` ou  ``Polygon``.
@@ -154,22 +154,22 @@ Chaque entrée de la variable ``generic`` est le nom d'une variable (``"id_base_
 * les attributs obligatoires :
 
   * ``type_widget`` : renseigne à la fois sur la nature de la variable et sur son type d'input, pour plus de détails sur les différentes possibilités, voir le  paragraphe `Définir une nouvelle variable`_.
-  
+
   * ``attribut_label`` : associe un nom à la variable, comme ``"Type de site"`` pour ``id_nomenclature_type_site``,
 
 * les attributs facultatifs :
 
   * ``hidden`` : permet de cacher la variable ou l'input du formulaire
-  
+
   * ``value`` : permet d'attribuer une valeur par défaut
-  
+
   * ``required`` : permet de rendre un input obligatoire
-  
+
   * ``definition`` : permet d'ajouter une définiton à la variable pour aider l'utilisateur
 
 * les attributs `spéciaux` :
 
-  * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'un id (d'une nomenclature) et de traiter cette variable en fonction.
+  * ``type_util``: peut prendre pour valeur ``"user"``, ``"nomenclature"``, ``"dataset"`` ou  ``"taxonomy"``. Permet d'indiquer qu'il s'agit ici d'un id (d'une nomenclature) et de traiter cette variable en fonction.
 
 On peut mettre en valeur de ces attributs des données de la configuration du module.
 
@@ -283,6 +283,22 @@ Pour définir une nouvelle variable ou aussi redéfinir une caractéristique d'u
 
   Il est important d'ajouter ``"type_util": "taxonomy",``.
 
+* **dataset** : une liste de jeux de données
+
+  ::
+
+        "id_dataset": {
+            "type_widget": "dataset",
+            "attribut_label": "Jeu de données",
+            "type_util": "dataset",
+            "required": true,
+            "module_code": "__MODULE.MODULE_CODE",
+        },
+
+  La variable ``"module_code": "__MODULE.MODULE_CODE"`` permet de selectionner uniquement les jeux de données associés au module.
+
+  Il est important d'ajouter ``"type_util": "dataset",``.
+
 Redéfinir une variable existante
 --------------------------------
 
@@ -320,9 +336,9 @@ On rajoutera cet élément dans notre variable ``specific`` et cet élément ser
   Il est important d'ajouter ``"type_util": "nomenclature",``.
 
   Pour renseigner la valeur de la nomenclature, on spécifie :
-  
+
     * le type de nomenclature ``"code_nomenclature_type"`` (correspond au champs mnemonique du type)
-    
+
     * le code de la nomenclature ``"cd_nomenclature"``
 
 
@@ -379,27 +395,6 @@ Par exemple :
     },
 
 
-* Jeux de données (pour les visites on veut la liste des JDD pour le module, d'où l'utilisation de ``"module_code": "__MODULE.MODULE_CODE"`` en paramètre ``GET`` de l'API
-
-  ::
-
-    "id_dataset": {
-        "type_widget": "datalist",
-        "attribut_label": "Jeu de données",
-        "type_util": "dataset",
-        "api": "meta/datasets",
-        "application": "GeoNature",
-        "keyValue": "id_dataset",
-        "keyLabel": "dataset_shortname",
-        "params": {
-            "orderby": "dataset_name",
-            "module_code": "__MODULE.MODULE_CODE"
-        },
-        "data_path": "data",
-        "required": true
-    },
-
-
 * Utilisateur
 
   ::
@@ -435,7 +430,7 @@ La valeur de ce paramètre est alors une chaîne de caractère qui définie une 
   * la nomenclature (pour avoir les valeurs des nomenclature à partir des id, ici un dictionnaire avec ``id_nomenclature`` comme clés.
 
   * ``bChainInput`` si on enchaine les releves
-  
+
   * etc.. à redéfinir selon les besoin
 
 La chaine de caractère qui décrit la fonction doit être de la forme suivante:
@@ -656,15 +651,15 @@ Les fichiers de template (``.html``) et assets (images, style, etc..) pour l'exp
 * Dans les fichiers template on a accès à la variable ``data`` un dictionnaire contenant :
 
   * ``static_pdf_dir`` : chemin du dossier des assets de l'export pdf
-  
+
   * ``map_image`` : l'image tirée de la carte leaflet
-  
+
   * ``monitoring_object.properties``: propriété de l'objet courant
 
 * La commande ``geonature monitorings process_export_pdf <module_code>`` permet de :
 
   * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
-  
+
   * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
 
 CSV
@@ -686,13 +681,13 @@ les fichiers ``.sql`` qui définissent les vues pour l'export CSV sont placés d
 * Paramètres :
 
   * label : Nom de l'export
-  
+
   * method : Nom de la vue sans le code du module
-  
+
   * filter_dataset (true|false) : Ajoute le filtre des datasets. Dans ce cas il faut que la vue ait un champ ``id_dataset``
 
 * La commande ``geonature monitorings process_export_csv <module_code>`` permet de :
 
   * jouer tous les fichiers SQL de ce répertoire
-  
+
   * les vues doivent être nommées ``v_export_<module_code>_<method>``
