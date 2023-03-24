@@ -229,6 +229,8 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.navigateToDetail();
   }
 
+
+
   /**
    * Valider et aller à la page de l'objet
    */
@@ -236,6 +238,7 @@ export class MonitoringFormComponent implements OnInit {
     this.bEditChange.emit(false); // patch bug navigation
     this.obj.navigateToParent();
   }
+
 
   msgToaster(action) {
     return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
@@ -246,7 +249,7 @@ export class MonitoringFormComponent implements OnInit {
     const action = this.obj.id
       ? this.obj.patch(this.objForm.value)
       : this.obj.post(this.objForm.value);
-    const actionLabel = this.obj.id ? 'Modification' : 'Création';
+    const actionLabel = this.obj.id ? "Modification" : "Création";
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
