@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from flask import current_app
 from sqlalchemy import and_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
@@ -19,6 +20,9 @@ utils.py
 
 fonctions pour les commandes du module monitoring
 '''
+
+def monitoring_assets_dir():
+    return BACKEND_DIR / current_app.config['MEDIA_FOLDER'] / 'external_assets/monitorings/'
 
 
 def process_for_all_module(process_func):
@@ -89,7 +93,7 @@ def process_export_pdf(module_code=None):
 
     # static (css img etc.)
 
-    export_pdf_assets_static_dir = BACKEND_DIR / 'static/external_assets/monitorings/{}/exports/pdf'.format(module_code)
+    export_pdf_assets_static_dir = monitoring_assets_dir() / module_code / 'exports/pdf'
     export_pdf_assets_static_dir.parent.mkdir(exist_ok=True, parents=True)
 
     export_pdf_dir = Path(MONITORING_CONFIG_PATH) / module_code / 'exports/pdf'
@@ -127,7 +131,7 @@ def process_img_modules():
     '''
 
     # creation du fichier d'asset dans le repertoire static du backend
-    assets_static_dir = BACKEND_DIR / 'static/external_assets/monitorings/'
+    assets_static_dir = monitoring_assets_dir()
     assets_static_dir.mkdir(exist_ok=True, parents=True)
 
     for root, dirs, files in os.walk(MONITORING_CONFIG_PATH, followlinks=True):

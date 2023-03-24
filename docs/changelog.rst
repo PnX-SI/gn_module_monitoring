@@ -13,10 +13,18 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Centralisation de la configuration du module dans le dossier de configuration de GeoNature
 * Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
 * Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
+* Les assets sont placé dans le dossier des médias de geonature
 
 **Corrections**
 
 * Correction de l'API ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (#175)
+
+**Note de version**
+
+* Jouer la commande ``geonature monitorings process_img``
+pour passer toutes les image dans le dossier `media`
+
+* pour les module ayant un export pdf, faire ``geonature monitorings process_pdf <module_code>``
 
 0.4.1 (2023-02-05)
 ------------------
