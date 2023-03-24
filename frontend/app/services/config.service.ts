@@ -3,13 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { ConfigService } from '@geonature/services/config.service';
+import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
 @Injectable()
 export class ConfigService {
   private _config;
 
-  constructor(private _http: HttpClient, private _moduleService: ModuleService, public appConfig: ConfigService) {}
+  constructor(private _http: HttpClient, private _moduleService: ModuleService, public appConfig: GnConfigService) {}
 
   /** Configuration */
 
