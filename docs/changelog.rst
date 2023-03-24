@@ -18,6 +18,21 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 * Correction de l'API ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (#175)
 
+**⚠️ Notes de version**
+
+L'utilisation du widget ``datalist`` est déconseillé pour les jeux de données. Il faut modifier les fichiers de configuration et le remplacer par le widget ``dataset``
+
+::
+
+  "id_dataset": {
+    "type_widget": "dataset",
+    "attribut_label": "Jeu de données",
+    "type_util": "dataset",
+    "required": true,
+    "module_code": "__MODULE.MODULE_CODE",
+  },
+
+
 0.4.1 (2023-02-05)
 ------------------
 
