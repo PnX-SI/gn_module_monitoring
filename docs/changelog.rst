@@ -22,7 +22,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 **⚠️ Notes de version**
 
-L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichiers de configuration, il faut les modifier en remplaçant par le widget ``dataset``. 
+* L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichiers de configuration, il faut les modifier en remplaçant par le widget ``dataset``. 
 
 ::
 
@@ -35,14 +35,14 @@ L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire.
   },
 
 
-Pour passer les assets dans le dossier media
+* Pour passer les assets des sous-moduledans le dossier `media` de GeoNature :
 
 ::
 
   cp -R <geonature>/backend/static/external_assets <geonature>/backend/media/.
 
 
-adapter la commande si les repertoires ``static`` et ``medias`` sont différents de l'exemple ci dessus.
+Adapter cette commande si les repertoires ``static`` et ``medias`` sont différents de l'exemple ci-dessus.
 
 0.4.1 (2023-02-05)
 ------------------
