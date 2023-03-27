@@ -283,8 +283,7 @@ def post_export_pdf(module_code, object_type, id):
         'module_code': module_code,
         'monitoring_object': monitoring_object,
         'extra_data': request.json['extra_data'],
-        # 'static_pdf_dir': "static/external_assets/monitorings/{}/exports/pdf/".format(module_code),
-        'static_pdf_dir': url_for('static', filename="external_assets/monitorings/{}/exports/pdf/".format(module_code)),
+        'static_pdf_dir': url_for('media', filename=f"external_assets/monitorings/{module_code}/exports/pdf/"),
         'map_image': request.json['map']
 
     }
