@@ -47,7 +47,8 @@ export class ModulesComponent implements OnInit {
         this.moduleMonitoringCode = this._configService.moduleMonitoringCode();
         this.urlApplication = this._configService.urlApplication();
         this.assetsDirectory =
-          `${this._configService.backendUrl()}/${this._configService.appConfig.MEDIA_URL}/external_assets/monitorings/`;
+          this._configService.backendUrl() +
+          "/static/external_assets/monitorings/";
         this.bLoading = false;
       });
   }

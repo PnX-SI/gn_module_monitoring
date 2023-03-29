@@ -14,7 +14,6 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
 * Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
 * Remplacement du composant `datalist` par le composant `dataset` pour le champs de selection du JDD de la visite, dans la configuration générique des sous-modules
-* Les assets des sous-modules (images, exports) sont déplacés du dossier ``static`` au dossier ``media`` de GeoNature
 
 **Corrections**
 
@@ -34,15 +33,6 @@ Nécessite GeoNature version 2.12.0 (ou plus)
     "module_code": "__MODULE.MODULE_CODE",
   },
 
-
-* Pour passer les assets des sous-moduledans le dossier `media` de GeoNature :
-
-::
-
-  cp -R <geonature>/backend/static/external_assets <geonature>/backend/media/.
-
-
-Adapter cette commande si les repertoires ``static`` et ``medias`` sont différents de l'exemple ci-dessus.
 
 0.4.1 (2023-02-05)
 ------------------
