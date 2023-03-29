@@ -22,7 +22,11 @@ setuptools.setup(
     url="https://github.com/PnX-SI/gn_module_monitoring",
     packages=setuptools.find_packages("backend"),
     package_dir={"": "backend"},
-    package_data={"gn_module_monitoring.migrations": ["data/*.sql"]},
+    package_data={
+    "gn_module_monitoring.migrations": ["data/*.sql"],
+    "gn_module_monitoring.config": ["generic/*.json"]
+    },
+    include_package_data=True,
     install_requires=requirements,
     tests_require=[],
     zip_safe=False,
