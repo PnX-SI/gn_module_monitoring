@@ -2,6 +2,27 @@
 Mise à jour du module
 =====================
 
+Avant la mise à jour
+====================
+
+
+::
+
+   cp ~/gn_module_monitoring_old/config/conf_gn_module.toml  ~/geonature/config/monitorings_config.toml
+
+
+- Si vous ne l'avez pas encore fait, copier les configuration des modules dans le dossier ``media`` de geonature
+    - attention à bien reproduire la commande:
+        - source : ``gn_module_monitoring_old/config/monitoring`` (sans ``s``)
+        - destination : ``~/geonature/config/monitorings`` (avec ``s``)
+
+::
+   cp -R ~/gn_module_monitoring_old/config/monitoring ~/geonature/backend/media/monitorings
+   rm -R geonature/config/monitorings/generic
+
+
+- à adapter si l'emplacement du dossier media à été modifié
+
 Gestion des fichiers avec git
 =============================
 
@@ -36,27 +57,6 @@ Méthode classique
    mv /home/`whoami`/gn_module_monitoring /home/`whoami`/gn_module_monitoring_old
    mv /home/`whoami`/gn_module_monitoring-X.Y.Z /home/`whoami`/gn_module_monitoring
 
-- Si vous avez encore votre configuration du module dans les dossiers du module, rapatriez le fichier de configuration dans le dossier de configuration centralisée de GeoNature (depuis sa version 2.11) :
-
-::
-
-   cp ~/gn_module_monitoring_old/config/conf_gn_module.toml  ~/geonature/config/monitorings_config.toml
-
-
-- Récupérez les sous-modules, recréer les liens symboliques pour la config
-
-  - Ne jamais faire de modifications directement dans le dossier ``config/monitoring/generic``
-
-::
-
-   rsync -av /home/`whoami`/gn_module_monitoring_old/config/monitoring/ /home/`whoami`/gn_module_monitoring/config/monitoring/ --exclude=generic
-
-- Recréez les liens des images des modules dans le dossier ``<geonature>/backend/static/external_assets/monitorings/``
-
-::
-
-   source /home/`whoami`/geonature/backend/venv/bin/activate
-   geonature monitorings process_img
 
 - Lancez la mise à jour du module
 
@@ -70,4 +70,4 @@ Méthode classique
 
 ::
 
-   /home/`whoami`/gn_module_monitoring/data/update_views.sh /home/`whoami`/geonature
+   geonature monitorings process_csv

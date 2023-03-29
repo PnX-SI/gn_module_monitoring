@@ -51,9 +51,7 @@ Les exports
 Pour chaque fichier, les valeurs prises par défaut sont celles du fichier de même nom présent dans le répertoire ``config/monitoring/generic``.
 
 Le fichier ``img.jpg`` servira de vignette du sous-module sur la page d'accueil du module Monitorings. Le format paysage est à privilégier.
-Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``frontend/src/external_assets/monitorings`` de GeoNature.
-
-Pour que l'image soit prise en compte, lors de l'installation du module ou si on la modifie, il faut relancer une compilation de GeoNature (avec la commande ``geonature frontend_build`` par exemple).
+Pour chacune un lien symbolique est créé automatiquement dans le répertoire ``media/monitorings/<module_code>.jpg`` de GeoNature.
 
 
 ----------------------
@@ -660,7 +658,7 @@ Les fichiers de template (``.html``) et assets (images, style, etc..) pour l'exp
 
   * placer les fichier de template en ``.html`` (lien symbolique) dans le dossier ``<geonature>/backend/template/modules/monitorings/<module_code>``
 
-  * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/static/external_assets/monitorings/<module_code>/exports/pdf``
+  * placer les fchiers d'assets dans le dossier static : ``<geonature>/backend/media/monitorings/<module_code>/exports/pdf``
 
 CSV
 -----------

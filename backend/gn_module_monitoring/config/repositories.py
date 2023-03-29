@@ -17,7 +17,7 @@ from .utils import (
     get_monitoring_module,
     get_monitorings_path,
     get_data_preload,
-    MONITORING_CONFIG_PATH
+    monitoring_module_config_path
 )
 
 
@@ -100,10 +100,9 @@ def get_config(module_code=None, force=False):
         sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
 
     '''
-
     module_code = module_code if module_code else 'generic'
 
-    module_confg_dir_path = MONITORING_CONFIG_PATH + '/' + module_code
+    module_confg_dir_path = monitoring_module_config_path(module_code)
     # test si le repertoire existe
 
     if not os.path.exists(module_confg_dir_path):
@@ -121,7 +120,7 @@ def get_config(module_code=None, force=False):
 
     # derniere modification
     # fichiers
-    # file_last_modif = get_directory_last_modif(MONITORING_CONFIG_PATH)
+    # file_last_modif = get_directory_last_modif(monitoring_config_path())
     # base_last_modif = get_base_last_modif(module)
     # last_modif = max(base_last_modif, file_last_modif)
 

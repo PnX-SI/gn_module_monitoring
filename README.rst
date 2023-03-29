@@ -78,11 +78,19 @@ Installation du module
   geonature install-gn-module <path_to_module_monitoring> MONITORINGS
   sudo systemctl restart geonature
 
+
+Créer le dossier suivant dans le dossier ``media`` de geonature
+
+::
+
+  mkdir <path_to_geonature>/backend/media/monitorings
+
+
 Installation d'un sous-module
 =============================
 
-Récupérer le code d'un sous-module de suivi
--------------------------------------------
+Récupérer le repertoire de configuration d'un sous-module de suivi
+------------------------------------------------------------------
 
 Par exemple le sous-module ``test`` présent dans le repertoire ``contrib/test`` du module de suivi.
 
@@ -94,23 +102,29 @@ Activer le venv de GeoNature
   cd <path_to_geonature>
   source backend/venv/bin/activate
 
+
+Copie du dossier de configuration
+---------------------------------
+
+Copier le dossier du sous module dans le dossier ``media`` de geonature
+
+::
+
+  cp -R  <dossier du sous module> <path_to_geonature>/backend/media/monitorings/<module_code>
+
+
+Si l'on souhaite développer un sous-module il peut parfois être plus pratique de faire un lien symbolique
+
+::
+
+  ln -s <dossier du sous module> <path_to_geonature>/backend/monitorings/<module_code>
+
 Lancer la commande d'installation du sous-module
 ------------------------------------------------
 
 ::
 
-  geonature monitorings install <chemin_absolu_vers_le_sous_module>
-
-- Par défaut la commande d'installation extrait le code du module depuis le chemin.
-- Par exemple ``<chemin_absolu_vers_le_module_de_suivi>/contrib/test/`` donnera la valeur ``test`` à ``module_code``.
-- Le caractère ``/`` à la fin de ``<chemin_absolu_vers_le_sous_module>`` est optionnel.
-
-Si la commande précise que le module est déjà installé (test sur le ``module_code``), on peut préciser une valeur différente pour ``module_code`` avec la commande :
-
-::
-
-  geonature monitorings install <chemin_absolu_vers_le_sous_module> <module_code>
-
+  geonature monitorings install <module_code>
 
 
 Configurer le sous-module
