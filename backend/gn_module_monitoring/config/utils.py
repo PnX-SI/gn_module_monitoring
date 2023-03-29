@@ -1,4 +1,5 @@
 import os, datetime, time
+import importlib
 from pathlib import Path
 from flask import current_app
 import json
@@ -11,13 +12,9 @@ from geonature.utils.env import DB, DEFAULT_CONFIG_FILE, BACKEND_DIR
 
 from ..monitoring.models import TMonitoringModules
 
-GENERIC_CONFIG_DIR = Path(os.path.abspath(__file__)).parent / 'generic'
 SUB_MODULE_CONFIG_DIR = Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
 
 def monitoring_module_config_path(module_code):
-    if module_code == 'generic':
-        return GENERIC_CONFIG_DIR
-
     return SUB_MODULE_CONFIG_DIR / module_code
 
 def get_monitoring_module(module_code):
@@ -132,15 +129,12 @@ def json_from_file(file_path, result_default):
 
 def json_config_from_file(module_code, type_config):
 
+    if module_code == "generic":
+        config_txt = importlib.resources.read_text('gn_module_monitoring.config.generic', f'{type_config}.json')
+        return json.loads(config_txt)
+
     file_path = monitoring_module_config_path(module_code) / f"{type_config}.json"
     return json_from_file(file_path, {})
-
-
-def json_schema_from_file(module_code, object_type):
-
-    file_path = monitoring_module_config_path(module_code) / f"schema_{object_type}.json"
-    return json_from_file(file_path, {})
-
 
 def config_from_files(config_type, module_code):
 
