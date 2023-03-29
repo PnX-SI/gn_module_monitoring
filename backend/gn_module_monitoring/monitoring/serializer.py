@@ -8,6 +8,7 @@ from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
 from geonature.utils.env import DB
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
@@ -156,12 +157,12 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         }
 
         if self._object_type == 'module':
-            monitoring_object_dict['cruved'] = self.get_cruved()
+            monitoring_object_dict['cruved'] = get_scopes_by_action(module_code=self._module_code)
             monitoring_object_dict['cruved_objects'] = {}
-            monitoring_object_dict['cruved_objects']['site'] = self.get_cruved("GNM_SITES")
-            monitoring_object_dict['cruved_objects']['sites_group'] = self.get_cruved("GNM_GRP_SITES")
-            monitoring_object_dict['cruved_objects']['visite'] = self.get_cruved("GNM_VISITES")
-            monitoring_object_dict['cruved_objects']['observation'] = self.get_cruved("GNM_OBSERVATIONS")
+            monitoring_object_dict['cruved_objects']['site'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_SITES")
+            monitoring_object_dict['cruved_objects']['sites_group'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_GRP_SITES")
+            monitoring_object_dict['cruved_objects']['visite'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_VISITES")
+            monitoring_object_dict['cruved_objects']['observation'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_OBSERVATIONS")
 
 
         properties['id_parent'] = to_int(self.id_parent())

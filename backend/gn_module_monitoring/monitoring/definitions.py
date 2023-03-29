@@ -40,4 +40,11 @@ MonitoringObjects_dict = {
     'sites_group': MonitoringObjectGeom,
 }
 
+MonitoringPermissions_dict = {
+    'site': "GNM_SITES",
+    'sites_group': "GNM_GRP_SITES",
+    'visite': "GNM_VISITES",
+    'observation': "GNM_OBSERVATIONS"
+}
+
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)

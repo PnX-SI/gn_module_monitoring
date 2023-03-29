@@ -50,24 +50,16 @@
       "attribut_label": "Icone dans le menu",
       "required": true
     },
-
-
     "uuid_module_complement": {
       "attribut_label": "uuid"
     },
-
     "datasets": {
-      "type_widget": "datalist",
-      "attribut_label": "Jeux de données",
+      "type_widget": "dataset",
       "type_util": "dataset",
-      "multiple": true,
-      "api": "meta/datasets",
-      "application": "GeoNature",
-      "keyValue": "id_dataset",
-      "keyLabel": "dataset_shortname",
-      "required": true
+      "attribut_label": "Jeu de données",
+      "required": true,
+      "multi_select": true
     },
-
     "id_list_observer": {
       "type_widget": "datalist",
       "attribut_label": "Liste des observateurs",

@@ -2,6 +2,38 @@
 CHANGELOG
 =========
 
+0.5.0 (2023-03-29)
+------------------
+
+Nécessite GeoNature version 2.12.0 (ou plus)
+
+**Evolutions**
+
+* Compatibilité avec GeoNature 2.12 (Passage à la version 15 d'Angular et révision des permissions)
+* Centralisation de la configuration du module dans le dossier de configuration de GeoNature
+* Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
+* Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
+* Remplacement du composant `datalist` par le composant `dataset` pour le champs de selection du JDD de la visite, dans la configuration générique des sous-modules
+
+**Corrections**
+
+* Correction de l'API ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (#175)
+
+**⚠️ Notes de version**
+
+* L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichiers de configuration, il faut les modifier en remplaçant par le widget ``dataset``.
+
+::
+
+  "id_dataset": {
+    "type_widget": "dataset",
+    "attribut_label": "Jeu de données",
+    "type_util": "dataset",
+    "required": true,
+    "module_code": "__MODULE.MODULE_CODE",
+  },
+
+
 0.4.1 (2023-02-05)
 ------------------
 
