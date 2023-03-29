@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-0.5.0 (unreleased)
+0.5.0 (2023-03-29)
 ------------------
 
 Nécessite GeoNature version 2.12.0 (ou plus)
@@ -21,7 +21,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 **⚠️ Notes de version**
 
-* L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichiers de configuration, il faut les modifier en remplaçant par le widget ``dataset``. 
+* L'utilisation du widget ``datalist`` pour les jeux de données est à proscrire. Si vous utilisez ce composant dans vos fichiers de configuration, il faut les modifier en remplaçant par le widget ``dataset``.
 
 ::
 
