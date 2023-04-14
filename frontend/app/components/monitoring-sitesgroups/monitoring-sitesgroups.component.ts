@@ -125,5 +125,4 @@ export class MonitoringSitesGroupsComponent
   onSelect($event) {
     this.geojsonService.selectSitesGroupLayer($event);
   }
-  onObjChanged($event) {}
 }
