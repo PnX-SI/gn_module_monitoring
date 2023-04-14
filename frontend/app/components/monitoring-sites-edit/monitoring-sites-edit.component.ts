@@ -3,22 +3,20 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { endPoints } from '../../enum/endpoints';
-import { ISite, ISiteType } from '../../interfaces/geom';
+import { ISite } from '../../interfaces/geom';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { SitesService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { MonitoringFormComponentG } from '../monitoring-form-g/monitoring-form.component-g';
-import { IPaginated } from '../../interfaces/page';
 
 @Component({
-  selector: 'monitoring-sites-create',
-  templateUrl: './monitoring-sites-create.component.html',
-  styleUrls: ['./monitoring-sites-create.component.css'],
+  selector: 'monitoring-sites-edit',
+  templateUrl: './monitoring-sites-edit.component.html',
+  styleUrls: ['./monitoring-sites-edit.component.css'],
 })
-export class MonitoringSitesCreateComponent implements OnInit {
+export class MonitoringSitesEditComponent implements OnInit {
   site: ISite;
   form: FormGroup;
   paramToFilt: string = 'label';
@@ -30,46 +28,26 @@ export class MonitoringSitesCreateComponent implements OnInit {
   @ViewChild('subscritionObjConfig')
   monitoringFormComponentG: MonitoringFormComponentG;
   objToCreate: IobjObs<ObjDataType>;
-  urlRelative: string;
+
   constructor(
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private siteService: SitesService,
-    private route: ActivatedRoute,
+    private _Activatedroute: ActivatedRoute,
     private _objService: ObjectService
   ) {}
 
   ngOnInit() {
-    this.urlRelative = this.removeLastPart(this.route.snapshot['_routerState'].url);
+
     this._objService.currentObjSelected.subscribe((objParent) => {
       this.id_sites_group = objParent.id_sites_group;
-      this._formService.dataToCreate(
-        {
-          module: 'generic',
-          objectType: 'site',
-          id: null,
-          id_sites_group: this.id_sites_group,
-          id_relationship: ['id_sites_group', 'types_site'],
-          endPoint: endPoints.sites,
-          objSelected: objParent.objectType,
-        },
-        this.urlRelative
-      );
+      // this._formService.changeDataSub({ module: "generic", objectType: "site", id_sites_group : this.id_sites_group, id_relationship: ['id_sites_group','types_site'],endPoint:endPoints.sites,objSelected:objParent.objectType});
       this.form = this._formBuilder.group({});
       this.funcToFilt = this.partialfuncToFilt.bind(this);
     });
   }
 
-  removeLastPart(url: string): string {
-    return url.slice(0, url.lastIndexOf('/'));
-  }
-
-
-  partialfuncToFilt(
-    pageNumber: number,
-    limit: number,
-    valueToFilter: string
-  ): Observable<IPaginated<ISiteType>> {
+  partialfuncToFilt(pageNumber: number, limit: number, valueToFilter: string): Observable<any> {
     return this.siteService.getTypeSites(pageNumber, limit, {
       label_fr: valueToFilter,
       sort_dir: 'desc',
@@ -83,10 +61,10 @@ export class MonitoringSitesCreateComponent implements OnInit {
 
   addTypeSiteListIds(config: JsonData): JsonData {
     if (config && config.length != 0) {
-      config.types_site = [];
+      config['types_site'] = [];
       for (const key in config) {
         if ('id_nomenclature_type_site' in config[key]) {
-          config.types_site.push(config[key]['id_nomenclature_type_site']);
+          config['types_site'].push(config[key]['id_nomenclature_type_site']);
         }
       }
     }

@@ -19,14 +19,11 @@ import { IobjObs } from "../../interfaces/objObs";
 const LIMIT = 10;
 
 @Component({
-  selector: "monitoring-sites",
-  templateUrl: "./monitoring-sites.component.html",
-  styleUrls: ["./monitoring-sites.component.css"],
+  selector: 'monitoring-sites',
+  templateUrl: './monitoring-sites.component.html',
+  styleUrls: ['./monitoring-sites.component.css'],
 })
-export class MonitoringSitesComponent
-  extends MonitoringGeomComponent
-  implements OnInit
-{
+export class MonitoringSitesComponent extends MonitoringGeomComponent implements OnInit {
   siteGroupId: number;
   sites: ISite[];
   sitesGroup: ISitesGroup;
@@ -37,6 +34,7 @@ export class MonitoringSitesComponent
   @Input() bEdit: boolean;
   objForm: FormGroup;
   objectType: IobjObs<ISite>;
+  objParent: any;
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -53,19 +51,23 @@ export class MonitoringSitesComponent
 
   ngOnInit() {
     this.objForm = this._formBuilder.group({});
-    this._objService.changeObjectType(this._siteService.objectObs);
+    // this._sitesGroupService.init()
+    this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs, true);
+    this._objService.currentObjectTypeParent.subscribe((objParent) => {
+      this.objParent = objParent;
+    });
+    this._objService.changeObjectType(this._siteService.objectObs, true);
     this.initSite();
   }
 
   initSite() {
     this._Activatedroute.params
       .pipe(
-        map((params) => params["id"] as number),
+        map((params) => params['id'] as number),
         tap((id: number) => {
-          this._geojsonService.getSitesGroupsChildGeometries(
-            this.onEachFeatureSite(),
-            { id_sites_group: id }
-          );
+          this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+            id_sites_group: id,
+          });
         }),
         mergeMap((id: number) =>
           forkJoin({
@@ -95,9 +97,7 @@ export class MonitoringSitesComponent
       );
   }
   ngOnDestroy() {
-    this._geojsonService.removeFeatureGroup(
-      this._geojsonService.sitesFeatureGroup
-    );
+    this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this._geojsonService.removeFeatureGroup(this.siteGroupLayer);
   }
 
@@ -107,7 +107,7 @@ export class MonitoringSitesComponent
       const popup = setPopup(
         baseUrl,
         feature.properties.id_base_site,
-        "Site :" + feature.properties.base_site_name
+        'Site :' + feature.properties.base_site_name
       );
       layer.bindPopup(popup);
     };
@@ -128,7 +128,7 @@ export class MonitoringSitesComponent
 
   seeDetails($event) {
     this._objService.changeObjectTypeParent(this._siteService.objectObs, true);
-    this.router.navigate([`sites/${$event.id_base_site}`], {
+    this.router.navigate([`site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
     });
   }
