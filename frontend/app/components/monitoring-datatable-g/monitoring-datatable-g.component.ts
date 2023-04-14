@@ -186,12 +186,20 @@ export class MonitoringDatatableGComponent implements OnInit {
       }
     }
   }
-  navigateToAddChildren(_, rowId) {
-    this.addEvent.emit(rowId);
+  navigateToAddChildren(_, row) {
+    this.addEvent.emit(row);
     this._objService.changeObjectType(this.objectType);
-    this.router.navigate(['create'], {
-      relativeTo: this._Activatedroute,
-    });
+    if (row){
+      row['id'] = row[row.pk];
+      this.router.navigate([row.id,'create'], {
+        relativeTo: this._Activatedroute,
+      });
+    } else {
+      this.router.navigate(['create'], {
+        relativeTo: this._Activatedroute,
+      });
+    }
+
   }
   navigateToDetail(row) {
     row['id'] = row.pk;

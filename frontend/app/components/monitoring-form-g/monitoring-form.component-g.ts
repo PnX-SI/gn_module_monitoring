@@ -60,7 +60,6 @@ export class MonitoringFormComponentG implements OnInit {
     private _formService: FormService,
     private _apiGeomService: ApiGeomService,
     private _router: Router,
-    private _objService: ObjectService
   ) {}
 
   ngOnInit() {
@@ -90,7 +89,6 @@ export class MonitoringFormComponentG implements OnInit {
         if (Object.keys(this.obj.specific).length !== 0) {
           Object.assign(schema, this.obj.specific);
         }
-
 
 
         // meta pour les parametres dynamiques
@@ -261,14 +259,20 @@ export class MonitoringFormComponentG implements OnInit {
    */
   navigateToDetail(id, objectType, queryParams) {
     // patch bug navigation
-    this._router.navigate(
-      ['monitorings', objectType, id].filter((s) => !!s),
-      {
-        queryParams,
-      }
-    );
+    // this._router.navigate(
+    //   ['monitorings', objectType, id].filter((s) => !!s),
+    //   {
+    //     queryParams,
+    //   }
+    // );
+    // TODO: this commented code works only if ".." is not based url (example working : sites_group/:id/site/:id , not working if create site_group)
+    // this._router.navigate(['..',objectType,id], {relativeTo: this._route});
+    // 
+    const urlSegment = [objectType, id].filter((s) => !!s);
+    const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
     this.bEditChange.emit(false);
+    this._router.navigateByUrl(urlPathDetail);
   }
 
   /**
@@ -276,10 +280,10 @@ export class MonitoringFormComponentG implements OnInit {
    */
   navigateToParent() {
     this.bEditChange.emit(false); // patch bug navigation
-    this._router.navigateByUrl('/monitorings/sites_group');
-
-    // this.obj.navigateToParent();
+    this._router.navigate(['..'], {relativeTo: this._route});
   }
+
+
 
   msgToaster(action) {
     // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
@@ -298,7 +302,10 @@ export class MonitoringFormComponentG implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
-      // this.objChanged.emit(this.obj);
+      if (objData.hasOwnProperty('id')) {
+        this.obj.id = objData['id'];
+      }
+      this.objChanged.emit(this.obj);
 
       /** si c'est un module : reset de la config */
       if (this.obj.objectType === 'module') {
@@ -388,6 +395,6 @@ export class MonitoringFormComponentG implements OnInit {
       }
     }
     Object.assign(this.obj.dataComplement, event);
-    this._formService.dataToCreate(this.obj);
+    this._formService.dataToCreate(this.obj, this.obj.urlRelative);
   }
 }
