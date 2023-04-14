@@ -1,0 +1,8 @@
+<!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
+<div>
+  <pnx-monitoring-properties-g [newParentType]="objParent" [objectType]="objectType" *ngIf="!bEdit" [(bEdit)]="bEdit" [selectedObj]="site">
+  </pnx-monitoring-properties-g>
+  <pnx-monitoring-datatable-g [rows]="visits" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
+    (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="visits"
+    (onDetailsRow)="seeDetails($event)"></pnx-monitoring-datatable-g>
+</div>
