@@ -1,15 +1,15 @@
 import { Component, OnInit, Input } from "@angular/core";
 import { SitesGroupService } from "../../services/api-geom.service";
-import { columnNameSiteGroup } from "../../class/monitoring-sites-group";
 import { IPaginated, IPage } from "../../interfaces/page";
 import { Router, ActivatedRoute } from "@angular/router";
-import { columnNameSite } from "../../class/monitoring-site";
 import { ISite, ISitesGroup } from "../../interfaces/geom";
 import { GeoJSONService } from "../../services/geojson.service";
 import { MonitoringGeomComponent } from "../../class/monitoring-geom-component";
 import { setPopup } from "../../functions/popup";
 import { ObjectService } from "../../services/object.service";
 import { FormGroup, FormBuilder } from "@angular/forms";
+import { IobjObs } from "../../interfaces/objObs";
+import { ConfigJsonService } from "../../services/config-json.service";
 
 const LIMIT = 10;
 
@@ -25,15 +25,12 @@ export class MonitoringSitesGroupsComponent
   @Input() page: IPage;
   @Input() sitesGroups: ISitesGroup[];
   @Input() sitesChild: ISite[];
-  @Input() columnNameSiteGroup: typeof columnNameSiteGroup =
-    columnNameSiteGroup;
-  @Input() columnNameSite: typeof columnNameSite = columnNameSite;
   @Input() sitesGroupsSelected: ISitesGroup;
 
   // @Input() rows;
-  @Input() colsname;
   @Input() obj;
-  objectType: string;
+  colsname: {};
+  objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
   // siteGroupEmpty={
@@ -50,6 +47,7 @@ export class MonitoringSitesGroupsComponent
     private router: Router,
     private _objService: ObjectService,
     private _formBuilder: FormBuilder,
+    private _configJsonService: ConfigJsonService,
     private _Activatedroute: ActivatedRoute // private _routingService: RoutingService
   ) {
     super();
@@ -62,11 +60,12 @@ export class MonitoringSitesGroupsComponent
 
   initSiteGroup() {
     this._objService.changeObjectTypeParent(
-      this._sites_group_service.editObjectType()
+      this._sites_group_service.objectObs,true
     );
     this._objService.changeObjectType(
-      this._sites_group_service.addObjectType()
+      this._sites_group_service.objectObs,true
     );
+    
     this.getSitesGroups(1);
     this.geojsonService.getSitesGroupsGeometries(
       this.onEachFeatureSiteGroups()
@@ -92,6 +91,7 @@ export class MonitoringSitesGroupsComponent
   }
 
   getSitesGroups(page = 1, params = {}) {
+
     this._sites_group_service
       .get(page, LIMIT, params)
       .subscribe((data: IPaginated<ISitesGroup>) => {
@@ -101,7 +101,7 @@ export class MonitoringSitesGroupsComponent
           page: data.page - 1,
         };
         this.sitesGroups = data.items;
-        this.colsname = this.columnNameSiteGroup;
+        this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
         // IF prefered observable compare to ngOnChanges uncomment this:
         // this._dataTableService.changeColsTable(this.colsname,this.sitesGroups[0])
       });
@@ -110,7 +110,7 @@ export class MonitoringSitesGroupsComponent
   seeDetails($event) {
     // TODO: routerLink
     this._objService.changeObjectTypeParent(
-      this._sites_group_service.editObjectType()
+      this._sites_group_service.objectObs,true
     );
     this.router.navigate([$event.id_sites_group], {
       relativeTo: this._Activatedroute,

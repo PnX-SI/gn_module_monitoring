@@ -17,11 +17,8 @@
     </button>
     <!--TODO  Revoir pour rendre générique le bouton "Ajouter" , avant : {{ (child0.template["label_art_undef_new"] || "") }}-->
     <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
-    <button
-      class="btn btn-success float-right"
-      (click)="navigateToAddChildren(null, null)"
-    >
-      <i class="fa fa-plus" aria-hidden="true"></i> Ajouter {{objectType}}
+    <button class="btn btn-success float-right" (click)="navigateToAddChildren(null, null)">
+      <i class="fa fa-plus" aria-hidden="true"></i> {{ objectType.addObjLabel }}
     </button>
   </div>
   <ngx-datatable
@@ -49,11 +46,7 @@
     (page)="setPage($event)"
     (sort)="onSortEvent($event)"
   >
-    <ngx-datatable-column
-      [cellClass]="'cell-link'"
-      prop="Action"
-      class="object-link"
-    >
+    <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
         <!-- TODO Action Column : changer le (click)="navigateToDetail(row.id)-->
         <a
@@ -83,19 +76,12 @@
     ></ngx-datatable-column>
   </ngx-datatable>
 
-  <ng-template
-    #hdrTpl
-    let-column="column"
-    let-sortDir="sortDir"
-    let-sortFn="sortFn"
-  >
+  <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
     <div class="header-sort-span" (click)="sortFn()">
       <!-- {{column.name}} -->
       <i
         class="material-icons icon-sort"
-        [innerText]="
-          sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''
-        "
+        [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"
       ></i>
       <i
         *ngIf="column.description"
@@ -104,9 +90,7 @@
         matTooltipPosition="above"
         >help</i
       >
-      <span [matTooltip]="column.name" matTooltipPosition="above">
-        {{ column.name }}</span
-      >
+      <span [matTooltip]="column.name" matTooltipPosition="above"> {{ column.name }}</span>
     </div>
     <div class="header-filter-span">
       <input

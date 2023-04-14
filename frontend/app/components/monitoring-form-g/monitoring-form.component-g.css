@@ -13,9 +13,8 @@
 }
 
 .float-right {
-margin-left: 5px;
+  margin-left: 5px;
 }
-
 
 .float-left {
   margin-right: 10px;
@@ -28,4 +27,20 @@ form:invalid {
 
 form.ng-invalid {
   border: 0px !important;
+}
+
+#form-scroll {
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.btn-child {
+  border: 0px solid #202020;
+  padding-top: 2px;
+  padding-bottom: auto;
+  -webkit-box-shadow: 0px -2px 2px rgba(50, 50, 50, 0.3);
+  -moz-box-shadow: 0px -2px 2px rgba(50, 50, 50, 0.3);
+  box-shadow: 0px -2px 2px rgba(50, 50, 50, 0.3);
+  overflow: hidden;
+  height: fit-content;
 }
