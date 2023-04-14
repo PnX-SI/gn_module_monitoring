@@ -5,7 +5,6 @@ import { tap, map, mergeMap } from "rxjs/operators";
 import * as L from "leaflet";
 import { ISite, ISitesGroup } from "../../interfaces/geom";
 import { IPage, IPaginated } from "../../interfaces/page";
-import { columnNameSite } from "../../class/monitoring-site";
 import { MonitoringGeomComponent } from "../../class/monitoring-geom-component";
 import { setPopup } from "../../functions/popup";
 import { GeoJSONService } from "../../services/geojson.service";
@@ -15,6 +14,7 @@ import {
   SitesGroupService,
 } from "../../services/api-geom.service";
 import { ObjectService } from "../../services/object.service";
+import { IobjObs } from "../../interfaces/objObs";
 
 const LIMIT = 10;
 
@@ -30,13 +30,13 @@ export class MonitoringSitesComponent
   siteGroupId: number;
   sites: ISite[];
   sitesGroup: ISitesGroup;
-  colsName: typeof columnNameSite = columnNameSite;
+  colsname: {};
   page: IPage;
   filters = {};
   siteGroupLayer: L.FeatureGroup;
   @Input() bEdit: boolean;
   objForm: FormGroup;
-  objectType: string;
+  objectType: IobjObs<ISite>;
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -53,7 +53,7 @@ export class MonitoringSitesComponent
 
   ngOnInit() {
     this.objForm = this._formBuilder.group({});
-    this._objService.changeObjectType(this._siteService.addObjectType());
+    this._objService.changeObjectType(this._siteService.objectObs);
     this.initSite();
   }
 
@@ -74,10 +74,10 @@ export class MonitoringSitesComponent
               id_sites_group: id,
             }),
           })
-        )
-      )
+        ))
       .subscribe(
-        (data: { sitesGroup: ISitesGroup; sites: IPaginated<ISite> }) => {
+        (data: { sitesGroup: ISitesGroup; sites: IPaginated<ISite>}) => {
+          this._objService.changeSelectedObj(data.sitesGroup, true);
           this.sitesGroup = data.sitesGroup;
           this.sites = data.sites.items;
           this.page = {
@@ -90,6 +90,7 @@ export class MonitoringSitesComponent
             () => {}
           );
           this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
+          this.colsname = this._siteService.objectObs.dataTable.colNameObj;
         }
       );
   }
@@ -126,7 +127,7 @@ export class MonitoringSitesComponent
   }
 
   seeDetails($event) {
-    this._objService.changeObjectTypeParent(this._siteService.editObjectType());
+    this._objService.changeObjectTypeParent(this._siteService.objectObs, true);
     this.router.navigate([`sites/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
     });

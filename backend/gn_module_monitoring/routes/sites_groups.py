@@ -5,9 +5,14 @@ from sqlalchemy import func
 from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.monitoring.definitions import monitoring_g_definitions
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
+from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
+    create_or_update_object_api_sites_sites_group,
     filter_params,
     geojson_query,
     get_limit_page,
@@ -15,7 +20,7 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
 )
-from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
+from gn_module_monitoring.utils.utils import to_int
 
 
 @blueprint.route("/sites_groups", methods=["GET"])
@@ -66,18 +71,12 @@ def get_sites_group_geometries():
 
 @blueprint.route("/sites_groups/<int:_id>", methods=["PATCH"])
 def patch(_id):
-    item_schema = MonitoringSitesGroupsSchema()
-    item_json = request.get_json()
-    item = TMonitoringSitesGroups.find_by_id(_id)
-    fields = TMonitoringSitesGroups.attribute_names()
-    for field in item_json:
-        if field in fields:
-            setattr(item, field, item_json[field])
-    item_schema.load(item_json)
-    db.session.add(item)
-
-    db.session.commit()
-    return item_schema.dump(item), 201
+    # ###############################""
+    # FROM route/monitorings
+    module_code = "generic"
+    object_type = "sites_group"
+    get_config(module_code, force=True)
+    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201
 
 
 @blueprint.route("/sites_groups/<int:_id>", methods=["DELETE"])
@@ -91,16 +90,16 @@ def delete(_id):
 
 @blueprint.route("/sites_groups", methods=["POST"])
 def post():
-    item_schema = MonitoringSitesGroupsSchema()
-    item_json = request.get_json()
-    item = item_schema.load(item_json)
-    db.session.add(item)
-    db.session.commit()
-    return item_schema.dump(item), 201
+    module_code = "generic"
+    object_type = "sites_group"
+    get_config(module_code, force=True)
+    return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
 
 
 @blueprint.errorhandler(ValidationError)
 def handle_validation_error(error):
     return InvalidUsage(
-        "Fields cannot be validated, message : {}".format(error.messages), status_code=422, payload=error.data
+        "Fields cannot be validated, message : {}".format(error.messages),
+        status_code=422,
+        payload=error.data,
     ).to_dict()
