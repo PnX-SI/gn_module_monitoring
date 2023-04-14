@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, async } from '@angular/core/testing';
 
 import { MonitoringFormComponent } from './monitoring-form.component';
 
@@ -8,9 +8,8 @@ describe('MonitoringFormComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MonitoringFormComponent ]
-    })
-    .compileComponents();
+      declarations: [MonitoringFormComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

@@ -1,21 +1,23 @@
-import { DatatableComponent } from "@swimlane/ngx-datatable";
 import {
   Component,
-  OnInit,
-  Input,
-  Output,
   EventEmitter,
-  ViewChild,
+  Input,
+  OnInit,
+  Output,
   SimpleChanges,
   TemplateRef,
-} from "@angular/core";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Subject } from "rxjs";
-import { debounceTime } from "rxjs/operators";
-import { DataTableService } from "../../services/data-table.service";
-import { IColumn } from "../../interfaces/column";
-import { IPage } from "../../interfaces/page";
-import { ObjectService } from "../../services/object.service";
+  ViewChild,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DatatableComponent } from '@swimlane/ngx-datatable';
+import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+
+import { IColumn } from '../../interfaces/column';
+import { IobjObs, ObjDataType } from '../../interfaces/objObs';
+import { IPage } from '../../interfaces/page';
+import { DataTableService } from '../../services/data-table.service';
+import { ObjectService } from '../../services/object.service';
 
 interface ItemObjectTable {
   id: number | null;
@@ -26,9 +28,9 @@ interface ItemObjectTable {
 type ItemsObjectTable = { [key: string]: ItemObjectTable };
 
 @Component({
-  selector: "pnx-monitoring-datatable-g",
-  templateUrl: "./monitoring-datatable-g.component.html",
-  styleUrls: ["./monitoring-datatable-g.component.css"],
+  selector: 'pnx-monitoring-datatable-g',
+  templateUrl: './monitoring-datatable-g.component.html',
+  styleUrls: ['./monitoring-datatable-g.component.css'],
 })
 export class MonitoringDatatableGComponent implements OnInit {
   @Input() rows;
@@ -53,15 +55,15 @@ export class MonitoringDatatableGComponent implements OnInit {
   displayFilter: boolean = false;
   objectsStatus: ItemsObjectTable;
 
-  objectType: string = "";
+  objectType: IobjObs<ObjDataType>;
   columns;
   row_save;
   selected = [];
   filters = {};
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
-  @ViewChild("actionsTemplate") actionsTemplate: TemplateRef<any>;
-  @ViewChild("hdrTpl") hdrTpl: TemplateRef<any>;
+  @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
+  @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
 
   constructor(
     private _dataTableService: DataTableService,
@@ -108,7 +110,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     // filter all
     const oldFilters = this.filters;
     this.filters = Object.keys(oldFilters).reduce(function (r, e) {
-      if (![undefined, "", null].includes(oldFilters[e])) r[e] = oldFilters[e];
+      if (![undefined, '', null].includes(oldFilters[e])) r[e] = oldFilters[e];
       return r;
     }, {});
     this.onFilter.emit(this.filters);
@@ -123,7 +125,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
     this.rowStatus.forEach((status) => {
       const bCond = status.id === id;
-      status["selected"] = bCond && !status["selected"];
+      status['selected'] = bCond && !status['selected'];
     });
 
     this.setSelected();
@@ -132,7 +134,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   setSelected() {
     // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
-
     if (!this.rowStatus) {
       return;
     }
@@ -165,27 +166,21 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges) {
     // IF prefered ngOnChanges compare to observable   uncomment this:
-    if (changes["rows"] && this.rows && this.rows.length > 0) {
-      this.columns = this._dataTableService.colsTable(
-        this.colsname,
-        this.rows[0]
-      );
+    if (changes['rows'] && this.rows && this.rows.length > 0) {
+      this.columns = this._dataTableService.colsTable(this.colsname, this.rows[0]);
     }
 
-    if (changes["colsname"]) {
+    if (changes['colsname']) {
       this.filters = {};
     }
 
-    if (changes["obj"] && this.obj) {
+    if (changes['obj'] && this.obj) {
       this.objectsStatus,
-        (this.rowStatus = this._dataTableService.initObjectsStatus(
-          this.obj,
-          "sites_groups"
-        ));
+        (this.rowStatus = this._dataTableService.initObjectsStatus(this.obj, 'sites_groups'));
     }
     for (const propName of Object.keys(changes)) {
       switch (propName) {
-        case "rowStatus":
+        case 'rowStatus':
           this.setSelected();
           break;
       }
@@ -193,12 +188,13 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
   navigateToAddChildren(_, rowId) {
     this.addEvent.emit(rowId);
-    this.router.navigate(["create"], {
+    this._objService.changeObjectType(this.objectType);
+    this.router.navigate(['create'], {
       relativeTo: this._Activatedroute,
     });
   }
   navigateToDetail(row) {
-    row["id"] = row.pk;
+    row['id'] = row.pk;
     this.onDetailsRow.emit(row);
   }
 }
