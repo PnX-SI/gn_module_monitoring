@@ -66,4 +66,12 @@ export class Utils {
     });
     return dictOut;
   }
+
+  static toObject(keys,values) {
+    const obj = keys.reduce((accumulator, key, index) => {
+      return {...accumulator, [key]: values[key]};
+    }, {});
+  
+    return obj;
+  }
 }
