@@ -59,13 +59,6 @@
       "type_util": "user",
       "required": true
     },
-    "id_digitiser": {
-      "type_widget": "text",
-      "attribut_label": "Numérisateur",
-      "required": true,
-      "hidden": true,
-      "type_util": "user"
-    },
     "first_use_date": {
       "type_widget": "date",
       "attribut_label": "Date description",
@@ -90,11 +83,11 @@
       "type_widget": "integer",
       "attribut_label": "Altitude (min)"
       },
-      "altitude_max": {
+    "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
       },
-      "id_sites_group": {
+    "id_sites_group": {
         "type_widget": "integer",
         "attribut_label": "ID Sites Groups",
         "hidden": true,

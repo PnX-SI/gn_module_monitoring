@@ -10,6 +10,7 @@ import { Resp } from '../types/response';
 import { Utils } from '../utils/utils';
 import { CacheService } from './cache.service';
 import { ConfigJsonService } from './config-json.service';
+import { IVisit } from '../interfaces/visit';
 
 @Injectable()
 export class ApiGeomService implements IGeomService {
@@ -23,7 +24,7 @@ export class ApiGeomService implements IGeomService {
     this.init(this.endPoint, this.objectObs);
   }
 
-  init(endPoint, objectObjs) {
+  init(endPoint:endPoints, objectObjs: IobjObs<ObjDataType>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
     // this.endPoint = endPoints.sites_groups;
@@ -50,8 +51,8 @@ export class ApiGeomService implements IGeomService {
     page: number = 1,
     limit: number = 10,
     params: JsonData = {}
-  ): Observable<IPaginated<ISitesGroup | ISite>> {
-    return this._cacheService.request<Observable<IPaginated<ISitesGroup | ISite>>>(
+  ): Observable<IPaginated<ISitesGroup | ISite | IVisit>> {
+    return this._cacheService.request<Observable<IPaginated<ISitesGroup | ISite | IVisit>>>(
       'get',
       this.endPoint,
       {
@@ -60,7 +61,7 @@ export class ApiGeomService implements IGeomService {
     );
   }
 
-  getById(id: number): Observable<ISitesGroup | ISite> {
+  getById(id: number): Observable<ISitesGroup | ISite | IVisit> {
     return this._cacheService.request<Observable<ISitesGroup | ISite>>(
       'get',
       `${this.endPoint}/${id}`
@@ -77,7 +78,7 @@ export class ApiGeomService implements IGeomService {
     );
   }
 
-  patch(id: number, updatedData: { properties: ISitesGroup | ISite }): Observable<Resp> {
+  patch(id: number, updatedData: { properties: ISitesGroup | ISite | IVisit }): Observable<Resp> {
     return this._cacheService.request('patch', `${this.endPoint}/${id}`, {
       postData: updatedData,
     });
@@ -108,6 +109,7 @@ export class SitesGroupService extends ApiGeomService {
       label: 'groupe de site',
       addObjLabel: 'Ajouter un nouveau groupe de site',
       editObjLabel: 'Editer le groupe de site',
+      addChildLabel: 'Ajouter un site',
       id: null,
       moduleCode: 'generic',
       schema: {},
@@ -184,6 +186,7 @@ export class SitesService extends ApiGeomService {
       label: 'site',
       addObjLabel: 'Ajouter un nouveau site',
       editObjLabel: 'Editer le site',
+      addChildLabel: 'Ajouter une visite',
       id: null,
       moduleCode: 'generic',
       schema: {},
@@ -254,5 +257,69 @@ export class SitesService extends ApiGeomService {
 
   editObjectType(): string {
     return 'le site';
+  }
+}
+
+@Injectable()
+export class VisitsService extends ApiGeomService {
+  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
+    super(_cacheService, _configJsonService);
+  }
+  init(): void {
+    this.endPoint = endPoints.visits;
+    this.objectObs = {
+      properties: {},
+      endPoint: endPoints.visits,
+      objectType: 'visits',
+      label: 'visite',
+      addObjLabel: 'Ajouter une nouvelle visite',
+      editObjLabel: 'Editer la visite',
+      addChildLabel: 'Ajouter une observation',
+      id: null,
+      moduleCode: 'generic',
+      schema: {},
+      template: {
+        fieldNames: [],
+        fieldLabels: {},
+        fieldNamesList: [],
+        fieldDefinitions: {},
+      },
+      dataTable: { colNameObj: {} },
+    };
+    this._configJsonService
+      .init(this.objectObs.moduleCode)
+      .pipe()
+      .subscribe(() => {
+        const fieldNames = this._configJsonService.configModuleObjectParam(
+          this.objectObs.moduleCode,
+          this.objectObs.objectType,
+          'display_properties'
+        );
+        const fieldNamesList = this._configJsonService.configModuleObjectParam(
+          this.objectObs.moduleCode,
+          this.objectObs.objectType,
+          'display_list'
+        );
+        const schema = this._configJsonService.schema(
+          this.objectObs.moduleCode,
+          this.objectObs.objectType
+        );
+        const fieldLabels = this._configJsonService.fieldLabels(schema);
+        const fieldDefinitions = this._configJsonService.fieldDefinitions(schema);
+        this.objectObs.template.fieldNames = fieldNames;
+        this.objectObs.template.fieldNamesList = fieldNamesList;
+        this.objectObs.schema = schema;
+        this.objectObs.template.fieldLabels = fieldLabels;
+        this.objectObs.template.fieldDefinitions = fieldDefinitions;
+        this.objectObs.template.fieldNamesList = fieldNamesList;
+        this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
+      });
+  }
+  addObjectType(): string {
+    return " une nouvelle visite";
+  }
+
+  editObjectType(): string {
+    return "la visite";
   }
 }

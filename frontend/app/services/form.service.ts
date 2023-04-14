@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 
-import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { ISite, ISitesGroup } from '../interfaces/geom';
+import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
 import { MonitoringObjectService } from './monitoring-object.service';
@@ -20,22 +20,28 @@ export class FormService {
   constructor(private _objService: MonitoringObjectService) {}
 
   // TODO: voir si nécessaire de garder ça (objService permet d'avoir le bon objet ? et sinon modifier pour obtenir ce qu'il faut en formulaire)
-  changeDataSub(newDat: JsonData, objectType: string,endPoint:string,objSelected:IobjObs<ObjDataType>, moduleCode: string = 'generic') {
+  changeDataSub(
+    newDat: JsonData,
+    objectType: string,
+    endPoint: string,
+    moduleCode: string = 'generic'
+  ) {
     this.properties = newDat;
     newDat.moduleCode = moduleCode;
     newDat.objectType = objectType;
     newDat.endPoint = endPoint;
-    newDat.objSelect = objSelected
     this.dataSub.next(newDat);
   }
 
-  dataToCreate(newDat: JsonData, moduleCode: string = 'generic') {
+  dataToCreate(newDat: JsonData, urlRelative: string, moduleCode: string = 'generic') {
     newDat[moduleCode] = {};
     newDat.moduleCode = moduleCode;
+    newDat.urlRelative = urlRelative;
     this.dataSub.next(newDat);
   }
 
   formValues(obj): Observable<any> {
+    // const {properties ,remainaing} = obj
     const properties = Utils.copy(this.properties);
     const observables = {};
     const schema = obj[obj.moduleCode];
