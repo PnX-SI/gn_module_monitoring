@@ -54,7 +54,7 @@ class MonitoringDefinitions:
 
 
 monitoring_definitions = MonitoringDefinitions()
-
+monitoring_g_definitions = MonitoringDefinitions()
 
 class MonitoringObjectBase:
     _object_type = None

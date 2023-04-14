@@ -8,7 +8,7 @@ from .models import (
 )
 from .objects import MonitoringModule, MonitoringSite
 
-from .base import monitoring_definitions
+from .base import monitoring_definitions, monitoring_g_definitions
 from .repositories import MonitoringObject
 from .geom import MonitoringObjectGeom
 
@@ -20,12 +20,12 @@ from .geom import MonitoringObjectGeom
 """
 
 MonitoringModels_dict = {
-    "module": TMonitoringModules,
-    "site": TMonitoringSites,
-    "visit": TMonitoringVisits,
-    "observation": TMonitoringObservations,
-    "observation_detail": TMonitoringObservationDetails,
-    "sites_group": TMonitoringSitesGroups,
+    'module': TMonitoringModules,
+    'site': TMonitoringSites,
+    'visit': TMonitoringVisits,
+    'observation': TMonitoringObservations,
+    'observation_detail': TMonitoringObservationDetails,
+    'sites_group': TMonitoringSitesGroups,
 }
 
 MonitoringObjects_dict = {
@@ -56,3 +56,14 @@ MonitoringPermissionObjectLabel_dict = {
 
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)
+
+# #####################""
+MonitoringModelsG_dict = {
+    x: MonitoringModels_dict[x] for x in MonitoringModels_dict if x not in "module"
+}
+
+MonitoringObjectsG_dict = {
+    x: MonitoringObjects_dict[x] for x in MonitoringObjects_dict if x not in "module"
+}
+
+monitoring_g_definitions.set(MonitoringObjectsG_dict, MonitoringModelsG_dict)

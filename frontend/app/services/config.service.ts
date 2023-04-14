@@ -7,17 +7,13 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 
 @Injectable()
 export class ConfigService {
-  private _config;
+  protected _config;
 
-  constructor(
-    private _http: HttpClient,
-    private _moduleService: ModuleService,
-    public appConfig: GnConfigService
-  ) {}
+  constructor(protected _http: HttpClient, protected _moduleService: ModuleService, public appConfig: GnConfigService) {}
 
   /** Configuration */
 
-  init(moduleCode = null) {
+  init(moduleCode: null | string = null) {
     // a definir ailleurs
 
     moduleCode = moduleCode || 'generic';
@@ -148,17 +144,17 @@ export class ConfigService {
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
     moduleCode = moduleCode || 'generic';
-
     const configObject = this._config[moduleCode][objectType];
     // gerer quand les paramètres ont un fonction comme valeur
-
-    for (const typeSchema of ['generic', 'specific']) {
-      for (const keyDef of Object.keys(configObject[typeSchema])) {
-        const formDef = configObject[typeSchema][keyDef];
-        for (const keyParam of Object.keys(formDef)) {
-          const func = this.toFunction(formDef[keyParam]);
-          if (func) {
-            formDef[keyParam] = func;
+    if (configObject) {
+      for (const typeSchema of ['generic', 'specific']) {
+        for (const keyDef of Object.keys(configObject[typeSchema])) {
+          const formDef = configObject[typeSchema][keyDef];
+          for (const keyParam of Object.keys(formDef)) {
+            const func = this.toFunction(formDef[keyParam]);
+            if (func) {
+              formDef[keyParam] = func;
+            }
           }
         }
       }

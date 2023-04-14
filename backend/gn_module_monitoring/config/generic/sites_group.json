@@ -44,6 +44,11 @@
       },
       "nb_visits": {
         "attribut_label": "Nombre de visites"
+      },
+      "medias": {
+        "type_widget": "medias",
+        "attribut_label": "Médias",
+        "schema_dot_table": "gn_monitoring.t_sites_groups"
       }
     } 
   }

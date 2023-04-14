@@ -25,10 +25,10 @@ from .utils import (
 config_cache_name = "MONITORINGS_CONFIG"
 
 
-def get_config_objects(module_code, config, tree=None, parent_type=None):
-    """
-    recupere la config de chaque object present dans tree pour le module <module_code>
-    """
+def get_config_objects(module_code, config, tree=None, parent_type=None, customSpecConfig=None):
+    '''
+        recupere la config de chaque object present dans tree pour le module <module_code>
+    '''
     if not tree:
         # initial tree
         tree = config["tree"]
@@ -36,7 +36,10 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
     for object_type in tree:
         # config object
         if not object_type in config:
-            config[object_type] = config_object_from_files(module_code, object_type)
+            if (object_type=="site"):
+                 config[object_type] = config_object_from_files(module_code, object_type,customSpecConfig)
+            else:
+                config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
         children_types = tree[object_type] and list(tree[object_type].keys()) or []
@@ -77,25 +80,25 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
 
         # recursif
         if tree[object_type]:
-            get_config_objects(module_code, config, tree[object_type], object_type)
+            get_config_objects(module_code, config, tree[object_type], object_type,customSpecConfig)
 
 
-def config_object_from_files(module_code, object_type):
-    """
-    recupere la configuration d'un object de type <object_type> pour le module <module_code>
-    """
-    generic_config_object = json_config_from_file("generic", object_type)
-    specific_config_object = (
-        {} if module_code == "generic" else json_config_from_file(module_code, object_type)
-    )
+def config_object_from_files(module_code, object_type,custom=None):
+    '''
+        recupere la configuration d'un object de type <object_type> pour le module <module_code>
+    '''
+    generic_config_object = json_config_from_file('generic', object_type)
+    specific_config_object = {} if module_code == 'generic' else json_config_from_file(module_code, object_type)
 
+    if module_code == 'generic' and object_type == 'site' and custom is not None:
+        specific_config_object = custom
     config_object = generic_config_object
     config_object.update(specific_config_object)
 
     return config_object
 
 
-def get_config(module_code=None, force=False):
+def get_config(module_code=None, force=False,customSpecConfig=None):
     """
     recupere la configuration pour le module monitoring
 
@@ -133,8 +136,8 @@ def get_config(module_code=None, force=False):
     # if config and config.get('last_modif', 0) >= last_modif:
     # return config
 
-    config = config_from_files("config", module_code)
-    get_config_objects(module_code, config)
+    config = config_from_files('config', module_code)
+    get_config_objects(module_code, config,customSpecConfig=customSpecConfig)
 
     # customize config
     if module:
@@ -243,3 +246,13 @@ def config_schema(module_code, object_type, type_schema="all"):
 def get_config_frontend(module_code=None, force=True):
     config = dict(get_config(module_code, force))
     return config
+
+
+
+# def get_config_from_backend(module_code=None, force=False):
+
+#     module_code = 'generic'
+#     #TODO: voir la sortie de cette fonction
+#     config = config_from_backend('config', module_code)
+#     #TODO: voir également à quoi sert cette fonction
+#     get_config_objects(module_code, config)
