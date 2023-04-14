@@ -8,11 +8,12 @@ import { HttpClient } from '@angular/common/http';
 import { HttpClientXsrfModule } from '@angular/common/http';
 
 // Service
-import { DataMonitoringObjectService } from './services/data-monitoring-object.service';
-import { DataUtilsService } from './services/data-utils.service';
-import { CacheService } from './services/cache.service';
-import { MonitoringObjectService } from './services/monitoring-object.service';
-import { ConfigService } from './services/config.service';
+import { DataMonitoringObjectService } from "./services/data-monitoring-object.service";
+import { DataUtilsService } from "./services/data-utils.service";
+import { CacheService } from "./services/cache.service";
+import { MonitoringObjectService } from "./services/monitoring-object.service";
+import { ConfigService } from "./services/config.service";
+import { ConfigJsonService } from "./services/config-json.service";
 
 // Component
 import { BreadcrumbsComponent } from "./components/breadcrumbs/breadcrumbs.component";
@@ -32,6 +33,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatSelectModule } from "@angular/material/select";
 import { MatInputModule } from "@angular/material/input";
+import {MatChipsModule} from '@angular/material/chips';
 import { MonitoringSitesGroupsComponent } from "./components/monitoring-sitesgroups/monitoring-sitesgroups.component";
 import { DataTableService } from "./services/data-table.service";
 import { MonitoringPropertiesGComponent } from "./components/monitoring-properties-g/monitoring-properties-g.component";
@@ -39,7 +41,7 @@ import { GeoJSONService } from "./services/geojson.service";
 import { MonitoringSitesComponent } from "./components/monitoring-sites/monitoring-sites.component";
 import { MonitoringMapListComponent } from "./components/monitoring-map-list/monitoring-map-list.component";
 import { MonitoringFormComponentG } from "./components/monitoring-form-g/monitoring-form.component-g";
-import { EditObjectService } from "./services/edit-object.service";
+import { FormService } from "./services/form.service";
 import { ObjectService } from "./services/object.service";
 import {
   SitesGroupService,
@@ -47,6 +49,8 @@ import {
   ApiGeomService,
 } from "./services/api-geom.service";
 import { MonitoringSitesGroupsCreateComponent } from "./components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component";
+import { MonitoringSitesCreateComponent } from "./components/monitoring-sites-create/monitoring-sites-create.component";
+import { BtnSelectComponent } from "./components/btn-select/btn-select.component";
 
 // my module routing
 const routes: Routes = [
@@ -79,11 +83,14 @@ const routes: Routes = [
       { path: "create", component: MonitoringSitesGroupsCreateComponent },
       {
         path: ":id",
-        // Add new component here
         children: [
           {
             path: "",
             component: MonitoringSitesComponent,
+          },
+          {
+            path: "create",
+            component: MonitoringSitesCreateComponent,
           },
         ],
       },
@@ -110,6 +117,8 @@ const routes: Routes = [
     MonitoringPropertiesGComponent,
     MonitoringFormComponentG,
     MonitoringSitesGroupsCreateComponent,
+    MonitoringSitesCreateComponent,
+    BtnSelectComponent
   ],
   imports: [
     GN2CommonModule,
@@ -122,6 +131,7 @@ const routes: Routes = [
     MatAutocompleteModule,
     MatSelectModule,
     MatInputModule,
+    MatChipsModule,
     HttpClientXsrfModule.withOptions({
       headerName: 'token',
     }),
@@ -132,12 +142,13 @@ const routes: Routes = [
     DataMonitoringObjectService,
     DataUtilsService,
     ConfigService,
+    ConfigJsonService,
     MonitoringObjectService,
     DataTableService,
     SitesGroupService,
     SitesService,
     GeoJSONService,
-    EditObjectService,
+    FormService,
     ObjectService,
     ApiGeomService,
   ],

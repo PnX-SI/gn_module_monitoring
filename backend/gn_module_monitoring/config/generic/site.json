@@ -11,7 +11,6 @@
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_nomenclature_type_site",
     "id_inventor",
     "first_use_date",
     "last_visit",
@@ -27,17 +26,15 @@
     "nb_visits"
   ],
   "sorts": [
-    {"prop": "last_visit", "dir": "desc"}
+    {
+      "prop": "last_visit",
+      "dir": "desc"
+    }
   ],
   "generic": {
     "id_base_site": {
       "type_widget": "text",
       "attribut_label": "Id site",
-      "hidden": true
-    },
-    "id_module": {
-      "type_widget": "text",
-      "attribut_label": "ID Module",
       "hidden": true
     },
     "base_site_code": {
@@ -53,15 +50,6 @@
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Description"
-    },    
-    "id_nomenclature_type_site": {
-      "type_widget": "text",
-      "attribut_label": "Type site",
-      "type_util": "nomenclature",
-      "value": {
-        "code_nomenclature_type": "TYPE_SITE" 
-      },
-      "required": true
     },
     "id_inventor": {
       "type_widget": "datalist",
@@ -72,7 +60,7 @@
       "keyLabel": "nom_complet",
       "type_util": "user",
       "required": true
-    },    
+    },
     "id_digitiser": {
       "type_widget": "text",
       "attribut_label": "Numérisateur",
@@ -103,10 +91,22 @@
     "altitude_min": {
       "type_widget": "integer",
       "attribut_label": "Altitude (min)"
-      },
-      "altitude_max": {
+    },
+    "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
-      }
+    },
+    "id_sites_group": {
+      "type_widget": "integer",
+      "attribut_label": "ID Sites Groups",
+      "hidden": true,
+      "schema_dot_table": "gn_monitoring.t_base_sites"
+    },
+    "types_site": {
+      "type_widget": "datalist",
+      "attribut_label": "ID Type sites",
+      "hidden": true,
+      "schema_dot_table": "gn_monitoring.t_base_sites"
+    }
   }
 }
