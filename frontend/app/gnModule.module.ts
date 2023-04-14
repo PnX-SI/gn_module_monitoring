@@ -47,10 +47,13 @@ import {
   SitesGroupService,
   SitesService,
   ApiGeomService,
+  VisitsService,
 } from "./services/api-geom.service";
 import { MonitoringSitesGroupsCreateComponent } from "./components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component";
 import { MonitoringSitesCreateComponent } from "./components/monitoring-sites-create/monitoring-sites-create.component";
 import { BtnSelectComponent } from "./components/btn-select/btn-select.component";
+import { MonitoringSitesEditComponent } from "./components/monitoring-sites-edit/monitoring-sites-edit.component";
+import { MonitoringVisitsComponent } from "./components/monitoring-visits/monitoring-visits.component";
 
 // my module routing
 const routes: Routes = [
@@ -92,6 +95,17 @@ const routes: Routes = [
             path: "create",
             component: MonitoringSitesCreateComponent,
           },
+          {
+            path: "site/:id",
+            component: MonitoringVisitsComponent,
+            children: [
+              {
+                path: "edit",
+                component: MonitoringSitesEditComponent,
+              },
+            ]
+          },
+          
         ],
       },
     ],
@@ -118,7 +132,9 @@ const routes: Routes = [
     MonitoringFormComponentG,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
-    BtnSelectComponent
+    MonitoringSitesEditComponent,
+    BtnSelectComponent,
+    MonitoringVisitsComponent
   ],
   imports: [
     GN2CommonModule,
@@ -151,6 +167,7 @@ const routes: Routes = [
     FormService,
     ObjectService,
     ApiGeomService,
+    VisitsService
   ],
   bootstrap: [ModulesComponent],
   schemas: [

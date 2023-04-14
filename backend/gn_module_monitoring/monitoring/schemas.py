@@ -3,12 +3,13 @@ import json
 import geojson
 from geonature.utils.env import MA
 from marshmallow import Schema, fields, validate
-from geonature.core.gn_commons.schemas import MediaSchema
+from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
+    TMonitoringVisits
 )
 
 
@@ -51,11 +52,14 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         exclude = ("geom_geojson", "geom")
 
     geometry = fields.Method("serialize_geojson", dump_only=True)
+    pk = fields.Method("set_pk",dump_only=True)
 
     def serialize_geojson(self, obj):
         if obj.geom is not None:
             return geojson.dumps(obj.as_geofeature().get("geometry"))
-
+        
+    def set_pk(self,obj):
+        return self.Meta.model.get_id()
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     label = fields.Method("get_label_from_type_site")
@@ -69,3 +73,12 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         model = BibTypeSite
         include_fk = True
         load_instance = True
+
+class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
+    class Meta:
+        model = TMonitoringVisits
+    pk = fields.Method("set_pk",dump_only=True)
+    module = MA.Nested(ModuleSchema)
+
+    def set_pk(self,obj):
+        return self.Meta.model.get_id()

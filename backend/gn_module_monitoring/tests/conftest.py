@@ -6,4 +6,5 @@ pytest_plugins = [
     "gn_module_monitoring.tests.fixtures.site",
     "gn_module_monitoring.tests.fixtures.sites_groups",
     "gn_module_monitoring.tests.fixtures.type_site",
+    "gn_module_monitoring.tests.fixtures.visit",
 ]
