@@ -171,13 +171,13 @@ TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
-class TMonitoringVisits(TBaseVisits):
+class TMonitoringVisits(TBaseVisits, GenericModel):
     __tablename__ = "t_visit_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_visit",
     }
-
+    query_class = MonitoringQuery
     id_base_visit = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
         nullable=False,
@@ -210,10 +210,20 @@ class TMonitoringVisits(TBaseVisits):
     )
 
 
+    module = DB.relationship(
+        TModules,
+        lazy="select",
+        primaryjoin=(TModules.id_module == TBaseVisits.id_module),
+        foreign_keys=[TModules.id_module],
+        uselist=False,
+    )
+
+
 @geoserializable(geoCol="geom", idCol="id_base_site")
-class TMonitoringSites(TBaseSites):
-    __tablename__ = "t_site_complements"
-    __table_args__ = {"schema": "gn_monitoring"}
+class TMonitoringSites(TBaseSites, GenericModel):
+
+    __tablename__ = 't_site_complements'
+    __table_args__ = {'schema': 'gn_monitoring'}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_site",
     }
