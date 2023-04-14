@@ -12,7 +12,6 @@
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_nomenclature_type_site",
     "id_inventor",
     "first_use_date",
     "last_visit",
@@ -36,11 +35,6 @@
       "attribut_label": "Id site",
       "hidden": true
     },
-    "id_module": {
-      "type_widget": "text",
-      "attribut_label": "ID Module",
-      "hidden": true
-    },
     "base_site_code": {
       "type_widget": "text",
       "attribut_label": "Code",
@@ -54,29 +48,6 @@
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Description"
-    },
-
-    "id_sites_group": {
-      "type_widget": "datalist",
-      "attribut_label": "Groupe de sites",
-      "type_util": "sites_group",
-      "keyValue": "id_sites_group",
-      "keyLabel": "sites_group_name",
-      "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name",
-      "application": "GeoNature",
-      "required": false,
-      "hidden": true
-    },
-    "id_nomenclature_type_site": {
-      "type_widget": "datalist",
-      "attribut_label": "Type site",
-      "api": "nomenclatures/nomenclature/TYPE_SITE",
-      "application": "GeoNature",
-      "keyValue": "id_nomenclature",
-      "keyLabel": "label_fr",
-      "data_path": "values",
-      "type_util": "nomenclature",
-      "required": true
     },
     "id_inventor": {
       "type_widget": "datalist",
@@ -122,6 +93,18 @@
       "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
+      },
+      "id_sites_group": {
+        "type_widget": "integer",
+        "attribut_label": "ID Sites Groups",
+        "hidden": true,
+        "schema_dot_table": "gn_monitoring.t_base_sites"
+      },
+      "types_site": {
+        "type_widget": "datalist",
+        "attribut_label": "ID Type sites",
+        "hidden": true,
+        "schema_dot_table": "gn_monitoring.t_base_sites"
       }
   }
 }
