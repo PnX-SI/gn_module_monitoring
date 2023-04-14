@@ -52,15 +52,15 @@
         <a
           class="nav-link link cell-link"
           (click)="navigateToDetail(row)"
-          matTooltip="Consulter le groupe de site"
+          matTooltip="Consulter le {{ objectType.label }}"
         >
           <i class="fa fa-eye" aria-hidden="true"></i>
         </a>
         <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
         <a
           class="nav-link link cell-link"
-          (click)="navigateToAddChildren(null, row.id)"
-          matTooltip="Ajouter un site "
+          (click)="navigateToAddChildren(null, row)"
+          matTooltip=" {{objectType.addChildLabel}}"
         >
           <i class="fa fa-plus" aria-hidden="true"></i>
         </a>

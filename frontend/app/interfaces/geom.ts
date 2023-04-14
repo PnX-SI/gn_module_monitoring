@@ -55,3 +55,9 @@ export interface ISiteType {
   id_nomenclature_type_site: number;
   label: string;
 }
+
+export interface ISiteType {
+  config:JsonData,
+  id_nomenclature_type_site:number,
+  label:string
+}
