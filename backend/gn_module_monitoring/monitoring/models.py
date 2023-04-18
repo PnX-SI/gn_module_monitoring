@@ -1,8 +1,8 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
-from sqlalchemy import select, func, and_
-from sqlalchemy.orm import column_property, ColumnProperty, RelationshipProperty, class_mapper
+from sqlalchemy import join, select, func, and_
+from sqlalchemy.orm import column_property, ColumnProperty, RelationshipProperty, class_mapper, aliased
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from uuid import uuid4
 
@@ -410,6 +410,38 @@ class TMonitoringModules(TModules):
     #     cascade="all,delete"
     # )
 
+# Use alias since there is already a FROM caused by count (column_properties)
+sites_alias = aliased(TMonitoringSites)
+TMonitoringModules.sites_groups = DB.relationship(
+    "TMonitoringSitesGroups",
+    uselist=True,  # pourquoi pas par defaut ?
+    primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
+    secondaryjoin=and_(TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group, sites_alias.id_base_site == cor_type_site.c.id_base_site),
+    secondary=join(
+        cor_type_site,
+        cor_module_type,
+        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+    ),
+    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
+    lazy="select",
+    viewonly=True,
+)
+
+
+TMonitoringModules.sites = DB.relationship(
+    "TMonitoringSites",
+    uselist=True,  # pourquoi pas par defaut ?
+    primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
+    secondaryjoin=TMonitoringSites.id_base_site == cor_type_site.c.id_base_site,
+    secondary=join(
+        cor_type_site,
+        cor_module_type,
+        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+    ),
+    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
+    lazy="select",
+    viewonly=True,
+)
 
 TMonitoringModules.visits = DB.relationship(
     TMonitoringVisits,
