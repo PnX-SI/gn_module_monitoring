@@ -21,3 +21,19 @@ def monitoring_module(types_site):
         db.session.add(t_monitoring_module)
 
     return t_monitoring_module
+
+
+@pytest.fixture
+def monitoring_module_wo_types_site():
+    t_monitoring_module = TMonitoringModules(
+        module_code=uuid4(),
+        module_label="NoType",
+        active_frontend=True,
+        active_backend=False,
+        module_path="NoType",
+    )
+
+    with db.session.begin_nested():
+        db.session.add(t_monitoring_module)
+
+    return t_monitoring_module

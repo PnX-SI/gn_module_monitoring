@@ -7,7 +7,7 @@
     (keyup)="updateFilter($event)"
   /> -->
 
-  <div class="btn-float-right md-2">
+  <div class="md-2 d-flex justify-content-between">
     <button
       class="btn btn-info"
       (click)="displayFilter = !displayFilter"
@@ -15,11 +15,16 @@
     >
       <i class="fa fa-filter" aria-hidden="true"></i>
     </button>
-    <!--TODO  Revoir pour rendre générique le bouton "Ajouter" , avant : {{ (child0.template["label_art_undef_new"] || "") }}-->
-    <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
-    <button class="btn btn-success float-right" (click)="navigateToAddChildren(null, null)">
-      <i class="fa fa-plus" aria-hidden="true"></i> {{ objectType.addObjLabel }}
-    </button>
+    <div class="wrapper-button">
+      <ng-content select="[add-button]"></ng-content>
+    </div>
+    <div class="default-button">
+      <!--TODO  Revoir pour rendre générique le bouton "Ajouter" , avant : {{ (child0.template["label_art_undef_new"] || "") }}-->
+      <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
+      <button class="btn btn-success float-right" (click)="navigateToAddChildren(null, null)">
+        <i class="fa fa-plus" aria-hidden="true"></i> {{ objectType.addObjLabel }}
+      </button>
+    </div>
   </div>
   <ngx-datatable
     *ngIf="rows"

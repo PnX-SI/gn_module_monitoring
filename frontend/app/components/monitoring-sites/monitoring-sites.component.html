@@ -6,6 +6,7 @@
 >
 </pnx-monitoring-properties-g>
 <pnx-monitoring-form-g
+  [apiService]="_sitesGroupService"
   [obj]="sitesGroup"
   (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
