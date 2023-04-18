@@ -1,10 +1,13 @@
 from flask import request
 from flask.json import jsonify
+from sqlalchemy.orm import Load, joinedload
 from werkzeug.datastructures import MultiDict
+
+from geonature.core.gn_commons.schemas import ModuleSchema
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.monitoring.models import BibTypeSite, TMonitoringSites, TNomenclatures
+from gn_module_monitoring.monitoring.models import BibTypeSite, TMonitoringSites, TNomenclatures, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.sites_groups import create_or_update_object_api
 from gn_module_monitoring.utils.routes import (
@@ -109,6 +112,20 @@ def get_all_site_geometries():
     result = geojson_query(subquery)
 
     return jsonify(result)
+
+
+@blueprint.route("/sites/<int:id_base_site>/modules", methods=["GET"])
+def get_module_by_id_base_site(id_base_site: int):
+    query = TMonitoringModules.query.options(
+        Load(TMonitoringModules).raiseload("*"),
+        joinedload(TMonitoringModules.types_site).options(joinedload(BibTypeSite.sites)),
+    ).filter(TMonitoringModules.types_site.any(BibTypeSite.sites.any(id_base_site=id_base_site)))
+
+    result = query.all()
+    schema = ModuleSchema()
+    # TODO: Is it usefull to put a limit here? Will there be more than 200 modules?
+    # If limit here, implement paginated/infinite scroll on frontend side
+    return [schema.dump(res) for res in result]
 
 
 @blueprint.route("/sites/module/<string:module_code>", methods=["GET"])

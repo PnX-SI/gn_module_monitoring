@@ -12,6 +12,9 @@ import { SitesService, VisitsService } from '../../services/api-geom.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
+import { SelectObject } from '../../interfaces/object';
+import { Module } from '../../interfaces/module';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'monitoring-visits',
@@ -28,6 +31,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   objForm: FormGroup;
   @Input() colsname;
   objParent: any;
+  modules: SelectObject[];
 
   constructor(
     private _sites_service: SitesService,
@@ -36,7 +40,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     public geojsonService: GeoJSONService,
     private router: Router,
     private _Activatedroute: ActivatedRoute,
-    private _formBuilder: FormBuilder
+    private _formBuilder: FormBuilder,
+    private _configService: ConfigService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -88,5 +93,25 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.router.navigate([
       `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
     ]);
+  }
+
+  getModules() {
+    this._sites_service.getSiteModules(this.site.id_base_site).subscribe(
+      (data: Module[]) =>
+        (this.modules = data.map((item) => {
+          return { id: item.module_code, label: item.module_label };
+        }))
+    );
+  }
+
+  addNewVisit($event: SelectObject) {
+    const moduleCode = $event.id;
+    //create_object/cheveches_sites_group/visit?id_base_site=47
+    this._configService.init(moduleCode).subscribe(() => {
+      this.router.navigate([
+        `monitorings/create_object/${moduleCode}/visit`,
+        { queryParams: { id_base_site: this.site.id_base_site } },
+      ]);
+    });
   }
 }

@@ -104,6 +104,12 @@ class BibTypeSite(DB.Model, GenericModel):
         uselist=False,
         backref=DB.backref('bib_type_site', uselist=False)
     )
+
+    sites = DB.relationship(
+        "TMonitoringSites",
+        secondary=cor_type_site,
+        lazy="noload"
+    )
   
 @serializable
 class TMonitoringObservationDetails(DB.Model):
@@ -218,7 +224,6 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
         select([func.count(TObservations.id_base_visit)]).\
             where(TObservations.id_base_visit==id_base_visit)
     )
-
 
     module = DB.relationship(
         TModules,

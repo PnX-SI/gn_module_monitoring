@@ -37,7 +37,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   objParent: any;
 
   constructor(
-    private _sitesGroupService: SitesGroupService,
+    public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
     private _objService: ObjectService,
     private router: Router,

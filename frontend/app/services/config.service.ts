@@ -18,7 +18,7 @@ export class ConfigService {
 
   /** Configuration */
 
-  init(moduleCode: null | string = null) {
+  init(moduleCode: string | null = null) {
     // a definir ailleurs
 
     moduleCode = moduleCode || 'generic';

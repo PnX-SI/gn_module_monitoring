@@ -134,7 +134,7 @@
       "type_widget": "datalist",
       "attribut_label": "Types de sites",
       "type_util": "types_site",
-      "keyValue": "id_nomenclature",
+      "keyValue": "id_nomenclature_type_site",
       "keyLabel": "label",
       "multiple": true,
       "api" : "__MONITORINGS_PATH/sites/types",

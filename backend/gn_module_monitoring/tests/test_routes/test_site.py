@@ -57,6 +57,14 @@ class TestSite:
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["id_base_site"] == id_base_site
 
+    def test_get_sites_by_id(self, sites):
+        site = list(sites.values())[0]
+        id_base_site = site.id_base_site
+
+        r = self.client.get(url_for("monitorings.get_site_by_id", id_base_site=id_base_site))
+
+        assert r.json["id_base_site"] == id_base_site
+
     def test_get_all_site_geometries(self, sites):
         r = self.client.get(url_for("monitorings.get_all_site_geometries"))
 
@@ -84,6 +92,43 @@ class TestSite:
         json_resp = r.json
         features = json_resp.get("features")
         assert features is None
+
+    def test_get_module_by_id_base_site(self, sites, monitoring_module):
+        site = list(sites.values())[0]
+        id_base_site = site.id_base_site
+
+        r = self.client.get(
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+        )
+
+        expected_modules = {monitoring_module.id_module}
+        current_modules = {module["id_module"] for module in r.json}
+        assert expected_modules.issubset(current_modules)
+
+    def test_get_module_by_id_base_site_no_type_module(
+        self, sites, monitoring_module_wo_types_site
+    ):
+        site = list(sites.values())[0]
+        id_base_site = site.id_base_site
+
+        r = self.client.get(
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+        )
+
+        expected_absent_modules = {monitoring_module_wo_types_site.id_module}
+        current_modules = {module["id_module"] for module in r.json}
+        assert expected_absent_modules.isdisjoint(current_modules)
+
+    def test_get_module_by_id_base_site_no_type_site(self, sites, monitoring_module):
+        id_base_site = sites["no-type"].id_base_site
+
+        r = self.client.get(
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+        )
+
+        expected_modules = {monitoring_module.id_module}
+        current_modules = {module["id_module"] for module in r.json}
+        assert expected_modules.isdisjoint(current_modules)
 
     def test_get_module_sites(self):
         module_code = "TEST"

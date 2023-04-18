@@ -24,7 +24,7 @@ def get_visits():
         params=params, default_sort="id_base_visit", default_direction="desc"
     )
     query = TMonitoringVisits.query.options(joinedload(TMonitoringVisits.module))
-    query = filter_params(query=TMonitoringVisits.query, params=params)
+    query = filter_params(query=query, params=params)
     query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
 
     return paginate(
