@@ -1,0 +1,11 @@
+.dropdown {
+  padding: 5px;
+}
+
+::ng-deep.mat-menu-panel.btn-menu {
+  width: 400px;
+}
+
+::ng-deep.mat-form-field.btn-menu {
+  display: block;
+}
