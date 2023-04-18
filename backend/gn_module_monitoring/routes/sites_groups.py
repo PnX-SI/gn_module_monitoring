@@ -7,12 +7,11 @@ from werkzeug.datastructures import MultiDict
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.modules.repositories import get_module
-from gn_module_monitoring.monitoring.definitions import monitoring_g_definitions
+from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
-    create_or_update_object_api_sites_sites_group,
     filter_params,
     geojson_query,
     get_limit_page,
@@ -20,6 +19,7 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
 )
+from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group
 from gn_module_monitoring.utils.utils import to_int
 
 
@@ -143,7 +143,7 @@ def create_or_update_object_api(module_code, object_type, id=None):
         post_data["properties"]["id_module"] = module["id_module"]
 
     return (
-        monitoring_g_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
         .create_or_update(post_data)
         .serialize(depth)
     )
