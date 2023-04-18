@@ -34,7 +34,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   constructor(
     private _formService: FormService,
     private _formBuilder: FormBuilder,
-    private siteService: SitesService,
+    public siteService: SitesService,
     private route: ActivatedRoute,
     private _objService: ObjectService
   ) {}

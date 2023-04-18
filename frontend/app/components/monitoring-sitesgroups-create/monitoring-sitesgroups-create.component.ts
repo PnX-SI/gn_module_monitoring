@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { endPoints } from '../../enum/endpoints';
 import { ISitesGroup } from '../../interfaces/geom';
 import { FormService } from '../../services/form.service';
+import { SitesGroupService } from '../../services/api-geom.service';
 
 @Component({
   selector: 'monitoring-sitesgroups-create',
@@ -18,7 +19,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   constructor(
     private _formService: FormService,
     private _formBuilder: FormBuilder,
-    private route: ActivatedRoute
+    public sitesGroupService: SitesGroupService
   ) {}
 
   ngOnInit() {

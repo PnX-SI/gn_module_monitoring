@@ -73,3 +73,4 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
 
     column_list = ("nomenclature", "config")
     column_formatters = dict(nomenclature=list_label_nomenclature_formatter)
+    form_excluded_columns = "sites"

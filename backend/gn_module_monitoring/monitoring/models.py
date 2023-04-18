@@ -110,6 +110,8 @@ class BibTypeSite(DB.Model, GenericModel):
         TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
     )
 
+    sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
+
 
 @serializable
 class TMonitoringObservationDetails(DB.Model):
@@ -215,7 +217,6 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
         )
     )
 
-
     module = DB.relationship(
         TModules,
         lazy="select",
@@ -228,8 +229,8 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
 @geoserializable(geoCol="geom", idCol="id_base_site")
 class TMonitoringSites(TBaseSites, GenericModel):
 
-    __tablename__ = 't_site_complements'
-    __table_args__ = {'schema': 'gn_monitoring'}
+    __tablename__ = "t_site_complements"
+    __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_site",
     }

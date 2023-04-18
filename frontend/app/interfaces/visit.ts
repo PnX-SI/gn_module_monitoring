@@ -1,7 +1,7 @@
 import { JsonData } from "../types/jsondata";
-import { IGeomObject } from "./geom";
+import { IObject } from "./object";
 
-export interface IVisit extends IGeomObject {
+export interface IVisit extends IObject {
   pk:number;
   comments: string;
   data: JsonData;

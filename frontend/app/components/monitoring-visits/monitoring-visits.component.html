@@ -3,6 +3,8 @@
   <pnx-monitoring-properties-g [newParentType]="objParent" [objectType]="objectType" *ngIf="!bEdit" [(bEdit)]="bEdit" [selectedObj]="site">
   </pnx-monitoring-properties-g>
   <pnx-monitoring-datatable-g [rows]="visits" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
-    (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="visits"
-    (onDetailsRow)="seeDetails($event)"></pnx-monitoring-datatable-g>
+    (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="visits" (onDetailsRow)="seeDetails($event)">
+    <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
+      (onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn>
+  </pnx-monitoring-datatable-g>
 </div>
