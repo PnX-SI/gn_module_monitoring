@@ -24,7 +24,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   color: string = 'white';
   dataDetails: ISitesGroup;
   fields: JsonData;
-  fieldDefinitions: JsonData;
+  fieldDefinitions: JsonData = {};
   fieldsNames: string[];
   endPoint: string;
   datasetForm = new FormControl();
