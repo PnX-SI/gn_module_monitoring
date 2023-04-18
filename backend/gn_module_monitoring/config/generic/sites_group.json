@@ -18,6 +18,11 @@
       {"prop": "sites_group_code"}
     ],
     "generic": {
+      "id_sites_group": {
+        "type_widget": "text",
+        "attribut_label": "Id site",
+        "hidden": true
+      },
       "sites_group_name": {
         "type_widget": "text",
         "attribut_label": "Nom",

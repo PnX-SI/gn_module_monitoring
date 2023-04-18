@@ -9,9 +9,8 @@ from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import BibTypeSite, TMonitoringSites, TNomenclatures, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
-from gn_module_monitoring.routes.sites_groups import create_or_update_object_api
+from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group
 from gn_module_monitoring.utils.routes import (
-    create_or_update_object_api_sites_sites_group,
     filter_params,
     geojson_query,
     get_limit_page,
