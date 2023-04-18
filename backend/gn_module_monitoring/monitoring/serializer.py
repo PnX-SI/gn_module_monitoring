@@ -4,7 +4,7 @@
 import datetime
 import uuid
 from flask import current_app
-from .base import MonitoringObjectBase, monitoring_definitions, monitoring_g_definitions
+from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
 from geonature.utils.env import DB
@@ -14,14 +14,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     
     
     def get_parent(self):
-        monitoring_def = monitoring_g_definitions if self._module_code == "generic" else monitoring_definitions
         parent_type = self.parent_type()
         if not parent_type:
             return
 
         if not self._parent:
             self._parent = (
-                monitoring_def
+                monitoring_definitions
                 .monitoring_object_instance(
                     self._module_code,
                     parent_type,
@@ -65,7 +64,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             properties['data'] = data
 
     def serialize_children(self, depth):
-        monitoring_def = monitoring_g_definitions if self._module_code == "generic" else monitoring_definitions
         children_types = self.config_param('children_types')
 
         if not children_types:
@@ -84,7 +82,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             for child_model in getattr(self._model, relation_name):
                 child = (
-                    monitoring_def
+                    monitoring_definitions
                     .monitoring_object_instance(self._module_code, children_type, model=child_model)
                 )
                 children_of_type.append(child.serialize(depth))
