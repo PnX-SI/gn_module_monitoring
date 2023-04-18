@@ -9,7 +9,7 @@ from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
-    TMonitoringVisits
+    TMonitoringVisits,
 )
 
 
