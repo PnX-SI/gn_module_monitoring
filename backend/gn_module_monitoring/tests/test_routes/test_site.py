@@ -1,6 +1,7 @@
 import pytest
 from flask import url_for
 
+from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 
@@ -175,3 +176,17 @@ class TestSite:
             res.as_dict()["base_site_name"]
             == site_to_post_with_types["properties"]["base_site_name"]
         )
+    
+    def test_delete_site(self, sites):
+        site = list(sites.values())[0]
+        id_base_site = site.id_base_site
+        item = TMonitoringSites.find_by_id(id_base_site)
+        r = self.client.delete(url_for("monitorings.delete_site", _id=id_base_site))
+
+        assert (
+            r.json["success"]
+            == f"Item with {item.id_g} from table {item.__tablename__} is successfully deleted"
+        )
+        with pytest.raises(Exception) as e:
+            TMonitoringSites.query.get_or_404(id_base_site)
+        assert "404 Not Found" in str(e.value)
