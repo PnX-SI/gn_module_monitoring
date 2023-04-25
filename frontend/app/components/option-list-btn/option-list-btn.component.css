@@ -9,3 +9,13 @@
 ::ng-deep.mat-form-field.btn-menu {
   display: block;
 }
+
+
+.mat-option{
+  word-wrap:break-word !important;
+  white-space:normal !important;
+}
+
+::ng-deep.mat-option-text{
+  line-height:normal !important;
+}
