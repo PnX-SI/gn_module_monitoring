@@ -108,10 +108,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47
     this._configService.init(moduleCode).subscribe(() => {
-      this.router.navigate([
-        `monitorings/create_object/${moduleCode}/visit`,
-        { queryParams: { id_base_site: this.site.id_base_site } },
-      ]);
+      const keys = Object.keys(this._configService.config()[moduleCode])
+      const parent_paths = ["sites_group", "site"].filter(item => keys.includes(item))
+      this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+        queryParams: { id_base_site: this.site.id_base_site, parents_path: parent_paths },
+      });
     });
   }
 }
