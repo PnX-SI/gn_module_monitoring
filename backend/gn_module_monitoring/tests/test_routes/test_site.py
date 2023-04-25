@@ -2,6 +2,7 @@ import pytest
 from flask import url_for
 
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.monitoring.models import TMonitoringSites
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
@@ -135,3 +136,42 @@ class TestSite:
         r = self.client.get(url_for("monitorings.get_module_sites", module_code=module_code))
 
         assert r.json["module_code"] == module_code
+
+    def test_get_types_site_by_label(self, types_site):
+        schema = BibTypeSiteSchema()
+        mock_db_type_site = [schema.dump(type) for type in types_site.values()]
+        string_contains = "e"
+        string_missing = "a"
+
+        query_string = {
+            "limit": 100,
+            "page": 1,
+            "sort_label": "label_fr",
+            "sort_dir": "asc",
+            "label_fr": string_contains
+        }
+        r = self.client.get(
+            url_for("monitorings.get_types_site_by_label"), query_string=query_string
+        )
+        assert all([string_contains in item["label"] for item in r.json["items"]])
+        assert all([type in r.json["items"] for type in mock_db_type_site])
+
+        query_string["label_fr"] = string_missing
+        r = self.client.get(
+            url_for("monitorings.get_types_site_by_label"), query_string=query_string
+        )
+        assert all([type not in r.json["items"] for type in mock_db_type_site])
+
+    def test_post_sites(self, site_to_post_with_types, types_site, site_group_without_sites):
+
+        response = self.client.post(
+            url_for("monitorings.post_sites"), data=site_to_post_with_types
+        )
+        assert response.status_code == 201
+
+        obj_created = response.json
+        res = TMonitoringSites.find_by_id(obj_created["id"])
+        assert (
+            res.as_dict()["base_site_name"]
+            == site_to_post_with_types["properties"]["base_site_name"]
+        )

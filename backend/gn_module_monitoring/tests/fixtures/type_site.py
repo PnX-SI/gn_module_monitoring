@@ -1,8 +1,20 @@
+import json
+import os
+
 import pytest
 from geonature.utils.env import db
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
 from gn_module_monitoring.monitoring.models import BibTypeSite
+
+
+def get_test_data(filename):
+    folder_path = os.path.abspath(os.path.dirname(__file__))
+    folder = os.path.join(folder_path, "TestData")
+    jsonfile = os.path.join(folder, filename)
+    with open(jsonfile) as file:
+        data = json.load(file)
+    return data
 
 
 @pytest.fixture
@@ -29,9 +41,10 @@ def nomenclature_types_site():
 
 @pytest.fixture
 def types_site(nomenclature_types_site):
+    config_type_site = get_test_data("config_type_site.json")
     types_site = {
-        nomenc_type_site.mnemonique: BibTypeSite(
-            id_nomenclature_type_site=nomenc_type_site.id_nomenclature, config={}
+        nomenc_type_site.label_default: BibTypeSite(
+            id_nomenclature_type_site=nomenc_type_site.id_nomenclature, config=config_type_site
         )
         for nomenc_type_site in nomenclature_types_site
     }
