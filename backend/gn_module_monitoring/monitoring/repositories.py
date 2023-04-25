@@ -165,10 +165,12 @@ class MonitoringObject(MonitoringObjectSerializer):
         if params["parents_path"]:
             object_type = params.get("parents_path", []).pop()
             next = MonitoringObject(self._module_code, object_type)
-
-            id_field_name = next.config_param("id_field_name")
-            next._id = self.get_value(id_field_name) or params.get(id_field_name)
-            next.get(0)
+            if next._object_type == "module":
+                next.get(field_name="module_code", value=self._module_code)
+            else:
+                id_field_name = next.config_param('id_field_name')
+                next._id = self.get_value(id_field_name) or params.get(id_field_name)
+                next.get(0)
         else:
             next = self.get_parent()
 
