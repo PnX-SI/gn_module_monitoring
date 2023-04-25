@@ -1,13 +1,18 @@
 from flask import request
 from flask.json import jsonify
+from geonature.core.gn_commons.schemas import ModuleSchema
+from geonature.utils.env import db
 from sqlalchemy.orm import Load, joinedload
 from werkzeug.datastructures import MultiDict
 
-from geonature.core.gn_commons.schemas import ModuleSchema
-
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.monitoring.models import BibTypeSite, TMonitoringSites, TNomenclatures, TMonitoringModules
+from gn_module_monitoring.monitoring.models import (
+    BibTypeSite,
+    TMonitoringModules,
+    TMonitoringSites,
+    TNomenclatures,
+)
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group
 from gn_module_monitoring.utils.routes import (
@@ -88,11 +93,13 @@ def get_sites():
         page=page,
     )
 
+
 @blueprint.route("/sites/<int:id_base_site>", methods=["GET"])
 def get_site_by_id(id_base_site):
     site = TMonitoringSites.query.get_or_404(id_base_site)
     schema = MonitoringSitesSchema()
     return schema.dump(site)
+
 
 @blueprint.route("/sites/geometries", methods=["GET"])
 def get_all_site_geometries():
@@ -144,3 +151,13 @@ def post_sites():
             customConfig.update(post_data["dataComplement"][keys]["config"])
     get_config(module_code, force=True, customSpecConfig=customConfig)
     return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
+
+
+@blueprint.route("/sites/<int:_id>", methods=["DELETE"])
+def delete_site(_id):
+    item = TMonitoringSites.find_by_id(_id)
+    db.session.delete(item)
+    db.session.commit()
+    return {
+        "success": f"Item with {item.id_g} from table {item.__tablename__} is successfully deleted"
+    }, 200
