@@ -55,7 +55,7 @@ import { BtnSelectComponent } from "./components/btn-select/btn-select.component
 import { MonitoringSitesEditComponent } from "./components/monitoring-sites-edit/monitoring-sites-edit.component";
 import { MonitoringVisitsComponent } from "./components/monitoring-visits/monitoring-visits.component";
 import { OptionListButtonComponent } from "./components/option-list-btn/option-list-btn.component";
-
+import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 // my module routing
 const routes: Routes = [
   /** modules  */
@@ -137,6 +137,7 @@ const routes: Routes = [
     BtnSelectComponent,
     MonitoringVisitsComponent,
     OptionListButtonComponent,
+    MatErrorMessagesDirective
   ],
   imports: [
     GN2CommonModule,

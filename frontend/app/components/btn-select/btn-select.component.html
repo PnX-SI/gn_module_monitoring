@@ -1,6 +1,6 @@
 <mat-form-field class="example-chip-list" appearance="fill">
   <mat-label>{{ titleBtn }}</mat-label>
-  <mat-chip-list #chipList aria-label="option selection">
+  <mat-chip-list #chipList aria-label="option selection" [formControl]="listOpNeeded">
     <mat-chip
       *ngFor="let optionSelected of listOptionChosen"
       [selectable]="selectable"
@@ -28,4 +28,5 @@
       </mat-option>
     </ng-container>
   </mat-autocomplete>
+  <mat-error matErrorMessages></mat-error>
 </mat-form-field>
