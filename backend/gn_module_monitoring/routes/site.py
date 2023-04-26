@@ -161,3 +161,15 @@ def delete_site(_id):
     return {
         "success": f"Item with {item.id_g} from table {item.__tablename__} is successfully deleted"
     }, 200
+
+@blueprint.route("/sites/<int:_id>", methods=["PATCH"])
+def patch_sites(_id):
+    module_code = "generic"
+    object_type = "site"
+    customConfig = dict()
+    post_data = dict(request.get_json())
+    for keys in post_data["dataComplement"].keys():
+        if "config" in post_data["dataComplement"][keys]:
+            customConfig.update(post_data["dataComplement"][keys]["config"])
+    get_config(module_code, force=True, customSpecConfig=customConfig)
+    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201

@@ -1,10 +1,44 @@
 <!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
-<div>
+<!-- 
   <pnx-monitoring-properties-g [newParentType]="objParent" [objectType]="objectType" *ngIf="!bEdit" [(bEdit)]="bEdit" [selectedObj]="site">
-  </pnx-monitoring-properties-g>
-  <pnx-monitoring-datatable-g [rows]="visits" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
-    (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="visits" (onDetailsRow)="seeDetails($event)">
-    <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
-      (onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn>
-  </pnx-monitoring-datatable-g>
-</div>
+  </pnx-monitoring-properties-g> -->
+
+<btn-select
+  *ngIf="bEdit"
+  (sendobject)="onSendConfig($event)"
+  [titleBtn]="titleBtn"
+  [placeholderText]="placeholderText"
+  [callBackFunction]="funcToFilt"
+  [initValueFunction]="funcInitValues"
+  [paramToFilt]="paramToFilt"
+  [isInitialValues]="isInitialValues"
+></btn-select>
+<pnx-monitoring-form-g
+  [objForm]="form"
+  [obj]="site"
+  (objChanged)="onObjChanged($event)"
+  *ngIf="bEdit"
+  [(bEdit)]="bEdit"
+  [apiService]="siteService"
+  [isExtraForm]="true"
+></pnx-monitoring-form-g>
+<pnx-monitoring-properties-g
+  *ngIf="!bEdit"
+  [(bEdit)]="bEdit"
+  [newParentType]="objParent"
+  [(bEdit)]="bEdit"
+  [selectedObj]="site"
+></pnx-monitoring-properties-g>
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
+  [rows]="visits"
+  [colsname]="colsname"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [obj]="visits"
+  (onDetailsRow)="seeDetails($event)"
+  
+> <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
+(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></pnx-monitoring-datatable-g>
