@@ -45,22 +45,6 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
             return json.loads(obj.geom_geojson)
     
 
-
-class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
-    class Meta:
-        model = TMonitoringSites
-        exclude = ("geom_geojson", "geom")
-
-    geometry = fields.Method("serialize_geojson", dump_only=True)
-    pk = fields.Method("set_pk",dump_only=True)
-
-    def serialize_geojson(self, obj):
-        if obj.geom is not None:
-            return geojson.dumps(obj.as_geofeature().get("geometry"))
-        
-    def set_pk(self,obj):
-        return self.Meta.model.get_id()
-
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     label = fields.Method("get_label_from_type_site")
     # See if useful in the future:
@@ -73,6 +57,23 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         model = BibTypeSite
         include_fk = True
         load_instance = True
+
+
+class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
+    class Meta:
+        model = TMonitoringSites
+        exclude = ("geom_geojson", "geom")
+
+    geometry = fields.Method("serialize_geojson", dump_only=True)
+    pk = fields.Method("set_pk",dump_only=True)
+    types_site = MA.Nested(BibTypeSiteSchema, many=True)
+
+    def serialize_geojson(self, obj):
+        if obj.geom is not None:
+            return geojson.dumps(obj.as_geofeature().get("geometry"))
+        
+    def set_pk(self,obj):
+        return self.Meta.model.get_id()
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:

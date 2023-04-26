@@ -11,7 +11,7 @@ import { IDataForm } from '../../interfaces/form';
 import { ApiGeomService } from '../../services/api-geom.service';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { FormService } from '../../services/form.service';
-import { ObjectService } from '../../services/object.service';
+import { IExtraForm } from '../../interfaces/object';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -34,6 +34,10 @@ export class MonitoringFormComponentG implements OnInit {
 
   @Input() sites: {};
   @Input() apiService: ApiGeomService;
+  @Input() isExtraForm:boolean = false;
+
+  extraForm: IExtraForm;
+  hideForm: boolean = false;
   dataForm: IDataForm;
   searchSite = '';
 
@@ -63,17 +67,21 @@ export class MonitoringFormComponentG implements OnInit {
   ) {}
 
   ngOnInit() {
-    // TODO: Avoid two subscribes one inside other (code test above doesn't work. When add type site the observable currentdata is not recall)
     this._formService.currentData
       .pipe(
         tap((data) => {
           this.obj = data;
           this.obj.bIsInitialized = true;
-          this.apiService.init(this.obj.endPoint, this.obj.objSelected);
+          this.obj.id = this.obj[this.obj.pk]
         }),
-        mergeMap((data: any) => this._configService.init(data.moduleCode))
+        mergeMap((data: any) => this._configService.init(data.moduleCode)),
+        mergeMap(() => this._formService.currentExtraFormCtrl )
       )
-      .subscribe(() => {
+      .subscribe((frmCtrl) => {
+
+        this.isExtraForm ? this.addExtraFormCtrl(frmCtrl) : null;
+        this.isExtraForm ? this.checkValidExtraFormCtrl() : null;
+
 
         this.queryParams = this._route.snapshot.queryParams || {};
         this.bChainInput = this._configService.frontendParams()['bChainInput'];
@@ -294,7 +302,6 @@ export class MonitoringFormComponentG implements OnInit {
   onSubmit() {
     const { patch_update, ...sendValue } = this.dataForm;
     const objToUpdateOrCreate = this._formService.postData(sendValue, this.obj);
-    console.log(objToUpdateOrCreate);
     const action = this.obj.id
       ? this.apiService.patch(this.obj.id, objToUpdateOrCreate)
       : this.apiService.create(objToUpdateOrCreate);
@@ -381,6 +388,25 @@ export class MonitoringFormComponentG implements OnInit {
     // patch pour recalculers
     this.procesPatchUpdateForm();
   }
+
+  addExtraFormCtrl(frmCtrl: IExtraForm){
+    if (frmCtrl.frmName in this.objForm.controls){
+      this.objForm.setControl(frmCtrl.frmName,frmCtrl.frmCtrl)
+    } else{
+      this.objForm.addControl(frmCtrl.frmName,frmCtrl.frmCtrl)
+    }
+    
+    this.extraForm = frmCtrl
+  }
+
+  checkValidExtraFormCtrl(){
+    if (this.extraForm.frmName in this.objForm.controls && this.objForm.get(this.extraForm.frmName).value != null && this.objForm.get(this.extraForm.frmName).value.length != 0 ){
+      this.hideForm = false
+      this.objForm.valid
+    } else {
+      this.hideForm = true
+  }
+}
 
   getConfigFromBtnSelect(event) {
     // this.obj.specific == undefined ? (this.obj.specific = {}) : null;
