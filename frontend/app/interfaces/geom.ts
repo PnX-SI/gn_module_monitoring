@@ -34,6 +34,9 @@ export interface ISite extends IGeomObject {
   meta_update_date: Date;
   nb_visits: number;
   uuid_base_site: string;
+  specific: JsonData;
+  dataComplement: JsonData;
+  types_site: string[];
 }
 
 export interface IGeomService<IGeomObject> extends IService<IGeomObject> {
