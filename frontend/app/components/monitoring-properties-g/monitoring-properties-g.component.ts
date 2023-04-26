@@ -46,13 +46,13 @@ export class MonitoringPropertiesGComponent implements OnInit {
   }
 
   onEditClick() {
-    this.bEditChange.emit(true);
     this.selectedObj['id'] = this.selectedObj[this.selectedObj.pk];
     this._formService.changeDataSub(
       this.selectedObj,
       this.objectType.objectType,
       this.objectType.endPoint
     );
+    this.bEditChange.emit(true);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
