@@ -3,23 +3,29 @@ import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 
 import { ISite, ISitesGroup } from '../interfaces/geom';
-import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
 import { MonitoringObjectService } from './monitoring-object.service';
+import { FormControl } from '@angular/forms';
+import { IExtraForm } from '../interfaces/object';
+
 
 @Injectable()
 export class FormService {
   data: JsonData = {};
+  frmCtrl: FormControl = new FormControl(null);
+  frmCtrlName: string = '';
   private dataSub = new BehaviorSubject<object>(this.data);
+  private formCtrl = new BehaviorSubject<IExtraForm>({frmCtrl : this.frmCtrl,frmName:this.frmCtrlName});
   currentData = this.dataSub.asObservable();
+  currentExtraFormCtrl = this.formCtrl.asObservable();
   properties: JsonData = {};
   moduleCode: string;
   objecType: string;
 
   constructor(private _objService: MonitoringObjectService) {}
 
-  // TODO: voir si nécessaire de garder ça (objService permet d'avoir le bon objet ? et sinon modifier pour obtenir ce qu'il faut en formulaire)
+
   changeDataSub(
     newDat: JsonData,
     objectType: string,
@@ -38,6 +44,10 @@ export class FormService {
     newDat.moduleCode = moduleCode;
     newDat.urlRelative = urlRelative;
     this.dataSub.next(newDat);
+  }
+
+  changeExtraFormControl(formCtrl:FormControl,formCtrlName:string){
+    this.formCtrl.next({frmCtrl:formCtrl,frmName:formCtrlName})
   }
 
   formValues(obj): Observable<any> {
