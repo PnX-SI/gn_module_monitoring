@@ -12,7 +12,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Les dossier de configuration des sous-modules sont déplacés du dossier ``<gn_module_monitoring>/config/monitorings`` au dossier ``media/monitorings`` de GeoNature
 * Installation des sous-modules en deux temps
 * Passage de la doc en `markdown`
-
+* suppression du script obselète `update_views.sh`
 
 **⚠️ Notes de version**
 
@@ -23,7 +23,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
    rm -R <geonature>/backend/media/monitorings/generic
 ```
 
-Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.
+Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.s
 Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
 
 * L'installation des sous-modules se fait désormais en deux temps
