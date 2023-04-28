@@ -1,6 +1,41 @@
 =========
 CHANGELOG
 =========
+0.6.0 (unreleased)
+------------------
+
+Nécessite GeoNature version 2.12.0 (ou plus)
+
+**Evolutions**
+
+* Utilisation de la gestion dynamique de la config de GeoNature
+* Les dossier de configuration des sous-modules sont déplacés du dossier ``<gn_module_monitoring>/config/monitorings`` au dossier ``media/monitorings`` de GeoNature
+* Installation des sous-modules en deux temps
+
+
+**⚠️ Notes de version**
+
+* Veuillez déplacer les configurations des sous-modules déjà existants depuis le dossier ``<gn_module_monitoring>/config/monitoring`` vers le dossier ``media`` de geonature:
+
+::
+   cp -R <gn_module_monitoring>/config/monitoring/* <geonature>/backend/media/monitorings
+   rm -R <geonature>/backend/media/monitorings/generic
+
+Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.
+Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
+
+* L'installation des sous-modules se fait désormais en deux temps
+
+    * Copie du repertoire de configuration
+        * On pourra faire des lien symbolique pour des besoins de dev
+    * Installation du sous-module avec la commande dédiée
+
+::
+
+  cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
+  geonature monitorings install <module_code>
+
+
 
 0.5.0 (2023-03-29)
 ------------------
@@ -16,9 +51,6 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
 * Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
 * Remplacement du composant `datalist` par le composant `dataset` pour le champs de selection du JDD de la visite, dans la configuration générique des sous-modules
-* Utilisation de la gestion dynamique de la config de GeoNature
-* Les dossier de configuration des sous-modules sont déplacés du dossier ``<gn_module_monitoring>/config/monitorings`` au dossier ``media/monitorings`` de GeoNature
-* Installation des sous-modules en deux temps
 
 **Corrections**
 
@@ -37,30 +69,6 @@ Nécessite GeoNature version 2.12.0 (ou plus)
     "required": true,
     "module_code": "__MODULE.MODULE_CODE",
   },
-
-
-* Veuillez déplacer les configurations des sous-modules déjà existants depuis le dossier ``<gn_module_monitoring>/config/monitoring`` vers le dossier ``media`` de geonature:
-
-
-::
-   cp -R <gn_module_monitoring>/config/monitoring <geonature>/backend/media/monitorings
-   rm -R <geonature>/backend/media/monitorings/generic
-
-Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.
-Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
-
-* L'installation des sous-modules se fait désormais en deux temps
-
-    * Copie du repertoire de configuration
-        * On pourra faire des lien symbolique pour des besoins de dev
-    * Installation du sous-module avec la commande dédiée
-
-::
-
-  cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
-  geonature monitorings install <module_code>
-
-
 
 
 0.4.1 (2023-02-05)
