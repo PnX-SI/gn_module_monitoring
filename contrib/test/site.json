@@ -10,6 +10,12 @@
     "last_visit",
     "nb_visits"
   ],
+  "export_pdf": [
+    {
+        "template": "fiche_site.html",
+        "label": "Export PDF"
+    }
+  ],
   "map_label_field_name": "base_site_name",
   "geometry_type": "Point",
   "specific": {

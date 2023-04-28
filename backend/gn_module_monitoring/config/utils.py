@@ -1,19 +1,21 @@
 import os, datetime, time
+import importlib
+from pathlib import Path
+from flask import current_app
 import json
 
 from sqlalchemy import and_
 
 from geonature.core.gn_commons.models import BibTablesLocation, TModules
 from geonature.utils.errors import GeoNatureError
-from geonature.utils.env import DB
+from geonature.utils.env import DB, DEFAULT_CONFIG_FILE, BACKEND_DIR
 
 from ..monitoring.models import TMonitoringModules
 
+SUB_MODULE_CONFIG_DIR = Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
 
-# chemin ver le repertoire de la config
-MONITORING_CONFIG_PATH = os.path.dirname(os.path.abspath(
-    __file__)) + '/../../../config/monitoring'
-
+def monitoring_module_config_path(module_code):
+    return SUB_MODULE_CONFIG_DIR / module_code
 
 def get_monitoring_module(module_code):
     '''
@@ -37,7 +39,7 @@ def get_monitorings_path():
         .filter(TModules.module_code == 'MONITORINGS')
         .one()[0]
     )
-    
+
 def get_base_last_modif(module):
     '''
         renvoie (en seconde depuis le 1 1 1970) la date de modif du module
@@ -127,15 +129,12 @@ def json_from_file(file_path, result_default):
 
 def json_config_from_file(module_code, type_config):
 
-    file_path = "{}/{}/{}.json".format(MONITORING_CONFIG_PATH, module_code, type_config)
+    if module_code == "generic":
+        config_txt = importlib.resources.read_text('gn_module_monitoring.config.generic', f'{type_config}.json')
+        return json.loads(config_txt)
+
+    file_path = monitoring_module_config_path(module_code) / f"{type_config}.json"
     return json_from_file(file_path, {})
-
-
-def json_schema_from_file(module_code, object_type):
-
-    file_path = "{}/{}/schema_{}.json".format(MONITORING_CONFIG_PATH, module_code, object_type)
-    return json_from_file(file_path, {})
-
 
 def config_from_files(config_type, module_code):
 

@@ -14,62 +14,28 @@ from geonature.core.gn_commons.models import TModules
 
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
-from ..config.utils import json_from_file, MONITORING_CONFIG_PATH
+from ..config.utils import json_from_file, monitoring_module_config_path
 from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
-    process_export_pdf,
     process_export_csv,
-    process_img_modules,
     insert_permission_object,
     remove_monitoring_module,
-    removesymlink,
-    symlink,
     add_nomenclature,
+    available_modules,
+    installed_modules
 )
 
 
 @click.command("process_all")
-@click.argument("module_config_dir_path", type=click.Path(exists=True))
 @click.argument("module_code", type=str, required=False, default="")
 @with_appcontext
-def cmd_process_all(module_config_dir_path, module_code):
+def cmd_process_all(module_code):
     """
     Met à jour les paramètres de configuration pour un module
     """
-    module_config_dir_path = Path(module_config_dir_path)
-    module_code = module_code or module_config_dir_path.name
-    print("Process module {}".format(module_code))
-
-    # symlink to config dir
-    symlink(module_config_dir_path, MONITORING_CONFIG_PATH + "/" + module_code)
-
-    # process img modules
-    process_img_modules()
-
-    # process export pdf
-    process_export_pdf(module_code)
-
     # process export csv
     process_export_csv(module_code)
-
-
-@click.command("process_img")
-def cmd_process_img():
-    """
-    Met à jour les images pour tout les modules
-    """
-    process_img_modules()
-
-
-@click.command("process_export_pdf")
-@click.argument("module_code", type=str, required=False, default="")
-def cmd_process_export_pdf(module_code):
-    """
-    Met à jour les fichiers pour les exports pdf
-    """
-    process_export_pdf(module_code)
-
 
 @click.command("process_export_csv")
 @click.argument("module_code", type=str, required=False, default="")
@@ -82,10 +48,9 @@ def cmd_process_export_csv(module_code):
 
 
 @click.command("install")
-@click.argument("module_config_dir_path", type=click.Path(exists=True))
 @click.argument("module_code", type=str, required=False, default="")
 @with_appcontext
-def cmd_install_monitoring_module(module_config_dir_path, module_code):
+def cmd_install_monitoring_module(module_code):
     """
     Module de suivi générique : installation d'un sous module
 
@@ -96,10 +61,20 @@ def cmd_install_monitoring_module(module_config_dir_path, module_code):
         - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
     """
 
-    module_config_dir_path = Path(module_config_dir_path)
-    module_code = module_code or module_config_dir_path.name
+    # module_config_dir_path = Path(module_config_dir_path)
+    # module_code = module_code or module_config_dir_path.name
 
-    print("Install module {}".format(module_code))
+    click.secho(f"Installation du sous-module monitoring {module_code}")
+
+    module_config_dir_path = monitoring_module_config_path(module_code)
+
+    if not module_config_dir_path.is_dir():
+        available_modules_txt = ", ".join(sorted(available_modules()))
+        installed_modules_txt = ", ".join(sorted(installed_modules()))
+        click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
+        click.secho(f'Modules disponibles : {available_modules_txt}\n')
+        click.secho(f"Modules installés : {installed_modules_txt}\n")
+        return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
 
@@ -107,28 +82,10 @@ def cmd_install_monitoring_module(module_config_dir_path, module_code):
         module = get_simple_module("module_code", module_code)
         # test si le module existe
         if module:
-            print("Le module {} existe déjà".format(module_code))
-            # TODO update??
-            # return
+            click.secho(f"Le module {module_code} existe déjà", fg="red")
+            return
     except Exception:
         pass
-
-    if not os.path.exists(module_config_dir_path):
-        print(
-            "module_config_dir_path {} does not exist (use absolute path)".format(
-                module_config_dir_path
-            )
-        )
-        return
-
-    # symlink to config dir
-    symlink(module_config_dir_path, MONITORING_CONFIG_PATH + "/" + module_code)
-
-    # process img modules
-    process_img_modules()
-
-    # process export pdf
-    process_export_pdf(module_code)
 
     # process export csv
     process_export_csv(module_code)
@@ -136,7 +93,10 @@ def cmd_install_monitoring_module(module_config_dir_path, module_code):
     config = get_config(module_code, force=True)
 
     if not config:
-        print("config directory for module {} does not exist".format(module_code))
+        click.secho(
+            f"config directory for module {module_code} does not exist",
+            fg="red"
+        )
         return None
 
     module_desc = config["module"].get("module_desc")
@@ -146,9 +106,10 @@ def cmd_install_monitoring_module(module_config_dir_path, module_code):
     )  # pour retrouver la page depuis la synthese
 
     if not (module_desc and module_label):
-        print(
-            "Veuillez renseigner les valeurs des champs module_label \
-et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
+        click.secho(
+            f"Veuillez renseigner les valeurs des champs module_label \
+et module_desc dans le fichier {module_config_dir_path}/module.json",
+            fg="red"
         )
         return
 
@@ -164,7 +125,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
         "type": "monitoring_module"
     }
 
-    print("ajout du module {} en base".format(module_code))
+    click.secho("ajout du module {} en base".format(module_code))
     module = TMonitoringModules()
     module.from_dict(module_data)
     DB.session.add(module)
@@ -177,7 +138,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
 
     #  run specific sql
     if (module_config_dir_path / "synthese.sql").exists:
-        print("Execution du script synthese.sql")
+        click.secho("Execution du script synthese.sql")
         sql_script = module_config_dir_path / "synthese.sql"
         try:
             DB.engine.execute(
@@ -190,7 +151,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
             )
         except Exception as e:
             print(e)
-            print("Erreur dans le script synthese.sql")
+            click.secho("Erreur dans le script synthese.sql", fg="red")
 
     # insert nomenclature
     add_nomenclature(module_code)
@@ -213,7 +174,7 @@ et module_desc dans le fichier <dir_module_suivi>/config/monitoring/module.json"
     DB.session.commit()
 
     # TODO ++++ create specific tables
-
+    click.secho(f"Sous-module monitoring '{module_code}' installé", fg='green')
     return
 
 
@@ -234,9 +195,9 @@ def cmd_update_perm_module_cmd(module_code):
     except Exception:
         print("le module n'existe pas")
         return
-    path_module = MONITORING_CONFIG_PATH + "/" + module_code + "/module.json"
+    path_module = monitoring_module_config_path(module_code) / "module.json"
 
-    if not os.path.exists(path_module):
+    if not path_module.is_file():
         print(f"Il n'y a pas de fichier {path_module} pour ce module")
         return
     config_module = json_from_file(path_module, None)
@@ -299,8 +260,6 @@ def synchronize_synthese(module_code, offset):
 
 commands = [
     cmd_process_export_csv,
-    cmd_process_export_pdf,
-    cmd_process_img,
     cmd_install_monitoring_module,
     cmd_update_perm_module_cmd,
     cmd_remove_monitoring_module_cmd,
