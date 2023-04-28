@@ -246,12 +246,20 @@ def add_nomenclature(module_code):
         DB.session.commit()
 
 def installed_modules():
-    return [ module.module_code for module in get_modules()]
+    return [ { 'module_code': module.module_code, 'module_label': module.module_label, 'module_desc': module.module_desc} for module in get_modules()]
 
 def available_modules():
     '''
         renvoie la liste des modules disponibles non encore installés
     '''
-    installed_modules_ = installed_modules()
+    installed_module_codes = list(map(lambda x: x['module_code'], installed_modules()))
+    available_modules_ = []
     for root, dirs, files in os.walk(SUB_MODULE_CONFIG_DIR, followlinks=True):
-        return [ str(d) for d in dirs if d not in installed_modules_ ]
+        for d in dirs:
+            module_file = Path(root) / d / 'module.json'
+            if d in installed_module_codes or not module_file.exists():
+                continue
+            module = json_from_file(module_file)
+            available_modules_.append({**module, 'module_code': d})
+        break
+    return available_modules_

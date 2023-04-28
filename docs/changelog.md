@@ -13,6 +13,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Installation des sous-modules en deux temps
 * Passage de la doc en `markdown`
 * suppression du script obselète `update_views.sh`
+* commande d'installation, liste des modules installés et disponibles
 
 **⚠️ Notes de version**
 

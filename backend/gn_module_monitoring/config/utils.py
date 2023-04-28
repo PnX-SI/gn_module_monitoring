@@ -102,7 +102,7 @@ def keys_remove_doublons(dict1, dict2):
     return list(dict.fromkeys(list(dict1.keys()) + list(dict2.keys())))
 
 
-def json_from_file(file_path, result_default):
+def json_from_file(file_path, result_default={}):
     '''
         get json content from a json file
 

@@ -97,6 +97,30 @@ Si l'on souhaite développer un sous-module il peut parfois être plus pratique 
     geonature monitorings install <module_code>
 ```
 
+Si le code du module n'est pas renseigné ou si le dossier du module n'existe pas la commande va afficher la liste des modules installés et disponibles.
+
+```sh
+    geonature monitorings install
+```
+
+va fournir la sortie
+
+```
+Modules disponibles :
+
+- module3: Module 3 (Troisième exemple de module)
+- module4: Module 4 (...)
+- module5: Module 5 (...)
+- <module_code>: <module_label> (<module_desc>)
+
+
+Modules installés :
+
+- module1: Module 1 (Premier exemple de module)
+- module2: Module 2 (Deuxième exemple de module)
+
+```
+
 ### Configurer le sous-module
 
 #### Dans le menu de droite de GeoNature, cliquer sur le module `Monitoring`

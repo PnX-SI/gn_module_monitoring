@@ -64,17 +64,20 @@ def cmd_install_monitoring_module(module_code):
     # module_config_dir_path = Path(module_config_dir_path)
     # module_code = module_code or module_config_dir_path.name
 
-    click.secho(f"Installation du sous-module monitoring {module_code}")
-
     module_config_dir_path = monitoring_module_config_path(module_code)
 
-    if not module_config_dir_path.is_dir():
-        available_modules_txt = ", ".join(sorted(available_modules()))
-        installed_modules_txt = ", ".join(sorted(installed_modules()))
-        click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
-        click.secho(f'Modules disponibles : {available_modules_txt}\n')
-        click.secho(f"Modules installés : {installed_modules_txt}\n")
+    if not (module_code and (module_config_dir_path / 'module.json').is_file()):
+        if module_code:
+            click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
+        click.secho(f'\nModules disponibles :\n')
+        for module in available_modules():
+            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
+        click.secho(f"\nModules installés :\n")
+        for module in installed_modules():
+            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
         return
+
+    click.secho(f"Installation du sous-module monitoring {module_code}")
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
 
