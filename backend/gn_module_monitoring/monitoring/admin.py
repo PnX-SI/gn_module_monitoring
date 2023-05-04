@@ -1,11 +1,11 @@
 from flask_admin.contrib.sqla import ModelView
 from geonature.core.admin.admin import CruvedProtectedMixin
 from geonature.utils.env import DB
-from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 from wtforms.validators import ValidationError
 
 from gn_module_monitoring.monitoring.models import BibTypeSite
-
+from gn_module_monitoring.monitoring.utils import json_formatter
 
 SITE_TYPE = "TYPE_SITE"
 
@@ -72,5 +72,5 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
     )
 
     column_list = ("nomenclature", "config")
-    column_formatters = dict(nomenclature=list_label_nomenclature_formatter)
+    column_formatters = dict(nomenclature=list_label_nomenclature_formatter, config=json_formatter)
     form_excluded_columns = "sites"
