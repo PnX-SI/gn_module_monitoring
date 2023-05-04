@@ -6,9 +6,11 @@ import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 
-import { MonitoringObject } from '../../class/monitoring-object';
-import { Router } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
+import { MonitoringObject } from "../../class/monitoring-object";
+import { Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
+import { ObjectService } from "../../services/object.service";
+import { SiteSiteGroup } from "../../interfaces/objObs";
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -24,17 +26,38 @@ export class BreadcrumbsComponent implements OnInit {
   public frontendModuleMonitoringUrl: string;
 
   @Input() obj: MonitoringObject;
+  // Specific to the site access
+  siteSiteGroup: SiteSiteGroup | null = null;
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _configService: ConfigService,
     private _router: Router,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
+    private _objectService: ObjectService
   ) {}
 
   ngOnInit() {
-    // this.initBreadcrumbs();
+    if (this.obj === undefined) {
+      this._objectService.currentObjectTypeParent.subscribe((parent) => {
+        console.log(this.siteSiteGroup)
+        if (parent.schema) {
+          if (parent.objectType == 'sites_group') {
+            this.siteSiteGroup = {
+              siteGroup: parent,
+              site: null,
+            };
+          } else if (parent.objectType == 'site' && this.siteSiteGroup?.siteGroup) {
+            this.siteSiteGroup = {
+              ...this.siteSiteGroup,
+              site: parent,
+            };
+          }
+        }
+      });
+    }
   }
+    // this.initBreadcrumbs();
 
   initBreadcrumbs() {
     if (this.obj.deleted) {
@@ -87,6 +110,7 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    console.log(this.siteSiteGroup)
     for (const propName of Object.keys(changes)) {
       const chng = changes[propName];
       const cur = chng.currentValue;
