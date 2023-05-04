@@ -24,3 +24,8 @@ export interface IobjObs<T> {
   };
   dataTable: { colNameObj: {} };
 }
+
+export interface SiteSiteGroup {
+  site: IobjObs<ObjDataType> | null,
+  siteGroup: IobjObs<ObjDataType>
+}
