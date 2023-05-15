@@ -6,9 +6,11 @@
   </div>
   <div [ngClass]="displayMap ? 'col-6' : 'col-12'">
     <div class="mr-3">
+      <div id="monitoring-elem-container" class="cadre scroll">
       <pnx-monitoring-breadcrumbs></pnx-monitoring-breadcrumbs>
       <!-- <button (click)="displayMap = !displayMap">HIDE MAP</button> -->
       <router-outlet (activate)='onActivate($event)'></router-outlet>
+    </div>
     </div>
   </div>
 </div>
