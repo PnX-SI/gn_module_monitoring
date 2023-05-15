@@ -15,6 +15,8 @@ import {
 } from "../../services/api-geom.service";
 import { ObjectService } from "../../services/object.service";
 import { IobjObs } from "../../interfaces/objObs";
+import { IBreadCrumb } from "../../interfaces/object";
+import { breadCrumbElementBase } from "../breadcrumbs/breadcrumbs.component";
 
 const LIMIT = 10;
 
@@ -35,7 +37,9 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   objForm: FormGroup;
   objectType: IobjObs<ISite>;
   objParent: any;
-
+  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
+  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
+  breadCrumbList: IBreadCrumb[] = [];
   constructor(
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
@@ -76,25 +80,28 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
               id_sites_group: id,
             }),
           })
-        ))
-      .subscribe(
-        (data: { sitesGroup: ISitesGroup; sites: IPaginated<ISite>}) => {
-          this._objService.changeSelectedObj(data.sitesGroup, true);
-          this.sitesGroup = data.sitesGroup;
-          this.sites = data.sites.items;
-          this.page = {
-            count: data.sites.count,
-            page: data.sites.page,
-            limit: data.sites.limit,
-          };
-          this.siteGroupLayer = this._geojsonService.setMapData(
-            data.sitesGroup.geometry,
-            () => {}
-          );
-          this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
-          this.colsname = this._siteService.objectObs.dataTable.colNameObj;
-        }
-      );
+        )
+      )
+      .subscribe((data) => {
+        console.log(data);
+        this._objService.changeSelectedObj(data.sitesGroup, true);
+        this._objService.changeSelectedParentObj(data.sitesGroup, true);
+        this.sitesGroup = data.sitesGroup;
+        this.sites = data.sites.items;
+        this.page = {
+          count: data.sites.count,
+          page: data.sites.page,
+          limit: data.sites.limit,
+        };
+        // this.siteGroupLayer = this._geojsonService.setMapData(
+        //   data.sitesGroup.geometry,
+        //   () => {}
+        // );
+        this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
+        this.colsname = this._siteService.objectObs.dataTable.colNameObj;
+        this._objService.changeSelectedParentObj(data.sitesGroup, true);
+        this.updateBreadCrumb(data.sitesGroup);
+      });
   }
   ngOnDestroy() {
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
@@ -131,6 +138,21 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this.router.navigate([`site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
     });
+  }
+
+  updateBreadCrumb(sitesGroup) {
+    this.breadCrumbElemnt.description = sitesGroup.sites_group_name;
+    this.breadCrumbElemnt.label = 'Groupe de site';
+    this.breadCrumbElemnt['id'] = sitesGroup.id_sites_group;
+    this.breadCrumbElemnt['objectType'] =
+      this._sitesGroupService.objectObs.objectType || 'sites_group';
+    this.breadCrumbElemnt['url'] = [
+      this.breadCrumbElementBase.url,
+      this.breadCrumbElemnt.id?.toString(),
+    ].join('/');
+
+    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbElemnt];
+    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   onObjChanged($event) {
