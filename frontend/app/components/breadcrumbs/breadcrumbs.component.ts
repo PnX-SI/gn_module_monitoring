@@ -11,6 +11,13 @@ import { Router } from "@angular/router";
 import { ActivatedRoute } from "@angular/router";
 import { ObjectService } from "../../services/object.service";
 import { SiteSiteGroup } from "../../interfaces/objObs";
+import { IBreadCrumb } from "../../interfaces/object";
+
+export const breadCrumbElementBase: IBreadCrumb = {
+  "description":"Liste des groupes de site",
+  "label":"",
+  "url": "sites_group"
+}
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -18,13 +25,13 @@ import { SiteSiteGroup } from "../../interfaces/objObs";
   styleUrls: ['./breadcrumbs.component.css'],
 })
 export class BreadcrumbsComponent implements OnInit {
-  public breadcrumbs;
-
+  public breadcrumbs: IBreadCrumb[] =[];
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 
   public frontendModuleMonitoringUrl: string;
-
+  public newLabel: string;
+  public new_desc: string;
   @Input() obj: MonitoringObject;
   // Specific to the site access
   siteSiteGroup: SiteSiteGroup | null = null;
@@ -39,25 +46,12 @@ export class BreadcrumbsComponent implements OnInit {
 
   ngOnInit() {
     if (this.obj === undefined) {
-      this._objectService.currentObjectTypeParent.subscribe((parent) => {
-        console.log(this.siteSiteGroup)
-        if (parent.schema) {
-          if (parent.objectType == 'sites_group') {
-            this.siteSiteGroup = {
-              siteGroup: parent,
-              site: null,
-            };
-          } else if (parent.objectType == 'site' && this.siteSiteGroup?.siteGroup) {
-            this.siteSiteGroup = {
-              ...this.siteSiteGroup,
-              site: parent,
-            };
-          }
-        }
-      });
+      this._objectService.currentDataBreadCrumb.subscribe(
+        (breadCrumb) => (this.breadcrumbs = breadCrumb)
+      );
+      return;
     }
   }
-    // this.initBreadcrumbs();
 
   initBreadcrumbs() {
     if (this.obj.deleted) {
@@ -91,18 +85,23 @@ export class BreadcrumbsComponent implements OnInit {
     this.bEditChange.emit(false);
     setTimeout(() => {
       if (elem) {
-        this._router.navigate(
-          [
-            this._configService.frontendModuleMonitoringUrl(),
-            'object',
-            elem.module_code,
-            elem.object_type,
-            elem.id,
-          ],
-          {
-            queryParams: elem.params,
-          }
-        );
+        if (this.obj == undefined) {
+          const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');
+          this._router.navigateByUrl(url);
+        } else {
+          this._router.navigate(
+            [
+              this._configService.frontendModuleMonitoringUrl(),
+              'object',
+              elem.module_code,
+              elem.object_type,
+              elem.id,
+            ],
+            {
+              queryParams: elem.params,
+            }
+          );
+        }
       } else {
         this._router.navigate([this._configService.frontendModuleMonitoringUrl()]);
       }
@@ -110,7 +109,6 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log(this.siteSiteGroup)
     for (const propName of Object.keys(changes)) {
       const chng = changes[propName];
       const cur = chng.currentValue;

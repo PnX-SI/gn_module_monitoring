@@ -26,3 +26,12 @@ export type SelectObject = {
 };
 
 export type IExtraForm = { frmCtrl: AbstractControl; frmName: string };
+
+export type IBreadCrumb = {
+  label: string;
+  description: string;
+  id?:number;
+  url?:string;
+  objectType?:string;
+  params?:JsonData;
+}
