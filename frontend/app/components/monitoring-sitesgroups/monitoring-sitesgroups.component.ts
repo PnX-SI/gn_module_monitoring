@@ -10,6 +10,8 @@ import { ObjectService } from "../../services/object.service";
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { IobjObs } from "../../interfaces/objObs";
 import { ConfigJsonService } from "../../services/config-json.service";
+import { IBreadCrumb } from "../../interfaces/object";
+import { breadCrumbElementBase } from "../breadcrumbs/breadcrumbs.component";
 
 const LIMIT = 10;
 
@@ -33,6 +35,7 @@ export class MonitoringSitesGroupsComponent
   objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
+  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   // siteGroupEmpty={
   //   "comments" :'',
   //   sites_group_code: string;
@@ -56,6 +59,7 @@ export class MonitoringSitesGroupsComponent
 
   ngOnInit() {
     this.initSiteGroup();
+    this._objService.changeSelectedObj({}, true);
   }
 
   initSiteGroup() {
@@ -102,6 +106,7 @@ export class MonitoringSitesGroupsComponent
         };
         this.sitesGroups = data.items;
         this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
+        this.updateBreadCrumb();
         // IF prefered observable compare to ngOnChanges uncomment this:
         // this._dataTableService.changeColsTable(this.colsname,this.sitesGroups[0])
       });
@@ -122,6 +127,11 @@ export class MonitoringSitesGroupsComponent
       relativeTo: this._Activatedroute,
     });
   }
+
+  updateBreadCrumb() {
+    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
+  }
+
   onSelect($event) {
     this.geojsonService.selectSitesGroupLayer($event);
   }
