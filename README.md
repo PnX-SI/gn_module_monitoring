@@ -22,11 +22,11 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 ## Sommaire
 
 * [Installation](#installation)
-* [Gestion de la synthèse](docs/synthese.rst)
-* [Documentation technique](docs/documentation_technique.rst)
-* [Création d'un sous-module](docs/sous_module.rst)
-* [Mise à jour du module](docs/MAJ.rst)
-* [Liste des commandes](docs/commandes.rst)
+* [Gestion de la synthèse](docs/synthese.md)
+* [Documentation technique](docs/documentation_technique.md)
+* [Création d'un sous-module](docs/sous_module.md)
+* [Mise à jour du module](docs/MAJ.md)
+* [Liste des commandes](docs/commandes.md)
 * [Permissions](#permissions)
 
 ## Installation
@@ -40,41 +40,46 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 Pour récupérer le code source du module, vous pouvez le télécharger ou le cloner.
 
 #### Téléchargement
+
 ```sh
 wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
 unzip X.Y.Z.zip
+rm X.Y.Z.zip
+mv gn_module_monitoring-X.Y.Z gn_module_monitoring
 ```
 Avec `X`, `Y`, `Z` correspondant à la version souhaitée.
 
 #### Clonage du dépôt
+
 ```sh
 git clone https://github.com/PnX-SI/gn_module_monitoring.git
 ```
 
 ### Installation du module
+
 ```sh
-cd <path_to_geonature>
-source backend/venv/bin/activate
-geonature install-gn-module <path_to_module_monitoring> MONITORINGS
+source ~/geonature/backend/venv/bin/activate
+geonature install-gn-module ~/gn_module_monitoring MONITORINGS
 sudo systemctl restart geonature
+deactivate
 ```
 
-Créer le dossier suivant dans le dossier `media` de geonature
+Créer le dossier suivant dans le dossier `media` de GeoNature
 
 ```sh
-mkdir <path_to_geonature>/backend/media/monitorings
+mkdir ~/geonature/backend/media/monitorings
 ```
 
 ### Installation d'un sous-module
 
-#### Récupérer le repertoire de configuration d'un sous-module de suivi
+#### Récupérer le répertoire de configuration d'un sous-module de suivi
 
 Par exemple le sous-module `test` présent dans le repertoire `contrib/test` du module de suivi.
 
 #### Activer le venv de GeoNature
+
 ```sh
-cd <path_to_geonature>
-source backend/venv/bin/activate
+source ~/geonature/backend/venv/bin/activate
 ```
 
 #### Copie du dossier de configuration
@@ -82,28 +87,28 @@ source backend/venv/bin/activate
 Copier le dossier du sous module dans le dossier `media` de geonature
 
 ```sh
-    cp -R  <dossier du sous module> <path_to_geonature>/backend/media/monitorings/<module_code>
+cp -R  <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
 ```
 
 Si l'on souhaite développer un sous-module il peut parfois être plus pratique de faire un lien symbolique
 
 ```sh
-    ln -s <dossier du sous module> <path_to_geonature>/backend/monitorings/<module_code>
+ln -s <dossier du sous module> ~/geonature/backend/monitorings/<module_code>
 ```
 
 #### Lancer la commande d'installation du sous-module
 
 ```sh
-    geonature monitorings install <module_code>
+geonature monitorings install <module_code>
 ```
 
-Si le code du module n'est pas renseigné ou si le dossier du module n'existe pas la commande va afficher la liste des modules installés et disponibles.
+Si le code du module n'est pas renseigné ou si le dossier du module n'existe pas, la commande va afficher la liste des modules installés et disponibles.
 
 ```sh
-    geonature monitorings install
+geonature monitorings install
 ```
 
-va fournir la sortie
+La commande va fournir la sortie suivante :
 
 ```
 Modules disponibles :
@@ -113,17 +118,15 @@ Modules disponibles :
 - module5: Module 5 (...)
 - <module_code>: <module_label> (<module_desc>)
 
-
 Modules installés :
 
 - module1: Module 1 (Premier exemple de module)
 - module2: Module 2 (Deuxième exemple de module)
-
 ```
 
 ### Configurer le sous-module
 
-#### Dans le menu de droite de GeoNature, cliquer sur le module `Monitoring`
+#### Dans le menu de droite de GeoNature, cliquer sur le module "Monitorings"
 
 Le sous-module installé précedemment doit s'afficher dans la liste des sous-modules.
 
@@ -133,7 +136,7 @@ Vous êtes désormais sur la page du sous-module. Un message apparaît pour vous
 
 #### Cliquez sur le bouton `Éditer`
 
-Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable suivantes :
+Le formulaire d'édition du module s'affiche et vous pouvez choisir les variables suivantes :
 
 * Jeux de données *(obligatoire)* :
     * Un module peut concerner plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
@@ -167,12 +170,12 @@ D'autres exemples de sous-modules sont disponibles sur le dépôt
 
 ## Permissions
 
-Les permissions ne sont implémentées que partiellement, la notion de portée (mes données, les données de mon organisme, toutes les données) n'est pas prise en compte. Si un utilisateur a le droit de réaliser une action sur un type d'objet, il peut le faire sur l'ensemble des données.
+Les permissions ne sont implémentées que partiellement. La notion de portée (mes données, les données de mon organisme, toutes les données) n'est pas prise en compte. Si un utilisateur a le droit de réaliser une action sur un type d'objet, il peut le faire sur l'ensemble des données.
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
 Il est possible de spéficier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations).
 
-Si aucune permission n'est associé à l'objet, les permissions auront comme valeurs celles associées au sous-module qui lui-même hérite des permissions du module Monitoring qui lui-même hérite de GeoNature.
+Si aucune permission n'est associée à l'objet, les permissions auront comme valeur celles associées aux sous-module qui lui-même hérite des permissions du module Monitoring qui lui-même hérite de GeoNature.
 
 Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger les paramètres au niveau des fichiers de configuration des objets du module. (cf configuration des sous-modules).
