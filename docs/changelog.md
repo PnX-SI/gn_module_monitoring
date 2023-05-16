@@ -9,35 +9,33 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 **Evolutions**
 
 * Utilisation de la gestion dynamique de la config de GeoNature
-* Les dossier de configuration des sous-modules sont déplacés du dossier ``<gn_module_monitoring>/config/monitorings`` au dossier ``media/monitorings`` de GeoNature
+* Les dossier de configuration des sous-modules sont déplacés du dossier `<gn_module_monitoring>/config/monitorings` vers le dossier `media/monitorings` de GeoNature
 * Installation des sous-modules en deux temps
-* Passage de la doc en `markdown`
-* suppression du script obselète `update_views.sh`
-* commande d'installation, liste des modules installés et disponibles
+* Passage de la documentation au format `markdown`
+* Suppression du script obsolète `update_views.sh`
+* Commande d'installation d'un sous-module : ajout de la liste des modules installés et disponibles
 
 **⚠️ Notes de version**
 
-* Veuillez déplacer les configurations des sous-modules déjà existants depuis le dossier ``<gn_module_monitoring>/config/monitoring`` vers le dossier ``media`` de geonature:
+* Veuillez déplacer les configurations des sous-modules déjà existants depuis le dossier `<gn_module_monitoring>/config/monitoring` vers le dossier `media` de GeoNature :
 
-```
-   cp -R <gn_module_monitoring>/config/monitoring/* <geonature>/backend/media/monitorings
-   rm -R <geonature>/backend/media/monitorings/generic
-```
+  ```
+  cp -R ~/gn_module_monitoring/config/monitoring/* ~/geonature/backend/media/monitorings
+  rm -R ~/geonature/backend/media/monitorings/generic
+  ```
 
-Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.s
+Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.
 Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
 
-* L'installation des sous-modules se fait désormais en deux temps
+* L'installation des sous-modules se fait désormais en deux temps :
 
-    * Copie du repertoire de configuration
-        * On pourra faire des lien symbolique pour des besoins de dev
+    * Copie du répertoire de configuration
     * Installation du sous-module avec la commande dédiée
 
-```sh
+  ```sh
   cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
   geonature monitorings install <module_code>
-```
-
+  ```
 
 0.5.0 (2023-03-29)
 ------------------
