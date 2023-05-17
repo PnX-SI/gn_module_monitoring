@@ -9,7 +9,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 **Evolutions**
 
 * Utilisation de la gestion dynamique de la configuration de GeoNature (#224)
-* Les dossier de configuration des sous-modules sont déplacés du dossier `<gn_module_monitoring>/config/monitorings` vers le dossier `media/monitorings` de GeoNature (#224)
+* Les dossiers de configuration des sous-modules sont déplacés du dossier `<gn_module_monitoring>/config/monitorings` vers le dossier `media/monitorings` de GeoNature. Cela permet d'homogéneiser et centraliser la configuration de GeoNature et de ses sous-modules, de permettre la dockerisation du module Monitoring et de simplifier sa mise à jour (#224)
 * Installation des sous-modules en deux temps
 * Passage de la documentation au format `markdown` (#227)
 * Suppression du script obsolète `update_views.sh`
