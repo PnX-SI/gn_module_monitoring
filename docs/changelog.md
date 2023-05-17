@@ -24,18 +24,18 @@ Nécessite GeoNature version 2.12.0 (ou plus)
   rm -R ~/geonature/backend/media/monitorings/generic
   ```
 
-Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.
-Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
+  Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.  
+  Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
 
 * L'installation des sous-modules se fait désormais en deux temps :
 
     * Copie du répertoire de configuration
     * Installation du sous-module avec la commande dédiée
 
-  ```sh
-  cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
-  geonature monitorings install <module_code>
-  ```
+    ```sh
+    cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
+    geonature monitorings install <module_code>
+    ```
 
 0.5.0 (2023-03-29)
 ------------------
