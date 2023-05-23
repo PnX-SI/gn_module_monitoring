@@ -1,13 +1,6 @@
 CHANGELOG
 =========
 
-0.6.1 (unreleased)
-------------------
-
-**Corrections**
-
-* corretion du fichier README dans `setup.py` (`rst` -> `md`)
-
 0.6.0 (2023-05-23)
 ------------------
 
