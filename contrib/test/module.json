@@ -5,7 +5,7 @@
         "test": {
             "type_widget": "text",
             "attribut_label": "Test"
-          },   
+          },
           "test2": {
             "type_widget": "text",
             "attribut_label": "Test 2 (hidden)",
