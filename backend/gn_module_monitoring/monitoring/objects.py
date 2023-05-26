@@ -27,6 +27,8 @@ class MonitoringSite(MonitoringObjectGeom):
     def preprocess_data(self, data):
         if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
             data["id_nomenclature_type_site"] = data["types_site"][0]
+        elif "data" in data and data["data"]["id_nomenclature_type_site"]:
+            data["id_nomenclature_type_site"] = data["data"]["id_nomenclature_type_site"]
         else:
             data["id_nomenclature_type_site"] = data["types_site"][0]["id_nomenclature_type_site"]
             # TODO: A enlever une fois qu'on aura enelever le champ "id_nomenclature_type_site" du model et de la bdd
