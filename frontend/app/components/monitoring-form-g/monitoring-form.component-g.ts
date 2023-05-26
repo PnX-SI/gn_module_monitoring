@@ -1,17 +1,17 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { tap, mergeMap } from 'rxjs/operators';
+import { tap, mergeMap, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
 import { CommonService } from '@geonature_common/service/common.service';
 
-import { MonitoringObject } from '../../class/monitoring-object';
 import { IDataForm } from '../../interfaces/form';
 import { ApiGeomService } from '../../services/api-geom.service';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { FormService } from '../../services/form.service';
 import { IExtraForm } from '../../interfaces/object';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -34,7 +34,7 @@ export class MonitoringFormComponentG implements OnInit {
 
   @Input() sites: {};
   @Input() apiService: ApiGeomService;
-  @Input() isExtraForm:boolean = false;
+  @Input() isExtraForm: boolean = false;
 
   extraForm: IExtraForm;
   hideForm: boolean = false;
@@ -56,6 +56,8 @@ export class MonitoringFormComponentG implements OnInit {
 
   public queryParams = {};
 
+  joinObs: any;
+
   constructor(
     private _formBuilder: FormBuilder,
     private _route: ActivatedRoute,
@@ -63,7 +65,7 @@ export class MonitoringFormComponentG implements OnInit {
     private _commonService: CommonService,
     private _dynformService: DynamicFormService,
     private _formService: FormService,
-    private _router: Router,
+    private _router: Router
   ) {}
 
   ngOnInit() {
@@ -72,24 +74,37 @@ export class MonitoringFormComponentG implements OnInit {
         tap((data) => {
           this.obj = data;
           this.obj.bIsInitialized = true;
-          this.obj.id = this.obj[this.obj.pk]
+          this.obj.id = this.obj[this.obj.pk];
         }),
         mergeMap((data: any) => this._configService.init(data.moduleCode)),
-        mergeMap(() => this._formService.currentExtraFormCtrl )
+        mergeMap(() => {
+          return this._formService.currentExtraFormCtrl.pipe(
+            map((frmCtrl) => {
+              return frmCtrl;
+            })
+          );
+        }),
+        mergeMap((frmCtrl) => {
+          return this.apiService.getConfig().pipe(
+            map((prop) => {
+              return { frmCtrl, prop: prop };
+            })
+          );
+        })
       )
-      .subscribe((frmCtrl) => {
-
-        this.isExtraForm ? this.addExtraFormCtrl(frmCtrl) : null;
+      .subscribe((data) => {
+        this.initObj(data.prop);
+        this.isExtraForm ? this.addExtraFormCtrl(data.frmCtrl) : null;
         this.isExtraForm ? this.checkValidExtraFormCtrl() : null;
 
-
-        this.queryParams = this._route.snapshot.queryParams || {};
-        this.bChainInput = this._configService.frontendParams()['bChainInput'];
-
-        const schema = this._configService.schema(
+        this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
           this.obj.objectType
         );
+        this.queryParams = this._route.snapshot.queryParams || {};
+        this.bChainInput = this._configService.frontendParams().bChainInput;
+
+        const schema = this._configService.schema(this.obj.moduleCode, this.obj.objectType);
 
         this.obj[this.obj.moduleCode] = schema;
 
@@ -114,11 +129,7 @@ export class MonitoringFormComponentG implements OnInit {
           .filter((formDef) => formDef.type_widget)
           .sort((a, b) => {
             // medias à la fin
-            return a.attribut_name === 'medias'
-              ? +1
-              : b.attribut_name === 'medias'
-              ? -1
-              : 0;
+            return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
           });
 
         // display_form pour customiser l'ordre dans le formulaire
@@ -135,12 +146,8 @@ export class MonitoringFormComponentG implements OnInit {
         if (displayProperties && displayProperties.length) {
           displayProperties.reverse();
           this.objFormsDefinition.sort((a, b) => {
-            let indexA = displayProperties.findIndex(
-              (e) => e == a.attribut_name
-            );
-            let indexB = displayProperties.findIndex(
-              (e) => e == b.attribut_name
-            );
+            let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
+            let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
             return indexB - indexA;
           });
         }
@@ -156,7 +163,9 @@ export class MonitoringFormComponentG implements OnInit {
   /** pour réutiliser des paramètres déjà saisis */
   keepDefinitions() {
     return this.objFormsDefinition.filter((def) =>
-      this.obj.configParam('keep').includes(def.attribut_name)
+      this._configService
+        .configModuleObjectParam(this.obj.moduleCode, this.obj.objectType, 'keep')
+        .includes(def.attribut_name)
     );
   }
 
@@ -189,12 +198,36 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   keepNames() {
-    return this.obj.configParam('keep') || [];
+    return (
+      this._configService.configModuleObjectParam(
+        this.obj.moduleCode,
+        this.obj.objectType,
+        'keep'
+      ) || []
+    );
+  }
+
+  idFieldName() {
+    return this._configService.configModuleObjectParam(
+      this.obj.moduleCode,
+      this.obj.objectType,
+      'id_field_Name'
+    );
   }
 
   resetObjForm() {
+    //NEW- setResolvedProperties
+
     // quand on enchaine les relevés
-    const chainShow = this.obj.configParam('chain_show');
+    // const chainShow = this.obj.configParam('chain_show');
+
+    //TODO: Ici chain_show est présent que dans le fichier de config visit.json
+    // --> voir à quoi correspond ce chainShow où on utilise les propriétés (id_base_site, num_passage etc)
+    const chainShow = this._configService.configModuleObjectParam(
+      this.obj.moduleCode,
+      this.obj.objectType,
+      'chain_show'
+    );
     if (chainShow) {
       this.chainShow.push(chainShow.map((key) => this.obj.resolvedProperties[key]));
       this.chainShow.push(this.obj.resolvedProperties);
@@ -206,16 +239,19 @@ export class MonitoringFormComponentG implements OnInit {
       keep[key] = this.obj.properties[key];
     }
 
-    // nouvel object
-    this.obj = new MonitoringObject(
+    this.obj = {
+      bIsInitialized: false,
+      moduleCode: this.obj.moduleCode,
+      objectType: this.obj.objectType,
+      endPoint: this.obj.endPoint,
+      properties: {},
+      generic: this.obj.generic,
+    };
+    this.obj.config = this._configService.configModuleObject(
       this.obj.moduleCode,
-      this.obj.objectType,
-      null,
-      this.obj.monitoringObjectService()
+      this.obj.objectType
     );
-    this.obj.init({});
-
-    this.obj.properties[this.obj.configParam('id_field_Name')] = null;
+    this.obj.properties[this.idFieldName()] = null;
 
     // pq get ?????
     // this.obj.get(0).subscribe(() => {
@@ -275,12 +311,12 @@ export class MonitoringFormComponentG implements OnInit {
     // );
     // TODO: this commented code works only if ".." is not based url (example working : sites_group/:id/site/:id , not working if create site_group)
     // this._router.navigate(['..',objectType,id], {relativeTo: this._route});
-    // 
+    //
     const urlSegment = [objectType, id].filter((s) => !!s);
     const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
     this.bEditChange.emit(false);
-    this.obj.urlRelative ? this._router.navigateByUrl(urlPathDetail): null;
+    this.obj.urlRelative ? this._router.navigateByUrl(urlPathDetail) : null;
   }
 
   /**
@@ -288,7 +324,7 @@ export class MonitoringFormComponentG implements OnInit {
    */
   navigateToParent() {
     this.bEditChange.emit(false); // patch bug navigation
-    this._router.navigate(['..'], {relativeTo: this._route});
+    this._router.navigate(['..'], { relativeTo: this._route });
   }
 
 
@@ -309,6 +345,11 @@ export class MonitoringFormComponentG implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
+
+      Object.entries(objData['properties']).forEach(([key, value]) => {
+        this.obj['properties'][key] = value;
+      });
+
       if (objData.hasOwnProperty('id')) {
         this.obj.id = objData['id'];
       }
@@ -389,38 +430,67 @@ export class MonitoringFormComponentG implements OnInit {
     this.procesPatchUpdateForm();
   }
 
-  addExtraFormCtrl(frmCtrl: IExtraForm){
-    if (frmCtrl.frmName in this.objForm.controls){
-      this.objForm.setControl(frmCtrl.frmName,frmCtrl.frmCtrl)
-    } else{
-      this.objForm.addControl(frmCtrl.frmName,frmCtrl.frmCtrl)
+  addExtraFormCtrl(frmCtrl: IExtraForm) {
+    if (frmCtrl.frmName in this.objForm.controls) {
+      this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+    } else {
+      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
-    
-    this.extraForm = frmCtrl
+
+    this.extraForm = frmCtrl;
   }
 
-  checkValidExtraFormCtrl(){
-    if (this.extraForm.frmName in this.objForm.controls && this.objForm.get(this.extraForm.frmName).value != null && this.objForm.get(this.extraForm.frmName).value.length != 0 ){
-      this.hideForm = false
-      this.objForm.valid
+  checkValidExtraFormCtrl() {
+    if (
+      this.extraForm.frmName in this.objForm.controls &&
+      this.objForm.get(this.extraForm.frmName).value != null &&
+      this.objForm.get(this.extraForm.frmName).value.length != 0
+    ) {
+      this.hideForm = false;
+      this.objForm.valid;
     } else {
-      this.hideForm = true
+      this.hideForm = true;
+    }
   }
-}
 
   getConfigFromBtnSelect(event) {
-    // this.obj.specific == undefined ? (this.obj.specific = {}) : null;
     // TODO: Ajout de tous les id_parents ["id_sites_groups" etc ] dans l'objet obj.dataComplement
-    this.obj.specific = {};
-    this.obj.dataComplement = {};
-    for (const key in event) {
+    // Check if specific and dataComplement already exist
+    this.obj.specific ? null : (this.obj.specific = {});
+    this.obj.dataComplement ? null : (this.obj.dataComplement = {});
+
+    Object.entries(event).forEach(([key, value]) => {
+      if (this.obj.dataComplement[key] && key != 'types_site') {
+        return;
+      }
       if (event[key].config != undefined) {
         if (Object.keys(event[key].config).length !== 0) {
           Object.assign(this.obj.specific, event[key].config.specific);
+          if ('keep' in event[key].config) {
+            this.obj.config.keep ? null : (this.obj.config.keep = []);
+            !this.obj.config.keep.includes(event[key].config.keep)
+              ? this.obj.config.keep.push(...event[key].config.keep)
+              : null;
+          }
         }
+        this.obj.dataComplement[key] = value;
+      } else {
+        this.obj.dataComplement[key] ? null : (this.obj.dataComplement[key] = []);
+        this.obj.dataComplement[key] = event[key];
       }
-    }
-    Object.assign(this.obj.dataComplement, event);
+    });
+
     this._formService.dataToCreate(this.obj, this.obj.urlRelative);
+  }
+
+  initObj(prop) {
+    // this.apiService.getConfig().subscribe(prop => this.obj['properties'] = prop)
+    this.obj['properties'] = prop;
+    Object.entries(this.obj).forEach(([key, value]) => {
+      if (key != 'properties' && key in this.obj['properties']) {
+        this.obj['properties'][key] = value;
+      }
+    });
+    this.obj.resolvedProperties = this._configService.setResolvedProperties(this.obj);
   }
 }
