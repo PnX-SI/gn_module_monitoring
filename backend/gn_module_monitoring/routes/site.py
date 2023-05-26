@@ -14,7 +14,7 @@ from gn_module_monitoring.monitoring.models import (
     TNomenclatures,
 )
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
-from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group
+from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group, get_config_object
 from gn_module_monitoring.utils.routes import (
     filter_params,
     geojson_query,
@@ -23,6 +23,14 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
 )
+
+
+@blueprint.route("/sites/config",
+                 defaults={'id': None, 'object_type': "site",'module_code':'generic'},
+                  methods=["GET"])
+def get_config_sites(module_code, object_type, id):
+    obj = get_config_object(module_code, object_type, id)
+    return obj['properties']
 
 
 @blueprint.route("/sites/types", methods=["GET"])

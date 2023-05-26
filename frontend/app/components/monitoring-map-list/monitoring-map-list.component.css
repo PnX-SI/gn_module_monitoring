@@ -76,3 +76,7 @@
       box-shadow: none !important;
   }
   
+
+  :host ::ng-deep .hide-draw-form .leaflet-top.leaflet-left {
+    display: none;
+  }
