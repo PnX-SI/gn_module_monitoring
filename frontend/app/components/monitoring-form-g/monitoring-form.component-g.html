@@ -18,12 +18,12 @@
 </pnx-modal-msg>
 
 <div>
-  <div id="properties-form" class="cadre" *ngIf="!hideForm">
+  <div id="properties-form" class="cadre" *ngIf="!hideForm && obj.bIsInitialized && objFormsDefinition">
     <!-- TODO: voir pour intiialisation si nécessaire à remettre dans la div du dessus -->
     <!-- *ngIf="obj.bIsInitialized && objFormsDefinition" -->
 
     <!--  TODO: Voir pour l'enchainement des saisies -->
-    <!-- <span
+    <span
       *ngIf="!obj.id && obj.config['chained']"
       id="toggle-btn"
       class="float-right"
@@ -37,7 +37,7 @@
         (change)="bChainInputChanged($event)"
       >
       </mat-slide-toggle>
-    </span> -->
+    </span>
 
     <form [formGroup]="objForm">
       <!-- TODO: Gérer la saisie de géometrie -->
@@ -94,13 +94,14 @@
             aria-hidden="true"
           ></span>
 
-          <!-- <span *ngIf="bChainInput && !obj.id"
+          <span *ngIf="bChainInput && !obj.id"
             >Valider et enchainer les saisies</span
-          > -->
-          <!-- <span *ngIf="!bChainInput || obj.id">Valider</span>
-        </button> -->
-          <span>Valider</span>
+          > 
+           <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
+
+          <!-- <span>Valider</span>
+        </button> -->
 
         <button class="btn btn-primary float-left" (click)="onCancelEdit()">Annuler</button>
         <button class="btn btn-danger float-left" (click)="bDeleteModal = true" *ngIf="obj.id">

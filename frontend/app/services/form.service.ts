@@ -52,7 +52,7 @@ export class FormService {
 
   formValues(obj): Observable<any> {
     // const {properties ,remainaing} = obj
-    const properties = Utils.copy(this.properties);
+    const properties = Utils.copy(obj.properties);
     const observables = {};
     const schema = obj[obj.moduleCode];
     for (const attribut_name of Object.keys(schema)) {
@@ -73,6 +73,19 @@ export class FormService {
         return of(formValues);
       })
     );
+  }
+
+  getProperties(formValue, obj): void {
+    const propertiesData = {};
+    const schema = obj[obj.moduleCode];
+    for (const attribut_name of Object.keys(schema)) {
+      const elem = schema[attribut_name];
+      if (!elem.type_widget) {
+        continue;
+      }
+      propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
+    }
+
   }
 
   // TODO: A voir si nécessaire d'utiliser le formatage des post et update data avant éxécution route coté backend
