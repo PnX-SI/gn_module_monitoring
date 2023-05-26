@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-
+import { map } from 'rxjs/operators';
 import { endPoints } from '../enum/endpoints';
 import { IGeomObject, IGeomService, ISite, ISiteType, ISitesGroup } from '../interfaces/geom';
 import { IobjObs } from '../interfaces/objObs';
@@ -26,14 +26,12 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    this.initConfig();
   }
 
-  private initConfig(): void {
-    this._configJsonService
+    public initConfig(): Observable<IobjObs<T>>{
+    return this._configJsonService
       .init(this.objectObs.moduleCode)
-      .pipe()
-      .subscribe(() => {
+      .pipe(map(() => {
         const fieldNames = this._configJsonService.configModuleObjectParam(
           this.objectObs.moduleCode,
           this.objectObs.objectType,
@@ -58,7 +56,8 @@ export class ApiService<T = IObject> implements IService<T> {
         this.objectObs.template.fieldDefinitions = fieldDefinitions;
         this.objectObs.template.fieldNamesList = fieldNamesList;
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-      });
+        return this.objectObs
+      }));
   }
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
     return this._cacheService.request<Observable<IPaginated<T>>>('get', this.objectObs.endPoint, {
@@ -101,6 +100,10 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
       }
     );
   }
+  
+  getConfig(): Observable<T> {
+    return this._cacheService.request('get', `${this.objectObs.endPoint}/config`);
+  }
 }
 
 @Injectable()
@@ -131,6 +134,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
+    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 
   getSitesChild(
@@ -173,6 +177,7 @@ export class SitesService extends ApiGeomService<ISite> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
+    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 
   getTypeSites(
@@ -223,5 +228,6 @@ export class VisitsService extends ApiService<IVisit> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
+    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 }
