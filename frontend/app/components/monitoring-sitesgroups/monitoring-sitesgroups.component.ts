@@ -70,7 +70,16 @@ export class MonitoringSitesGroupsComponent
       this._sites_group_service.objectObs,true
     );
     
-    this.getSitesGroups(1);
+    // this.getSitesGroups(1);
+    this._Activatedroute.data.subscribe(({data}) => {
+      this.page = {
+        count: data.sitesGroups.count,
+        limit: data.sitesGroups.limit,
+        page: data.sitesGroups.page - 1,
+      }
+      this.sitesGroups = data.sitesGroups.items;
+      this.colsname = data.objectObs.dataTable.colNameObj
+    })
     this.geojsonService.getSitesGroupsGeometries(
       this.onEachFeatureSiteGroups()
     );

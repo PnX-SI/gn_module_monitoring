@@ -56,6 +56,7 @@ import { MonitoringSitesEditComponent } from "./components/monitoring-sites-edit
 import { MonitoringVisitsComponent } from "./components/monitoring-visits/monitoring-visits.component";
 import { OptionListButtonComponent } from "./components/option-list-btn/option-list-btn.component";
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
+import { SitesGroupsReslver } from "./resolver/sites-groups.resolver";
 // my module routing
 const routes: Routes = [
   /** modules  */
@@ -83,6 +84,9 @@ const routes: Routes = [
       {
         path: "",
         component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsReslver
+        }
       },
       { path: "create", component: MonitoringSitesGroupsCreateComponent },
       {
@@ -170,7 +174,8 @@ const routes: Routes = [
     FormService,
     ObjectService,
     ApiGeomService,
-    VisitsService
+    VisitsService,
+    SitesGroupsReslver
   ],
   bootstrap: [ModulesComponent],
   schemas: [
