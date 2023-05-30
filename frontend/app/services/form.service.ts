@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
+import { BehaviorSubject,ReplaySubject, Observable, forkJoin, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 
 import { ISite, ISitesGroup } from '../interfaces/geom';
@@ -7,7 +7,7 @@ import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
 import { MonitoringObjectService } from './monitoring-object.service';
 import { FormControl } from '@angular/forms';
-import { IExtraForm } from '../interfaces/object';
+import { IExtraForm, IFormMap } from '../interfaces/object';
 
 
 @Injectable()
@@ -22,6 +22,9 @@ export class FormService {
   properties: JsonData = {};
   moduleCode: string;
   objecType: string;
+
+  private formMap = new ReplaySubject<IFormMap>(1);
+  currentFormMap = this.formMap.asObservable();
 
   constructor(private _objService: MonitoringObjectService) {}
 
@@ -48,6 +51,10 @@ export class FormService {
 
   changeExtraFormControl(formCtrl:FormControl,formCtrlName:string){
     this.formCtrl.next({frmCtrl:formCtrl,frmName:formCtrlName})
+  }
+
+  changeFormMapObj(formMapObj:IFormMap){
+    this.formMap.next(formMapObj)
   }
 
   formValues(obj): Observable<any> {
