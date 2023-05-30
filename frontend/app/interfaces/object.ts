@@ -1,4 +1,4 @@
-import { AbstractControl } from '@angular/forms';
+import { AbstractControl, FormGroup } from '@angular/forms';
 import { GeoJSON } from 'geojson';
 import { Observable } from 'rxjs';
 
@@ -35,3 +35,6 @@ export type IBreadCrumb = {
   objectType?:string;
   params?:JsonData;
 }
+
+
+export type IFormMap = { frmGp : FormGroup; bEdit: boolean, objForm: any  };
