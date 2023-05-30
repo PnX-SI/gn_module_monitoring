@@ -12,6 +12,7 @@ import { IobjObs } from "../../interfaces/objObs";
 import { ConfigJsonService } from "../../services/config-json.service";
 import { IBreadCrumb } from "../../interfaces/object";
 import { breadCrumbElementBase } from "../breadcrumbs/breadcrumbs.component";
+import { FormService } from "../../services/form.service";
 
 const LIMIT = 10;
 
@@ -51,7 +52,8 @@ export class MonitoringSitesGroupsComponent
     private _objService: ObjectService,
     private _formBuilder: FormBuilder,
     private _configJsonService: ConfigJsonService,
-    private _Activatedroute: ActivatedRoute // private _routingService: RoutingService
+    private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
+    private _formService: FormService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesGroups;
@@ -60,6 +62,7 @@ export class MonitoringSitesGroupsComponent
   ngOnInit() {
     this.initSiteGroup();
     this._objService.changeSelectedObj({}, true);
+    // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
   initSiteGroup() {
