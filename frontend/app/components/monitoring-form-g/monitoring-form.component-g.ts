@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { tap, mergeMap, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -93,6 +93,7 @@ export class MonitoringFormComponentG implements OnInit {
         })
       )
       .subscribe((data) => {
+      
         this.initObj(data.prop);
         this.isExtraForm ? this.addExtraFormCtrl(data.frmCtrl) : null;
         this.isExtraForm ? this.checkValidExtraFormCtrl() : null;
@@ -155,7 +156,11 @@ export class MonitoringFormComponentG implements OnInit {
         // champs patch pour simuler un changement de valeur et déclencher le recalcul des propriété
         // par exemple quand bChainInput change
         this.objForm.addControl('patch_update', this._formBuilder.control(0));
-
+                // set geometry
+        if (this.obj.config['geometry_type']) {
+                  this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
+        }
+        this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, objForm: this.obj})
         this.initForm();
       });
   }
