@@ -70,7 +70,7 @@ export class MonitoringSitesGroupsComponent
       this._sites_group_service.objectObs,true
     );
     
-    // this.getSitesGroups(1);
+    this.updateBreadCrumb();
     this._Activatedroute.data.subscribe(({data}) => {
       this.page = {
         count: data.sitesGroups.count,
@@ -115,7 +115,6 @@ export class MonitoringSitesGroupsComponent
         };
         this.sitesGroups = data.items;
         this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
-        this.updateBreadCrumb();
         // IF prefered observable compare to ngOnChanges uncomment this:
         // this._dataTableService.changeColsTable(this.colsname,this.sitesGroups[0])
       });
