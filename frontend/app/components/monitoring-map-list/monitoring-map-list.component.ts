@@ -12,7 +12,7 @@ import { ObjectService } from '../../services/object.service';
   templateUrl: './monitoring-map-list.component.html',
   styleUrls: ['./monitoring-map-list.component.css'],
 })
-export class MonitoringMapListComponent implements OnInit {
+export class MonitoringMapListComponent {
   
   // TODO: object needed to manage map 
   obj:any;
@@ -23,8 +23,6 @@ export class MonitoringMapListComponent implements OnInit {
   apiService: ApiGeomService;
   constructor( private _objService: ObjectService,private _formService: FormService,private _configService: ConfigJsonService) {}
 
-  ngOnInit(){
-        }
   initObj(prop) {
         // this.apiService.getConfig().subscribe(prop => this.obj['properties'] = prop)
         this.obj['properties'] = prop;
