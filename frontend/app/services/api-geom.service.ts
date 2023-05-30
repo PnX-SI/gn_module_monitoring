@@ -134,7 +134,6 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
-    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 
   getSitesChild(
@@ -177,7 +176,6 @@ export class SitesService extends ApiGeomService<ISite> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
-    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 
   getTypeSites(
@@ -228,6 +226,5 @@ export class VisitsService extends ApiService<IVisit> {
       dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
-    this.initConfig().subscribe(objObs => this.objectObs=objObs)
   }
 }
