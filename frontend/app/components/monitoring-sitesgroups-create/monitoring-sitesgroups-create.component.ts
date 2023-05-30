@@ -14,7 +14,7 @@ import { ObjectService } from '../../services/object.service';
 })
 export class MonitoringSitesGroupsCreateComponent implements OnInit {
   siteGroup: ISitesGroup;
-  form: FormGroup;
+  objForm: FormGroup;
   urlRelative: string;
   constructor(
     private _formService: FormService,
@@ -37,6 +37,6 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
       this.urlRelative
     );
     this._objService.changeSelectedObj({},true)
-    this.form = this._formBuilder.group({});
+    this.objForm = this._formBuilder.group({});
   }
 }
