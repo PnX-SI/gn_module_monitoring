@@ -80,9 +80,17 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
               id_sites_group: id,
             }),
           })
-        )
+        ),
+        map((data)=>{
+          return data
+        }),
+        mergeMap((data)=>{
+          return this._siteService.initConfig().pipe(map((objecObs)=>{
+            return {data, objectObs: objecObs}
+          }))
+        })
       )
-      .subscribe((data) => {
+      .subscribe(({data, objectObs}) => {
         console.log(data);
         this._objService.changeSelectedObj(data.sitesGroup, true);
         this._objService.changeSelectedParentObj(data.sitesGroup, true);
@@ -98,7 +106,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         //   () => {}
         // );
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
-        this.colsname = this._siteService.objectObs.dataTable.colNameObj;
+        this.colsname = objectObs.dataTable.colNameObj;
         this._objService.changeSelectedParentObj(data.sitesGroup, true);
         this.updateBreadCrumb(data.sitesGroup);
       });
