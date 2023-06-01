@@ -139,6 +139,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   seeDetails($event) {
+    this._objService.changeSelectedParentObj($event, true);
     this._objService.changeObjectTypeParent(this._siteService.objectObs, true);
     this.router.navigate([`site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
