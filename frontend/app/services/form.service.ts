@@ -6,7 +6,7 @@ import { ISite, ISitesGroup } from '../interfaces/geom';
 import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
 import { MonitoringObjectService } from './monitoring-object.service';
-import { FormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { IExtraForm, IFormMap } from '../interfaces/object';
 
 
@@ -23,10 +23,11 @@ export class FormService {
   moduleCode: string;
   objecType: string;
 
-  private formMap = new ReplaySubject<IFormMap>(1);
+  frmrGrp: FormGroup = this._formBuilder.group({});
+  private formMap = new BehaviorSubject<IFormMap>({frmGp:this.frmrGrp ,bEdit:true,obj:{}});
   currentFormMap = this.formMap.asObservable();
 
-  constructor(private _objService: MonitoringObjectService) {}
+  constructor(private _objService: MonitoringObjectService, private _formBuilder: FormBuilder) {}
 
 
   changeDataSub(
@@ -74,9 +75,11 @@ export class FormService {
       concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        // if (this.config["geometry_type"]) {
-        //   formValues["geometry"] = this.geometry; // copy???
-        // }
+        if (obj.config["geometry_type"]) {
+          // TODO: change null by the geometry load from the object (if edit) or null if create
+          // formValues["geometry"] = this.geometry; // copy???
+          formValues["geometry"] = null ; // copy???
+        }
         return of(formValues);
       })
     );
@@ -132,10 +135,10 @@ export class FormService {
     // };
 
     // TODO: A voir q'il faut remettre
-    // if (this.config["geometry_type"]) {
-    //   postData["geometry"] = formValue["geometry"];
-    //   postData["type"] = "Feature";
-    // }
+    if (obj.config["geometry_type"]) {
+      postData["geometry"] = formValue["geometry"];
+      postData["type"] = "Feature";
+    }
     return postData;
   }
 }
