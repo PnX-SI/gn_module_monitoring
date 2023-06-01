@@ -26,7 +26,7 @@ export class ObjectService {
     let storedObjectType = localStorage.getItem('storedObjectType');
     let storedObjectTypeParent = localStorage.getItem('storedObjectTypeParent');
     let storedObjectSelected = localStorage.getItem('storedObjectSelected');
-    let storedPArentObjectSelected = localStorage.getItem('storedParentObjectSelected');
+    let storedParentObjectSelected = localStorage.getItem('storedParentObjectSelected');
     let storedDataBreadCrumb = localStorage.getItem('storedDataBreadCrumb');
     if (storedObjectType) this.changeObjectType(JSON.parse(storedObjectType), false);
 
@@ -35,8 +35,8 @@ export class ObjectService {
 
     if (storedObjectSelected) this.changeSelectedObj(JSON.parse(storedObjectSelected), false);
 
-    if (storedPArentObjectSelected)
-      this.changeSelectedObj(JSON.parse(storedPArentObjectSelected), false);
+    if (storedParentObjectSelected)
+      this.changeSelectedObj(JSON.parse(storedParentObjectSelected), false);
 
     if (storedDataBreadCrumb) this.changeBreadCrumb(JSON.parse(storedDataBreadCrumb), false);
   }
