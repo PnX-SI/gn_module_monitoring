@@ -57,9 +57,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this.objForm = this._formBuilder.group({});
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs, true);
-    this._objService.currentObjectTypeParent.subscribe((objParent) => {
-      this.objParent = objParent;
-    });
     this._objService.changeObjectType(this._siteService.objectObs, true);
     this.initSite();
   }
@@ -74,19 +71,19 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
           });
         }),
         mergeMap((id: number) =>
-          forkJoin({
+          {return forkJoin({
             sitesGroup: this._sitesGroupService.getById(id),
             sites: this._sitesGroupService.getSitesChild(1, this.limit, {
               id_sites_group: id,
             }),
-          })
-        ),
-        map((data)=>{
-          return data
+          }).pipe(map((data) => {return data}))
         }),
         mergeMap((data)=>{
-          return this._siteService.initConfig().pipe(map((objecObs)=>{
-            return {data, objectObs: objecObs}
+          return forkJoin({
+            objObsSite: this._siteService.initConfig(),
+            objObsSiteGp: this._sitesGroupService.initConfig(),
+          }).pipe(map((objObs)=>{
+            return {data, objectObs: objObs}
           }))
         })
       )
@@ -106,8 +103,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         //   () => {}
         // );
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
-        this.colsname = objectObs.dataTable.colNameObj;
-        this._objService.changeSelectedParentObj(data.sitesGroup, true);
+        this.colsname = objectObs.objObsSite.dataTable.colNameObj;
+        this.objParent = objectObs.objObsSiteGp;
         this.updateBreadCrumb(data.sitesGroup);
       });
   }
