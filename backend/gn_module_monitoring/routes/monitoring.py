@@ -164,7 +164,7 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
     else:
         module = {"id_module": "generic"}
         # TODO : A enlever une fois que le post_data contiendra geometry et type depuis le front
-        if object_type == "site":
+        if object_type == "site" and not 'geometry' in post_data:
             post_data["geometry"] = {"type": "Point", "coordinates": [2.5, 50]}
             post_data["type"] = "Feature"
     # on rajoute id_module s'il n'est pas renseigné par défaut ??

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { tap, mergeMap, map } from 'rxjs/operators';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { tap, mergeMap, map, take } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -86,6 +86,7 @@ export class MonitoringFormComponentG implements OnInit {
         }),
         mergeMap((frmCtrl) => {
           return this.apiService.getConfig().pipe(
+            take(1),
             map((prop) => {
               return { frmCtrl, prop: prop };
             })
@@ -158,9 +159,11 @@ export class MonitoringFormComponentG implements OnInit {
         this.objForm.addControl('patch_update', this._formBuilder.control(0));
                 // set geometry
         if (this.obj.config['geometry_type']) {
-                  this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
+          let frmCtrlGeom ={frmCtrl:this._formBuilder.control('', Validators.required),frmName:'geometry'}
+          this.addGeomFormCtrl(frmCtrlGeom)
+          this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, obj: this.obj})
         }
-        this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, objForm: this.obj})
+
         this.initForm();
       });
   }
@@ -411,6 +414,10 @@ export class MonitoringFormComponentG implements OnInit {
     // this.dataForm = rest
     this.dataForm = this.objForm.value;
     const change = this._configService.change(this.obj.moduleCode, this.obj.objectType);
+    // if('geometry' in this.objForm.controls){
+    //   this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, obj: this.obj})
+    // }
+    
     if (!change) {
       return;
     }
@@ -443,6 +450,14 @@ export class MonitoringFormComponentG implements OnInit {
     }
 
     this.extraForm = frmCtrl;
+  }
+
+  addGeomFormCtrl(frmCtrl:{frmCtrl :FormControl,frmName:string}){
+    if (frmCtrl.frmName in this.objForm.controls) {
+      this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+    } else {
+      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+    }
   }
 
   checkValidExtraFormCtrl() {
