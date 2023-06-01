@@ -1,10 +1,10 @@
 <pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="obj && obj.bIsInitialized">
   <h2>Attention</h2>
-  <p>
+  <p *ngIf="obj.config && obj.properties">
     <!-- TODO: voir pour améliorer le passage d'informations ici -->
     Vous êtes sur le point de supprimer
-    {{obj.config["label"]}} : {{obj.properties[obj.config["id_field_name"]]}}
-    <b>{{obj.properties[obj.config["description_field_name"]]}}</b>
+    {{obj.config["label"]}} :  {{obj.properties[obj.config["description_field_name"]]}}
+    <br><b>(id :{{obj.properties[obj.config["id_field_name"]]}})</b>
   </p>
   <button class="btn btn-danger float-right" (click)="onDelete()">
     <span
