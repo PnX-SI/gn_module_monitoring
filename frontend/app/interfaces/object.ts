@@ -37,4 +37,4 @@ export type IBreadCrumb = {
 }
 
 
-export type IFormMap = { frmGp : FormGroup; bEdit: boolean, objForm: any  };
+export type IFormMap = { frmGp : FormGroup; bEdit: boolean, obj: any  };

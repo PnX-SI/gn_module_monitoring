@@ -22,15 +22,11 @@ export class MonitoringMapListComponent {
   displayMap: boolean = true;
   siteSiteGroup: SiteSiteGroup | null = null;
   apiService: ApiGeomService;
-  constructor( private _objService: ObjectService,private _formService: FormService,private _configService: ConfigJsonService) {}
+  constructor(private _formService: FormService,) {}
 
-  initObj(prop) {
-        // this.apiService.getConfig().subscribe(prop => this.obj['properties'] = prop)
-        this.obj['properties'] = prop;
-    }
   onActivate(component) {
     this._formService.currentFormMap.subscribe(formMapObj => {
-      this.obj = formMapObj.objForm
+      this.obj = formMapObj.obj
       this.bEdit = formMapObj.bEdit
       this.objForm = formMapObj.frmGp
     })
