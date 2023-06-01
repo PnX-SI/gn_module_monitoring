@@ -2,7 +2,7 @@ import { Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@a
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, forkJoin, iif, of } from 'rxjs';
-import { map, mergeMap, take } from 'rxjs/operators';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { ISite, ISiteType } from '../../interfaces/geom';
@@ -69,10 +69,6 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this.siteService.objectObs, true);
-    this._objService.currentObjectTypeParent
-      .pipe(take(1))
-      .subscribe((objParent) => (this.objParent = objParent));
-
     this._objService.changeObjectType(this._visits_service.objectObs);
 
     this.siteGroupIdParent = parseInt(
@@ -87,18 +83,26 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
       .pipe(
         map((params) => params['id'] as number),
         mergeMap((id: number) =>
-          forkJoin({
+          { return forkJoin({
             site: this.siteService.getById(id),
             visits: this._visits_service.get(1, this.limit, {
               id_base_site: id,
             }),
-          })
-        ),
-        mergeMap((data: { site: ISite; visits: IPaginated<IVisit> }) => {
-          return this._objService.currentParentObjSelected.pipe(
+          }).pipe(map((data)=> {return data}))
+        }),
+        mergeMap((data)=>{
+          return forkJoin({
+            objObsSite: this.siteService.initConfig(),
+            objObsVisit: this._visits_service.initConfig(),
+          }).pipe(tap((objConfig)=> this.objParent = objConfig.objObsSite) , map((objConfig)=>{
+            return {data, objConfig: objConfig}
+          }))
+        }),
+        mergeMap(({data, objConfig}) => {
+          return this._objService.currentObjSelected.pipe(
             take(1),
-            map((objSelectParent) => {
-              return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent };
+            map((objSelectParent:any) => {
+              return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
             })
           );
         }),
@@ -108,7 +112,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             of(data),
             this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
               map((objSelectParent) => {
-                return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent };
+                return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
               })
             )
           );
@@ -120,7 +124,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         this.types_site = data.site['types_site'];
         this.setVisits(data.visits);
         this.baseFilters = { id_base_site: this.site.id_base_site };
-
+        this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         this.updateBreadCrumb(data.site, data.parentObjSelected);
       });
     this.isInitialValues = true;
@@ -139,7 +143,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
       count: visits.count,
       limit: visits.limit,
     };
-    this.colsname = this._visits_service.objectObs.dataTable.colNameObj;
+
   }
 
   seeDetails($event) {
