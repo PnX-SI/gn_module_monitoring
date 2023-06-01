@@ -58,7 +58,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
-    private _siteService: SitesService
+    public siteService: SitesService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -68,7 +68,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
-    this._objService.changeObjectTypeParent(this._siteService.objectObs, true);
+    this._objService.changeObjectTypeParent(this.siteService.objectObs, true);
     this._objService.currentObjectTypeParent
       .pipe(take(1))
       .subscribe((objParent) => (this.objParent = objParent));
@@ -88,7 +88,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         map((params) => params['id'] as number),
         mergeMap((id: number) =>
           forkJoin({
-            site: this._siteService.getById(id),
+            site: this.siteService.getById(id),
             visits: this._visits_service.get(1, this.limit, {
               id_base_site: id,
             }),
@@ -149,7 +149,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   getModules() {
-    this._siteService.getSiteModules(this.site.id_base_site).subscribe(
+    this.siteService.getSiteModules(this.site.id_base_site).subscribe(
       (data: Module[]) =>
         (this.modules = data.map((item) => {
           return { id: item.module_code, label: item.module_label };
@@ -173,7 +173,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     limit: number,
     valueToFilter: string
   ): Observable<IPaginated<ISiteType>> {
-    return this._siteService.getTypeSites(pageNumber, limit, {
+    return this.siteService.getTypeSites(pageNumber, limit, {
       label_fr: valueToFilter,
       sort_dir: 'desc',
     });
@@ -233,7 +233,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.breadCrumbChild.description = site.base_site_name;
     this.breadCrumbChild.label = 'Site';
     this.breadCrumbChild['id'] = site.id_base_site;
-    this.breadCrumbChild['objectType'] = this._siteService.objectObs.objectType || 'site';
+    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType || 'site';
     this.breadCrumbChild['url'] = [
       this.breadCrumbElementBase.url,
       this.breadCrumbParent.id?.toString(),
