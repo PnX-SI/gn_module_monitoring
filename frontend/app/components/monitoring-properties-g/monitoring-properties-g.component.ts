@@ -33,7 +33,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
   constructor(private _formService: FormService, private _objService: ObjectService) {}
 
   ngOnInit() {
-    this.initProperties();
   }
 
   initProperties() {
@@ -56,7 +55,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.newParentType.template.fieldNames.length != 0) {
+    if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
       this.initProperties();
     }
   }
