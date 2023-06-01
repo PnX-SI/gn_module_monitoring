@@ -52,7 +52,6 @@ import {
 import { MonitoringSitesGroupsCreateComponent } from "./components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component";
 import { MonitoringSitesCreateComponent } from "./components/monitoring-sites-create/monitoring-sites-create.component";
 import { BtnSelectComponent } from "./components/btn-select/btn-select.component";
-import { MonitoringSitesEditComponent } from "./components/monitoring-sites-edit/monitoring-sites-edit.component";
 import { MonitoringVisitsComponent } from "./components/monitoring-visits/monitoring-visits.component";
 import { OptionListButtonComponent } from "./components/option-list-btn/option-list-btn.component";
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
@@ -103,12 +102,6 @@ const routes: Routes = [
           {
             path: "site/:id",
             component: MonitoringVisitsComponent,
-            children: [
-              {
-                path: "edit",
-                component: MonitoringSitesEditComponent,
-              },
-            ]
           },
           
         ],
@@ -137,7 +130,6 @@ const routes: Routes = [
     MonitoringFormComponentG,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
-    MonitoringSitesEditComponent,
     BtnSelectComponent,
     MonitoringVisitsComponent,
     OptionListButtonComponent,
