@@ -2,8 +2,9 @@
   <h2>Attention</h2>
   <p>
     <!-- TODO: voir pour améliorer le passage d'informations ici -->
-    Vous êtes sur le point de supprimer le groupe de site
-    <b>Description du groupe de site</b>
+    Vous êtes sur le point de supprimer
+    {{obj.config["label"]}} : {{obj.properties[obj.config["id_field_name"]]}}
+    <b>{{obj.properties[obj.config["description_field_name"]]}}</b>
   </p>
   <button class="btn btn-danger float-right" (click)="onDelete()">
     <span
@@ -44,7 +45,7 @@
       <p
         class="alert alert-warning"
         style="display:inline-block;"
-        *ngIf="obj.config['geometry_type'] && !objForm.value.geometry"
+        *ngIf="obj.config && obj.config['geometry_type'] && !objForm.value.geometry"
       >
         <span> Veuillez saisir une géométrie sur la carte </span>
       </p>

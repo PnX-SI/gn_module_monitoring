@@ -15,6 +15,7 @@
   [objForm]="objForm"
 ></pnx-monitoring-form-g>
 <pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
   [rows]="sites"
   [colsname]="colsname"
   (onSort)="setSort($event)"
