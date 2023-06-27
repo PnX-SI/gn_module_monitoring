@@ -99,6 +99,7 @@ export class MonitoringFormComponentG implements OnInit {
         this.isExtraForm ? this.addExtraFormCtrl(data.frmCtrl) : null;
         this.isExtraForm ? this.checkValidExtraFormCtrl() : null;
 
+        // FIXME: Erreur obj.config  renvoyé en erreur lors du premier chargement
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
           this.obj.objectType
@@ -331,9 +332,25 @@ export class MonitoringFormComponentG implements OnInit {
    * Valider et aller à la page de l'objet
    */
   navigateToParent() {
+    // FIXME:: voir erreur de redirection (comparaison avec branche où ça fonctionnait ?)
     this.bEditChange.emit(false); // patch bug navigation
+    if(!this.bEdit){
+      this._router.navigate(['..'], { relativeTo: this._route });
+      
+    }
+
+
+  }
+
+ navigateToParentAfterDelete(){
+  this.bEditChange.emit(false); // patch bug navigation
+  if(this.obj.objectType == "site"){
+    this._router.navigate(['monitorings','sites_group',this._route.parent.snapshot.params.id]);
+  } else {
     this._router.navigate(['..'], { relativeTo: this._route });
   }
+
+ };
 
 
 
@@ -389,7 +406,7 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   onCancelEdit() {
-    if (this.obj.id) {
+    if (this.bEdit) {
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();
@@ -404,7 +421,7 @@ export class MonitoringFormComponentG implements OnInit {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.objChanged.emit(this.obj);
       setTimeout(() => {
-        this.navigateToParent();
+        this.navigateToParentAfterDelete();
       }, 100);
     });
   }
