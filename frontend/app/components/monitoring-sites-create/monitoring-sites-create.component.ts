@@ -5,13 +5,15 @@ import { Observable } from 'rxjs';
 
 import { endPoints } from '../../enum/endpoints';
 import { ISite, ISiteType } from '../../interfaces/geom';
-import { IobjObs, ObjDataType } from '../../interfaces/objObs';
-import { SitesService } from '../../services/api-geom.service';
+import { IobjObs, ObjDataType, SiteSiteGroup } from '../../interfaces/objObs';
+import { SitesGroupService, SitesService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { MonitoringFormComponentG } from '../monitoring-form-g/monitoring-form.component-g';
 import { IPaginated } from '../../interfaces/page';
+import { IBreadCrumb } from '../../interfaces/object';
+import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'monitoring-sites-create',
@@ -31,18 +33,25 @@ export class MonitoringSitesCreateComponent implements OnInit {
   monitoringFormComponentG: MonitoringFormComponentG;
   objToCreate: IobjObs<ObjDataType>;
   urlRelative: string;
+
+  breadCrumbList: IBreadCrumb[] = [];
+  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
+  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
+
   constructor(
     private _formService: FormService,
     private _formBuilder: FormBuilder,
+    private _sitesGroupService: SitesGroupService,
     public siteService: SitesService,
     private route: ActivatedRoute,
     private _objService: ObjectService
   ) {}
 
   ngOnInit() {
+
     this.urlRelative = this.removeLastPart(this.route.snapshot['_routerState'].url);
-    this._objService.currentObjSelected.subscribe((objParent) => {
-      this.id_sites_group = objParent.id_sites_group;
+    this.route.data.subscribe(({data}) => {
+      this.id_sites_group = data.id_sites_group;
       this._formService.dataToCreate(
         {
           module: 'generic',
@@ -51,12 +60,13 @@ export class MonitoringSitesCreateComponent implements OnInit {
           id_sites_group: this.id_sites_group,
           id_relationship: ['id_sites_group', 'types_site'],
           endPoint: endPoints.sites,
-          objSelected: objParent.objectType,
+          objSelected: data.objectType,
         },
         this.urlRelative
       );
       this.form = this._formBuilder.group({});
       this.funcToFilt = this.partialfuncToFilt.bind(this);
+      this.updateBreadCrumb(data);
     });
   }
 
@@ -91,5 +101,20 @@ export class MonitoringSitesCreateComponent implements OnInit {
       }
     }
     return config;
+  }
+
+  updateBreadCrumb(sitesGroup) {
+    this.breadCrumbElemnt.description = sitesGroup.sites_group_name;
+    this.breadCrumbElemnt.label = 'Groupe de site';
+    this.breadCrumbElemnt['id'] = sitesGroup.id_sites_group;
+    this.breadCrumbElemnt['objectType'] =
+      this._sitesGroupService.objectObs.objectType || 'sites_group';
+    this.breadCrumbElemnt['url'] = [
+      this.breadCrumbElementBase.url,
+      this.breadCrumbElemnt.id?.toString(),
+    ].join('/');
+
+    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbElemnt];
+    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 }

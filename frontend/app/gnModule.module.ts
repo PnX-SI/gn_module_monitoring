@@ -56,6 +56,7 @@ import { MonitoringVisitsComponent } from "./components/monitoring-visits/monito
 import { OptionListButtonComponent } from "./components/option-list-btn/option-list-btn.component";
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsReslver } from "./resolver/sites-groups.resolver";
+import { CreateSiteResolver } from "./resolver/create-site.resolver"
 // my module routing
 const routes: Routes = [
   /** modules  */
@@ -98,6 +99,9 @@ const routes: Routes = [
           {
             path: "create",
             component: MonitoringSitesCreateComponent,
+            resolve: {
+              data: CreateSiteResolver
+            }
           },
           {
             path: "site/:id",
@@ -167,7 +171,8 @@ const routes: Routes = [
     ObjectService,
     ApiGeomService,
     VisitsService,
-    SitesGroupsReslver
+    SitesGroupsReslver,
+    CreateSiteResolver
   ],
   bootstrap: [ModulesComponent],
   schemas: [
