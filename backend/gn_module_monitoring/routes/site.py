@@ -163,11 +163,10 @@ def post_sites():
 
 @blueprint.route("/sites/<int:_id>", methods=["DELETE"])
 def delete_site(_id):
-    item = TMonitoringSites.find_by_id(_id)
-    db.session.delete(item)
+    TMonitoringSites.query.filter_by(id_g=_id).delete()
     db.session.commit()
     return {
-        "success": f"Item with {item.id_g} from table {item.__tablename__} is successfully deleted"
+        "success": "Item is successfully deleted"
     }, 200
 
 @blueprint.route("/sites/<int:_id>", methods=["PATCH"])
