@@ -57,6 +57,7 @@ import { OptionListButtonComponent } from "./components/option-list-btn/option-l
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsReslver } from "./resolver/sites-groups.resolver";
 import { CreateSiteResolver } from "./resolver/create-site.resolver"
+import { PageNotFoundComponent } from "./components/page-not-found/page-not-found.component";
 // my module routing
 const routes: Routes = [
   /** modules  */
@@ -112,6 +113,8 @@ const routes: Routes = [
       },
     ],
   },
+  {path: 'not-found', component: PageNotFoundComponent},
+  {path: '**', redirectTo: 'not-found'}
 ];
 
 @NgModule({
@@ -137,7 +140,8 @@ const routes: Routes = [
     BtnSelectComponent,
     MonitoringVisitsComponent,
     OptionListButtonComponent,
-    MatErrorMessagesDirective
+    MatErrorMessagesDirective,
+    PageNotFoundComponent
   ],
   imports: [
     GN2CommonModule,
