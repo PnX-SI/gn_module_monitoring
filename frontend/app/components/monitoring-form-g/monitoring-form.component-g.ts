@@ -109,12 +109,14 @@ export class MonitoringFormComponentG implements OnInit {
 
         const schema = this._configService.schema(this.obj.moduleCode, this.obj.objectType);
 
-        this.obj[this.obj.moduleCode] = schema;
-
         this.obj.specific == undefined ? (this.obj.specific = {}) : null;
         if (Object.keys(this.obj.specific).length !== 0) {
           Object.assign(schema, this.obj.specific);
         }
+
+
+        this.obj[this.obj.moduleCode] = schema;
+
 
 
         // meta pour les parametres dynamiques
