@@ -84,7 +84,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         map((params) => params['id'] as number),
         mergeMap((id: number) =>
           { return forkJoin({
-            site: this.siteService.getById(id),
+            site: this.siteService.getById(id).catch((err) => 
+            {if(err.status == 404)
+              { 
+                this.router.navigate(['/not-found'],{ skipLocationChange: true });
+              return Observable.of(null);
+            }}),
             visits: this._visits_service.get(1, this.limit, {
               id_base_site: id,
             }),
