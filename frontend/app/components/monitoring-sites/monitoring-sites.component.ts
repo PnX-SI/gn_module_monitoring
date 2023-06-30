@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { forkJoin } from "rxjs";
+import { Observable, forkJoin } from "rxjs";
 import { tap, map, mergeMap } from "rxjs/operators";
 import * as L from "leaflet";
 import { ISite, ISitesGroup } from "../../interfaces/geom";
@@ -72,7 +72,12 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         }),
         mergeMap((id: number) =>
           {return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id),
+            sitesGroup: this._sitesGroupService.getById(id).catch((err) => 
+            {if(err.status == 404)
+              { 
+                this.router.navigate(['/not-found'],{ skipLocationChange: true });
+              return Observable.of(null);
+            }}),
             sites: this._sitesGroupService.getSitesChild(1, this.limit, {
               id_sites_group: id,
             }),
