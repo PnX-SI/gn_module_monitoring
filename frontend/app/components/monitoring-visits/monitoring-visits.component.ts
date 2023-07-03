@@ -5,7 +5,7 @@ import { Observable, forkJoin, iif, of } from 'rxjs';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { ISite, ISiteType } from '../../interfaces/geom';
+import { ISite, ISiteField, ISiteType } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { IVisit } from '../../interfaces/visit';
 import { SitesGroupService, SitesService, VisitsService } from '../../services/api-geom.service';
@@ -47,6 +47,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   breadCrumbChild: IBreadCrumb = { label: 'Site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
+  objSelected:ISiteField; 
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -130,6 +131,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         this.setVisits(data.visits);
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
+        this.site['id_sites_group'] = this.siteGroupIdParent; 
+        this.objSelected = this.siteService.format_label_types_site([this.site])[0]
         this.updateBreadCrumb(data.site, data.parentObjSelected);
       });
     this.isInitialValues = true;

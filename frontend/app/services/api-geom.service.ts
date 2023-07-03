@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { endPoints } from '../enum/endpoints';
-import { IGeomObject, IGeomService, ISite, ISiteType, ISitesGroup } from '../interfaces/geom';
+import { IGeomObject, IGeomService, ISite, ISiteField, ISiteType, ISitesGroup } from '../interfaces/geom';
 import { IobjObs } from '../interfaces/objObs';
 import { IPaginated } from '../interfaces/page';
 import { JsonData } from '../types/jsondata';
@@ -194,6 +194,22 @@ export class SitesService extends ApiGeomService<ISite> {
 
   getSiteModules(idSite: number): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${idSite}/modules`);
+  }
+
+  format_label_types_site(sites:ISite[]){
+    const rows_sites_table:ISiteField[] = []
+    for(const site of sites){
+      let list_label_types_site:string[]= []
+      const {types_site, ...rest_of_site} = site
+      for (const type_site of types_site){
+        if('label' in type_site && typeof(type_site['label']) == 'string'){
+          list_label_types_site.push(type_site['label'])
+        }
+      }
+      // Object.assign(rest_of_site,{types_site:list_label_types_site})
+      rows_sites_table.push({...rest_of_site, types_site:list_label_types_site})
+    }
+    return rows_sites_table
   }
 }
 
