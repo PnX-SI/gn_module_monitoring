@@ -36,6 +36,10 @@ export interface ISite extends IGeomObject {
   uuid_base_site: string;
   specific: JsonData;
   dataComplement: JsonData;
+  types_site: JsonData[];
+}
+
+export interface ISiteField extends Omit<ISite, 'types_site'> {
   types_site: string[];
 }
 
