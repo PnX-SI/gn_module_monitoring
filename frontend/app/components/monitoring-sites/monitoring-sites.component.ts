@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Observable, forkJoin } from "rxjs";
 import { tap, map, mergeMap } from "rxjs/operators";
 import * as L from "leaflet";
-import { ISite, ISitesGroup } from "../../interfaces/geom";
+import { ISite, ISiteField, ISitesGroup } from "../../interfaces/geom";
 import { IPage, IPaginated } from "../../interfaces/page";
 import { MonitoringGeomComponent } from "../../class/monitoring-geom-component";
 import { setPopup } from "../../functions/popup";
@@ -40,6 +40,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
+  rows_sites_table: ISiteField[];
+
   constructor(
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
@@ -107,6 +109,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         //   data.sitesGroup.geometry,
         //   () => {}
         // );
+        this.rows_sites_table = this._siteService.format_label_types_site(this.sites)
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
         this.colsname = objectObs.objObsSite.dataTable.colNameObj;
         this.objParent = objectObs.objObsSiteGp;
