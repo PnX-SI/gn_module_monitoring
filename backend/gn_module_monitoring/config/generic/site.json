@@ -17,14 +17,16 @@
     "last_visit",
     "nb_visits",
     "altitude_min",
-    "altitude_max"
+    "altitude_max",
+    "types_site"
   ],
   "display_list": [
     "base_site_name",
     "base_site_code",
     "id_nomenclature_type_site",
     "last_visit",
-    "nb_visits"
+    "nb_visits",
+    "types_site"
   ],
   "sorts": [
     {"prop": "last_visit", "dir": "desc"}
@@ -95,7 +97,7 @@
       },
       "types_site": {
         "type_widget": "datalist",
-        "attribut_label": "ID Type sites",
+        "attribut_label": "Type(s) de site",
         "hidden": true,
         "schema_dot_table": "gn_monitoring.t_base_sites"
       }
