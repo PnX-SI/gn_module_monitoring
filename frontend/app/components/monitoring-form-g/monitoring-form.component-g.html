@@ -86,7 +86,7 @@
         <button
           class="btn btn-success float-right"
           (click)="bSaveSpinner = true; onSubmit()"
-          [disabled]="!objForm.valid"
+          [disabled]="objForm.status == 'INVALID' || extraForm.frmCtrl.status == 'INVALID' || geomCtrl.frmCtrl.status == 'INVALID' "
         >
           <span
             [ngClass]="{ 'hide-spinner': !bSaveSpinner }"
