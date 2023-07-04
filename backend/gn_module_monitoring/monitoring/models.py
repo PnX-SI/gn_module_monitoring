@@ -153,6 +153,7 @@ class TMonitoringSites(TBaseSites):
     id_module = DB.Column(
         DB.ForeignKey('gn_commons.t_modules.id_module'),
         nullable=False,
+        primary_key=True
     )
 
     id_sites_group = DB.Column(
