@@ -30,6 +30,10 @@ class MonitoringObjectGeom(MonitoringObject):
         if not self._id:
             geometry = None
 
-        monitoring_object_dict["geometry"] = geometry
-
+        monitoring_object_dict['geometry'] = geometry
+        if len(monitoring_object_dict['properties'].get('types_site', [])) != 0:
+            if hasattr(self._model, 'types_site'):
+                #TODO: performance?
+                types_site = [typ.nomenclature.label_fr for typ in self._model.types_site]
+            monitoring_object_dict['properties']['types_site'] = types_site
         return monitoring_object_dict
