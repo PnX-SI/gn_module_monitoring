@@ -37,6 +37,7 @@ export class MonitoringFormComponentG implements OnInit {
   @Input() isExtraForm: boolean = false;
 
   extraForm: IExtraForm;
+  geomCtrl: {frmCtrl :FormControl,frmName:string}
   hideForm: boolean = false;
   dataForm: IDataForm;
   searchSite = '';
@@ -463,7 +464,9 @@ export class MonitoringFormComponentG implements OnInit {
 
   addExtraFormCtrl(frmCtrl: IExtraForm) {
     if (frmCtrl.frmName in this.objForm.controls) {
-      this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      // this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      const extraFormName = frmCtrl.frmName
+      this.objForm.controls[extraFormName].setValue([])
     } else {
       this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
@@ -473,10 +476,12 @@ export class MonitoringFormComponentG implements OnInit {
 
   addGeomFormCtrl(frmCtrl:{frmCtrl :FormControl,frmName:string}){
     if (frmCtrl.frmName in this.objForm.controls) {
-      this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      // this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      this.objForm.patchValue({'geometry':null})
     } else {
       this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
+    this.geomCtrl = frmCtrl
   }
 
   checkValidExtraFormCtrl() {
@@ -487,8 +492,6 @@ export class MonitoringFormComponentG implements OnInit {
     ) {
       this.hideForm = false;
       this.objForm.valid;
-    } else {
-      this.hideForm = true;
     }
   }
 
