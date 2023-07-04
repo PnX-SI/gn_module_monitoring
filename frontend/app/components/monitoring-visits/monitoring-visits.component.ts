@@ -133,6 +133,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         this.site['id_sites_group'] = this.siteGroupIdParent; 
         this.objSelected = this.siteService.format_label_types_site([this.site])[0]
+        this.addSpecificConfig()
         this.updateBreadCrumb(data.site, data.parentObjSelected);
       });
     this.isInitialValues = true;
@@ -207,6 +208,10 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
       }
     }
     return config;
+  }
+
+  addSpecificConfig(){
+    this.objParent["template_specific"]
   }
 
   initValueToSend() {
