@@ -19,7 +19,7 @@ from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
     process_export_csv,
-    insert_permission_object,
+    process_available_permissions,
     remove_monitoring_module,
     add_nomenclature,
     available_modules,
@@ -134,10 +134,8 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(module)
     DB.session.commit()
 
-    # Insert permission object
-    if config["module"].get("permission_objects"):
-        id_module = module.id_module
-        insert_permission_object(id_module, config["module"].get("permission_objects"))
+    # Ajouter les permissions disponibles
+    process_available_permissions(module_code)
 
     #  run specific sql
     if (module_config_dir_path / "synthese.sql").exists:
@@ -181,10 +179,10 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     return
 
 
-@click.command("update_permission_objects")
-@click.argument("module_code")
+@click.command("update_module_available_permissions")
+@click.argument("module_code", required=False, default="")
 @with_appcontext
-def cmd_update_perm_module_cmd(module_code):
+def cmd_process_available_permission_module(module_code):
     """
        Mise à jour (uniquement insertion) des objets permissions associés au module
        Défini par le paramètre permission_objects du fichier module.json
@@ -193,28 +191,13 @@ def cmd_update_perm_module_cmd(module_code):
         module_code ([string]): code du sous module
 
     """
-    try:
-        module = get_module("module_code", module_code)
-    except Exception:
-        print("le module n'existe pas")
-        return
-    path_module = monitoring_module_config_path(module_code) / "module.json"
 
-    if not path_module.is_file():
-        print(f"Il n'y a pas de fichier {path_module} pour ce module")
-        return
-    config_module = json_from_file(path_module, None)
-    if not config_module:
-        print("Il y a un problème avec le fichier {}".format(path_module))
-        return
+    if module_code:
+        return process_available_permissions(module_code)
 
-    print(f"Insertion des objets de permissions pour le module {module_code}")
-    # Insert permission object
-    if "permission_objects" in config_module:
-        id_module = module.id_module
-        insert_permission_object(id_module, config_module["permission_objects"])
-    else:
-        print("no permission")
+    for module_code in installed_modules():
+        process_available_permissions(module_code)
+
 
 
 @click.command("remove")
@@ -264,7 +247,7 @@ def synchronize_synthese(module_code, offset):
 commands = [
     cmd_process_export_csv,
     cmd_install_monitoring_module,
-    cmd_update_perm_module_cmd,
+    cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
     cmd_process_all,
