@@ -122,11 +122,11 @@ def insert_module_available_permissions(module_code, object):
             true
         FROM
             ( VALUES
-                ('C', 'Creer des {object_label}',  '{object}', '{module_code}'),
-                ('R', 'Accéder aux {object_label}',  '{object}', '{module_code}'),
-                ('U', 'Modifier des {object_label}',  '{object}', '{module_code}'),
+                ('C', 'Créer des {object_label}',  '{object}', '{module_code}'),
+                ('R', 'Voir les {object_label}',  '{object}', '{module_code}'),
+                ('U', 'Modifier les {object_label}',  '{object}', '{module_code}'),
                 ('D', 'Supprimer des {object_label}',  '{object}', '{module_code}'),
-                ('E', 'Exporter des {object_label}',  '{object}', '{module_code}')
+                ('E', 'Exporter les {object_label}',  '{object}', '{module_code}')
             ) AS v (action_code, label, object_code, module_code)
             JOIN gn_commons.t_modules m ON v.module_code = m.module_code
             JOIN gn_permissions.bib_actions a ON v.action_code = a.code_action
@@ -185,7 +185,7 @@ def remove_monitoring_module(module_code):
         txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         DB.engine.execution_options(autocommit=True).execute(txt)
 
-        # HACK pour le moment suprresion avec un sql direct
+        # HACK pour le moment suppresion avec un sql direct
         #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
         txt = f"""DELETE FROM gn_commons.t_modules WHERE id_module ={module.id_module}"""
 
