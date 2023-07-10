@@ -101,3 +101,13 @@ def get_sites_groups_from_module_id(module_id: int):
 
     return query.all()
 
+
+def query_all_types_site_from_site_id(id_site:int):
+   
+    query =  BibTypeSite.query.join(
+            cor_type_site,
+            BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
+        ).join(
+        TBaseSites, cor_type_site.c.id_base_site == TBaseSites.id_base_site
+        ).filter(cor_type_site.c.id_base_site == id_site)
+    return query.all()
