@@ -203,8 +203,9 @@ export class MonitoringFormComponentG implements OnInit {
     // pour donner la valeur de l'objet au formulaire
     this._formService.formValues(this.obj).subscribe((formValue) => {
       this.objForm.patchValue(formValue);
+      const {html, ...propertiesValues} = formValue
       this.setDefaultFormValue();
-      this.dataForm = formValue;
+      this.dataForm = propertiesValues;
       // reset geom ?
     });
   }
