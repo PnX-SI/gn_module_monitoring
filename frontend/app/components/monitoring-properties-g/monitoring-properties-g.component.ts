@@ -30,6 +30,10 @@ export class MonitoringPropertiesGComponent implements OnInit {
   datasetForm = new FormControl();
   _sub: Subscription;
 
+  specificFields: JsonData;
+  specificFieldDefinitions: JsonData = {};
+  specificFieldsNames: string[];
+
   constructor(private _formService: FormService, private _objService: ObjectService) {}
 
   ngOnInit() {
@@ -42,6 +46,12 @@ export class MonitoringPropertiesGComponent implements OnInit {
     this.fieldDefinitions = this.newParentType.template.fieldDefinitions;
     this.objectType.properties = this.selectedObj;
     this.endPoint = this.newParentType.endPoint;
+  }
+
+  initSpecificProperties(){
+    this.specificFieldsNames = this.newParentType.template_specific.fieldNames;
+    this.specificFields = this.newParentType.template_specific.fieldLabels;
+    this.specificFieldDefinitions = this.newParentType.template_specific.fieldDefinitions;
   }
 
   onEditClick() {
@@ -57,6 +67,9 @@ export class MonitoringPropertiesGComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
       this.initProperties();
+      if (this.newParentType.template_specific && this.newParentType.template_specific.fieldNames.length !=0){
+        this.initSpecificProperties()
+      }
     }
   }
 }
