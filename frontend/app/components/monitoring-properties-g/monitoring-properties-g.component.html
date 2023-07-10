@@ -72,21 +72,20 @@
       id="specific-tab"
       role="tabpanel"
       attr.aria-labelledby="nav-specific-tab"
-      *ngIf="selectedObj.data && selectedObj.data.length"
     >
     <table class="table table-striped table-sm">
-      <tr *ngFor="let fieldName of selectedObj.data; let i = index">
+      <tr *ngFor="let fieldName of specificFieldsNames; let i = index">
         <td style="width: 50%" class="key text-muted">
-          {{ fields[fieldName] }}
+          {{ specificFields[fieldName] }}
           <!-- <i
-            *ngIf="fieldDefinitions[fieldName]"
+            *ngIf="specificFieldDefinitions[fieldName]"
             class="material-icons small-icon"
             [matTooltip]="
-              fields[fieldName] + ' : ' + fieldDefinitions[fieldName]
+              specificFields[fieldName] + ' : ' + specificFieldDefinitions[fieldName]
             "
             matTooltipPosition="above"
-            >help</i -->
-          >
+            >help</i> -->
+
         </td>
         <td class="td-value">{{ selectedObj[fieldName] }}</td>
       </tr>

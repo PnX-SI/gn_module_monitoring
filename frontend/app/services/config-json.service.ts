@@ -45,8 +45,11 @@ export class ConfigJsonService extends ConfigService {
     return fieldLabels;
   }
 
-  fieldNames(moduleCode, objectType, typeDisplay = '') {
+  fieldNames(moduleCode, objectType, typeDisplay = '',confObject = {}) {
     if (['display_properties', 'display_list'].includes(typeDisplay)) {
+      if (Object.keys(confObject).length > 0){
+        return confObject[typeDisplay]
+      } 
       return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);
     }
     if (typeDisplay === 'schema') {

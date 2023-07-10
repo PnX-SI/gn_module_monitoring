@@ -17,6 +17,7 @@ import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from "../../services/form.service";
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
+import { ConfigJsonService } from '../../services/config-json.service';
 @Component({
   selector: 'monitoring-visits',
   templateUrl: './monitoring-visits.component.html',
@@ -59,7 +60,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
-    public siteService: SitesService
+    public siteService: SitesService,
+    protected _configJsonService: ConfigJsonService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -96,6 +98,13 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             }),
           }).pipe(map((data)=> {return data}))
         }),
+        mergeMap((data)=> {
+          return this.siteService.getTypesSiteByIdSite(data.site.id_base_site).pipe(
+            map((types_site:any) => {
+              return {site:data.site, visits: data.visits, types_site:types_site}
+            }
+          ))
+        }),
         mergeMap((data)=>{
           return forkJoin({
             objObsSite: this.siteService.initConfig(),
@@ -108,7 +117,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           return this._objService.currentObjSelected.pipe(
             take(1),
             map((objSelectParent:any) => {
-              return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
+              return {types_site:data.types_site, site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
             })
           );
         }),
@@ -118,7 +127,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             of(data),
             this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
               map((objSelectParent) => {
-                return { site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
+                return {types_site:data.types_site, site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
               })
             )
           );
@@ -211,7 +220,29 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   addSpecificConfig(){
-    this.objParent["template_specific"]
+    // const schemaSpecificType = Object.assign({},...this.types_site)
+    let schemaSpecificType = {}
+    let schemaTypeMerged = {}
+    for (let type_site of this.types_site){
+      if('specific' in type_site['config']) {
+        Object.assign(schemaSpecificType, type_site['config']['specific'])
+        Object.assign(schemaTypeMerged,type_site['config'] )
+      }
+    }
+
+
+    const fieldNames = this._configJsonService.fieldNames('generic','site','display_properties',schemaTypeMerged)
+    const fieldNamesList = this._configJsonService.fieldNames('generic','site','display_list',schemaTypeMerged)
+    const fieldLabels = this._configJsonService.fieldLabels(schemaSpecificType);
+    const fieldDefinitions = this._configJsonService.fieldDefinitions(schemaSpecificType);
+    this.objParent["template_specific"] ={}
+    this.objParent["template_specific"]['fieldNames'] = fieldNames;
+    this.objParent["template_specific"]['fieldNamesList'] = fieldNamesList;
+    this.objParent["template_specific"]['schema']= schemaSpecificType;
+    this.objParent["template_specific"]['fieldLabels'] = fieldLabels;
+    this.objParent["template_specific"]['fieldDefinitions'] = fieldDefinitions;
+    this.objParent["template_specific"]['fieldNamesList'] = fieldNamesList;
+    
   }
 
   initValueToSend() {
