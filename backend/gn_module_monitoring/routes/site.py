@@ -22,6 +22,7 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate,
     sort,
+    query_all_types_site_from_site_id
 )
 
 
@@ -82,6 +83,10 @@ def get_type_site_by_id(id_type_site):
     schema = BibTypeSiteSchema()
     return schema.dump(res)
 
+@blueprint.route("/sites/<int:id_site>/types", methods=["GET"])
+def get_all_types_site_from_site_id(id_site):
+    types_site =  query_all_types_site_from_site_id(id_site)
+    return [res.as_dict() for res in types_site]
 
 @blueprint.route("/sites", methods=["GET"])
 def get_sites():
