@@ -98,13 +98,6 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             }),
           }).pipe(map((data)=> {return data}))
         }),
-        mergeMap((data)=> {
-          return this.siteService.getTypesSiteByIdSite(data.site.id_base_site).pipe(
-            map((types_site:any) => {
-              return {site:data.site, visits: data.visits, types_site:types_site}
-            }
-          ))
-        }),
         mergeMap((data)=>{
           return forkJoin({
             objObsSite: this.siteService.initConfig(),
@@ -117,7 +110,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           return this._objService.currentObjSelected.pipe(
             take(1),
             map((objSelectParent:any) => {
-              return {types_site:data.types_site, site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
+              return {site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
             })
           );
         }),
@@ -127,7 +120,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             of(data),
             this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
               map((objSelectParent) => {
-                return {types_site:data.types_site, site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
+                return {site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
               })
             )
           );
