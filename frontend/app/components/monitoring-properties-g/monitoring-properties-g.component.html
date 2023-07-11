@@ -74,9 +74,9 @@
       attr.aria-labelledby="nav-specific-tab"
     >
     <table class="table table-striped table-sm">
-      <tr *ngFor="let fieldName of specificFieldsNames; let i = index">
+      <tr *ngFor="let fieldName of specificFields | keyvalue; let i = index">
         <td style="width: 50%" class="key text-muted">
-          {{ specificFields[fieldName] }}
+          {{ fieldName.value }}
           <!-- <i
             *ngIf="specificFieldDefinitions[fieldName]"
             class="material-icons small-icon"
@@ -87,7 +87,7 @@
             >help</i> -->
 
         </td>
-        <td class="td-value">{{ selectedObj[fieldName] }}</td>
+        <td class="td-value">{{ selectedObj.data[fieldName.key] }}</td>
       </tr>
     </table>
     </div>
