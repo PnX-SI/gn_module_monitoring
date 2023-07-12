@@ -44,7 +44,18 @@ MonitoringPermissions_dict = {
     'site': "GNM_SITES",
     'sites_group': "GNM_GRP_SITES",
     'visite': "GNM_VISITES",
-    'observation': "GNM_OBSERVATIONS"
+    'observation': "GNM_OBSERVATIONS",
+    'module': "GNM_MODULES"
 }
+
+MonitoringPermissionObjectLabel_dict = {
+        'ALL': 'objects (sites, visites, observations, etc...)',
+        'GNM_SITES': 'sites',
+        'GNM_OBSERVATIONS': 'observations',
+        'GNM_VISITES': 'visites',
+        'GNM_GRP_SITES': 'groupes de sites',
+        'GNM_MODULES': 'modules'
+    }
+
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)

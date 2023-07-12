@@ -76,6 +76,15 @@ def upgrade():
         """
     )
 
+    op.execute("""
+        INSERT INTO gn_permissions.t_objects (code_object, description_object)
+            VALUES
+                ('GNM_MODULES', 'Permissions sur les modules')
+            ON CONFLICT DO NOTHING
+        ;
+    """
+)
+
 
 def downgrade():
     op.execute(

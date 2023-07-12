@@ -156,15 +156,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             'id': self._id,
         }
 
-        if self._object_type == 'module':
-            monitoring_object_dict['cruved'] = get_scopes_by_action(module_code=self._module_code)
-            monitoring_object_dict['cruved_objects'] = {}
-            monitoring_object_dict['cruved_objects']['site'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_SITES")
-            monitoring_object_dict['cruved_objects']['sites_group'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_GRP_SITES")
-            monitoring_object_dict['cruved_objects']['visite'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_VISITES")
-            monitoring_object_dict['cruved_objects']['observation'] = get_scopes_by_action(module_code=self._module_code, object_code="GNM_OBSERVATIONS")
-
-
         properties['id_parent'] = to_int(self.id_parent())
         if(children):
             monitoring_object_dict['children'] = children

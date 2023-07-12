@@ -195,8 +195,8 @@ def cmd_process_available_permission_module(module_code):
     if module_code:
         return process_available_permissions(module_code)
 
-    for module_code in installed_modules():
-        process_available_permissions(module_code)
+    for module in installed_modules():
+        process_available_permissions(module['module_code'])
 
 
 
