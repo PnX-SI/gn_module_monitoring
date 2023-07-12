@@ -36,7 +36,7 @@ def upgrade():
         FROM
             (
                 VALUES
-                    ('MONITORINGS', 'ALL', 'R', False, 'Accéder à monitoring')
+                    ('MONITORINGS', 'ALL', 'R', False, 'Accéder au module')
             ) AS v (module_code, object_code, action_code, scope_filter, label)
         JOIN
             gn_commons.t_modules m ON m.module_code = v.module_code
@@ -75,6 +75,15 @@ def upgrade():
             bp.id_permission = p.id_permission;
         """
     )
+
+    op.execute("""
+        INSERT INTO gn_permissions.t_objects (code_object, description_object)
+            VALUES
+                ('GNM_MODULES', 'Permissions sur les modules')
+            ON CONFLICT DO NOTHING
+        ;
+    """
+)
 
 
 def downgrade():

@@ -50,7 +50,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             return self
 
         except Exception as e:
-            raise GeoNatureError('MONITORING : get_object : {}'.format(e))
+            raise GeoNatureError(f'MONITORING : get_object {self._module_code} {self._object_type} ({field_name}={value}) : {e}')
 
     def process_post_data_properties(self, post_data):
 

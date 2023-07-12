@@ -1,6 +1,27 @@
 CHANGELOG
 =========
 
+0.7.0 (2023-05-23)
+------------------
+
+Nécessite GeoNature version 2.13.0 (ou plus)
+
+**Evolutions**
+
+* Gestion de l'évolution des permissions et création des permissions disponible à l'installation des modules.
+* Récupération des permissions depuis le service `ModulesService` de GeoNature.
+
+**⚠️ Notes de version**
+
+* La variable `permission_objects` est déplacée du fichier `module.json` au fichier `config.json`
+
+* Utiliser la commande pour générer les permissions disponible pour les sous-modules déjà installés
+
+```
+geonature monitorings update_module_available_permissions
+```
+
+
 0.6.0 (2023-05-23)
 ------------------
 

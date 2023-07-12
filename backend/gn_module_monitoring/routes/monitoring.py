@@ -4,49 +4,74 @@
 '''
 
 
+from pathlib import Path
+from werkzeug.exceptions import NotFound
 from flask import request, send_from_directory, url_for, g, current_app
+import datetime as dt
+
+from sqlalchemy.orm import joinedload
+
 from utils_flask_sqla.response import (
     json_resp, json_resp_accept_empty_list
 )
+from utils_flask_sqla.response import to_csv_resp, to_json_resp
+from utils_flask_sqla_geo.generic import GenericTableGeo
+from utils_flask_sqla.generic import serializeQuery
 
-from werkzeug.exceptions import NotFound
 
 from ..blueprint import blueprint
 
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects
+from geonature.core.gn_permissions.models import TObjects, Permission
 
-# from geonature.utils.errors import GeoNatureError
+from geonature.utils.env import DB, ROOT_DIR
+import geonature.utils.filemanager as fm
+
+from gn_module_monitoring import MODULE_CODE
 from ..monitoring.definitions import monitoring_definitions, MonitoringPermissions_dict
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
-from gn_module_monitoring import MODULE_CODE
-from utils_flask_sqla_geo.generic import GenericTableGeo
-from geonature.utils.env import DB, ROOT_DIR
-import datetime as dt
-from utils_flask_sqla.response import to_csv_resp, to_json_resp
-from utils_flask_sqla.generic import serializeQuery
-import geonature.utils.filemanager as fm
-from pathlib import Path
 
 
 
 @blueprint.url_value_preprocessor
 def set_current_module(endpoint, values):
 
-    requested_module = values.get("module_code") or MODULE_CODE
-    g.current_module = TModules.query.filter_by(module_code=requested_module).first_or_404(
-        f"No module with code {requested_module} {endpoint}"
+    # recherche du sous-module courrant
+    requested_module_code = values.get("module_code") or MODULE_CODE
+    current_module = (
+        TModules.query
+            .options(joinedload(TModules.objects))
+            .filter_by(module_code=requested_module_code)
+            .first_or_404(f"No module with code {requested_module_code} {endpoint}")
     )
+    g.current_module = current_module
 
+    # recherche de l'object de permission courrant
     object_type = values.get("object_type")
     if object_type:
-        request_code_object = MonitoringPermissions_dict.get(object_type, 'ALL')
-        g.current_object = TObjects.query.filter_by(code_object=request_code_object).first_or_404(
-            f"No permission object with code {request_code_object} {endpoint}"
+
+        requested_permission_object_code = MonitoringPermissions_dict.get(object_type)
+
+        if requested_permission_object_code is None:
+            # error ?
+            return
+
+        # Test si l'object de permission existe
+        requested_permission_object = (
+            TObjects.query
+            .filter_by(code_object=requested_permission_object_code)
+            .first_or_404(f"No permission object with code {requested_permission_object_code} {endpoint}")
         )
+
+        # si l'object de permission est associé au module => il devient l'objet courant 
+        # - sinon se sera 'ALL' par defaut
+        for module_perm_object in current_module.objects:
+            if module_perm_object == requested_permission_object:
+                g.current_object = requested_permission_object
+                return
 
 @blueprint.route('/object/<string:module_code>/<string:object_type>/<int:id>', methods=['GET'])
 @blueprint.route(

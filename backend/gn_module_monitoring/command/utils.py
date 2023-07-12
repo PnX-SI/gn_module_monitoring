@@ -5,7 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB, BACKEND_DIR
-from geonature.core.gn_permissions.models import TObjects
+from geonature.core.gn_permissions.models import PermObject
+from geonature.core.gn_commons.models import TModules
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
@@ -15,8 +16,9 @@ from ..config.utils import (
     SUB_MODULE_CONFIG_DIR
 )
 
-from ..modules.repositories import get_module, get_source_by_code, get_modules
+from ..config.repositories import get_config
 
+from ..modules.repositories import get_module, get_source_by_code, get_modules
 
 '''
 utils.py
@@ -34,7 +36,8 @@ def process_for_all_module(process_func):
         process_func(module.module_code)
     return
 
-
+def getMonitoringPermissionObjectLabel_dict():
+    return __import__('gn_module_monitoring').monitoring.definitions.MonitoringPermissionObjectLabel_dict
 
 def process_export_csv(module_code=None):
     '''
@@ -71,41 +74,80 @@ def process_export_csv(module_code=None):
                 print('{} - export csv erreur dans le script {} : {}'.format(module_code, f ,e))
 
 
-def insert_permission_object(id_module, permissions):
-    """ Insertion de l'association permission object
+def process_available_permissions(module_code):
+    try:
+        module = get_module("module_code", module_code)
+    except Exception:
+        print("le module n'existe pas")
+        return
 
-        Args:
-            id_module ([type]): id du module
-            permissions ([type]): liste des permissions à associer au module
+    config = get_config(module_code, force=True)
+    if not config:
+        print(f"Il y a un problème de configuration pour le module {module_code}")
+        return
 
-        Raises:
-            e: [description]
+    insert_module_available_permissions(module_code, "ALL")
+
+    # Insert permission object
+    for permission_object_code in config.get("permission_objects", []):
+        insert_module_available_permissions(module_code, permission_object_code)
+
+
+def insert_module_available_permissions(module_code, perm_object_code):
+    print(f'process permissions for (module_code, perm_object)= ({module_code},{perm_object_code})')
+
+    object_label = getMonitoringPermissionObjectLabel_dict().get(perm_object_code)
+
+    if not object_label:
+        print(f"L'object {perm_object_code} n'est pas traité")
+
+    try:
+        module = TModules.query.filter_by(module_code=module_code).one()
+    except NoResultFound:
+        print("Le module {module_code} n'est pas présent")
+        return
+
+    try:
+        perm_object = PermObject.query.filter_by(code_object=perm_object_code).one()
+    except NoResultFound:
+        print("L'object de permission {module_code} n'est pas présent")
+        return
+
+    txt_cor_object_module = f"""
+        INSERT INTO gn_permissions.cor_object_module(
+            id_module,
+            id_object
+        )
+        VALUES({module.id_module}, {perm_object.id_object})
+        ON CONFLICT DO NOTHING
     """
-    for perm in permissions:
-        print(f"Insert perm {perm}")
-        # load object
-        try:
-            object = DB.session.query(TObjects).filter(TObjects.code_object == perm).one()
-            # save
-            txt = ("""
-                    INSERT INTO gn_permissions.cor_object_module (id_module, id_object)
-                    VALUES ({id_module}, {id_object})
-                """.format(
-                    id_module=id_module,
-                    id_object=object.id_object
-                )
-            )
-            try:
-                DB.engine.execution_options(autocommit=True).execute(txt)
-                print(f"    Ok")
-            except IntegrityError:
-                DB.session.rollback()
-                print(f"    Impossible d'insérer la permission {perm} pour des raisons d'intégrités")
-        except NoResultFound as e:
-            print(f"    Permission {perm} does'nt exists")
-        except Exception as e:
-            print(f"    Impossible d'insérer la permission {perm} :{e}")
+    DB.engine.execution_options(autocommit=True).execute(txt_cor_object_module)
 
+    txt_perm_available = (f"""
+        INSERT INTO gn_permissions.t_permissions_available (
+                id_module,
+                id_object,
+                id_action,
+                label,
+                scope_filter)
+        SELECT
+            {module.id_module},
+            {perm_object.id_object},
+            a.id_action,
+            v.label,
+            true
+        FROM
+            ( VALUES
+                ('C', 'Créer des {object_label}'),
+                ('R', 'Voir les {object_label}'),
+                ('U', 'Modifier les {object_label}'),
+                ('D', 'Supprimer des {object_label}'),
+                ('E', 'Exporter les {object_label}')
+            ) AS v (action_code, label)
+        JOIN gn_permissions.bib_actions a ON v.action_code = a.code_action
+        ON CONFLICT DO NOTHING
+        """)
+    DB.engine.execution_options(autocommit=True).execute(txt_perm_available)
 
 def remove_monitoring_module(module_code):
     try:
@@ -116,20 +158,18 @@ def remove_monitoring_module(module_code):
 
     # remove module in db
     try:
-        # HACK pour le moment suprresion avec un sql direct
-        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
-        txt = ("""
-                    DELETE FROM gn_commons.t_modules WHERE id_module ={}
-                """.format(
-                    module.id_module
-                )
-        )
+        # suppression des permissions disponibles pour ce module
+        txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
+        DB.engine.execution_options(autocommit=True).execute(txt)
 
+        # HACK pour le moment suppresion avec un sql direct
+        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
+        txt = f"""DELETE FROM gn_commons.t_modules WHERE id_module ={module.id_module}"""
         DB.engine.execution_options(autocommit=True).execute(txt)
     except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
         return
-    except Exception:
+    except Exception as e:
         print("Impossible de supprimer le module")
         raise(e)
 
@@ -141,7 +181,7 @@ def remove_monitoring_module(module_code):
         DB.session.commit()
     except Exception as e:
         print("Impossible de supprimer la source {}".format(str(e)))
-        return
+        # return
     # run specific sql TODO
     # remove nomenclature TODO
     return
