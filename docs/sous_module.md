@@ -82,6 +82,15 @@ Dans le fichier `config.json` :
     }
 ```
 
+* `permission_objects`: liste des objets permissions à associer au
+    module. Elle peut contenir les valeurs suivantes
+    `["GNM_MODULES", "GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]`
+
+    * Par exemple, pour les sites, par défaut l'api va vérifier les droits pour l'objet de permission `ALL` associé au sous-module.
+
+    * Si des permission sont définie pour ce module et l'object `GNM_SITES`, l'api des sites ira vérifier les droits en rapport avec `GNM_SITES`.
+
+
 # Configuration des objets
 
 Dans le fichier `module.json`, deux variables doivent obligatoirement
@@ -93,10 +102,6 @@ Dans le fichier `module.json`, deux variables doivent obligatoirement
 
 Une variable optionnelle permet de configurer les objets faisant
 l'objet de permission:
-
-* `permission_objects`: liste des objets permissions à associer au
-    module. Elle peut contenir les valeurs suivantes
-    `["GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]`
 
 Dans le cas général (`module.json`, `site.json`, `visit.json`,
 `observation.json`) on peut redéfinir au besoin certaines variables.
