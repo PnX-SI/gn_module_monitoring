@@ -16,7 +16,7 @@
               class="ml-2 mb-2"
               (click)="child0.config['display_filter'] = !child0.config['display_filter']"
               matTooltip="{{child0.config['display_filter'] ? 'Cacher' : 'Afficher'}} les filtres"
-              *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).R >= child0.cruved('R')"
+              *ngIf="obj.moduleCode && currentUser.moduleCruved[obj.objectType].R >= child0.cruved('R')"
               >  
               <mat-icon>filter_alt</mat-icon>  
             </button
@@ -27,7 +27,7 @@
               color="primary"
               class="btn btn-success float-right"
               (click)="obj.navigateToAddChildren(child0.objectType)"
-              *ngIf="obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')"
+              *ngIf="obj.moduleCode && currentUser.moduleCruved[obj.objectType].C >= child0.cruved('C')"
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label_art_undef_new"] || "") }}</button
             >

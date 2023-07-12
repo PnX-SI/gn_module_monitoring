@@ -56,7 +56,7 @@ export class MonitoringObjectComponent implements OnInit {
     const container = document.getElementById("object");
     const height = this._commonService.calcCardContentHeight();
     container.style.height = height - 40 + "px";
-    this.heightMap = height - 80 + "px";
+    setTimeout(() => {this.heightMap = height - 80 + "px";});
   }
 
   ngOnInit() {
@@ -66,11 +66,6 @@ export class MonitoringObjectComponent implements OnInit {
     if (elements.length >= 1) {
       elements[0].remove();
     }
-    this.currentUser = this._auth.getCurrentUser();
-
-    this.currentUser["cruved"] = {};
-    this.currentUser["cruved_objects"] = {};
-
     of(true)
       .pipe(
         mergeMap(() => {
@@ -81,6 +76,7 @@ export class MonitoringObjectComponent implements OnInit {
         }),
 
         mergeMap(() => {
+          this.initCurrentUser();
           return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache
         }),
 
@@ -110,6 +106,11 @@ export class MonitoringObjectComponent implements OnInit {
       });
   }
 
+  initCurrentUser() {
+    this.currentUser = this._auth.getCurrentUser();
+    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.obj.moduleCode);
+  }
+
   getModuleSet() {
     // Verifie si le module est configué
     this.module.get(0).subscribe(() => {
@@ -132,8 +133,6 @@ export class MonitoringObjectComponent implements OnInit {
   initSites() {
     return this.module.get(1).subscribe(() => {
       // TODO liste indépendantes carte et listes
-      this.currentUser["cruved"] = this.module.userCruved;
-      this.currentUser["cruved_object"] = this.module.userCruvedObject;
 
       // affichage des groupes de site uniquement si l'objet est un module
       if (

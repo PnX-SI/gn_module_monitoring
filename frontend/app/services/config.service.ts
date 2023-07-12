@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
+
 @Injectable()
 export class ConfigService {
   private _config;
@@ -64,6 +65,29 @@ export class ConfigService {
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;
+  }
+
+  moduleCruved(module_code) {
+    const permObjectDict = {
+      site: "GNM_SITES",
+      sites_group: "GNM_GRP_SITES",
+      visite: "GNM_VISITES",
+      observation: "GNM_OBSERVATIONS",
+      module: "GNM_MODULES",
+    }
+
+    const module = this._moduleService.getModule(module_code)
+    const moduleCruved ={}
+
+
+    for (const [objectCode, permObjectCode] of Object.entries(permObjectDict) ) {
+      moduleCruved[objectCode] = (
+        module.objects.find(o => o.code_object == permObjectDict[objectCode])
+        || module.cruved
+      )
+    }
+
+    return moduleCruved
   }
 
   moduleMonitoringCode() {
