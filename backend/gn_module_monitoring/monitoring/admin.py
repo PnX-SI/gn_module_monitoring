@@ -1,4 +1,6 @@
+from flask import json
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.form import fields
 from geonature.core.admin.admin import CruvedProtectedMixin
 from geonature.utils.env import DB
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
@@ -28,6 +30,16 @@ class Unique:
             getattr(self.model, self.field) == getattr(field.data, self.compare_field)
         ).first():
             raise ValidationError(self.message)
+
+
+class JSONField(fields.JSONField):
+    def _value(self):
+        if self.raw_data:
+            return self.raw_data[0]
+        elif self.data:
+            return json.dumps(self.data, ensure_ascii=False, indent=2)
+        else:
+            return ""
 
 
 class BibTypeSiteView(CruvedProtectedMixin, ModelView):
@@ -70,7 +82,7 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
             validators=[Unique(BibTypeSite, "id_nomenclature_type_site", "id_nomenclature")],
         )
     )
-
+    form_overrides = {"config": JSONField}
     column_list = ("nomenclature", "config")
     column_formatters = dict(nomenclature=list_label_nomenclature_formatter, config=json_formatter)
     form_excluded_columns = "sites"
