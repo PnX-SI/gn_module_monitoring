@@ -92,7 +92,6 @@ export class BtnSelectComponent implements OnInit {
     }
     this.sendobject.emit(this.configObjAdded);
     this.listOpNeeded.setValue(this.listOptionChosen)
-    this._formService.changeExtraFormControl(this.listOpNeeded,"listOptBtnSelect")
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
@@ -103,7 +102,6 @@ export class BtnSelectComponent implements OnInit {
     this.optionInput.nativeElement.value = '';
     this.myControl.setValue(null);
     this.listOpNeeded.setValue(this.listOptionChosen)
-    this._formService.changeExtraFormControl(this.listOpNeeded,"listOptBtnSelect")
   }
 
   filterOnRequest(val: string, keyToFilt: string): Observable<any> {
