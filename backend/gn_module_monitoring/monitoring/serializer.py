@@ -12,23 +12,15 @@ from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
-    
-    
     def get_parent(self):
         parent_type = self.parent_type()
         if not parent_type:
             return
 
         if not self._parent:
-            self._parent = (
-                monitoring_definitions
-                .monitoring_object_instance(
-                    self._module_code,
-                    parent_type,
-                    self.id_parent()
-                )
-                .get()
-            )
+            self._parent = monitoring_definitions.monitoring_object_instance(
+                self._module_code, parent_type, self.id_parent()
+            ).get()
 
         return self._parent
 
@@ -57,8 +49,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
     def unflatten_specific_properties(self, properties):
         data = {}
-        for attribut_name in self.config_schema('specific'):
-            if attribut_name != 'html': 
+        for attribut_name, attribut_value in self.config_schema("specific").items():
+            if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
                 val = properties.pop(attribut_name)
                 data[attribut_name] = val
 
@@ -66,7 +58,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             properties["data"] = data
 
     def serialize_children(self, depth):
-        children_types = self.config_param('children_types')
+        children_types = self.config_param("children_types")
 
         if not children_types:
             return
@@ -83,9 +75,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             children_of_type = []
 
             for child_model in getattr(self._model, relation_name):
-                child = (
-                    monitoring_definitions
-                    .monitoring_object_instance(self._module_code, children_type, model=child_model)
+                child = monitoring_definitions.monitoring_object_instance(
+                    self._module_code, children_type, model=child_model
                 )
                 children_of_type.append(child.serialize(depth))
 
@@ -176,12 +167,15 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         self.unflatten_specific_properties(properties)
 
         # pretraitement (pour t_base_site et cor_site_module)
-        self.preprocess_data(properties)
+        if "dataComplement" in post_data:
+            self.preprocess_data(properties, post_data["dataComplement"])
+        else:
+            self.preprocess_data(properties)
 
         # ajout des données en base
-        if hasattr(self._model, 'from_geofeature'):
+        if hasattr(self._model, "from_geofeature"):
             for key in list(post_data):
-                if key not in ("properties","geometry","type"):
+                if key not in ("properties", "geometry", "type"):
                     post_data.pop(key)
             self._model.from_geofeature(post_data, True)
         else:
