@@ -2,26 +2,27 @@
 <!-- 
   <pnx-monitoring-properties-g [newParentType]="objParent" [objectType]="objectType" *ngIf="!bEdit" [(bEdit)]="bEdit" [selectedObj]="site">
   </pnx-monitoring-properties-g> -->
-
-<btn-select
-  *ngIf="bEdit"
-  (sendobject)="onSendConfig($event)"
-  [titleBtn]="titleBtn"
-  [placeholderText]="placeholderText"
-  [callBackFunction]="funcToFilt"
-  [initValueFunction]="funcInitValues"
-  [paramToFilt]="paramToFilt"
-  [isInitialValues]="isInitialValues"
-></btn-select>
 <pnx-monitoring-form-g
-  [objForm]="form"
+  #monitoringFormComponentG
   [obj]="site"
   (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
-></pnx-monitoring-form-g>
+>
+<btn-select
+add-select
+*ngIf="bEdit"
+(sendobject)="onSendConfig($event)"
+[titleBtn]="titleBtn"
+[placeholderText]="placeholderText"
+[callBackFunction]="funcToFilt"
+[initValueFunction]="funcInitValues"
+[paramToFilt]="paramToFilt"
+[isInitialValues]="isInitialValues"
+></btn-select>
+</pnx-monitoring-form-g>
 <pnx-monitoring-properties-g
   *ngIf="!bEdit"
   [(bEdit)]="bEdit"
