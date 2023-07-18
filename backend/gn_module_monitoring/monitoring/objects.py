@@ -3,6 +3,7 @@ from .geom import MonitoringObjectGeom
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
 
+
 class MonitoringModule(MonitoringObject):
     def get(self, param_value=None, param_name=None, depth=0):
         """
@@ -24,11 +25,27 @@ class MonitoringSite(MonitoringObjectGeom):
     avec la méthode from_dict
     """
 
-    def preprocess_data(self, data):
-        if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
-            data["id_nomenclature_type_site"] = data["types_site"][0]
-        elif "data" in data and data["data"]["id_nomenclature_type_site"]:
-            data["id_nomenclature_type_site"] = data["data"]["id_nomenclature_type_site"]
+    def preprocess_data(self, properties, data=[]):
+        if len(data) != 0:
+            if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
+                properties["id_nomenclature_type_site"] = data["types_site"][0]
+                properties["types_site"] = data["types_site"]
+
+            elif "data" in data and data["data"]["id_nomenclature_type_site"]:
+                properties["id_nomenclature_type_site"] = data["data"]["id_nomenclature_type_site"]
+            else:
+                properties["id_nomenclature_type_site"] = data["types_site"][0][
+                    "id_nomenclature_type_site"
+                ]
         else:
-            data["id_nomenclature_type_site"] = data["types_site"][0]["id_nomenclature_type_site"]
+            if len(properties.get("types_site", [])) != 0:
+                if hasattr(self._model, "types_site"):
+                    properties["types_site"] = []
+                    # TODO: performance?
+                    # for type in properties['types_site']:
+                    #     properties['types_site'].append(types_site)
+                    types_site = [
+                        typ.nomenclature.id_nomenclature for typ in self._model.types_site
+                    ]
+                    properties["types_site"] = types_site
             # TODO: A enlever une fois qu'on aura enelever le champ "id_nomenclature_type_site" du model et de la bdd
