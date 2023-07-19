@@ -19,7 +19,7 @@
 </pnx-modal-msg>
 
 <div>
-  <div id="properties-form" class="cadre" *ngIf="obj.bIsInitialized && (objFormsDefinition?.static || objFormsDefinition?.dynamic)">
+  <div id="properties-form" class="cadre" *ngIf="obj && obj.bIsInitialized && (objFormsDefinition?.static || objFormsDefinition?.dynamic)">
     <!-- TODO: voir pour intiialisation si nécessaire à remettre dans la div du dessus -->
     <!-- *ngIf="obj.bIsInitialized && objFormsDefinition" -->
 
