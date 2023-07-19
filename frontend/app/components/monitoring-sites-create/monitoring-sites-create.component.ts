@@ -10,7 +10,6 @@ import { SitesGroupService, SitesService } from '../../services/api-geom.service
 import { FormService } from '../../services/form.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
-import { MonitoringFormComponentG } from '../monitoring-form-g/monitoring-form.component-g';
 import { IPaginated } from '../../interfaces/page';
 import { IBreadCrumb } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
@@ -29,8 +28,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   placeholderText: string = 'Sélectionnez les types de site';
   id_sites_group: number;
   types_site: string[];
-  @ViewChild('subscritionObjConfig')
-  monitoringFormComponentG: MonitoringFormComponentG;
+  config: JsonData;
   objToCreate: IobjObs<ObjDataType>;
   urlRelative: string;
 
@@ -87,8 +85,9 @@ export class MonitoringSitesCreateComponent implements OnInit {
   }
 
   onSendConfig(config: JsonData): void {
-    config = this.addTypeSiteListIds(config);
-    this.monitoringFormComponentG.getConfigFromBtnSelect(config);
+    this.config = this.addTypeSiteListIds(config);
+    this.createFormSpec();
+
   }
 
   addTypeSiteListIds(config: JsonData): JsonData {
@@ -101,6 +100,10 @@ export class MonitoringSitesCreateComponent implements OnInit {
       }
     }
     return config;
+  }
+
+  createFormSpec() {
+    this._formService.createSpecificForm(this.config)
   }
 
   updateBreadCrumb(sitesGroup) {
