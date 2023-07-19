@@ -40,6 +40,7 @@
       </mat-slide-toggle>
     </span>
 
+    <ng-container *ngIf="objForm && objForm.static">
     <form [formGroup]="objForm.static">
       <ng-content add-select></ng-content>
       <!-- TODO: Gérer la saisie de géometrie -->
@@ -65,7 +66,7 @@
             (change)="onObjFormValueChange($event)"
           ></pnx-dynamic-form-generator>
         </ng-container>
-        <ng-container *ngIf="isExtraForm">
+        <ng-container *ngIf="objForm && objForm.dynamic">
           <pnx-dynamic-form-generator
           class="obj-form"
           #dynamicForm
@@ -125,5 +126,6 @@
       </div>
       <div class="btn-height"></div>
     </form>
+  </ng-container>
   </div>
 </div>
