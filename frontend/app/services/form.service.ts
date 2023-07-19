@@ -16,8 +16,12 @@ export class FormService {
   frmCtrl: FormControl = new FormControl(null);
   frmCtrlName: string = '';
   private dataSub = new BehaviorSubject<object>(this.data);
+  private dataSpec = new BehaviorSubject<object>(this.data);
+  private dataSpecToCreate = new BehaviorSubject<object>(this.data);
   private formCtrl = new BehaviorSubject<IExtraForm>({frmCtrl : this.frmCtrl,frmName:this.frmCtrlName});
   currentData = this.dataSub.asObservable();
+  currentDataSpec = this.dataSpec.asObservable();
+  currentDataSpecToCreate = this.dataSpecToCreate.asObservable();
   currentExtraFormCtrl = this.formCtrl.asObservable();
   properties: JsonData = {};
   moduleCode: string;
@@ -48,6 +52,15 @@ export class FormService {
     newDat.moduleCode = moduleCode;
     newDat.urlRelative = urlRelative;
     this.dataSub.next(newDat);
+  }
+
+  updateSpecificForm(newObj:JsonData, newPropSpec: JsonData){
+    const newObjandSpec = {'newObj':newObj,'propSpec': newPropSpec}
+    this.dataSpec.next(newObjandSpec)
+  }
+
+  createSpecificForm(newPropSpec: JsonData){
+    this.dataSpecToCreate.next(newPropSpec)
   }
 
   changeExtraFormControl(formCtrl:FormControl,formCtrlName:string){
