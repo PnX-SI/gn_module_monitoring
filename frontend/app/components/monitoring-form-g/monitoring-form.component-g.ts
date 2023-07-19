@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { tap, mergeMap, map, take } from 'rxjs/operators';
+import { tap, mergeMap, map, take, switchMap, concatMap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -11,7 +11,9 @@ import { ApiGeomService } from '../../services/api-geom.service';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { FormService } from '../../services/form.service';
 import { IExtraForm } from '../../interfaces/object';
-import { forkJoin } from 'rxjs';
+import { JsonData } from '../../types/jsondata';
+import { Observable, of } from 'rxjs';
+
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -21,7 +23,13 @@ import { forkJoin } from 'rxjs';
 export class MonitoringFormComponentG implements OnInit {
   @Input() currentUser;
 
-  @Input() objForm: FormGroup;
+  @Input() objForm: {
+    static:FormGroup,
+    dynamic?:FormGroup
+  } 
+  // @Input() objForm: FormGroup;
+  objFormStatic: FormGroup;
+  objFormDynamic: FormGroup;
 
   // @Input() obj: any;
   @Output() objChanged = new EventEmitter<Object>();
@@ -36,15 +44,23 @@ export class MonitoringFormComponentG implements OnInit {
   @Input() apiService: ApiGeomService;
   @Input() isExtraForm: boolean = false;
 
-  extraForm: IExtraForm;
-  geomCtrl: {frmCtrl :FormControl,frmName:string}
-  hideForm: boolean = false;
+  extraFormCtrl: IExtraForm;
+  geomCtrl: { frmCtrl: FormControl; frmName: string };
   dataForm: IDataForm;
   searchSite = '';
 
-  obj: any;
-  objFormsDefinition;
+  isExtraControlChange: boolean;
+  isUndefinedChange: boolean;
+  obj: JsonData;
+  objFormsDefinition :{
+    static:JsonData[],
+    dynamic?:JsonData[]
+  } ;
 
+  objFormGroups: FormGroup;
+  prop:JsonData;
+  specificForm$:Observable<any>;
+  createSpecificForm$:Observable<JsonData>;
   meta: {};
 
   public bSaveSpinner = false;
@@ -54,10 +70,7 @@ export class MonitoringFormComponentG implements OnInit {
   public bChainInput = false;
   public bAddChildren = false;
   public chainShow = [];
-
   public queryParams = {};
-
-  joinObs: any;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -70,56 +83,78 @@ export class MonitoringFormComponentG implements OnInit {
   ) {}
 
   ngOnInit() {
+
+    if (!this.objFormStatic) {
+      this.objFormStatic= this._formBuilder.group({});
+    }
+    if (!this.objFormDynamic && this.isExtraForm) {
+      this.objFormDynamic= this._formBuilder.group({});
+    }
+    this.isExtraForm ? this.objForm = {static : this.objFormStatic, dynamic: this.objFormDynamic}: this.objForm = {static :this.objFormStatic}
+    this.isExtraForm ? this.objFormsDefinition = {static : [{}], dynamic: [{}]} : this.objFormsDefinition = {static : [{}]}
+
+ 
+    this.specificForm$ = this._formService.currentDataSpec.pipe(
+      mergeMap((newObj) => {
+        return this.apiService.getConfig().pipe(
+          map((prop) => {
+            this.prop = prop;
+            return { newObj, prop: prop };
+          })
+        );
+      }))
+
+      this.createSpecificForm$ = this._formService.currentDataSpecToCreate.pipe(
+        mergeMap((specConfig) => {
+          return this.apiService.getConfig().pipe(
+            map((prop) => {
+              this.prop = prop;
+              return { specConfig:specConfig, prop: prop };
+            })
+          );
+        }))
+
     this._formService.currentData
       .pipe(
         tap((data) => {
           this.obj = data;
-          this.obj.bIsInitialized = true;
           this.obj.id = this.obj[this.obj.pk];
         }),
-        mergeMap((data: any) => this._configService.init(data.moduleCode)),
-        mergeMap(() => {
-          return this._formService.currentExtraFormCtrl.pipe(
-            map((frmCtrl) => {
-              return frmCtrl;
-            })
-          );
-        }),
-        mergeMap((frmCtrl) => {
+        concatMap((data: any) => this._configService.init(data.moduleCode)),
+        concatMap((data) => {
           return this.apiService.getConfig().pipe(
             take(1),
             map((prop) => {
-              return { frmCtrl, prop: prop };
+              this.prop = prop;
+              return {prop: prop };
             })
           );
-        })
+        }),
+        switchMap( ({prop}) => {
+          if(this.isExtraForm){
+            return this._formService.currentExtraFormCtrl.pipe(
+              map(frmCtrl => {return {prop:prop,frmCtrl:frmCtrl} } )
+            )
+          } else{
+            return of({prop:prop})
+          }
+        }),
       )
       .subscribe((data) => {
-      
         this.initObj(data.prop);
-        this.isExtraForm ? this.addExtraFormCtrl(data.frmCtrl) : null;
-        this.isExtraForm ? this.checkValidExtraFormCtrl() : null;
-
-        // FIXME: Erreur obj.config  renvoyé en erreur lors du premier chargement
+     
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
           this.obj.objectType
         );
+        const schema = this._configService.schema(this.obj.moduleCode, this.obj.objectType);
+        this.obj[this.obj.moduleCode] = schema;
+        this.obj.specific == undefined ? (this.obj.specific = {}) : null;
+        this.obj.bIsInitialized = true;
+
+
         this.queryParams = this._route.snapshot.queryParams || {};
         this.bChainInput = this._configService.frontendParams().bChainInput;
-
-        const schema = this._configService.schema(this.obj.moduleCode, this.obj.objectType);
-
-        this.obj.specific == undefined ? (this.obj.specific = {}) : null;
-        if (Object.keys(this.obj.specific).length !== 0) {
-          Object.assign(schema, this.obj.specific);
-        }
-
-
-        this.obj[this.obj.moduleCode] = schema;
-
-
-
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
         this.meta = {
@@ -130,13 +165,18 @@ export class MonitoringFormComponentG implements OnInit {
           parents: this.obj.parents,
         };
 
-        this.objFormsDefinition = this._dynformService
-          .formDefinitionsdictToArray(schema, this.meta)
+      
+        Object.keys(this.objFormsDefinition).forEach((key)=>{
+          let configType : string
+          key == 'static'  ? configType ='generic' : configType ='specific';
+          this.objFormsDefinition[key]=this._dynformService
+          .formDefinitionsdictToArray(this.obj[configType], this.meta)
           .filter((formDef) => formDef.type_widget)
           .sort((a, b) => {
             // medias à la fin
             return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
           });
+        }) 
 
         // display_form pour customiser l'ordre dans le formulaire
         // les éléments de display form sont placé en haut dans l'ordre du tableau
@@ -151,34 +191,41 @@ export class MonitoringFormComponentG implements OnInit {
         ];
         if (displayProperties && displayProperties.length) {
           displayProperties.reverse();
-          this.objFormsDefinition.sort((a, b) => {
+          Object.keys(this.objFormsDefinition).forEach((key)=>{
+            this.objFormsDefinition[key].sort((a, b) => {
             let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
             let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
             return indexB - indexA;
           });
-        }
-
-        // champs patch pour simuler un changement de valeur et déclencher le recalcul des propriété
-        // par exemple quand bChainInput change
-        this.objForm.addControl('patch_update', this._formBuilder.control(0));
-                // set geometry
+        })
+      }
+        this.objForm.static.addControl('patch_update', this._formBuilder.control(0));
+        
+        this.isExtraForm ?  this.addExtraFormCtrl(data['frmCtrl']) : null;
+        // set geometry
         if (this.obj.config['geometry_type']) {
-          let frmCtrlGeom ={frmCtrl:this._formBuilder.control('', Validators.required),frmName:'geometry'}
-          this.addGeomFormCtrl(frmCtrlGeom)
-          this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, obj: this.obj})
+          let frmCtrlGeom = {
+            frmCtrl: this._formBuilder.control('', Validators.required),
+            frmName: 'geometry',
+          };
+          this.addGeomFormCtrl(frmCtrlGeom);
+          this._formService.changeFormMapObj({ frmGp: this.objForm.static, bEdit: true, obj: this.obj });
         }
-
         this.initForm();
+        this.isExtraForm && this.bEdit ? this.updateSpecificForm() : null;
+        this.isExtraForm && !this.bEdit ? this.createSpecificForm() : null;
       });
   }
 
   /** pour réutiliser des paramètres déjà saisis */
   keepDefinitions() {
-    return this.objFormsDefinition.filter((def) =>
-      this._configService
-        .configModuleObjectParam(this.obj.moduleCode, this.obj.objectType, 'keep')
-        .includes(def.attribut_name)
-    );
+    return         Object.keys(this.objFormsDefinition).forEach((key)=>{
+          this.objFormsDefinition[key].filter((def) =>
+          this._configService
+            .configModuleObjectParam(this.obj.moduleCode, this.obj.objectType, 'keep')
+            .includes(def.attribut_name)
+        );
+    })
   }
 
   setQueryParams() {
@@ -194,19 +241,47 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   /** initialise le formulaire quand le formulaire est prêt ou l'object est prêt */
+  
   initForm() {
-    if (!(this.objForm && this.obj.bIsInitialized)) {
+    if (!(this.objForm.static && this.obj.bIsInitialized)) {
       return;
     }
 
     this.setQueryParams();
-    // pour donner la valeur de l'objet au formulaire
+
     this._formService.formValues(this.obj).subscribe((formValue) => {
-      this.objForm.patchValue(formValue);
-      const {html, ...propertiesValues} = formValue
+      const allKeysForm = Object.keys(formValue);
+      const allKeysStatic = Object.keys(this.obj.config.generic);
+      // const allKeysSpecific = Object.keys(this.obj.specific);
+      let formValueStatic = {};
+      for (let key of allKeysForm) {
+        if (allKeysStatic.includes(key)) {
+          formValueStatic[key] = formValue[key];
+        }
+      }
+      this.objForm.static.patchValue(formValueStatic);
       this.setDefaultFormValue();
-      this.dataForm = propertiesValues;
-      // reset geom ?
+    });
+  }
+
+  initValueFormDynamic() {
+    if (!(this.objForm.dynamic && this.obj.bIsInitialized)) {
+      return;
+    }
+
+    this.setQueryParams();
+    this._formService.formValues(this.obj).subscribe((formValue) => {
+      const allKeysForm = Object.keys(formValue);
+      const allKeysSpecific = Object.keys(this.obj.specific);
+      let formValueSpecific = {};
+      for (let key of allKeysForm) {
+        if (allKeysSpecific.includes(key) ||  key == 'types_site') {
+          formValueSpecific[key] = formValue[key];
+        }
+      }
+      this.objForm.dynamic.patchValue(formValueSpecific);
+      this.setDefaultFormValue();
+      // this.dataForm = propertiesValues;
     });
   }
 
@@ -274,8 +349,10 @@ export class MonitoringFormComponentG implements OnInit {
     }
 
     this.objChanged.emit(this.obj);
-    this.objForm.patchValue({ geometry: null });
+    this.objForm.static.patchValue({ geometry: null });
+    this.objForm.dynamic?.patchValue({});
     this.initForm();
+    this.isExtraForm ? this.initValueFormDynamic():null;
     // };
   }
 
@@ -285,7 +362,7 @@ export class MonitoringFormComponentG implements OnInit {
    * date => today
    */
   setDefaultFormValue() {
-    const value = this.objForm.value;
+    const value = this.objForm.static.value;
     const date = new Date();
     const defaultValue = {
       // id_digitiser: value["id_digitiser"] || this.currentUser.id_role,
@@ -296,7 +373,7 @@ export class MonitoringFormComponentG implements OnInit {
         day: date.getUTCDate(),
       },
     };
-    this.objForm.patchValue(defaultValue);
+    this.objForm.static.patchValue(defaultValue);
   }
 
   /**
@@ -338,25 +415,21 @@ export class MonitoringFormComponentG implements OnInit {
   navigateToParent() {
     // FIXME:: voir erreur de redirection (comparaison avec branche où ça fonctionnait ?)
     this.bEditChange.emit(false); // patch bug navigation
-    if(!this.bEdit){
+    if (!this.bEdit) {
       this._router.navigate(['..'], { relativeTo: this._route });
-      
+    }
+  }
+
+  navigateToParentAfterDelete() {
+    this.bEditChange.emit(false); // patch bug navigation
+    if (this.obj.objectType == 'site') {
+      this._router.navigate(['monitorings', 'sites_group', this._route.parent.snapshot.params.id]);
+    }
+    else {
+      this._router.navigate(['..'], { relativeTo: this._route });
     }
 
-
   }
-
- navigateToParentAfterDelete(){
-  this.bEditChange.emit(false); // patch bug navigation
-  if(this.obj.objectType == "site"){
-    this._router.navigate(['monitorings','sites_group',this._route.parent.snapshot.params.id]);
-  } else {
-    this._router.navigate(['..'], { relativeTo: this._route });
-  }
-
- };
-
-
 
   msgToaster(action) {
     // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
@@ -423,7 +496,7 @@ export class MonitoringFormComponentG implements OnInit {
     // : this.obj.post(this.objForm.value);
     this.apiService.delete(this.obj.id).subscribe((del) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
-      this.objChanged.emit(this.obj);
+      this.objChanged.emit('deleted');
       setTimeout(() => {
         this.navigateToParentAfterDelete();
       }, 100);
@@ -433,29 +506,48 @@ export class MonitoringFormComponentG implements OnInit {
   onObjFormValueChange(event) {
     // let {id_module,medias, ...rest} = this.objForm.value;
     // this.dataForm = rest
-    this.dataForm = this.objForm.value;
+    this.dataForm = {...this.objForm.static.value,...this.objForm.dynamic?.value};
     const change = this._configService.change(this.obj.moduleCode, this.obj.objectType);
     // if('geometry' in this.objForm.controls){
     //   this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, obj: this.obj})
     // }
-    
+
     if (!change) {
       return;
     }
     setTimeout(() => {
-      change({ objForm: this.objForm, meta: this.meta });
+      change({ objForm: this.objForm.static, meta: this.meta });
+    }, 100);
+  }
+
+  onObjFormDynamicValueChange(event) {
+    // let {id_module,medias, ...rest} = this.objForm.value;
+    // this.dataForm = rest
+    this.dataForm = {...this.objForm.static.value,...this.objForm.dynamic.value};
+    const change = this._configService.change(this.obj.moduleCode, this.obj.objectType);
+    // if('geometry' in this.objForm.controls){
+    //   this._formService.changeFormMapObj({frmGp:this.objForm,bEdit:true, obj: this.obj})
+    // }
+    if (this.extraFormCtrl && !this.extraFormCtrl.frmCtrl.valid){
+      this.extraFormCtrl.frmCtrl.markAllAsTouched();
+    }
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({ objForm: this.objForm.static, meta: this.meta });
     }, 100);
   }
 
   procesPatchUpdateForm() {
-    this.objForm.patchValue({
-      patch_update: this.objForm.value.patch_update + 1,
-    });
+    Object.keys(this.objForm).forEach(form => this.objForm[form].patchValue({
+      patch_update: this.objForm[form].value.patch_update + 1,
+    }));
   }
 
   /** bChainInput gardé dans config service */
   bChainInputChanged() {
-    for (const formDef of this.objFormsDefinition) {
+    for (const formDef of this.objFormsDefinition.static) {
       formDef.meta.bChainInput = this.bChainInput;
     }
     this._configService.setFrontendParams('bChainInput', this.bChainInput);
@@ -464,70 +556,57 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   addExtraFormCtrl(frmCtrl: IExtraForm) {
-    if (frmCtrl.frmName in this.objForm.controls) {
-      // this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
-      const extraFormName = frmCtrl.frmName
-      this.objForm.controls[extraFormName].setValue([])
+    if (frmCtrl.frmName in this.objFormDynamic.controls) {
     } else {
-      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      this.objForm.dynamic.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
 
-    this.extraForm = frmCtrl;
+    this.extraFormCtrl = frmCtrl;
   }
 
-  addGeomFormCtrl(frmCtrl:{frmCtrl :FormControl,frmName:string}){
-    if (frmCtrl.frmName in this.objForm.controls) {
-      // this.objForm.setControl(frmCtrl.frmName, frmCtrl.frmCtrl);
-      this.objForm.patchValue({'geometry':null})
+  addGeomFormCtrl(frmCtrl: { frmCtrl: FormControl; frmName: string }) {
+    
+    if (frmCtrl.frmName in this.objForm.static.controls) {
     } else {
-      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      this.objForm.static.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
-    this.geomCtrl = frmCtrl
+    this.geomCtrl = frmCtrl;
   }
 
-  checkValidExtraFormCtrl() {
-    if (
-      this.extraForm.frmName in this.objForm.controls &&
-      this.objForm.get(this.extraForm.frmName).value != null &&
-      this.objForm.get(this.extraForm.frmName).value.length != 0
-    ) {
-      this.hideForm = false;
-      this.objForm.valid;
-    }
-  }
 
-  getConfigFromBtnSelect(event) {
+
+
+
+  getConfigFromBtnSelect(configSpec) {
     // TODO: Ajout de tous les id_parents ["id_sites_groups" etc ] dans l'objet obj.dataComplement
     // Check if specific and dataComplement already exist
-    this.obj.specific ? null : (this.obj.specific = {});
-    this.obj.dataComplement ? null : (this.obj.dataComplement = {});
+    this.obj.specific = {};
+    this.obj.dataComplement = {};
 
-    Object.entries(event).forEach(([key, value]) => {
+    Object.entries(configSpec).forEach(([key, value]) => {
       if (this.obj.dataComplement[key] && key != 'types_site') {
         return;
       }
-      if (event[key].config != undefined) {
-        if (Object.keys(event[key].config).length !== 0) {
-          Object.assign(this.obj.specific, event[key].config.specific);
-          if ('keep' in event[key].config) {
+      if (configSpec[key].config != undefined) {
+        if (Object.keys(configSpec[key].config).length !== 0) {
+          Object.assign(this.obj.specific, configSpec[key].config.specific);
+          if ('keep' in configSpec[key].config) {
             this.obj.config.keep ? null : (this.obj.config.keep = []);
-            !this.obj.config.keep.includes(event[key].config.keep)
-              ? this.obj.config.keep.push(...event[key].config.keep)
+            !this.obj.config.keep.includes(configSpec[key].config.keep)
+              ? this.obj.config.keep.push(...configSpec[key].config.keep)
               : null;
           }
         }
         this.obj.dataComplement[key] = value;
       } else {
         this.obj.dataComplement[key] ? null : (this.obj.dataComplement[key] = []);
-        this.obj.dataComplement[key] = event[key];
+        this.obj.dataComplement[key] = configSpec[key];
       }
     });
 
-    this._formService.dataToCreate(this.obj, this.obj.urlRelative);
   }
 
   initObj(prop) {
-    // this.apiService.getConfig().subscribe(prop => this.obj['properties'] = prop)
     this.obj['properties'] = prop;
     Object.entries(this.obj).forEach(([key, value]) => {
       if (key != 'properties' && key in this.obj['properties']) {
@@ -535,5 +614,73 @@ export class MonitoringFormComponentG implements OnInit {
       }
     });
     this.obj.resolvedProperties = this._configService.setResolvedProperties(this.obj);
+  }
+
+
+  updateExtraFormOnly() {
+    if (!(this.objForm.dynamic && this.obj.bIsInitialized)) {
+      return;
+    }
+    // pour donner la valeur de l'objet au formulaire
+    this._formService.formValues(this.obj).subscribe((formValue) => {
+      const allKeysForm = Object.keys(formValue);
+      const allKeysGeneric = Object.keys(this.obj.config.generic);
+      const allKeysSpecific = Object.keys(this.obj.specific);
+      let formValueSpecific = {};
+      for (let key of allKeysForm) {
+        if (allKeysSpecific.includes(key)) {
+          formValueSpecific[key] = formValue[key];
+        }
+      }
+      this.objForm.dynamic.patchValue(formValueSpecific);
+      this.setDefaultFormValue();
+      // this.dataForm = propertiesValues;
+      // reset geom ?
+    });
+  }
+
+  createSpecificForm(){
+    this.createSpecificForm$.subscribe(({specConfig,prop})=>{
+      this.obj.bIsInitialized = true;
+      this.obj.id = this.obj[this.obj.pk];
+      this.getConfigFromBtnSelect(specConfig)
+      this.initObj(prop)
+      this.initElementFormDynamic()
+      this.initValueFormDynamic()
+    });
+  }
+  updateSpecificForm() {
+    this.specificForm$.subscribe(({newObj, prop}) => {
+        this.obj.bIsInitialized = true;
+        this.obj.id = this.obj[this.obj.pk];
+      this.obj.dataComplement = newObj.newObj.dataComplement;
+      this.obj.specific = newObj.newObj.specific;
+      Object.assign(this.obj,newObj.propSpec)
+      this.initObj(prop)
+      this.initElementFormDynamic()
+      this.initValueFormDynamic()
+
+    })   
+
+  }
+
+  initElementFormDynamic(){
+    const schema = this._configService.schema(this.obj.moduleCode, this.obj.objectType);
+        if (Object.keys(this.obj.specific).length !== 0) {
+          Object.assign(schema, this.obj.specific);
+        }
+
+        this.obj[this.obj.moduleCode] = schema;
+        this.objFormsDefinition.dynamic = this._dynformService
+          .formDefinitionsdictToArray(this.obj.specific, this.meta)
+          .filter((formDef) => formDef.type_widget)
+          .sort((a, b) => {
+            // medias à la fin
+            return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
+          });
+
+  }
+
+  ngOnDestroy() {
   }
 }
