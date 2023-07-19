@@ -2,7 +2,7 @@ import { Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@a
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, forkJoin, iif, of } from 'rxjs';
-import { map, mergeMap, take, tap } from 'rxjs/operators';
+import { exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { ISite, ISiteField, ISiteType } from '../../interfaces/geom';
@@ -24,7 +24,8 @@ import { ConfigJsonService } from '../../services/config-json.service';
   styleUrls: ['./monitoring-visits.component.css'],
 })
 export class MonitoringVisitsComponent extends MonitoringGeomComponent implements OnInit {
-  site: ISite;
+  
+  
   @Input() visits: IVisit[];
   @Input() page: IPage;
   // colsname: typeof columnNameVisit = columnNameVisit;
@@ -33,6 +34,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   colsname: {};
   objParent: any;
   modules: SelectObject[];
+  site: ISite;
 
   isInitialValues: boolean;
   paramToFilt: string = 'label';
@@ -49,6 +51,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
   objSelected:ISiteField; 
+
+
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -98,7 +102,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             }),
           }).pipe(map((data)=> {return data}))
         }),
-        mergeMap((data)=>{
+        exhaustMap((data)=>{
           return forkJoin({
             objObsSite: this.siteService.initConfig(),
             objObsVisit: this._visits_service.initConfig(),
@@ -197,8 +201,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   onSendConfig(config: JsonData): void {
     this.config = this.addTypeSiteListIds(config);
     this.updateForm();
-    // this.monitoringFormComponentG.getConfigFromBtnSelect(this.config);
-  }
+    }
 
   addTypeSiteListIds(config: JsonData): JsonData {
     if (config && config.length != 0) {
@@ -253,11 +256,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         }
       }
     }
+    const specificData = {}
     for (const k in this.site.data) this.site[k] = this.site.data[k];
+    for (const k in this.site.data)  specificData[k]= this.site.data[k];
     this.site.types_site = this.config.types_site;
     Object.assign(this.site.dataComplement, this.config);
-
-    this._formService.changeDataSub(this.site, this.objParent.objectType, this.objParent.endPoint);
+    this._formService.updateSpecificForm(this.site,specificData)
   }
 
   updateBreadCrumb(site, parentSelected) {
@@ -289,4 +293,5 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   onObjChanged($event) {
     this.initSiteVisit();
   }
+
 }
