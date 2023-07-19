@@ -170,6 +170,9 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   onObjChanged($event) {
+    if($event == 'deleted'){
+      return
+    }
     this.initSite();
   }
 }

@@ -291,6 +291,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   onObjChanged($event) {
+    if($event == 'deleted'){
+      return
+    }
     this.initSiteVisit();
   }
 
