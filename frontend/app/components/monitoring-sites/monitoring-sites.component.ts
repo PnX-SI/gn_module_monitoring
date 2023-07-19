@@ -34,7 +34,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   filters = {};
   siteGroupLayer: L.FeatureGroup;
   @Input() bEdit: boolean;
-  objForm: FormGroup;
+  objForm: {static:FormGroup};
   objectType: IobjObs<ISite>;
   objParent: any;
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
@@ -56,7 +56,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   ngOnInit() {
-    this.objForm = this._formBuilder.group({});
+    this.objForm = {"static":this._formBuilder.group({})};
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs, true);
     this._objService.changeObjectType(this._siteService.objectObs, true);
