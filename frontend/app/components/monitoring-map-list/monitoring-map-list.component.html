@@ -4,7 +4,7 @@
       <pnx-map height="80vh"  [ngClass]="{ 'hide-draw-form': !(bEdit && obj) }">
         <pnx-draw-form
         [parentFormControl]="
-          objForm && objForm.static && objForm.static.controls && objForm.static.controls['geometry']
+          objForm && objForm.controls && objForm.controls['geometry']
         "
         [geometryType]="obj && obj.config && obj.config['geometry_type']"
         [bZoomOnPoint]="false"
