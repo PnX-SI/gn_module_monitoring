@@ -234,7 +234,7 @@ export class MonitoringFormComponentG implements OnInit {
     // on attend des ids d'où test avec parseInt
     for (const key of Object.keys(this.queryParams)) {
       const strToInt = parseInt(this.queryParams[key]);
-      if (strToInt != NaN) {
+      if (!Number.isNaN(strToInt)) {
         this.obj.properties[key] = strToInt;
       }
     }

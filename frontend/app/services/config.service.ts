@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
+import { ModuleConfig } from '../module.config';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
