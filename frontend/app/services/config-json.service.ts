@@ -13,8 +13,8 @@ import { concatMap } from 'rxjs/operators';
 @Injectable()
 export class ConfigJsonService extends ConfigService {
 
-  constructor(_http: HttpClient, _moduleService: ModuleService,private _dataUtilsService: DataUtilsService) {
-    super(_http, _moduleService)
+  constructor(_http: HttpClient, _moduleService: ModuleService, appConfig, private _dataUtilsService: DataUtilsService) {
+    super(_http, _moduleService, appConfig)
   }
 
   /** Configuration */

@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Observable, forkJoin } from "rxjs";
+import { forkJoin, of } from "rxjs";
 import { tap, map, mergeMap } from "rxjs/operators";
 import * as L from "leaflet";
 import { ISite, ISiteField, ISitesGroup } from "../../interfaces/geom";
@@ -78,7 +78,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
             {if(err.status == 404)
               { 
                 this.router.navigate(['/not-found'],{ skipLocationChange: true });
-              return Observable.of(null);
+              return of(null);
             }}),
             sites: this._sitesGroupService.getSitesChild(1, this.limit, {
               id_sites_group: id,
