@@ -95,7 +95,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             {if(err.status == 404)
               { 
                 this.router.navigate(['/not-found'],{ skipLocationChange: true });
-              return Observable.of(null);
+              return of(null);
             }}),
             visits: this._visits_service.get(1, this.limit, {
               id_base_site: id,
