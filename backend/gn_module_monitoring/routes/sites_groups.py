@@ -23,10 +23,8 @@ from gn_module_monitoring.routes.monitoring import create_or_update_object_api_s
 from gn_module_monitoring.utils.utils import to_int
 
 
-@blueprint.route("/sites_groups/config",
-                 defaults={'id': None, 'object_type': "sites_group",'module_code':'generic'},
-                  methods=["GET"])
-def get_config_sites_groups(module_code, object_type, id):
+@blueprint.route("/sites_groups/config", methods=["GET"])
+def get_config_sites_groups(id=None, module_code='generic', object_type='sites_group'):
     obj = get_config_object(module_code, object_type, id)
     return obj['properties']
 
