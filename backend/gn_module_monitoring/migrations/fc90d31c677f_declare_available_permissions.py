@@ -36,7 +36,10 @@ def upgrade():
         FROM
             (
                 VALUES
-                    ('MONITORINGS', 'ALL', 'R', False, 'Accéder au module')
+                    ('MONITORINGS', 'ALL', 'R', False, 'Accéder au module'),
+                    ('MONITORINGS', 'ALL', 'C', False, 'Creation de types de site'),
+                    ('MONITORINGS', 'ALL', 'U', False, 'Edition de types de site'),
+                    ('MONITORINGS', 'ALL', 'D', False, 'Suppression de types de site')
             ) AS v (module_code, object_code, action_code, scope_filter, label)
         JOIN
             gn_commons.t_modules m ON m.module_code = v.module_code
