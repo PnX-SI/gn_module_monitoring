@@ -7,13 +7,14 @@ import { ConfigService } from './config.service';
 import { Utils } from "../utils/utils";
 import { DataUtilsService } from './data-utils.service';
 import { concatMap } from 'rxjs/operators';
+import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
 
 
 @Injectable()
 export class ConfigJsonService extends ConfigService {
 
-  constructor(_http: HttpClient, _moduleService: ModuleService, appConfig, private _dataUtilsService: DataUtilsService) {
+  constructor(_http: HttpClient, _moduleService: ModuleService,appConfig: GnConfigService, private _dataUtilsService: DataUtilsService) {
     super(_http, _moduleService, appConfig)
   }
 
