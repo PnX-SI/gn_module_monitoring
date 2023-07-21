@@ -26,10 +26,8 @@ from gn_module_monitoring.utils.routes import (
 )
 
 
-@blueprint.route("/sites/config",
-                 defaults={'id': None, 'object_type': "site",'module_code':'generic'},
-                  methods=["GET"])
-def get_config_sites(module_code, object_type, id):
+@blueprint.route("/sites/config", methods=["GET"])
+def get_config_sites(id=None,module_code='generic', object_type='site'):
     obj = get_config_object(module_code, object_type, id)
     return obj['properties']
 
