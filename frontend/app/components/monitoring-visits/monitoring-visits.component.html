@@ -40,5 +40,5 @@ add-select
   [obj]="visits"
   (onDetailsRow)="seeDetails($event)"
   
-> <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
-(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></pnx-monitoring-datatable-g>
+> <div class="wrapper-button"><option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
+(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></div></pnx-monitoring-datatable-g>

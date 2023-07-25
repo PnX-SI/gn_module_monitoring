@@ -21,6 +21,7 @@ export interface IobjObs<T> {
     fieldLabels: JsonData;
     fieldNamesList: [];
     fieldDefinitions: {};
+    labelList: string;
   };
   dataTable: { colNameObj: {} };
 }
