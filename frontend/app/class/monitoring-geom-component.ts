@@ -3,7 +3,7 @@ import { JsonData } from "../types/jsondata";
 
 const LIMIT = 10;
 
-type callbackFunction = (pageNumber: number, filters: JsonData) => void;
+type callbackFunction = (pageNumber: number, filters: JsonData, tabObj:string) => void;
 
 export class MonitoringGeomComponent {
   protected getAllItemsCallback: callbackFunction;
@@ -13,18 +13,18 @@ export class MonitoringGeomComponent {
 
   constructor() {}
 
-  setPage(page: PageInfo) {
-    this.getAllItemsCallback(page.offset + 1, this.filters);
+  setPage({page,tabObj}) {
+    this.getAllItemsCallback(page.offset + 1, this.filters, tabObj);
   }
 
-  setSort(filters: JsonData) {
+  setSort({filters, tabObj}) {
     this.filters = { ...this.baseFilters, ...filters };
     const pageNumber = 1;
-    this.getAllItemsCallback(pageNumber, this.filters);
+    this.getAllItemsCallback(pageNumber, this.filters,  tabObj);
   }
 
-  setFilter(filters) {
+  setFilter({filters, tabObj}) {
     this.filters = { ...this.baseFilters, ...filters };
-    this.getAllItemsCallback(1, this.filters);
+    this.getAllItemsCallback(1, this.filters,tabObj);
   }
 }

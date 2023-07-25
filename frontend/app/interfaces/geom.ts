@@ -2,6 +2,8 @@ import { GeoJSON } from 'geojson';
 import { Observable } from 'rxjs';
 import { JsonData } from '../types/jsondata';
 import { IObject, IService } from './object';
+import { IColumn } from './column';
+import { IPage } from './page';
 
 export interface IGeomObject extends IObject {
   geometry: GeoJSON.Geometry;
@@ -51,4 +53,9 @@ export interface ISiteType {
   config: JsonData;
   id_nomenclature_type_site: number;
   label: string;
+}
+
+export interface IDataTableObj {
+  site: {columns: IColumn[], rows: ISite[], page: IPage}
+  sites_group: {columns: IColumn[], rows: ISitesGroup[], page: IPage}
 }
