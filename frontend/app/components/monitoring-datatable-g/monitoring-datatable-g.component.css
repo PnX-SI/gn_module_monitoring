@@ -46,8 +46,17 @@
   box-shadow: none !important;
 }
 
-/* Work around to make ng-content conditional 
-(not supported, maybe in Angular16) */
-.wrapper-button:not(:empty) + .default-button {
-    display: none;
+/*  */
+
+.object-link:hover {
+  color:lightblue;
 }
+
+.btn-height {
+  height: 40px;
+}
+
+.btn-float-right {
+  margin: 5px 0;
+}
+
