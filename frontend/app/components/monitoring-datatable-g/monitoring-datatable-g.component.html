@@ -1,34 +1,42 @@
-<!-- <div *ngIf="child0 && row_save"> -->
-<div *ngIf="rows">
-  <!-- <input
-    type="text"
-    style="padding:8px;margin:15px auto;width:30%;"
-    placeholder="Entrer une valeur pour filtrer les colonnes"
-    (keyup)="updateFilter($event)"
-  /> -->
 
-  <div class="md-2 d-flex justify-content-between">
+<div class="cadre"  *ngIf="rows && dataTableObj  ">
+
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="changeActiveTab($event)" animationDuration="0ms">
+    <mat-tab 
+    *ngFor="let objType of dataTableObj | keyvalue; let i = index" 
+    label="{{dataTableArray[i].template['labelList']}} {{displayNumber(dataTableArray[i].objectType)}}" >
+    <ng-template matTabContent>
+    <div
+    class="btn-height"
+  >
+  <div class="btn-float-right">
     <button
-      class="btn btn-info"
+    mat-mini-fab
+    color="accent"
+    class="ml-2 mb-2"
       (click)="displayFilter = !displayFilter"
       matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
     >
-      <i class="fa fa-filter" aria-hidden="true"></i>
+      <mat-icon>filter_alt</mat-icon>  
     </button>
-    <div class="wrapper-button">
-      <ng-content select="[add-button]"></ng-content>
-    </div>
-    <div class="default-button">
-      <!--TODO  Revoir pour rendre générique le bouton "Ajouter" , avant : {{ (child0.template["label_art_undef_new"] || "") }}-->
+
+    <ng-content select="[add-button]"></ng-content>
       <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
-      <button class="btn btn-success float-right" (click)="navigateToAddChildren(null, null)">
-        <i class="fa fa-plus" aria-hidden="true"></i> {{ objectType.addObjLabel }}
-      </button>
-    </div>
+    <button
+      mat-raised-button
+      color="primary"
+      class="btn btn-success float-right"
+      (click)="navigateToAddChildren(null, activetabType)"
+      ><i class="fa fa-plus" aria-hidden="true"></i>
+      {{dataTableArray[i].addObjLabel }}</button
+    >
   </div>
+</div>
+  <div class="mt-2">
+    <div>
   <ngx-datatable
-    *ngIf="rows"
-    #table
+  *ngIf="rows"
+  #table
     class="material striped custom-dt"
     [columnMode]="'force'"
     [headerHeight]="'auto'"
@@ -53,11 +61,10 @@
   >
     <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-        <!-- TODO Action Column : changer le (click)="navigateToDetail(row.id)-->
         <a
           class="nav-link link cell-link"
           (click)="navigateToDetail(row)"
-          matTooltip="{{ objectType.seeObjLabel }}"
+          matTooltip="{{ dataTableArray[i].seeObjLabel }}"
         >
           <i class="fa fa-eye" aria-hidden="true"></i>
         </a>
@@ -65,7 +72,7 @@
         <a
           class="nav-link link cell-link"
           (click)="navigateToAddChildren(null, row)"
-          matTooltip=" {{objectType.addChildLabel}}"
+          matTooltip=" {{dataTableArray[i].addChildLabel}}"
         >
           <i class="fa fa-plus" aria-hidden="true"></i>
         </a>
@@ -106,5 +113,10 @@
       />
     </div>
   </ng-template>
+
 </div>
-<!-- </div> -->
+</div>
+</ng-template>
+</mat-tab>
+</mat-tab-group>
+</div>

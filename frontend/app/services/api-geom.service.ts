@@ -43,6 +43,12 @@ export class ApiService<T = IObject> implements IService<T> {
           this.objectObs.objectType,
           'display_list'
         );
+
+        const labelList = this._configJsonService.configModuleObjectParam(
+          this.objectObs.moduleCode,
+          this.objectObs.objectType,
+          'label_list'
+        )
         const schema = this._configJsonService.schema(
           this.objectObs.moduleCode,
           this.objectObs.objectType
@@ -55,6 +61,11 @@ export class ApiService<T = IObject> implements IService<T> {
         this.objectObs.template.fieldLabels = fieldLabels;
         this.objectObs.template.fieldDefinitions = fieldDefinitions;
         this.objectObs.template.fieldNamesList = fieldNamesList;
+
+        if (labelList != undefined){
+          this.objectObs.template.labelList = labelList
+        }
+
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
         return this.objectObs
       }));
@@ -130,6 +141,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
+        labelList : 'Groupes de sites',
       },
       dataTable: { colNameObj: {} },
     };
@@ -172,6 +184,7 @@ export class SitesService extends ApiGeomService<ISite> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
+        labelList: "Sites"
       },
       dataTable: { colNameObj: {} },
     };
@@ -242,6 +255,7 @@ export class VisitsService extends ApiService<IVisit> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
+        labelList : 'Visites',
       },
       dataTable: { colNameObj: {} },
     };
