@@ -14,7 +14,7 @@ import { SiteSiteGroup } from "../../interfaces/objObs";
 import { IBreadCrumb } from "../../interfaces/object";
 
 export const breadCrumbElementBase: IBreadCrumb = {
-  "description":"Liste des groupes de site",
+  "description":"Liste des groupes de site (sites)",
   "label":"",
   "url": "sites_group"
 }
