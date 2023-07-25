@@ -18,6 +18,7 @@ import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { IPage } from '../../interfaces/page';
 import { DataTableService } from '../../services/data-table.service';
 import { ObjectService } from '../../services/object.service';
+import { Utils } from "../../utils/utils";
 
 interface ItemObjectTable {
   id: number | null;
@@ -25,7 +26,7 @@ interface ItemObjectTable {
   visible: boolean;
   current: boolean;
 }
-type ItemsObjectTable = { [key: string]: ItemObjectTable };
+type ItemsObjectTable = { [key: string]: ItemObjectTable[] };
 
 @Component({
   selector: 'pnx-monitoring-datatable-g',
@@ -37,6 +38,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Input() colsname: IColumn[];
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
+  @Input() dataTableObj;
+  @Input() dataTableArray;
 
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
@@ -53,13 +56,19 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   private filterSubject: Subject<string> = new Subject();
   displayFilter: boolean = false;
-  objectsStatus: ItemsObjectTable;
+  objectsStatus: ItemsObjectTable = {};
 
   objectType: IobjObs<ObjDataType>;
   columns;
   row_save;
   selected = [];
   filters = {};
+
+  activetabIndex: number = 0;
+  activetabType: string;
+
+  @Output() objectsStatusChange: EventEmitter<Object> =
+    new EventEmitter<Object>();
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -89,17 +98,55 @@ export class MonitoringDatatableGComponent implements OnInit {
     });
   }
 
+  changeActiveTab(tab) {
+    this.activetabIndex = tab.index;
+    // Réinitialisation des données selectés
+    this.activetabType = this.dataTableArray[tab.index].objectType
+    this.columns = this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns, this.dataTableObj[this.activetabType].rows[0])
+    this.rows = this.dataTableObj[this.activetabType].rows
+    this.page = this.dataTableObj[this.activetabType].page
+    this.objectsStatusChange.emit(this.reInitStatut());
+  }
+
+  reInitStatut() {
+    let status_type = Utils.copy(this.objectsStatus);
+    for (let typeObject in status_type) {
+      if (Array.isArray(status_type[typeObject])) {
+        for (let i in status_type[typeObject]) {
+          try {
+            status_type[typeObject][i]["selected"] = false;
+          } catch (error) {
+            console.error(error.message, status_type[typeObject][i]);
+          }
+        }
+      }
+    }
+    return status_type;
+  }
+
+  displayNumber(chidrenType) {
+    if (!this.objectsStatus[chidrenType]) {
+      return "";
+    }
+    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible);
+    // const nbSelected = visibles.length;
+    const nbSelected = this.dataTableObj[chidrenType].page.count;
+    const nb = this.dataTableObj[chidrenType].page.total;
+    return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
+  }
+
+
   onSortEvent($event) {
     this.filters = {
       ...this.filters,
       sort: $event.column.prop,
       sort_dir: $event.newValue,
     };
-    this.onSort.emit(this.filters);
+    this.onSort.emit({event :this.filters, tabObj:this.activetabType});
   }
 
   setPage($event) {
-    this.onSetPage.emit($event);
+    this.onSetPage.emit({event:$event, tabObj:this.activetabType});
   }
 
   filterInput($event) {
@@ -113,7 +160,7 @@ export class MonitoringDatatableGComponent implements OnInit {
       if (![undefined, '', null].includes(oldFilters[e])) r[e] = oldFilters[e];
       return r;
     }, {});
-    this.onFilter.emit(this.filters);
+    this.onFilter.emit({filters :this.filters, tabObj: this.activetabType});
   }
 
   onSelectEvent({ selected }) {
@@ -166,18 +213,24 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   ngOnChanges(changes: SimpleChanges) {
     // IF prefered ngOnChanges compare to observable   uncomment this:
-    if (changes['rows'] && this.rows && this.rows.length > 0) {
-      this.columns = this._dataTableService.colsTable(this.colsname, this.rows[0]);
-    }
-
-    if (changes['colsname']) {
+    if(changes['dataTableObj'] && this.dataTableObj && Object.keys(this.dataTableObj).length > 0 ){
       this.filters = {};
+      for (const objType in this.dataTableObj){
+        this.objectsStatus[objType]= this._dataTableService.initObjectsStatus(this.dataTableObj[objType].rows, objType);
+      }
+  
+      this.activetabType = this.dataTableArray[this.activetabIndex].objectType
+      this.columns = this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns, this.dataTableObj[this.activetabType].rows[0])
+      this.rows = this.dataTableObj[this.activetabType].rows
+      this.page = this.dataTableObj[this.activetabType].page
+    } 
+
+    
+    if (changes['rows'] && this.rows && this.rows.length > 0) {
+      this.rows = this.dataTableObj[this.activetabType].rows
+      this.page = this.dataTableObj[this.activetabType].page
     }
 
-    if (changes['obj'] && this.obj) {
-      this.objectsStatus,
-        (this.rowStatus = this._dataTableService.initObjectsStatus(this.obj, 'sites_groups'));
-    }
     for (const propName of Object.keys(changes)) {
       switch (propName) {
         case 'rowStatus':
@@ -188,7 +241,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
   navigateToAddChildren(_, row) {
     this.addEvent.emit(row);
-    this._objService.changeObjectType(this.objectType);
+    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex])
     if (row){
       row['id'] = row[row.pk];
       this.router.navigate([row.id,'create'], {
@@ -205,4 +258,44 @@ export class MonitoringDatatableGComponent implements OnInit {
     row['id'] = row.pk;
     this.onDetailsRow.emit(row);
   }
+
+
+  // TODO: Comprendre le fonctionnement de ObjectStatuts et RowsStatus
+  // initObjectsStatus() {
+  //   const objectsStatus = {};
+  //   for (const childrenType of Object.keys(this.obj.children)) {
+  //     objectsStatus[childrenType] = this.obj.children[childrenType].map(
+  //       (child) => {
+  //         return {
+  //           id: child.id,
+  //           selected: false,
+  //           visible: true,
+  //           current: false,
+  //         };
+  //       }
+  //     );
+  //   }
+
+  //   // init site status
+  //   if (this.obj.siteId) {
+  //     objectsStatus["site"] = [];
+  //     this.sites["features"].forEach((f) => {
+  //       // determination du site courrant
+  //       let cur = false;
+  //       if (f.properties.id_base_site == this.obj.siteId) {
+  //         cur = true;
+  //       }
+
+  //       objectsStatus["site"].push({
+  //         id: f.properties.id_base_site,
+  //         selected: false,
+  //         visible: true,
+  //         current: cur,
+  //       });
+  //     });
+  //   }
+
+  //   this.objectsStatus = objectsStatus;
+  // }
+
 }

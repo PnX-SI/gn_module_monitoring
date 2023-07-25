@@ -50,40 +50,43 @@ export class DataTableService {
     return allColumn;
   }
 
-  initObjectsStatus(obj, key) {
+  initObjectsStatus(objList, key):ItemObjectTable[] {
     const objectsStatus = {};
-    // for (const childrenType of Object.keys(this.obj.children)) {
-    objectsStatus[key] = obj.map((groupSite) => {
-      return {
-        id: groupSite.id_sites_group,
+    objectsStatus[key] = []
+    objectsStatus[key]= objList.map(obj=> (
+       {
+        id: obj[obj["pk"]],
         selected: false,
         visible: true,
         current: false,
-      };
-    });
+      }
+
+    ));
     // }
 
+
+    // TODO: Comprendre cette partie à quoi elle sert
     // init site status
-    if (this.idObj) {
-      objectsStatus[key] = [];
-      obj.features.forEach((f) => {
-        // determination du site courrant
-        let cur = false;
-        if (f.properties.id_sites_group == this.idObj) {
-          cur = true;
-        }
+    // if (this.idObj) {
+    //   objectsStatus[key] = [];
+    //   objList.features.forEach((f) => {
+    //     // determination du site courrant
+    //     let cur = false;
+    //     if (f.properties.id_sites_group == this.idObj) {
+    //       cur = true;
+    //     }
 
-        objectsStatus[key].push({
-          id: f.properties.id_sites_group,
-          selected: false,
-          visible: true,
-          current: cur,
-        });
-      });
-    }
+    //     objectsStatus[key].push({
+    //       id: f.properties.id_sites_group,
+    //       selected: false,
+    //       visible: true,
+    //       current: cur,
+    //     });
+    //   });
+    // }
 
-    this.objectsStatus = objectsStatus;
-    this.rowStatus = this.objectsStatus[key];
-    return [this.objectsStatus, this.rowStatus];
+    // this.rowStatus = this.objectsStatus[key];
+
+    return objectsStatus[key]
   }
 }
