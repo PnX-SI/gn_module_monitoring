@@ -1,4 +1,8 @@
-<button class="btn btn-success float-right" (click)="onDeploy()" #ddTrigger="matMenuTrigger" [matMenuTriggerFor]="dd">
+<button  
+mat-raised-button
+color="primary"
+class="btn btn-success float-right"
+(click)="onDeploy()" #ddTrigger="matMenuTrigger" [matMenuTriggerFor]="dd">
     <i class="fa fa-plus" aria-hidden="true"></i> {{ label }}
 </button>
 <mat-menu #dd="matMenu" [overlapTrigger]="false" class="btn-menu">
