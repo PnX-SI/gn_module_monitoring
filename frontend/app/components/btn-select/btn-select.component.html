@@ -3,9 +3,11 @@
   <mat-chip-grid #chipGrid aria-label="option selection" [formControl]="listOpNeeded">
     <mat-chip-row
       *ngFor="let optionSelected of listOptionChosen"
+      color="primary"
       [selectable]="selectable"
       [removable]="removable"
       (removed)="remove(optionSelected)"
+      highlighted
     >
       {{ optionSelected }}
       <button matChipRemove *ngIf="removable">
