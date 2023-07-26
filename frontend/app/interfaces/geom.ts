@@ -4,6 +4,7 @@ import { JsonData } from '../types/jsondata';
 import { IObject, IService } from './object';
 import { IColumn } from './column';
 import { IPage } from './page';
+import { IVisit } from './visit';
 
 export interface IGeomObject extends IObject {
   geometry: GeoJSON.Geometry;
@@ -56,6 +57,7 @@ export interface ISiteType {
 }
 
 export interface IDataTableObj {
-  site: {columns: IColumn[], rows: ISite[], page: IPage}
+  site: {columns: IColumn[], rows: ISite[], page: IPage},
+  visit: {columns: IColumn[], rows: IVisit[], page: IPage}
   sites_group: {columns: IColumn[], rows: ISitesGroup[], page: IPage}
 }

@@ -31,7 +31,9 @@ add-select
 ></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [rows]="visits"
+  [dataTableArray]="dataTableArray"
+  [dataTableObj]="dataTableObj"
+  [rows]="rows"
   [colsname]="colsname"
   (onSort)="setSort($event)"
   [page]="page"
@@ -40,5 +42,5 @@ add-select
   [obj]="visits"
   (onDetailsRow)="seeDetails($event)"
   
-> <div class="wrapper-button"><option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
-(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></div></pnx-monitoring-datatable-g>
+> <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
+(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></pnx-monitoring-datatable-g>
