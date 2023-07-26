@@ -88,9 +88,9 @@ export class MonitoringDatatableGComponent implements OnInit {
   initDatatable() {
     // IF prefered  observable compare to ngOnChanges   uncomment this:
     // this._dataTableService.currentCols.subscribe(newCols => { this.columns = newCols })
-    this._objService.currentObjectType.subscribe((newObjType) => {
-      this.objectType = newObjType;
-    });
+    // this._objService.currentObjectType.subscribe((newObjType) => {
+    //   this.objectType = newObjType;
+    // });
 
     this.filters = {};
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
@@ -220,7 +220,9 @@ export class MonitoringDatatableGComponent implements OnInit {
       }
   
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType
+      this.dataTableObj[this.activetabType].rows.length > 0 ?
       this.columns = this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns, this.dataTableObj[this.activetabType].rows[0])
+      : null;
       this.rows = this.dataTableObj[this.activetabType].rows
       this.page = this.dataTableObj[this.activetabType].page
     } 
@@ -252,7 +254,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   navigateToAddObj(){
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex])
-    if(this.activetabType == "sites_group")
     this.router.navigate(['create'], {
       relativeTo: this._Activatedroute,
     });
