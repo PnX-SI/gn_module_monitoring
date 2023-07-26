@@ -67,7 +67,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
       this.initProperties();
-      if (this.newParentType.template_specific && this.newParentType.template_specific.fieldNames.length !=0){
+      if (this.newParentType.template_specific && this.newParentType.template_specific.fieldNames && this.newParentType.template_specific.fieldNames.length !=0){
         this.initSpecificProperties()
       }
     }
