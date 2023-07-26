@@ -16,12 +16,14 @@
 ></pnx-monitoring-form-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [rows]="rows_sites_table"
+  [dataTableArray]="dataTableArray"
+  [dataTableObj]="dataTableObj"
+  [rows]="rows"
   [colsname]="colsname"
   (onSort)="setSort($event)"
   [page]="page"
   (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)"
-  [obj]="rows_sites_table"
+  [obj]="rows"
   (onDetailsRow)="seeDetails($event)"
 ></pnx-monitoring-datatable-g>
