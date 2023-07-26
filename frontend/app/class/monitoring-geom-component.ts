@@ -13,17 +13,17 @@ export class MonitoringGeomComponent {
 
   constructor() {}
 
-  setPage({page,tabObj}) {
+  setPage({page,tabObj=''}) {
     this.getAllItemsCallback(page.offset + 1, this.filters, tabObj);
   }
 
-  setSort({filters, tabObj}) {
+  setSort({filters, tabObj=''}) {
     this.filters = { ...this.baseFilters, ...filters };
     const pageNumber = 1;
     this.getAllItemsCallback(pageNumber, this.filters,  tabObj);
   }
 
-  setFilter({filters, tabObj}) {
+  setFilter({filters, tabObj=''}) {
     this.filters = { ...this.baseFilters, ...filters };
     this.getAllItemsCallback(1, this.filters,tabObj);
   }

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { forkJoin, of } from "rxjs";
 import { tap, map, mergeMap } from "rxjs/operators";
 import * as L from "leaflet";
-import { ISite, ISiteField, ISitesGroup } from "../../interfaces/geom";
+import { IDataTableObj, ISite, ISiteField, ISitesGroup } from "../../interfaces/geom";
 import { IPage, IPaginated } from "../../interfaces/page";
 import { MonitoringGeomComponent } from "../../class/monitoring-geom-component";
 import { setPopup } from "../../functions/popup";
@@ -17,6 +17,7 @@ import { ObjectService } from "../../services/object.service";
 import { IobjObs } from "../../interfaces/objObs";
 import { IBreadCrumb } from "../../interfaces/object";
 import { breadCrumbElementBase } from "../breadcrumbs/breadcrumbs.component";
+import { ConfigJsonService } from "../../services/config-json.service";
 
 const LIMIT = 10;
 
@@ -42,6 +43,10 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   breadCrumbList: IBreadCrumb[] = [];
   rows_sites_table: ISiteField[];
 
+  rows;
+  dataTableObj: IDataTableObj;
+  dataTableArray: {}[] = [];
+
   constructor(
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
@@ -49,6 +54,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private router: Router,
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
+    private _configJsonService: ConfigJsonService,
     private _formBuilder: FormBuilder
   ) {
     super();
@@ -58,8 +64,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   ngOnInit() {
     this.objForm = {"static":this._formBuilder.group({})};
     // this._sitesGroupService.init()
-    this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs, true);
-    this._objService.changeObjectType(this._siteService.objectObs, true);
+    this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
+    this._objService.changeObjectType(this._siteService.objectObs);
     this.initSite();
   }
 
@@ -95,7 +101,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         })
       )
       .subscribe(({data, objectObs}) => {
-        console.log(data);
         this._objService.changeSelectedObj(data.sitesGroup, true);
         this._objService.changeSelectedParentObj(data.sitesGroup, true);
         this.sitesGroup = data.sitesGroup;
@@ -113,7 +118,11 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
         this.colsname = objectObs.objObsSite.dataTable.colNameObj;
         this.objParent = objectObs.objObsSiteGp;
+
+        data.sites["objConfig"] = objectObs.objObsSite
+        data.sitesGroup["objConfig"] = objectObs.objObsSiteGp
         this.updateBreadCrumb(data.sitesGroup);
+        this.setDataTableObj(data)
       });
   }
   ngOnDestroy() {
@@ -137,18 +146,17 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this._sitesGroupService
       .getSitesChild(page, LIMIT, params)
       .subscribe((data: IPaginated<ISite>) => {
-        this.sites = data.items;
-        this.page = {
-          count: data.count,
-          limit: data.limit,
-          page: data.page - 1,
-        };
+        this.rows  = this._siteService.format_label_types_site(data.items)
+        this.dataTableObj.site.rows = this.rows ;
+        this.dataTableObj.site.page.count = data.count
+        this.dataTableObj.site.page.limit = data.limit
+        this.dataTableObj.site.page.page = data.page - 1
       });
   }
 
   seeDetails($event) {
-    this._objService.changeSelectedParentObj($event, true);
-    this._objService.changeObjectTypeParent(this._siteService.objectObs, true);
+    this._objService.changeSelectedParentObj($event);
+    this._objService.changeObjectTypeParent(this._siteService.objectObs);
     this.router.navigate([`site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
     });
@@ -174,5 +182,41 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
       return
     }
     this.initSite();
+  }
+
+  setDataTableObj(data){
+    const objTemp = {}
+    for (const dataType in data){
+      let objType = data[dataType].objConfig.objectType
+      if(objType == "sites_group"){
+        continue
+      }
+      Object.assign(objType,objTemp)
+      objTemp[objType] = {columns:{},rows:[],page : {}}
+      let config = this._configJsonService.configModuleObject(
+        data[dataType].objConfig.moduleCode,
+        data[dataType].objConfig.objectType
+      );
+      data[dataType].objConfig['config'] =config
+      this.dataTableArray.push(data[dataType].objConfig)
+    }
+
+    for (const dataType in data){
+      let objType = data[dataType].objConfig.objectType
+      if(objType == "sites_group"){
+        continue
+      }
+      objTemp[objType].columns =  data[dataType].objConfig.dataTable.colNameObj
+      objTemp[objType].rows = this._siteService.format_label_types_site(data[dataType].items)
+
+      objTemp[objType].page ={
+        count: data[dataType].count,
+        limit: data[dataType].limit,
+        page: data[dataType].page - 1,
+        total: data[dataType].count,
+      }
+
+      this.dataTableObj = objTemp as IDataTableObj
+    }
   }
 }
