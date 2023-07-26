@@ -20,9 +20,10 @@
       <mat-icon>filter_alt</mat-icon>  
     </button>
 
-    <ng-content select="[add-button]"></ng-content>
+
+    <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
       <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
-    <button
+      <button
       mat-raised-button
       color="primary"
       class="btn btn-success float-right"
@@ -30,6 +31,13 @@
       ><i class="fa fa-plus" aria-hidden="true"></i>
       {{dataTableArray[i].addObjLabel }}</button
     >
+    </ng-template>
+    
+    <ng-template #chooseProtocol>
+        <ng-content select="[add-button]"></ng-content>
+    </ng-template>
+       
+
   </div>
 </div>
   <div class="mt-2">
