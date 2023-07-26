@@ -247,13 +247,19 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.router.navigate([row.id,'create'], {
         relativeTo: this._Activatedroute,
       });
-    } else {
-      this.router.navigate(['create'], {
-        relativeTo: this._Activatedroute,
-      });
     }
-
   }
+
+  navigateToAddObj(){
+    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex])
+    if(this.activetabType == "sites_group")
+    this.router.navigate(['create'], {
+      relativeTo: this._Activatedroute,
+    });
+    // TODO: gérer la gestion de l'ajout (et ajout d'objet enfant) d'objet de type "site" depuis la page d'accueil de visualisation de groupe de site/ site 
+    // 
+  }
+
   navigateToDetail(row) {
     row['id'] = row.pk;
     this.onDetailsRow.emit(row);
