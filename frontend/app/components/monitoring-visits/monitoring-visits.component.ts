@@ -5,7 +5,7 @@ import { Observable, forkJoin, iif, of } from 'rxjs';
 import { exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { ISite, ISiteField, ISiteType } from '../../interfaces/geom';
+import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { IVisit } from '../../interfaces/visit';
 import { SitesGroupService, SitesService, VisitsService } from '../../services/api-geom.service';
@@ -53,6 +53,10 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   objSelected:ISiteField; 
 
 
+  rows;
+  dataTableObj: IDataTableObj;
+  dataTableArray: {}[] = [];
+
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -75,7 +79,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
-    this._objService.changeObjectTypeParent(this.siteService.objectObs, true);
+    this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
 
     this.siteGroupIdParent = parseInt(
@@ -134,12 +138,23 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         this._objService.changeSelectedObj(data.site, true);
         this.site = data.site;
         this.types_site = data.site['types_site'];
-        this.setVisits(data.visits);
+        this.visits = data.visits.items;
+        this.page = {
+          page: data.visits.page - 1,
+          count: data.visits.count,
+          limit: data.visits.limit,
+        };
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         this.site['id_sites_group'] = this.siteGroupIdParent; 
         this.objSelected = this.siteService.format_label_types_site([this.site])[0]
         this.addSpecificConfig()
+
+        const { parentObjSelected,objConfig, ...dataonlyObjConfigAndObj} = data
+        dataonlyObjConfigAndObj
+        dataonlyObjConfigAndObj.site["objConfig"] = objConfig.objObsSite
+        dataonlyObjConfigAndObj.visits["objConfig"] = objConfig.objObsVisit
+        this.setDataTableObj(dataonlyObjConfigAndObj)
         this.updateBreadCrumb(data.site, data.parentObjSelected);
       });
     this.isInitialValues = true;
@@ -152,13 +167,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   setVisits(visits) {
-    this.visits = visits.items;
-    this.page = {
-      page: visits.page - 1,
-      count: visits.count,
-      limit: visits.limit,
-    };
-
+    this.rows  = visits.items
+    this.dataTableObj.visit.rows = this.rows ;
+    this.dataTableObj.visit.page.count = visits.count
+    this.dataTableObj.visit.page.limit = visits.limit
+    this.dataTableObj.visit.page.page = visits.page - 1
   }
 
   seeDetails($event) {
@@ -219,9 +232,17 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     // const schemaSpecificType = Object.assign({},...this.types_site)
     let schemaSpecificType = {}
     let schemaTypeMerged = {}
+    let keyHtmlToPop = ''
     for (let type_site of this.types_site){
+      
       if('specific' in type_site['config']) {
-        Object.assign(schemaSpecificType, type_site['config']['specific'])
+        for (const prop in type_site['config']['specific']){
+          if('type_widget' in type_site['config']['specific'][prop] && type_site['config']['specific'][prop]['type_widget'] == "html"){
+            keyHtmlToPop = prop
+          }
+        }
+        const {[keyHtmlToPop]:_, ...specificObjWithoutHtml} = type_site['config']['specific']
+        Object.assign(schemaSpecificType, specificObjWithoutHtml)
         Object.assign(schemaTypeMerged,type_site['config'] )
       }
     }
@@ -295,6 +316,42 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
       return
     }
     this.initSiteVisit();
+  }
+
+  setDataTableObj(data){
+    const objTemp = {}
+    for (const dataType in data){
+      let objType = data[dataType].objConfig.objectType
+      if(objType != "visit"){
+        continue
+      }
+      Object.assign(objType,objTemp)
+      objTemp[objType] = {columns:{},rows:[],page : {}}
+      let config = this._configJsonService.configModuleObject(
+        data[dataType].objConfig.moduleCode,
+        data[dataType].objConfig.objectType
+      );
+      data[dataType].objConfig['config'] =config
+      this.dataTableArray.push(data[dataType].objConfig)
+    }
+
+    for (const dataType in data){
+      let objType = data[dataType].objConfig.objectType
+      if(objType != "visit"){
+        continue
+      }
+      objTemp[objType].columns =  data[dataType].objConfig.dataTable.colNameObj
+      objTemp[objType].rows = data[dataType].items
+
+      objTemp[objType].page ={
+        count: data[dataType].count,
+        limit: data[dataType].limit,
+        page: data[dataType].page - 1,
+        total: data[dataType].count,
+      }
+
+      this.dataTableObj = objTemp as IDataTableObj
+    }
   }
 
 }
