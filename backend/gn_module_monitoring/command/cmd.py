@@ -23,7 +23,7 @@ from .utils import (
     remove_monitoring_module,
     add_nomenclature,
     available_modules,
-    installed_modules
+    installed_modules,
 )
 
 
@@ -36,6 +36,7 @@ def cmd_process_all(module_code):
     """
     # process export csv
     process_export_csv(module_code)
+
 
 @click.command("process_export_csv")
 @click.argument("module_code", type=str, required=False, default="")
@@ -66,15 +67,22 @@ def cmd_install_monitoring_module(module_code):
 
     module_config_dir_path = monitoring_module_config_path(module_code)
 
-    if not (module_code and (module_config_dir_path / 'module.json').is_file()):
+    if not (module_code and (module_config_dir_path / "module.json").is_file()):
         if module_code:
-            click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
-        click.secho(f'\nModules disponibles :\n')
+            click.secho(
+                f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
+                fg="red",
+            )
+        click.secho(f"\nModules disponibles :\n")
         for module in available_modules():
-            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
+            click.secho(
+                f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n"
+            )
         click.secho(f"\nModules installés :\n")
         for module in installed_modules():
-            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
+            click.secho(
+                f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n"
+            )
         return
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
@@ -96,10 +104,7 @@ def cmd_install_monitoring_module(module_code):
     config = get_config(module_code, force=True)
 
     if not config:
-        click.secho(
-            f"config directory for module {module_code} does not exist",
-            fg="red"
-        )
+        click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
 
     module_desc = config["module"].get("module_desc")
@@ -112,7 +117,7 @@ def cmd_install_monitoring_module(module_code):
         click.secho(
             f"Veuillez renseigner les valeurs des champs module_label \
 et module_desc dans le fichier {module_config_dir_path}/module.json",
-            fg="red"
+            fg="red",
         )
         return
 
@@ -120,12 +125,10 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
         "module_picto": "fa-puzzle-piece",
         **config["module"],
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(
-            module_monitoring.module_path, module_code
-        ),
+        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
         "active_frontend": False,
         "active_backend": False,
-        "type": "monitoring_module"
+        "type": "monitoring_module",
     }
 
     click.secho("ajout du module {} en base".format(module_code))
@@ -175,7 +178,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.commit()
 
     # TODO ++++ create specific tables
-    click.secho(f"Sous-module monitoring '{module_code}' installé", fg='green')
+    click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
 
 
@@ -196,8 +199,7 @@ def cmd_process_available_permission_module(module_code):
         return process_available_permissions(module_code)
 
     for module in installed_modules():
-        process_available_permissions(module['module_code'])
-
+        process_available_permissions(module["module_code"])
 
 
 @click.command("remove")

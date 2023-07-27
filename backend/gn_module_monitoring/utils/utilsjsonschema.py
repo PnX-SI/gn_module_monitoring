@@ -5,8 +5,8 @@ from jsonschema.exceptions import ValidationError
 
 def validable(cls):
     """
-        Décorateur de classe
-        Ajoute une fonction de valider des jsonschema sur un colonne JSONB
+    Décorateur de classe
+    Ajoute une fonction de valider des jsonschema sur un colonne JSONB
     """
 
     def is_valid(self, col_name, file_schema_path):
@@ -33,7 +33,7 @@ def validable(cls):
             return
 
         # test si l'objet json est conforme au schema
-        with open(file_schema_path, 'r') as f:
+        with open(file_schema_path, "r") as f:
             schema = load(f)
 
             try:

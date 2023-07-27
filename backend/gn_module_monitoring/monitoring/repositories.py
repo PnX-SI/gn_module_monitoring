@@ -12,13 +12,11 @@ log = logging.getLogger(__name__)
 
 
 class MonitoringObject(MonitoringObjectSerializer):
-
     def get(self, value=None, field_name=None, depth=0):
-
         # par defaut on filtre sur l'id
 
         if not field_name:
-            field_name = self.config_param('id_field_name')
+            field_name = self.config_param("id_field_name")
             if not value:
                 value = self._id
 
@@ -28,9 +26,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         try:
             Model = self.MonitoringModel()
 
-            req = (
-                DB.session.query(Model)
-            )
+            req = DB.session.query(Model)
 
             # Test pour mettre les relations à joined
             # if depth > 0:
@@ -39,24 +35,21 @@ class MonitoringObject(MonitoringObjectSerializer):
             #         relation_name = children_type + 's'
             #         req = req.options(joinedload(relation_name))
 
-            self._model = (
-                req
-                .filter(getattr(Model, field_name) == value)
-                .one()
-            )
+            self._model = req.filter(getattr(Model, field_name) == value).one()
 
-            self._id = getattr(self._model, self.config_param('id_field_name'))
+            self._id = getattr(self._model, self.config_param("id_field_name"))
 
             return self
 
         except Exception as e:
-            raise GeoNatureError(f'MONITORING : get_object {self._module_code} {self._object_type} ({field_name}={value}) : {e}')
+            raise GeoNatureError(
+                f"MONITORING : get_object {self._module_code} {self._object_type} ({field_name}={value}) : {e}"
+            )
 
     def process_post_data_properties(self, post_data):
-
         # id_parent dans le cas d'heritage
 
-        properties = post_data['properties']
+        properties = post_data["properties"]
 
         # id_parent = post_data.get('id_parent')  # TODO remove
         # if id_parent:
@@ -64,26 +57,24 @@ class MonitoringObject(MonitoringObjectSerializer):
         #     properties[parent_id_field_name] = post_data['id_parent']
 
     def process_synthese(self, process_module=False, limit=1000):
-
         # test du parametre synthese
-        if not self.config().get('synthese'):
+        if not self.config().get("synthese"):
             return
 
         # on ne le fait pas en automatique pour les modules
         # le process peut être trop long
         # peut être fait avec une api exprès (TODO !!)
-        if self._object_type == 'module' and not process_module:
+        if self._object_type == "module" and not process_module:
             return
 
-
-        table_name = 'v_synthese_{}'.format(self._module_code)
+        table_name = "v_synthese_{}".format(self._module_code)
         try:
             import_from_table(
-                'gn_monitoring',
+                "gn_monitoring",
                 table_name,
-                self.config_param('id_field_name'),
-                self.config_value('id_field_name'),
-                limit
+                self.config_param("id_field_name"),
+                self.config_value("id_field_name"),
+                limit,
             )
         except ValueError as e:
             # warning
@@ -91,24 +82,21 @@ class MonitoringObject(MonitoringObjectSerializer):
                 """Error in module monitoring, process_synthese.
                 Function import_from_table with parameters({}, {}, {}) raises the following error :
                 {}
-                """
-                .format(
+                """.format(
                     table_name,
-                    self.config_param('id_field_name'),
-                    self.config_value('id_field_name'),
-                    e
+                    self.config_param("id_field_name"),
+                    self.config_value("id_field_name"),
+                    e,
                 )
             )
-            return {"message": '{}'.format(e)}, 500
+            return {"message": "{}".format(e)}, 500
         except Exception as e:
-            return {"message": '{}'.format(e)}, 500
+            return {"message": "{}".format(e)}, 500
 
         return True
 
     def create_or_update(self, post_data):
-
         try:
-
             # si id existe alors c'est un update
             self.get()
 
@@ -124,22 +112,18 @@ class MonitoringObject(MonitoringObjectSerializer):
                 DB.session.add(self._model)
             DB.session.commit()
 
-            self._id = getattr(self._model, self.config_param('id_field_name'))
+            self._id = getattr(self._model, self.config_param("id_field_name"))
 
             self.process_synthese()
 
             return self
 
         except Exception as e:
-            raise GeoNatureError(
-                "MONITORING: create_or_update {} : {}"
-                .format(self, str(e))
-            )
+            raise GeoNatureError("MONITORING: create_or_update {} : {}".format(self, str(e)))
 
     def delete(self):
-
         if not self._id:
-            raise GeoNatureError('Monitoring : delete object has no id')
+            raise GeoNatureError("Monitoring : delete object has no id")
 
         try:
             self.get()
@@ -152,45 +136,37 @@ class MonitoringObject(MonitoringObjectSerializer):
             return monitoring_object_out
 
         except Exception as e:
-            raise GeoNatureError(
-                'Delete {} raise error {}'
-                .format(self, str(e))
-            )
+            raise GeoNatureError("Delete {} raise error {}".format(self, str(e)))
 
     def breadcrumb(self, params):
-
         if not self._id:
             return
 
-
         breadcrumb = {
-            'id': self._id,
-            'label': self.config_param('label'),
-            'description': str(self.config_value('description_field_name')),
-            'module_code': self._module_code,
-            'object_type': self._object_type,
+            "id": self._id,
+            "label": self.config_param("label"),
+            "description": str(self.config_value("description_field_name")),
+            "module_code": self._module_code,
+            "object_type": self._object_type,
         }
 
-        if params['parents_path']:
-            breadcrumb['params'] = {
-                'parents_path': [parent for parent in params['parents_path']]
-            }
+        if params["parents_path"]:
+            breadcrumb["params"] = {"parents_path": [parent for parent in params["parents_path"]]}
 
         return breadcrumb
 
     def breadcrumbs(self, params):
-
         breadcrumb = self.breadcrumb(params)
 
         breadcrumbs = [breadcrumb] if breadcrumb else []
 
-        next=None
+        next = None
 
-        if params['parents_path']:
-            object_type = params.get('parents_path', []).pop()
+        if params["parents_path"]:
+            object_type = params.get("parents_path", []).pop()
             next = MonitoringObject(self._module_code, object_type)
 
-            id_field_name = next.config_param('id_field_name')
+            id_field_name = next.config_param("id_field_name")
             next._id = self.get_value(id_field_name) or params.get(id_field_name)
             next.get(0)
         else:
@@ -202,16 +178,16 @@ class MonitoringObject(MonitoringObjectSerializer):
         return breadcrumbs
 
     def get_list(self, args=None):
-        '''
-            renvoie une liste d'objet serialisés
-            possibilité de filtrer
-            args arguments de requête get
-            get_list(request.args.to_dict())
+        """
+        renvoie une liste d'objet serialisés
+        possibilité de filtrer
+        args arguments de requête get
+        get_list(request.args.to_dict())
 
-            TODO ajouter sort, page ou autres avec args
-            TODO traiter geojson ??
-            TODO filtrer par module ++++
-        '''
+        TODO ajouter sort, page ou autres avec args
+        TODO traiter geojson ??
+        TODO filtrer par module ++++
+        """
 
         # test si présent dans le module
         # sinon []
@@ -221,13 +197,11 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         Model = self.MonitoringModel()
 
-        limit = args.get('limit')
+        limit = args.get("limit")
 
-        order_by = args.getlist('order_by')
+        order_by = args.getlist("order_by")
 
-        req = (
-            DB.session.query(Model)
-        )
+        req = DB.session.query(Model)
 
         # Traitement de la liste des colonnes à retourner
         fields_list = args.getlist("fields")
@@ -238,10 +212,9 @@ class MonitoringObject(MonitoringObjectSerializer):
         else:
             fields_list = [field for field in fields_list if field in props]
 
-
         # filtres params get
         for key in args:
-            if hasattr(Model, key) and args[key] not in ['', None, 'null', 'undefined']:
+            if hasattr(Model, key) and args[key] not in ["", None, "null", "undefined"]:
                 vals = args.getlist(key)
                 req = req.filter(getattr(Model, key).in_(vals))
 
@@ -253,41 +226,36 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # order_by
         for s in order_by:
-            if '*' in s:
-                continue # order by number
-            elif s[-1] == '-':
+            if "*" in s:
+                continue  # order by number
+            elif s[-1] == "-":
                 req = req.order_by(getattr(Model, s[:-1]).desc())
             else:
                 req = req.order_by(getattr(Model, s))
 
         # TODO page etc...
 
-        res = (
-            req
-            .limit(limit)
-            .all()
-        )
+        res = req.limit(limit).all()
 
         # patch order by number
-        out = [
-            r.as_dict(fields=fields_list)
-            for r in res
-        ]
+        out = [r.as_dict(fields=fields_list) for r in res]
 
         # order by number
         # pour les cas 1.2 truc muche
 
         for s in order_by:
-            if '*' in s:
+            if "*" in s:
                 s2 = s.replace("-", "").replace("*", "")
+
                 def extract_number(x):
                     try:
-                        n =x[s2].split(' ')[0].split('.')
+                        n = x[s2].split(" ")[0].split(".")
                         n0 = n[0]
                         n1 = n[1]
-                        return to_int(n0)*1e5 + to_int(n1)
+                        return to_int(n0) * 1e5 + to_int(n1)
                     except:
                         return 0
+
                 out = sorted(out, key=extract_number)
 
         return out

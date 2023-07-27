@@ -20,27 +20,24 @@ from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
 
+
 @serializable
 class TMonitoringObservationDetails(DB.Model):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
-    id_observation_detail = DB.Column(
-        DB.Integer,
-        primary_key=True,
-        nullable=False,
-        unique=True
-    )
+    id_observation_detail = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
 
-    id_observation = DB.Column(DB.ForeignKey('gn_monitoring.t_observations.id_observation'))
+    id_observation = DB.Column(DB.ForeignKey("gn_monitoring.t_observations.id_observation"))
     data = DB.Column(JSONB)
     uuid_observation_detail = DB.Column(UUID(as_uuid=True), default=uuid4)
 
     medias = DB.relationship(
         TMedias,
-        lazy='joined',
+        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
-        foreign_keys=[TMedias.uuid_attached_row])
+        foreign_keys=[TMedias.uuid_attached_row],
+    )
 
 
 @serializable
@@ -48,28 +45,24 @@ class TObservations(DB.Model):
     __tablename__ = "t_observations"
     __table_args__ = {"schema": "gn_monitoring"}
 
-    id_observation = DB.Column(
-        DB.Integer,
-        primary_key=True,
-        nullable=False,
-        unique=True)
-    id_base_visit = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_visits.id_base_visit'))
+    id_observation = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
+    id_base_visit = DB.Column(DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"))
     cd_nom = DB.Column(DB.Integer)
     comments = DB.Column(DB.String)
     uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
 
     medias = DB.relationship(
         TMedias,
-        lazy='joined',
+        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
-        foreign_keys=[TMedias.uuid_attached_row])
+        foreign_keys=[TMedias.uuid_attached_row],
+    )
 
     observation_details = DB.relation(
         TMonitoringObservationDetails,
         primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
         foreign_keys=[TMonitoringObservationDetails.id_observation],
-        cascade="all,delete"
+        cascade="all,delete",
     )
 
 
@@ -78,16 +71,16 @@ class TMonitoringObservations(TObservations):
     __tablename__ = "t_observation_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
-        'polymorphic_identity': 'monitoring_observation',
+        "polymorphic_identity": "monitoring_observation",
     }
 
     data = DB.Column(JSONB)
 
     id_observation = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_observations.id_observation'),
+        DB.ForeignKey("gn_monitoring.t_observations.id_observation"),
         primary_key=True,
         nullable=False,
-        )
+    )
 
 
 TBaseVisits.dataset = DB.relationship(TDatasets)
@@ -98,66 +91,62 @@ class TMonitoringVisits(TBaseVisits):
     __tablename__ = "t_visit_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
-        'polymorphic_identity': 'monitoring_visit',
+        "polymorphic_identity": "monitoring_visit",
     }
 
     id_base_visit = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_visits.id_base_visit'),
+        DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
         nullable=False,
-        primary_key=True
-        )
+        primary_key=True,
+    )
 
     data = DB.Column(JSONB)
 
     medias = DB.relationship(
         TMedias,
-        lazy='joined',
+        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == TBaseVisits.uuid_base_visit),
-        foreign_keys=[TMedias.uuid_attached_row])
-
-    observers = DB.relationship(
-        User,
-        lazy='joined',
-        secondary=corVisitObserver
+        foreign_keys=[TMedias.uuid_attached_row],
     )
+
+    observers = DB.relationship(User, lazy="joined", secondary=corVisitObserver)
 
     observations = DB.relation(
         "TMonitoringObservations",
-        lazy='select',
+        lazy="select",
         primaryjoin=(TObservations.id_base_visit == TBaseVisits.id_base_visit),
         foreign_keys=[TObservations.id_base_visit],
-        cascade="all,delete"
+        cascade="all,delete",
     )
 
     nb_observations = column_property(
-        select([func.count(TObservations.id_base_visit)]).\
-            where(TObservations.id_base_visit==id_base_visit)
+        select([func.count(TObservations.id_base_visit)]).where(
+            TObservations.id_base_visit == id_base_visit
+        )
     )
 
 
 @geoserializable
 class TMonitoringSites(TBaseSites):
-
-    __tablename__ = 't_site_complements'
-    __table_args__ = {'schema': 'gn_monitoring'}
+    __tablename__ = "t_site_complements"
+    __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
-        'polymorphic_identity': 'monitoring_site',
+        "polymorphic_identity": "monitoring_site",
     }
 
     id_base_site = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_base_sites.id_base_site'),
-        nullable=False,
-        primary_key=True
+        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
     )
 
     id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        DB.ForeignKey("gn_commons.t_modules.id_module"),
         nullable=False,
     )
 
     id_sites_group = DB.Column(
-        DB.ForeignKey('gn_monitoring.t_sites_groups.id_sites_group',
-        # ondelete='SET NULL'
+        DB.ForeignKey(
+            "gn_monitoring.t_sites_groups.id_sites_group",
+            # ondelete='SET NULL'
         ),
         nullable=False,
     )
@@ -169,49 +158,45 @@ class TMonitoringSites(TBaseSites):
         lazy="select",
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
-        cascade="all,delete"
+        cascade="all,delete",
     )
 
     medias = DB.relationship(
         TMedias,
-        lazy='joined',
+        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
         cascade="all",
     )
 
     last_visit = column_property(
-        select([func.max(TBaseVisits.visit_date_min)]).\
-            where(TBaseVisits.id_base_site==id_base_site)
+        select([func.max(TBaseVisits.visit_date_min)]).where(
+            TBaseVisits.id_base_site == id_base_site
+        )
     )
 
     nb_visits = column_property(
-        select([func.count(TBaseVisits.id_base_site)]).\
-            where(TBaseVisits.id_base_site==id_base_site)
+        select([func.count(TBaseVisits.id_base_site)]).where(
+            TBaseVisits.id_base_site == id_base_site
+        )
     )
 
     geom_geojson = column_property(
-        select([func.st_asgeojson(TBaseSites.geom)]).\
-            where(TBaseSites.id_base_site==id_base_site).\
-                correlate_except(TBaseSites)
+        select([func.st_asgeojson(TBaseSites.geom)])
+        .where(TBaseSites.id_base_site == id_base_site)
+        .correlate_except(TBaseSites)
     )
+
 
 @serializable
 class TMonitoringSitesGroups(DB.Model):
-    __tablename__ = 't_sites_groups'
-    __table_args__ = {'schema': 'gn_monitoring'}
+    __tablename__ = "t_sites_groups"
+    __table_args__ = {"schema": "gn_monitoring"}
 
-    id_sites_group = DB.Column(
-        DB.Integer,
-        primary_key=True,
-        nullable=False,
-        unique=True
-    )
+    id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
 
     id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
-        nullable=False,
-        unique=True
+        DB.ForeignKey("gn_commons.t_modules.id_module"), nullable=False, unique=True
     )
 
     uuid_sites_group = DB.Column(UUID(as_uuid=True), default=uuid4)
@@ -240,35 +225,34 @@ class TMonitoringSitesGroups(DB.Model):
     )
 
     nb_sites = column_property(
-        select([func.count(TMonitoringSites.id_sites_group)]).\
-            where(TMonitoringSites.id_sites_group==id_sites_group)
+        select([func.count(TMonitoringSites.id_sites_group)]).where(
+            TMonitoringSites.id_sites_group == id_sites_group
+        )
     )
 
     nb_visits = column_property(
-        select([func.count(TMonitoringVisits.id_base_site)]).\
-            where(and_(
+        select([func.count(TMonitoringVisits.id_base_site)]).where(
+            and_(
                 TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-                TMonitoringSites.id_sites_group == id_sites_group
-                )
+                TMonitoringSites.id_sites_group == id_sites_group,
+            )
         )
     )
 
 
-
-
 @serializable
 class TMonitoringModules(TModules):
-    __tablename__ = 't_module_complements'
-    __table_args__ = {'schema': 'gn_monitoring'}
+    __tablename__ = "t_module_complements"
+    __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
-        'polymorphic_identity': 'monitoring_module',
+        "polymorphic_identity": "monitoring_module",
     }
 
     id_module = DB.Column(
-        DB.ForeignKey('gn_commons.t_modules.id_module'),
+        DB.ForeignKey("gn_commons.t_modules.id_module"),
         primary_key=True,
         nullable=False,
-        unique=True
+        unique=True,
     )
 
     uuid_module_complement = DB.Column(UUID(as_uuid=True), default=uuid4)
@@ -284,11 +268,11 @@ class TMonitoringModules(TModules):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy='joined'
+        lazy="joined",
     )
 
     sites = DB.relationship(
-        'TMonitoringSites',
+        "TMonitoringSites",
         uselist=True,  # pourquoi pas par defaut ?
         primaryjoin=TMonitoringSites.id_module == id_module,
         foreign_keys=[id_module],
@@ -296,7 +280,7 @@ class TMonitoringModules(TModules):
     )
 
     sites_groups = DB.relationship(
-        'TMonitoringSitesGroups',
+        "TMonitoringSitesGroups",
         uselist=True,  # pourquoi pas par defaut ?
         primaryjoin=TMonitoringSitesGroups.id_module == id_module,
         foreign_keys=[id_module],
@@ -304,12 +288,11 @@ class TMonitoringModules(TModules):
     )
 
     datasets = DB.relationship(
-        'TDatasets',
+        "TDatasets",
         secondary=cor_module_dataset,
         join_depth=0,
         lazy="joined",
     )
-
 
     data = DB.Column(JSONB)
 
@@ -322,55 +305,52 @@ class TMonitoringModules(TModules):
     # )
 
 
-
 TMonitoringModules.visits = DB.relationship(
-        TMonitoringVisits,
-        lazy="select",
-        primaryjoin=(TMonitoringModules.id_module == TMonitoringVisits.id_module),
-        foreign_keys=[TMonitoringVisits.id_module],
-        cascade="all"
-    )
+    TMonitoringVisits,
+    lazy="select",
+    primaryjoin=(TMonitoringModules.id_module == TMonitoringVisits.id_module),
+    foreign_keys=[TMonitoringVisits.id_module],
+    cascade="all",
+)
 
 
 # add sites_group relationship to TMonitoringSites
 
-TMonitoringSites.sites_group = (
-    DB.relationship(
-        TMonitoringSitesGroups,
-        primaryjoin=(
-            TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group
-        ),
-        cascade="all",
-        lazy="select",
-        uselist=False
-    )
+TMonitoringSites.sites_group = DB.relationship(
+    TMonitoringSitesGroups,
+    primaryjoin=(TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group),
+    cascade="all",
+    lazy="select",
+    uselist=False,
 )
 
 TMonitoringSitesGroups.visits = DB.relationship(
-        TMonitoringVisits,
-        primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
-        secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
-        secondary='gn_monitoring.t_site_complements',
-    )
+    TMonitoringVisits,
+    primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
+    secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
+    secondary="gn_monitoring.t_site_complements",
+)
 
 TMonitoringSitesGroups.nb_visits = column_property(
-        select([func.count(TMonitoringVisits.id_base_site)]).\
-            where(and_(
-                TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-                TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group
-                )
+    select([func.count(TMonitoringVisits.id_base_site)]).where(
+        and_(
+            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+        )
     )
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
 TMonitoringSitesGroups.geom_geojson = column_property(
-        select(
-            [func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))]
-        ).select_from(TMonitoringSitesGroups.__table__.alias("subquery").join(
+    select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+    .select_from(
+        TMonitoringSitesGroups.__table__.alias("subquery").join(
             TMonitoringSites,
-            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group
-        )).where(
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
     )
+    .where(
+        TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+    )
+)
