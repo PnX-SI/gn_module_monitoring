@@ -159,10 +159,26 @@ export class MonitoringSitesGroupsComponent
     })
   }
 
+  getGeometriesSite(){
+    this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite());
+  }
+
+
+  onEachFeatureSite() {
+    const baseUrl = this.router.url;
+    return (feature, layer) => {
+      const popup = setPopup(
+        baseUrl,
+        feature.properties.id_base_site,
+        'Site :' + feature.properties.base_site_name
+      );
+      layer.bindPopup(popup);
+    };
+  }
   seeDetails($event) {
     // TODO: routerLink
     this._objService.changeObjectTypeParent(
-      this._sites_group_service.objectObs,true
+      this._sites_group_service.objectObs
     );
     this.router.navigate([$event.id_sites_group], {
       relativeTo: this._Activatedroute,
@@ -181,6 +197,18 @@ export class MonitoringSitesGroupsComponent
 
   onSelect($event) {
     this.geojsonService.selectSitesGroupLayer($event);
+  }
+
+  loadGeoJson($event) {
+    if($event == "site"){
+      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+      this.getGeometriesSite()
+    } else {
+      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+      this.geojsonService.getSitesGroupsGeometries(
+        this.onEachFeatureSiteGroups()
+      );
+    }
   }
 
   setDataTableObj(data){

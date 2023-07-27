@@ -2,5 +2,6 @@
 <div>
   <pnx-monitoring-datatable-g [dataTableArray]="dataTableArray" [dataTableObj]="dataTableObj" [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
     (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="sitesGroups" (onDetailsRow)="seeDetails($event)"
-    (addEvent)="addSiteGp($event)"></pnx-monitoring-datatable-g>
+    (addEvent)="addSiteGp($event)"
+    (tabChanged)="loadGeoJson($event)"></pnx-monitoring-datatable-g>
 </div>
