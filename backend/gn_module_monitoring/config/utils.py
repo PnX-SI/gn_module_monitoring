@@ -1,18 +1,17 @@
 import os, datetime, time
 import importlib
 from pathlib import Path
-from flask import current_app
 import json
 
 from sqlalchemy import and_
 
 from geonature.core.gn_commons.models import BibTablesLocation, TModules
 from geonature.utils.errors import GeoNatureError
-from geonature.utils.env import DB, DEFAULT_CONFIG_FILE, BACKEND_DIR
-
+from geonature.utils.env import DB
+from geonature.utils.config import config as gn_config
 from ..monitoring.models import TMonitoringModules
 
-SUB_MODULE_CONFIG_DIR = Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
+SUB_MODULE_CONFIG_DIR = Path(gn_config['MEDIA_FOLDER']) / 'monitorings/'
 
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
