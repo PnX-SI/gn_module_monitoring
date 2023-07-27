@@ -74,10 +74,10 @@ export class MonitoringSitesGroupsComponent
 
   initSiteGroup() {
     this._objService.changeObjectTypeParent(
-      this._sites_group_service.objectObs,true
+      this._sites_group_service.objectObs
     );
     this._objService.changeObjectType(
-      this._sites_group_service.objectObs,true
+      this._sites_group_service.objectObs
     );
     
     this.updateBreadCrumb();
