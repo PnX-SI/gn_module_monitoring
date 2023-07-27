@@ -53,6 +53,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() onSetPage = new EventEmitter<any>();
   @Output() onDetailsRow = new EventEmitter<any>();
   @Output() addEvent = new EventEmitter<any>();
+  @Output() tabChanged = new EventEmitter<any>();
 
   private filterSubject: Subject<string> = new Subject();
   displayFilter: boolean = false;
@@ -106,6 +107,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.rows = this.dataTableObj[this.activetabType].rows
     this.page = this.dataTableObj[this.activetabType].page
     this.objectsStatusChange.emit(this.reInitStatut());
+    this.tabChanged.emit(this.activetabType)
   }
 
   reInitStatut() {
