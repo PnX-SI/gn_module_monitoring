@@ -1,6 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MonitoringPropertiesComponent } from './monitoring-properties-g.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('MonitoringPropertiesGComponent', () => {
   let component: MonitoringPropertiesComponent;
@@ -8,9 +7,8 @@ describe('MonitoringPropertiesGComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MonitoringPropertiesComponent ]
-    })
-    .compileComponents();
+      declarations: [MonitoringPropertiesComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

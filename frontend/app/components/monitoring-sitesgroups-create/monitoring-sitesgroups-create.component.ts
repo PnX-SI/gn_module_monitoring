@@ -36,7 +36,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
       },
       this.urlRelative
     );
-    this._objService.changeSelectedObj({},true)
+    this._objService.changeSelectedObj({}, true);
     this.objForm = this._formBuilder.group({});
   }
 }

@@ -1,29 +1,38 @@
-<button  
-mat-raised-button
-color="primary"
-class="btn btn-success float-right"
-(click)="onDeploy()" #ddTrigger="matMenuTrigger" [matMenuTriggerFor]="dd">
-    <i class="fa fa-plus" aria-hidden="true"></i> {{ label }}
+<button
+  mat-raised-button
+  color="primary"
+  class="btn btn-success float-right"
+  (click)="onDeploy()"
+  #ddTrigger="matMenuTrigger"
+  [matMenuTriggerFor]="dd"
+>
+  <i class="fa fa-plus" aria-hidden="true"></i> {{ label }}
 </button>
 <mat-menu #dd="matMenu" [overlapTrigger]="false" class="btn-menu">
-    <div (click)="cancelClick($event)" class="dropdown">
-        <mat-form-field class="btn-menu">
-            <input type="text" [placeholder]="placeholder" aria-label="Number" matInput [formControl]="form"
-                [matAutocomplete]="auto" />
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" classList="width-mat">
-                <mat-option *ngIf="optionList?.length == 0; else elseBlock" disabled>Aucun protocole n'est disponible pour ce type de site</mat-option>
-                <ng-template #elseBlock>
-                    <mat-option *ngFor="let option of optionList" [value]="option">
-                        {{ option.label }}
-                    </mat-option>
-                </ng-template>
-            </mat-autocomplete>
-        </mat-form-field>
-        <div>
-            <button mat-flat-button color="primary" (click)="onSave()">
-                Ajouter
-            </button>
-            <button mat-button (click)="onCancel()">Annuler</button>
-        </div>
+  <div (click)="cancelClick($event)" class="dropdown">
+    <mat-form-field class="btn-menu">
+      <input
+        type="text"
+        [placeholder]="placeholder"
+        aria-label="Number"
+        matInput
+        [formControl]="form"
+        [matAutocomplete]="auto"
+      />
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" classList="width-mat">
+        <mat-option *ngIf="optionList?.length == 0; else elseBlock" disabled
+          >Aucun protocole n'est disponible pour ce type de site</mat-option
+        >
+        <ng-template #elseBlock>
+          <mat-option *ngFor="let option of optionList" [value]="option">
+            {{ option.label }}
+          </mat-option>
+        </ng-template>
+      </mat-autocomplete>
+    </mat-form-field>
+    <div>
+      <button mat-flat-button color="primary" (click)="onSave()">Ajouter</button>
+      <button mat-button (click)="onCancel()">Annuler</button>
     </div>
+  </div>
 </mat-menu>

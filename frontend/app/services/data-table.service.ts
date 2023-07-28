@@ -50,20 +50,16 @@ export class DataTableService {
     return allColumn;
   }
 
-  initObjectsStatus(objList, key):ItemObjectTable[] {
+  initObjectsStatus(objList, key): ItemObjectTable[] {
     const objectsStatus = {};
-    objectsStatus[key] = []
-    objectsStatus[key]= objList.map(obj=> (
-       {
-        id: obj[obj["pk"]],
-        selected: false,
-        visible: true,
-        current: false,
-      }
-
-    ));
+    objectsStatus[key] = [];
+    objectsStatus[key] = objList.map((obj) => ({
+      id: obj[obj['pk']],
+      selected: false,
+      visible: true,
+      current: false,
+    }));
     // }
-
 
     // TODO: Comprendre cette partie à quoi elle sert
     // init site status
@@ -87,6 +83,6 @@ export class DataTableService {
 
     // this.rowStatus = this.objectsStatus[key];
 
-    return objectsStatus[key]
+    return objectsStatus[key];
   }
 }
