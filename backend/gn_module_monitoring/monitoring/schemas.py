@@ -24,26 +24,26 @@ def paginate_schema(schema):
 
 
 class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
-    
     sites_group_name = fields.String(
-        validate=validate.Length(min=3,error="Length must be greater than 3"),)
-        
+        validate=validate.Length(min=3, error="Length must be greater than 3"),
+    )
+
     class Meta:
         model = TMonitoringSitesGroups
         exclude = ("geom_geojson",)
         load_instance = True
 
-    medias = MA.Nested(MediaSchema,many=True)
-    pk = fields.Method("set_pk",dump_only=True)
+    medias = MA.Nested(MediaSchema, many=True)
+    pk = fields.Method("set_pk", dump_only=True)
     geometry = fields.Method("serialize_geojson", dump_only=True)
-    
-    def set_pk(self,obj):
+
+    def set_pk(self, obj):
         return self.Meta.model.get_id()
 
     def serialize_geojson(self, obj):
         if obj.geom_geojson is not None:
             return json.loads(obj.geom_geojson)
-    
+
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     label = fields.Method("get_label_from_type_site")
@@ -65,21 +65,23 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         exclude = ("geom_geojson", "geom")
 
     geometry = fields.Method("serialize_geojson", dump_only=True)
-    pk = fields.Method("set_pk",dump_only=True)
+    pk = fields.Method("set_pk", dump_only=True)
     types_site = MA.Nested(BibTypeSiteSchema, many=True)
 
     def serialize_geojson(self, obj):
         if obj.geom is not None:
             return geojson.dumps(obj.as_geofeature().get("geometry"))
-        
-    def set_pk(self,obj):
+
+    def set_pk(self, obj):
         return self.Meta.model.get_id()
+
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringVisits
-    pk = fields.Method("set_pk",dump_only=True)
+
+    pk = fields.Method("set_pk", dump_only=True)
     module = MA.Nested(ModuleSchema)
 
-    def set_pk(self,obj):
+    def set_pk(self, obj):
         return self.Meta.model.get_id()
