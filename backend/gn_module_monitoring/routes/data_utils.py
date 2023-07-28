@@ -38,7 +38,7 @@ from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
-    TMonitoringSitesGroups
+    TMonitoringSitesGroups,
 )
 
 model_dict = {
