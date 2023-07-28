@@ -55,6 +55,7 @@ class MonitoringDefinitions:
 
 monitoring_definitions = MonitoringDefinitions()
 
+
 class MonitoringObjectBase:
     _object_type = None
     _module_code = None

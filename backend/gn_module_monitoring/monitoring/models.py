@@ -10,6 +10,13 @@ from sqlalchemy.orm import (
     class_mapper,
     aliased,
 )
+from sqlalchemy.orm import (
+    column_property,
+    ColumnProperty,
+    RelationshipProperty,
+    class_mapper,
+    aliased,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from uuid import uuid4
 
@@ -41,11 +48,17 @@ class GenericModel:
         if hasattr(cls, "id_g") == False:
             pk_value = getattr(cls, pk_string)
             setattr(cls, "id_g", pk_value)
+        if hasattr(cls, "id_g") == False:
+            pk_value = getattr(cls, pk_string)
+            setattr(cls, "id_g", pk_value)
 
     @classmethod
     def get_id(cls) -> None:
         pk_string = class_mapper(cls).primary_key[0].name
         # print('======= ==>', pk_string)
+        if hasattr(cls, "id_g") == False:
+            pk_value = getattr(cls, pk_string)
+            setattr(cls, "id_g", pk_value)
         if hasattr(cls, "id_g") == False:
             pk_value = getattr(cls, pk_string)
             setattr(cls, "id_g", pk_value)
@@ -74,6 +87,7 @@ cor_module_type = DB.Table(
         primary_key=True,
     ),
     DB.Column(
+    DB.Column(
         "id_type_site",
         DB.Integer,
         DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
@@ -90,6 +104,7 @@ cor_type_site = DB.Table(
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"),
         primary_key=True,
     ),
+    DB.Column(
     DB.Column(
         "id_type_site",
         DB.Integer,
@@ -111,10 +126,20 @@ class BibTypeSite(DB.Model, GenericModel):
         nullable=False,
         primary_key=True,
     )
+
+    id_nomenclature_type_site = DB.Column(
+        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
+        nullable=False,
+        primary_key=True,
+    )
     config = DB.Column(JSONB)
     nomenclature = DB.relationship(
         TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
+        TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
     )
+
+    sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
+
 
     sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
 
@@ -234,7 +259,6 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
 
 @geoserializable(geoCol="geom", idCol="id_base_site")
 class TMonitoringSites(TBaseSites, GenericModel):
-
     __tablename__ = "t_site_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
@@ -284,7 +308,11 @@ class TMonitoringSites(TBaseSites, GenericModel):
         )
     )
 
-    geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
+    geom_geojson = column_property(
+        select([func.st_asgeojson(TBaseSites.geom)])
+        .where(TBaseSites.id_base_site == id_base_site)
+        .correlate_except(TBaseSites)
+    )
     types_site = DB.relationship("BibTypeSite", secondary=cor_type_site, lazy="joined")
 
 
@@ -405,12 +433,17 @@ class TMonitoringModules(TModules):
     # )
 
 
+
 # Use alias since there is already a FROM caused by count (column_properties)
 sites_alias = aliased(TMonitoringSites)
 TMonitoringModules.sites_groups = DB.relationship(
     "TMonitoringSitesGroups",
     uselist=True,  # pourquoi pas par defaut ?
     primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
+    secondaryjoin=and_(
+        TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
+        sites_alias.id_base_site == cor_type_site.c.id_base_site,
+    ),
     secondaryjoin=and_(
         TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
         sites_alias.id_base_site == cor_type_site.c.id_base_site,
