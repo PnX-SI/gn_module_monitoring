@@ -1,44 +1,42 @@
-<div *ngIf="selectedObj" >
+<div *ngIf="selectedObj">
   <div id="properties-display" class="cadre">
     <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="0ms">
       <mat-tab label="Propriétés">
-        <div class="mt-2" >
+        <div class="mt-2">
           <table class="table table-striped table-sm">
             <tr *ngFor="let fieldName of fieldsNames; let i = index">
-              <td style="width:50%" class="key text-muted">
+              <td style="width: 50%" class="key text-muted">
                 {{ fields[fieldName] }}
                 <i
                   *ngIf="fieldDefinitions[fieldName]"
                   class="material-icons small-icon"
-                  [matTooltip]="
-                  fields[fieldName] + ' : ' + fieldDefinitions[fieldName]
-                  "
+                  [matTooltip]="fields[fieldName] + ' : ' + fieldDefinitions[fieldName]"
                   matTooltipPosition="above"
                   >help</i
                 >
               </td>
-              <td class="td-value" >{{ selectedObj[fieldName] }}</td>
+              <td class="td-value">{{ selectedObj[fieldName] }}</td>
             </tr>
           </table>
         </div>
       </mat-tab>
       <mat-tab *ngIf="selectedObj.data != null" label="Propriétés spécifiques">
-        <div class="mt-2" >
+        <div class="mt-2">
           <table class="table table-striped table-sm">
             <tr *ngFor="let fieldName of specificFields | keyvalue; let i = index">
-              <td style="width:50%" class="key text-muted">
+              <td style="width: 50%" class="key text-muted">
                 {{ fieldName.value }}
                 <i
                   *ngIf="specificFieldDefinitions[fieldName]"
                   class="material-icons small-icon"
                   [matTooltip]="
-                  specificFields[fieldName] + ' : ' + specificFieldDefinitions[fieldName]
+                    specificFields[fieldName] + ' : ' + specificFieldDefinitions[fieldName]
                   "
                   matTooltipPosition="above"
                   >help</i
                 >
               </td>
-              <td class="td-value" >{{ selectedObj.data[fieldName.key] }}</td>
+              <td class="td-value">{{ selectedObj.data[fieldName.key] }}</td>
             </tr>
           </table>
         </div>
@@ -71,31 +69,23 @@
         </div>
       </ng-container>
     </mat-tab> -->
-  </mat-tab-group>
+    </mat-tab-group>
 
-
-
-    <div
-      class="tab-content"
-      id="nav-tabContent"
-      [ngStyle]="{ 'background-color': color }"
-    >
+    <div class="tab-content" id="nav-tabContent" [ngStyle]="{ 'background-color': color }">
       <div
         class="tab-pane fade active show"
         id="properties-tab"
         role="tabpanel"
         attr.aria-labelledby="nav-properties-tab"
-      >
-      </div>
+      ></div>
 
-    <div
-      *ngIf="selectedObj.data"
+      <div
+        *ngIf="selectedObj.data"
         class="tab-pane fade"
         id="specific-tab"
         role="tabpanel"
         attr.aria-labelledby="nav-specific-tab"
-    >
-    </div>
+      ></div>
       <!-- <div
       class="tab-pane fade"
       id="medias-tab"
@@ -127,7 +117,7 @@
       </ng-container>
     </div> -->
 
-    <!-- TODO: voir pour faire fonctionner les droits "currentUser" -->
+      <!-- TODO: voir pour faire fonctionner les droits "currentUser" -->
       <!-- <button
       class="btn btn-success mr-2"
       (click)="onEditClick()"
@@ -149,10 +139,9 @@
         {{ objectType.editObjLabel }}
       </button>
 
-
-<!-- TODO: voir s'il faut remettre en place ça -->
-    <!-- export pdf -->
-    <!-- <button
+      <!-- TODO: voir s'il faut remettre en place ça -->
+      <!-- export pdf -->
+      <!-- <button
         mat-stroked-button
         color="primary"
         *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])"
@@ -162,9 +151,9 @@
         <i class="fa fa-file-pdf-o"></i>&nbsp;
         {{exportPdfConfig.label}}
       </button> -->
-    
-    <!-- Mise à jour de la synthèse (Admin) -->
-    <!-- <button
+
+      <!-- Mise à jour de la synthèse (Admin) -->
+      <!-- <button
       mat-stroked-button
       color="primary"
       class="float-right"
@@ -199,7 +188,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- TODO voir si on doit remettre ça également -->
 <!--add mje modalExportCsv-->
@@ -242,4 +230,3 @@
 </ng-template> -->
 
 <!-- end add mje -->
-

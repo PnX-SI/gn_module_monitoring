@@ -1,16 +1,12 @@
 <div>
-  <pnx-monitoring-form-g
-    [apiService]="siteService"
-    [isExtraForm]="true"
-    [objForm]="form"
-  >
-  <btn-select
-  add-select
-  (sendobject)="onSendConfig($event)"
-  [titleBtn]="titleBtn"
-  [placeholderText]="placeholderText"
-  [callBackFunction]="funcToFilt"
-  [paramToFilt]="paramToFilt"
-></btn-select>
-</pnx-monitoring-form-g>
+  <pnx-monitoring-form-g [apiService]="siteService" [isExtraForm]="true" [objForm]="form">
+    <btn-select
+      add-select
+      (sendobject)="onSendConfig($event)"
+      [titleBtn]="titleBtn"
+      [placeholderText]="placeholderText"
+      [callBackFunction]="funcToFilt"
+      [paramToFilt]="paramToFilt"
+    ></btn-select>
+  </pnx-monitoring-form-g>
 </div>

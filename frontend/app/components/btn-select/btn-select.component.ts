@@ -31,7 +31,7 @@ export class BtnSelectComponent implements OnInit {
   isInit = false;
   separatorKeysCodes: number[] = [ENTER, COMMA];
   myControl = new FormControl();
-  listOpNeeded = new FormControl([],[Validators.required, Validators.minLength(1)])
+  listOpNeeded = new FormControl([], [Validators.required, Validators.minLength(1)]);
   @Input() placeholderText: string = 'Selectionnez vos options dans la liste';
   @Input() titleBtn: string = 'Choix des options';
 
@@ -42,26 +42,25 @@ export class BtnSelectComponent implements OnInit {
   objToEdit: JsonData;
 
   @Input() bEdit: boolean;
-  @Input() isInitialValues:boolean;
+  @Input() isInitialValues: boolean;
   @Input() paramToFilt: string;
   @Input() callBackFunction: (
     pageNumber: number,
     limit: number,
     valueToFilter: string
   ) => Observable<any>;
-  @Input() initValueFunction : ()=> JsonData;
+  @Input() initValueFunction: () => JsonData;
   @ViewChild('optionInput') optionInput: ElementRef<HTMLInputElement>;
 
   @Output() public sendobject = new EventEmitter<JsonData>();
 
-  constructor(private _formService: FormService) { }
+  constructor(private _formService: FormService) {}
 
   ngOnInit() {
-
-    if(this.isInitialValues && !this.isInit){
-      this.initFromExistingObj(this.paramToFilt)
-      this.objToEdit.map(val => this.addObject(val))
-      this.isInit = true
+    if (this.isInitialValues && !this.isInit) {
+      this.initFromExistingObj(this.paramToFilt);
+      this.objToEdit.map((val) => this.addObject(val));
+      this.isInit = true;
     }
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
@@ -76,8 +75,8 @@ export class BtnSelectComponent implements OnInit {
       }),
       map((res) => (res.length > 0 ? res : [{ name: 'Pas de résultats' }]))
     );
-    this.listOpNeeded.setValue(this.listOptionChosen)
-    this._formService.changeExtraFormControl(this.listOpNeeded,"listOptBtnSelect")
+    this.listOpNeeded.setValue(this.listOptionChosen);
+    this._formService.changeExtraFormControl(this.listOpNeeded, 'listOptBtnSelect');
   }
 
   remove(option: string): void {
@@ -91,7 +90,7 @@ export class BtnSelectComponent implements OnInit {
       delete this.configObjAdded[option];
     }
     this.sendobject.emit(this.configObjAdded);
-    this.listOpNeeded.setValue(this.listOptionChosen)
+    this.listOpNeeded.setValue(this.listOptionChosen);
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
@@ -101,7 +100,7 @@ export class BtnSelectComponent implements OnInit {
       : null;
     this.optionInput.nativeElement.value = '';
     this.myControl.setValue(null);
-    this.listOpNeeded.setValue(this.listOptionChosen)
+    this.listOpNeeded.setValue(this.listOptionChosen);
   }
 
   filterOnRequest(val: string, keyToFilt: string): Observable<any> {
@@ -138,15 +137,13 @@ export class BtnSelectComponent implements OnInit {
     this.sendobject.emit(this.configObjAdded);
   }
 
-  initFromExistingObj(keyToFilt: string){
-  const objInput = this.initValueFunction()
-  this.objToEdit = objInput .filter((obj) => {
-    Object.assign(obj, { name: obj[keyToFilt] })[keyToFilt];
-    delete obj[keyToFilt];
-    return obj;
-  })
-  this.objToEdit.map(obj => this.listOptionChosen.push(obj.name))
-
+  initFromExistingObj(keyToFilt: string) {
+    const objInput = this.initValueFunction();
+    this.objToEdit = objInput.filter((obj) => {
+      Object.assign(obj, { name: obj[keyToFilt] })[keyToFilt];
+      delete obj[keyToFilt];
+      return obj;
+    });
+    this.objToEdit.map((obj) => this.listOptionChosen.push(obj.name));
   }
-
 }

@@ -8,8 +8,8 @@
 .breadcrumbs .link {
   cursor: pointer;
   color: rgb(0, 123, 255);
-}  
+}
 
 .breadcrumbs .link:hover {
   text-decoration: underline;
-}  
+}

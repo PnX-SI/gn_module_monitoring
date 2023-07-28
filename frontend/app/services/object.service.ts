@@ -1,8 +1,8 @@
-import { Injectable } from "@angular/core";
-import { ReplaySubject } from "rxjs";
-import { IobjObs, ObjDataType } from "../interfaces/objObs";
-import { JsonData } from "../types/jsondata";
-import { IBreadCrumb } from "../interfaces/object";
+import { Injectable } from '@angular/core';
+import { ReplaySubject } from 'rxjs';
+import { IobjObs, ObjDataType } from '../interfaces/objObs';
+import { JsonData } from '../types/jsondata';
+import { IBreadCrumb } from '../interfaces/object';
 
 @Injectable()
 export class ObjectService {
