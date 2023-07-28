@@ -2,7 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { endPoints } from '../enum/endpoints';
-import { IGeomObject, IGeomService, ISite, ISiteField, ISiteType, ISitesGroup } from '../interfaces/geom';
+import {
+  IGeomObject,
+  IGeomService,
+  ISite,
+  ISiteField,
+  ISiteType,
+  ISitesGroup,
+} from '../interfaces/geom';
 import { IobjObs } from '../interfaces/objObs';
 import { IPaginated } from '../interfaces/page';
 import { JsonData } from '../types/jsondata';
@@ -28,10 +35,9 @@ export class ApiService<T = IObject> implements IService<T> {
     this.objectObs = objectObjs;
   }
 
-    public initConfig(): Observable<IobjObs<T>>{
-    return this._configJsonService
-      .init(this.objectObs.moduleCode)
-      .pipe(map(() => {
+  public initConfig(): Observable<IobjObs<T>> {
+    return this._configJsonService.init(this.objectObs.moduleCode).pipe(
+      map(() => {
         const fieldNames = this._configJsonService.configModuleObjectParam(
           this.objectObs.moduleCode,
           this.objectObs.objectType,
@@ -48,7 +54,7 @@ export class ApiService<T = IObject> implements IService<T> {
           this.objectObs.moduleCode,
           this.objectObs.objectType,
           'label_list'
-        )
+        );
         const schema = this._configJsonService.schema(
           this.objectObs.moduleCode,
           this.objectObs.objectType
@@ -62,13 +68,14 @@ export class ApiService<T = IObject> implements IService<T> {
         this.objectObs.template.fieldDefinitions = fieldDefinitions;
         this.objectObs.template.fieldNamesList = fieldNamesList;
 
-        if (labelList != undefined){
-          this.objectObs.template.labelList = labelList
+        if (labelList != undefined) {
+          this.objectObs.template.labelList = labelList;
         }
 
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-        return this.objectObs
-      }));
+        return this.objectObs;
+      })
+    );
   }
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
     return this._cacheService.request<Observable<IPaginated<T>>>('get', this.objectObs.endPoint, {
@@ -97,7 +104,10 @@ export class ApiService<T = IObject> implements IService<T> {
 }
 @Injectable()
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
-  constructor(protected _cacheService: CacheService, protected _configJsonService: ConfigJsonService) {
+  constructor(
+    protected _cacheService: CacheService,
+    protected _configJsonService: ConfigJsonService
+  ) {
     super(_cacheService, _configJsonService);
     this.init(this.endPoint, this.objectObs);
   }
@@ -111,7 +121,7 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
       }
     );
   }
-  
+
   getConfig(): Observable<T> {
     return this._cacheService.request('get', `${this.objectObs.endPoint}/config`);
   }
@@ -141,7 +151,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
-        labelList : 'Groupes de sites',
+        labelList: 'Groupes de sites',
       },
       dataTable: { colNameObj: {} },
     };
@@ -184,7 +194,7 @@ export class SitesService extends ApiGeomService<ISite> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
-        labelList: "Sites"
+        labelList: 'Sites',
       },
       dataTable: { colNameObj: {} },
     };
@@ -205,28 +215,28 @@ export class SitesService extends ApiGeomService<ISite> {
     );
   }
 
-  getTypesSiteByIdSite(idSite:number):Observable<any>{
-    return this._cacheService.request<Observable<any>>('get',`sites/${idSite}/types`)
+  getTypesSiteByIdSite(idSite: number): Observable<any> {
+    return this._cacheService.request<Observable<any>>('get', `sites/${idSite}/types`);
   }
 
   getSiteModules(idSite: number): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${idSite}/modules`);
   }
 
-  format_label_types_site(sites:ISite[]){
-    const rows_sites_table:ISiteField[] = []
-    for(const site of sites){
-      let list_label_types_site:string[]= []
-      const {types_site, ...rest_of_site} = site
-      for (const type_site of types_site){
-        if('label' in type_site && typeof(type_site['label']) == 'string'){
-          list_label_types_site.push(type_site['label'])
+  format_label_types_site(sites: ISite[]) {
+    const rows_sites_table: ISiteField[] = [];
+    for (const site of sites) {
+      let list_label_types_site: string[] = [];
+      const { types_site, ...rest_of_site } = site;
+      for (const type_site of types_site) {
+        if ('label' in type_site && typeof type_site['label'] == 'string') {
+          list_label_types_site.push(type_site['label']);
         }
       }
       // Object.assign(rest_of_site,{types_site:list_label_types_site})
-      rows_sites_table.push({...rest_of_site, types_site:list_label_types_site})
+      rows_sites_table.push({ ...rest_of_site, types_site: list_label_types_site });
     }
-    return rows_sites_table
+    return rows_sites_table;
   }
 }
 
@@ -255,7 +265,7 @@ export class VisitsService extends ApiService<IVisit> {
         fieldLabels: {},
         fieldNamesList: [],
         fieldDefinitions: {},
-        labelList : 'Visites',
+        labelList: 'Visites',
       },
       dataTable: { colNameObj: {} },
     };

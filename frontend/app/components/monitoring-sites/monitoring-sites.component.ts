@@ -1,23 +1,20 @@
-import { Component, OnInit, Input } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { forkJoin, of } from "rxjs";
-import { tap, map, mergeMap } from "rxjs/operators";
-import * as L from "leaflet";
-import { IDataTableObj, ISite, ISiteField, ISitesGroup } from "../../interfaces/geom";
-import { IPage, IPaginated } from "../../interfaces/page";
-import { MonitoringGeomComponent } from "../../class/monitoring-geom-component";
-import { setPopup } from "../../functions/popup";
-import { GeoJSONService } from "../../services/geojson.service";
-import { FormGroup, FormBuilder } from "@angular/forms";
-import {
-  SitesService,
-  SitesGroupService,
-} from "../../services/api-geom.service";
-import { ObjectService } from "../../services/object.service";
-import { IobjObs } from "../../interfaces/objObs";
-import { IBreadCrumb } from "../../interfaces/object";
-import { breadCrumbElementBase } from "../breadcrumbs/breadcrumbs.component";
-import { ConfigJsonService } from "../../services/config-json.service";
+import { Component, OnInit, Input } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { tap, map, mergeMap } from 'rxjs/operators';
+import * as L from 'leaflet';
+import { IDataTableObj, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
+import { IPage, IPaginated } from '../../interfaces/page';
+import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
+import { setPopup } from '../../functions/popup';
+import { GeoJSONService } from '../../services/geojson.service';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import { SitesService, SitesGroupService } from '../../services/api-geom.service';
+import { ObjectService } from '../../services/object.service';
+import { IobjObs } from '../../interfaces/objObs';
+import { IBreadCrumb } from '../../interfaces/object';
+import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
+import { ConfigJsonService } from '../../services/config-json.service';
 
 const LIMIT = 10;
 
@@ -35,7 +32,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   filters = {};
   siteGroupLayer: L.FeatureGroup;
   @Input() bEdit: boolean;
-  objForm: {static:FormGroup};
+  objForm: { static: FormGroup };
   objectType: IobjObs<ISite>;
   objParent: any;
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
@@ -62,7 +59,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   ngOnInit() {
-    this.objForm = {"static":this._formBuilder.group({})};
+    this.objForm = { static: this._formBuilder.group({}) };
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
@@ -78,29 +75,35 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
             id_sites_group: id,
           });
         }),
-        mergeMap((id: number) =>
-          {return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id).catch((err) => 
-            {if(err.status == 404)
-              { 
-                this.router.navigate(['/not-found'],{ skipLocationChange: true });
-              return of(null);
-            }}),
+        mergeMap((id: number) => {
+          return forkJoin({
+            sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
+              if (err.status == 404) {
+                this.router.navigate(['/not-found'], { skipLocationChange: true });
+                return of(null);
+              }
+            }),
             sites: this._sitesGroupService.getSitesChild(1, this.limit, {
               id_sites_group: id,
             }),
-          }).pipe(map((data) => {return data}))
+          }).pipe(
+            map((data) => {
+              return data;
+            })
+          );
         }),
-        mergeMap((data)=>{
+        mergeMap((data) => {
           return forkJoin({
             objObsSite: this._siteService.initConfig(),
             objObsSiteGp: this._sitesGroupService.initConfig(),
-          }).pipe(map((objObs)=>{
-            return {data, objectObs: objObs}
-          }))
+          }).pipe(
+            map((objObs) => {
+              return { data, objectObs: objObs };
+            })
+          );
         })
       )
-      .subscribe(({data, objectObs}) => {
+      .subscribe(({ data, objectObs }) => {
         this._objService.changeSelectedObj(data.sitesGroup, true);
         this._objService.changeSelectedParentObj(data.sitesGroup, true);
         this.sitesGroup = data.sitesGroup;
@@ -114,15 +117,15 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         //   data.sitesGroup.geometry,
         //   () => {}
         // );
-        this.rows_sites_table = this._siteService.format_label_types_site(this.sites)
+        this.rows_sites_table = this._siteService.format_label_types_site(this.sites);
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
         this.colsname = objectObs.objObsSite.dataTable.colNameObj;
         this.objParent = objectObs.objObsSiteGp;
 
-        data.sites["objConfig"] = objectObs.objObsSite
-        data.sitesGroup["objConfig"] = objectObs.objObsSiteGp
+        data.sites['objConfig'] = objectObs.objObsSite;
+        data.sitesGroup['objConfig'] = objectObs.objObsSiteGp;
         this.updateBreadCrumb(data.sitesGroup);
-        this.setDataTableObj(data)
+        this.setDataTableObj(data);
       });
   }
   ngOnDestroy() {
@@ -131,7 +134,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   onEachFeatureSite() {
-    const baseUrl = this.router.url+"/site";
+    const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
       const popup = setPopup(
         baseUrl,
@@ -146,11 +149,11 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this._sitesGroupService
       .getSitesChild(page, LIMIT, params)
       .subscribe((data: IPaginated<ISite>) => {
-        this.rows  = this._siteService.format_label_types_site(data.items)
-        this.dataTableObj.site.rows = this.rows ;
-        this.dataTableObj.site.page.count = data.count
-        this.dataTableObj.site.page.limit = data.limit
-        this.dataTableObj.site.page.page = data.page - 1
+        this.rows = this._siteService.format_label_types_site(data.items);
+        this.dataTableObj.site.rows = this.rows;
+        this.dataTableObj.site.page.count = data.count;
+        this.dataTableObj.site.page.limit = data.limit;
+        this.dataTableObj.site.page.page = data.page - 1;
       });
   }
 
@@ -178,45 +181,45 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   onObjChanged($event) {
-    if($event == 'deleted'){
-      return
+    if ($event == 'deleted') {
+      return;
     }
     this.initSite();
   }
 
-  setDataTableObj(data){
-    const objTemp = {}
-    for (const dataType in data){
-      let objType = data[dataType].objConfig.objectType
-      if(objType == "sites_group"){
-        continue
+  setDataTableObj(data) {
+    const objTemp = {};
+    for (const dataType in data) {
+      let objType = data[dataType].objConfig.objectType;
+      if (objType == 'sites_group') {
+        continue;
       }
-      Object.assign(objType,objTemp)
-      objTemp[objType] = {columns:{},rows:[],page : {}}
+      Object.assign(objType, objTemp);
+      objTemp[objType] = { columns: {}, rows: [], page: {} };
       let config = this._configJsonService.configModuleObject(
         data[dataType].objConfig.moduleCode,
         data[dataType].objConfig.objectType
       );
-      data[dataType].objConfig['config'] =config
-      this.dataTableArray.push(data[dataType].objConfig)
+      data[dataType].objConfig['config'] = config;
+      this.dataTableArray.push(data[dataType].objConfig);
     }
 
-    for (const dataType in data){
-      let objType = data[dataType].objConfig.objectType
-      if(objType == "sites_group"){
-        continue
+    for (const dataType in data) {
+      let objType = data[dataType].objConfig.objectType;
+      if (objType == 'sites_group') {
+        continue;
       }
-      objTemp[objType].columns =  data[dataType].objConfig.dataTable.colNameObj
-      objTemp[objType].rows = this._siteService.format_label_types_site(data[dataType].items)
+      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
+      objTemp[objType].rows = this._siteService.format_label_types_site(data[dataType].items);
 
-      objTemp[objType].page ={
+      objTemp[objType].page = {
         count: data[dataType].count,
         limit: data[dataType].limit,
         page: data[dataType].page - 1,
         total: data[dataType].count,
-      }
+      };
 
-      this.dataTableObj = objTemp as IDataTableObj
+      this.dataTableObj = objTemp as IDataTableObj;
     }
   }
 }

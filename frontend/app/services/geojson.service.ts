@@ -1,19 +1,18 @@
-import { Injectable } from "@angular/core";
-import * as L from "leaflet";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { GeoJSON } from "geojson";
-import { MapService } from "@geonature_common/map/map.service";
+import { Injectable } from '@angular/core';
+import * as L from 'leaflet';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { GeoJSON } from 'geojson';
+import { MapService } from '@geonature_common/map/map.service';
 
-import { SitesService,SitesGroupService } from "./api-geom.service";
-
+import { SitesService, SitesGroupService } from './api-geom.service';
 
 // This service will be used for sites and sites groups
 
 const siteGroupStyle = {
-  fillColor: "#800080",
+  fillColor: '#800080',
   fillOpacity: 0.5,
-  color: "#800080",
+  color: '#800080',
   opacity: 0.8,
   weight: 2,
   fill: true,
@@ -37,21 +36,15 @@ export class GeoJSONService {
       .get_geometries(params)
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
-        this.sitesGroupFeatureGroup = this.setMapData(
-          data,
-          onEachFeature,
-          siteGroupStyle
-        );
+        this.sitesGroupFeatureGroup = this.setMapData(data, onEachFeature, siteGroupStyle);
       });
   }
 
   getSitesGroupsChildGeometries(onEachFeature: Function, params = {}) {
-    this._sites_service
-      .get_geometries(params)
-      .subscribe((data: GeoJSON.FeatureCollection) => {
-        //this.removeFeatureGroup(this.sitesFeatureGroup);
-        this.sitesFeatureGroup = this.setMapData(data, onEachFeature);
-      });
+    this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
+      //this.removeFeatureGroup(this.sitesFeatureGroup);
+      this.sitesFeatureGroup = this.setMapData(data, onEachFeature);
+    });
   }
 
   setMapData(
@@ -60,12 +53,7 @@ export class GeoJSONService {
     style?
   ) {
     const map = this._mapService.getMap();
-    const layer: L.Layer = this._mapService.createGeojson(
-      geojson,
-      false,
-      onEachFeature,
-      style
-    );
+    const layer: L.Layer = this._mapService.createGeojson(geojson, false, onEachFeature, style);
     const featureGroup = new L.FeatureGroup();
     this._mapService.map.addLayer(featureGroup);
     featureGroup.addLayer(layer);
@@ -88,11 +76,7 @@ export class GeoJSONService {
       );
       this.geojsonSitesGroups.features = features;
       this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-      this.setMapData(
-        this.geojsonSitesGroups,
-        this.onEachFeature,
-        siteGroupStyle
-      );
+      this.setMapData(this.geojsonSitesGroups, this.onEachFeature, siteGroupStyle);
     }
   }
 
@@ -101,7 +85,7 @@ export class GeoJSONService {
       if (layer instanceof L.GeoJSON) {
         layer.eachLayer((sublayer: L.GeoJSON) => {
           const feature = sublayer.feature as GeoJSON.Feature;
-          if (feature.properties["id_sites_group"] == id) {
+          if (feature.properties['id_sites_group'] == id) {
             sublayer.openPopup();
             return;
           }

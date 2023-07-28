@@ -1,10 +1,8 @@
-import { Observable, of, forkJoin } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
-
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
-
 import { MonitoringObjectBase } from './monitoring-object-base';
+import { Observable, of, forkJoin } from 'rxjs';
+import { mergeMap, concatMap } from 'rxjs/operators';
 
 export class MonitoringObject extends MonitoringObjectBase {
   myClass = MonitoringObject;

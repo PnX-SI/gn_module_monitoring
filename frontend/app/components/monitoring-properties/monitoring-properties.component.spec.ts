@@ -1,6 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MonitoringPropertiesComponent } from './monitoring-properties.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('MonitoringPropertiesComponent', () => {
   let component: MonitoringPropertiesComponent;
