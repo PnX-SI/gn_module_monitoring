@@ -11,10 +11,7 @@
       (click)="changeActiveTab(child0.objectType)"
       label="{{child0.template['label_list']}} {{displayNumber(child0.objectType)}}"  >
       <div let childrenType="child0.objectType" class="list-children">
-        <div
-          class="btn-height"
-          *ngIf="queyParamsNewObject[child0.objectType]"
-        >
+        <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
           <div class="btn-float-right">
             <button
               mat-mini-fab
@@ -35,6 +32,9 @@
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label_art_undef_new"] || "") }}</button
             >
+              <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+              {{ child0.template['label_art_undef_new'] || '' }}
+            </button>
           </div>
         </div>
         <div class="mt-2">
@@ -56,6 +56,4 @@
     </mat-tab>
     </span>
   </mat-tab-group>
-
-
 </div>

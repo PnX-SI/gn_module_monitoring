@@ -10,12 +10,11 @@
   display: block;
 }
 
-
-.mat-option{
-  word-wrap:break-word !important;
-  white-space:normal !important;
+.mat-option {
+  word-wrap: break-word !important;
+  white-space: normal !important;
 }
 
-::ng-deep.mat-option-text{
-  line-height:normal !important;
+::ng-deep.mat-option-text {
+  line-height: normal !important;
 }

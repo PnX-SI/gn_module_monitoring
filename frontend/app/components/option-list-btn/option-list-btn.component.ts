@@ -1,18 +1,12 @@
-import {
-  Component,
-  ViewChild,
-  Input,
-  Output,
-  EventEmitter,
-} from "@angular/core";
-import { FormControl } from "@angular/forms";
-import { MatMenuTrigger } from "@angular/material/menu";
-import { SelectObject } from "../../interfaces/object";
+import { Component, ViewChild, Input, Output, EventEmitter } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { SelectObject } from '../../interfaces/object';
 
 @Component({
-  selector: "option-list-btn",
-  templateUrl: "./option-list-btn.component.html",
-  styleUrls: ["./option-list-btn.component.css"],
+  selector: 'option-list-btn',
+  templateUrl: './option-list-btn.component.html',
+  styleUrls: ['./option-list-btn.component.css'],
 })
 export class OptionListButtonComponent {
   @ViewChild(MatMenuTrigger) ddTrigger: MatMenuTrigger;
@@ -27,8 +21,8 @@ export class OptionListButtonComponent {
     // other logic
     return this._optionList;
   }
-  @Input() label: string = "";
-  @Input() placeholder: string = "";
+  @Input() label: string = '';
+  @Input() placeholder: string = '';
   @Output() onSaved = new EventEmitter<SelectObject>();
   @Output() onDeployed = new EventEmitter<void>();
 

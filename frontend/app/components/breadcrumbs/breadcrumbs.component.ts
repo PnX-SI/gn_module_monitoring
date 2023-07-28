@@ -6,18 +6,18 @@ import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 
-import { MonitoringObject } from "../../class/monitoring-object";
-import { Router } from "@angular/router";
-import { ActivatedRoute } from "@angular/router";
-import { ObjectService } from "../../services/object.service";
-import { SiteSiteGroup } from "../../interfaces/objObs";
-import { IBreadCrumb } from "../../interfaces/object";
+import { MonitoringObject } from '../../class/monitoring-object';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { ObjectService } from '../../services/object.service';
+import { SiteSiteGroup } from '../../interfaces/objObs';
+import { IBreadCrumb } from '../../interfaces/object';
 
 export const breadCrumbElementBase: IBreadCrumb = {
-  "description":"Liste des groupes de site (sites)",
-  "label":"",
-  "url": "sites_group"
-}
+  description: 'Liste des groupes de site (sites)',
+  label: '',
+  url: 'sites_group',
+};
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -25,7 +25,7 @@ export const breadCrumbElementBase: IBreadCrumb = {
   styleUrls: ['./breadcrumbs.component.css'],
 })
 export class BreadcrumbsComponent implements OnInit {
-  public breadcrumbs: IBreadCrumb[] =[];
+  public breadcrumbs: IBreadCrumb[] = [];
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 
