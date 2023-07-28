@@ -164,7 +164,7 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
     else:
         module = {"id_module": "generic"}
         # TODO : A enlever une fois que le post_data contiendra geometry et type depuis le front
-        if object_type == "site" and not 'geometry' in post_data:
+        if object_type == "site" and not "geometry" in post_data:
             post_data["geometry"] = {"type": "Point", "coordinates": [2.5, 50]}
             post_data["type"] = "Feature"
     # on rajoute id_module s'il n'est pas renseigné par défaut ??
@@ -182,33 +182,34 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
 
 
 def get_config_object(module_code, object_type, id):
-    '''
-        renvoie un object, à partir de type de l'object et de son id
+    """
+    renvoie un object, à partir de type de l'object et de son id
 
-        :param module_code: reference le module concerne
-        :param object_type: le type d'object (site, visit, obervation)
-        :param id : l'identifiant de l'object (de id_base_site pour site)
-        :type module_code: str
-        :type object_type: str
-        :type id: int
+    :param module_code: reference le module concerne
+    :param object_type: le type d'object (site, visit, obervation)
+    :param id : l'identifiant de l'object (de id_base_site pour site)
+    :type module_code: str
+    :type object_type: str
+    :type id: int
 
-        :return: renvoie l'object requis
-        :rtype: dict
-    '''
+    :return: renvoie l'object requis
+    :rtype: dict
+    """
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
     get_config(module_code, force=True)
 
-    depth = to_int(request.args.get('depth', 1))
+    depth = to_int(request.args.get("depth", 1))
 
     return (
-        monitoring_definitions
-        .monitoring_object_instance(module_code, object_type, id)
-        .get(depth=depth)
+        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
+            depth=depth
+        )
         # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
+
 
 # update object
 @blueprint.route("object/<string:module_code>/<object_type>/<int:id>", methods=["PATCH"])

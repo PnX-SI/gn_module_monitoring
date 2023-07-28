@@ -20,12 +20,12 @@ from .geom import MonitoringObjectGeom
 """
 
 MonitoringModels_dict = {
-    'module': TMonitoringModules,
-    'site': TMonitoringSites,
-    'visit': TMonitoringVisits,
-    'observation': TMonitoringObservations,
-    'observation_detail': TMonitoringObservationDetails,
-    'sites_group': TMonitoringSitesGroups,
+    "module": TMonitoringModules,
+    "site": TMonitoringSites,
+    "visit": TMonitoringVisits,
+    "observation": TMonitoringObservations,
+    "observation_detail": TMonitoringObservationDetails,
+    "sites_group": TMonitoringSitesGroups,
 }
 
 MonitoringObjects_dict = {

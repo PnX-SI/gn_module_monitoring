@@ -14,7 +14,10 @@ from gn_module_monitoring.monitoring.models import (
     TNomenclatures,
 )
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
-from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group, get_config_object
+from gn_module_monitoring.routes.monitoring import (
+    create_or_update_object_api_sites_sites_group,
+    get_config_object,
+)
 from gn_module_monitoring.utils.routes import (
     filter_params,
     geojson_query,
@@ -22,14 +25,14 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate,
     sort,
-    query_all_types_site_from_site_id
+    query_all_types_site_from_site_id,
 )
 
 
 @blueprint.route("/sites/config", methods=["GET"])
-def get_config_sites(id=None,module_code='generic', object_type='site'):
+def get_config_sites(id=None, module_code="generic", object_type="site"):
     obj = get_config_object(module_code, object_type, id)
-    return obj['properties']
+    return obj["properties"]
 
 
 @blueprint.route("/sites/types", methods=["GET"])
@@ -81,10 +84,12 @@ def get_type_site_by_id(id_type_site):
     schema = BibTypeSiteSchema()
     return schema.dump(res)
 
+
 @blueprint.route("/sites/<int:id_site>/types", methods=["GET"])
 def get_all_types_site_from_site_id(id_site):
-    types_site =  query_all_types_site_from_site_id(id_site)
+    types_site = query_all_types_site_from_site_id(id_site)
     return [res.as_dict() for res in types_site]
+
 
 @blueprint.route("/sites", methods=["GET"])
 def get_sites():
@@ -168,9 +173,8 @@ def post_sites():
 def delete_site(_id):
     TMonitoringSites.query.filter_by(id_g=_id).delete()
     db.session.commit()
-    return {
-        "success": "Item is successfully deleted"
-    }, 200
+    return {"success": "Item is successfully deleted"}, 200
+
 
 @blueprint.route("/sites/<int:_id>", methods=["PATCH"])
 def patch_sites(_id):
