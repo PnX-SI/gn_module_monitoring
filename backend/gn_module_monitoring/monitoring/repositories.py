@@ -168,7 +168,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             if next._object_type == "module":
                 next.get(field_name="module_code", value=self._module_code)
             else:
-                id_field_name = next.config_param('id_field_name')
+                id_field_name = next.config_param("id_field_name")
                 next._id = self.get_value(id_field_name) or params.get(id_field_name)
                 next.get(0)
         else:
