@@ -4,18 +4,20 @@ import { ModuleService } from '@geonature/services/module.service';
 import { AppConfig } from '@geonature_config/app.config';
 import { Observable, forkJoin, of } from 'rxjs';
 import { ConfigService } from './config.service';
-import { Utils } from "../utils/utils";
+import { Utils } from '../utils/utils';
 import { DataUtilsService } from './data-utils.service';
 import { concatMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
-
-
 @Injectable()
 export class ConfigJsonService extends ConfigService {
-
-  constructor(_http: HttpClient, _moduleService: ModuleService,appConfig: GnConfigService, private _dataUtilsService: DataUtilsService) {
-    super(_http, _moduleService, appConfig)
+  constructor(
+    _http: HttpClient,
+    _moduleService: ModuleService,
+    appConfig: GnConfigService,
+    private _dataUtilsService: DataUtilsService
+  ) {
+    super(_http, _moduleService, appConfig);
   }
 
   /** Configuration */
@@ -46,11 +48,11 @@ export class ConfigJsonService extends ConfigService {
     return fieldLabels;
   }
 
-  fieldNames(moduleCode, objectType, typeDisplay = '',confObject = {}) {
+  fieldNames(moduleCode, objectType, typeDisplay = '', confObject = {}) {
     if (['display_properties', 'display_list'].includes(typeDisplay)) {
-      if (Object.keys(confObject).length > 0){
-        return confObject[typeDisplay]
-      } 
+      if (Object.keys(confObject).length > 0) {
+        return confObject[typeDisplay];
+      }
       return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);
     }
     if (typeDisplay === 'schema') {
@@ -68,33 +70,29 @@ export class ConfigJsonService extends ConfigService {
 
   //NEW - récup setResolvedProperties from monitoring-object-base.ts
 
-
-  resolveProperty(elem, val,moduleCode): Observable<any> {
-    if (elem.type_widget === "date" || (elem.type_util === "date" && val)) {
+  resolveProperty(elem, val, moduleCode): Observable<any> {
+    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
       val = Utils.formatDate(val);
     }
-    const fieldName = this._config[moduleCode].default_display_field_names[
-      elem.type_util
-    ];
+    const fieldName = this._config[moduleCode].default_display_field_names[elem.type_util];
     if (val && fieldName && elem.type_widget) {
-      return this._dataUtilsService
-        .getUtil(elem.type_util, val, fieldName, elem.value_field_name);
+      return this._dataUtilsService.getUtil(elem.type_util, val, fieldName, elem.value_field_name);
     }
     return of(val);
     // return val
   }
 
-  // TODO: Cette fonction permet de traduire l'affichage de certains champs dans propriété ou le formulaire 
-  // lorsqu'on a des valeurs à récupérer depuis le backend via les config json. 
-  // Du coup , penser à résoudre le problèmes des champs dans le fichier de config.json 
+  // TODO: Cette fonction permet de traduire l'affichage de certains champs dans propriété ou le formulaire
+  // lorsqu'on a des valeurs à récupérer depuis le backend via les config json.
+  // Du coup , penser à résoudre le problèmes des champs dans le fichier de config.json
   // en modifiant le fichier : /gn_module_monitoring/backend/gn_module_monitoring/config/repositories.py
-  //  Function : get_config 
+  //  Function : get_config
   setResolvedProperties(obj): any {
     const observables = {};
-    if (obj.resolvedProperties == undefined){
-      obj.resolvedProperties ={}
+    if (obj.resolvedProperties == undefined) {
+      obj.resolvedProperties = {};
     }
-    
+
     const schema = this.schema(obj.moduleCode, obj.objectType);
     for (const attribut_name of Object.keys(schema)) {
       observables[attribut_name] = this.resolveProperty(
@@ -106,10 +104,9 @@ export class ConfigJsonService extends ConfigService {
     forkJoin(observables).pipe(
       concatMap((resolvedProperties) => {
         for (const attribut_name of Object.keys(resolvedProperties)) {
-          obj.resolvedProperties[attribut_name] =
-            resolvedProperties[attribut_name];
+          obj.resolvedProperties[attribut_name] = resolvedProperties[attribut_name];
         }
-        return obj.resolvedProperties
+        return obj.resolvedProperties;
       })
     );
   }

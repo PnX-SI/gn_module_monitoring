@@ -11,17 +11,17 @@
   [apiService]="siteService"
   [isExtraForm]="true"
 >
-<btn-select
-add-select
-*ngIf="bEdit"
-(sendobject)="onSendConfig($event)"
-[titleBtn]="titleBtn"
-[placeholderText]="placeholderText"
-[callBackFunction]="funcToFilt"
-[initValueFunction]="funcInitValues"
-[paramToFilt]="paramToFilt"
-[isInitialValues]="isInitialValues"
-></btn-select>
+  <btn-select
+    add-select
+    *ngIf="bEdit"
+    (sendobject)="onSendConfig($event)"
+    [titleBtn]="titleBtn"
+    [placeholderText]="placeholderText"
+    [callBackFunction]="funcToFilt"
+    [initValueFunction]="funcInitValues"
+    [paramToFilt]="paramToFilt"
+    [isInitialValues]="isInitialValues"
+  ></btn-select>
 </pnx-monitoring-form-g>
 <pnx-monitoring-properties-g
   *ngIf="!bEdit"
@@ -41,6 +41,13 @@ add-select
   (onSetPage)="setPage($event)"
   [obj]="visits"
   (onDetailsRow)="seeDetails($event)"
-  
-> <option-list-btn add-button placeholder="Sélectionner le protocole" label="Ajouter une visite" [optionList]="modules"
-(onDeployed)="getModules()" (onSaved)="addNewVisit($event)"></option-list-btn></pnx-monitoring-datatable-g>
+>
+  <option-list-btn
+    add-button
+    placeholder="Sélectionner le protocole"
+    label="Ajouter une visite"
+    [optionList]="modules"
+    (onDeployed)="getModules()"
+    (onSaved)="addNewVisit($event)"
+  ></option-list-btn
+></pnx-monitoring-datatable-g>

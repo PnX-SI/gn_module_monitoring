@@ -1,6 +1,5 @@
-import { ComponentFixture, TestBed, async } from '@angular/core/testing';
-
 import { MonitoringFormComponent } from './monitoring-form.component';
+import { ComponentFixture, TestBed, async } from '@angular/core/testing';
 
 describe('MonitoringFormComponent', () => {
   let component: MonitoringFormComponent;

@@ -1,130 +1,134 @@
-
-<div class="cadre"  *ngIf="rows && dataTableObj  ">
-
-  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" (selectedTabChange)="changeActiveTab($event)" animationDuration="0ms">
-    <mat-tab 
-    *ngFor="let objType of dataTableObj | keyvalue; let i = index" 
-    label="{{dataTableArray[i].template['labelList']}} {{displayNumber(dataTableArray[i].objectType)}}" >
-    <ng-template matTabContent>
-    <div
-    class="btn-height"
+<div class="cadre" *ngIf="rows && dataTableObj">
+  <mat-tab-group
+    mat-stretch-tabs="false"
+    mat-align-tabs="start"
+    (selectedTabChange)="changeActiveTab($event)"
+    animationDuration="0ms"
   >
-  <div class="btn-float-right">
-    <button
-    mat-mini-fab
-    color="accent"
-    class="ml-2 mb-2"
-      (click)="displayFilter = !displayFilter"
-      matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
+    <mat-tab
+      *ngFor="let objType of dataTableObj | keyvalue; let i = index"
+      label="{{ dataTableArray[i].template['labelList'] }} {{
+        displayNumber(dataTableArray[i].objectType)
+      }}"
     >
-      <mat-icon>filter_alt</mat-icon>  
-    </button>
+      <ng-template matTabContent>
+        <div class="btn-height">
+          <div class="btn-float-right">
+            <button
+              mat-mini-fab
+              color="accent"
+              class="ml-2 mb-2"
+              (click)="displayFilter = !displayFilter"
+              matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
+            >
+              <mat-icon>filter_alt</mat-icon>
+            </button>
 
+            <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
+              <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
+              <button
+                mat-raised-button
+                color="primary"
+                class="btn btn-success float-right"
+                (click)="navigateToAddObj()"
+              >
+                <i class="fa fa-plus" aria-hidden="true"></i> {{ dataTableArray[i].addObjLabel }}
+              </button>
+            </ng-template>
 
-    <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
-      <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
-      <button
-      mat-raised-button
-      color="primary"
-      class="btn btn-success float-right"
-      (click)="navigateToAddObj()"
-      ><i class="fa fa-plus" aria-hidden="true"></i>
-      {{dataTableArray[i].addObjLabel }}</button
-    >
-    </ng-template>
-    
-    <ng-template #chooseProtocol>
-        <ng-content select="[add-button]"></ng-content>
-    </ng-template>
-       
+            <ng-template #chooseProtocol>
+              <ng-content select="[add-button]"></ng-content>
+            </ng-template>
+          </div>
+        </div>
+        <div class="mt-2">
+          <div>
+            <ngx-datatable
+              *ngIf="rows"
+              #table
+              class="material striped custom-dt"
+              [columnMode]="'force'"
+              [headerHeight]="'auto'"
+              [footerHeight]="50"
+              [rowHeight]="40"
+              [externalPaging]="true"
+              [count]="page.count"
+              [offset]="page.page"
+              [limit]="page.limit"
+              [rows]="rows"
+              [columns]="columns"
+              [selected]="selected"
+              selectionType="single"
+              (select)="onSelectEvent($event)"
+              [messages]="{
+                emptyMessage: 'Pas de données disponibles',
+                totalMessage: 'total',
+                selectedMessage: 'selection'
+              }"
+              (page)="setPage($event)"
+              (sort)="onSortEvent($event)"
+            >
+              <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
+                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+                  <a
+                    class="nav-link link cell-link"
+                    (click)="navigateToDetail(row)"
+                    matTooltip="{{ dataTableArray[i].seeObjLabel }}"
+                  >
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                  </a>
+                  <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
+                  <a
+                    class="nav-link link cell-link"
+                    (click)="navigateToAddChildren(null, row)"
+                    matTooltip=" {{ dataTableArray[i].addChildLabel }}"
+                  >
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                  </a>
+                </ng-template>
+              </ngx-datatable-column>
 
-  </div>
-</div>
-  <div class="mt-2">
-    <div>
-  <ngx-datatable
-  *ngIf="rows"
-  #table
-    class="material striped custom-dt"
-    [columnMode]="'force'"
-    [headerHeight]="'auto'"
-    [footerHeight]="50"
-    [rowHeight]="40"
-    [externalPaging]="true"
-    [count]="page.count"
-    [offset]="page.page"
-    [limit]="page.limit"
-    [rows]="rows"
-    [columns]="columns"
-    [selected]="selected"
-    selectionType="single"
-    (select)="onSelectEvent($event)"
-    [messages]="{
-      emptyMessage: 'Pas de données disponibles',
-      totalMessage: 'total',
-      selectedMessage: 'selection'
-    }"
-    (page)="setPage($event)"
-    (sort)="onSortEvent($event)"
-  >
-    <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
-      <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-        <a
-          class="nav-link link cell-link"
-          (click)="navigateToDetail(row)"
-          matTooltip="{{ dataTableArray[i].seeObjLabel }}"
-        >
-          <i class="fa fa-eye" aria-hidden="true"></i>
-        </a>
-        <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
-        <a
-          class="nav-link link cell-link"
-          (click)="navigateToAddChildren(null, row)"
-          matTooltip=" {{dataTableArray[i].addChildLabel}}"
-        >
-          <i class="fa fa-plus" aria-hidden="true"></i>
-        </a>
+              <!-- TODO Filter field :  Changer ngIf et rajouter [comparator]="customColumnComparator"  -->
+              <ngx-datatable-column
+                *ngFor="let col of columns"
+                [name]="col.name"
+                [prop]="col.prop"
+                [headerTemplate]="hdrTpl"
+              ></ngx-datatable-column>
+            </ngx-datatable>
+
+            <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
+              <div class="header-sort-span" (click)="sortFn()">
+                <!-- {{column.name}} -->
+                <i
+                  class="material-icons icon-sort"
+                  [innerText]="
+                    sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''
+                  "
+                ></i>
+                <i
+                  *ngIf="column.description"
+                  class="material-icons icon-sort"
+                  [matTooltip]="column.description"
+                  matTooltipPosition="above"
+                  >help</i
+                >
+                <span [matTooltip]="column.name" matTooltipPosition="above">
+                  {{ column.name }}</span
+                >
+              </div>
+              <div class="header-filter-span">
+                <input
+                  *ngIf="displayFilter"
+                  [(ngModel)]="filters[column.prop]"
+                  (input)="filterInput($event)"
+                  type="text"
+                />
+              </div>
+            </ng-template>
+          </div>
+        </div>
       </ng-template>
-    </ngx-datatable-column>
-
-    <!-- TODO Filter field :  Changer ngIf et rajouter [comparator]="customColumnComparator"  -->
-    <ngx-datatable-column
-      *ngFor="let col of columns"
-      [name]="col.name"
-      [prop]="col.prop"
-      [headerTemplate]="hdrTpl"
-    ></ngx-datatable-column>
-  </ngx-datatable>
-
-  <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
-    <div class="header-sort-span" (click)="sortFn()">
-      <!-- {{column.name}} -->
-      <i
-        class="material-icons icon-sort"
-        [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"
-      ></i>
-      <i
-        *ngIf="column.description"
-        class="material-icons icon-sort"
-        [matTooltip]="column.description"
-        matTooltipPosition="above"
-        >help</i
-      >
-      <span [matTooltip]="column.name" matTooltipPosition="above"> {{ column.name }}</span>
-    </div>
-    <div class="header-filter-span">
-      <input
-        *ngIf="displayFilter"
-        [(ngModel)]="filters[column.prop]"
-        (input)="filterInput($event)"
-        type="text"
-      />
-    </div>
-  </ng-template>
-
-</div>
-</div>
-</ng-template>
-</mat-tab>
-</mat-tab-group>
+    </mat-tab>
+  </mat-tab-group>
 </div>

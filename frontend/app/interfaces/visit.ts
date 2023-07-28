@@ -1,8 +1,8 @@
-import { JsonData } from "../types/jsondata";
-import { IObject } from "./object";
+import { JsonData } from '../types/jsondata';
+import { IObject } from './object';
 
 export interface IVisit extends IObject {
-  pk:number;
+  pk: number;
   comments: string;
   data: JsonData;
   id_base_visit: number;

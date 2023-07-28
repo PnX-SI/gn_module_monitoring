@@ -15,7 +15,7 @@ import { JsonData } from '../../types/jsondata';
 import { IBreadCrumb, SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
-import { FormService } from "../../services/form.service";
+import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 @Component({
@@ -24,8 +24,6 @@ import { ConfigJsonService } from '../../services/config-json.service';
   styleUrls: ['./monitoring-visits.component.css'],
 })
 export class MonitoringVisitsComponent extends MonitoringGeomComponent implements OnInit {
-  
-  
   @Input() visits: IVisit[];
   @Input() page: IPage;
   // colsname: typeof columnNameVisit = columnNameVisit;
@@ -50,13 +48,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   breadCrumbChild: IBreadCrumb = { label: 'Site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
-  objSelected:ISiteField; 
-
+  objSelected: ISiteField;
 
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
-
 
   constructor(
     private _sitesGroupService: SitesGroupService,
@@ -93,32 +89,44 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this._Activatedroute.params
       .pipe(
         map((params) => params['id'] as number),
-        mergeMap((id: number) =>
-          { return forkJoin({
-            site: this.siteService.getById(id).catch((err) => 
-            {if(err.status == 404)
-              { 
-                this.router.navigate(['/not-found'],{ skipLocationChange: true });
-              return of(null);
-            }}),
+        mergeMap((id: number) => {
+          return forkJoin({
+            site: this.siteService.getById(id).catch((err) => {
+              if (err.status == 404) {
+                this.router.navigate(['/not-found'], { skipLocationChange: true });
+                return of(null);
+              }
+            }),
             visits: this._visits_service.get(1, this.limit, {
               id_base_site: id,
             }),
-          }).pipe(map((data)=> {return data}))
+          }).pipe(
+            map((data) => {
+              return data;
+            })
+          );
         }),
-        exhaustMap((data)=>{
+        exhaustMap((data) => {
           return forkJoin({
             objObsSite: this.siteService.initConfig(),
             objObsVisit: this._visits_service.initConfig(),
-          }).pipe(tap((objConfig)=> this.objParent = objConfig.objObsSite) , map((objConfig)=>{
-            return {data, objConfig: objConfig}
-          }))
+          }).pipe(
+            tap((objConfig) => (this.objParent = objConfig.objObsSite)),
+            map((objConfig) => {
+              return { data, objConfig: objConfig };
+            })
+          );
         }),
-        mergeMap(({data, objConfig}) => {
+        mergeMap(({ data, objConfig }) => {
           return this._objService.currentObjSelected.pipe(
             take(1),
-            map((objSelectParent:any) => {
-              return {site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:objConfig };
+            map((objSelectParent: any) => {
+              return {
+                site: data.site,
+                visits: data.visits,
+                parentObjSelected: objSelectParent,
+                objConfig: objConfig,
+              };
             })
           );
         }),
@@ -128,7 +136,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
             of(data),
             this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
               map((objSelectParent) => {
-                return {site: data.site, visits: data.visits, parentObjSelected: objSelectParent, objConfig:data.objConfig };
+                return {
+                  site: data.site,
+                  visits: data.visits,
+                  parentObjSelected: objSelectParent,
+                  objConfig: data.objConfig,
+                };
               })
             )
           );
@@ -146,15 +159,15 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         };
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
-        this.site['id_sites_group'] = this.siteGroupIdParent; 
-        this.objSelected = this.siteService.format_label_types_site([this.site])[0]
-        this.addSpecificConfig()
+        this.site['id_sites_group'] = this.siteGroupIdParent;
+        this.objSelected = this.siteService.format_label_types_site([this.site])[0];
+        this.addSpecificConfig();
 
-        const { parentObjSelected,objConfig, ...dataonlyObjConfigAndObj} = data
-        dataonlyObjConfigAndObj
-        dataonlyObjConfigAndObj.site["objConfig"] = objConfig.objObsSite
-        dataonlyObjConfigAndObj.visits["objConfig"] = objConfig.objObsVisit
-        this.setDataTableObj(dataonlyObjConfigAndObj)
+        const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
+        dataonlyObjConfigAndObj;
+        dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
+        dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
+        this.setDataTableObj(dataonlyObjConfigAndObj);
         this.updateBreadCrumb(data.site, data.parentObjSelected);
       });
     this.isInitialValues = true;
@@ -167,11 +180,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   setVisits(visits) {
-    this.rows  = visits.items
-    this.dataTableObj.visit.rows = this.rows ;
-    this.dataTableObj.visit.page.count = visits.count
-    this.dataTableObj.visit.page.limit = visits.limit
-    this.dataTableObj.visit.page.page = visits.page - 1
+    this.rows = visits.items;
+    this.dataTableObj.visit.rows = this.rows;
+    this.dataTableObj.visit.page.count = visits.count;
+    this.dataTableObj.visit.page.limit = visits.limit;
+    this.dataTableObj.visit.page.page = visits.page - 1;
   }
 
   seeDetails($event) {
@@ -214,7 +227,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   onSendConfig(config: JsonData): void {
     this.config = this.addTypeSiteListIds(config);
     this.updateForm();
-    }
+  }
 
   addTypeSiteListIds(config: JsonData): JsonData {
     if (config && config.length != 0) {
@@ -228,38 +241,48 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     return config;
   }
 
-  addSpecificConfig(){
+  addSpecificConfig() {
     // const schemaSpecificType = Object.assign({},...this.types_site)
-    let schemaSpecificType = {}
-    let schemaTypeMerged = {}
-    let keyHtmlToPop = ''
-    for (let type_site of this.types_site){
-      
-      if('specific' in type_site['config']) {
-        for (const prop in type_site['config']['specific']){
-          if('type_widget' in type_site['config']['specific'][prop] && type_site['config']['specific'][prop]['type_widget'] == "html"){
-            keyHtmlToPop = prop
+    let schemaSpecificType = {};
+    let schemaTypeMerged = {};
+    let keyHtmlToPop = '';
+    for (let type_site of this.types_site) {
+      if ('specific' in type_site['config']) {
+        for (const prop in type_site['config']['specific']) {
+          if (
+            'type_widget' in type_site['config']['specific'][prop] &&
+            type_site['config']['specific'][prop]['type_widget'] == 'html'
+          ) {
+            keyHtmlToPop = prop;
           }
         }
-        const {[keyHtmlToPop]:_, ...specificObjWithoutHtml} = type_site['config']['specific']
-        Object.assign(schemaSpecificType, specificObjWithoutHtml)
-        Object.assign(schemaTypeMerged,type_site['config'] )
+        const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
+        Object.assign(schemaSpecificType, specificObjWithoutHtml);
+        Object.assign(schemaTypeMerged, type_site['config']);
       }
     }
 
-
-    const fieldNames = this._configJsonService.fieldNames('generic','site','display_properties',schemaTypeMerged)
-    const fieldNamesList = this._configJsonService.fieldNames('generic','site','display_list',schemaTypeMerged)
+    const fieldNames = this._configJsonService.fieldNames(
+      'generic',
+      'site',
+      'display_properties',
+      schemaTypeMerged
+    );
+    const fieldNamesList = this._configJsonService.fieldNames(
+      'generic',
+      'site',
+      'display_list',
+      schemaTypeMerged
+    );
     const fieldLabels = this._configJsonService.fieldLabels(schemaSpecificType);
     const fieldDefinitions = this._configJsonService.fieldDefinitions(schemaSpecificType);
-    this.objParent["template_specific"] ={}
-    this.objParent["template_specific"]['fieldNames'] = fieldNames;
-    this.objParent["template_specific"]['fieldNamesList'] = fieldNamesList;
-    this.objParent["template_specific"]['schema']= schemaSpecificType;
-    this.objParent["template_specific"]['fieldLabels'] = fieldLabels;
-    this.objParent["template_specific"]['fieldDefinitions'] = fieldDefinitions;
-    this.objParent["template_specific"]['fieldNamesList'] = fieldNamesList;
-    
+    this.objParent['template_specific'] = {};
+    this.objParent['template_specific']['fieldNames'] = fieldNames;
+    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
+    this.objParent['template_specific']['schema'] = schemaSpecificType;
+    this.objParent['template_specific']['fieldLabels'] = fieldLabels;
+    this.objParent['template_specific']['fieldDefinitions'] = fieldDefinitions;
+    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
   }
 
   initValueToSend() {
@@ -277,12 +300,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         }
       }
     }
-    const specificData = {}
+    const specificData = {};
     for (const k in this.site.data) this.site[k] = this.site.data[k];
-    for (const k in this.site.data)  specificData[k]= this.site.data[k];
+    for (const k in this.site.data) specificData[k] = this.site.data[k];
     this.site.types_site = this.config.types_site;
     Object.assign(this.site.dataComplement, this.config);
-    this._formService.updateSpecificForm(this.site,specificData)
+    this._formService.updateSpecificForm(this.site, specificData);
   }
 
   updateBreadCrumb(site, parentSelected) {
@@ -312,46 +335,45 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   onObjChanged($event) {
-    if($event == 'deleted'){
-      return
+    if ($event == 'deleted') {
+      return;
     }
     this.initSiteVisit();
   }
 
-  setDataTableObj(data){
-    const objTemp = {}
-    for (const dataType in data){
-      let objType = data[dataType].objConfig.objectType
-      if(objType != "visit"){
-        continue
+  setDataTableObj(data) {
+    const objTemp = {};
+    for (const dataType in data) {
+      let objType = data[dataType].objConfig.objectType;
+      if (objType != 'visit') {
+        continue;
       }
-      Object.assign(objType,objTemp)
-      objTemp[objType] = {columns:{},rows:[],page : {}}
+      Object.assign(objType, objTemp);
+      objTemp[objType] = { columns: {}, rows: [], page: {} };
       let config = this._configJsonService.configModuleObject(
         data[dataType].objConfig.moduleCode,
         data[dataType].objConfig.objectType
       );
-      data[dataType].objConfig['config'] =config
-      this.dataTableArray.push(data[dataType].objConfig)
+      data[dataType].objConfig['config'] = config;
+      this.dataTableArray.push(data[dataType].objConfig);
     }
 
-    for (const dataType in data){
-      let objType = data[dataType].objConfig.objectType
-      if(objType != "visit"){
-        continue
+    for (const dataType in data) {
+      let objType = data[dataType].objConfig.objectType;
+      if (objType != 'visit') {
+        continue;
       }
-      objTemp[objType].columns =  data[dataType].objConfig.dataTable.colNameObj
-      objTemp[objType].rows = data[dataType].items
+      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
+      objTemp[objType].rows = data[dataType].items;
 
-      objTemp[objType].page ={
+      objTemp[objType].page = {
         count: data[dataType].count,
         limit: data[dataType].limit,
         page: data[dataType].page - 1,
         total: data[dataType].count,
-      }
+      };
 
-      this.dataTableObj = objTemp as IDataTableObj
+      this.dataTableObj = objTemp as IDataTableObj;
     }
   }
-
 }

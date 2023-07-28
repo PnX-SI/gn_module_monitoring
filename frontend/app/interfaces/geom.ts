@@ -1,10 +1,10 @@
-import { GeoJSON } from 'geojson';
-import { Observable } from 'rxjs';
 import { JsonData } from '../types/jsondata';
-import { IObject, IService } from './object';
 import { IColumn } from './column';
+import { IObject, IService } from './object';
 import { IPage } from './page';
 import { IVisit } from './visit';
+import { GeoJSON } from 'geojson';
+import { Observable } from 'rxjs';
 
 export interface IGeomObject extends IObject {
   geometry: GeoJSON.Geometry;
@@ -57,7 +57,7 @@ export interface ISiteType {
 }
 
 export interface IDataTableObj {
-  site: {columns: IColumn[], rows: ISite[], page: IPage},
-  visit: {columns: IColumn[], rows: IVisit[], page: IPage}
-  sites_group: {columns: IColumn[], rows: ISitesGroup[], page: IPage}
+  site: { columns: IColumn[]; rows: ISite[]; page: IPage };
+  visit: { columns: IColumn[]; rows: IVisit[]; page: IPage };
+  sites_group: { columns: IColumn[]; rows: ISitesGroup[]; page: IPage };
 }

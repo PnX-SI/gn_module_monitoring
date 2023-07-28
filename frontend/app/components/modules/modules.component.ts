@@ -3,10 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { mergeMap } from 'rxjs/operators';
 
 /** services */
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
-import { get } from "https";
-import { AuthService, User } from "@geonature/components/auth/auth.service";
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
+import { get } from 'https';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 @Component({
   selector: 'pnx-monitoring-modules',
@@ -59,7 +59,7 @@ export class ModulesComponent implements OnInit {
 
     this.currentUser = this._auth.getCurrentUser();
 
-    this.currentUser["cruved"] = {};
-    this.currentUser["cruved_objects"] = {};
+    this.currentUser['cruved'] = {};
+    this.currentUser['cruved_objects'] = {};
   }
 }
