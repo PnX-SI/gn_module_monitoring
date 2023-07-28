@@ -16,7 +16,10 @@ export class CacheService {
   private _cache = {};
   private _pendingCache = {};
 
-  constructor(private _http: HttpClient, private _config: ConfigService) {}
+  constructor(
+    private _http: HttpClient,
+    private _config: ConfigService
+  ) {}
 
   /** http request */
 

@@ -23,4 +23,4 @@ jobs:
         uses: creyD/prettier_action@v4.3
         with:
           dry: True
-          prettier_options: --config "frontend/.prettierrc" --ignore-path "frontend/.prettierignore" --check "frontend/**/*.ts"
+          prettier_options: --config frontend/.prettierrc --ignore-path frontend/.prettierignore --check frontend/**/*.ts
