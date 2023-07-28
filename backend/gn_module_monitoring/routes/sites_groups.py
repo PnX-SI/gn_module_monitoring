@@ -19,14 +19,17 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
 )
-from gn_module_monitoring.routes.monitoring import create_or_update_object_api_sites_sites_group, get_config_object
+from gn_module_monitoring.routes.monitoring import (
+    create_or_update_object_api_sites_sites_group,
+    get_config_object,
+)
 from gn_module_monitoring.utils.utils import to_int
 
 
 @blueprint.route("/sites_groups/config", methods=["GET"])
-def get_config_sites_groups(id=None, module_code='generic', object_type='sites_group'):
+def get_config_sites_groups(id=None, module_code="generic", object_type="sites_group"):
     obj = get_config_object(module_code, object_type, id)
-    return obj['properties']
+    return obj["properties"]
 
 
 @blueprint.route("/sites_groups", methods=["GET"])

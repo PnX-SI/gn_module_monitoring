@@ -149,7 +149,7 @@ class TestSite:
             "page": 1,
             "sort_label": "label_fr",
             "sort_dir": "asc",
-            "label_fr": string_contains
+            "label_fr": string_contains,
         }
         r = self.client.get(
             url_for("monitorings.get_types_site_by_label"), query_string=query_string
@@ -164,7 +164,6 @@ class TestSite:
         assert all([type not in r.json["items"] for type in mock_db_type_site])
 
     def test_post_sites(self, site_to_post_with_types, types_site, site_group_without_sites):
-
         response = self.client.post(
             url_for("monitorings.post_sites"), data=site_to_post_with_types
         )
@@ -176,7 +175,7 @@ class TestSite:
             res.as_dict()["base_site_name"]
             == site_to_post_with_types["properties"]["base_site_name"]
         )
-    
+
     def test_delete_site(self, sites):
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
