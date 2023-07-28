@@ -10,6 +10,6 @@ export const leafletDrawOptions: any = {
   },
   edit: {
     remove: false,
-    moveMarker: true
-  }
+    moveMarker: true,
+  },
 };

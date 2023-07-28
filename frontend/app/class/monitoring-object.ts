@@ -1,20 +1,15 @@
-import { Observable, of, forkJoin } from "rxjs";
-import { mergeMap, concatMap } from "rxjs/operators";
+import { Observable, of, forkJoin } from 'rxjs';
+import { mergeMap, concatMap } from 'rxjs/operators';
 
-import { MonitoringObjectService } from "../services/monitoring-object.service";
-import { Utils } from "../utils/utils";
+import { MonitoringObjectService } from '../services/monitoring-object.service';
+import { Utils } from '../utils/utils';
 
-import { MonitoringObjectBase } from "./monitoring-object-base";
+import { MonitoringObjectBase } from './monitoring-object-base';
 
 export class MonitoringObject extends MonitoringObjectBase {
   myClass = MonitoringObject;
 
-  constructor(
-    moduleCode: string,
-    objectType: string,
-    id,
-    objService: MonitoringObjectService
-  ) {
+  constructor(moduleCode: string, objectType: string, id, objService: MonitoringObjectService) {
     super(moduleCode, objectType, id, objService);
   }
 
@@ -62,18 +57,12 @@ export class MonitoringObject extends MonitoringObjectBase {
       return of(true);
     }
 
-    const childIdFieldName =
-      this.child0(childrenType).configParam("id_field_name");
+    const childIdFieldName = this.child0(childrenType).configParam('id_field_name');
 
     const observables = [];
     for (const childData of childrenDataOfType) {
       const id = childData.properties[childIdFieldName];
-      const child = new this.myClass(
-        this.moduleCode,
-        childrenType,
-        id,
-        this._objService
-      );
+      const child = new this.myClass(this.moduleCode, childrenType, id, this._objService);
       child.parents[this.objectType] = this;
       this.children[childrenType].push(child);
       observables.push(child.init(childData));
@@ -111,7 +100,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       .postObject(this.moduleCode, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
-          this.id = postData["id"];
+          this.id = postData['id'];
           this._objService.setCache(this, postData);
           return this.init(postData);
         })
@@ -121,12 +110,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   patch(formValue) {
     return this._objService
       .dataMonitoringObjectService()
-      .patchObject(
-        this.moduleCode,
-        this.objectType,
-        this.id,
-        this.postData(formValue)
-      )
+      .patchObject(this.moduleCode, this.objectType, this.id, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
           this._objService.setCache(this, postData);
@@ -221,18 +205,15 @@ export class MonitoringObject extends MonitoringObjectBase {
       if (!elem.type_widget) {
         continue;
       }
-      observables[attribut_name] = this._objService.toForm(
-        elem,
-        properties[attribut_name]
-      );
+      observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
     }
 
     return forkJoin(observables).pipe(
       concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        if (this.config["geometry_type"]) {
-          formValues["geometry"] = this.geometry; // copy???
+        if (this.config['geometry_type']) {
+          formValues['geometry'] = this.geometry; // copy???
         }
         return of(formValues);
       })
@@ -249,10 +230,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       if (!elem.type_widget) {
         continue;
       }
-      propertiesData[attribut_name] = this._objService.fromForm(
-        elem,
-        formValue[attribut_name]
-      );
+      propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
     }
 
     const postData = {
@@ -260,9 +238,9 @@ export class MonitoringObject extends MonitoringObjectBase {
       // id_parent: this.parentId
     };
 
-    if (this.config["geometry_type"]) {
-      postData["geometry"] = formValue["geometry"];
-      postData["type"] = "Feature";
+    if (this.config['geometry_type']) {
+      postData['geometry'] = formValue['geometry'];
+      postData['type'] = 'Feature';
     }
     return postData;
   }
@@ -312,7 +290,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           childrenFieldNames,
           (fieldName) => child.resolvedProperties[fieldName]
         );
-        row["id"] = child.id;
+        row['id'] = child.id;
         return row;
       });
     }

@@ -8,9 +8,8 @@ describe('ModalMsgComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ModalMsgComponent ]
-    })
-    .compileComponents();
+      declarations: [ModalMsgComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {
