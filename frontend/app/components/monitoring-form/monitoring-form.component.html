@@ -2,8 +2,8 @@
   <h2>Attention</h2>
   <p>
     Vous êtes sur le point de supprimer
-    {{ this.obj.template["label_art_def"] }}
-    <b>{{ this.obj.template["description"] }}</b>
+    {{ this.obj.template['label_art_def'] }}
+    <b>{{ this.obj.template['description'] }}</b>
   </p>
   <button class="btn btn-danger float-right" (click)="onDelete()">
     <span
@@ -14,17 +14,11 @@
     ></span>
     Confirmer la suppression
   </button>
-  <button class="btn btn-primary" (click)="bDeleteModal = false">
-    Annuler
-  </button>
+  <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
 </pnx-modal-msg>
 
 <div>
-  <div
-    id="properties-form"
-    class="cadre"
-    *ngIf="obj.bIsInitialized && objFormsDefinition"
-  >
+  <div id="properties-form" class="cadre" *ngIf="obj.bIsInitialized && objFormsDefinition">
     <span
       *ngIf="!obj.id && obj.config['chained']"
       id="toggle-btn"
@@ -56,7 +50,7 @@
     <form [formGroup]="objForm">
       <p
         class="alert alert-warning"
-        style="display:inline-block;"
+        style="display: inline-block"
         *ngIf="obj.config['geometry_type'] && !objForm.value.geometry"
       >
         <span> Veuillez saisir une géométrie sur la carte </span>
@@ -90,9 +84,7 @@
             aria-hidden="true"
           ></span>
 
-          <span
-            >Valider et saisir des {{obj.uniqueChildrenName()}}</span
-          >
+          <span>Valider et saisir des {{ obj.uniqueChildrenName() }}</span>
         </button>
 
         <button
@@ -109,16 +101,11 @@
             aria-hidden="true"
           ></span>
 
-          <span *ngIf="bChainInput && !obj.id"
-            >Valider et enchainer les saisies</span
-          >
+          <span *ngIf="bChainInput && !obj.id">Valider et enchainer les saisies</span>
           <span *ngIf="!bChainInput || obj.id">Valider</span>
         </button>
 
-        <button 
-          mat-raised-button
-          color="warn"
-          class="float-left" (click)="onCancelEdit()">
+        <button mat-raised-button color="warn" class="float-left" (click)="onCancelEdit()">
           Annuler
         </button>
         <button

@@ -46,9 +46,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-
     this.urlRelative = this.removeLastPart(this.route.snapshot['_routerState'].url);
-    this.route.data.subscribe(({data}) => {
+    this.route.data.subscribe(({ data }) => {
       this.id_sites_group = data.id_sites_group;
       this._formService.dataToCreate(
         {
@@ -72,7 +71,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
     return url.slice(0, url.lastIndexOf('/'));
   }
 
-
   partialfuncToFilt(
     pageNumber: number,
     limit: number,
@@ -87,7 +85,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
   onSendConfig(config: JsonData): void {
     this.config = this.addTypeSiteListIds(config);
     this.createFormSpec();
-
   }
 
   addTypeSiteListIds(config: JsonData): JsonData {
@@ -103,7 +100,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   }
 
   createFormSpec() {
-    this._formService.createSpecificForm(this.config)
+    this._formService.createSpecificForm(this.config);
   }
 
   updateBreadCrumb(sitesGroup) {

@@ -10,7 +10,11 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 export class ConfigService {
   protected _config;
 
-  constructor(protected _http: HttpClient, protected _moduleService: ModuleService, public appConfig: GnConfigService) {}
+  constructor(
+    protected _http: HttpClient,
+    protected _moduleService: ModuleService,
+    public appConfig: GnConfigService
+  ) {}
 
   /** Configuration */
 

@@ -7,10 +7,7 @@
       label="{{child0.template['label_list']}} {{displayNumber(child0.objectType)}}"  >
 
       <div let childrenType="child0.objectType" class="list-children">
-        <div
-          class="btn-height"
-          *ngIf="queyParamsNewObject[child0.objectType]"
-        >
+        <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
           <div class="btn-float-right">
             <button
               mat-mini-fab
@@ -23,6 +20,8 @@
               <mat-icon>filter_alt</mat-icon>
             </button
             >
+              <mat-icon>filter_alt</mat-icon>
+            </button>
 
             <button
               mat-raised-button
@@ -33,6 +32,9 @@
               ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ (child0.template["label_art_undef_new"] || "") }}</button
             >
+              <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+              {{ child0.template['label_art_undef_new'] || '' }}
+            </button>
           </div>
         </div>
         <div class="mt-2">
@@ -53,6 +55,4 @@
       </div>
     </mat-tab>
   </mat-tab-group>
-
-
 </div>

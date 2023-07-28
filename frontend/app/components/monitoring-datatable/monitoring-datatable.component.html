@@ -20,22 +20,18 @@
     [selected]="selected"
     (activate)="onRowClick($event)"
     [sorts]="sorts"
-    [messages]= "{
+    [messages]="{
       emptyMessage: 'Pas de données disponibles',
       totalMessage: 'total',
       selectedMessage: 'selection'
     }"
   >
-    <ngx-datatable-column
-      [cellClass]="'cell-link'"
-      prop="Action"
-      class="object-link"
-    >
+    <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
       <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
         <a
           class="nav-link link cell-link"
           (click)="child0.navigateToDetail(row.id)"
-          matTooltip="Consulter {{child0.template.label_art_def}}"
+          matTooltip="Consulter {{ child0.template.label_art_def }}"
         >
           <i class="fa fa-eye" aria-hidden="true"></i>
         </a>
@@ -43,7 +39,7 @@
           *ngIf="child0.child0()"
           class="nav-link link cell-link"
           (click)="child0.navigateToAddChildren(null, row.id)"
-          matTooltip="Ajouter {{child0.child0().labelArtUndef(true)}}"
+          matTooltip="Ajouter {{ child0.child0().labelArtUndef(true) }}"
         >
           <i class="fa fa-plus" aria-hidden="true"></i>
         </a>
@@ -61,18 +57,19 @@
 
   <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
     <div class="header-sort-span" (click)="sortFn()">
-      {{column.definition}}
-      <i class="material-icons icon-sort" [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"></i>
-      <i 
+      {{ column.definition }}
+      <i
+        class="material-icons icon-sort"
+        [innerText]="sortDir ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : ''"
+      ></i>
+      <i
         *ngIf="child0.template.fieldDefinitions[column.prop]"
-        class="material-icons icon-sort" 
+        class="material-icons icon-sort"
         [matTooltip]="tooltip(column)"
         matTooltipPosition="above"
-        >help</i>
-      <span
-        [matTooltip]="tooltip(column)"
-        matTooltipPosition="above"
-        > {{ column.name }}</span>
+        >help</i
+      >
+      <span [matTooltip]="tooltip(column)" matTooltipPosition="above"> {{ column.name }}</span>
     </div>
     <div class="header-filter-span">
       <input

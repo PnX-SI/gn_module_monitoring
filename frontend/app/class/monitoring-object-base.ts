@@ -1,9 +1,9 @@
-import { Observable, of } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
-import { threadId } from 'worker_threads';
-import { forkJoin } from 'rxjs';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
+import { Observable, of } from 'rxjs';
+import { forkJoin } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
+import { threadId } from 'worker_threads';
 
 export class MonitoringObjectBase {
   moduleCode: string;

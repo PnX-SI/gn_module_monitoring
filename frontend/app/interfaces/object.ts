@@ -1,9 +1,8 @@
+import { JsonData } from '../types/jsondata';
+import { IPaginated } from './page';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { GeoJSON } from 'geojson';
 import { Observable } from 'rxjs';
-
-import { JsonData } from '../types/jsondata';
-import { IPaginated } from './page';
 
 export interface IObject {
   data: JsonData;
@@ -30,11 +29,10 @@ export type IExtraForm = { frmCtrl: AbstractControl; frmName: string };
 export type IBreadCrumb = {
   label: string;
   description: string;
-  id?:number;
-  url?:string;
-  objectType?:string;
-  params?:JsonData;
-}
+  id?: number;
+  url?: string;
+  objectType?: string;
+  params?: JsonData;
+};
 
-
-export type IFormMap = { frmGp : FormGroup; bEdit: boolean, obj: any  };
+export type IFormMap = { frmGp: FormGroup; bEdit: boolean; obj: any };
