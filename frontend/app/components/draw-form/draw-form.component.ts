@@ -1,16 +1,9 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  ViewEncapsulation,
-} from "@angular/core";
-import { FormControl } from "@angular/forms";
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { FormControl } from '@angular/forms';
 
-import { leafletDrawOptions } from "./leaflet-draw.options";
-import { CustomMarkerIcon } from "@geonature_common/map/marker/marker.component";
-import { FormService } from "../../services/form.service";
+import { leafletDrawOptions } from './leaflet-draw.options';
+import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
+import { FormService } from '../../services/form.service';
 
 @Component({
   selector: 'pnx-draw-form',
@@ -107,18 +100,16 @@ export class DrawFormComponent implements OnInit {
   // suivi composant => formControl
   bindGeojsonForm(geojson) {
     this.geojson = geojson;
-    if (!this.parentFormControl){
-        this._formService.currentFormMap.subscribe((dataForm) => {
-          if('geometry' in dataForm.frmGp.controls){
-            this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl
-            this.parentFormControl.setValue(geojson.geometry);
-          }
-          })
+    if (!this.parentFormControl) {
+      this._formService.currentFormMap.subscribe((dataForm) => {
+        if ('geometry' in dataForm.frmGp.controls) {
+          this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl;
+          this.parentFormControl.setValue(geojson.geometry);
         }
-    else {
+      });
+    } else {
       this.parentFormControl.setValue(geojson.geometry);
     }
-
   }
 
   ngOnChanges(changes) {

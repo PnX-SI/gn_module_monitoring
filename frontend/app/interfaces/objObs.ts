@@ -1,17 +1,17 @@
-import { endPoints } from "../enum/endpoints";
-import { JsonData } from "../types/jsondata";
-import { ISite, ISitesGroup } from "./geom";
-import { IVisit } from "./visit";
+import { endPoints } from '../enum/endpoints';
+import { JsonData } from '../types/jsondata';
+import { ISite, ISitesGroup } from './geom';
+import { IVisit } from './visit';
 
-export type ObjDataType = ISite | ISitesGroup | IVisit ;
+export type ObjDataType = ISite | ISitesGroup | IVisit;
 export interface IobjObs<T> {
   properties: T | {};
   endPoint: endPoints;
-  objectType: "site" | "sites_group" | "visit";
+  objectType: 'site' | 'sites_group' | 'visit';
   label: string;
   addObjLabel: string;
   editObjLabel: string;
-  seeObjLabel: string,
+  seeObjLabel: string;
   addChildLabel: string;
   id: string | null;
   moduleCode: string;
@@ -27,6 +27,6 @@ export interface IobjObs<T> {
 }
 
 export interface SiteSiteGroup {
-  site: IobjObs<ObjDataType> | null,
-  siteGroup: IobjObs<ObjDataType>
+  site: IobjObs<ObjDataType> | null;
+  siteGroup: IobjObs<ObjDataType>;
 }

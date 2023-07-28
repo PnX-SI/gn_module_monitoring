@@ -1,10 +1,10 @@
 <div id="properties-display" class="cadre">
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
     <mat-tab label="Propriétés">
-      <div class="mt-2" >
+      <div class="mt-2">
         <table class="table table-striped table-sm">
           <tr *ngFor="let fieldName of obj.template['fieldNames']; let i = index">
-            <td style="width:50%" class="key text-muted">
+            <td style="width: 50%" class="key text-muted">
               {{ obj.template.fieldLabels[fieldName] }}
               <i
                 *ngIf="obj.template['fieldDefinitions'][fieldName]"
@@ -18,26 +18,25 @@
                 >help</i
               >
             </td>
-            <td class="td-value" >{{ obj.resolvedProperties[fieldName] }}</td>
+            <td class="td-value">{{ obj.resolvedProperties[fieldName] }}</td>
           </tr>
         </table>
       </div>
     </mat-tab>
-    <mat-tab 
+    <mat-tab
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
-      label="Médias ({{(obj.properties['medias'] && obj.properties['medias'].length) || 0}})"
+      label="Médias ({{ (obj.properties['medias'] && obj.properties['medias'].length) || 0 }})"
     >
       <ng-container *ngFor="let media of obj.properties['medias']; index as i">
         <div class="medias-tab">
           <div [matTooltip]="ms.toString(media)">
             <a [href]="ms.href(media)" target="_blank">{{ media.title_fr }}</a>
             <i>
-              ({{ ms.typeMedia(media)
-              }}<span *ngIf="media.author"> par {{ media.author }}</span
+              ({{ ms.typeMedia(media) }}<span *ngIf="media.author"> par {{ media.author }}</span
               >)
             </i>
           </div>
-          <p *ngIf="media.description_fr">{{media.description_fr}}</p>
+          <p *ngIf="media.description_fr">{{ media.description_fr }}</p>
           <div>
             <pnx-display-medias
               [medias]="obj.properties['medias']"
@@ -51,122 +50,125 @@
       </ng-container>
     </mat-tab>
   </mat-tab-group>
-  
-  <div class="tab-content" id="nav-tabContent" [ngStyle]="{'background-color': obj.template['color']}" >
+
+  <div
+    class="tab-content"
+    id="nav-tabContent"
+    [ngStyle]="{ 'background-color': obj.template['color'] }"
+  >
     <div
       class="tab-pane fade active show"
       id="properties-tab"
       role="tabpanel"
       attr.aria-labelledby="nav-properties-tab"
-    >
-
-    </div>
+    ></div>
     <div
       class="tab-pane fade"
       id="medias-tab"
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
-    >
-    </div>
-
+    ></div>
 
     <button
       mat-stroked-button
       color="primary"
       class="mr-2"
       (click)="onEditClick()"
-      *ngIf="
-        !bEdit &&
-        currentUser?.moduleCruved[obj.objectType].U >= obj.cruved('U')
-      "
+      *ngIf="!bEdit && currentUser?.moduleCruved[obj.objectType].U >= obj.cruved('U')"
     >
-      Éditer {{ (obj.template['label_art_def'] || "") }}
+      Éditer {{ obj.template['label_art_def'] || '' }}
     </button>
 
     <!-- export pdf -->
     <button
       mat-stroked-button
       color="primary"
-      *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])"
+      *ngFor="let exportPdfConfig of obj.template['export_pdf'] || []"
       (click)="processExportPdf(exportPdfConfig)"
       type="button"
-      class="mr-2" >
+      class="mr-2"
+    >
       <i class="fa fa-file-pdf-o"></i>&nbsp;
-      {{exportPdfConfig.label}}
+      {{ exportPdfConfig.label }}
     </button>
 
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
-    mat-stroked-button
-    color="primary"
-    class="float-right"
-    (click)="updateSynthese()"
-    *ngIf="
-      !bEdit &&
-      obj.objectType === 'module' &&
-      currentUser?.moduleCruved.module.U >= 3 &&
-      obj.properties['b_synthese']
-    "
-    matTooltip="Attention, cette opération peux prendre du temps"
-  >
-  <span
-  [ngClass]="{ 'hide-spinner': !bUpdateSyntheseSpinner }"
-  class="spinner-border spinner-border-sm float-right"
-  role="status"
-  aria-hidden="true"
-></span>
+      mat-stroked-button
+      color="primary"
+      class="float-right"
+      (click)="updateSynthese()"
+      *ngIf="
+        !bEdit &&
+        obj.objectType === 'module' &&
+        currentUser?.moduleCruved.module.U >= 3 &&
+        obj.properties['b_synthese']
+      "
+      matTooltip="Attention, cette opération peux prendre du temps"
+    >
+      <span
+        [ngClass]="{ 'hide-spinner': !bUpdateSyntheseSpinner }"
+        class="spinner-border spinner-border-sm float-right"
+        role="status"
+        aria-hidden="true"
+      ></span>
 
-    Mettre à jour la synthèse
-    <mat-icon>sync</mat-icon>
-  </button>
+      Mettre à jour la synthèse
+      <mat-icon>sync</mat-icon>
+    </button>
 
-  <button
-    mat-stroked-button
-    *ngIf="obj.template['export_csv']"
-    class="mr-2"
-    color="primary"
-    (click)="openModalExportCsv($event, modalExportCsv)">
-    <i class="fa fa-arrow-down"></i>&nbsp;Téléchargements
-  </button>
-
+    <button
+      mat-stroked-button
+      *ngIf="obj.template['export_csv']"
+      class="mr-2"
+      color="primary"
+      (click)="openModalExportCsv($event, modalExportCsv)"
+    >
+      <i class="fa fa-arrow-down"></i>&nbsp;Téléchargements
+    </button>
   </div>
 </div>
 <!--add mje modalExportCsv-->
-<ng-template #modalExportCsv id="modal-download" let-c="close" let-d="dismiss" >
+<ng-template #modalExportCsv id="modal-download" let-c="close" let-d="dismiss">
   <div class="modal-header">
-    <h5 class="modal-title" id="exampleModalLabel"> {{'DownloadData' | translate }}</h5>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="modalReference.close();this.selectedDataSet=null">
+    <h5 class="modal-title" id="exampleModalLabel">{{ 'DownloadData' | translate }}</h5>
+    <button
+      type="button"
+      class="close"
+      data-dismiss="modal"
+      aria-label="Close"
+      (click)="modalReference.close(); this.selectedDataSet = null"
+    >
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
   <div class="modal-body">
-    <div *ngFor="let exp of (obj.template['export_csv'] || []);index as i;">
+    <div *ngFor="let exp of obj.template['export_csv'] || []; index as i">
       <mat-card class="mb-2">
-        <mat-card-title> {{obj.template['export_csv'][i].label}}</mat-card-title>
+        <mat-card-title> {{ obj.template['export_csv'][i].label }}</mat-card-title>
         <mat-card-content *ngIf="obj.template['export_csv'][i].filter_dataset" class="mb-0">
           <pnx-datasets
-          label="Choisir un jeu de données à télécharger"
-          [parentFormControl]="datasetForm"
-          [moduleCode]="obj.moduleCode"
-          (onChange)="onDatasetChanged($event, i)"
-        >
-        </pnx-datasets>
-
+            label="Choisir un jeu de données à télécharger"
+            [parentFormControl]="datasetForm"
+            [moduleCode]="obj.moduleCode"
+            (onChange)="onDatasetChanged($event, i)"
+          >
+          </pnx-datasets>
         </mat-card-content>
         <mat-card-actions align="end">
-            <button
+          <button
             mat-raised-button
             color="primary"
             (click)="getExportCsv(obj.template['export_csv'][i], this.selectedDataSet[i])"
-            type="button"  matTooltip="Télécharger"
+            type="button"
+            matTooltip="Télécharger"
             [disabled]="obj.template['export_csv'][i].filter_dataset && !selectedDataSet[i]"
-            >
+          >
             Téléchargement
           </button>
         </mat-card-actions>
-    </mat-card>
-
+      </mat-card>
     </div>
   </div>
 </ng-template>

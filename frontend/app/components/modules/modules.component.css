@@ -16,7 +16,6 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-
 }
 
 .flex-item {
@@ -51,7 +50,6 @@ a {
 .module h2 {
   text-align: center;
 }
-
 
 .module-card:hover {
   border: 1px solid #303030;
