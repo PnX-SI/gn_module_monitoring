@@ -43,8 +43,8 @@ title: 'Création d''un sous-module'
             serviront aux exports `csv`
         * le nommage des vues doit être
             `"v_export_<module_code>_<method>`
-            * `<method>` est une chaine de caratère qui permet de
-                caractriser différentes vues et différents exports pour
+            * `<method>` est une chaine de caractère qui permet de
+                caractériser différentes vues et différents exports pour
                 un module
     * `pdf`
         * *fichiers html/img/css*
@@ -56,7 +56,7 @@ fichier de même nom présent dans le répertoire
 `config/monitoring/generic`.
 
 Le fichier `img.jpg` servira de vignette du sous-module sur la page
-d'accueil du module Monitorings. Le format paysage est à privilégier.
+d'accueil du module Monitoring. Le format paysage est à privilégier.
 Pour chacune un lien symbolique est créé automatiquement dans le
 répertoire `media/monitorings/<module_code>.jpg` de GeoNature.
 
@@ -82,13 +82,13 @@ Dans le fichier `config.json` :
     }
 ```
 
-* `permission_objects`: liste des objets permissions à associer au
+* `permission_objects` : liste des objets permissions à associer au
     module. Elle peut contenir les valeurs suivantes
     `["GNM_MODULES", "GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]`
 
-    * Par exemple, pour les sites, par défaut l'api va vérifier les droits pour l'objet de permission `ALL` associé au sous-module.
+    * Par exemple, pour les sites, par défaut l'API va vérifier les droits pour l'objet de permission `ALL` associé au sous-module.
 
-    * Si des permission sont définie pour ce module et l'object `GNM_SITES`, l'api des sites ira vérifier les droits en rapport avec `GNM_SITES`.
+    * Si des permissions sont définies pour ce module et l'object `GNM_SITES`, l'API des sites ira vérifier les droits en rapport avec `GNM_SITES`.
 
 
 # Configuration des objets
@@ -101,7 +101,7 @@ Dans le fichier `module.json`, deux variables doivent obligatoirement
 * `module_desc`: une description succinte du module.
 
 Une variable optionnelle permet de configurer les objets faisant
-l'objet de permission:
+l'objet de permission :
 
 Dans le cas général (`module.json`, `site.json`, `visit.json`,
 `observation.json`) on peut redéfinir au besoin certaines variables.
@@ -292,7 +292,7 @@ Il est important d'ajouter `"type_util": "nomenclature",`.
 ```
 
 La variable `"id_list": "__MODULE.ID_LIST_TAXONOMY"` définit la
-liste de taxon.
+liste de taxons.
 
 Il est important d'ajouter `"type_util": "taxonomy",`.
 
@@ -432,29 +432,29 @@ Par exemple :
 
 Il est possible de définir des paramètre qui peuvent dépendre de
 plusieurs variables. La valeur de ce paramètre est alors une chaîne de
-caractère qui définie une fonction, qui utilise les variables suivantes
+caractère qui définit une fonction, qui utilise les variables suivantes
 
-**Ce cas n'est pris en compte que pour les composant spécifique, ou
+**Ce cas n'est pris en compte que pour les composants spécifiques, ou
 pour les composants redéfinis dans `specific`**
 
-* `value`: les valeur du formulaire
-* `attribut_name`: du composant concerné
-* `meta`: un dictionnaire de données additionelles, et fourni au
+* `value` : les valeurs du formulaire
+* `attribut_name` : du composant concerné
+* `meta` : un dictionnaire de données additionelles, et fourni au
     composant dynamicFormGenerator, il peut contenir des données sur
     * la nomenclature (pour avoir les valeurs des nomenclature à
         partir des id, ici un dictionnaire avec `id_nomenclature` comme
         clés.
-    * `bChainInput` si on enchaine les releves
-    * etc.. à redéfinir selon les besoin
+    * `bChainInput` si on enchaine les relevés
+    * etc.. à redéfinir selon les besoins
 
 La chaine de caractère qui décrit la fonction doit être de la forme
-suivante:
+suivante :
 
 ```json
     "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 ```
 
-Le format JSON ne permet pas les saut de ligne dans les chaines de
+Le format JSON ne permet pas les sauts de ligne dans les chaines de
 caractère, et pour avoir plus de lisibilité, quand la fonction est plus
 complexe, on peut aussi utiliser un tableau de chaine de caractères :
 
@@ -466,7 +466,7 @@ complexe, on peut aussi utiliser un tableau de chaine de caractères :
     ]
 ```
 
-Le lignes seront coléés entre elles avec l'ajout de saut de lignes
+Le lignes seront collées entre elles avec l'ajout de saut de lignes
 (caractère [n]{.title-ref}).
 
 Il faut être certain de sa fonction.
@@ -474,7 +474,7 @@ Il faut être certain de sa fonction.
 Exemples :
 
 * Afficher le composant `test2` et le rendre obligatoire seulement si
-    `test1` a pour valeur `t`:
+    `test1` a pour valeur `t` :
 
 ```json
 "specific": {
@@ -518,7 +518,7 @@ valeur des variables en fonction d'autres variables, on peut définir
 On peut y définir une fonction qui sera appelée chaque fois que le
 formulaire change.
 
-Un exemple (`module.json` du module test):
+Un exemple (`module.json` du module test) :
 
 ```json
 {
@@ -619,11 +619,11 @@ NB : pour ajouter une popup sur la liste des sites, éditez le fichier
 # Gestion des droits
 
 Actuellement le CRUVED est implémenté de manière partielle au niveau du
-module MONITORINGS. Il n'y a actuellement pas de vérification des
+module MONITORING. Il n'y a actuellement pas de vérification des
 portées, les droits s'appliquent sur toutes les données.
 
 Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce
-sous-module le CRUVED définit au niveau de tout le module Monitorings.
+sous-module le CRUVED défini au niveau de tout le module Monitoring.
 
 Par défaut les valeurs définies du CRUVED sont :
 
@@ -653,7 +653,7 @@ Il est possible de configurer des exports (CSV ou PDF).
 Les fichiers de template (`.html`) et assets (images, style, etc..) pour
 l'export PDF sont à placer dans le dossier `<module_code>/exports/pdf/`
 
-* Dans le fichier de config d'un object (par exemple
+* Dans le fichier de config d'un objet (par exemple
     `sites_group.json`:
 
     * ajouter la variable `export_pdf`:
@@ -666,11 +666,11 @@ l'export PDF sont à placer dans le dossier `<module_code>/exports/pdf/`
 ]
 ```
 
-* Dans les fichiers template on a accès à la variable `data` un
+* Dans les fichiers template on a accès à la variable `data`, un
     dictionnaire contenant :
     * `static_pdf_dir` : chemin du dossier des assets de l'export pdf
     * `map_image` : l'image tirée de la carte leaflet
-    * `monitoring_object.properties`: propriété de l'objet courant
+    * `monitoring_object.properties` : propriété de l'objet courant
 * La commande `geonature monitorings process_export_pdf <module_code>`
     permet de :
     * placer les fichier de template en `.html` (lien symbolique) dans
@@ -681,7 +681,7 @@ l'export PDF sont à placer dans le dossier `<module_code>/exports/pdf/`
 
 ## CSV
 
-les fichiers `.sql` qui définissent les vues pour l'export CSV sont
+Les fichiers `.sql` qui définissent les vues pour l'export CSV sont
 placés dans le dossier `<module_code>/exports/csv/`.
 
 * Dans le fichier de config du module (`module.json`) ou d'un objet
@@ -702,5 +702,5 @@ placés dans le dossier `<module_code>/exports/csv/`.
         Dans ce cas il faut que la vue ait un champ `id_dataset`
 * La commande `geonature monitorings process_export_csv <module_code>`
     permet de :
-    * jouer tous les fichiers SQL de ce répertoire
+    * exécuter tous les fichiers SQL de ce répertoire
     * les vues doivent être nommées `v_export_<module_code>_<method>`
