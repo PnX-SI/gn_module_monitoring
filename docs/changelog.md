@@ -13,14 +13,11 @@ Nécessite GeoNature version 2.13.0 (ou plus)
 
 **⚠️ Notes de version**
 
-* La variable `permission_objects` est déplacée du fichier `module.json` au fichier `config.json`
-
+* La variable `permission_objects` est à déplacer du fichier `module.json` au fichier `config.json`
 * Utiliser la commande pour générer les permissions disponible pour les sous-modules déjà installés
-
-```
-geonature monitorings update_module_available_permissions
-```
-
+  ```
+  geonature monitorings update_module_available_permissions
+  ```
 
 0.6.0 (2023-05-23)
 ------------------
