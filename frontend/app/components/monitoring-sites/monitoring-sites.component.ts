@@ -67,6 +67,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   ngOnInit() {
+    this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.objForm = { static: this._formBuilder.group({}) };
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
@@ -138,7 +139,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
   ngOnDestroy() {
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-    this._geojsonService.removeFeatureGroup(this.siteGroupLayer);
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }

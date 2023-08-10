@@ -13,6 +13,7 @@ import { JsonData } from '../../types/jsondata';
 import { IPaginated } from '../../interfaces/page';
 import { IBreadCrumb } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'monitoring-sites-create',
@@ -42,7 +43,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
     private _sitesGroupService: SitesGroupService,
     public siteService: SitesService,
     private route: ActivatedRoute,
-    private _objService: ObjectService
+    private _objService: ObjectService,
+    public geojsonService: GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -117,5 +119,9 @@ export class MonitoringSitesCreateComponent implements OnInit {
 
     this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbElemnt];
     this._objService.changeBreadCrumb(this.breadCrumbList, true);
+  }
+
+  ngOnDestroy() {
+    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
   }
 }

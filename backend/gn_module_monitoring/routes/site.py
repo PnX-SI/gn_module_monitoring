@@ -1,9 +1,11 @@
 from flask import request
 from flask.json import jsonify
+import json
 from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.utils.env import db
 from sqlalchemy.orm import Load, joinedload
 from werkzeug.datastructures import MultiDict
+
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
@@ -129,7 +131,9 @@ def get_sites():
 def get_site_by_id(id_base_site):
     site = TMonitoringSites.query.get_or_404(id_base_site)
     schema = MonitoringSitesSchema()
-    return schema.dump(site)
+    response = schema.dump(site)
+    response["geometry"] = json.loads(response["geometry"])
+    return response
 
 
 @blueprint.route("/sites/geometries", methods=["GET"])
@@ -199,6 +203,9 @@ def patch_sites(_id):
     object_type = "site"
     customConfig = {"specific": {}}
     post_data = dict(request.get_json())
+    # TODO: vérifier si utile et si oui mettre dans route POST
+    if "geometry" in post_data:
+        post_data["geometry"] = json.dumps(post_data["geometry"])
     for keys in post_data["dataComplement"].keys():
         if "config" in post_data["dataComplement"][keys]:
             customConfig["specific"].update(
