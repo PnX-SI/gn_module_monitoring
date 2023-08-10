@@ -6,6 +6,7 @@ import { ISitesGroup } from '../../interfaces/geom';
 import { FormService } from '../../services/form.service';
 import { SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'monitoring-sitesgroups-create',
@@ -20,7 +21,8 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private _objService: ObjectService,
-    public sitesGroupService: SitesGroupService
+    public sitesGroupService: SitesGroupService,
+    public geojsonService: GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -38,5 +40,9 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     );
     this._objService.changeSelectedObj({}, true);
     this.objForm = this._formBuilder.group({});
+  }
+
+  ngOnDestroy() {
+    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
   }
 }

@@ -19,6 +19,7 @@ import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
+import { setPopup } from '../../functions/popup';
 
 @Component({
   selector: 'monitoring-visits',
@@ -94,6 +95,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this._Activatedroute.params
       .pipe(
         map((params) => params['id'] as number),
+        tap((id: number) => {
+          this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+            id_base_site: id,
+          });
+        }),
         mergeMap((id: number) => {
           return forkJoin({
             site: this.siteService.getById(id).catch((err) => {
@@ -183,6 +189,18 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         }
       });
     this.isInitialValues = true;
+  }
+
+  onEachFeatureSite() {
+    const baseUrl = this.router.url + '/site';
+    return (feature, layer) => {
+      const popup = setPopup(
+        baseUrl,
+        feature.properties.id_base_site,
+        'Site :' + feature.properties.base_site_name
+      );
+      layer.bindPopup(popup);
+    };
   }
 
   getVisits(page: number, filters: JsonData) {
@@ -406,6 +424,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   ngOnDestroy() {
+    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }
