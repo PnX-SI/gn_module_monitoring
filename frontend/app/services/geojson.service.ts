@@ -42,7 +42,7 @@ export class GeoJSONService {
 
   getSitesGroupsChildGeometries(onEachFeature: Function, params = {}) {
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
-      //this.removeFeatureGroup(this.sitesFeatureGroup);
+      this.removeFeatureGroup(this.sitesFeatureGroup);
       this.sitesFeatureGroup = this.setMapData(data, onEachFeature);
     });
   }
@@ -92,5 +92,25 @@ export class GeoJSONService {
         });
       }
     });
+  }
+
+  removeLayerByIdSite(id: number) {
+    const layers = this.selectSitesLayer(id);
+    this.removeFeatureGroup(layers);
+  }
+
+  selectSitesLayer(id: number) {
+    const layers = this.sitesFeatureGroup.eachLayer((layer) => {
+      if (layer instanceof L.GeoJSON) {
+        layer.eachLayer((sublayer: L.GeoJSON) => {
+          const feature = sublayer.feature as GeoJSON.Feature;
+          if (feature.properties['id_base_site'] == id) {
+            sublayer.openPopup();
+            return;
+          }
+        });
+      }
+    });
+    return layers;
   }
 }

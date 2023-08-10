@@ -72,6 +72,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   ngOnInit() {
+    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initSiteGroup();
     this._objService.changeSelectedObj({}, true);
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
