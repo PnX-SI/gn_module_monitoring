@@ -30,7 +30,7 @@ export class FormService {
   objecType: string;
 
   frmrGrp: FormGroup = this._formBuilder.group({});
-  private formMap = new BehaviorSubject<IFormMap>({ frmGp: this.frmrGrp, bEdit: true, obj: {} });
+  private formMap = new BehaviorSubject<IFormMap>({ frmGp: this.frmrGrp, bEdit: false, obj: {} });
   currentFormMap = this.formMap.asObservable();
 
   constructor(
@@ -103,7 +103,7 @@ export class FormService {
         if (obj.config['geometry_type']) {
           // TODO: change null by the geometry load from the object (if edit) or null if create
           // formValues["geometry"] = this.geometry; // copy???
-          formValues['geometry'] = null; // copy???
+          formValues['geometry'] = obj.geometry; // copy???
         }
         return of(formValues);
       })
