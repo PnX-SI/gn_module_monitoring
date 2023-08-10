@@ -214,11 +214,6 @@ export class MonitoringFormComponentG implements OnInit {
             frmName: 'geometry',
           };
           this.addGeomFormCtrl(frmCtrlGeom);
-          this._formService.changeFormMapObj({
-            frmGp: this.objForm.static,
-            bEdit: true,
-            obj: this.obj,
-          });
         }
         this.initForm();
         this.isExtraForm && this.bEdit ? this.updateSpecificForm() : null;
@@ -261,6 +256,9 @@ export class MonitoringFormComponentG implements OnInit {
     this._formService.formValues(this.obj).subscribe((formValue) => {
       const allKeysForm = Object.keys(formValue);
       const allKeysStatic = Object.keys(this.obj.config.generic);
+      if (this.obj.config['geometry_type'] && allKeysForm.includes('geometry')) {
+        allKeysStatic.push('geometry');
+      }
       // const allKeysSpecific = Object.keys(this.obj.specific);
       let formValueStatic = {};
       for (let key of allKeysForm) {
@@ -269,6 +267,11 @@ export class MonitoringFormComponentG implements OnInit {
         }
       }
       this.objForm.static.patchValue(formValueStatic);
+      this._formService.changeFormMapObj({
+        frmGp: this.objForm.static,
+        bEdit: true,
+        obj: this.obj,
+      });
       this.setDefaultFormValue();
     });
   }
@@ -431,7 +434,7 @@ export class MonitoringFormComponentG implements OnInit {
 
   navigateToParentAfterDelete() {
     this.bEditChange.emit(false); // patch bug navigation
-    if (this.obj.objectType == 'site') {
+    if (this.obj.objectType == 'site' && this._router.url.includes('sites_group')) {
       this._router.navigate(['monitorings', 'sites_group', this._route.parent.snapshot.params.id]);
     } else {
       this._router.navigate(['..'], { relativeTo: this._route });
@@ -681,6 +684,11 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   ngOnDestroy() {
+    this._formService.changeFormMapObj({
+      frmGp: this._formBuilder.group({}),
+      bEdit: false,
+      obj: {},
+    });
     this.destroyed$.next(true);
     this.destroyed$.complete();
     this.obj = {};

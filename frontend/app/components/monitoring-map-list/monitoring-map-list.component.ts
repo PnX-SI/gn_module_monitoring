@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { tap, mergeMap, map } from 'rxjs/operators';
+import { tap, mergeMap, map, distinctUntilChanged } from 'rxjs/operators';
 import { SiteSiteGroup } from '../../interfaces/objObs';
 import { MonitoringSitesComponent } from '../monitoring-sites/monitoring-sites.component';
 import { FormService } from '../../services/form.service';
@@ -24,10 +24,12 @@ export class MonitoringMapListComponent {
   constructor(private _formService: FormService) {}
 
   onActivate(component) {
-    this._formService.currentFormMap.subscribe((formMapObj) => {
-      this.obj = formMapObj.obj;
-      this.bEdit = formMapObj.bEdit;
-      this.objForm = formMapObj.frmGp;
-    });
+    this._formService.currentFormMap
+      .pipe(distinctUntilChanged((prev, curr) => prev.obj === curr.obj))
+      .subscribe((formMapObj) => {
+        this.obj = formMapObj.obj;
+        this.bEdit = formMapObj.bEdit;
+        this.objForm = formMapObj.frmGp;
+      });
   }
 }
