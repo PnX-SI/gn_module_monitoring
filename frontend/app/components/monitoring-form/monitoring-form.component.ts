@@ -394,12 +394,14 @@ export class MonitoringFormComponent implements OnInit {
       );
       Object.assign(this.schemaUpdate, this.typesSiteConfig[typeSite.label].config.specific);
     }
-    this.schemaUpdate = keysConfigToExclude
-      .filter((key) => !Object.keys(this.schemaGeneric).includes(key))
-      .reduce((obj, key) => {
-        obj[key] = this.schemaUpdate[key];
-        return obj;
-      }, {});
+    if (!this.obj.id) {
+      this.schemaUpdate = keysConfigToExclude
+        .filter((key) => !Object.keys(this.schemaGeneric).includes(key))
+        .reduce((obj, key) => {
+          obj[key] = this.schemaUpdate[key];
+          return obj;
+        }, {});
+    }
 
     this.schemaGeneric = Object.keys(this.schemaGeneric)
       .filter((key) => !keysConfigToExclude.includes(key))
