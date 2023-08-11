@@ -2,6 +2,12 @@
 <!-- 
   <pnx-monitoring-properties-g [newParentType]="objParent" [objectType]="objectType" *ngIf="!bEdit" [(bEdit)]="bEdit" [selectedObj]="site">
   </pnx-monitoring-properties-g> -->
+<div>
+  <span class="obj-title"
+    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ siteService.objectObs.label }}:</span
+  >
+  <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
+</div>
 <pnx-monitoring-form-g
   #monitoringFormComponentG
   [obj]="site"
