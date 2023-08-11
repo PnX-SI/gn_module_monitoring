@@ -1,3 +1,9 @@
+<div>
+  <span class="obj-title"
+    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ _sitesGroupService.objectObs.label }}:</span
+  >
+  <span *ngIf="sitesGroup" class="obj-description"> {{ sitesGroup.sites_group_name }} </span>
+</div>
 <pnx-monitoring-properties-g
   *ngIf="!bEdit"
   [(bEdit)]="bEdit"

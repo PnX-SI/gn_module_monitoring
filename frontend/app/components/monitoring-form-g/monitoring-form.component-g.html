@@ -46,19 +46,21 @@
 
     <ng-container *ngIf="objForm && objForm.static">
       <form [formGroup]="objForm.static">
-        <ng-content add-select></ng-content>
         <!-- TODO: Gérer la saisie de géometrie -->
         <p
           class="alert alert-warning"
-          style="display: inline-block"
+          style="display: inline-block; padding: 4px"
           *ngIf="obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry"
         >
           <span> Veuillez saisir une géométrie sur la carte </span>
         </p>
-
         <!-- composant choix de site select + filtre -->
 
-        <div id="form-scroll">
+        <div
+          [ngClass]="{
+          'form-scroll-info-geom':obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry  ,
+          'form-scroll': !(obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry)}"
+        >
           <ng-container *ngIf="objForm.static">
             <pnx-dynamic-form-generator
               class="obj-form"
@@ -70,7 +72,17 @@
               (change)="onObjFormValueChange($event)"
             ></pnx-dynamic-form-generator>
           </ng-container>
+          <ng-content add-select></ng-content>
           <ng-container *ngIf="objForm && objForm.dynamic">
+            <span
+              class="alert alert-warning"
+              style="display: inline-block; padding: 2px"
+              *ngIf="obj.objectType.includes('site')"
+            >
+              <mat-icon>error</mat-icon> La suppression de types de site entraine la
+              réinitialisation des champs associés
+            </span>
+
             <pnx-dynamic-form-generator
               class="obj-form"
               #dynamicForm
@@ -103,7 +115,9 @@
         </button> -->
 
           <button
-            class="btn btn-success float-right"
+            mat-raised-button
+            color="primary"
+            class="float-right"
             (click)="bSaveSpinner = true; onSubmit()"
             [disabled]="isExtraForm ? (objForm.dynamic.status == 'INVALID' || extraFormCtrl?.frmCtrl.status == 'INVALID' || objForm.static.status == 'INVALID') : objForm.static.status == 'INVALID'  "
           >
@@ -121,8 +135,16 @@
           <!-- <span>Valider</span>
         </button> -->
 
-          <button class="btn btn-primary float-left" (click)="onCancelEdit()">Annuler</button>
-          <button class="btn btn-danger float-left" (click)="bDeleteModal = true" *ngIf="obj.id">
+          <button mat-raised-button color="warn" class="float-left" (click)="onCancelEdit()">
+            Annuler
+          </button>
+          <button
+            mat-raised-button
+            color="warn"
+            class="float-left"
+            (click)="bDeleteModal = true"
+            *ngIf="obj.id"
+          >
             Supprimer
           </button>
         </div>
