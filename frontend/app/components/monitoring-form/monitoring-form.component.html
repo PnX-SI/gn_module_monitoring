@@ -116,7 +116,11 @@
           color="warn"
           class="float-left"
           (click)="bDeleteModal = true"
-          *ngIf="obj.id && currentUser.moduleCruved[obj.objectType].D >= 1"
+          *ngIf="
+            obj.id &&
+            currentUser.moduleCruved[obj.objectType].D >= 1 &&
+            !obj.objectType.includes('site', 'sites_group')
+          "
         >
           Supprimer
         </button>
