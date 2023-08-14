@@ -13,9 +13,12 @@ export class CreateSiteResolver implements Resolve<ISitesGroup | null> {
     state: RouterStateSnapshot
   ): Observable<ISitesGroup | null> {
     const siteGroupId = parseInt(route.paramMap.get('id'));
-    const $getSiteGroups = this.service.getById(siteGroupId).pipe((result) => {
-      return result;
-    });
+    let $getSiteGroups: Observable<ISitesGroup | null>;
+    isNaN(siteGroupId)
+      ? ($getSiteGroups = of(null))
+      : ($getSiteGroups = this.service.getById(siteGroupId).pipe((result) => {
+          return result;
+        }));
     return $getSiteGroups;
   }
 }

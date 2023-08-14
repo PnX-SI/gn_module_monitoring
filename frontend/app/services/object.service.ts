@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { JsonData } from '../types/jsondata';
-import { IBreadCrumb } from '../interfaces/object';
+import { IBreadCrumb, SelectObject } from '../interfaces/object';
 
 @Injectable()
 export class ObjectService {
@@ -21,6 +21,9 @@ export class ObjectService {
 
   private dataBreadCrumb = new ReplaySubject<IBreadCrumb[]>(1);
   currentDataBreadCrumb = this.dataBreadCrumb.asObservable();
+
+  private dataListOption = new ReplaySubject<SelectObject[]>(1);
+  currentListOption = this.dataListOption.asObservable();
 
   constructor() {
     let storedObjectType = localStorage.getItem('storedObjectType');
@@ -71,5 +74,9 @@ export class ObjectService {
     if (storeDataBreadCrumb)
       localStorage.setItem('storedDataBreadCrumb', JSON.stringify(newDataBreadCrumb));
     this.dataBreadCrumb.next(newDataBreadCrumb);
+  }
+
+  changeListOption(newListOption: SelectObject[]) {
+    this.dataListOption.next(newListOption);
   }
 }

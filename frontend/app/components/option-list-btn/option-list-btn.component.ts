@@ -2,6 +2,7 @@ import { Component, ViewChild, Input, Output, EventEmitter } from '@angular/core
 import { FormControl } from '@angular/forms';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { SelectObject } from '../../interfaces/object';
+import { ObjectService } from '../../services/object.service';
 
 @Component({
   selector: 'option-list-btn',
@@ -23,10 +24,13 @@ export class OptionListButtonComponent {
   }
   @Input() label: string = '';
   @Input() placeholder: string = '';
+  @Input() iconOrButton: string = 'button';
   @Output() onSaved = new EventEmitter<SelectObject>();
-  @Output() onDeployed = new EventEmitter<void>();
+  @Output() onDeployed = new EventEmitter<any>();
 
-  constructor() {}
+  @Input() item: [];
+
+  constructor(private _objService: ObjectService) {}
 
   cancelClick(ev: MouseEvent) {
     ev.stopPropagation();
@@ -39,9 +43,14 @@ export class OptionListButtonComponent {
   onSave() {
     this.ddTrigger.closeMenu();
     this.onSaved.emit(this.form.value);
+    //
   }
 
   onDeploy() {
+    if (this.item) {
+      this.onDeployed.emit(this.item);
+      this._objService.currentListOption.subscribe((optionList) => (this._optionList = optionList));
+    }
     this.onDeployed.emit();
   }
 
