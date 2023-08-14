@@ -19,6 +19,7 @@ import { IPage } from '../../interfaces/page';
 import { DataTableService } from '../../services/data-table.service';
 import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
+import { SelectObject } from '../../interfaces/object';
 
 interface ItemObjectTable {
   id: number | null;
@@ -43,7 +44,8 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
-
+  @Output() addFromTable = new EventEmitter<Object>();
+  @Output() saveOptionChildren = new EventEmitter<SelectObject>();
   @Output() bEditChanged = new EventEmitter<boolean>();
 
   @Input() currentUser;
@@ -65,7 +67,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   selected = [];
   filters = {};
 
-  activetabIndex: number = 0;
+  @Input() activetabIndex: number = 0;
   activetabType: string;
 
   @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
@@ -102,10 +104,12 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.activetabIndex = tab.index;
     // Réinitialisation des données selectés
     this.activetabType = this.dataTableArray[tab.index].objectType;
-    this.columns = this._dataTableService.colsTable(
-      this.dataTableObj[this.activetabType].columns,
-      this.dataTableObj[this.activetabType].rows[0]
-    );
+    this.dataTableObj[this.activetabType].rows.length > 0
+      ? (this.columns = this._dataTableService.colsTable(
+          this.dataTableObj[this.activetabType].columns,
+          this.dataTableObj[this.activetabType].rows[0]
+        ))
+      : null;
     this.rows = this.dataTableObj[this.activetabType].rows;
     this.page = this.dataTableObj[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
@@ -167,7 +171,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   onSelectEvent({ selected }) {
-    const id = selected[0].id_group_site;
+    const id = selected[0][selected[0]['pk']];
 
     if (!this.rowStatus) {
       return;
@@ -180,6 +184,14 @@ export class MonitoringDatatableGComponent implements OnInit {
 
     this.setSelected();
     this.rowStatusChange.emit(this.rowStatus);
+  }
+
+  addChildren(selected) {
+    this.addFromTable.emit({ rowSelected: selected, objectType: this.activetabType });
+  }
+
+  saveOptionChild($event: SelectObject) {
+    this.saveOptionChildren.emit($event);
   }
 
   setSelected() {
@@ -237,6 +249,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
 
     if (changes['rows'] && this.rows && this.rows.length > 0) {
+      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
       this.rows = this.dataTableObj[this.activetabType].rows;
       this.page = this.dataTableObj[this.activetabType].page;
     }
@@ -252,7 +265,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   navigateToAddChildren(_, row) {
     this.addEvent.emit(row);
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    if (row) {
+    if (row && this.dataTableArray.length == 1) {
       row['id'] = row[row.pk];
       this.router.navigate([row.id, 'create'], {
         relativeTo: this._Activatedroute,
@@ -262,9 +275,18 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    this.router.navigate(['create'], {
-      relativeTo: this._Activatedroute,
-    });
+    if (this.dataTableArray.length == 1) {
+      this.router.navigate(['create'], {
+        relativeTo: this._Activatedroute,
+      });
+    } else {
+      this.router.navigate([
+        'monitorings',
+        this.dataTableArray[this.activetabIndex].routeBase,
+        'create',
+      ]);
+    }
+
     // TODO: gérer la gestion de l'ajout (et ajout d'objet enfant) d'objet de type "site" depuis la page d'accueil de visualisation de groupe de site/ site
     //
   }

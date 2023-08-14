@@ -67,6 +67,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     geometry = fields.Method("serialize_geojson", dump_only=True)
     pk = fields.Method("set_pk", dump_only=True)
     types_site = MA.Nested(BibTypeSiteSchema, many=True)
+    id_sites_group = fields.Method("get_id_sites_group")
 
     def serialize_geojson(self, obj):
         if obj.geom is not None:
@@ -74,6 +75,9 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return self.Meta.model.get_id()
+
+    def get_id_sites_group(self, obj):
+        return obj.id_sites_group
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
