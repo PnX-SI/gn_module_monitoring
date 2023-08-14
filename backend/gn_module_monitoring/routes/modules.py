@@ -11,12 +11,15 @@ from ..utils.utils import to_int
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
 from gn_module_monitoring import MODULE_CODE
 
 from ..modules.repositories import (
     get_module,
     get_modules,
 )
+from ..config.repositories import get_config
+from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 
 @blueprint.route("/module/<value>", methods=["GET"])
@@ -61,3 +64,12 @@ def get_modules_api():
         modules_out.append(module_out)
 
     return modules_out
+
+
+@blueprint.route("/modules/<string:module_code>/types_sites", methods=["GET"])
+def get_all_types_site_from_module_id(module_code):
+    config = get_config(module_code, True)
+    id_module = config["custom"]["__MODULE.ID_MODULE"]
+    types_site = query_all_types_site_from_module_id(id_module)
+    schema = BibTypeSiteSchema()
+    return [schema.dump(res) for res in types_site]

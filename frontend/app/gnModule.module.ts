@@ -112,6 +112,30 @@ const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'sites',
+    component: MonitoringMapListComponent,
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsReslver,
+        },
+      },
+      {
+        path: 'create',
+        component: MonitoringSitesCreateComponent,
+        resolve: {
+          data: CreateSiteResolver,
+        },
+      },
+      {
+        path: ':id',
+        component: MonitoringVisitsComponent,
+      },
+    ],
+  },
   { path: 'not-found', component: PageNotFoundComponent },
   { path: '**', redirectTo: 'not-found' },
 ];

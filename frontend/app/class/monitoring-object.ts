@@ -92,10 +92,10 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  post(formValue): Observable<any> {
+  post(formValue, dataComplement = {}): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
-      .postObject(this.moduleCode, this.objectType, this.postData(formValue))
+      .postObject(this.moduleCode, this.objectType, this.postData(formValue, dataComplement))
       .pipe(
         mergeMap((postData) => {
           this.id = postData['id'];
@@ -105,10 +105,15 @@ export class MonitoringObject extends MonitoringObjectBase {
       );
   }
 
-  patch(formValue) {
+  patch(formValue, dataComplement = {}) {
     return this._objService
       .dataMonitoringObjectService()
-      .patchObject(this.moduleCode, this.objectType, this.id, this.postData(formValue))
+      .patchObject(
+        this.moduleCode,
+        this.objectType,
+        this.id,
+        this.postData(formValue, dataComplement)
+      )
       .pipe(
         mergeMap((postData) => {
           this._objService.setCache(this, postData);
@@ -194,10 +199,16 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   /** formValues: obj -> from */
 
-  formValues(): Observable<any> {
+  formValues(schemaUpdate = {}): Observable<any> {
     const properties = Utils.copy(this.properties);
     const observables = {};
-    const schema = this.schema();
+    let schema = {};
+    if (Object.keys(schemaUpdate).length == 0) {
+      schema = this.schema();
+    } else {
+      schema = schemaUpdate;
+    }
+
     for (const attribut_name of Object.keys(schema)) {
       const elem = schema[attribut_name];
       if (!elem.type_widget) {
@@ -220,7 +231,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   /** postData: obj -> from */
 
-  postData(formValue) {
+  postData(formValue, dataComplement) {
     const propertiesData = {};
     const schema = this.schema();
     for (const attribut_name of Object.keys(schema)) {
@@ -231,10 +242,19 @@ export class MonitoringObject extends MonitoringObjectBase {
       propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
     }
 
-    const postData = {
-      properties: propertiesData,
-      // id_parent: this.parentId
-    };
+    let postData = {};
+    if (Object.keys(dataComplement).length == 0) {
+      postData = {
+        properties: propertiesData,
+        // id_parent: this.parentId
+      };
+    } else {
+      postData = {
+        properties: propertiesData,
+        dataComplement: dataComplement,
+        // id_parent: this.parentId
+      };
+    }
 
     if (this.config['geometry_type']) {
       postData['geometry'] = formValue['geometry'];

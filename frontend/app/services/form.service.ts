@@ -142,17 +142,17 @@ export class FormService {
     }
 
     // Ajout des id relationship
-    if (obj.id_relationship != undefined) {
-      for (const [key, value] of Object.entries(obj.id_relationship)) {
-        if (typeof value == 'string') {
-          if (obj[value] != undefined) {
-            postData['properties'][value] = obj[value];
-          } else if (Object.keys(obj.dataComplement).includes(value)) {
-            postData['properties'][value] = obj.dataComplement[value];
-          }
-        }
-      }
-    }
+    // if (obj.id_relationship != undefined) {
+    //   for (const [key, value] of Object.entries(obj.id_relationship)) {
+    //     if (typeof value == 'string') {
+    //       if (obj[value] != undefined) {
+    //         postData['properties'][value] = obj[value];
+    //       } else if (Object.keys(obj.dataComplement).includes(value)) {
+    //         postData['properties'][value] = obj.dataComplement[value];
+    //       }
+    //     }
+    //   }
+    // }
 
     //   properties: propertiesData,
     //   // id_parent: this.parentId

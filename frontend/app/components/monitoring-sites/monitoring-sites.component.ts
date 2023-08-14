@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { tap, map, mergeMap } from 'rxjs/operators';
+import { ReplaySubject, forkJoin, of } from 'rxjs';
+import { tap, map, mergeMap, takeUntil } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { IDataTableObj, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
@@ -12,9 +12,11 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { IobjObs } from '../../interfaces/objObs';
-import { IBreadCrumb } from '../../interfaces/object';
+import { IBreadCrumb, SelectObject } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
+import { ConfigService } from '../../services/config.service';
+import { Module } from '../../interfaces/module';
 
 const LIMIT = 10;
 
@@ -40,9 +42,14 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   breadCrumbList: IBreadCrumb[] = [];
   rows_sites_table: ISiteField[];
 
+  modules: SelectObject[];
+  modulSelected;
+  siteSelectedId: number;
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
+
+  private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   constructor(
     public _sitesGroupService: SitesGroupService,
@@ -52,7 +59,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
     private _configJsonService: ConfigJsonService,
-    private _formBuilder: FormBuilder
+    private _formBuilder: FormBuilder,
+    private _configService: ConfigService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -131,6 +139,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   ngOnDestroy() {
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this._geojsonService.removeFeatureGroup(this.siteGroupLayer);
+    this.destroyed$.next(true);
+    this.destroyed$.complete();
   }
 
   onEachFeatureSite() {
@@ -221,5 +231,41 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
 
       this.dataTableObj = objTemp as IDataTableObj;
     }
+  }
+
+  onAddChildren(event) {
+    if (event.objectType == 'site') {
+      this.siteSelectedId = event.rowSelected[event.rowSelected['pk']];
+      this.getModules();
+    }
+  }
+
+  onSaveAddChildren($event: SelectObject) {
+    this.addNewVisit($event);
+  }
+  getModules() {
+    this._siteService
+      .getSiteModules(this.siteSelectedId)
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe(
+        (data: Module[]) => (
+          (this.modules = data.map((item) => {
+            return { id: item.module_code, label: item.module_label };
+          })),
+          this._objService.changeListOption(this.modules)
+        )
+      );
+  }
+
+  addNewVisit(event) {
+    this.modulSelected = event;
+    this._configJsonService.init(this.modulSelected.id).subscribe(() => {
+      const moduleCode = this.modulSelected.id;
+      const keys = Object.keys(this._configJsonService.config()[moduleCode]);
+      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+        queryParams: { id_base_site: this.siteSelectedId, parents_path: parent_paths },
+      });
+    });
   }
 }
