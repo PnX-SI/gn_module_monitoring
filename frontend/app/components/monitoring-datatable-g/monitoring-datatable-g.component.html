@@ -2,6 +2,7 @@
   <mat-tab-group
     mat-stretch-tabs="false"
     mat-align-tabs="start"
+    [selectedIndex]="activetabIndex"
     (selectedTabChange)="changeActiveTab($event)"
     animationDuration="0ms"
   >
@@ -78,13 +79,30 @@
                     <i class="fa fa-eye" aria-hidden="true"></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
-                  <a
-                    class="nav-link link cell-link"
-                    (click)="navigateToAddChildren(null, row)"
-                    matTooltip=" {{ dataTableArray[i].addChildLabel }}"
+
+                  <ng-template
+                    [ngIf]="!dataTableArray[i].addChildLabel.includes('visit')"
+                    [ngIfElse]="chooseProtocolPopup"
                   >
-                    <i class="fa fa-plus" aria-hidden="true"></i>
-                  </a>
+                    <a
+                      class="nav-link link cell-link"
+                      (click)="navigateToAddChildren(null, row)"
+                      matTooltip=" {{ dataTableArray[i].addChildLabel }}"
+                    >
+                      <i class="fa fa-plus" aria-hidden="true"></i>
+                    </a>
+                  </ng-template>
+                  <ng-template #chooseProtocolPopup>
+                    <option-list-btn
+                      placeholder="Sélectionner le protocole"
+                      label="Ajouter une visite"
+                      [iconOrButton]="icon"
+                      [item]="row"
+                      (onDeployed)="addChildren(row)"
+                      (onSaved)="saveOptionChild($event)"
+                    ></option-list-btn>
+                  </ng-template>
+                  <!--  -->
                 </ng-template>
               </ngx-datatable-column>
 

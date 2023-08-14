@@ -11,7 +11,10 @@
     (onSetPage)="setPage($event)"
     [obj]="sitesGroups"
     (onDetailsRow)="seeDetails($event)"
-    (addEvent)="addSiteGp($event)"
-    (tabChanged)="loadGeoJson($event)"
+    (addEvent)="addSiteGpChild($event)"
+    (tabChanged)="updateActiveTab($event)"
+    [activetabIndex]="activetabIndex"
+    (addFromTable)="onAddChildren($event)"
+    (saveOptionChildren)="onSaveAddChildren($event)"
   ></pnx-monitoring-datatable-g>
 </div>

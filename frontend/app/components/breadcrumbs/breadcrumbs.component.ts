@@ -12,12 +12,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ObjectService } from '../../services/object.service';
 import { SiteSiteGroup } from '../../interfaces/objObs';
 import { IBreadCrumb } from '../../interfaces/object';
+import { breadCrumbBase } from '../../class/breadCrumb';
 
-export const breadCrumbElementBase: IBreadCrumb = {
-  description: 'Liste des groupes de site (sites)',
-  label: '',
-  url: 'sites_group',
-};
+export const breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSiteGroups.value;
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',

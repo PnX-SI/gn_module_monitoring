@@ -138,6 +138,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       properties: {},
       endPoint: endPoints.sites_groups,
       objectType: 'sites_group',
+      routeBase: 'sites_group',
       label: 'groupe de site',
       addObjLabel: 'Ajouter un nouveau groupe de site',
       editObjLabel: 'Editer le groupe de site',
@@ -181,6 +182,7 @@ export class SitesService extends ApiGeomService<ISite> {
       properties: {},
       endPoint: endPoints.sites,
       objectType: 'site',
+      routeBase: 'sites',
       label: 'site',
       addObjLabel: 'Ajouter un nouveau site',
       editObjLabel: 'Editer le site',
@@ -217,6 +219,10 @@ export class SitesService extends ApiGeomService<ISite> {
 
   getTypesSiteByIdSite(idSite: number): Observable<any> {
     return this._cacheService.request<Observable<any>>('get', `sites/${idSite}/types`);
+  }
+
+  getTypesSiteById(idTypeSite: number): Observable<any> {
+    return this._cacheService.request<Observable<any>>('get', `sites/types/${idTypeSite}`);
   }
 
   getSiteModules(idSite: number): Observable<Module[]> {
@@ -257,6 +263,7 @@ export class VisitsService extends ApiService<IVisit> {
       editObjLabel: 'Editer la visite',
       seeObjLabel: 'Consulter la visite',
       addChildLabel: 'Ajouter une observation',
+      routeBase: 'visit',
       id: null,
       moduleCode: 'generic',
       schema: {},
