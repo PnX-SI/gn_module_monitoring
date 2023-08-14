@@ -89,17 +89,28 @@
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
       },
-    "id_sites_group": {
-        "type_widget": "integer",
-        "attribut_label": "ID Sites Groups",
-        "hidden": true,
-        "schema_dot_table": "gn_monitoring.t_base_sites"
-      },
       "types_site": {
         "type_widget": "datalist",
         "attribut_label": "Type(s) de site",
-        "hidden": true,
-        "schema_dot_table": "gn_monitoring.t_base_sites"
-      }
-  }
+        "type_util": "types_site",
+        "keyValue": "id_nomenclature_type_site",
+        "keyLabel": "label",
+        "multiple": true,
+        "api" : "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
+        "application": "GeoNature",
+        "required": true,
+        "definition": "Permet de n'avoir que les types de site lié au module"
+      },
+      "id_sites_group": {
+        "type_widget": "datalist",
+        "attribut_label": "Groupe de site",
+        "keyValue": "id_sites_group",
+        "keyLabel": "sites_group_name",
+        "multiple": false,
+        "api" : "monitorings/sites_groups",
+        "application": "GeoNature",
+        "data_path":"items",
+        "required": false,
+        "definition": "Associer un site à un groupe de site"
+      }  }
 }

@@ -31,6 +31,9 @@ from ..monitoring.definitions import monitoring_definitions, MonitoringPermissio
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+from gn_module_monitoring.utils.routes import (
+    query_all_types_site_from_site_id,
+)
 
 
 @blueprint.url_value_preprocessor
@@ -69,17 +72,14 @@ def set_current_module(endpoint, values):
 
 
 @blueprint.route("/object/<string:module_code>/<string:object_type>/<int:id>", methods=["GET"])
-@blueprint.route(
-    "/object/<string:module_code>/<string:object_type>", defaults={"id": None}, methods=["GET"]
-)
+@blueprint.route("/object/<string:module_code>/<string:object_type>", methods=["GET"])
 @blueprint.route(
     "/object/module",
-    defaults={"module_code": None, "object_type": "module", "id": None},
     methods=["GET"],
 )
 @check_cruved_scope("R")
 @json_resp
-def get_monitoring_object_api(module_code, object_type, id):
+def get_monitoring_object_api(module_code=None, object_type="module", id=None):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -96,7 +96,21 @@ def get_monitoring_object_api(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    get_config(module_code, force=True)
+    if id != None and object_type == "site":
+        types_site_obj = query_all_types_site_from_site_id(id)
+        list_types_sites_dict = [
+            values
+            for res in types_site_obj
+            for (key_type_site, values) in res.as_dict().items()
+            if key_type_site == "config"
+        ]
+        customConfig = {"specific": {}}
+        for specific_config in list_types_sites_dict:
+            customConfig["specific"].update(specific_config["specific"])
+
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
 
@@ -221,7 +235,17 @@ def get_config_object(module_code, object_type, id):
 @check_cruved_scope("U")
 @json_resp
 def update_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+    customConfig = {"specific": {}}
+    post_data = dict(request.get_json())
+    if "dataComplement" in post_data:
+        for keys in post_data["dataComplement"].keys():
+            if "config" in post_data["dataComplement"][keys]:
+                customConfig["specific"].update(
+                    post_data["dataComplement"][keys]["config"]["specific"]
+                )
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -237,7 +261,17 @@ def update_object_api(module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+    customConfig = {"specific": {}}
+    post_data = dict(request.get_json())
+    if "dataComplement" in post_data:
+        for keys in post_data["dataComplement"].keys():
+            if "config" in post_data["dataComplement"][keys]:
+                customConfig["specific"].update(
+                    post_data["dataComplement"][keys]["config"]["specific"]
+                )
+        get_config(module_code, force=True, customSpecConfig=customConfig)
+    else:
+        get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -251,8 +285,12 @@ def create_object_api(module_code, object_type, id):
 @check_cruved_scope("D")
 @json_resp
 def delete_object_api(module_code, object_type, id):
+    if object_type in ("site", "sites_group"):
+        raise Exception(
+            f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
+        )
     get_config(module_code, force=True)
-
+    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
     return monitoring_definitions.monitoring_object_instance(module_code, object_type, id).delete()
 
 

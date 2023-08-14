@@ -40,12 +40,13 @@ class MonitoringSite(MonitoringObjectGeom):
         else:
             if len(properties.get("types_site", [])) != 0:
                 if hasattr(self._model, "types_site"):
-                    properties["types_site"] = []
-                    # TODO: performance?
-                    # for type in properties['types_site']:
-                    #     properties['types_site'].append(types_site)
-                    types_site = [
-                        typ.nomenclature.id_nomenclature for typ in self._model.types_site
-                    ]
-                    properties["types_site"] = types_site
+                    properties["id_nomenclature_type_site"] = properties["types_site"][0]
+            #         properties["types_site"] = []
+            #         # TODO: performance?
+            #         # for type in properties['types_site']:
+            #         #     properties['types_site'].append(types_site)
+            #         types_site = [
+            #             typ.nomenclature.id_nomenclature for typ in self._model.types_site
+            #         ]
+            #         properties["types_site"] = types_site
             # TODO: A enlever une fois qu'on aura enelever le champ "id_nomenclature_type_site" du model et de la bdd

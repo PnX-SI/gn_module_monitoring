@@ -18,3 +18,18 @@
 ::ng-deep.mat-option-text {
   line-height: normal !important;
 }
+
+.icon-btn {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+}
+
+.icon-btn:hover {
+  background-color: rgb(0, 0, 0, 0.2);
+  border-radius: 2px;
+  margin: 2px;
+}

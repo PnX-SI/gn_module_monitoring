@@ -112,3 +112,15 @@ def query_all_types_site_from_site_id(id_site: int):
         .filter(cor_type_site.c.id_base_site == id_site)
     )
     return query.all()
+
+
+def query_all_types_site_from_module_id(id_module: int):
+    query = (
+        BibTypeSite.query.join(
+            cor_module_type,
+            BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
+        )
+        .join(TModules, cor_module_type.c.id_module == TModules.id_module)
+        .filter(cor_module_type.c.id_module == id_module)
+    )
+    return query.all()
