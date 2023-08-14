@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { tap, mergeMap, map, take, switchMap, concatMap } from 'rxjs/operators';
+import { tap, mergeMap, map, take, switchMap, concatMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -12,7 +12,7 @@ import { ConfigJsonService } from '../../services/config-json.service';
 import { FormService } from '../../services/form.service';
 import { IExtraForm } from '../../interfaces/object';
 import { JsonData } from '../../types/jsondata';
-import { Observable, of } from 'rxjs';
+import { Observable, ReplaySubject, Subject, of } from 'rxjs';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -61,6 +61,7 @@ export class MonitoringFormComponentG implements OnInit {
   specificForm$: Observable<any>;
   createSpecificForm$: Observable<JsonData>;
   meta: {};
+  private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   public bSaveSpinner = false;
   public bSaveAndAddChildrenSpinner = false;
@@ -119,6 +120,7 @@ export class MonitoringFormComponentG implements OnInit {
 
     this._formService.currentData
       .pipe(
+        takeUntil(this.destroyed$),
         tap((data) => {
           this.obj = data;
           this.obj.id = this.obj[this.obj.pk];
@@ -678,5 +680,9 @@ export class MonitoringFormComponentG implements OnInit {
       });
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.destroyed$.next(true);
+    this.destroyed$.complete();
+    this.obj = {};
+  }
 }

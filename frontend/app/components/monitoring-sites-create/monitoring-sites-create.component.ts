@@ -26,7 +26,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   funcToFilt: Function;
   titleBtn: string = 'Choix des types de sites';
   placeholderText: string = 'Sélectionnez les types de site';
-  id_sites_group: number;
+  id_sites_group: number | null;
   types_site: string[];
   config: JsonData;
   objToCreate: IobjObs<ObjDataType>;
@@ -48,7 +48,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
   ngOnInit() {
     this.urlRelative = this.removeLastPart(this.route.snapshot['_routerState'].url);
     this.route.data.subscribe(({ data }) => {
-      this.id_sites_group = data.id_sites_group;
+      data ? (this.id_sites_group = data.id_sites_group) : (this.id_sites_group = null);
+
       this._formService.dataToCreate(
         {
           module: 'generic',
@@ -57,13 +58,13 @@ export class MonitoringSitesCreateComponent implements OnInit {
           id_sites_group: this.id_sites_group,
           id_relationship: ['id_sites_group', 'types_site'],
           endPoint: endPoints.sites,
-          objSelected: data.objectType,
+          objSelected: data ? data.objectType : {},
         },
         this.urlRelative
       );
       this.form = this._formBuilder.group({});
       this.funcToFilt = this.partialfuncToFilt.bind(this);
-      this.updateBreadCrumb(data);
+      data ? this.updateBreadCrumb(data) : null;
     });
   }
 

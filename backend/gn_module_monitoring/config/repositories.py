@@ -33,12 +33,15 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
         # initial tree
         tree = config["tree"]
 
+    if "module" in config["tree"]:
+        is_sites_group_child = "sites_group" in list(dict.fromkeys(config["tree"]["module"]))
+
     for object_type in tree:
         # config object
         if not object_type in config:
             if object_type == "site":
                 config[object_type] = config_object_from_files(
-                    module_code, object_type, customSpecConfig
+                    module_code, object_type, customSpecConfig, is_sites_group_child
                 )
             else:
                 config[object_type] = config_object_from_files(module_code, object_type)
@@ -87,7 +90,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
             )
 
 
-def config_object_from_files(module_code, object_type, custom=None):
+def config_object_from_files(module_code, object_type, custom=None, is_sites_group_child=False):
     """
     recupere la configuration d'un object de type <object_type> pour le module <module_code>
     """
@@ -96,8 +99,22 @@ def config_object_from_files(module_code, object_type, custom=None):
         {} if module_code == "generic" else json_config_from_file(module_code, object_type)
     )
 
-    if module_code == "generic" and object_type == "site" and custom is not None:
-        specific_config_object = custom
+    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car l'association de site à un groupe de site doit se faire par l'entrée par site
+    if module_code != "generic" and object_type == "site" and not is_sites_group_child:
+        generic_config_object["generic"].pop("id_sites_group")
+
+    if module_code == "generic" and object_type == "site":
+        generic_config_object["generic"]["types_site"] = {
+            "type_widget": "datalist",
+            "attribut_label": "Type(s) de site",
+        }
+
+    if object_type == "site" and custom is not None:
+        if "specific" in custom and "specific" in specific_config_object:
+            for key in custom["specific"]:
+                if key not in specific_config_object["specific"]:
+                    specific_config_object["specific"][key] = custom["specific"][key]
+
     config_object = generic_config_object
     config_object.update(specific_config_object)
 

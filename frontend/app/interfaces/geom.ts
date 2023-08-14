@@ -40,6 +40,7 @@ export interface ISite extends IGeomObject {
   specific: JsonData;
   dataComplement: JsonData;
   types_site: JsonData[];
+  id_sites_group: number;
 }
 
 export interface ISiteField extends Omit<ISite, 'types_site'> {
