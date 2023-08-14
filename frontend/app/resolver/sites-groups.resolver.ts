@@ -14,6 +14,7 @@ export class SitesGroupsReslver
     Resolve<{
       sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
       sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
+      route: string;
     }>
 {
   constructor(
@@ -27,6 +28,7 @@ export class SitesGroupsReslver
   ): Observable<{
     sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
     sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
+    route: string;
   }> {
     const $getSiteGroups = this.service.get(1, LIMIT, {});
     const $configSitesGroups = this.service.initConfig();
@@ -39,6 +41,7 @@ export class SitesGroupsReslver
         return {
           sitesGroups: { data: result[0], objConfig: result[1] },
           sites: { data: result[2], objConfig: result[3] },
+          route: route['_urlSegment'].segments[1].path,
         };
       })
     );
