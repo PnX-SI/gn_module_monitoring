@@ -33,7 +33,8 @@
   *ngIf="!bEdit"
   [(bEdit)]="bEdit"
   [newParentType]="objParent"
-  [selectedObj]="objSelected"
+  [selectedObj]="objResolvedProperties"
+  [selectedObjRaw]="objSelected"
 ></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"

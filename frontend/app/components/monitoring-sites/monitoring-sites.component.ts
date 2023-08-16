@@ -40,12 +40,12 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
-  rows_sites_table: ISiteField[];
 
   modules: SelectObject[];
   modulSelected;
   siteSelectedId: number;
   rows;
+  siteResolvedProperties;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
 
@@ -126,7 +126,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         //   data.sitesGroup.geometry,
         //   () => {}
         // );
-        this.rows_sites_table = this._siteService.format_label_types_site(this.sites);
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
         this.colsname = objectObs.objObsSite.dataTable.colNameObj;
         this.objParent = objectObs.objObsSiteGp;
@@ -159,7 +158,10 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this._sitesGroupService
       .getSitesChild(page, LIMIT, params)
       .subscribe((data: IPaginated<ISite>) => {
-        this.rows = this._siteService.format_label_types_site(data.items);
+        let siteList = this._siteService.formatLabelTypesSite(data.items);
+        this.rows = siteList;
+        const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
+        this.siteResolvedProperties = siteListResolvedProp;
         this.dataTableObj.site.rows = this.rows;
         this.dataTableObj.site.page.count = data.count;
         this.dataTableObj.site.page.limit = data.limit;
@@ -220,7 +222,11 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         continue;
       }
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
-      objTemp[objType].rows = this._siteService.format_label_types_site(data[dataType].items);
+      let siteList = this._siteService.formatLabelTypesSite(data[dataType].items);
+      this.rows = siteList;
+      const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
+      objTemp[objType].rows = siteListResolvedProp;
+      this.siteResolvedProperties = siteListResolvedProp;
 
       objTemp[objType].page = {
         count: data[dataType].count,
