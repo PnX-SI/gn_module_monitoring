@@ -80,11 +80,13 @@ export class ConfigService {
     };
 
     const module = this._moduleService.getModule(module_code);
+
     const moduleCruved = {};
 
     for (const [objectCode, permObjectCode] of Object.entries(permObjectDict)) {
       moduleCruved[objectCode] =
-        module.objects.find((o) => o.code_object == permObjectDict[objectCode]) || module.cruved;
+        module.objects.find((o) => o.code_object == permObjectDict[objectCode])?.cruved ||
+        module.cruved;
     }
 
     return moduleCruved;
