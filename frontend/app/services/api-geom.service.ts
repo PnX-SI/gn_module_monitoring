@@ -244,6 +244,44 @@ export class SitesService extends ApiGeomService<ISite> {
     }
     return rows_sites_table;
   }
+
+  formatLabelTypesSite(sites: ISite[]) {
+    const rowSitesTable: ISiteField[] = [];
+    const varToFormat = 'types_site';
+    const fieldToUse = 'label';
+    for (const site of sites) {
+      let listFieldToUse: string[] = [];
+      const { [varToFormat]: _, ...rest_of_site } = site;
+      for (const item of _) {
+        if (Object.keys(item).includes(fieldToUse) && typeof item[fieldToUse] == 'string') {
+          listFieldToUse.push(item[fieldToUse]);
+        }
+      }
+      rowSitesTable.push({ ...rest_of_site, [varToFormat]: listFieldToUse });
+    }
+    return rowSitesTable;
+  }
+
+  formatLabelObservers(sites: ISiteField[]) {
+    const rowSitesTable: ISiteField[] = [];
+    const varToFormat = 'id_inventor';
+    const varToStore = 'inventor';
+    for (const site of sites) {
+      let listFieldToUse: string[] = [];
+      if (site[varToStore]) {
+        const { [varToStore]: _, ...rest_of_site } = site;
+        for (const item of _) {
+          listFieldToUse.push(item);
+        }
+        rowSitesTable.push({
+          ...rest_of_site,
+          [varToStore]: site[varToStore],
+          [varToFormat]: listFieldToUse,
+        });
+      }
+    }
+    return rowSitesTable;
+  }
 }
 
 @Injectable()
