@@ -50,8 +50,12 @@ export class CacheService {
           )
           .join('&')
       : '';
-
-    const url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
+    let url: string;
+    if (urlRelative.includes('menu_from_code')) {
+      url = this._config.backendUrl() + '/' + urlRelative + url_params;
+    } else {
+      url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
+    }
 
     // requete
     return this._http[requestType]<Return>(url, postData);

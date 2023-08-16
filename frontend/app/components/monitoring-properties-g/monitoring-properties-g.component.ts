@@ -16,6 +16,7 @@ import { JsonData } from '../../types/jsondata';
 export class MonitoringPropertiesGComponent implements OnInit {
   // selectedObj: ISitesGroup;
   @Input() selectedObj: ObjDataType;
+  @Input() selectedObjRaw: ObjDataType;
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
   objectType: IobjObs<ObjDataType>;
@@ -57,9 +58,9 @@ export class MonitoringPropertiesGComponent implements OnInit {
   }
 
   onEditClick() {
-    this.selectedObj['id'] = this.selectedObj[this.selectedObj.pk];
+    this.selectedObjRaw['id'] = this.selectedObjRaw[this.selectedObjRaw.pk];
     this._formService.changeDataSub(
-      this.selectedObj,
+      this.selectedObjRaw,
       this.objectType.objectType,
       this.objectType.endPoint
     );
