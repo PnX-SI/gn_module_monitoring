@@ -23,8 +23,8 @@
   "display_list": [
     "base_site_name",
     "base_site_code",
-    "id_nomenclature_type_site",
     "last_visit",
+    "id_inventor",
     "nb_visits",
     "types_site"
   ],
@@ -52,13 +52,10 @@
       "attribut_label": "Description"
     },
     "id_inventor": {
-      "type_widget": "datalist",
-      "attribut_label": "Descripteur",
-      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-      "application": "GeoNature",
-      "keyValue": "id_role",
-      "keyLabel": "nom_complet",
+      "type_widget": "observers",
+      "attribut_label": "Observateurs",
       "type_util": "user",
+      "code_list":"obsocctax",
       "required": true
     },
     "first_use_date": {
@@ -111,6 +108,8 @@
         "application": "GeoNature",
         "data_path":"items",
         "required": false,
+        "default":null,
+        "nullDefault":true,
         "definition": "Associer un site à un groupe de site"
       }  }
 }

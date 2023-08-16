@@ -52,6 +52,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
   breadCrumbList: IBreadCrumb[] = [];
   objSelected: ISiteField;
+  objResolvedProperties: ISiteField;
 
   rows;
   dataTableObj: IDataTableObj;
@@ -174,7 +175,10 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         };
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
-        this.objSelected = this.siteService.format_label_types_site([this.site])[0];
+        let siteList = this.siteService.formatLabelTypesSite([this.site]);
+        this.objSelected = siteList[0];
+        const siteListResolvedProp = this.siteService.formatLabelObservers(siteList);
+        this.objResolvedProperties = siteListResolvedProp[0];
         this.addSpecificConfig();
 
         const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;

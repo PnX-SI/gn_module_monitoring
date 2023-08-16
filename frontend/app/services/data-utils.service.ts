@@ -245,4 +245,10 @@ export class DataUtilsService {
   getNomenclatures() {
     return this._cacheService['_cache']['util']['nomenclature'];
   }
+
+  getUsersByCodeList(codeMenu) {
+    const urlRelative = `users/menu_from_code/${codeMenu}`;
+    const sCachePaths = `users|menu_from_code|${codeMenu}`;
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
+  }
 }
