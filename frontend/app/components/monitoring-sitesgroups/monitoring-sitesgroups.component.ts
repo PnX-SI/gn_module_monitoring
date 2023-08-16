@@ -55,6 +55,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   siteSelectedId: number;
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
+  siteResolvedProperties;
+
   constructor(
     private _sites_group_service: SitesGroupService,
     private _sitesService: SitesService,
@@ -157,8 +159,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   getSites(page = 1, params = {}) {
     this._sitesService.get(page, LIMIT, params).subscribe((data: IPaginated<ISite>) => {
       this.colsname = this._sitesService.objectObs.dataTable.colNameObj;
-      this.rows = this._sitesService.format_label_types_site(data.items);
-      this.dataTableObj.site.rows = this.rows;
+      let siteList = this._sitesService.formatLabelTypesSite(data.items);
+      this.rows = siteList;
+      const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
+      this.siteResolvedProperties = siteListResolvedProp;
+      this.dataTableObj.site.rows = this.siteResolvedProperties;
       this.dataTableObj.site.page.count = data.count;
       this.dataTableObj.site.page.limit = data.limit;
       this.dataTableObj.site.page.page = data.page - 1;
@@ -243,9 +248,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       let objType = data[dataType].objConfig.objectType;
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       if (objType == 'site') {
-        objTemp[objType].rows = this._sitesService.format_label_types_site(
-          data[dataType].data.items
-        );
+        let siteList = this._sitesService.formatLabelTypesSite(data[dataType].data.items);
+        this.rows = siteList;
+        const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
+        objTemp[objType].rows = siteListResolvedProp;
+        this.siteResolvedProperties = siteListResolvedProp;
       } else {
         objTemp[objType].rows = data[dataType].data.items;
       }
