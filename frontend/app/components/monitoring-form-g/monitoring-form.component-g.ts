@@ -494,6 +494,9 @@ export class MonitoringFormComponentG implements OnInit {
 
   onCancelEdit() {
     if (this.bEdit) {
+      const urlTree = this._router.parseUrl(this._router.url);
+      const urlWithoutParams = urlTree.root.children['primary'].segments.map(it => it.path).join('/');
+      this._router.navigate([urlWithoutParams]);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();

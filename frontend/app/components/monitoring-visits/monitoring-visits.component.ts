@@ -57,6 +57,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
+  checkEditParam: boolean;
 
   modulSelected;
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
@@ -95,7 +96,11 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   initSiteVisit() {
     this._Activatedroute.params
       .pipe(
-        map((params) => params['id'] as number),
+        map((params) => {
+          // TODO: voir supprimer le params "edit" une fois la route initialisée
+          this.checkEditParam = params['edit'];
+          return params['id'] as number;
+        }),
         tap((id: number) => {
           this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
             id_base_site: id,
@@ -191,6 +196,16 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         } else {
           this.updateBreadCrumb(data.site, data.parentObjSelected);
         }
+
+        if (this.checkEditParam) {
+          this._formService.changeDataSub(
+            this.objSelected,
+            this.siteService.objectObs.objectType,
+            this.siteService.objectObs.endPoint
+          );
+
+          this.bEdit = true;
+        }
       });
     this.isInitialValues = true;
   }
@@ -247,6 +262,22 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
       });
     });
   }
+
+  editChild($event) {
+    this.router.navigate([
+      `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
+      { edit: true },
+    ]);
+  }
+
+  // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
+  // onDelete($event){
+  //  this._objServiceMonitoring
+  //     .deleteObject($event.rowSelected.module.module_code,$event.objectType, $event.rowSelected.id).subscribe(del =>{
+  //       this.bDeleteModalEmitter.emit(false);
+  //       this.initSiteVisit()
+  //     });
+  // }
 
   partialfuncToFilt(
     pageNumber: number,
@@ -374,7 +405,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.breadCrumbChild.description = sites.base_site_name;
     this.breadCrumbChild.label = 'Site';
     this.breadCrumbChild['id'] = sites.id_base_site;
-    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType || 'site';
+    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
     this.breadCrumbChild['url'] = [
       this.breadCrumbChild.objectType,
       this.breadCrumbChild.id?.toString(),
