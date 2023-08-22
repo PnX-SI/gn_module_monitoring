@@ -21,7 +21,7 @@ export class SitesGroupsReslver
   constructor(
     public service: SitesGroupService,
     public serviceSite: SitesService,
-    public _configJsonService : ConfigJsonService
+    public _configJsonService: ConfigJsonService
   ) {}
 
   resolve(
@@ -32,43 +32,50 @@ export class SitesGroupsReslver
     sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
     route: string;
   }> {
-
     const $configSitesGroups = this.service.initConfig();
     const $configSites = this.serviceSite.initConfig();
 
-    const resolvedData = forkJoin([$configSitesGroups,$configSites]).pipe(
+    const resolvedData = forkJoin([$configSitesGroups, $configSites]).pipe(
       map((configs) => {
-        
-        const configSchemaSiteGroup= this._configJsonService.configModuleObject(
+        const configSchemaSiteGroup = this._configJsonService.configModuleObject(
           configs[0].moduleCode,
           configs[0].objectType
-        )
+        );
 
-        const configSchemaSite= this._configJsonService.configModuleObject(
+        const configSchemaSite = this._configJsonService.configModuleObject(
           configs[1].moduleCode,
           configs[1].objectType
-        )
-        
-        const sortSiteGroupInit = "sorts" in configSchemaSiteGroup  ?{sort_dir:configSchemaSiteGroup.sorts[0].dir, sort:configSchemaSiteGroup.sorts[0].prop} : {};
-        const sortSiteInit = "sorts" in configSchemaSite  ? {sort_dir:configSchemaSite.sorts[0].dir, sort:configSchemaSite.sorts[0].prop} : {};
+        );
 
-        const $getSiteGroups = this.service.get(1, LIMIT,sortSiteGroupInit);
+        const sortSiteGroupInit =
+          'sorts' in configSchemaSiteGroup
+            ? {
+                sort_dir: configSchemaSiteGroup.sorts[0].dir,
+                sort: configSchemaSiteGroup.sorts[0].prop,
+              }
+            : {};
+        const sortSiteInit =
+          'sorts' in configSchemaSite
+            ? { sort_dir: configSchemaSite.sorts[0].dir, sort: configSchemaSite.sorts[0].prop }
+            : {};
+
+        const $getSiteGroups = this.service.get(1, LIMIT, sortSiteGroupInit);
         const $getSites = this.serviceSite.get(1, LIMIT, sortSiteInit);
-        
-         return forkJoin([$getSiteGroups, $getSites]).pipe(
-          map(([siteGroups,sites]) => {
-            return  {
-              sitesGroups: { data: siteGroups, objConfig:  configs[0] },
-              sites: { data: sites, objConfig:  configs[1] },
+
+        return forkJoin([$getSiteGroups, $getSites]).pipe(
+          map(([siteGroups, sites]) => {
+            return {
+              sitesGroups: { data: siteGroups, objConfig: configs[0] },
+              sites: { data: sites, objConfig: configs[1] },
               route: route['_urlSegment'].segments[1].path,
-            }
+            };
           })
-        )
+        );
       }),
       mergeMap((result) => {
-        return result
+        return result;
       })
-    )
-    return resolvedData
-}
+    );
+    return resolvedData;
+  }
 }
