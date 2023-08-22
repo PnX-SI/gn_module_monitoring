@@ -31,7 +31,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   objForm: FormGroup;
 
-  checkEditParam:boolean;
+  checkEditParam: boolean;
   bEdit = false;
   bLoadingModal = false;
 
