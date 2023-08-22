@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-0.7.0 (2023-05-23)
+0.7.0 (unreleased)
 ------------------
 
 Nécessite GeoNature version 2.13.0 (ou plus)
@@ -48,12 +48,13 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * L'installation des sous-modules se fait désormais en deux temps :
 
     * Copie du répertoire de configuration
+      ```sh
+      cp <chemin vers le sous-module> <geonature>/backend/media/monitorings/<module_code>
+      ```
     * Installation du sous-module avec la commande dédiée
-
-    ```sh
-    cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
-    geonature monitorings install <module_code>
-    ```
+      ```sh
+      geonature monitorings install <module_code>
+      ```
 
 0.5.0 (2023-03-29)
 ------------------
