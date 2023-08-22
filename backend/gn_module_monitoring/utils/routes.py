@@ -3,6 +3,7 @@ from typing import Tuple
 from flask import Response
 from flask.json import jsonify
 from geonature.utils.env import DB
+from pypnusershub.db.models import User
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
@@ -11,6 +12,7 @@ from gn_module_monitoring.monitoring.models import (
     TBaseSites,
     cor_module_type,
     TModules,
+    TNomenclatures,
 )
 from marshmallow import Schema
 from sqlalchemy import cast, func, text
@@ -124,3 +126,39 @@ def query_all_types_site_from_module_id(id_module: int):
         .filter(cor_module_type.c.id_module == id_module)
     )
     return query.all()
+
+
+def filter_according_to_column_type_for_site(query, params):
+    if "types_site" in params:
+        params_types_site = params.pop("types_site")
+        query = (
+            query.join(TMonitoringSites.types_site)
+            .join(BibTypeSite.nomenclature)
+            .filter(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
+        )
+    elif "id_inventor" in params:
+        params_inventor = params.pop("id_inventor")
+        query = query.join(
+            User,
+            User.id_role == TMonitoringSites.id_inventor,
+        ).filter(User.nom_complet.ilike(f"%{params_inventor}%"))
+    if len(params) != 0:
+        query = filter_params(query=query, params=params)
+
+    return query
+
+
+def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
+    if sort_label == "types_site":
+        if sort_dir == "asc":
+            query = query.order_by(TNomenclatures.label_fr.asc())
+        else:
+            query = query.order_by(TNomenclatures.label_fr.desc())
+    elif sort_label == "id_inventor":
+        if sort_dir == "asc":
+            query = query.order_by(User.nom_complet.asc())
+        else:
+            query = query.order_by(User.nom_complet.desc())
+    else:
+        query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+    return query
