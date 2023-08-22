@@ -33,7 +33,9 @@ h2 {
   justify-content: center;
   box-shadow: 0px 0px 10px grey;
   opacity: 0.7;
-  transition: opacity 0.2s, box-shadow 0.2s;
+  transition:
+    opacity 0.2s,
+    box-shadow 0.2s;
 }
 
 a {
@@ -44,7 +46,9 @@ a {
 .flex-item:hover {
   opacity: 1;
   box-shadow: 0px 0px 10px black;
-  transition: opacity 0.2s, box-shadow 0.2s;
+  transition:
+    opacity 0.2s,
+    box-shadow 0.2s;
 }
 
 .module h2 {
