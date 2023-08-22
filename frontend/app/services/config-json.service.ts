@@ -6,7 +6,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { ConfigService } from './config.service';
 import { Utils } from '../utils/utils';
 import { DataUtilsService } from './data-utils.service';
-import { concatMap } from 'rxjs/operators';
+import { catchError, concatMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
 @Injectable()
@@ -110,4 +110,31 @@ export class ConfigJsonService extends ConfigService {
       })
     );
   }
+
+  // TODO: essaye d'utiliser cette méthode pour obtenir les propriétés "resolved"
+  // setResolvedPropertiesForItem(obj, item = null): any {
+  //   const observables = {};
+
+  //   const schema = this.schema(obj.moduleCode, obj.objectType);
+  //   for (const attribut_name of Object.keys(schema)) {
+  //     observables[attribut_name] = this.resolveProperty(
+  //       schema[attribut_name],
+  //       item[attribut_name],
+  //       obj.moduleCode
+  //     );
+  //   }
+  //   return forkJoin(observables).pipe(
+  //     concatMap((resolvedProperties) => {
+  //       const resolvedPropertiesItem: any = {};
+  //       for (const attribut_name of Object.keys(resolvedProperties)) {
+  //         resolvedPropertiesItem[attribut_name] = resolvedProperties[attribut_name];
+  //       }
+  //       return resolvedPropertiesItem;
+  //     }),
+  //     catchError((err) => {
+  //       console.log(err);
+  //       return of(null);
+  //     })
+  //   );
+  // }
 }
