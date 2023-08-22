@@ -1,5 +1,4 @@
-# Module GeoNature de suivis génériques
-
+# Module GeoNature générique de suivis
 
 ## Module générique de gestion des données de protocoles de type suivis
 
@@ -86,16 +85,16 @@ source ~/geonature/backend/venv/bin/activate
 
 #### Copie du dossier de configuration
 
-Copier le dossier du sous module dans le dossier `media` de GeoNature
+Copier le dossier du sous-module dans le dossier `media` de GeoNature
 
 ```sh
-cp -R  <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
+cp -R  <dossier du sous-module> ~/geonature/backend/media/monitorings/<module_code>
 ```
 
 PS : Si l'on souhaite développer un sous-module il peut être pratique de plutôt faire un lien symbolique vers le dossier du sous-module, plutôt que de le copier dans le dossier `media` de GeoNature :
 
 ```sh
-ln -s <dossier du sous module> ~/geonature/backend/monitorings/<module_code>
+ln -s <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
 ```
 
 #### Lancer la commande d'installation du sous-module
@@ -104,7 +103,7 @@ ln -s <dossier du sous module> ~/geonature/backend/monitorings/<module_code>
 geonature monitorings install <module_code>
 ```
 
-Si le code du sous-module n'est pas renseignée ou si le dossier du sous-module n'existe pas, la commande va afficher la liste des sous-modules installés et disponibles.
+Si le code du sous-module n'est pas renseigné ou si le dossier du sous-module n'existe pas, la commande va afficher la liste des sous-modules installés et disponibles.
 
 ```sh
 geonature monitorings install
@@ -144,8 +143,8 @@ Le formulaire d'édition du sous-module s'affiche et vous pouvez choisir les var
 
 * Jeux de données *(obligatoire)* :
     * Un module peut concerner plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
-* Liste des observateurs *(obligatoire)*:
-    * La liste d'observateurs définit l'ensemble de observateurs possible pour le module (et de descripteurs de site).
+* Liste des observateurs *(obligatoire)* :
+    * La liste d'observateurs définit l'ensemble des observateurs possibles pour le module (et de descripteurs de site).
     * Cette liste peut être définie dans l'application `UsersHub`.
 * Liste des taxons *(obligatoire selon le module)* :
     * Cette liste définit l'ensemble des taxons concernés par ce module. Elle est gérée dans l'application `TaxHub`.
@@ -156,7 +155,7 @@ Le formulaire d'édition du sous-module s'affiche et vous pouvez choisir les var
         * `lb_nom` : Nom latin,
         * `nom_vern,lb_nom` : Nom vernaculaire par defaut s'il existe, sinon nom latin.
 * Afficher dans le menu ? *(non obligatoire, non affiché par défaut)* :
-    * On peut décider que le sous-module soit accessible directement depuis le menu de droite de GeoNature.
+    * On peut décider que le sous-module soit accessible directement depuis le menu de gauche de GeoNature.
     * `active_frontend`
 * Options spécifiques du sous-module :
     * Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module.
