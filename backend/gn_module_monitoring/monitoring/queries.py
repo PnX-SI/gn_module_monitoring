@@ -1,5 +1,6 @@
 from flask_sqlalchemy import BaseQuery
-from sqlalchemy import Unicode, and_
+from sqlalchemy import Unicode, and_, Unicode, func
+from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
 
 
@@ -23,6 +24,8 @@ class Query(BaseQuery):
             column = getattr(model, key)
             if isinstance(column.type, Unicode):
                 and_list.append(column.ilike(f"%{value}%"))
+            elif isinstance(column.type, DateTime):
+                and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
             else:
                 and_list.append(column == value)
         and_query = and_(*and_list)

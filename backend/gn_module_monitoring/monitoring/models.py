@@ -3,6 +3,7 @@
 """
 
 from sqlalchemy import join, select, func, and_
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import (
     column_property,
     ColumnProperty,
@@ -76,6 +77,18 @@ class GenericModel:
             for prop in class_mapper(cls).iterate_properties
             if isinstance(prop, ColumnProperty)
         ]
+    
+    # TODO: Voir si on garde cette méthode pour simplifier la recherche des relationship lors des filtres
+    @classmethod
+    def attribute_names_relationship(cls):
+        relationship_cols = inspect(cls).relationships.items()
+        return relationship_cols
+        # return [ cols[0] for cols in relationship_cols]
+        # return [
+        #     prop.key
+        #     for prop in class_mapper(cls).iterate_properties
+        #     if isinstance(prop, RelationshipProperty)
+        # ]
 
 
 cor_module_type = DB.Table(
