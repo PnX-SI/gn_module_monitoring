@@ -4,9 +4,10 @@ import json
 from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.utils.env import db
 from sqlalchemy.orm import Load, joinedload
+from sqlalchemy.sql import func
 from werkzeug.datastructures import MultiDict
 
-
+from pypnusershub.db.models import User
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -15,6 +16,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
     TNomenclatures,
 )
+
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api_sites_sites_group,
@@ -28,6 +30,8 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     sort,
     query_all_types_site_from_site_id,
+    filter_according_to_column_type_for_site,
+    sort_according_to_column_type_for_site,
 )
 
 
@@ -102,23 +106,11 @@ def get_sites():
     sort_label, sort_dir = get_sort(
         params=params, default_sort="id_base_site", default_direction="desc"
     )
+
     query = TMonitoringSites.query
-    if "types_site" in params:
-        params_types_site = params.pop("types_site")
-        query = (
-            query.join(TMonitoringSites.types_site)
-            .join(BibTypeSite.nomenclature)
-            .filter(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
-        )
-    if len(params) != 0:
-        query = filter_params(query=query, params=params)
-    if sort_label == "types_site":
-        if sort_dir == "asc":
-            query = query.order_by(TNomenclatures.label_fr.asc())
-        else:
-            query = query.order_by(TNomenclatures.label_fr.desc())
-    else:
-        query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+    query = filter_according_to_column_type_for_site(query, params)
+    query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
+
     return paginate(
         query=query,
         schema=MonitoringSitesSchema,
