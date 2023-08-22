@@ -12,6 +12,7 @@ import { SitesService } from '../../services/api-geom.service';
 import { distinctUntilChanged, mergeMap, switchMap, toArray } from 'rxjs/operators';
 import { EMPTY, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'pnx-monitoring-form',
@@ -67,7 +68,8 @@ export class MonitoringFormComponent implements OnInit {
     private _dataUtilsService: DataUtilsService,
     private _dynformService: DynamicFormService,
     private _siteService: SitesService,
-    private _formService: FormService
+    private _formService: FormService,
+    private _router: Router
   ) {}
 
   ngOnInit() {
@@ -326,6 +328,11 @@ export class MonitoringFormComponent implements OnInit {
 
   onCancelEdit() {
     if (this.obj.id) {
+      const urlTree = this._router.parseUrl(this._router.url);
+      const urlWithoutParams = urlTree.root.children['primary'].segments
+        .map((it) => it.path)
+        .join('/');
+      this._router.navigate([urlWithoutParams]);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();

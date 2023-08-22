@@ -11,10 +11,13 @@
     (onSetPage)="setPage($event)"
     [obj]="sitesGroups"
     (onDetailsRow)="seeDetails($event)"
+    (onEditEvent)="editChild($event)"
+    (onDeleteEvent)="onDelete($event)"
     (addEvent)="addSiteGpChild($event)"
     (tabChanged)="updateActiveTab($event)"
     [activetabIndex]="activetabIndex"
     (addFromTable)="onAddChildren($event)"
     (saveOptionChildren)="onSaveAddChildren($event)"
+    [bDeleteModalEmitter]="bDeleteModalEmitter"
   ></pnx-monitoring-datatable-g>
 </div>

@@ -9,6 +9,7 @@
   [(bEdit)]="bEdit"
   [selectedObj]="sitesGroup"
   [newParentType]="objParent"
+  [selectedObjRaw]="sitesGroup"
 >
 </pnx-monitoring-properties-g>
 <pnx-monitoring-form-g
@@ -32,5 +33,8 @@
   [obj]="rows"
   (onDetailsRow)="seeDetails($event)"
   (addFromTable)="onAddChildren($event)"
+  (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
   (saveOptionChildren)="onSaveAddChildren($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
 ></pnx-monitoring-datatable-g>

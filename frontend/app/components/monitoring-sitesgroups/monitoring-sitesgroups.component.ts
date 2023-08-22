@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { SitesGroupService, SitesService } from '../../services/api-geom.service';
 import { IPaginated, IPage } from '../../interfaces/page';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -56,6 +56,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   siteResolvedProperties;
+
+  bDeleteModalEmitter = new EventEmitter<boolean>();
 
   constructor(
     private _sites_group_service: SitesGroupService,
@@ -195,6 +197,51 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this.router.navigate(['monitorings', this.currentRoute, $event[$event.id]]);
   }
 
+  editChild($event) {
+    // TODO: routerLink
+    if (this.activetabIndex == 1) {
+      this._objService.changeObjectTypeParent(this._sitesService.objectObs);
+    } else {
+      this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
+    }
+    this._formService.changeDataSub(
+      $event,
+      this._sites_group_service.objectObs.objectType,
+      this._sites_group_service.objectObs.endPoint
+    );
+    this.router.navigate(['monitorings', this.currentRoute, $event[$event.id], { edit: true }]);
+  }
+
+  onDelete(event) {
+    if (event.objectType == 'sites_group') {
+      this._sites_group_service.delete(event.rowSelected.id_sites_group).subscribe((del) => {
+        setTimeout(() => {
+          this.bDeleteModalEmitter.emit(false);
+          this.activetabIndex = 0;
+          this.currentRoute = 'sites_group';
+          this.router.navigate(['/monitorings/sites_group', { delete: true }]);
+          this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
+          this.updateBreadCrumb();
+          this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+          this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
+        }, 100);
+      });
+    } else {
+      this._sitesService.delete(event.rowSelected.id_base_site).subscribe((del) => {
+        setTimeout(() => {
+          this.bDeleteModalEmitter.emit(false);
+          this.activetabIndex = 1;
+          this.currentRoute = 'sites';
+          this.router.navigate(['/monitorings/sites', { delete: true }]);
+          this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
+          this.updateBreadCrumb();
+          this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+          this.getGeometriesSite();
+        }, 100);
+      });
+    }
+  }
+
   addSiteGpChild($event) {
     this.router.navigate(['monitorings', this.currentRoute, $event[$event.pk], 'create'], {
       replaceUrl: true,
@@ -224,7 +271,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this._location.go('/monitorings/sites_group');
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
       this.updateBreadCrumb();
-      // this.router.navigate(['monitorings','sites_group'],  {skipLocationChange: true});
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
       this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
     }
