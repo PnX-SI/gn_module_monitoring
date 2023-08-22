@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReplaySubject, forkJoin, of } from 'rxjs';
 import { tap, map, mergeMap, takeUntil } from 'rxjs/operators';
@@ -17,6 +17,7 @@ import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
+import { FormService } from '../../services/form.service';
 
 const LIMIT = 10;
 
@@ -48,8 +49,11 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   siteResolvedProperties;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
+  checkEditParam: boolean;
 
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
+
+  bDeleteModalEmitter = new EventEmitter<boolean>();
 
   constructor(
     public _sitesGroupService: SitesGroupService,
@@ -60,7 +64,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private _geojsonService: GeoJSONService,
     private _configJsonService: ConfigJsonService,
     private _formBuilder: FormBuilder,
-    private _configService: ConfigService
+    private _configService: ConfigService,
+    private _formService: FormService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -78,7 +83,11 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   initSite() {
     this._Activatedroute.params
       .pipe(
-        map((params) => params['id'] as number),
+        map((params) => {
+          // TODO: voir supprimer le params "edit" une fois la route initialisée
+          this.checkEditParam = params['edit'];
+          return params['id'] as number;
+        }),
         tap((id: number) => {
           this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
             id_sites_group: id,
@@ -134,6 +143,15 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         data.sitesGroup['objConfig'] = objectObs.objObsSiteGp;
         this.updateBreadCrumb(data.sitesGroup);
         this.setDataTableObj(data);
+        if (this.checkEditParam) {
+          this._formService.changeDataSub(
+            this.sitesGroup,
+            this.objParent.objectType,
+            this.objParent.endPoint
+          );
+
+          this.bEdit = true;
+        }
       });
   }
   ngOnDestroy() {
@@ -174,6 +192,23 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
     this.router.navigate([`site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
+    });
+  }
+
+  editChild($event) {
+    this._objService.changeSelectedParentObj($event);
+    this._objService.changeObjectTypeParent(this._siteService.objectObs);
+    this.router.navigate([`site/${$event.id_base_site}`, { edit: true }], {
+      relativeTo: this._Activatedroute,
+    });
+  }
+
+  onDelete(event) {
+    this._siteService.delete(event.rowSelected.id_base_site).subscribe((del) => {
+      setTimeout(() => {
+        this.bDeleteModalEmitter.emit(false);
+        this.initSite();
+      }, 100);
     });
   }
 

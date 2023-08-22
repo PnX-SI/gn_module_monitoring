@@ -1,3 +1,25 @@
+<ng-container *ngIf="rowSelected">
+  <pnx-modal-msg [bDisplayModal]="bDeleteModal">
+    <h2>Attention</h2>
+    <p>
+      <!-- TODO: voir pour améliorer le passage d'informations ici -->
+      Vous êtes sur le point de supprimer :
+      {{ rowSelected['name_object'] }}
+      <br />
+    </p>
+
+    <button class="btn btn-danger float-right" (click)="onDelete(rowSelected)">
+      <span
+        [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      Confirmer la suppression
+    </button>
+    <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
+  </pnx-modal-msg>
+</ng-container>
 <div class="cadre" *ngIf="rows && dataTableObj">
   <mat-tab-group
     mat-stretch-tabs="false"
@@ -84,13 +106,15 @@
                     [ngIf]="!dataTableArray[i].addChildLabel.includes('visit')"
                     [ngIfElse]="chooseProtocolPopup"
                   >
-                    <a
-                      class="nav-link link cell-link"
-                      (click)="navigateToAddChildren(null, row)"
-                      matTooltip=" {{ dataTableArray[i].addChildLabel }}"
-                    >
-                      <i class="fa fa-plus" aria-hidden="true"></i>
-                    </a>
+                    <ng-container *ngIf="!dataTableArray[i].addChildLabel.includes('observation')">
+                      <a
+                        class="nav-link link cell-link"
+                        (click)="navigateToAddChildren(null, row)"
+                        matTooltip=" {{ dataTableArray[i].addChildLabel }}"
+                      >
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                      </a>
+                    </ng-container>
                   </ng-template>
                   <ng-template #chooseProtocolPopup>
                     <option-list-btn
@@ -103,6 +127,23 @@
                     ></option-list-btn>
                   </ng-template>
                   <!--  -->
+                  <a
+                    class="nav-link link cell-link"
+                    (click)="editSelectedItem(row)"
+                    matTooltip="{{ dataTableArray[i].editObjLabel }}"
+                  >
+                    <i class="fa fa-edit" aria-hidden="true"></i>
+                  </a>
+
+                  <ng-container *ngIf="!dataTableArray[i].deleteObjLabel.includes('visite')">
+                    <a
+                      class="nav-link link cell-link"
+                      (click)="alertMessage(row)"
+                      matTooltip="{{ dataTableArray[i].deleteObjLabel }}"
+                    >
+                      <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                  </ng-container>
                 </ng-template>
               </ngx-datatable-column>
 
