@@ -63,7 +63,7 @@ class GenericModel:
             for prop in class_mapper(cls).iterate_properties
             if isinstance(prop, ColumnProperty)
         ]
-    
+
     # TODO: Voir si on garde cette méthode pour simplifier la recherche des relationship lors des filtres
     @classmethod
     def attribute_names_relationship(cls):
