@@ -80,13 +80,14 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def get_id_sites_group(self, obj):
         return obj.id_sites_group
-    
+
     def get_id_inventor(self, obj):
         return obj.id_inventor
-    
+
     def get_inventor_name(self, obj):
-        if obj.inventor :
+        if obj.inventor:
             return [obj.inventor.nom_complet]
+
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
