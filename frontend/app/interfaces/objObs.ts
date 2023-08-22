@@ -13,7 +13,8 @@ export interface IobjObs<T> {
   addObjLabel: string;
   editObjLabel: string;
   seeObjLabel: string;
-  addChildLabel: string;
+  addChildLabel?: string;
+  deleteObjLabel: string;
   id: string | null;
   moduleCode: string;
   schema: JsonData;

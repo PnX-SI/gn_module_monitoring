@@ -31,6 +31,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   objForm: FormGroup;
 
+  checkEditParam:boolean;
   bEdit = false;
   bLoadingModal = false;
 
@@ -90,6 +91,7 @@ export class MonitoringObjectComponent implements OnInit {
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
 
+        this.bEdit = this.checkEditParam ? true : false;
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
         this.bEdit =
           this.bEdit ||
@@ -229,6 +231,7 @@ export class MonitoringObjectComponent implements OnInit {
         );
         this.objForm = this._formBuilder.group({});
 
+        this.checkEditParam = params.get('edit') ? true : false;
         // query param snapshot
 
         // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
