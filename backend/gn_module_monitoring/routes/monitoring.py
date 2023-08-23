@@ -250,7 +250,7 @@ def export_all_observations(module_code, method):
 
     :returns: Array of dict
     """
-    id_dataset = request.args.get("id_dataset", int, None)
+    id_dataset = request.args.get("id_dataset", None, int)
 
     view = GenericTableGeo(
         tableName=f"v_export_{module_code.lower()}_{method}",
@@ -261,7 +261,7 @@ def export_all_observations(module_code, method):
     q = DB.session.query(*columns)
     # Filter with dataset if is set
     if hasattr(columns, "id_dataset") and id_dataset:
-        data = q.filter(columns.id_dataset == id_dataset)
+        q = q.filter(columns.id_dataset == id_dataset)
     data = q.all()
 
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
