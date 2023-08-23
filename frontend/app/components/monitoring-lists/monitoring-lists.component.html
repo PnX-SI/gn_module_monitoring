@@ -1,11 +1,10 @@
 <div class="cadre" *ngIf="children0Array && children0Array.length">
-
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
     <mat-tab
       *ngFor="let child0 of children0Array"
       (click)="changeActiveTab(child0.objectType)"
-      label="{{child0.template['label_list']}} {{displayNumber(child0.objectType)}}"  >
-
+      label="{{ child0.template['label_list'] }} {{ displayNumber(child0.objectType) }}"
+    >
       <div let childrenType="child0.objectType" class="list-children">
         <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
           <div class="btn-float-right">
@@ -14,23 +13,23 @@
               color="accent"
               class="ml-2 mb-2"
               (click)="child0.config['display_filter'] = !child0.config['display_filter']"
-              matTooltip="{{child0.config['display_filter'] ? 'Cacher' : 'Afficher'}} les filtres"
-              *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= child0.cruved('R')"
-              >
-              <mat-icon>filter_alt</mat-icon>
-            </button
+              matTooltip="{{ child0.config['display_filter'] ? 'Cacher' : 'Afficher' }} les filtres"
+              *ngIf="
+                obj.moduleCode &&
+                currentUser.moduleCruved[child0.objectType].R >= child0.cruved('R')
+              "
             >
               <mat-icon>filter_alt</mat-icon>
             </button>
-
             <button
               mat-raised-button
               color="primary"
               class="btn btn-success float-right"
               (click)="obj.navigateToAddChildren(child0.objectType)"
-              *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].C >= child0.cruved('C')"
-              ><i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-              {{ (child0.template["label_art_undef_new"] || "") }}</button
+              *ngIf="
+                obj.moduleCode &&
+                currentUser.moduleCruved[child0.objectType].C >= child0.cruved('C')
+              "
             >
               <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ child0.template['label_art_undef_new'] || '' }}
