@@ -19,17 +19,13 @@ PERMISSION_LEVEL_DEFAULT = {
 
 
 class GnModuleSchemaConf(Schema):
-    PERMISSION_LEVEL = fields.Dict(
-        keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
-    )
-    DESCRIPTION_MODULE = fields.String(missing="Vous trouverez ici la liste des modules")
-    TITLE_MODULE = fields.String(missing="Module de suivi")
+    DESCRIPTION_MODULE = fields.String(default="Vous trouverez ici la liste des modules")
+    TITLE_MODULE = fields.String(default="Module de suivi")
+    CODE_OBSERVERS_LIST = fields.String(default="obsocctax")
 
     PERMISSION_LEVEL = fields.Dict(
         keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
     )
-    DESCRIPTION_MODULE = fields.String(missing="Vous trouverez ici la liste des modules")
-    TITLE_MODULE = fields.String(missing="Module de suivi")
 
 #     AREA_TYPE = fields.List(fields.String(), missing=["COM", "M1", "M5", "M10"])
 #     BORNE_OBS = fields.List(fields.Integer(), missing=[1, 20, 40, 60, 80, 100, 120])
