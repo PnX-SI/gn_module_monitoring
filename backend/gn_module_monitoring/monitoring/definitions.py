@@ -46,7 +46,7 @@ MonitoringPermissions_dict = {
 }
 
 MonitoringPermissionObjectLabel_dict = {
-    "ALL": "objects (sites, visites, observations, etc...)",
+    "ALL": "objets (sites, visites, observations, etc...)",
     "GNM_SITES": "sites",
     "GNM_OBSERVATIONS": "observations",
     "GNM_VISITES": "visites",
