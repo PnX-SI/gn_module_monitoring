@@ -1,5 +1,4 @@
-# Module GeoNature de suivis génériques
-
+# Module GeoNature générique de suivis
 
 ## Module générique de gestion des données de protocoles de type suivis
 
@@ -70,6 +69,8 @@ Créer le dossier suivant dans le dossier `media` de GeoNature
 mkdir ~/geonature/backend/media/monitorings
 ```
 
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+
 ### Installation d'un sous-module
 
 #### Récupérer le répertoire de configuration d'un sous-module de suivi
@@ -84,16 +85,16 @@ source ~/geonature/backend/venv/bin/activate
 
 #### Copie du dossier de configuration
 
-Copier le dossier du sous module dans le dossier `media` de geonature
+Copier le dossier du sous-module dans le dossier `media` de GeoNature
 
 ```sh
-cp -R  <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
+cp -R  <dossier du sous-module> ~/geonature/backend/media/monitorings/<module_code>
 ```
 
-Si l'on souhaite développer un sous-module il peut parfois être plus pratique de faire un lien symbolique
+PS : Si l'on souhaite développer un sous-module il peut être pratique de plutôt faire un lien symbolique vers le dossier du sous-module, plutôt que de le copier dans le dossier `media` de GeoNature :
 
 ```sh
-ln -s <dossier du sous module> ~/geonature/backend/monitorings/<module_code>
+ln -s <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
 ```
 
 #### Lancer la commande d'installation du sous-module
@@ -102,7 +103,7 @@ ln -s <dossier du sous module> ~/geonature/backend/monitorings/<module_code>
 geonature monitorings install <module_code>
 ```
 
-Si le code du module n'est pas renseigné ou si le dossier du module n'existe pas, la commande va afficher la liste des modules installés et disponibles.
+Si le code du sous-module n'est pas renseigné ou si le dossier du sous-module n'existe pas, la commande va afficher la liste des sous-modules installés et disponibles.
 
 ```sh
 geonature monitorings install
@@ -124,6 +125,8 @@ Modules installés :
 - module2: Module 2 (Deuxième exemple de module)
 ```
 
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le sous-module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+
 ### Configurer le sous-module
 
 #### Dans le menu de droite de GeoNature, cliquer sur le module "Monitorings"
@@ -132,16 +135,16 @@ Le sous-module installé précedemment doit s'afficher dans la liste des sous-mo
 
 #### Cliquez sur le sous-module
 
-Vous êtes désormais sur la page du sous-module. Un message apparaît pour vous indiquer de configurer le module.
+Vous êtes désormais sur la page du sous-module. Un message apparaît pour vous indiquer de configurer celui-ci.
 
 #### Cliquez sur le bouton `Éditer`
 
-Le formulaire d'édition du module s'affiche et vous pouvez choisir les variables suivantes :
+Le formulaire d'édition du sous-module s'affiche et vous pouvez choisir les variables suivantes :
 
 * Jeux de données *(obligatoire)* :
     * Un module peut concerner plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
-* Liste des observateurs *(obligatoire)*:
-    * La liste d'observateurs définit l'ensemble de observateurs possible pour le module (et de descripteurs de site).
+* Liste des observateurs *(obligatoire)* :
+    * La liste d'observateurs définit l'ensemble des observateurs possibles pour le module (et de descripteurs de site).
     * Cette liste peut être définie dans l'application `UsersHub`.
 * Liste des taxons *(obligatoire selon le module)* :
     * Cette liste définit l'ensemble des taxons concernés par ce module. Elle est gérée dans l'application `TaxHub`.
@@ -152,7 +155,7 @@ Le formulaire d'édition du module s'affiche et vous pouvez choisir les variable
         * `lb_nom` : Nom latin,
         * `nom_vern,lb_nom` : Nom vernaculaire par defaut s'il existe, sinon nom latin.
 * Afficher dans le menu ? *(non obligatoire, non affiché par défaut)* :
-    * On peut décider que le sous-module soit accessible directement depuis le menu de droite de GeoNature.
+    * On peut décider que le sous-module soit accessible directement depuis le menu de gauche de GeoNature.
     * `active_frontend`
 * Options spécifiques du sous-module :
     * Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module.
@@ -174,8 +177,8 @@ Les permissions ne sont implémentées que partiellement. La notion de portée (
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
-Il est possible de spéficier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations).
+Il est possible de spécifier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations).
 
-Si aucune permission n'est associée à l'objet, les permissions auront comme valeur celles associées aux sous-module qui lui-même hérite des permissions du module Monitoring qui lui-même hérite de GeoNature.
+Si aucune permission n'est associée à l'objet, les permissions auront comme valeur celles associées au sous-module.
 
-Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger les paramètres au niveau des fichiers de configuration des objets du module. (cf configuration des sous-modules).
+Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger les paramètres au niveau des fichiers de configuration des objets du module. (cf doc de configuration des sous-modules).

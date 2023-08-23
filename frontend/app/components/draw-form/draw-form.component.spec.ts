@@ -8,9 +8,8 @@ describe('DrawFormComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ DrawFormComponent ]
-    })
-    .compileComponents();
+      declarations: [DrawFormComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

@@ -1,35 +1,27 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  SimpleChanges,
-} from "@angular/core";
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
-import { FormGroup } from "@angular/forms";
-import { MonitoringObject } from "../../class/monitoring-object";
-import { Layer, svg, Path } from "leaflet";
-import { ConfigService } from "../../services/config.service";
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
+import { FormGroup } from '@angular/forms';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { Layer, svg, Path } from 'leaflet';
+import { ConfigService } from '../../services/config.service';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 
-import { MapService } from "@geonature_common/map/map.service";
-import { MapListService } from "@geonature_common/map-list/map-list.service";
-import { Utils } from "../../utils/utils";
-import * as L from "leaflet";
+import { MapService } from '@geonature_common/map/map.service';
+import { MapListService } from '@geonature_common/map-list/map-list.service';
+import { Utils } from '../../utils/utils';
+import * as L from 'leaflet';
 
 @Component({
-  selector: "pnx-monitoring-map",
-  templateUrl: "./monitoring-map.component.html",
-  styleUrls: ["./monitoring-map.component.css"],
+  selector: 'pnx-monitoring-map',
+  templateUrl: './monitoring-map.component.html',
+  styleUrls: ['./monitoring-map.component.css'],
 })
 export class MonitoringMapComponent implements OnInit {
   @Input() bEdit: boolean;
   @Input() obj: MonitoringObject;
 
   @Input() objectsStatus: Object;
-  @Output() objectsStatusChange: EventEmitter<Object> =
-    new EventEmitter<Object>();
+  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   @Input() objForm: FormGroup;
 
@@ -56,31 +48,31 @@ export class MonitoringMapComponent implements OnInit {
     hidden: {
       opacity: 0,
       fillOpacity: 0,
-      color: "blue",
+      color: 'blue',
       zIndex: 0,
     },
     default: {
       opacity: 0.7,
       fillOpacity: 0.5,
-      color: "blue",
+      color: 'blue',
       zIndex: 600,
     },
     current: {
       opacity: 0.7,
       fillOpacity: 0.5,
-      color: "green",
+      color: 'green',
       zIndex: 650,
     },
     selected: {
       opacity: 0.7,
       fillOpacity: 0.5,
-      color: "red",
+      color: 'red',
       zIndex: 660,
     },
     edit: {
       opacity: 0.2,
       fillOpacity: 0.1,
-      color: "blue",
+      color: 'blue',
       zIndex: 600,
     },
   };
@@ -96,7 +88,7 @@ export class MonitoringMapComponent implements OnInit {
 
   initSites() {
     this.removeLabels();
-    const layers = this._mapService.map["_layers"];
+    const layers = this._mapService.map['_layers'];
     for (const key of Object.keys(layers)) {
       const layer = layers[key];
       try {
@@ -105,15 +97,15 @@ export class MonitoringMapComponent implements OnInit {
     }
     setTimeout(() => {
       this.initPanes();
-      if (this.sites && this.sites["features"]) {
+      if (this.sites && this.sites['features']) {
         this.initSitesStatus();
-        for (const site of this.sites["features"]) {
+        for (const site of this.sites['features']) {
           this.setPopup(site.id);
           const layer = this.findSiteLayer(site.id);
           // pane
           const fClick = this.onLayerClick(site);
-          layer.off("click", fClick);
-          layer.on("click", fClick);
+          layer.off('click', fClick);
+          layer.on('click', fClick);
           //
           layer.removeFrom(this._mapService.map);
           layer.addTo(this._mapService.map);
@@ -128,7 +120,7 @@ export class MonitoringMapComponent implements OnInit {
     if (!this._mapService.map) {
       return;
     }
-    const layers = this._mapService.map["_layers"];
+    const layers = this._mapService.map['_layers'];
     for (const key of Object.keys(layers)) {
       const layer = layers[key];
       if (layer.options.permanent) {
@@ -138,7 +130,7 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   onEachFeature = (feature, layer) => {
-    const mapLabelFieldName = this.obj.configParam("map_label_field_name");
+    const mapLabelFieldName = this.obj.configParam('map_label_field_name');
     if (!mapLabelFieldName) {
       return;
     }
@@ -148,7 +140,7 @@ export class MonitoringMapComponent implements OnInit {
     }
 
     let coordinates;
-    if (feature.geometry.type == "Point") {
+    if (feature.geometry.type == 'Point') {
       coordinates = layer.getLatLng();
     } else {
       coordinates = layer.getBounds().getCenter();
@@ -156,8 +148,8 @@ export class MonitoringMapComponent implements OnInit {
 
     var text = L.tooltip({
       permanent: true,
-      direction: "top",
-      className: "text",
+      direction: 'top',
+      className: 'text',
     })
       .setContent(textValue)
       .setLatLng(coordinates);
@@ -188,17 +180,17 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   initSitesStatus() {
-    if (!this.objectsStatus["site"]) {
-      this.objectsStatus["site"] = [];
+    if (!this.objectsStatus['site']) {
+      this.objectsStatus['site'] = [];
     }
     const $this = this;
-    this.sites["features"].forEach((site) => {
-      const status = $this.objectsStatus["site"].find((s) => s.id === site.id);
+    this.sites['features'].forEach((site) => {
+      const status = $this.objectsStatus['site'].find((s) => s.id === site.id);
       if (status) {
         return;
       }
 
-      $this.objectsStatus["site"].push({
+      $this.objectsStatus['site'].push({
         selected: false,
         visible: true,
         id: site.id,
@@ -212,25 +204,23 @@ export class MonitoringMapComponent implements OnInit {
     }
 
     // Get old select site
-    let old_s_site = this.objectsStatus["site"].filter(
-      (site) => site.id == this.selectedSiteId
-    );
+    let old_s_site = this.objectsStatus['site'].filter((site) => site.id == this.selectedSiteId);
     if (old_s_site.length > 0) {
-      old_s_site[0]["selected"] = false;
+      old_s_site[0]['selected'] = false;
       this.setSiteStyle(old_s_site[0]);
     }
 
     // Get new select site
-    let new_s_site = this.objectsStatus["site"].filter((site) => site.id == id);
+    let new_s_site = this.objectsStatus['site'].filter((site) => site.id == id);
     if (new_s_site.length > 0) {
-      new_s_site[0]["selected"] = true;
+      new_s_site[0]['selected'] = true;
       this.setSiteStyle(new_s_site[0]);
     }
     this.selectedSiteId = id;
   }
 
   setSitesStyle() {
-    const objectType = this.objectsStatus["type"];
+    const objectType = this.objectsStatus['type'];
     let openPopup = true;
 
     if (this._mapService.map) {
@@ -240,16 +230,12 @@ export class MonitoringMapComponent implements OnInit {
         });
     }
     // Si le dessin des groupes de sites est actif calcul de l'aire
-    if (
-      this._configService.config()[this.obj.moduleCode]["module"][
-        "b_draw_sites_group"
-      ]
-    ) {
+    if (this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']) {
       this.publicDisplaySitesGroup = true;
     }
   }
 
-  setSiteStyle(status, openPopup = true, objectType = "site") {
+  setSiteStyle(status, openPopup = true, objectType = 'site') {
     /*
       Défini le style des éléments
       statuts = statut de l'élément provient de objectsStatus
@@ -262,29 +248,29 @@ export class MonitoringMapComponent implements OnInit {
       return;
     }
 
-    const style_name = !status["visible"]
-      ? "hidden"
-      : status["current"]
-      ? "current"
-      : status["selected"]
-      ? "selected"
+    const style_name = !status['visible']
+      ? 'hidden'
+      : status['current']
+      ? 'current'
+      : status['selected']
+      ? 'selected'
       : this.bEdit
-      ? "edit"
-      : "default";
+      ? 'edit'
+      : 'default';
 
-    const style = this.styles[style_name] || this.styles["default"];
+    const style = this.styles[style_name] || this.styles['default'];
 
-    style["pane"] = this.panes[style_name];
-    style["renderer"] = this.renderers[style_name];
+    style['pane'] = this.panes[style_name];
+    style['renderer'] = this.renderers[style_name];
     // layer.removeFrom(map);
     layer.setStyle(style);
     // layer.addTo(map);
 
-    if (status["selected"]) {
+    if (status['selected']) {
       this._mapListService.zoomOnSelectedLayer(map, layer);
     }
 
-    if (status["selected"] && openPopup == true) {
+    if (status['selected'] && openPopup == true) {
       if (!(layer as any)._popup) {
         this.setPopup(status.id);
         layer = this.findSiteLayer(status.id, objectType);
@@ -292,14 +278,14 @@ export class MonitoringMapComponent implements OnInit {
       layer.openPopup();
     }
 
-    if (!status["visible"] || !status["selected"]) {
+    if (!status['visible'] || !status['selected']) {
       layer.closePopup();
     }
 
     // Affichage des tooltips uniquement si la feature est visible
     if (layer.getTooltip) {
       var toolTip = layer.getTooltip();
-      if (style_name == "hidden") {
+      if (style_name == 'hidden') {
         if (toolTip) {
           map.closeTooltip(toolTip);
         }
@@ -311,8 +297,8 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  findSiteLayer(id, objectType = "site"): Path {
-    const layers = this._mapService.map["_layers"];
+  findSiteLayer(id, objectType = 'site'): Path {
+    const layers = this._mapService.map['_layers'];
     const layerKey = Object.keys(layers)
       .filter((key) => {
         const monitoringObject = layers[key] && layers[key].feature;
@@ -320,21 +306,17 @@ export class MonitoringMapComponent implements OnInit {
       })
       .find((key) => {
         const feature = layers[key] && layers[key].feature;
-        return (
-          feature && (feature["id"] === id || feature.properties["id"] === id)
-        );
+        return feature && (feature['id'] === id || feature.properties['id'] === id);
       });
     return layerKey && layers[layerKey];
   }
 
   findSiteLayers(value, property): Array<Layer> {
-    const layers = this._mapService.map["_layers"];
+    const layers = this._mapService.map['_layers'];
 
     let filterlayers = Object.keys(layers)
       .filter(
-        (key) =>
-          layers[key].feature &&
-          layers[key]["feature"]["properties"][property] == value
+        (key) => layers[key].feature && layers[key]['feature']['properties'][property] == value
       )
       .map((key) => ({ [key]: layers[key] }));
 
@@ -352,20 +334,18 @@ export class MonitoringMapComponent implements OnInit {
     // TODO verifier si le fait de spécifier # en dur
     //  Ne pose pas de soucis pour certaine configuration
     const url = [
-      "#",
+      '#',
       this._configService.frontendModuleMonitoringUrl(),
-      "object",
+      'object',
       this.obj.moduleCode,
-      "site",
+      'site',
       layer['feature'].properties.id_base_site,
-    ].join("/");
+    ].join('/');
 
     const sPopup = `
     <div>
-      <h4>  <a href=${url}>${
-      layer["feature"].properties.base_site_name
-    }</a></h4>
-      ${layer["feature"].properties.description || ""}
+      <h4>  <a href=${url}>${layer['feature'].properties.base_site_name}</a></h4>
+      ${layer['feature'].properties.description || ''}
     </div>
     `;
 
@@ -381,18 +361,18 @@ export class MonitoringMapComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case "objectsStatus":
+        case 'objectsStatus':
           if (!this.bListen) {
             this.bListen = true;
           } else {
             this.setSitesStyle();
           }
           break;
-        case "bEdit":
+        case 'bEdit':
           this.setSitesStyle();
 
           break;
-        case "sites":
+        case 'sites':
           this.initSites();
       }
     }

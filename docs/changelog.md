@@ -1,6 +1,25 @@
 CHANGELOG
 =========
 
+0.7.0 (2023-08-23)
+------------------
+
+Nécessite la version 2.13.0 (ou plus) de GeoNature
+
+**Evolutions**
+
+* Compatibilité avec GeoNature 2.13.0 et la refonte des permissions, en définissant les permissions disponibles du module (#232)
+* Gestion des permissions disponibles des sous-modules lors de leur installation et création de la commande `update_module_available_permissions` permettant de les mettre à jour (#236)
+* Récupération des permissions depuis le service `ModulesService` de GeoNature
+
+**⚠️ Notes de version**
+
+* Si elle est renseignée dans la configuration de vos sous-modules, la variable `permission_objects` est à déplacer du fichier `module.json` au fichier `config.json` de ces sous-modules
+* Après mise à jour du module, utiliser la commande pour générer les permissions disponibles pour les sous-modules déjà installés
+  ```
+  geonature monitorings update_module_available_permissions
+  ```
+
 0.6.0 (2023-05-23)
 ------------------
 
@@ -30,12 +49,13 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * L'installation des sous-modules se fait désormais en deux temps :
 
     * Copie du répertoire de configuration
+      ```sh
+      cp <chemin vers le sous-module> <geonature>/backend/media/monitorings/<module_code>
+      ```
     * Installation du sous-module avec la commande dédiée
-
-    ```sh
-    cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
-    geonature monitorings install <module_code>
-    ```
+      ```sh
+      geonature monitorings install <module_code>
+      ```
 
 0.5.0 (2023-03-29)
 ------------------

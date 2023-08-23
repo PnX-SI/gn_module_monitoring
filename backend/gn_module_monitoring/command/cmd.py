@@ -19,11 +19,11 @@ from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
     process_export_csv,
-    insert_permission_object,
+    process_available_permissions,
     remove_monitoring_module,
     add_nomenclature,
     available_modules,
-    installed_modules
+    installed_modules,
 )
 
 
@@ -36,6 +36,7 @@ def cmd_process_all(module_code):
     """
     # process export csv
     process_export_csv(module_code)
+
 
 @click.command("process_export_csv")
 @click.argument("module_code", type=str, required=False, default="")
@@ -66,15 +67,22 @@ def cmd_install_monitoring_module(module_code):
 
     module_config_dir_path = monitoring_module_config_path(module_code)
 
-    if not (module_code and (module_config_dir_path / 'module.json').is_file()):
+    if not (module_code and (module_config_dir_path / "module.json").is_file()):
         if module_code:
-            click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
-        click.secho(f'\nModules disponibles :\n')
+            click.secho(
+                f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
+                fg="red",
+            )
+        click.secho(f"\nModules disponibles :\n")
         for module in available_modules():
-            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
+            click.secho(
+                f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n"
+            )
         click.secho(f"\nModules installés :\n")
         for module in installed_modules():
-            click.secho(f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n")
+            click.secho(
+                f"- {module['module_code']}: {module['module_label']} ({module['module_desc']})\n"
+            )
         return
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
@@ -96,10 +104,7 @@ def cmd_install_monitoring_module(module_code):
     config = get_config(module_code, force=True)
 
     if not config:
-        click.secho(
-            f"config directory for module {module_code} does not exist",
-            fg="red"
-        )
+        click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
 
     module_desc = config["module"].get("module_desc")
@@ -112,7 +117,7 @@ def cmd_install_monitoring_module(module_code):
         click.secho(
             f"Veuillez renseigner les valeurs des champs module_label \
 et module_desc dans le fichier {module_config_dir_path}/module.json",
-            fg="red"
+            fg="red",
         )
         return
 
@@ -120,12 +125,10 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
         "module_picto": "fa-puzzle-piece",
         **config["module"],
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(
-            module_monitoring.module_path, module_code
-        ),
+        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
         "active_frontend": False,
         "active_backend": False,
-        "type": "monitoring_module"
+        "type": "monitoring_module",
     }
 
     click.secho("ajout du module {} en base".format(module_code))
@@ -134,10 +137,8 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(module)
     DB.session.commit()
 
-    # Insert permission object
-    if config["module"].get("permission_objects"):
-        id_module = module.id_module
-        insert_permission_object(id_module, config["module"].get("permission_objects"))
+    # Ajouter les permissions disponibles
+    process_available_permissions(module_code)
 
     #  run specific sql
     if (module_config_dir_path / "synthese.sql").exists:
@@ -177,14 +178,14 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.commit()
 
     # TODO ++++ create specific tables
-    click.secho(f"Sous-module monitoring '{module_code}' installé", fg='green')
+    click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
 
 
-@click.command("update_permission_objects")
-@click.argument("module_code")
+@click.command("update_module_available_permissions")
+@click.argument("module_code", required=False, default="")
 @with_appcontext
-def cmd_update_perm_module_cmd(module_code):
+def cmd_process_available_permission_module(module_code):
     """
        Mise à jour (uniquement insertion) des objets permissions associés au module
        Défini par le paramètre permission_objects du fichier module.json
@@ -193,28 +194,12 @@ def cmd_update_perm_module_cmd(module_code):
         module_code ([string]): code du sous module
 
     """
-    try:
-        module = get_module("module_code", module_code)
-    except Exception:
-        print("le module n'existe pas")
-        return
-    path_module = monitoring_module_config_path(module_code) / "module.json"
 
-    if not path_module.is_file():
-        print(f"Il n'y a pas de fichier {path_module} pour ce module")
-        return
-    config_module = json_from_file(path_module, None)
-    if not config_module:
-        print("Il y a un problème avec le fichier {}".format(path_module))
-        return
+    if module_code:
+        return process_available_permissions(module_code)
 
-    print(f"Insertion des objets de permissions pour le module {module_code}")
-    # Insert permission object
-    if "permission_objects" in config_module:
-        id_module = module.id_module
-        insert_permission_object(id_module, config_module["permission_objects"])
-    else:
-        print("no permission")
+    for module in installed_modules():
+        process_available_permissions(module["module_code"])
 
 
 @click.command("remove")
@@ -264,7 +249,7 @@ def synchronize_synthese(module_code, offset):
 commands = [
     cmd_process_export_csv,
     cmd_install_monitoring_module,
-    cmd_update_perm_module_cmd,
+    cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
     cmd_process_all,

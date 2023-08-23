@@ -1,20 +1,13 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  ViewEncapsulation,
-} from "@angular/core";
-import { FormControl, FormGroup } from "@angular/forms";
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 
-import { leafletDrawOptions } from "./leaflet-draw.options";
-import { CustomMarkerIcon } from "@geonature_common/map/marker/marker.component";
+import { leafletDrawOptions } from './leaflet-draw.options';
+import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
 
 @Component({
-  selector: "pnx-draw-form",
-  templateUrl: "./draw-form.component.html",
-  styleUrls: ["./draw-form.component.css"],
+  selector: 'pnx-draw-form',
+  templateUrl: './draw-form.component.html',
+  styleUrls: ['./draw-form.component.css'],
 })
 export class DrawFormComponent implements OnInit {
   public geojson;
@@ -54,23 +47,23 @@ export class DrawFormComponent implements OnInit {
 
     this.displayed = true;
     switch (this.geometryType) {
-      case "Point": {
+      case 'Point': {
         this.leafletDrawOptions.draw.marker = {
           icon: new CustomMarkerIcon(),
         };
         break;
       }
-      case "Polygon": {
+      case 'Polygon': {
         this.leafletDrawOptions.draw.polygon = {
           allowIntersection: false, // Restricts shapes to simple polygons
           drawError: {
-            color: "#e1e100", // Color the shape will turn when intersects
-            message: "Intersection forbidden !", // Message that will show when intersect
+            color: '#e1e100', // Color the shape will turn when intersects
+            message: 'Intersection forbidden !', // Message that will show when intersect
           },
         };
         break;
       }
-      case "LineString": {
+      case 'LineString': {
         this.leafletDrawOptions.draw.polyline = true;
         break;
       }
@@ -89,10 +82,11 @@ export class DrawFormComponent implements OnInit {
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant
-      this.formValueChangeSubscription =
-        this.parentFormControl.valueChanges.subscribe((geometry) => {
+      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
+        (geometry) => {
           this.setGeojson(geometry);
-        });
+        }
+      );
     }
   }
 

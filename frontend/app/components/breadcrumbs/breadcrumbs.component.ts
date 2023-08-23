@@ -1,26 +1,19 @@
-import { of } from "rxjs";
-import { mergeMap } from "rxjs/operators";
+import { of } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  SimpleChanges,
-  EventEmitter,
-} from "@angular/core";
+import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@angular/core';
 
-import { DataMonitoringObjectService } from "../../services/data-monitoring-object.service";
-import { ConfigService } from "../../services/config.service";
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
 
-import { MonitoringObject } from "../../class/monitoring-object";
-import { Router } from "@angular/router";
-import { ActivatedRoute } from "@angular/router";
+import { MonitoringObject } from '../../class/monitoring-object';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: "pnx-monitoring-breadcrumbs",
-  templateUrl: "./breadcrumbs.component.html",
-  styleUrls: ["./breadcrumbs.component.css"],
+  selector: 'pnx-monitoring-breadcrumbs',
+  templateUrl: './breadcrumbs.component.html',
+  styleUrls: ['./breadcrumbs.component.css'],
 })
 export class BreadcrumbsComponent implements OnInit {
   public breadcrumbs;
@@ -66,8 +59,7 @@ export class BreadcrumbsComponent implements OnInit {
         })
       )
       .subscribe((breadcrumbs) => {
-        this.frontendModuleMonitoringUrl =
-          this._configService.frontendModuleMonitoringUrl();
+        this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.breadcrumbs = breadcrumbs;
       });
   }
@@ -79,7 +71,7 @@ export class BreadcrumbsComponent implements OnInit {
         this._router.navigate(
           [
             this._configService.frontendModuleMonitoringUrl(),
-            "object",
+            'object',
             elem.module_code,
             elem.object_type,
             elem.id,
@@ -89,9 +81,7 @@ export class BreadcrumbsComponent implements OnInit {
           }
         );
       } else {
-        this._router.navigate([
-          this._configService.frontendModuleMonitoringUrl(),
-        ]);
+        this._router.navigate([this._configService.frontendModuleMonitoringUrl()]);
       }
     }, 100);
   }
@@ -102,7 +92,7 @@ export class BreadcrumbsComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case "obj":
+        case 'obj':
           this.initBreadcrumbs();
           break;
       }

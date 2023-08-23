@@ -1,13 +1,13 @@
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 
-import { Observable, forkJoin, of } from "rxjs";
-import { concatMap, mergeMap } from "rxjs/operators";
+import { Observable, forkJoin, of } from 'rxjs';
+import { concatMap, mergeMap } from 'rxjs/operators';
 
-import { Utils } from "./../utils/utils";
+import { Utils } from './../utils/utils';
 
-import { CacheService } from "./cache.service";
-import { ConfigService } from "./config.service";
-import { DataFormService } from "@geonature_common/form/data-form.service";
+import { CacheService } from './cache.service';
+import { ConfigService } from './config.service';
+import { DataFormService } from '@geonature_common/form/data-form.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -45,27 +45,25 @@ export class DataUtilsService {
     // parametre pour le stockage dans le cache
     const sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
-    return this._cacheService
-      .cache_or_request("get", urlRelative, sCachePaths)
-      .pipe(
-        mergeMap((value) => {
-          let out;
-          if (fieldName === "all") {
-            out = value;
-          } else if (fieldName.split(",").length >= 2) {
-            // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
-            for (const fieldNameInter of fieldName.split(",")) {
-              if (value[fieldNameInter]) {
-                out = value[fieldNameInter];
-                break;
-              }
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
+      mergeMap((value) => {
+        let out;
+        if (fieldName === 'all') {
+          out = value;
+        } else if (fieldName.split(',').length >= 2) {
+          // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
+          for (const fieldNameInter of fieldName.split(',')) {
+            if (value[fieldNameInter]) {
+              out = value[fieldNameInter];
+              break;
             }
-          } else {
-            out = value[fieldName];
           }
-          return of(out);
-        })
-      );
+        } else {
+          out = value[fieldName];
+        }
+        return of(out);
+      })
+    );
   }
 
   /**
@@ -82,14 +80,12 @@ export class DataUtilsService {
     const observables = [];
     // applique getUtil pour chaque id de ids
     for (const id of ids) {
-      observables.push(
-        this.getUtil(typeUtilObject, id, fieldName, idFieldName)
-      );
+      observables.push(this.getUtil(typeUtilObject, id, fieldName, idFieldName));
     }
     // renvoie un forkJoin du tableau d'observables
     return forkJoin(observables).pipe(
       concatMap((res) => {
-        return of(res.join(", "));
+        return of(res.join(', '));
       })
     );
   }
@@ -98,7 +94,7 @@ export class DataUtilsService {
   getNomenclature(typeNomenclature, codeNomenclature) {
     const urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
     const sCachePaths = `util|nomenclature|${typeNomenclature}|${codeNomenclature}`;
-    return this._cacheService.cache_or_request("get", urlRelative, sCachePaths);
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
   }
 
   /** Récupère les données qui seront utiles pour le module
@@ -109,50 +105,44 @@ export class DataUtilsService {
     // récupération dans le cache ou requête si besoin
     const cache = this._cacheService.cache();
 
-    if (cache[moduleCode] && cache[moduleCode]["init_data"]) {
+    if (cache[moduleCode] && cache[moduleCode]['init_data']) {
       return of(true);
     }
 
     const urlRelative = `util/init_data/${moduleCode}`;
-    return this._cacheService.request("get", urlRelative).pipe(
+    return this._cacheService.request('get', urlRelative).pipe(
       mergeMap((initData) => {
-        if (cache[moduleCode] && cache[moduleCode]["init_data"]) {
+        if (cache[moduleCode] && cache[moduleCode]['init_data']) {
           return of(true);
         }
 
-        for (const nomenclature of initData["nomenclature"] || []) {
+        for (const nomenclature of initData['nomenclature'] || []) {
           this._cacheService.setCacheValue(
-            `util|nomenclature|${nomenclature["id_nomenclature"]}`,
+            `util|nomenclature|${nomenclature['id_nomenclature']}`,
             nomenclature
           );
         }
 
-        for (const user of initData["user"] || []) {
-          this._cacheService.setCacheValue(
-            `util|user|${user["id_role"]}`,
-            user
-          );
+        for (const user of initData['user'] || []) {
+          this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
         }
 
-        for (const sitesGroup of initData["sites_group"] || []) {
+        for (const sitesGroup of initData['sites_group'] || []) {
           this._cacheService.setCacheValue(
-            `util|sites_group|${sitesGroup["id_sites_group"]}`,
+            `util|sites_group|${sitesGroup['id_sites_group']}`,
             sitesGroup
           );
         }
 
-        for (const dataset of initData["dataset"] || []) {
-          this._cacheService.setCacheValue(
-            `util|dataset|${dataset["id_dataset"]}`,
-            dataset
-          );
+        for (const dataset of initData['dataset'] || []) {
+          this._cacheService.setCacheValue(`util|dataset|${dataset['id_dataset']}`, dataset);
         }
 
         // pour ne pas appeler la fonction deux fois
         if (!cache[moduleCode]) {
           cache[moduleCode] = {};
         }
-        cache[moduleCode]["init_data"] = true;
+        cache[moduleCode]['init_data'] = true;
         return of(true);
       })
     );
@@ -249,10 +239,10 @@ export class DataUtilsService {
   // }
 
   getDataUtil(key) {
-    return this._cacheService["_cache"]["util"][key];
+    return this._cacheService['_cache']['util'][key];
   }
 
   getNomenclatures() {
-    return this._cacheService["_cache"]["util"]["nomenclature"];
+    return this._cacheService['_cache']['util']['nomenclature'];
   }
 }

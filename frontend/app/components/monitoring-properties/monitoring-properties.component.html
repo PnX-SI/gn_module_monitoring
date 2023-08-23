@@ -68,7 +68,6 @@
       attr.aria-labelledby="nav-medias-tab"
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
     >
-     
     </div>
 
 
@@ -79,7 +78,7 @@
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
-        (currentUser['cruved_object'][obj.objectType] || currentUser['cruved']).U >= obj.cruved('U')
+        currentUser?.moduleCruved[obj.objectType].U >= obj.cruved('U')
       "
     >
       Éditer {{ (obj.template['label_art_def'] || "") }}
@@ -106,7 +105,7 @@
     *ngIf="
       !bEdit &&
       obj.objectType === 'module' &&
-      currentUser?.cruved.U >= 3 &&
+      currentUser?.moduleCruved.module.U >= 3 &&
       obj.properties['b_synthese']
     "
     matTooltip="Attention, cette opération peux prendre du temps"

@@ -8,11 +8,11 @@ from ..config.repositories import (
 
 
 class MonitoringDefinitions:
-    '''
-        class pour pouvoir obtenir les classes filles de MonitoringObjectBase
-        fonction du type d'objet
-        _MonitoringObjectTypes_dict sera initialisé ultérieurement
-    '''
+    """
+    class pour pouvoir obtenir les classes filles de MonitoringObjectBase
+    fonction du type d'objet
+    _MonitoringObjectTypes_dict sera initialisé ultérieurement
+    """
 
     _MonitoringObjects_dict = {}
     _MonitoringModels_dict = {}
@@ -34,8 +34,9 @@ class MonitoringDefinitions:
             return self._MonitoringObjects_dict[object_type]
         except Exception as e:
             raise GeoNatureError(
-                "MONITORING, il n'y a pas de monitoring_object pour le type {} : {}"
-                .format(object_type, str(e))
+                "MONITORING, il n'y a pas de monitoring_object pour le type {} : {}".format(
+                    object_type, str(e)
+                )
             )
 
     def monitoring_object_instance(self, module_code, object_type, id=None, model=None):
@@ -46,16 +47,16 @@ class MonitoringDefinitions:
             return self._MonitoringModels_dict[object_type]
         except Exception as e:
             raise GeoNatureError(
-                "MONITORING, il n'y a pas de modele pour le type {} : {}"
-                .format(object_type, str(e))
+                "MONITORING, il n'y a pas de modele pour le type {} : {}".format(
+                    object_type, str(e)
+                )
             )
 
 
 monitoring_definitions = MonitoringDefinitions()
 
 
-class MonitoringObjectBase():
-
+class MonitoringObjectBase:
     _object_type = None
     _module_code = None
     _id = None
@@ -65,13 +66,12 @@ class MonitoringObjectBase():
     _parent = None
 
     def __init__(self, module_code, object_type, id=None, model=None):
-
         self._module_code = module_code
         self._object_type = object_type
 
         self._id = id
         if not self._id and model:
-            self._id = getattr(model, self.config_param('id_field_name'))
+            self._id = getattr(model, self.config_param("id_field_name"))
 
         self.set_model_from(model)
 
@@ -83,27 +83,18 @@ class MonitoringObjectBase():
             self._model = Model()
 
     def __str__(self):
-        return (
-            'monitoringobject {}, {}, {}'
-            .format(self._module_code, self._object_type, self._id)
-            )
+        return "monitoringobject {}, {}, {}".format(self._module_code, self._object_type, self._id)
 
     def MonitoringModel(self):
-
         try:
-            Model = (
-                monitoring_definitions
-                .MonitoringModel(
-                    self._object_type
-                )
-            )
+            Model = monitoring_definitions.MonitoringModel(self._object_type)
             return Model
             pass
 
         except Exception:
             pass
 
-        inherit_type = self.config_param('inherit_type')
+        inherit_type = self.config_param("inherit_type")
         new_object_type = inherit_type or self._object_type
 
         Model = monitoring_definitions.MonitoringModel(new_object_type)
@@ -124,7 +115,7 @@ class MonitoringObjectBase():
         return self._model.data and self._model.data.get(param_name)
 
     def get_value(self, param_name):
-        schema_generic = self.config_schema('generic')
+        schema_generic = self.config_schema("generic")
         if param_name in schema_generic:
             return self.get_value_generic(param_name)
         return self.get_value_specific(param_name)
@@ -134,18 +125,17 @@ class MonitoringObjectBase():
         return self.get_value(field_name)
 
     def parent_type(self):
-        '''
-            on renvoie le premier de la liste
-        '''
-        return self.config_param('parent_types') and self.config_param('parent_types')[0]
+        """
+        on renvoie le premier de la liste
+        """
+        return self.config_param("parent_types") and self.config_param("parent_types")[0]
 
     def parent_config_param(self, param_name):
-
         parent_type = self.parent_type()
         if parent_type:
             return repositories_config_param(self._module_code, parent_type, param_name)
 
-    def config_schema(self, type_schema='all'):
+    def config_schema(self, type_schema="all"):
         return repositories_config_schema(self._module_code, self._object_type, type_schema)
         pass
 
@@ -175,20 +165,20 @@ class MonitoringObjectBase():
     #     return base_object_type == base_parent_type
 
     def id_parent_fied_name(self):
-        return self.parent_config_param('id_field_name')
+        return self.parent_config_param("id_field_name")
 
     def id_parent(self):
         parent_type = self.parent_type()
 
         if not parent_type:
             return
-        if 'module' in parent_type:
+        if "module" in parent_type:
             return self._module_code
 
         return getattr(self._model, self.id_parent_fied_name())
 
     def cond_filters(self):
-        filters = self.config_param('filters')
+        filters = self.config_param("filters")
 
         if not filters:
             return True

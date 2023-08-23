@@ -1,11 +1,11 @@
-import { ObserversComponent } from "@geonature_common/form/observers/observers.component";
-import { Injectable } from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { ObserversComponent } from '@geonature_common/form/observers/observers.component';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-import { Observable, of, Subject } from "rxjs";
-import { mergeMap, concatMap } from "rxjs/operators";
+import { Observable, of, Subject } from 'rxjs';
+import { mergeMap, concatMap } from 'rxjs/operators';
 
-import { ConfigService } from "./config.service";
+import { ConfigService } from './config.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -16,7 +16,10 @@ export class CacheService {
   private _cache = {};
   private _pendingCache = {};
 
-  constructor(private _http: HttpClient, private _config: ConfigService) {}
+  constructor(
+    private _http: HttpClient,
+    private _config: ConfigService
+  ) {}
 
   /** http request */
 
@@ -27,29 +30,24 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
    */
-  request(
-    requestType: string,
-    urlRelative: string,
-    { postData = {}, queryParams = {} } = {}
-  ) {
+  request(requestType: string, urlRelative: string, { postData = {}, queryParams = {} } = {}) {
     // verification de requestType
-    if (!["get", "post", "patch", "delete"].includes(requestType)) {
+    if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
       return of(null);
     }
 
     const url_params = Object.keys(queryParams).length
-      ? "?" +
+      ? '?' +
         Object.keys(queryParams)
           .map((key) =>
             Array.isArray(queryParams[key])
-              ? queryParams[key].map((val) => `${key}=${val}`).join("&")
+              ? queryParams[key].map((val) => `${key}=${val}`).join('&')
               : `${key}=${queryParams[key]}`
           )
-          .join("&")
-      : "";
+          .join('&')
+      : '';
 
-    const url =
-      this._config.backendModuleUrl() + "/" + urlRelative + url_params;
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
 
     // requete
     return this._http[requestType]<any>(url, postData);
@@ -66,7 +64,7 @@ export class CacheService {
   getFromCache(sCachePaths: string, cache = null) {
     cache = cache || this._cache;
 
-    const cachePaths = sCachePaths.split("|");
+    const cachePaths = sCachePaths.split('|');
 
     // parcours du dictionnaire _cache
     let current = cache;
@@ -95,7 +93,7 @@ export class CacheService {
      */
   setCacheValue(sCachePaths: string, value: any, cache = null) {
     cache = cache || this._cache;
-    const cachePaths = sCachePaths.split("|");
+    const cachePaths = sCachePaths.split('|');
 
     const key = cachePaths.pop();
 
@@ -110,7 +108,7 @@ export class CacheService {
   removeCacheValue(sCachePaths: string, cache = null) {
     cache = cache || this._cache;
 
-    const cachePaths = sCachePaths.split("|");
+    const cachePaths = sCachePaths.split('|');
 
     const key = cachePaths.pop();
     // parcours du cache
@@ -131,11 +129,7 @@ export class CacheService {
    * @param urlRelative url relative de la route
    * @param sCachePaths chaine de caractères tableau qui permet de parcourir le dictionnaire _cache
    */
-  cache_or_request(
-    requestType: string,
-    urlRelative: string,
-    sCachePaths: string
-  ) {
+  cache_or_request(requestType: string, urlRelative: string, sCachePaths: string) {
     // on renvoie un observable
     return new Observable((observer) => {
       // recuperation depuis le cache
@@ -184,13 +178,12 @@ export class CacheService {
     const url_params = Object.keys(queryParams)
       .map((key) =>
         Array.isArray(queryParams[key])
-          ? queryParams[key].map((val) => `${key}=${val}`).join("&")
+          ? queryParams[key].map((val) => `${key}=${val}`).join('&')
           : `${key}=${queryParams[key]}`
       )
-      .join("&");
+      .join('&');
 
-    const url =
-      this._config.backendModuleUrl() + "/" + urlRelative + "?" + url_params;
+    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
 
     // requete
     window.open(url);
@@ -203,17 +196,17 @@ export class CacheService {
     { postData = {}, queryParams = {} } = {}
   ) {
     const httpHeaders: HttpHeaders = new HttpHeaders({
-      Accept: "application/pdf",
+      Accept: 'application/pdf',
     });
-    const url = this._config.backendModuleUrl() + "/" + urlRelative;
+    const url = this._config.backendModuleUrl() + '/' + urlRelative;
 
     return this._http[requestType]<any>(url, postData, {
-      responseType: "arraybuffer",
+      responseType: 'arraybuffer',
       headers: httpHeaders,
     }).pipe(
       mergeMap((file) => {
         let blob = new Blob([file as BlobPart], {
-          type: "application/pdf",
+          type: 'application/pdf',
         });
         let url = window.URL.createObjectURL(blob);
         window.open(url);
