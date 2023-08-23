@@ -188,9 +188,10 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
+        const codeListObservers = this._configService.codeListObservers();
         x == null
           ? (x = [])
-          : (x = this._dataUtilsService.getUsersByCodeList(elem.code_list).pipe(
+          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
               mergeMap((users) => {
                 let currentUser;
                 if (Array.isArray(users)) {
