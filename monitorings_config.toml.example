@@ -3,3 +3,6 @@
 #Possibilité de rajouter une description au module de suivi
 #DESCRIPTION_MODULE = "ceci est une description"
 #TITLE_MODULE = "Module de suivi"
+
+# code of the observator list -- utilisateurs.t_listes
+#CODE_OBSERVERS_LIST = "obsocctax"

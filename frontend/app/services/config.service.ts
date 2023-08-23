@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
-import { ModuleConfig } from '../module.config';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
@@ -67,10 +66,14 @@ export class ConfigService {
   }
 
   descriptionModule() {
-    return ModuleConfig.DESCRIPTION_MODULE;
+    return this.appConfig.MONITORINGS.DESCRIPTION_MODULE;
   }
   titleModule() {
-    return ModuleConfig.TITLE_MODULE;
+    return this.appConfig.MONITORINGS.TITLE_MODULE;
+  }
+
+  codeListObservers() {
+    return this.appConfig.MONITORINGS.CODE_OBSERVERS_LIST;
   }
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
