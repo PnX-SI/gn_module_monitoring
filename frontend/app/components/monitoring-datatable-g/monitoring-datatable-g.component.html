@@ -135,7 +135,11 @@
                     <i class="fa fa-edit" aria-hidden="true"></i>
                   </a>
 
-                  <ng-container *ngIf="!dataTableArray[i].deleteObjLabel.includes('visite')">
+                  <ng-container
+                    *ngIf="
+                      !dataTableArray[i].deleteObjLabel.includes('visite') && row['nb_visits'] == 0
+                    "
+                  >
                     <a
                       class="nav-link link cell-link"
                       (click)="alertMessage(row)"
