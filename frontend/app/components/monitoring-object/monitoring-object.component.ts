@@ -1,5 +1,15 @@
 import { Observable, of, forkJoin } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
+import {
+  mergeMap,
+  concatMap,
+  map,
+  tap,
+  take,
+  takeUntil,
+  distinctUntilChanged,
+  catchError,
+  skipWhile,
+} from 'rxjs/operators';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';
@@ -13,6 +23,7 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { MapService } from '@geonature_common/map/map.service';
+import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
 @Component({
@@ -41,6 +52,7 @@ export class MonitoringObjectComponent implements OnInit {
   heightMap;
 
   moduleSet = false;
+  bDeleteModal = false;
 
   constructor(
     private _route: ActivatedRoute,
@@ -50,7 +62,8 @@ export class MonitoringObjectComponent implements OnInit {
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
     private _auth: AuthService,
-    private _commonService: CommonService
+    private _commonService: CommonService,
+    private _evtObjService: ObjectService
   ) {}
 
   ngAfterViewInit() {
@@ -91,7 +104,7 @@ export class MonitoringObjectComponent implements OnInit {
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
 
-        this.bEdit = this.checkEditParam ? true : false;
+        this.bEdit = this.checkEditParam == true ? true : false;
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
         this.bEdit =
           this.bEdit ||
@@ -105,6 +118,8 @@ export class MonitoringObjectComponent implements OnInit {
         } else {
           this.initObjectsStatus();
         }
+
+        this.evenListnerTable();
       });
   }
 
@@ -231,7 +246,11 @@ export class MonitoringObjectComponent implements OnInit {
         );
         this.objForm = this._formBuilder.group({});
 
-        this.checkEditParam = params.get('edit') ? true : false;
+        if (params.get('edit')) {
+          this.checkEditParam = Boolean(params.get('edit'));
+        } else {
+          this.checkEditParam = false;
+        }
         // query param snapshot
 
         // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
@@ -280,5 +299,41 @@ export class MonitoringObjectComponent implements OnInit {
       this.initSites();
     }
     this.getModuleSet();
+  }
+
+  onDeleteFromTable(event) {
+    return this._objService
+      .dataMonitoringObjectService()
+      .deleteObject(this.obj.moduleCode, event.objectType, event.rowSelected.id);
+  }
+
+  evenListnerTable() {
+    const $displayModal = this._evtObjService.currentDeleteModal;
+    const $rowSelected = this._evtObjService.currentRowSelected;
+
+    $displayModal
+      .pipe(
+        distinctUntilChanged((prev, curr) => prev === curr),
+        tap((displayModal) => {
+          this.bDeleteModal = displayModal;
+        }),
+        concatMap(() => {
+          return $rowSelected;
+        }),
+        concatMap((rowSelected) => {
+          return this.onDeleteFromTable(rowSelected).pipe(
+            distinctUntilChanged((prev, curr) => prev.rowSelected === curr.rowSelected)
+          );
+        }),
+        catchError((err) => {
+          console.log(err);
+          this._evtObjService.changeDisplayingDeleteModal(false);
+          return of(null);
+        })
+      )
+      .subscribe((deletedObj) => {
+        this.initSites();
+        this._evtObjService.changeDisplayingDeleteModal(false);
+      });
   }
 }
