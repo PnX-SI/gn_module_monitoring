@@ -49,6 +49,8 @@
   [obj]="visits"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
 >
   <option-list-btn
     add-button
