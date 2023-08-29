@@ -25,6 +25,12 @@ export class ObjectService {
   private dataListOption = new ReplaySubject<SelectObject[]>(1);
   currentListOption = this.dataListOption.asObservable();
 
+  private rowSelected = new ReplaySubject<Object>(1);
+  currentRowSelected = this.rowSelected.asObservable();
+
+  private deleteModal = new ReplaySubject<boolean>(1);
+  currentDeleteModal = this.deleteModal.asObservable();
+
   constructor() {
     let storedObjectType = localStorage.getItem('storedObjectType');
     let storedObjectTypeParent = localStorage.getItem('storedObjectTypeParent');
@@ -78,5 +84,13 @@ export class ObjectService {
 
   changeListOption(newListOption: SelectObject[]) {
     this.dataListOption.next(newListOption);
+  }
+
+  changeSelectRow(rowSelected) {
+    this.rowSelected.next(rowSelected);
+  }
+
+  changeDisplayingDeleteModal(isModal: boolean) {
+    this.deleteModal.next(isModal);
   }
 }
