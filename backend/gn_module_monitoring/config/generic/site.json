@@ -1,5 +1,9 @@
 {
-  "cruved": {"C":1, "U":1, "D": 1},
+  "cruved": {
+    "C": 1,
+    "U": 1,
+    "D": 1
+  },
   "chained": true,
   "id_field_name": "id_base_site",
   "description_field_name": "base_site_name",
@@ -28,7 +32,10 @@
     "nb_visits"
   ],
   "sorts": [
-    {"prop": "last_visit", "dir": "desc"}
+    {
+      "prop": "last_visit",
+      "dir": "desc"
+    }
   ],
   "generic": {
     "id_base_site": {
@@ -55,7 +62,6 @@
       "type_widget": "textarea",
       "attribut_label": "Description"
     },
-
     "id_sites_group": {
       "type_widget": "datalist",
       "attribut_label": "Groupe de sites",
@@ -118,10 +124,10 @@
     "altitude_min": {
       "type_widget": "integer",
       "attribut_label": "Altitude (min)"
-      },
-      "altitude_max": {
+    },
+    "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
-      }
+    }
   }
 }
