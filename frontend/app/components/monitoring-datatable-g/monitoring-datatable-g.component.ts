@@ -330,6 +330,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   onDelete(row) {
+    this.bDeleteSpinner = true;
     row['id'] = row[row.pk];
     this._commonService.regularToaster('info', this.msgToaster('Suppression'));
     this.onDeleteEvent.emit({ rowSelected: row, objectType: this.activetabType });
@@ -342,7 +343,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
     this.rowSelected['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
-    this.bDeleteSpinner = true;
   }
 
   // TODO: Comprendre le fonctionnement de ObjectStatuts et RowsStatus
