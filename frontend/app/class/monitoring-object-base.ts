@@ -375,9 +375,10 @@ export class MonitoringObjectBase {
     );
   }
 
-  navigateToDetail(id = null) {
+  navigateToDetail(id = null, toEdit = false) {
     this._objService.navigate('object', this.moduleCode, this.objectType, id || this.id, {
       parents_path: this.parentsPath,
+      edit: toEdit,
     });
   }
 

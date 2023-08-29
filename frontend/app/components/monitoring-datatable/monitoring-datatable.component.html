@@ -1,3 +1,21 @@
+<pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="rowSelected">
+  <h2>Attention</h2>
+  <p>
+    Vous êtes sur le point de supprimer
+    {{ this.child0.template['label_art_def'] }}
+    <b>{{ this.child0.template['description'] }}</b>
+  </p>
+  <button class="btn btn-danger float-right" (click)="onDelete(rowSelected)">
+    <span
+      [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
+      class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>
+    Confirmer la suppression
+  </button>
+  <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
+</pnx-modal-msg>
 <div *ngIf="child0 && row_save">
   <!-- <input
     type="text"
@@ -43,6 +61,23 @@
         >
           <i class="fa fa-plus" aria-hidden="true"></i>
         </a>
+        <!-- TODO: rajouter les permission currentUser  *ngIf="currentUser?.moduleCruved[child0.objectType].U >= child0.config.cruved('U')" -->
+        <a
+          class="nav-link link cell-link"
+          (click)="child0.navigateToDetail(row.id, true)"
+          matTooltip="Eiter  {{ child0.template.label_art_def }}"
+        >
+          <i class="fa fa-edit" aria-hidden="true"></i>
+        </a>
+        <ng-container *ngIf="child0.objectType == 'visit' ? true : row['nb_visits'] == 0">
+          <a
+            class="nav-link link cell-link"
+            (click)="alertMessage(row)"
+            matTooltip="Supprimer {{ child0.template.label_art_def }}"
+          >
+            <i class="fa fa-trash" aria-hidden="true"></i>
+          </a>
+        </ng-container>
       </ng-template>
     </ngx-datatable-column>
 
