@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
@@ -20,6 +20,7 @@ import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
 import { setPopup } from '../../functions/popup';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 
 @Component({
   selector: 'monitoring-visits',
@@ -60,6 +61,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   checkEditParam: boolean;
 
   modulSelected;
+  bDeleteModalEmitter = new EventEmitter<boolean>();
+
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   constructor(
@@ -73,7 +76,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _formService: FormService,
     private _configService: ConfigService,
     public siteService: SitesService,
-    protected _configJsonService: ConfigJsonService
+    protected _configJsonService: ConfigJsonService,
+    private _objServiceMonitoring: DataMonitoringObjectService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -271,13 +275,14 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
-  // onDelete($event){
-  //  this._objServiceMonitoring
-  //     .deleteObject($event.rowSelected.module.module_code,$event.objectType, $event.rowSelected.id).subscribe(del =>{
-  //       this.bDeleteModalEmitter.emit(false);
-  //       this.initSiteVisit()
-  //     });
-  // }
+  onDelete($event) {
+    this._objServiceMonitoring
+      .deleteObject($event.rowSelected.module.module_code, $event.objectType, $event.rowSelected.id)
+      .subscribe((del) => {
+        this.bDeleteModalEmitter.emit(false);
+        this.initSiteVisit();
+      });
+  }
 
   partialfuncToFilt(
     pageNumber: number,

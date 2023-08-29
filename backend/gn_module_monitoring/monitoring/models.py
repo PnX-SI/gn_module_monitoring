@@ -265,7 +265,7 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
         TModules,
         lazy="select",
         primaryjoin=(TModules.id_module == TBaseVisits.id_module),
-        foreign_keys=[TModules.id_module],
+        foreign_keys=[TBaseVisits.id_module],
         uselist=False,
     )
 

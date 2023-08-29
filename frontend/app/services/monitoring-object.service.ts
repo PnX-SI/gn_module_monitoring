@@ -282,6 +282,12 @@ export class MonitoringObjectService {
   }
 
   navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
     this._router.navigate(
       [
         this._configService.frontendModuleMonitoringUrl(),
@@ -289,6 +295,7 @@ export class MonitoringObjectService {
         moduleCode,
         objectType,
         id,
+        { edit: editParams },
       ].filter((s) => !!s),
       {
         queryParams,
