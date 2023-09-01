@@ -16,7 +16,7 @@ Avant la mise à jour
 
   ```sh
   cp -R ~/gn_module_monitoring_old/config/monitoring/* ~/geonature/backend/media/monitorings
-  rm -R geonature/config/monitorings/generic
+  rm -R ~/geonature/backend/media/monitorings/generic
   ```
 
   Les chemins sont à adapter si l'emplacement du dossier `media` de GeoNature à été modifié.
