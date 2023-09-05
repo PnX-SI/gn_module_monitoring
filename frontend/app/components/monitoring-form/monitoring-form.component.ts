@@ -9,7 +9,15 @@ import { DynamicFormService } from '@geonature_common/form/dynamic-form-generato
 import { ActivatedRoute } from '@angular/router';
 import { JsonData } from '../../types/jsondata';
 import { SitesService } from '../../services/api-geom.service';
-import { distinctUntilChanged, mergeMap, switchMap, toArray } from 'rxjs/operators';
+import {
+  concatMap,
+  distinctUntilChanged,
+  exhaustMap,
+  mergeMap,
+  switchMap,
+  tap,
+  toArray,
+} from 'rxjs/operators';
 import { EMPTY, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
@@ -138,9 +146,8 @@ export class MonitoringFormComponent implements OnInit {
         }
 
         // pour donner la valeur de idParent
-        this.initForm();
         this.obj.objectType == 'site' ? this.initObjFormDef() : null;
-        this.obj.objectType == 'site' ? this.initFormDynamic() : null;
+        this.obj.objectType == 'site' ? this.firstInitForm() : this.initForm();
       });
   }
 
@@ -177,6 +184,36 @@ export class MonitoringFormComponent implements OnInit {
       this.setDefaultFormValue();
       // reset geom ?
     });
+  }
+
+  firstInitForm() {
+    if (
+      !(this.objFormDynamic && this.obj.bIsInitialized) &&
+      !(this.objForm && this.obj.bIsInitialized)
+    ) {
+      return;
+    }
+
+    this.setQueryParams();
+    // pour donner la valeur de l'objet au formulaire
+    this.obj
+      .formValues()
+      .pipe(
+        exhaustMap((formValue) => {
+          this.objForm.patchValue(formValue);
+          this.setDefaultFormValue();
+          return of(true);
+        }),
+        concatMap(() => {
+          return this.obj.formValues(this.schemaUpdate);
+        })
+      )
+      .subscribe((formValue) => {
+        formValue.types_site = this.idsTypesSite;
+        this.objFormDynamic.disable();
+        this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
+        this.objFormDynamic.enable();
+      });
   }
 
   initFormDynamic() {
@@ -612,7 +649,6 @@ export class MonitoringFormComponent implements OnInit {
       .formDefinitionsdictToArray(this.schemaUpdate, this.meta)
       .filter((formDef) => formDef.type_widget)
       .sort((a, b) => {
-        // medias à la fin
         return a.attribut_name === 'types_site' ? -1 : b.attribut_name === 'types_site' ? +1 : 0;
       });
   }

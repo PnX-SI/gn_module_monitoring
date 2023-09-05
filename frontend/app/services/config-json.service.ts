@@ -40,34 +40,6 @@ export class ConfigJsonService extends ConfigService {
     return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
-  fieldLabels(schema) {
-    const fieldLabels = {};
-    for (const key of Object.keys(schema)) {
-      fieldLabels[key] = schema[key]['attribut_label'];
-    }
-    return fieldLabels;
-  }
-
-  fieldNames(moduleCode, objectType, typeDisplay = '', confObject = {}) {
-    if (['display_properties', 'display_list'].includes(typeDisplay)) {
-      if (Object.keys(confObject).length > 0) {
-        return confObject[typeDisplay];
-      }
-      return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);
-    }
-    if (typeDisplay === 'schema') {
-      return Object.keys(this.schema(moduleCode, objectType));
-    }
-  }
-
-  fieldDefinitions(schema) {
-    const fieldDefinitions = {};
-    for (const key of Object.keys(schema)) {
-      fieldDefinitions[key] = schema[key]['definition'];
-    }
-    return fieldDefinitions;
-  }
-
   //NEW - récup setResolvedProperties from monitoring-object-base.ts
 
   resolveProperty(elem, val, moduleCode): Observable<any> {
