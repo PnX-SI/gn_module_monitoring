@@ -23,9 +23,9 @@
       <mat-tab *ngIf="selectedObj.data != null" label="Propriétés spécifiques">
         <div class="mt-2">
           <table class="table table-striped table-sm">
-            <tr *ngFor="let fieldName of specificFields | keyvalue; let i = index">
+            <tr *ngFor="let fieldName of specificFieldsNames | keyvalue; let i = index">
               <td style="width: 50%" class="key text-muted">
-                {{ fieldName.value }}
+                {{ specificFields[fieldName.value] }}
                 <i
                   *ngIf="specificFieldDefinitions[fieldName]"
                   class="material-icons small-icon"
@@ -36,7 +36,7 @@
                   >help</i
                 >
               </td>
-              <td class="td-value">{{ selectedObj.data[fieldName.key] }}</td>
+              <td class="td-value">{{ selectedObj.data[fieldName.value] }}</td>
             </tr>
           </table>
         </div>

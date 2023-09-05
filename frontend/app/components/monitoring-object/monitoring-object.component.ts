@@ -26,6 +26,7 @@ import { MapService } from '@geonature_common/map/map.service';
 import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
+import { ConfigJsonService } from '../../services/config-json.service';
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -261,6 +262,22 @@ export class MonitoringObjectComponent implements OnInit {
 
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.moduleCode).pipe(
+      concatMap(() => {
+        if (this.obj.objectType == 'site' && this.obj.id != null) {
+          return this._objService
+            .configService()
+            .loadConfigSpecificConfig(this.obj)
+            .pipe(
+              tap((config) => {
+                this.obj.template_specific = this._objService
+                  .configService()
+                  .addSpecificConfig(config);
+              })
+            );
+        } else {
+          return of(null);
+        }
+      }),
       mergeMap(() => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
