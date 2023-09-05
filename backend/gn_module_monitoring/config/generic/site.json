@@ -96,6 +96,7 @@
         "api" : "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
         "application": "GeoNature",
         "required": true,
+        "nullDefault":true,
         "definition": "Permet de n'avoir que les types de site lié au module"
       },
       "id_sites_group": {

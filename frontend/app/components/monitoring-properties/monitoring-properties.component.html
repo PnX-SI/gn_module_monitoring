@@ -23,6 +23,31 @@
         </table>
       </div>
     </mat-tab>
+    <mat-tab *ngIf="(obj.template_specific | json) != ({} | json)" label="Propriétés Spécifiques">
+      <div class="mt-2">
+        <table class="table table-striped table-sm">
+          <tr
+            *ngFor="let fieldName of obj.template_specific['fieldLabels'] | keyvalue; let i = index"
+          >
+            <td style="width: 50%" class="key text-muted">
+              {{ fieldName.value }}
+              <i
+                *ngIf="obj.template_specific['fieldDefinitions'][fieldName]"
+                class="material-icons small-icon"
+                [matTooltip]="
+                  obj.template_specific['fieldLabels'][fieldName.key] +
+                  ' : ' +
+                  obj.template_specific['fieldDefinitions'][fieldName.key]
+                "
+                matTooltipPosition="above"
+                >help</i
+              >
+            </td>
+            <td class="td-value">{{ obj.resolvedProperties[fieldName.key] }}</td>
+          </tr>
+        </table>
+      </div>
+    </mat-tab>
     <mat-tab
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
       label="Médias ({{ (obj.properties['medias'] && obj.properties['medias'].length) || 0 }})"

@@ -46,6 +46,11 @@ export class ConfigService {
     );
   }
 
+  loadConfigSpecificConfig(obj) {
+    const urlConfig = `${this.backendModuleUrl()}/sites/${obj.id}/types`;
+    return this._http.get<any>(urlConfig);
+  }
+
   /** Backend Url et static dir ??*/
   backendUrl() {
     return `${this.appConfig.API_ENDPOINT}`;
@@ -224,5 +229,69 @@ export class ConfigService {
 
   cache() {
     return this._config;
+  }
+
+  addSpecificConfig(types_site) {
+    let schemaSpecificType = {};
+    let schemaTypeMerged = {};
+    let keyHtmlToPop = '';
+    for (let type_site of types_site) {
+      if ('specific' in type_site['config']) {
+        for (const prop in type_site['config']['specific']) {
+          if (
+            'type_widget' in type_site['config']['specific'][prop] &&
+            type_site['config']['specific'][prop]['type_widget'] == 'html'
+          ) {
+            keyHtmlToPop = prop;
+          }
+        }
+        const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
+        Object.assign(schemaSpecificType, specificObjWithoutHtml);
+        Object.assign(schemaTypeMerged, type_site['config']);
+      }
+    }
+
+    const fieldNames = schemaTypeMerged['display_properties'];
+    const fieldNamesList = schemaTypeMerged['display_list'];
+    const fieldLabels = this.fieldLabels(schemaSpecificType);
+    const fieldDefinitions = this.fieldDefinitions(schemaSpecificType);
+    const obj = {};
+    obj['template_specific'] = {};
+    obj['template_specific']['fieldNames'] = fieldNames;
+    obj['template_specific']['fieldNamesList'] = fieldNamesList;
+    obj['template_specific']['schema'] = schemaSpecificType;
+    obj['template_specific']['fieldLabels'] = fieldLabels;
+    obj['template_specific']['fieldDefinitions'] = fieldDefinitions;
+    obj['template_specific']['fieldNamesList'] = fieldNamesList;
+
+    return obj['template_specific'];
+  }
+
+  fieldLabels(schema) {
+    const fieldLabels = {};
+    for (const key of Object.keys(schema)) {
+      fieldLabels[key] = schema[key]['attribut_label'];
+    }
+    return fieldLabels;
+  }
+
+  fieldNames(moduleCode, objectType, typeDisplay = '', confObject = {}) {
+    if (['display_properties', 'display_list'].includes(typeDisplay)) {
+      if (Object.keys(confObject).length > 0) {
+        return confObject[typeDisplay];
+      }
+      return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);
+    }
+    if (typeDisplay === 'schema') {
+      return Object.keys(this.schema(moduleCode, objectType));
+    }
+  }
+
+  fieldDefinitions(schema) {
+    const fieldDefinitions = {};
+    for (const key of Object.keys(schema)) {
+      fieldDefinitions[key] = schema[key]['definition'];
+    }
+    return fieldDefinitions;
   }
 }
