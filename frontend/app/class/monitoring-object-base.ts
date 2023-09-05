@@ -33,6 +33,7 @@ export class MonitoringObjectBase {
   siteId;
 
   template = {};
+  template_specific = {};
 
   // configParams = ["geometry_type", "chained"];
   config = {};
@@ -171,6 +172,10 @@ export class MonitoringObjectBase {
   setResolvedProperties(): Observable<any> {
     const observables = {};
     const schema = this.schema();
+
+    if (Object.keys(this.template_specific).length > 0) {
+      Object.assign(schema, this.template_specific['schema']);
+    }
     for (const attribut_name of Object.keys(schema)) {
       observables[attribut_name] = this.resolveProperty(
         schema[attribut_name],
