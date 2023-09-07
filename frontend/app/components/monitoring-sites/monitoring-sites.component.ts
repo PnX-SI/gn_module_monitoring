@@ -18,6 +18,7 @@ import { ConfigJsonService } from '../../services/config-json.service';
 import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 const LIMIT = 10;
 
@@ -55,7 +56,10 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
+  currentUser: User;
+
   constructor(
+    private _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
     private _objService: ObjectService,
@@ -72,6 +76,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   ngOnInit() {
+    this.currentUser = this._auth.getCurrentUser();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.objForm = { static: this._formBuilder.group({}) };
     // this._sitesGroupService.init()
