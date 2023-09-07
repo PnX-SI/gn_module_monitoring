@@ -166,7 +166,7 @@ export class MonitoringFormComponentG implements OnInit {
         this.meta = {
           // nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
           // dataset: this._dataUtilsService.getDataUtil('dataset'),
-          // id_role: this.currentUser.id_role,
+          id_role: this.currentUser.id_role,
           bChainInput: this.bChainInput,
           parents: this.obj.parents,
         };
@@ -377,8 +377,8 @@ export class MonitoringFormComponentG implements OnInit {
     const value = this.objForm.static.value;
     const date = new Date();
     const defaultValue = {
-      // id_digitiser: value["id_digitiser"] || this.currentUser.id_role,
-      // id_inventor: value["id_inventor"] || this.currentUser.id_role,
+      id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
+      id_inventor: value['id_inventor'] || this.currentUser.id_role,
       first_use_date: value['first_use_date'] || {
         year: date.getUTCFullYear(),
         month: date.getUTCMonth() + 1,
@@ -414,7 +414,10 @@ export class MonitoringFormComponentG implements OnInit {
     // TODO: this commented code works only if ".." is not based url (example working : sites_group/:id/site/:id , not working if create site_group)
     // this._router.navigate(['..',objectType,id], {relativeTo: this._route});
     //
-    const urlSegment = [objectType, id].filter((s) => !!s);
+    const urlSegment =
+      this.obj.urlRelative == '/monitorings'
+        ? [this.obj.endPoint, id]
+        : [objectType, id].filter((s) => !!s);
     const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
     this.bEditChange.emit(false);
@@ -643,7 +646,7 @@ export class MonitoringFormComponentG implements OnInit {
         }
       }
       this.objForm.dynamic.patchValue(formValueSpecific);
-      this.setDefaultFormValue();
+      // this.setDefaultFormValue();
       // this.dataForm = propertiesValues;
       // reset geom ?
     });
