@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
+
 
 import { endPoints } from '../../enum/endpoints';
 import { ISitesGroup } from '../../interfaces/geom';
@@ -17,7 +19,9 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   siteGroup: ISitesGroup;
   objForm: FormGroup;
   urlRelative: string;
+  currentUser: User;
   constructor(
+    private _auth: AuthService,
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private _objService: ObjectService,
@@ -26,6 +30,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.currentUser = this._auth.getCurrentUser();
     // Remove "create" segmentUrl
     this.urlRelative = '/monitorings';
     this._formService.dataToCreate(
