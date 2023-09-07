@@ -14,6 +14,8 @@ import { IPaginated } from '../../interfaces/page';
 import { IBreadCrumb } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { GeoJSONService } from '../../services/geojson.service';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { concatMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'monitoring-sites-create',
@@ -37,7 +39,9 @@ export class MonitoringSitesCreateComponent implements OnInit {
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
 
+  currentUser: User;
   constructor(
+    private _auth: AuthService,
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private _sitesGroupService: SitesGroupService,
@@ -48,8 +52,15 @@ export class MonitoringSitesCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.urlRelative = this.removeLastPart(this.route.snapshot['_routerState'].url);
-    this.route.data.subscribe(({ data }) => {
+    this.currentUser = this._auth.getCurrentUser();
+    this.route.parent.url.pipe(
+      tap((urlPath) => {
+        const urlParent = urlPath[urlPath.length - 1].path;
+        this.urlRelative =  urlParent == "sites" ? "/monitorings" : this.removeLastPart(this.route.snapshot['_routerState'].url);
+      }),
+      concatMap(()=>{
+        return this.route.data
+      })).subscribe(({ data }) => {
       data ? (this.id_sites_group = data.id_sites_group) : (this.id_sites_group = null);
 
       this._formService.dataToCreate(
