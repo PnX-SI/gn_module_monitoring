@@ -2,7 +2,9 @@ import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
-import { exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
+import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
+
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
@@ -65,7 +67,10 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
 
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
+  currentUser: User;
+
   constructor(
+    private _auth: AuthService,
     private _sitesGroupService: SitesGroupService,
     private _visits_service: VisitsService,
     private _objService: ObjectService,
@@ -84,6 +89,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   ngOnInit() {
+    this.currentUser = this._auth.getCurrentUser();
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
