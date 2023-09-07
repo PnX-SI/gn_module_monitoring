@@ -55,8 +55,15 @@
       "type_widget": "observers",
       "attribut_label": "Observateurs",
       "type_util": "user",
-      "code_list":"obsocctax",
+      "code_list":"CODE_OBSERVERS_LIST",
       "required": true
+    },
+    "id_digitiser": {
+      "type_widget": "text",
+      "attribut_label": "Digitiser",
+      "type_util": "user",
+      "required": true,
+      "hidden": true
     },
     "first_use_date": {
       "type_widget": "date",

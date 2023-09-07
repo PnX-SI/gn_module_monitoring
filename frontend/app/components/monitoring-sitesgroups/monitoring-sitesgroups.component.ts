@@ -17,6 +17,7 @@ import { breadCrumbBase } from '../../class/breadCrumb';
 import { takeUntil } from 'rxjs/operators';
 import { Module } from '../../interfaces/module';
 import { ReplaySubject } from 'rxjs';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 const LIMIT = 10;
 
@@ -59,7 +60,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
+  currentUser: User;
+
   constructor(
+    private _auth: AuthService,
     private _sites_group_service: SitesGroupService,
     private _sitesService: SitesService,
     public geojsonService: GeoJSONService,
@@ -87,6 +91,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this._objService.changeObjectType(this._sites_group_service.objectObs);
 
     this._Activatedroute.data.subscribe(({ data }) => {
+
+      this.currentUser = this._auth.getCurrentUser();
       this.page = {
         count: data.sitesGroups.data.count,
         limit: data.sitesGroups.data.limit,

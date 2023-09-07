@@ -2,7 +2,12 @@
   <span class="obj-title">{{ siteService.objectObs.addObjLabel }}</span>
 </div>
 <div>
-  <pnx-monitoring-form-g [apiService]="siteService" [isExtraForm]="true" [objForm]="form">
+  <pnx-monitoring-form-g
+    [apiService]="siteService"
+    [isExtraForm]="true"
+    [objForm]="form"
+    [currentUser]="currentUser"
+  >
     <btn-select
       add-select
       (sendobject)="onSendConfig($event)"

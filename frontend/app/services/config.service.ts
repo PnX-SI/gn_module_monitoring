@@ -165,8 +165,18 @@ export class ConfigService {
           const formDef = configObject[typeSchema][keyDef];
           for (const keyParam of Object.keys(formDef)) {
             const func = this.toFunction(formDef[keyParam]);
+            const [varNameConfig, varValueConfig] = this.extractVariable(
+              keyParam,
+              formDef[keyParam]
+            );
             if (func) {
               formDef[keyParam] = func;
+            }
+            if (varValueConfig) {
+              configObject[typeSchema][keyDef][keyParam] = formDef[keyParam].replace(
+                varNameConfig,
+                varValueConfig
+              );
             }
           }
         }
@@ -293,5 +303,23 @@ export class ConfigService {
       fieldDefinitions[key] = schema[key]['definition'];
     }
     return fieldDefinitions;
+  }
+
+  extractVariable(keyParam: string, KeyValue: string) {
+    let varToReplace;
+    let keyVarToChange;
+    let keyParamsToIgnore: string[] = ['api'];
+    for (const [varConfigName, varCOnfigValue] of Object.entries(this.appConfig.MONITORINGS)) {
+      const isVariableToChange =
+        !keyParamsToIgnore.includes(keyParam) &&
+        typeof KeyValue === 'string' &&
+        KeyValue.includes(varConfigName);
+      varToReplace = isVariableToChange ? varCOnfigValue : null;
+      keyVarToChange = isVariableToChange ? varConfigName : null;
+      if (isVariableToChange) {
+        break;
+      }
+    }
+    return [keyVarToChange, varToReplace];
   }
 }
