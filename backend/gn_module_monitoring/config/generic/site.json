@@ -53,10 +53,11 @@
     },
     "id_inventor": {
       "type_widget": "observers",
-      "attribut_label": "Observateurs",
+      "attribut_label": "Observateur",
       "type_util": "user",
       "code_list":"CODE_OBSERVERS_LIST",
-      "required": true
+      "required": true,
+      "multi_select": false
     },
     "id_digitiser": {
       "type_widget": "text",

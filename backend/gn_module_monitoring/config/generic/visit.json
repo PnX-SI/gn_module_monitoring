@@ -51,7 +51,8 @@
       "keyLabel": "nom_complet",
       "type_util": "user",
       "multiple": true,
-      "required": true
+      "hidden": "({value}) => Object.keys(value).includes('observers_txt')",
+      "required": "({value}) => !Object.keys(value).includes('observers_txt')"
     },
 
     "id_digitiser": {
