@@ -1,5 +1,5 @@
 {
-  "cruved": {"C":1, "U":1, "D": 1},
+  "cruved": { "C": 1, "U": 1, "D": 1 },
   "id_field_name": "id_base_visit",
   "chained": true,
   "description_field_name": "visit_date_min",
@@ -23,9 +23,7 @@
     "nb_observations"
   ],
 
-  "sorts": [
-    {"prop": "visit_date_min", "dir": "desc"}
-  ],
+  "sorts": [{ "prop": "visit_date_min", "dir": "desc" }],
   "generic": {
     "id_base_visit": {
       "type_widget": "text",
@@ -51,10 +49,15 @@
       "keyLabel": "nom_complet",
       "type_util": "user",
       "multiple": true,
-      "hidden": "({value}) => Object.keys(value).includes('observers_txt')",
-      "required": "({value}) => !Object.keys(value).includes('observers_txt')"
+      "hidden": false,
+      "required": true
     },
-
+    "observers_txt": {
+      "type_widget": "observers-text",
+      "attribut_label": "Observateur(s) (extérieur)",
+      "required": false,
+      "hidden": true
+    },
     "id_digitiser": {
       "type_widget": "text",
       "attribut_label": "Digitiser",
