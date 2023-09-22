@@ -1,7 +1,8 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
-from sqlalchemy import join, select, func, and_
+from flask import g
+from sqlalchemy import join, select, func, and_, or_, false
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import (
     column_property,
@@ -27,7 +28,14 @@ from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
 from geonature.core.gn_monitoring.models import corVisitObserver
-from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
+from gn_module_monitoring.monitoring.queries import (
+    Query as MonitoringQuery,
+    SitesQuery,
+    SitesGroupsQuery,
+    VisitQuery,
+    ObservationsQuery,
+)
+from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
 
 class GenericModel:
@@ -43,7 +51,7 @@ class GenericModel:
             setattr(cls, "id_g", pk_value)
 
     @classmethod
-    def get_id(cls) -> None:
+    def get_id_name(cls) -> None:
         pk_string = class_mapper(cls).primary_key[0].name
         # print('======= ==>', pk_string)
         if hasattr(cls, "id_g") == False:
@@ -75,6 +83,19 @@ class GenericModel:
         #     for prop in class_mapper(cls).iterate_properties
         #     if isinstance(prop, RelationshipProperty)
         # ]
+
+
+class PermissionModel(GenericModel):
+    def has_permission(self, cruved_object={'C':False,'R':False,'U':False,'D':False,'E':False,'V':False}):
+        cruved_object_out = {}
+        for action_key , action_value in cruved_object.items():
+            cruved_object_out[action_key] = self.has_instance_permission(scope=action_value)
+        return cruved_object_out
+    def get_permission_by_action(self,module_code=None, object_code=None):
+       return  has_any_permissions_by_action(
+            module_code=module_code, object_code=object_code
+        )
+     
 
 
 cor_module_type = DB.Table(
@@ -113,7 +134,7 @@ cor_type_site = DB.Table(
 
 
 @serializable
-class BibTypeSite(DB.Model, GenericModel):
+class BibTypeSite(DB.Model, PermissionModel):
     __tablename__ = "bib_type_site"
     __table_args__ = {"schema": "gn_monitoring"}
     query_class = MonitoringQuery
@@ -151,12 +172,15 @@ class TMonitoringObservationDetails(DB.Model):
 
 
 @serializable
-class TObservations(DB.Model):
+class TObservations(DB.Model, PermissionModel):
     __tablename__ = "t_observations"
     __table_args__ = {"schema": "gn_monitoring"}
-
     id_observation = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
     id_base_visit = DB.Column(DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"))
+    id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
+    digitiser = DB.relationship(
+        User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
+    )
     cd_nom = DB.Column(DB.Integer)
     comments = DB.Column(DB.String)
     uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
@@ -177,12 +201,14 @@ class TObservations(DB.Model):
 
 
 @serializable
-class TMonitoringObservations(TObservations):
+class TMonitoringObservations(TObservations, PermissionModel):
     __tablename__ = "t_observation_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_observation",
     }
+
+    query_class = ObservationsQuery
 
     data = DB.Column(JSONB)
 
@@ -192,18 +218,45 @@ class TMonitoringObservations(TObservations):
         nullable=False,
     )
 
+    @hybrid_property
+    def organism_actors(self):
+        # return self.digitiser.id_organisme
+        actors_organism_list = []
+        if isinstance(self.digitiser, list):
+            for actor in self.digitiser:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.digitiser, User):
+                actors_organism_list.append(self.digitiser.id_organisme)
+        else:
+            return 
+        return actors_organism_list
+
+    def has_instance_permission(self, scope):
+        if scope == 0:
+            return False
+        elif scope in (1, 2):
+            if (
+                g.current_user.id_role == self.id_digitiser
+            ):  # or g.current_user in self.user_actors:
+                return True
+            if scope == 2 and g.current_user.organisme in self.organism_actors:
+                return True
+        elif scope == 3:
+            return True
+
 
 TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
-class TMonitoringVisits(TBaseVisits, GenericModel):
+class TMonitoringVisits(TBaseVisits, PermissionModel):
     __tablename__ = "t_visit_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_visit",
     }
-    query_class = MonitoringQuery
+    query_class = VisitQuery
     id_base_visit = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
         nullable=False,
@@ -243,15 +296,47 @@ class TMonitoringVisits(TBaseVisits, GenericModel):
         uselist=False,
     )
 
+    @hybrid_property
+    def organism_actors(self):
+        # return self.digitiser.id_organisme
+        actors_organism_list = []
+        if isinstance(self.digitiser, list):
+            for actor in self.digitiser:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.observers, list):
+              for actor in self.observers:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.digitiser, User):
+            actors_organism_list.append(self.digitiser.id_organisme)
+        else:
+            return actors_organism_list
+        return actors_organism_list
+
+    def has_instance_permission(self, scope):
+        if scope == 0:
+            return False
+        elif scope in (1, 2):
+            if (
+                g.current_user.id_role == self.id_digitiser
+                or  any(observer.id_role == g.current_user.id_role for observer in self.observers)
+            ):  # or g.current_user in self.user_actors:
+                return True
+            if scope == 2 and g.current_user.organisme in self.organism_actors:
+                return True
+        elif scope == 3:
+            return True
+
 
 @geoserializable(geoCol="geom", idCol="id_base_site")
-class TMonitoringSites(TBaseSites, GenericModel):
+class TMonitoringSites(TBaseSites, PermissionModel):
     __tablename__ = "t_site_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_site",
     }
-    query_class = MonitoringQuery
+    query_class = SitesQuery
 
     id_base_site = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
@@ -302,15 +387,46 @@ class TMonitoringSites(TBaseSites, GenericModel):
     )
     types_site = DB.relationship("BibTypeSite", secondary=cor_type_site, lazy="joined")
 
+    @hybrid_property
+    def organism_actors(self):
+        # return self.inventor.id_organisme
+        actors_organism_list = []
+        if isinstance(self.inventor, list):
+            for actor in self.inventor:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        else:
+            if hasattr(self.inventor,'id_organisme'):
+                actors_organism_list.append(self.inventor.id_organisme)
+
+    def has_instance_permission(self, scope):
+        if scope == 0:
+            return False
+        elif scope in (1, 2):
+            if (
+                g.current_user.id_role == self.id_digitiser
+                or g.current_user.id_role == self.id_inventor
+            ):  # or g.current_user in self.user_actors:
+                return True
+            if scope == 2 and g.current_user.organisme in self.organism_actors:
+                return True
+        elif scope == 3:
+            return True
+
 
 @serializable
-class TMonitoringSitesGroups(DB.Model, GenericModel):
+class TMonitoringSitesGroups(DB.Model, PermissionModel):
     __tablename__ = "t_sites_groups"
     __table_args__ = {"schema": "gn_monitoring"}
-    query_class = MonitoringQuery
+    query_class = SitesGroupsQuery
 
     id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
 
+    id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
+
+    digitiser = DB.relationship(
+        User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
+    )
     uuid_sites_group = DB.Column(UUID(as_uuid=True), default=uuid4)
 
     sites_group_name = DB.Column(DB.Unicode)
@@ -351,14 +467,42 @@ class TMonitoringSitesGroups(DB.Model, GenericModel):
         )
     )
 
+    @hybrid_property
+    def organism_actors(self):
+        # return self.digitiser.id_organisme
+        actors_organism_list = []
+        if isinstance(self.digitiser, list):
+            for actor in self.digitiser:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.digitiser, User):
+                actors_organism_list.append(self.digitiser.id_organisme)
+        else:
+            return 
+        return actors_organism_list
+
+    def has_instance_permission(self, scope):
+        if scope == 0:
+            return False
+        elif scope in (1, 2):
+            if (
+                g.current_user.id_role == self.id_digitiser
+            ):  # or g.current_user in self.user_actors:
+                return True
+            if scope == 2 and g.current_user.organisme in self.organism_actors:
+                return True
+        elif scope == 3:
+            return True
+
 
 @serializable
-class TMonitoringModules(TModules):
+class TMonitoringModules(TModules, PermissionModel):
     __tablename__ = "t_module_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_module",
     }
+    query_class = MonitoringQuery
 
     id_module = DB.Column(
         DB.ForeignKey("gn_commons.t_modules.id_module"),

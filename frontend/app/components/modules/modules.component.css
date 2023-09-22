@@ -72,3 +72,7 @@ a {
   width: 100%;
   object-fit: cover;
 }
+
+.isDisableBtn {
+  opacity: 90%;
+}
