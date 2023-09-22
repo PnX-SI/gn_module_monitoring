@@ -10,6 +10,7 @@
   [selectedObj]="sitesGroup"
   [newParentType]="objParent"
   [selectedObjRaw]="sitesGroup"
+  [permission]="currentPermission"
 >
 </pnx-monitoring-properties-g>
 <pnx-monitoring-form-g
@@ -38,4 +39,5 @@
   (onDeleteEvent)="onDelete($event)"
   (saveOptionChildren)="onSaveAddChildren($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
+  [permission]="currentPermission"
 ></pnx-monitoring-datatable-g>

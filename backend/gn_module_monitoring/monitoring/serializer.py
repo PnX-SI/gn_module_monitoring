@@ -5,12 +5,14 @@ import datetime
 import uuid
 from flask import current_app
 from .base import MonitoringObjectBase, monitoring_definitions
+import gn_module_monitoring.monitoring.definitions as MonitoringDef
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.tools import get_scopes_by_action
-
-
+from gn_module_monitoring.utils.routes import (
+    get_objet_with_permission_boolean)
+from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_parent(self):
         parent_type = self.parent_type()
@@ -57,6 +59,14 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         if data:
             properties["data"] = data
 
+    def get_readable_list_object(self,relation_name,children_type):
+        childs_model = getattr(self._model, relation_name)
+        if len(childs_model)>0 and isinstance(childs_model[0],PermissionModel) and not isinstance(childs_model[0],TMonitoringModules):
+            all_object_readable = childs_model[0].query.filter_by_readable(module_code=self._module_code ,object_code=MonitoringDef.MonitoringPermissions_dict[children_type]).all()
+            child_object_readable = [v for v in childs_model if v in all_object_readable]
+            return child_object_readable
+        return childs_model
+
     def serialize_children(self, depth):
         children_types = self.config_param("children_types")
 
@@ -74,7 +84,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
             children_of_type = []
 
-            for child_model in getattr(self._model, relation_name):
+            childs_object_readable = self.get_readable_list_object(relation_name,children_type=children_type)
+            for child_model in childs_object_readable:
                 child = monitoring_definitions.monitoring_object_instance(
                     self._module_code, children_type, model=child_model
                 )
@@ -84,6 +95,16 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         return children
 
+    def get_cruved_by_object(self):
+        list_model =[]
+        list_model.append(self._model)
+        if isinstance(list_model[0],PermissionModel) and not isinstance(list_model[0],TMonitoringModules):
+            id_name = list_model[0].get_id_name()   
+            cruved_item_dict = get_objet_with_permission_boolean(list_model, object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type])
+            for cruved_item in cruved_item_dict:
+                if self._id == cruved_item[id_name]:
+                    self.cruved = cruved_item["cruved"]
+        return self.cruved
     def properties_names(self):
         generic = list(self.config_schema("generic").keys())
         data = ["data"] if hasattr(self._model, "data") else []
@@ -146,6 +167,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             "module_code": self._module_code,
             "site_id": self.get_site_id(),
             "id": self._id,
+            "cruved":self.get_cruved_by_object()
         }
 
         properties["id_parent"] = to_int(self.id_parent())

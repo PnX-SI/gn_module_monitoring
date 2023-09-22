@@ -9,3 +9,13 @@
 .btn-float-right {
   margin: 5px 0;
 }
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}
+
+.isDisableBtn {
+  cursor: not-allowed;
+  text-decoration: none;
+}

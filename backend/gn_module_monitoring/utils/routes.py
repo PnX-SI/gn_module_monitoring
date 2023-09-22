@@ -1,6 +1,7 @@
 from typing import Tuple
 
-from flask import Response
+from sqlalchemy import and_
+from flask import Response, g
 from flask.json import jsonify
 from geonature.utils.env import DB
 from pypnusershub.db.models import User
@@ -14,10 +15,12 @@ from gn_module_monitoring.monitoring.models import (
     TModules,
     TNomenclatures,
 )
+from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
+from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
 from sqlalchemy import cast, func, text
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import Query, load_only
+from sqlalchemy.orm import Query, load_only, joinedload
 from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
@@ -39,6 +42,22 @@ def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
     return jsonify(data)
+
+
+def paginate_scope(
+    query: Query, schema: Schema, limit: int, page: int, object_code=None
+) -> Response:
+    result = query.paginate(page=page, error_out=False, per_page=limit)
+    pagination_schema = paginate_schema(schema)
+    datas_allowed = pagination_schema().dump(
+        dict(items=result.items, count=result.total, limit=limit, page=page)
+    )
+    cruved_item_dict = get_objet_with_permission_boolean(result.items, object_code=object_code)
+    for cruved_item in cruved_item_dict:
+        for i, data in enumerate(datas_allowed["items"]):
+            if data[data["pk"]] == cruved_item[data["pk"]]:
+                datas_allowed["items"][i]["cruved"] = cruved_item["cruved"]
+    return jsonify(datas_allowed)
 
 
 def filter_params(query: MonitoringQuery, params: MultiDict) -> MonitoringQuery:
@@ -71,14 +90,6 @@ def geojson_query(subquery) -> bytes:
 
 
 def get_sites_groups_from_module_id(module_id: int):
-    # query = TMonitoringSitesGroups.query.options(
-    #     # Load(TMonitoringSitesGroups).raiseload("*"),
-    #     load_only(TMonitoringSitesGroups.id_sites_group),
-    #     joinedload(TMonitoringSitesGroups.sites).options(
-    #         joinedload(TMonitoringSites.types_site).options(joinedload(BibTypeSite.modules))
-    #     ),
-    # ).filter(TMonitoringModules.id_module == module_id)
-
     query = (
         TMonitoringSitesGroups.query.options(
             # Load(TMonitoringSitesGroups).raiseload("*"),
@@ -162,3 +173,84 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
     else:
         query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
     return query
+
+
+def get_object_list_monitorings():
+    """
+    récupère objets permissions liés au module MONITORINGS
+
+    :return:
+    """
+    try:
+        object_list_monitorings = (
+            DB.session.query(
+                PermObject.code_object,
+            )
+            .join(PermissionAvailable, PermissionAvailable.id_object == PermObject.id_object)
+            .join(
+                TModules,
+                and_(
+                    TModules.id_module == PermissionAvailable.id_module,
+                    TModules.module_code == "MONITORINGS",
+                ),
+            )
+            .group_by(PermObject.code_object)
+            .all()
+        )
+        return object_list_monitorings
+    except Exception as e:
+        raise GeoNatureError("MONITORINGS - get_object_list_monitorings : {}".format(str(e)))
+
+
+def get_objet_with_permission_boolean(objects, depth: int = 0, module_code=None, object_code=None, id_role=None):
+    if id_role is None:
+       id_role =  g.current_user.id_role
+    objects_out = []
+    for object in objects:
+        cruved_object = object.query._get_cruved_scope(object_code=object_code)
+        object_out = object.as_dict(depth=depth)
+        if hasattr(object, "module_code"):
+            object_out["cruved"] = object.get_permission_by_action(module_code=object.module_code,object_code=object_code)
+        else:
+            object_out["cruved"] = object.has_permission(
+                cruved_object=cruved_object
+            )
+        objects_out.append(object_out)
+
+    return objects_out
+
+
+# from gn_module_monitoring.monitoring.definitions import MonitoringPermissions_dict
+# from gn_module_monitoring import MODULE_CODE
+# def set_permission_global_session(module_code=None,object_type=None):
+#     # requested_module_code = values.get("module_code") or MODULE_CODE
+#     module_code =  module_code or MODULE_CODE
+#     current_module = (
+#         TModules.query.options(joinedload(TModules.objects))
+#         .filter_by(module_code=module_code)
+#         .first_or_404(f"No module with code {module_code}")
+#     )
+#     g.current_module = current_module
+
+#     # recherche de l'object de permission courrant
+#     # object_type = values.get("object_type")
+#     if object_type:
+#         requested_permission_object_code = MonitoringPermissions_dict.get(object_type)
+
+#         if requested_permission_object_code is None:
+#             # error ?
+#             return
+
+#         # Test si l'object de permission existe
+#         requested_permission_object = TObjects.query.filter_by(
+#             code_object=requested_permission_object_code
+#         ).first_or_404(
+#             f"No permission object with code {requested_permission_object_code}"
+#         )
+
+#         # si l'object de permission est associé au module => il devient l'objet courant
+#         # - sinon se sera 'ALL' par defaut
+#         for module_perm_object in current_module.objects:
+#             if module_perm_object == requested_permission_object:
+#                 g.current_object = requested_permission_object
+#                 return
