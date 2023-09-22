@@ -21,6 +21,7 @@ import {
 import { EMPTY, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-form',
@@ -67,6 +68,10 @@ export class MonitoringFormComponent implements OnInit {
   public chainShow = [];
 
   public queryParams = {};
+  
+  canDelete:boolean;
+  canUpdate:boolean;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -81,6 +86,7 @@ export class MonitoringFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.initPermission()
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
@@ -324,7 +330,8 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   /** TODO améliorer site etc.. */
-  onSubmit() {
+  onSubmit(isAddChildrend=false) {
+    isAddChildrend ? this.bSaveAndAddChildrenSpinner = this.bAddChildren = true : this.bSaveSpinner = true;  
     if (this.obj.objectType == 'site') {
       this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
     }
@@ -651,5 +658,17 @@ export class MonitoringFormComponent implements OnInit {
       .sort((a, b) => {
         return a.attribut_name === 'types_site' ? -1 : b.attribut_name === 'types_site' ? +1 : 0;
       });
+  }
+
+  initPermission(){
+    this.canDelete = this.obj.objectType == 'module' ? this.currentUser?.moduleCruved[this.obj.objectType]['D'] > 0 : (this.obj.cruved['D'] && !['site', 'sites_group'].includes(this.obj.objectType))
+    this.canUpdate = this.obj.objectType == 'module' ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0 : this.obj.cruved['U']
+  }
+
+  notAllowedMessage(){
+    this._commonService.translateToaster(
+      'warning',
+      "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
+    );
   }
 }

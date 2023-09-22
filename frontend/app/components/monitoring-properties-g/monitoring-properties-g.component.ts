@@ -2,11 +2,14 @@ import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@
 import { FormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { ISitesGroup } from '../../interfaces/geom';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { FormService } from '../../services/form.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
+import { TPermission } from '../../types/permission';
+import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 
 @Component({
   selector: 'pnx-monitoring-properties-g',
@@ -35,12 +38,20 @@ export class MonitoringPropertiesGComponent implements OnInit {
   specificFieldDefinitions: JsonData = {};
   specificFieldsNames: string[];
 
+  @Input() permission: TPermission;
+
+  canUpdateObj: boolean;
+
+  toolTipNotAllowed: string;
+
   constructor(
     private _formService: FormService,
     private _objService: ObjectService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.toolTipNotAllowed = TOOLTIPMESSAGEALERT;
+  }
 
   initProperties() {
     this.objectType = this.newParentType;
@@ -67,9 +78,13 @@ export class MonitoringPropertiesGComponent implements OnInit {
     this.bEditChange.emit(true);
   }
 
+
   ngOnChanges(changes: SimpleChanges): void {
     if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
       this.initProperties();
+      if(this.selectedObj){
+        this.canUpdateObj = this.selectedObj['cruved']['U'] 
+      }
       if (
         this.newParentType.template_specific &&
         this.newParentType.template_specific.fieldNames &&

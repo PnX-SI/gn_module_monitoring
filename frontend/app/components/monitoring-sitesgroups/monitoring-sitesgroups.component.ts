@@ -18,6 +18,8 @@ import { takeUntil } from 'rxjs/operators';
 import { Module } from '../../interfaces/module';
 import { ReplaySubject } from 'rxjs';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { TPermission } from '../../types/permission';
+
 
 const LIMIT = 10;
 
@@ -61,6 +63,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   currentUser: User;
+  currentPermission: TPermission;
 
   constructor(
     private _auth: AuthService,
@@ -93,6 +96,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this._Activatedroute.data.subscribe(({ data }) => {
 
       this.currentUser = this._auth.getCurrentUser();
+      this.currentPermission = data.permission;
       this.page = {
         count: data.sitesGroups.data.count,
         limit: data.sitesGroups.data.limit,
@@ -106,12 +110,14 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       if (data.route == 'sites') {
         this.activetabIndex = 1;
         this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-        this.getGeometriesSite();
+        this.currentPermission.GNM_SITES.canRead ? this.getGeometriesSite() : null;
       } else {
         this.activetabIndex = 0;
-        this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
+        this.currentPermission.GNM_GRP_SITES.canRead
+          ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
+          : null;
       }
-      const { route, ...dataToTable } = data;
+      const { route, permission, ...dataToTable } = data;
 
       this.setDataTableObj(dataToTable);
       this.updateBreadCrumb();
@@ -270,7 +276,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.getGeometriesSite();
+      this.currentPermission.GNM_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.activetabIndex = 0;
       this.currentRoute = 'sites_group';
@@ -278,7 +284,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
-      this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
+      this.currentPermission.GNM_GRP_SITES.canRead
+        ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
+        : null;
     }
   }
 

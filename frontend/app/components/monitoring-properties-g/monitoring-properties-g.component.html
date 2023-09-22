@@ -131,10 +131,12 @@
 
       <button
         mat-stroked-button
+        [disabled]="!canUpdateObj"
         color="primary"
         class="mr-2"
-        (click)="onEditClick()"
+        (click)="canUpdateObj ? onEditClick() : null"
         *ngIf="!bEdit"
+        [matTooltip]="canUpdateObj ? null : toolTipNotAllowed"
       >
         {{ objectType.editObjLabel }}
       </button>

@@ -36,6 +36,7 @@
   [newParentType]="objParent"
   [selectedObj]="objResolvedProperties"
   [selectedObjRaw]="objSelected"
+  [permission]="currentPermission"
 ></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
@@ -52,6 +53,7 @@
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
+  [permission]="currentPermission"
 >
   <option-list-btn
     add-button
