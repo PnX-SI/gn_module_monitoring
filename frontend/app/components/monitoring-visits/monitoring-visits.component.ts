@@ -123,7 +123,6 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         concatMap(() =>
           this._Activatedroute.params.pipe(
             map((params) => {
-              // TODO: voir supprimer le params "edit" une fois la route initialisée
               this.checkEditParam = params['edit'];
               return params['id'] as number;
             }),
