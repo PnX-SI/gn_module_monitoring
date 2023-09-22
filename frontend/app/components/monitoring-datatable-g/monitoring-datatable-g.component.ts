@@ -13,6 +13,7 @@ import { DatatableComponent } from '@swimlane/ngx-datatable';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { IColumn } from '../../interfaces/column';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { IPage } from '../../interfaces/page';
@@ -21,6 +22,8 @@ import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { SelectObject } from '../../interfaces/object';
 import { CommonService } from '@geonature_common/service/common.service';
+import { TPermission } from '../../types/permission';
+import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 
 interface ItemObjectTable {
   id: number | null;
@@ -49,6 +52,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() saveOptionChildren = new EventEmitter<SelectObject>();
   @Output() bEditChanged = new EventEmitter<boolean>();
   @Input() currentUser;
+  @Input() permission: TPermission;
 
   @Output() onSort = new EventEmitter<any>();
   @Output() onFilter = new EventEmitter<any>();
@@ -77,6 +81,11 @@ export class MonitoringDatatableGComponent implements OnInit {
   filters = {};
 
   rowSelected;
+
+  canCreateObj: boolean;
+  canCreateChild: boolean;
+
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   @Input() activetabIndex: number = 0;
   activetabType: string;
@@ -134,6 +143,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.page = this.dataTableObj[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
     this.tabChanged.emit(this.activetabType);
+    this.initPermissionAction()
   }
 
   reInitStatut() {
@@ -236,6 +246,38 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.table.offset = Math.floor(index_row_selected / this.table._limit);
   }
 
+  initPermissionAction() {
+    let objectType: ObjectsPermissionMonitorings | string;
+    let objectTypeChild: ObjectsPermissionMonitorings | string;
+    switch (this.activetabType) {
+      case 'sites_group':
+        objectType = ObjectsPermissionMonitorings.GNM_GRP_SITES;
+        objectTypeChild = ObjectsPermissionMonitorings.GNM_SITES;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
+        break;
+      case 'site':
+        objectType = ObjectsPermissionMonitorings.GNM_SITES;
+        objectTypeChild = 'visit';
+        this.canCreateChild = true;
+        break;
+      case 'visit':
+        objectType = 'visit';
+        objectTypeChild = 'undefined';
+        this.canCreateObj = true;
+        this.canCreateChild = true;
+        break;
+      default:
+        objectType = 'undefined';
+        objectTypeChild = 'undefined';
+        this.canCreateObj = false;
+        this.canCreateChild = false;
+    }
+
+    if (!['undefined','visit'].includes(objectType)) {
+      this.canCreateObj = this.permission[objectType].canCreate ? true : false;
+    }
+  }
+
   ngOnDestroy() {
     this.filterSubject.unsubscribe();
     if (this.subscription) {
@@ -269,12 +311,14 @@ export class MonitoringDatatableGComponent implements OnInit {
         : null;
       this.rows = this.dataTableObj[this.activetabType].rows;
       this.page = this.dataTableObj[this.activetabType].page;
+      this.initPermissionAction();
     }
 
     if (changes['rows'] && this.rows && this.rows.length > 0) {
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
       this.rows = this.dataTableObj[this.activetabType].rows;
       this.page = this.dataTableObj[this.activetabType].page;
+      this.initPermissionAction();
     }
 
     for (const propName of Object.keys(changes)) {

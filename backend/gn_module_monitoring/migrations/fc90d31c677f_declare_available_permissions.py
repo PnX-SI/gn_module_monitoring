@@ -20,6 +20,17 @@ def upgrade():
     op.execute(
         """
         INSERT INTO
+            gn_permissions.t_objects(
+            code_object,
+            description_object
+            )
+        VALUES
+            ('TYPES_SITES','Types de sites à associer aux protocoles du module MONITORINGS')
+        """
+    )
+    op.execute(
+        """
+        INSERT INTO
             gn_permissions.t_permissions_available (
                 id_module,
                 id_object,
@@ -37,9 +48,18 @@ def upgrade():
             (
                 VALUES
                     ('MONITORINGS', 'ALL', 'R', False, 'Accéder au module'),
-                    ('MONITORINGS', 'ALL', 'C', False, 'Creation de types de site'),
-                    ('MONITORINGS', 'ALL', 'U', False, 'Edition de types de site'),
-                    ('MONITORINGS', 'ALL', 'D', False, 'Suppression de types de site')
+                    ('MONITORINGS', 'TYPES_SITES', 'R', False, 'Accéder aux types de site'),
+                    ('MONITORINGS', 'TYPES_SITES', 'C', False, 'Créer des types de site'),
+                    ('MONITORINGS', 'TYPES_SITES', 'U', False, 'Modifier des types de site'),
+                    ('MONITORINGS', 'TYPES_SITES', 'D', False, 'Supprimer des types de site'),
+                    ('MONITORINGS', 'GNM_SITES', 'R', True, 'Accéder aux sites'),
+                    ('MONITORINGS', 'GNM_SITES', 'C', True, 'Créer des sites'),
+                    ('MONITORINGS', 'GNM_SITES', 'U', True, 'Modifier des sites'),
+                    ('MONITORINGS', 'GNM_SITES', 'D', True, 'Supprimer des sites'),
+                    ('MONITORINGS', 'GNM_GRP_SITES', 'R', True, 'Accéder aux groupes de sites'),
+                    ('MONITORINGS', 'GNM_GRP_SITES', 'C', True, 'Créer des groupes de sites'),
+                    ('MONITORINGS', 'GNM_GRP_SITES', 'U', True, 'Modifier des groupes de sites'),
+                    ('MONITORINGS', 'GNM_GRP_SITES', 'D', True, 'Supprimer des groupes de sites')
             ) AS v (module_code, object_code, action_code, scope_filter, label)
         JOIN
             gn_commons.t_modules m ON m.module_code = v.module_code

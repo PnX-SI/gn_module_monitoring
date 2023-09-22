@@ -3,16 +3,14 @@ import { Utils } from '../utils/utils';
 import { Observable, of } from 'rxjs';
 import { forkJoin } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
-import { threadId } from 'worker_threads';
-
 export class MonitoringObjectBase {
   moduleCode: string;
   objectType: string;
   id: number; // id de l'objet
-
+  cruved:Object;
   parentsPath = [];
 
-  userCruved;
+
   userCruvedObject;
   deleted = false;
 
@@ -124,7 +122,6 @@ export class MonitoringObjectBase {
   }
 
   setData(data) {
-    this.userCruved = data.cruved;
     this.userCruvedObject = data.cruved_objects;
     this.properties = data.properties || {};
     this.geometry = data.geometry;
@@ -132,6 +129,7 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
+    this.cruved = data.cruved
   }
 
   idFieldName() {
@@ -198,10 +196,6 @@ export class MonitoringObjectBase {
       .configModuleObjectParam(this.moduleCode, this.objectType, fieldName);
   }
 
-  cruved(c = null) {
-    const cruved = this.configParam('cruved') || {};
-    return c ? (![undefined, null].includes(cruved[c]) ? cruved[c] : 1) : cruved;
-  }
 
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];

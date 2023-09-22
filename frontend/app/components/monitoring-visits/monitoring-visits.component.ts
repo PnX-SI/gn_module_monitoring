@@ -23,6 +23,8 @@ import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
 import { setPopup } from '../../functions/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { PermissionService } from '../../services/permission.service';
+import { TPermission } from '../../types/permission';
 
 @Component({
   selector: 'monitoring-visits',
@@ -68,6 +70,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   currentUser: User;
+  currentPermission: TPermission;
 
   constructor(
     private _auth: AuthService,
@@ -82,7 +85,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _configService: ConfigService,
     public siteService: SitesService,
     protected _configJsonService: ConfigJsonService,
-    private _objServiceMonitoring: DataMonitoringObjectService
+    private _objServiceMonitoring: DataMonitoringObjectService,
+    private _permissionService: PermissionService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -104,79 +108,93 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   initSiteVisit() {
-    this._Activatedroute.params
+    const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
+    const $permissionUserObject = this._permissionService.currentPermissionObj;
+    $getPermissionMonitoring
       .pipe(
-        map((params) => {
-          // TODO: voir supprimer le params "edit" une fois la route initialisée
-          this.checkEditParam = params['edit'];
-          return params['id'] as number;
+        map((listObjectCruved: Object) => {
+          this._permissionService.setPermissionMonitorings(listObjectCruved);
         }),
-        tap((id: number) => {
-          this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-            id_base_site: id,
-          });
-        }),
-        mergeMap((id: number) => {
-          return forkJoin({
-            site: this.siteService.getById(id).catch((err) => {
-              if (err.status == 404) {
-                this.router.navigate(['/not-found'], { skipLocationChange: true });
-                return of(null);
-              }
+        concatMap(() =>
+          $permissionUserObject.pipe(
+            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
+          )
+        ),
+        concatMap(() =>
+          this._Activatedroute.params.pipe(
+            map((params) => {
+              // TODO: voir supprimer le params "edit" une fois la route initialisée
+              this.checkEditParam = params['edit'];
+              return params['id'] as number;
             }),
-            visits: this._visits_service.get(1, this.limit, {
-              id_base_site: id,
+            tap((id: number) => {
+              this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+                id_base_site: id,
+              });
             }),
-          }).pipe(
-            map((data) => {
-              return data;
-            })
-          );
-        }),
-        exhaustMap((data) => {
-          return forkJoin({
-            objObsSite: this.siteService.initConfig(),
-            objObsVisit: this._visits_service.initConfig(),
-          }).pipe(
-            tap((objConfig) => (this.objParent = objConfig.objObsSite)),
-            map((objConfig) => {
-              return { data, objConfig: objConfig };
-            })
-          );
-        }),
-        mergeMap(({ data, objConfig }) => {
-          return this._objService.currentObjSelected.pipe(
-            take(1),
-            map((objSelectParent: any) => {
-              return {
-                site: data.site,
-                visits: data.visits,
-                parentObjSelected: objSelectParent,
-                objConfig: objConfig,
-              };
-            })
-          );
-        }),
-        mergeMap((data) => {
-          if (isNaN(this.siteGroupIdParent)) {
-            return of(data);
-          } else {
-            return iif(
-              () => data.parentObjSelected == this.siteGroupIdParent,
-              of(data),
-              this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
-                map((objSelectParent) => {
+            mergeMap((id: number) => {
+              return forkJoin({
+                site: this.siteService.getById(id).catch((err) => {
+                  if (err.status == 404) {
+                    this.router.navigate(['/not-found'], { skipLocationChange: true });
+                    return of(null);
+                  }
+                }),
+                visits: this._visits_service.get(1, this.limit, {
+                  id_base_site: id,
+                }),
+              }).pipe(
+                map((data) => {
+                  return data;
+                })
+              );
+            }),
+            exhaustMap((data) => {
+              return forkJoin({
+                objObsSite: this.siteService.initConfig(),
+                objObsVisit: this._visits_service.initConfig(),
+              }).pipe(
+                tap((objConfig) => (this.objParent = objConfig.objObsSite)),
+                map((objConfig) => {
+                  return { data, objConfig: objConfig };
+                })
+              );
+            }),
+            mergeMap(({ data, objConfig }) => {
+              return this._objService.currentObjSelected.pipe(
+                take(1),
+                map((objSelectParent: any) => {
                   return {
                     site: data.site,
                     visits: data.visits,
                     parentObjSelected: objSelectParent,
-                    objConfig: data.objConfig,
+                    objConfig: objConfig,
                   };
                 })
-              )
-            );
-          }
-        })
+              );
+            }),
+            mergeMap((data) => {
+              if (isNaN(this.siteGroupIdParent)) {
+                return of(data);
+              } else {
+                return iif(
+                  () => data.parentObjSelected == this.siteGroupIdParent,
+                  of(data),
+                  this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
+                    map((objSelectParent) => {
+                      return {
+                        site: data.site,
+                        visits: data.visits,
+                        parentObjSelected: objSelectParent,
+                        objConfig: data.objConfig,
+                      };
+                    })
+                  )
+                );
+              }
+            })
+          )
+        )
       )
       .subscribe((data) => {
         this._objService.changeSelectedObj(data.site, true);

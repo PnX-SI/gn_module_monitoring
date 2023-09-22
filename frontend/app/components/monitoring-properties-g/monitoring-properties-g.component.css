@@ -30,3 +30,8 @@ td {
 ::ng-deep .cdk-overlay-container {
   z-index: 99999 !important;
 }
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}

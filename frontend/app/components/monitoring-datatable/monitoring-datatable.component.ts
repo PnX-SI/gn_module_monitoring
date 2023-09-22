@@ -15,6 +15,7 @@ import { Subject } from 'rxjs';
 import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
 import { CommonService } from '@geonature_common/service/common.service';
 import { ObjectService } from '../../services/object.service';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -53,6 +54,8 @@ export class MonitoringDatatableComponent implements OnInit {
   rowSelected;
   bDeleteModal: boolean = false;
   bDeleteSpinner: boolean = false;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  canCreateChild:boolean =false;
 
   constructor(
     private _monitoring: MonitoringObjectService,
@@ -62,6 +65,13 @@ export class MonitoringDatatableComponent implements OnInit {
 
   ngOnInit() {
     this.initDatatable();
+    this.initPermission();
+  }
+
+  initPermission(){
+    // TODO: Attention ici l'ajout avec l'icon ne se fait que sur un enfant (si plusieurs enfants au même niveau , le premier sera pris pour le moment)
+  const childrenType = this.child0.config.children_types[0]
+  this.canCreateChild = this.currentUser?.moduleCruved[childrenType]["C"]
   }
 
   initDatatable() {

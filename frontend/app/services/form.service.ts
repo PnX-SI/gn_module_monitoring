@@ -100,7 +100,7 @@ export class FormService {
       concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        if (obj.config['geometry_type']) {
+        if ('config' in obj && obj.config['geometry_type']) {
           // TODO: change null by the geometry load from the object (if edit) or null if create
           // formValues["geometry"] = this.geometry; // copy???
           formValues['geometry'] = obj.geometry; // copy???

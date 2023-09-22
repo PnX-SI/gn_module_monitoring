@@ -101,15 +101,14 @@
       mat-stroked-button
       color="primary"
       class="mr-2"
-      (click)="onEditClick()"
-      *ngIf="
-        !bEdit &&
-        currentUser?.moduleCruved[obj.objectType].U >= 1
-      "
+      (click)="initPermission() ? onEditClick() : null"
+      *ngIf="!bEdit"
+      [matTooltip]="initPermission() ? null : toolTipNotAllowed"
+      [disabled]="!initPermission()"
     >
       Éditer {{ obj.template['label_art_def'] || '' }}
     </button>
-
+ <!-- CHECK currentUser?.moduleCruved[obj.objectType].U >= 1 -->
     <!-- export pdf -->
     <span  *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])">
       <button

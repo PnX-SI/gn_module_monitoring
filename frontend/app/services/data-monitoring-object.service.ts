@@ -18,12 +18,19 @@ export class DataMonitoringObjectService {
     private _config: ConfigService
   ) {}
 
+  /**
+   * Renvoie la liste des cruved object liés à Monitorings et de l'utilisateur connecté
+   */
+  getCruvedMonitoring() {
+    return this._cacheService.request('get', `cruved_object`);
+  }
+
   /** Modules */
 
   /**
    * Renvoie la liste des modules
    */
-  getModules() {
+  getModules(): Array<any> {
     return this._cacheService.request('get', `modules`);
   }
 

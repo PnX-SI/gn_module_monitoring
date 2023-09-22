@@ -64,6 +64,7 @@ class MonitoringObjectBase:
     _model = None
     _children = {}
     _parent = None
+    cruved = {}
 
     def __init__(self, module_code, object_type, id=None, model=None):
         self._module_code = module_code
