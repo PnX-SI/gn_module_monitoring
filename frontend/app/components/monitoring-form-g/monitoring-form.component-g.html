@@ -118,7 +118,7 @@
             mat-raised-button
             color="primary"
             class="float-right"
-            (click)="canUpdate ? onSubmit() : notAllowedMessage()"
+            (click)="canCreateOrUpdate ? onSubmit() : notAllowedMessage()"
             [disabled]="isExtraForm ? (objForm.dynamic.status == 'INVALID' || extraFormCtrl?.frmCtrl.status == 'INVALID' || objForm.static.status == 'INVALID') : objForm.static.status == 'INVALID'  "
           >
             <span
