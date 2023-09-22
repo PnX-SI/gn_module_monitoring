@@ -207,7 +207,10 @@ def get_objet_with_permission_boolean(objects, depth: int = 0, module_code=None,
        id_role =  g.current_user.id_role
     objects_out = []
     for object in objects:
-        cruved_object = object.query._get_cruved_scope(object_code=object_code)
+        if hasattr(object,"module"):
+            cruved_object = object.query._get_cruved_scope(module_code=object.module.module_code,object_code=object_code)
+        else:
+            cruved_object = object.query._get_cruved_scope(object_code=object_code)
         object_out = object.as_dict(depth=depth)
         if hasattr(object, "module_code"):
             object_out["cruved"] = object.get_permission_by_action(module_code=object.module_code,object_code=object_code)

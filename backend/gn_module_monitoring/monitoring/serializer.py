@@ -98,7 +98,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_cruved_by_object(self):
         list_model =[]
         list_model.append(self._model)
-        if isinstance(list_model[0],PermissionModel) and not isinstance(list_model[0],TMonitoringModules):
+        if isinstance(list_model[0],PermissionModel) and not isinstance(list_model[0],TMonitoringModules) and self._module_code != 'generic':
             id_name = list_model[0].get_id_name()   
             cruved_item_dict = get_objet_with_permission_boolean(list_model, object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type])
             for cruved_item in cruved_item_dict:
