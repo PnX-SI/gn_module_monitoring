@@ -231,7 +231,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 0;
           this.currentRoute = 'sites_group';
-          this.router.navigate(['/monitorings/sites_group', { delete: true }]);
+          this.router.navigate(['/monitorings/sites_group', { delete: true }],{ onSameUrlNavigation: 'reload' });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
           this.updateBreadCrumb();
           this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
@@ -244,7 +244,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 1;
           this.currentRoute = 'sites';
-          this.router.navigate(['/monitorings/sites', { delete: true }]);
+          this.router.navigate(['/monitorings/sites', { delete: true }],{ onSameUrlNavigation: 'reload' });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
           this.updateBreadCrumb();
           this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { tap, mergeMap, map, take, switchMap, concatMap, takeUntil } from 'rxjs/operators';
+import { tap, mergeMap, map, take, switchMap, concatMap, takeUntil, distinctUntilChanged, } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -73,8 +73,10 @@ export class MonitoringFormComponentG implements OnInit {
   public chainShow = [];
   public queryParams = {};
 
-  canDelete:boolean;
-  canUpdate:boolean;
+  canDelete:boolean=false;
+  canUpdate:boolean=false;
+  canCreateOrUpdate:boolean=false;
+
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(
     private _formBuilder: FormBuilder,
@@ -124,16 +126,16 @@ export class MonitoringFormComponentG implements OnInit {
 
     this._formService.currentData
       .pipe(
+        distinctUntilChanged((prev, curr) => prev['pk'] === curr['pk']),
         takeUntil(this.destroyed$),
         tap((data) => {
           this.obj = data;
           this.obj.id = this.obj[this.obj.pk];
-          this.initPermission()
+          this.initPermission();
         }),
         concatMap((data: any) => this._configService.init(data.moduleCode)),
         concatMap((data) => {
           return this.apiService.getConfig().pipe(
-            take(1),
             map((prop) => {
               this.prop = prop;
               return { prop: prop };
@@ -153,6 +155,7 @@ export class MonitoringFormComponentG implements OnInit {
         })
       )
       .subscribe((data) => {
+        console.log(data.prop)
         this.initObj(data.prop);
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
@@ -178,13 +181,15 @@ export class MonitoringFormComponentG implements OnInit {
         Object.keys(this.objFormsDefinition).forEach((key) => {
           let configType: string;
           key == 'static' ? (configType = 'generic') : (configType = 'specific');
+          
+          this.obj.config ? 
           this.objFormsDefinition[key] = this._dynformService
             .formDefinitionsdictToArray(this.obj[configType], this.meta)
             .filter((formDef) => formDef.type_widget)
             .sort((a, b) => {
               // medias à la fin
               return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
-            });
+            }): null
         });
 
         // display_form pour customiser l'ordre dans le formulaire
@@ -212,7 +217,7 @@ export class MonitoringFormComponentG implements OnInit {
 
         this.isExtraForm ? this.addExtraFormCtrl(data['frmCtrl']) : null;
         // set geometry
-        if (this.obj.config['geometry_type']) {
+        if (this.obj.config && this.obj.config['geometry_type']) {
           let frmCtrlGeom = {
             frmCtrl: this._formBuilder.control('', Validators.required),
             frmName: 'geometry',
@@ -281,7 +286,7 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   initValueFormDynamic() {
-    if (!(this.objForm.dynamic && this.obj.bIsInitialized)) {
+    if (!(this.objForm.dynamic && this.obj.bIsInitialized && this.obj.config)) {
       return;
     }
 
@@ -424,8 +429,17 @@ export class MonitoringFormComponentG implements OnInit {
         : [objectType, id].filter((s) => !!s);
     const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
+    const urlRelative = this.obj.urlRelative ? true : false
+    if (urlRelative){
+      this._router.navigateByUrl(urlPathDetail) 
+    } else {
+      const urlTree = this._router.parseUrl(this._router.url);
+      const urlWithoutParams = urlTree.root.children['primary'].segments
+        .map((it) => it.path)
+        .join('/');
+      this._router.navigate([urlWithoutParams]);
+    } 
     this.bEditChange.emit(false);
-    this.obj.urlRelative ? this._router.navigateByUrl(urlPathDetail) : null;
   }
 
   /**
@@ -515,12 +529,12 @@ export class MonitoringFormComponentG implements OnInit {
 
   onDelete() {
     this.bDeleteSpinner = true;
-    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
     // : this.obj.post(this.objForm.value);
     this.apiService.delete(this.obj.id).subscribe((del) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.objChanged.emit('deleted');
       setTimeout(() => {
+        this._commonService.regularToaster('info', this.msgToaster('Suppression'));
         this.navigateToParentAfterDelete();
       }, 100);
     });
@@ -697,8 +711,10 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   initPermission(){
-    this.canDelete = this.obj.cruved['D']
-    this.canUpdate = this.obj.cruved['U']
+    !this.bEdit ? this.canCreateOrUpdate = true :
+    (this.canDelete = this.obj.cruved['D'],
+    this.canCreateOrUpdate = this.canUpdate = this.obj.cruved['U'])
+    
   }
 
   notAllowedMessage(){
