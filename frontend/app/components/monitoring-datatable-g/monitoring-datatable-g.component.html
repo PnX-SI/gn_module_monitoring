@@ -51,9 +51,12 @@
               <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
               <button
                 mat-raised-button
+                [disabled]="!canCreateObj"
                 color="primary"
+                [ngClass]="{ isDisableBtn: !canCreateObj }" 
                 class="btn btn-success float-right"
-                (click)="navigateToAddObj()"
+                (click)="canCreateObj ? navigateToAddObj() : null"
+                [matTooltip]="canCreateObj ? null : toolTipNotAllowed"
               >
                 <i class="fa fa-plus" aria-hidden="true"></i> {{ dataTableArray[i].addObjLabel }}
               </button>
@@ -108,11 +111,18 @@
                   >
                     <ng-container *ngIf="!dataTableArray[i].addChildLabel.includes('observation')">
                       <a
+                        [ngClass]="{ isDisableBtn: !canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="navigateToAddChildren(null, row)"
-                        matTooltip=" {{ dataTableArray[i].addChildLabel }}"
+                        (click)="canCreateChild ? navigateToAddChildren(null, row) : null"
+                        [matTooltip]="
+                          canCreateChild ? dataTableArray[i].addChildLabel : toolTipNotAllowed
+                        "
                       >
-                        <i class="fa fa-plus" aria-hidden="true"></i>
+                        <i
+                          [ngClass]="{ isDisableIcon: !canCreateChild }"
+                          class="fa fa-plus"
+                          aria-hidden="true"
+                        ></i>
                       </a>
                     </ng-container>
                   </ng-template>
@@ -128,22 +138,36 @@
                   </ng-template>
                   <!--  -->
                   <a
+                    [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
                     class="nav-link link cell-link"
-                    (click)="editSelectedItem(row)"
-                    matTooltip="{{ dataTableArray[i].editObjLabel }}"
+                    (click)="row.cruved['U'] ? editSelectedItem(row) : null"
+                    [matTooltip]="
+                      row.cruved['U'] ? dataTableArray[i].editObjLabel : toolTipNotAllowed
+                    "
                   >
-                    <i class="fa fa-edit" aria-hidden="true"></i>
+                    <i
+                      [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
+                      class="fa fa-edit"
+                      aria-hidden="true"
+                    ></i>
                   </a>
 
                   <ng-container
                     *ngIf="dataTableArray[i].objectType == 'visit' ? true : row['nb_visits'] == 0"
                   >
                     <a
+                      [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
                       class="nav-link link cell-link"
-                      (click)="alertMessage(row)"
-                      matTooltip="{{ dataTableArray[i].deleteObjLabel }}"
+                      (click)="row.cruved['D'] ? alertMessage(row) : null"
+                      [matTooltip]="
+                        row.cruved['D'] ? dataTableArray[i].deleteObjLabel : toolTipNotAllowed
+                      "
                     >
-                      <i class="fa fa-trash" aria-hidden="true"></i>
+                      <i
+                        [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
+                        class="fa fa-trash"
+                        aria-hidden="true"
+                      ></i>
                     </a>
                   </ng-container>
                 </ng-template>

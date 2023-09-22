@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReplaySubject, forkJoin, of } from 'rxjs';
-import { tap, map, mergeMap, takeUntil } from 'rxjs/operators';
+import { tap, map, mergeMap, takeUntil, switchMap, concatMap } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { IDataTableObj, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
@@ -19,6 +19,9 @@ import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { TPermission } from '../../types/permission';
+import { PermissionService } from '../../services/permission.service';
 
 const LIMIT = 10;
 
@@ -57,6 +60,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   currentUser: User;
+  currentPermission: TPermission;
 
   constructor(
     private _auth: AuthService,
@@ -69,7 +73,9 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private _configJsonService: ConfigJsonService,
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
-    private _formService: FormService
+    private _formService: FormService,
+    private _dataMonitoringObjectService: DataMonitoringObjectService,
+    private _permissionService: PermissionService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -86,45 +92,59 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   initSite() {
-    this._Activatedroute.params
+    const $getPermissionMonitoring = this._dataMonitoringObjectService.getCruvedMonitoring();
+    const $permissionUserObject = this._permissionService.currentPermissionObj;
+    $getPermissionMonitoring
       .pipe(
-        map((params) => {
-          // TODO: voir supprimer le params "edit" une fois la route initialisée
-          this.checkEditParam = params['edit'];
-          return params['id'] as number;
+        map((listObjectCruved: Object) => {
+          this._permissionService.setPermissionMonitorings(listObjectCruved);
         }),
-        tap((id: number) => {
-          this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-            id_sites_group: id,
-          });
-        }),
-        mergeMap((id: number) => {
-          return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
-              if (err.status == 404) {
-                this.router.navigate(['/not-found'], { skipLocationChange: true });
-                return of(null);
-              }
+        concatMap(() =>
+          $permissionUserObject.pipe(
+            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
+          )
+        ),
+        concatMap(() =>
+          this._Activatedroute.params.pipe(
+            map((params) => {
+              // TODO: voir supprimer le params "edit" une fois la route initialisée
+              this.checkEditParam = params['edit'];
+              return params['id'] as number;
             }),
-            sites: this._sitesGroupService.getSitesChild(1, this.limit, {
-              id_sites_group: id,
+            tap((id: number) => {
+              this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+                id_sites_group: id,
+              });
             }),
-          }).pipe(
-            map((data) => {
-              return data;
+            mergeMap((id: number) => {
+              return forkJoin({
+                sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
+                  if (err.status == 404) {
+                    this.router.navigate(['/not-found'], { skipLocationChange: true });
+                    return of(null);
+                  }
+                }),
+                sites: this._sitesGroupService.getSitesChild(1, this.limit, {
+                  id_sites_group: id,
+                }),
+              }).pipe(
+                map((data) => {
+                  return data;
+                })
+              );
+            }),
+            mergeMap((data) => {
+              return forkJoin({
+                objObsSite: this._siteService.initConfig(),
+                objObsSiteGp: this._sitesGroupService.initConfig(),
+              }).pipe(
+                map((objObs) => {
+                  return { data, objectObs: objObs };
+                })
+              );
             })
-          );
-        }),
-        mergeMap((data) => {
-          return forkJoin({
-            objObsSite: this._siteService.initConfig(),
-            objObsSiteGp: this._sitesGroupService.initConfig(),
-          }).pipe(
-            map((objObs) => {
-              return { data, objectObs: objObs };
-            })
-          );
-        })
+          )
+        )
       )
       .subscribe(({ data, objectObs }) => {
         this._objService.changeSelectedObj(data.sitesGroup, true);

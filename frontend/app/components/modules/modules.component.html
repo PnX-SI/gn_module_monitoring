@@ -14,9 +14,18 @@
     <div class="col-md-4 col-sm-12 des-module">{{ description }}</div>
     <!-- <div class="w-100 d-none d-sm-block"></div> -->
     <div class="btn-module col-md-8 col-sm-12 text-center">
-      <button class="btn btn-success mr-2" [routerLink]="'sites_group'" *ngIf="currentUser">
-        Accès aux sites
-      </button>
+      <div [matTooltip]="toolTipNotAllowed" [matTooltipDisabled]="canAccessSite">
+        <button
+          mat-flat-button
+          color="primary"
+          [ngClass]="{ isDisableBtn: !canAccessSite }"
+          [disabled]="!canAccessSite"
+          [routerLink]="'sites_group'"
+          *ngIf="currentUser"
+        >
+          Accès aux sites
+        </button>
+      </div>
       <div class="container py-5 border rounded m-2">
         <h3>Liste des protocoles</h3>
         <div class="row row-eq-height" style="overflow-x: auto">

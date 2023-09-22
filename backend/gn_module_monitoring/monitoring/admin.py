@@ -48,7 +48,7 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
     """
 
     module_code = "MONITORINGS"
-    object_code = None
+    object_code = "TYPES_SITES"
 
     def __init__(self, session, **kwargs):
         # Référence au model utilisé

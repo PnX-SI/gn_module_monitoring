@@ -13,6 +13,7 @@ import { FormService } from '../../services/form.service';
 import { IExtraForm } from '../../interfaces/object';
 import { JsonData } from '../../types/jsondata';
 import { Observable, ReplaySubject, Subject, of } from 'rxjs';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -72,6 +73,9 @@ export class MonitoringFormComponentG implements OnInit {
   public chainShow = [];
   public queryParams = {};
 
+  canDelete:boolean;
+  canUpdate:boolean;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(
     private _formBuilder: FormBuilder,
     private _route: ActivatedRoute,
@@ -124,6 +128,7 @@ export class MonitoringFormComponentG implements OnInit {
         tap((data) => {
           this.obj = data;
           this.obj.id = this.obj[this.obj.pk];
+          this.initPermission()
         }),
         concatMap((data: any) => this._configService.init(data.moduleCode)),
         concatMap((data) => {
@@ -149,7 +154,6 @@ export class MonitoringFormComponentG implements OnInit {
       )
       .subscribe((data) => {
         this.initObj(data.prop);
-
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
           this.obj.objectType
@@ -247,7 +251,7 @@ export class MonitoringFormComponentG implements OnInit {
   /** initialise le formulaire quand le formulaire est prêt ou l'object est prêt */
 
   initForm() {
-    if (!(this.objForm.static && this.obj.bIsInitialized)) {
+    if (!(this.objForm.static && this.obj.bIsInitialized && this.obj.config)) {
       return;
     }
 
@@ -450,7 +454,8 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   /** TODO améliorer site etc.. */
-  onSubmit() {
+  onSubmit(isAddChildrend=false) {
+    isAddChildrend ? this.bSaveAndAddChildrenSpinner = this.bAddChildren = true : this.bSaveSpinner = true;  
     const { patch_update, ...sendValue } = this.dataForm;
     const objToUpdateOrCreate = this._formService.postData(sendValue, this.obj);
     const action = this.obj.id
@@ -689,6 +694,18 @@ export class MonitoringFormComponentG implements OnInit {
         // medias à la fin
         return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
       });
+  }
+
+  initPermission(){
+    this.canDelete = this.obj.cruved['D']
+    this.canUpdate = this.obj.cruved['U']
+  }
+
+  notAllowedMessage(){
+    this._commonService.translateToaster(
+      'warning',
+      "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
+    );
   }
 
   ngOnDestroy() {
