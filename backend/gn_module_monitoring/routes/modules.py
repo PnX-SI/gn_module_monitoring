@@ -8,7 +8,7 @@ from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
 from ..blueprint import blueprint
 from ..utils.utils import to_int
 
-from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.core.gn_permissions.tools import get_scopes_by_action, has_any_permissions_by_action
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
@@ -19,7 +19,10 @@ from ..modules.repositories import (
     get_modules,
 )
 from ..config.repositories import get_config
-from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
+from gn_module_monitoring.utils.routes import (
+    query_all_types_site_from_module_id,
+    get_object_list_monitorings,
+)
 
 
 @blueprint.route("/module/<value>", methods=["GET"])
@@ -43,6 +46,23 @@ def get_module_api(value):
         module_out["cruved"] = get_scopes_by_action(module_code=module.module_code)
 
     return module_out
+
+
+@blueprint.route("/cruved_object", methods=["GET"])
+@check_cruved_scope("R", module_code=MODULE_CODE)
+def get_cruved_monitorings():
+    """
+    Renvoie la liste des modules de suivi
+    """
+    dic_object_cruved = {}
+    object_list_tuples = get_object_list_monitorings()
+    object_list = [value for (value,) in object_list_tuples]
+    for object in object_list:
+        dic_object_cruved[object] = has_any_permissions_by_action(
+            module_code=MODULE_CODE, object_code=object
+        )
+
+    return dic_object_cruved
 
 
 @blueprint.route("/modules", methods=["GET"])

@@ -64,3 +64,18 @@
 .hide-spinner {
   display: none;
 }
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}
+
+.isDisableBtn {
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.isDisableIcon {
+  opacity: 90%;
+  color: gray;
+}

@@ -99,8 +99,10 @@
       mat-stroked-button
       color="primary"
       class="mr-2"
-      (click)="onEditClick()"
-      *ngIf="!bEdit && currentUser?.moduleCruved[obj.objectType].U >= obj.cruved('U')"
+      (click)="initPermission() ? onEditClick() : null"
+      *ngIf="!bEdit"
+      [matTooltip]="initPermission() ? null : toolTipNotAllowed"
+      [disabled]="!initPermission()"
     >
       Éditer {{ obj.template['label_art_def'] || '' }}
     </button>

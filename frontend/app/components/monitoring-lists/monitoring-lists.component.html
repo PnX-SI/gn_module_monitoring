@@ -15,20 +15,21 @@
               (click)="child0.config['display_filter'] = !child0.config['display_filter']"
               matTooltip="{{ child0.config['display_filter'] ? 'Cacher' : 'Afficher' }} les filtres"
               *ngIf="
-                obj.moduleCode &&
-                currentUser.moduleCruved[child0.objectType].R >= child0.cruved('R')
+                obj.moduleCode
               "
             >
               <mat-icon>filter_alt</mat-icon>
             </button>
             <button
               mat-raised-button
+              [disabled]="!canCreateChild[child0.objectType]"
               color="primary"
+              [ngClass]="{ isDisableBtn: !canCreateChild[child0.objectType] }" 
               class="btn btn-success float-right"
-              (click)="obj.navigateToAddChildren(child0.objectType)"
+              (click)="canCreateChild[child0.objectType] ? obj.navigateToAddChildren(child0.objectType) : null"
+              [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
               *ngIf="
-                obj.moduleCode &&
-                currentUser.moduleCruved[child0.objectType].C >= child0.cruved('C')
+                obj.moduleCode
               "
             >
               <i class="fa fa-plus" aria-hidden="true"></i> Ajouter

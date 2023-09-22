@@ -8,6 +8,7 @@ import html2canvas from 'html2canvas';
 import { MapService } from '@geonature_common/map/map.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-properties',
@@ -28,6 +29,10 @@ export class MonitoringPropertiesComponent implements OnInit {
   public modalReference;
   selectedDataSet: Array<number> = [];
 
+  canUpdateObj: boolean;
+
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
   constructor(
     private _configService: ConfigService,
     public ms: MediaService,
@@ -39,6 +44,11 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   ngOnInit() {
     this.backendUrl = this._configService.backendUrl();
+  }
+
+  initPermission() {
+    this.canUpdateObj =  this.obj.objectType == 'module' ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0 : this.obj.cruved['U'] 
+    return this.canUpdateObj
   }
 
   onEditClick() {

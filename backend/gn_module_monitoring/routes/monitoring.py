@@ -5,7 +5,7 @@
 
 
 from pathlib import Path
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Forbidden
 from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
@@ -18,7 +18,7 @@ from utils_flask_sqla.generic import serializeQuery
 
 
 from ..blueprint import blueprint
-
+from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
 from geonature.core.gn_permissions.models import TObjects, Permission
@@ -79,7 +79,8 @@ def set_current_module(endpoint, values):
 )
 @check_cruved_scope("R")
 @json_resp
-def get_monitoring_object_api(module_code=None, object_type="module", id=None):
+@permissions.check_cruved_scope("R", get_scope=True)
+def get_monitoring_object_api(scope, module_code=None, object_type="module", id=None):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -96,6 +97,15 @@ def get_monitoring_object_api(module_code=None, object_type="module", id=None):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
+
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
+
     if id != None and object_type == "site":
         types_site_obj = query_all_types_site_from_site_id(id)
         list_types_sites_dict = [
@@ -111,8 +121,6 @@ def get_monitoring_object_api(module_code=None, object_type="module", id=None):
         get_config(module_code, force=True, customSpecConfig=customConfig)
     else:
         get_config(module_code, force=True)
-
-    depth = to_int(request.args.get("depth", 1))
 
     return (
         monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
@@ -234,7 +242,16 @@ def get_config_object(module_code, object_type, id):
 )
 @check_cruved_scope("U")
 @json_resp
-def update_object_api(module_code, object_type, id):
+@permissions.check_cruved_scope("U", get_scope=True)
+def update_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
+
     customConfig = {"specific": {}}
     post_data = dict(request.get_json())
     if "dataComplement" in post_data:
@@ -284,7 +301,16 @@ def create_object_api(module_code, object_type, id):
 )
 @check_cruved_scope("D")
 @json_resp
-def delete_object_api(module_code, object_type, id):
+@permissions.check_cruved_scope("D", get_scope=True)
+def delete_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
+
     if object_type in ("site", "sites_group"):
         raise Exception(
             f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"

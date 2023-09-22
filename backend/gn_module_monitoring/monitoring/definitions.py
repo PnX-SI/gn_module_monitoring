@@ -40,7 +40,7 @@ MonitoringObjects_dict = {
 MonitoringPermissions_dict = {
     "site": "GNM_SITES",
     "sites_group": "GNM_GRP_SITES",
-    "visite": "GNM_VISITES",
+    "visit": "GNM_VISITES",
     "observation": "GNM_OBSERVATIONS",
     "module": "GNM_MODULES",
 }

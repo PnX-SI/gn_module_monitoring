@@ -1,12 +1,16 @@
 import { Utils } from './../../utils/utils';
 import { Component, OnInit } from '@angular/core';
-import { mergeMap } from 'rxjs/operators';
+import { concatMap, map, mergeMap } from 'rxjs/operators';
 
 /** services */
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 import { get } from 'https';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { TPermission } from '../../types/permission';
+import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
+import { PermissionService } from '../../services/permission.service';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-modules',
@@ -15,6 +19,21 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 })
 export class ModulesComponent implements OnInit {
   currentUser: User;
+  canAccessSite: boolean = false;
+  currentPermission: TPermission = {
+    [ObjectsPermissionMonitorings.GNM_GRP_SITES]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    [ObjectsPermissionMonitorings.GNM_SITES]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+  };
 
   description: string;
   titleModule: string;
@@ -28,10 +47,13 @@ export class ModulesComponent implements OnInit {
 
   bLoading = false;
 
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
   constructor(
     private _auth: AuthService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _configService: ConfigService
+    private _configService: ConfigService,
+    private _permissionService: PermissionService
   ) {}
 
   ngOnInit() {
@@ -39,7 +61,19 @@ export class ModulesComponent implements OnInit {
     this._configService
       .init()
       .pipe(
-        mergeMap(
+        concatMap(() =>
+          this._dataMonitoringObjectService.getCruvedMonitoring().pipe(
+            map((listObjectCruved: Object) => {
+              this._permissionService.setPermissionMonitorings(listObjectCruved);
+            })
+          )
+        ),
+        concatMap(() =>
+          this._permissionService.currentPermissionObj.pipe(
+            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
+          )
+        ),
+        concatMap(
           this._dataMonitoringObjectService.getModules.bind(this._dataMonitoringObjectService)
         )
       )
@@ -55,6 +89,9 @@ export class ModulesComponent implements OnInit {
         this.bLoading = false;
         this.description = this._configService.descriptionModule();
         this.titleModule = this._configService.titleModule();
+
+        this.canAccessSite =
+          this.currentPermission.GNM_SITES.canRead || this.currentPermission.GNM_GRP_SITES.canRead;
       });
 
     this.currentUser = this._auth.getCurrentUser();

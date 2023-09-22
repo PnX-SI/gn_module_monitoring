@@ -90,7 +90,7 @@
           color="primary"
           *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
           class="btn btn-success float-right"
-          (click)="bSaveAndAddChildrenSpinner = bAddChildren = true; onSubmit()"
+          (click)="canUpdate ? onSubmit(true) : notAllowedMessage()"
           [disabled]="!objForm.valid"
         >
           <span
@@ -107,7 +107,7 @@
           mat-raised-button
           color="primary"
           class="float-right"
-          (click)="bSaveSpinner = true; onSubmit()"
+          (click)="canUpdate ? onSubmit() : notAllowedMessage()"
           [disabled]="!objForm.valid || !objFormDynamic.valid"
         >
           <span
@@ -126,13 +126,13 @@
         </button>
         <button
           mat-raised-button
+          [matTooltip]="canDelete ? null : toolTipNotAllowed"
+          [disabled]="!canDelete"
           color="warn"
           class="float-left"
-          (click)="bDeleteModal = true"
+          (click)="canDelete ? bDeleteModal = true : null"
           *ngIf="
-            obj.id &&
-            currentUser.moduleCruved[obj.objectType].D >= obj.cruved('D') &&
-            !obj.objectType.includes('site', 'sites_group')
+            obj.id
           "
         >
           Supprimer
