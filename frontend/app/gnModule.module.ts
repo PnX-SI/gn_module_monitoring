@@ -99,6 +99,7 @@ const routes: Routes = [
         resolve: {
           data: SitesGroupsReslver,
         },
+        runGuardsAndResolvers: 'always',
       },
       {
         path: 'create',
@@ -167,6 +168,7 @@ const routes: Routes = [
         resolve: {
           data: SitesGroupsReslver,
         },
+        runGuardsAndResolvers: 'always'
       },
       {
         path: 'create',
