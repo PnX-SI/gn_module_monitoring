@@ -421,7 +421,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
     query_class = SitesGroupsQuery
 
     id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
-
     id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
 
     digitiser = DB.relationship(
