@@ -1,7 +1,7 @@
 """Add digitiser to t_sites_groups
 
 Revision ID: e2b66850b5ee
-Revises: fc90d31c677f
+Revises: e78003460441
 Create Date: 2023-09-11 12:17:17.280948
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "e2b66850b5ee"
-down_revision = "2003e18f248a"
+down_revision = "e78003460441"
 branch_labels = None
 depends_on = None
 
