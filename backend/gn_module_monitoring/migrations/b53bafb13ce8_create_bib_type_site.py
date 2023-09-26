@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "b53bafb13ce8"
-down_revision = "e78003460441"
+down_revision = "126aca9e5503"
 branch_labels = None
 depends_on = None
 
@@ -62,6 +62,12 @@ def upgrade():
         schema=monitorings_schema,
     )
 
+    # Récupération de la liste des types de site avec ceux déja présents dans la table t_base_site
+    op.execute("""
+        INSERT INTO gn_monitoring.bib_type_site AS bts  (id_nomenclature_type_site)
+        SELECT DISTINCT id_nomenclature_type_site
+        FROM gn_monitoring.t_base_sites AS tbs ;
+    """)
 
 def downgrade():
     op.drop_table("bib_type_site", schema=monitorings_schema)
