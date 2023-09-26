@@ -51,6 +51,11 @@ def upgrade():
         schema=monitorings_schema,
     )
 
+    op.execute("""
+        INSERT INTO  gn_monitoring.cor_type_site
+        SELECT id_nomenclature_type_site , id_base_site d
+        FROM gn_monitoring.t_base_sites ;
+    """)
 
 def downgrade():
     op.drop_table("cor_type_site", schema=monitorings_schema)

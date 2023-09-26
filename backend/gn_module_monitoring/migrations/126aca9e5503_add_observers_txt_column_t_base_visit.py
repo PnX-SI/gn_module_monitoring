@@ -1,7 +1,7 @@
 """add_observers_txt_column_t_base_visit
 
 Revision ID: 126aca9e5503
-Revises: e2b66850b5ee
+Revises: a5dce2633e4c
 Create Date: 2023-09-12 11:49:24.535949
 
 """
