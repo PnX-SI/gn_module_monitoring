@@ -5,7 +5,6 @@ import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
 import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 
-
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';

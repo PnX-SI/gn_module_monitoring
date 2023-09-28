@@ -122,7 +122,11 @@ def get_sites(object_type):
 
     query_allowed = query.filter_by_readable(object_code=object_code)
     return paginate_scope(
-        query=query_allowed, schema=MonitoringSitesSchema, limit=limit, page=page,object_code=object_code
+        query=query_allowed,
+        schema=MonitoringSitesSchema,
+        limit=limit,
+        page=page,
+        object_code=object_code,
     )
     # return paginate(
     #     query=query,
@@ -142,7 +146,9 @@ def get_site_by_id(scope, id, object_type):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
     schema = MonitoringSitesSchema()
     response = schema.dump(site)
-    response['cruved']=get_objet_with_permission_boolean([site], object_code="GNM_SITES")[0]['cruved']
+    response["cruved"] = get_objet_with_permission_boolean([site], object_code="GNM_SITES")[0][
+        "cruved"
+    ]
     response["geometry"] = json.loads(response["geometry"])
     return response
 
