@@ -7,8 +7,7 @@ import logging
 from ..utils.utils import to_int
 
 from sqlalchemy.orm import joinedload
-from gn_module_monitoring.utils.routes import (
-    get_objet_with_permission_boolean)
+from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 import gn_module_monitoring.monitoring.definitions as MonitoringDef
 
@@ -42,11 +41,14 @@ class MonitoringObject(MonitoringObjectSerializer):
             self._model = req.filter(getattr(Model, field_name) == value).one()
 
             self._id = getattr(self._model, self.config_param("id_field_name"))
-            if isinstance(self._model,PermissionModel) and  not isinstance(self._model,TMonitoringModules):
-                cruved_item_dict = get_objet_with_permission_boolean([self._model], object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type])
-                self.cruved = cruved_item_dict[0]['cruved']
-
-
+            if isinstance(self._model, PermissionModel) and not isinstance(
+                self._model, TMonitoringModules
+            ):
+                cruved_item_dict = get_objet_with_permission_boolean(
+                    [self._model],
+                    object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type],
+                )
+                self.cruved = cruved_item_dict[0]["cruved"]
 
             return self
 

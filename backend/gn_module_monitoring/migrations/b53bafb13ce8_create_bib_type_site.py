@@ -63,11 +63,14 @@ def upgrade():
     )
 
     # Récupération de la liste des types de site avec ceux déja présents dans la table t_base_site
-    op.execute("""
+    op.execute(
+        """
         INSERT INTO gn_monitoring.bib_type_site AS bts  (id_nomenclature_type_site)
         SELECT DISTINCT id_nomenclature_type_site
         FROM gn_monitoring.t_base_sites AS tbs ;
-    """)
+    """
+    )
+
 
 def downgrade():
     op.drop_table("bib_type_site", schema=monitorings_schema)

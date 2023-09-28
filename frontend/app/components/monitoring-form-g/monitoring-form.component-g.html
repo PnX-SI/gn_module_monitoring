@@ -139,12 +139,12 @@
             Annuler
           </button>
           <button
-          mat-raised-button
-          [matTooltip]="canDelete ? null : toolTipNotAllowed"
-          [disabled]="!canDelete"
-          color="warn"
-          class="float-left"
-          (click)="canDelete ? bDeleteModal = true : null"
+            mat-raised-button
+            [matTooltip]="canDelete ? null : toolTipNotAllowed"
+            [disabled]="!canDelete"
+            color="warn"
+            class="float-left"
+            (click)="canDelete ? bDeleteModal = true : null"
             *ngIf="obj.id"
           >
             Supprimer

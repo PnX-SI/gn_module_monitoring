@@ -42,7 +42,7 @@ class Query(BaseQuery):
 
         return self.order_by(order_by)
 
-    def _get_cruved_scope(self, module_code=None,object_code=None, user=None):
+    def _get_cruved_scope(self, module_code=None, object_code=None, user=None):
         if user is None:
             user = g.current_user
         cruved = get_scopes_by_action(

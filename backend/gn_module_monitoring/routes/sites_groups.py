@@ -1,4 +1,4 @@
-from flask import jsonify, request,g
+from flask import jsonify, request, g
 from geonature.utils.env import db
 from marshmallow import ValidationError
 from sqlalchemy import func
@@ -22,7 +22,7 @@ from gn_module_monitoring.utils.routes import (
     paginate,
     paginate_scope,
     sort,
-    get_objet_with_permission_boolean
+    get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api_sites_sites_group,
@@ -52,7 +52,11 @@ def get_sites_groups(object_type: str):
 
     query_allowed = query.filter_by_readable(object_code=object_code)
     return paginate_scope(
-        query=query_allowed, schema=MonitoringSitesGroupsSchema, limit=limit, page=page, object_code=object_code
+        query=query_allowed,
+        schema=MonitoringSitesGroupsSchema,
+        limit=limit,
+        page=page,
+        object_code=object_code,
     )
     # return paginate(
     #     query=query,
@@ -69,14 +73,18 @@ def get_sites_groups(object_type: str):
 @permissions.check_cruved_scope(
     "R", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
 )
-def get_sites_group_by_id(scope,id_sites_group: int, object_type: str):
+def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
     sites_group = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
-        raise Forbidden(f"User {g.current_user} cannot read site group {sites_group.id_sites_group}")
+        raise Forbidden(
+            f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
+        )
     schema = MonitoringSitesGroupsSchema()
     result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
     response = schema.dump(result)
-    response['cruved']=get_objet_with_permission_boolean([result], object_code="GNM_GRP_SITES")[0]['cruved']
+    response["cruved"] = get_objet_with_permission_boolean([result], object_code="GNM_GRP_SITES")[
+        0
+    ]["cruved"]
     return jsonify(response)
 
 
@@ -113,12 +121,14 @@ def get_sites_group_geometries(object_type: str):
 @permissions.check_cruved_scope(
     "U", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
 )
-def patch(scope,_id: int, object_type: str):
+def patch(scope, _id: int, object_type: str):
     # ###############################""
     # FROM route/monitorings
     sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
     if not sites_group.has_instance_permission(scope=scope):
-        raise Forbidden(f"User {g.current_user} cannot update site group {sites_group.id_sites_group}")
+        raise Forbidden(
+            f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
+        )
 
     module_code = "generic"
     get_config(module_code, force=True)
@@ -131,10 +141,12 @@ def patch(scope,_id: int, object_type: str):
 @permissions.check_cruved_scope(
     "D", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
 )
-def delete(scope,_id: int, object_type: str):
+def delete(scope, _id: int, object_type: str):
     sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
     if not sites_group.has_instance_permission(scope=scope):
-        raise Forbidden(f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}")
+        raise Forbidden(
+            f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}"
+        )
     TMonitoringSitesGroups.query.filter_by(id_g=_id).delete()
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
