@@ -47,8 +47,11 @@ export class MonitoringPropertiesComponent implements OnInit {
   }
 
   initPermission() {
-    this.canUpdateObj =  this.obj.objectType == 'module' ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0 : this.obj.cruved['U'] 
-    return this.canUpdateObj
+    this.canUpdateObj =
+      this.obj.objectType == 'module'
+        ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
+        : this.obj.cruved['U'];
+    return this.canUpdateObj;
   }
 
   onEditClick() {

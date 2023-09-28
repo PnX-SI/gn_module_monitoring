@@ -78,12 +78,11 @@ export class MonitoringPropertiesGComponent implements OnInit {
     this.bEditChange.emit(true);
   }
 
-
   ngOnChanges(changes: SimpleChanges): void {
     if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
       this.initProperties();
-      if(this.selectedObj){
-        this.canUpdateObj = this.selectedObj['cruved']['U'] 
+      if (this.selectedObj) {
+        this.canUpdateObj = this.selectedObj['cruved']['U'];
       }
       if (
         this.newParentType.template_specific &&

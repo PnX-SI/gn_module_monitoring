@@ -143,7 +143,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.page = this.dataTableObj[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
     this.tabChanged.emit(this.activetabType);
-    this.initPermissionAction()
+    this.initPermissionAction();
   }
 
   reInitStatut() {
@@ -273,7 +273,7 @@ export class MonitoringDatatableGComponent implements OnInit {
         this.canCreateChild = false;
     }
 
-    if (!['undefined','visit'].includes(objectType)) {
+    if (!['undefined', 'visit'].includes(objectType)) {
       this.canCreateObj = this.permission[objectType].canCreate ? true : false;
     }
   }
