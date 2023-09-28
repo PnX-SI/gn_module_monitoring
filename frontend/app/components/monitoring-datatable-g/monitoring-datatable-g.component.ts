@@ -179,11 +179,11 @@ export class MonitoringDatatableGComponent implements OnInit {
       sort: $event.column.prop,
       sort_dir: $event.newValue,
     };
-    this.onSort.emit({ event: this.filters, tabObj: this.activetabType });
+    this.onSort.emit({ filters: this.filters, tabObj: this.activetabType });
   }
 
   setPage($event) {
-    this.onSetPage.emit({ event: $event, tabObj: this.activetabType });
+    this.onSetPage.emit({ page: $event, tabObj: this.activetabType });
   }
 
   filterInput($event) {
