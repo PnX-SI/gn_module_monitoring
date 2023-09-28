@@ -53,32 +53,38 @@ export class MonitoringSitesCreateComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this.route.parent.url.pipe(
-      tap((urlPath) => {
-        const urlParent = urlPath[urlPath.length - 1].path;
-        this.urlRelative =  urlParent == "sites" ? "/monitorings" : this.removeLastPart(this.route.snapshot['_routerState'].url);
-      }),
-      concatMap(()=>{
-        return this.route.data
-      })).subscribe(({ data }) => {
-      data ? (this.id_sites_group = data.id_sites_group) : (this.id_sites_group = null);
+    this.route.parent.url
+      .pipe(
+        tap((urlPath) => {
+          const urlParent = urlPath[urlPath.length - 1].path;
+          this.urlRelative =
+            urlParent == 'sites'
+              ? '/monitorings'
+              : this.removeLastPart(this.route.snapshot['_routerState'].url);
+        }),
+        concatMap(() => {
+          return this.route.data;
+        })
+      )
+      .subscribe(({ data }) => {
+        data ? (this.id_sites_group = data.id_sites_group) : (this.id_sites_group = null);
 
-      this._formService.dataToCreate(
-        {
-          module: 'generic',
-          objectType: 'site',
-          id: null,
-          id_sites_group: this.id_sites_group,
-          id_relationship: ['id_sites_group', 'types_site'],
-          endPoint: endPoints.sites,
-          objSelected: data ? data.objectType : {},
-        },
-        this.urlRelative
-      );
-      this.form = this._formBuilder.group({});
-      this.funcToFilt = this.partialfuncToFilt.bind(this);
-      data ? this.updateBreadCrumb(data) : null;
-    });
+        this._formService.dataToCreate(
+          {
+            module: 'generic',
+            objectType: 'site',
+            id: null,
+            id_sites_group: this.id_sites_group,
+            id_relationship: ['id_sites_group', 'types_site'],
+            endPoint: endPoints.sites,
+            objSelected: data ? data.objectType : {},
+          },
+          this.urlRelative
+        );
+        this.form = this._formBuilder.group({});
+        this.funcToFilt = this.partialfuncToFilt.bind(this);
+        data ? this.updateBreadCrumb(data) : null;
+      });
   }
 
   removeLastPart(url: string): string {
