@@ -52,7 +52,7 @@ def get_sites_groups(object_type: str):
 
     query_allowed = query.filter_by_readable(object_code=object_code)
     return paginate_scope(
-        query=query_allowed, schema=MonitoringSitesGroupsSchema, limit=limit, page=page
+        query=query_allowed, schema=MonitoringSitesGroupsSchema, limit=limit, page=page, object_code=object_code
     )
     # return paginate(
     #     query=query,
@@ -135,11 +135,9 @@ def delete(scope,_id: int, object_type: str):
     sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}")
-    item_schema = MonitoringSitesGroupsSchema()
-    item = TMonitoringSitesGroups.find_by_id(_id)
     TMonitoringSitesGroups.query.filter_by(id_g=_id).delete()
     db.session.commit()
-    return item_schema.dump(item), 201
+    return {"success": "Item is successfully deleted"}, 200
 
 
 @blueprint.route("/sites_groups", methods=["POST"], defaults={"object_type": "sites_group"})
