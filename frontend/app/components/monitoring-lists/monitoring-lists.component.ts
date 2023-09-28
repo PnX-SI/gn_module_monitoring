@@ -38,7 +38,7 @@ export class MonitoringListComponent implements OnInit {
   @Input() objectsStatus: Object;
   @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
-  canCreateChild: {[key:string]:boolean} = {};
+  canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(private _configService: ConfigService) {}
 
@@ -47,7 +47,6 @@ export class MonitoringListComponent implements OnInit {
       this.initDataTable();
     });
   }
-
 
   initDataTable() {
     for (const key of Object.keys(this.obj.children)) {
@@ -66,14 +65,14 @@ export class MonitoringListComponent implements OnInit {
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
-    this.initPermission()
+    this.initPermission();
     // this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }
 
-  initPermission(){
-    for (const child of this.children0Array){
-      const childType = child['objectType']
-      this.canCreateChild[childType] = this.currentUser?.moduleCruved[childType].C>0
+  initPermission() {
+    for (const child of this.children0Array) {
+      const childType = child['objectType'];
+      this.canCreateChild[childType] = this.currentUser?.moduleCruved[childType].C > 0;
     }
   }
 

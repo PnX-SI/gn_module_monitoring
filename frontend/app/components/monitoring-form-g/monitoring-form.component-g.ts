@@ -1,6 +1,15 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { tap, mergeMap, map, take, switchMap, concatMap, takeUntil, distinctUntilChanged, } from 'rxjs/operators';
+import {
+  tap,
+  mergeMap,
+  map,
+  take,
+  switchMap,
+  concatMap,
+  takeUntil,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -73,9 +82,9 @@ export class MonitoringFormComponentG implements OnInit {
   public chainShow = [];
   public queryParams = {};
 
-  canDelete:boolean=false;
-  canUpdate:boolean=false;
-  canCreateOrUpdate:boolean=false;
+  canDelete: boolean = false;
+  canUpdate: boolean = false;
+  canCreateOrUpdate: boolean = false;
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(
@@ -155,7 +164,7 @@ export class MonitoringFormComponentG implements OnInit {
         })
       )
       .subscribe((data) => {
-        console.log(data.prop)
+        console.log(data.prop);
         this.initObj(data.prop);
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
@@ -181,15 +190,16 @@ export class MonitoringFormComponentG implements OnInit {
         Object.keys(this.objFormsDefinition).forEach((key) => {
           let configType: string;
           key == 'static' ? (configType = 'generic') : (configType = 'specific');
-          
-          this.obj.config ? 
-          this.objFormsDefinition[key] = this._dynformService
-            .formDefinitionsdictToArray(this.obj[configType], this.meta)
-            .filter((formDef) => formDef.type_widget)
-            .sort((a, b) => {
-              // medias à la fin
-              return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
-            }): null
+
+          this.obj.config
+            ? (this.objFormsDefinition[key] = this._dynformService
+                .formDefinitionsdictToArray(this.obj[configType], this.meta)
+                .filter((formDef) => formDef.type_widget)
+                .sort((a, b) => {
+                  // medias à la fin
+                  return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
+                }))
+            : null;
         });
 
         // display_form pour customiser l'ordre dans le formulaire
@@ -422,22 +432,22 @@ export class MonitoringFormComponentG implements OnInit {
     // );
     // TODO: this commented code works only if ".." is not based url (example working : sites_group/:id/site/:id , not working if create site_group)
     // this._router.navigate(['..',objectType,id], {relativeTo: this._route});
-    const urlSegment =  
+    const urlSegment =
       this.obj.urlRelative == '/monitorings'
-        ? [this.apiService.objectObs.routeBase, id] 
+        ? [this.apiService.objectObs.routeBase, id]
         : [objectType, id].filter((s) => !!s);
     const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
-    const urlRelative = this.obj.urlRelative ? true : false
-    if (urlRelative){
-      this._router.navigateByUrl(urlPathDetail) 
+    const urlRelative = this.obj.urlRelative ? true : false;
+    if (urlRelative) {
+      this._router.navigateByUrl(urlPathDetail);
     } else {
       const urlTree = this._router.parseUrl(this._router.url);
       const urlWithoutParams = urlTree.root.children['primary'].segments
         .map((it) => it.path)
         .join('/');
       this._router.navigate([urlWithoutParams]);
-    } 
+    }
     this.bEditChange.emit(false);
   }
 
@@ -467,8 +477,10 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   /** TODO améliorer site etc.. */
-  onSubmit(isAddChildrend=false) {
-    isAddChildrend ? this.bSaveAndAddChildrenSpinner = this.bAddChildren = true : this.bSaveSpinner = true;  
+  onSubmit(isAddChildrend = false) {
+    isAddChildrend
+      ? (this.bSaveAndAddChildrenSpinner = this.bAddChildren = true)
+      : (this.bSaveSpinner = true);
     const { patch_update, ...sendValue } = this.dataForm;
     const objToUpdateOrCreate = this._formService.postData(sendValue, this.obj);
     const action = this.obj.id
@@ -709,14 +721,14 @@ export class MonitoringFormComponentG implements OnInit {
       });
   }
 
-  initPermission(){
-    !this.bEdit ? this.canCreateOrUpdate = true :
-    (this.canDelete = this.obj.cruved['D'],
-    this.canCreateOrUpdate = this.canUpdate = this.obj.cruved['U'])
-    
+  initPermission() {
+    !this.bEdit
+      ? (this.canCreateOrUpdate = true)
+      : ((this.canDelete = this.obj.cruved['D']),
+        (this.canCreateOrUpdate = this.canUpdate = this.obj.cruved['U']));
   }
 
-  notAllowedMessage(){
+  notAllowedMessage() {
     this._commonService.translateToaster(
       'warning',
       "Vous n'avez pas les permissions nécessaires pour éditer l'objet"

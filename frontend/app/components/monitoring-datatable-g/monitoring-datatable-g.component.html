@@ -53,7 +53,7 @@
                 mat-raised-button
                 [disabled]="!canCreateObj"
                 color="primary"
-                [ngClass]="{ isDisableBtn: !canCreateObj }" 
+                [ngClass]="{ isDisableBtn: !canCreateObj }"
                 class="btn btn-success float-right"
                 (click)="canCreateObj ? navigateToAddObj() : null"
                 [matTooltip]="canCreateObj ? null : toolTipNotAllowed"

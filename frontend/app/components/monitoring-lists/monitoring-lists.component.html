@@ -32,11 +32,13 @@
               color="primary"
               [ngClass]="{ isDisableBtn: !canCreateChild[child0.objectType] }"
               class="btn btn-success float-right"
-              (click)="canCreateChild[child0.objectType] ? obj.navigateToAddChildren(child0.objectType) : null"
-              [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
-              *ngIf="
-                obj.moduleCode
+              (click)="
+                canCreateChild[child0.objectType]
+                  ? obj.navigateToAddChildren(child0.objectType)
+                  : null
               "
+              [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
+              *ngIf="obj.moduleCode"
             >
               <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
               {{ child0.template['label_art_undef_new'] || '' }}

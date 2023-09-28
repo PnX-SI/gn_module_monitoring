@@ -7,9 +7,8 @@ export class MonitoringObjectBase {
   moduleCode: string;
   objectType: string;
   id: number; // id de l'objet
-  cruved:Object;
+  cruved: Object;
   parentsPath = [];
-
 
   userCruvedObject;
   deleted = false;
@@ -129,7 +128,7 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
-    this.cruved = data.cruved
+    this.cruved = data.cruved;
   }
 
   idFieldName() {
@@ -195,7 +194,6 @@ export class MonitoringObjectBase {
       .configService()
       .configModuleObjectParam(this.moduleCode, this.objectType, fieldName);
   }
-
 
   childrenTypes(configParam: string = null): Array<string> {
     let childrenTypes = this.configParam('children_types') || [];
