@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 
-
 import { endPoints } from '../../enum/endpoints';
 import { ISitesGroup } from '../../interfaces/geom';
 import { FormService } from '../../services/form.service';

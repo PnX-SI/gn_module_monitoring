@@ -119,9 +119,7 @@ const routes: Routes = [
             canActivate: [PermissionGuard],
             data: {
               expectedPermission: 'Read',
-              objectPermission: [
-                ObjectsPermissionMonitorings.GNM_GRP_SITES,
-              ],
+              objectPermission: [ObjectsPermissionMonitorings.GNM_GRP_SITES],
             },
           },
           {
@@ -142,9 +140,7 @@ const routes: Routes = [
             canActivate: [PermissionGuard],
             data: {
               expectedPermission: 'Read',
-              objectPermission: [
-                ObjectsPermissionMonitorings.GNM_SITES,
-              ],
+              objectPermission: [ObjectsPermissionMonitorings.GNM_SITES],
             },
           },
         ],
@@ -157,9 +153,7 @@ const routes: Routes = [
     canActivate: [PermissionGuard],
     data: {
       expectedPermission: 'Read',
-      objectPermission: [
-        ObjectsPermissionMonitorings.GNM_SITES,
-      ],
+      objectPermission: [ObjectsPermissionMonitorings.GNM_SITES],
     },
     children: [
       {
@@ -168,7 +162,7 @@ const routes: Routes = [
         resolve: {
           data: SitesGroupsReslver,
         },
-        runGuardsAndResolvers: 'always'
+        runGuardsAndResolvers: 'always',
       },
       {
         path: 'create',

@@ -130,10 +130,8 @@
           [disabled]="!canDelete"
           color="warn"
           class="float-left"
-          (click)="canDelete ? bDeleteModal = true : null"
-          *ngIf="
-            obj.id
-          "
+          (click)="canDelete ? (bDeleteModal = true) : null"
+          *ngIf="obj.id"
         >
           Supprimer
         </button>

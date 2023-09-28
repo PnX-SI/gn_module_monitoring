@@ -57,28 +57,46 @@
           *ngIf="child0.child0()"
           [ngClass]="{ isDisableBtn: !canCreateChild }"
           class="nav-link link cell-link"
-          (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id): null"
-          [matTooltip]="canCreateChild ? ('Ajouter' + child0.child0().labelArtUndef(true)) : toolTipNotAllowed"
+          (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id) : null"
+          [matTooltip]="
+            canCreateChild ? 'Ajouter' + child0.child0().labelArtUndef(true) : toolTipNotAllowed
+          "
         >
-          <i [ngClass]="{ isDisableIcon: !canCreateChild }" class="fa fa-plus" aria-hidden="true"></i>
+          <i
+            [ngClass]="{ isDisableIcon: !canCreateChild }"
+            class="fa fa-plus"
+            aria-hidden="true"
+          ></i>
         </a>
         <!-- TODO: rajouter les permission currentUser  *ngIf="currentUser?.moduleCruved[child0.objectType].U >= child0.config.cruved('U')" -->
         <a
           [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
           class="nav-link link cell-link"
           (click)="row.cruved['U'] ? child0.navigateToDetail(row.id, true) : null"
-          [matTooltip]="row.cruved['U'] ? ('Editer' +child0.template.label_art_def) : toolTipNotAllowed"
+          [matTooltip]="
+            row.cruved['U'] ? 'Editer' + child0.template.label_art_def : toolTipNotAllowed
+          "
         >
-          <i [ngClass]="{ isDisableIcon: !row.cruved['U'] }" class="fa fa-edit" aria-hidden="true"></i>
+          <i
+            [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
+            class="fa fa-edit"
+            aria-hidden="true"
+          ></i>
         </a>
         <ng-container *ngIf="child0.objectType == 'visit' ? true : row['nb_visits'] == 0">
           <a
             [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
             class="nav-link link cell-link"
             (click)="row.cruved['D'] ? alertMessage(row) : null"
-            [matTooltip]="row.cruved['D'] ? ('Supprimer' +child0.template.label_art_def) : toolTipNotAllowed"
+            [matTooltip]="
+              row.cruved['D'] ? 'Supprimer' + child0.template.label_art_def : toolTipNotAllowed
+            "
           >
-            <i [ngClass]="{ isDisableIcon: !row.cruved['D'] }" class="fa fa-trash" aria-hidden="true"></i>
+            <i
+              [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
+              class="fa fa-trash"
+              aria-hidden="true"
+            ></i>
           </a>
         </ng-container>
       </ng-template>
