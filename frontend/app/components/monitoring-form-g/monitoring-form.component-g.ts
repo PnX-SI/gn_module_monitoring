@@ -422,10 +422,9 @@ export class MonitoringFormComponentG implements OnInit {
     // );
     // TODO: this commented code works only if ".." is not based url (example working : sites_group/:id/site/:id , not working if create site_group)
     // this._router.navigate(['..',objectType,id], {relativeTo: this._route});
-    //
-    const urlSegment =
+    const urlSegment =  
       this.obj.urlRelative == '/monitorings'
-        ? [this.obj.endPoint, id]
+        ? [this.apiService.objectObs.routeBase, id] 
         : [objectType, id].filter((s) => !!s);
     const urlPathDetail = [this.obj.urlRelative].concat(urlSegment).join('/');
     this.objChanged.emit(this.obj);
