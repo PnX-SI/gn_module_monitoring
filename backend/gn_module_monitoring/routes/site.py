@@ -229,7 +229,7 @@ def delete_site(scope, _id, object_type):
     site = TMonitoringSites.query.get_or_404(_id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete site {site.id_base_site}")
-    TMonitoringSites.query.filter_by(id_g=_id).delete()
+    TMonitoringSites.query.filter_by(id_base_site=_id).delete()
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
 
