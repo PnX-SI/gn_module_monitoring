@@ -147,7 +147,7 @@ def delete(scope, _id: int, object_type: str):
         raise Forbidden(
             f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}"
         )
-    TMonitoringSitesGroups.query.filter_by(id_g=_id).delete()
+    TMonitoringSitesGroups.query.filter_by(id_sites_group=_id).delete()
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
 
