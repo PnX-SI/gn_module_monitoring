@@ -44,7 +44,6 @@ import { MonitoringFormComponentG } from './components/monitoring-form-g/monitor
 import { FormService } from './services/form.service';
 import { ObjectService } from './services/object.service';
 import { PermissionService } from './services/permission.service';
-import { PermissionGuard } from './services/permission.guard';
 import {
   SitesGroupService,
   SitesService,
@@ -84,14 +83,6 @@ const routes: Routes = [
   {
     path: 'sites_group',
     component: MonitoringMapListComponent,
-    canActivate: [PermissionGuard],
-    data: {
-      expectedPermission: 'Read',
-      objectPermission: [
-        ObjectsPermissionMonitorings.GNM_GRP_SITES,
-        ObjectsPermissionMonitorings.GNM_SITES,
-      ],
-    },
     children: [
       {
         path: '',
@@ -104,11 +95,6 @@ const routes: Routes = [
       {
         path: 'create',
         component: MonitoringSitesGroupsCreateComponent,
-        canActivate: [PermissionGuard],
-        data: {
-          expectedPermission: 'Create',
-          objectPermission: [ObjectsPermissionMonitorings.GNM_GRP_SITES],
-        },
       },
       {
         path: ':id',
@@ -116,11 +102,6 @@ const routes: Routes = [
           {
             path: '',
             component: MonitoringSitesComponent,
-            canActivate: [PermissionGuard],
-            data: {
-              expectedPermission: 'Read',
-              objectPermission: [ObjectsPermissionMonitorings.GNM_GRP_SITES],
-            },
           },
           {
             path: 'create',
@@ -128,20 +109,10 @@ const routes: Routes = [
             resolve: {
               data: CreateSiteResolver,
             },
-            canActivate: [PermissionGuard],
-            data: {
-              expectedPermission: 'Create',
-              objectPermission: [ObjectsPermissionMonitorings.GNM_GRP_SITES],
-            },
           },
           {
             path: 'site/:id',
             component: MonitoringVisitsComponent,
-            canActivate: [PermissionGuard],
-            data: {
-              expectedPermission: 'Read',
-              objectPermission: [ObjectsPermissionMonitorings.GNM_SITES],
-            },
           },
         ],
       },
@@ -150,11 +121,6 @@ const routes: Routes = [
   {
     path: 'sites',
     component: MonitoringMapListComponent,
-    canActivate: [PermissionGuard],
-    data: {
-      expectedPermission: 'Read',
-      objectPermission: [ObjectsPermissionMonitorings.GNM_SITES],
-    },
     children: [
       {
         path: '',
@@ -169,11 +135,6 @@ const routes: Routes = [
         component: MonitoringSitesCreateComponent,
         resolve: {
           data: CreateSiteResolver,
-        },
-        canActivate: [PermissionGuard],
-        data: {
-          expectedPermission: 'Create',
-          objectPermission: [ObjectsPermissionMonitorings.GNM_SITES],
         },
       },
       {
@@ -247,7 +208,6 @@ const routes: Routes = [
     SitesGroupsReslver,
     CreateSiteResolver,
     PermissionService,
-    PermissionGuard,
   ],
   bootstrap: [ModulesComponent],
   schemas: [
