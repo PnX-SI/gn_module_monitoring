@@ -1,5 +1,4 @@
 {
-  "cruved": {"C":4, "U":3, "D": 4},
   "id_field_name": "id_module",
   "description_field_name": "module_label",
   "label": "Module",

@@ -1,5 +1,4 @@
 {
-  "cruved": {"C":1, "U":1, "D": 1},
   "id_field_name": "id_base_visit",
   "chained": true,
   "description_field_name": "visit_date_min",

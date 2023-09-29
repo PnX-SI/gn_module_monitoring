@@ -4,6 +4,9 @@ CHANGELOG
 0.7.1 (unreleased)
 ------------------
 
+**🚀 Nouveautés**
+* La gestion des permissions est définie pour chaque objet (module, site, visite) et l'objet ALL n'est plus pris en compte (#249).
+
 **🐛 Corrections**
 
 * export avec un filtre par jeux de données (#241)

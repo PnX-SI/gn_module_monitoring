@@ -1,5 +1,4 @@
 {
-  "cruved": {"C":1, "U":1, "D": 1},
   "chained": true,
   "id_field_name": "id_base_site",
   "description_field_name": "base_site_name",
