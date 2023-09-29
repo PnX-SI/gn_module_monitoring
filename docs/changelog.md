@@ -6,7 +6,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* 
+* export avec un filtre par jeux de données (#241)
 
 0.7.0 (2023-08-23)
 ------------------
@@ -50,7 +50,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
   rm -R ~/geonature/backend/media/monitorings/generic
   ```
 
-  Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.  
+  Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.
   Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
 
 * L'installation des sous-modules se fait désormais en deux temps :
