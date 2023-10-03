@@ -100,12 +100,12 @@ def process_available_permissions(module_code):
 
     tree = config.get("tree", [])
 
-    module_object = [k for k in extract_keys(tree, keys=[])]
+    module_objects = [k for k in extract_keys(tree, keys=[])]
 
     permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
 
     # Insert permission object
-    for permission_object_code in module_object:
+    for permission_object_code in module_objects:
         print(f"Création des permissions pour {module_code} : {permission_object_code}")
         insert_module_available_permissions(module_code, permission_level[permission_object_code])
 
