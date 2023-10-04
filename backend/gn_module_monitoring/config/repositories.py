@@ -193,6 +193,7 @@ def get_config(module_code=None, force=False):
             "b_draw_sites_group",
             "taxonomy_display_field_name",
             "id_module",
+            "cd_nom",
         ]:
             var_name = "__MODULE.{}".format(field_name.upper())
             config["custom"][var_name] = getattr(module, field_name)
