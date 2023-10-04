@@ -13,7 +13,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TMarkingEvent
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -241,6 +241,49 @@ class TMonitoringSitesGroups(DB.Model):
 
 
 @serializable
+class TMonitoringIndividuals(TMarkingEvent):
+    __tablename__ = "t_individual_complements"
+    __table_args__ = {"schema": "gn_monitoring"}
+    __mapper_args__ = {
+        "polymorphic_identity": "monitoring_individuals",
+    }
+
+    id_base_individual = DB.Column(
+        DB.ForeignKey("gn_monitoring.t_marking_events.id_base_individual"),
+        primary_key=True,
+        nullable=False,
+        unique=True,
+    )
+
+    id_module = DB.Column(
+        DB.ForeignKey("gn_commons.t_modules.id_module"),
+        primary_key=True,
+        nullable=False,
+        unique=True,
+    )
+
+    data = DB.Column(JSONB)
+
+
+# corIndividualModule = DB.Table(
+#     "cor_individual_module",
+#     DB.Column(
+#         "id_base_individual",
+#         DB.Integer,
+#         DB.ForeignKey("gn_monitoring.t_base_individuals.id_base_individual", ondelete="CASCADE"),
+#         primary_key=True,
+#     ),
+#     DB.Column(
+#         "id_module",
+#         DB.Integer,
+#         DB.ForeignKey("gn_commons.t_modules.id_module", ondelete="CASCADE"),
+#         primary_key=True,
+#     ),
+#     schema="gn_monitoring",
+# )
+
+
+@serializable
 class TMonitoringModules(TModules):
     __tablename__ = "t_module_complements"
     __table_args__ = {"schema": "gn_monitoring"}
@@ -292,6 +335,14 @@ class TMonitoringModules(TModules):
         secondary=cor_module_dataset,
         join_depth=0,
         lazy="joined",
+    )
+
+    individuals = DB.relationship(
+        "TMonitoringIndividuals",
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=TMonitoringIndividuals.id_module == id_module,
+        foreign_keys=[id_module],
+        lazy="select",
     )
 
     data = DB.Column(JSONB)
