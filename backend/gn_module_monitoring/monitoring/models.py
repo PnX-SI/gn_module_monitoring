@@ -28,6 +28,9 @@ from geonature.core.gn_monitoring.models import (
     BibTypeSite,
     cor_visit_observer,
     TObservations,
+    TIndividuals,
+    TMarkingEvent,
+    corIndividualModule,
 )
 from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -303,6 +306,21 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
+    nb_individuals = column_property(
+        select([func.count(func.distinct(TIndividuals.id_individual))])
+        .join_from(
+            TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
+        )
+        .join_from(
+            TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual
+        )
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .correlate_except(
+            TBaseVisits
+        )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+        .scalar_subquery()
+    )
+
     @hybrid_property
     def last_visit(self):
         query = select(func.max(TBaseVisits.visit_date_min)).where(
@@ -512,6 +530,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
     id_list_observer = DB.Column(DB.Integer)
     id_list_taxonomy = DB.Column(DB.Integer)
+    cd_nom = DB.Column(DB.Integer)
 
     taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
@@ -547,14 +566,19 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         "TDatasets",
         secondary=cor_module_dataset,
         join_depth=0,
-        overlaps="modules",
+        lazy="joined",
     )
 
-    types_site = DB.relationship(
-        "BibTypeSite",
-        secondary=cor_module_type,
+    individuals = DB.relationship(
+        "TIndividuals",
+        lazy="select",
+        enable_typechecks=False,
+        secondary=corIndividualModule,
+        primaryjoin=(corIndividualModule.c.id_module == id_module),
+        secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
+        foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
+        # viewonly=True,
     )
-
     data = DB.Column(JSONB)
 
     # visits = DB.relationship(
@@ -572,3 +596,32 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         cascade="all",
         overlaps="sites,sites_group,module",
     )
+
+
+TIndividuals.nb_sites = column_property(
+    select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+    .where(
+        and_(
+            TObservations.id_individual == TIndividuals.id_individual,
+            TObservations.id_base_visit == TMonitoringVisits.id_base_visit,
+            TBaseVisits.id_base_site == TMonitoringSites.id_base_site,
+        )
+    )
+    .correlate_except(TMonitoringSites)
+    .scalar_subquery()
+)
+# NOTES: [SUIVI_INDIVIDU] pourquoi c'est nécessaire de le garder ici ?
+TMonitoringSites.nb_individuals = column_property(
+    select([func.count(func.distinct(TIndividuals.id_individual))])
+    .join_from(
+        TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
+    )
+    .join_from(
+        TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual
+    )
+    .where(TBaseVisits.id_base_site == TMonitoringSites.id_base_site)
+    .correlate_except(
+        TBaseVisits
+    )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+    .scalar_subquery()
+)
