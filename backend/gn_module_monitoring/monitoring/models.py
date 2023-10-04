@@ -240,6 +240,23 @@ class TMonitoringSitesGroups(DB.Model):
     )
 
 
+corIndividualModule = DB.Table(
+    "cor_individual_module",
+    DB.Column(
+        "id_base_individual",
+        DB.Integer,
+        DB.ForeignKey("gn_monitoring.t_individual_complements.id_base_individual", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    DB.Column(
+        "id_module",
+        DB.Integer,
+        DB.ForeignKey("gn_commons.t_modules.id_module", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    schema="gn_monitoring",
+)
+
 @serializable
 class TMonitoringIndividuals(TMarkingEvent):
     __tablename__ = "t_individual_complements"
@@ -264,23 +281,16 @@ class TMonitoringIndividuals(TMarkingEvent):
 
     data = DB.Column(JSONB)
 
-
-# corIndividualModule = DB.Table(
-#     "cor_individual_module",
-#     DB.Column(
-#         "id_base_individual",
-#         DB.Integer,
-#         DB.ForeignKey("gn_monitoring.t_base_individuals.id_base_individual", ondelete="CASCADE"),
-#         primary_key=True,
-#     ),
-#     DB.Column(
-#         "id_module",
-#         DB.Integer,
-#         DB.ForeignKey("gn_commons.t_modules.id_module", ondelete="CASCADE"),
-#         primary_key=True,
-#     ),
-#     schema="gn_monitoring",
-# )
+    
+    modules = DB.relationship(
+        "TModules",
+        lazy="select",
+        enable_typechecks=False,
+        secondary=corIndividualModule,
+        primaryjoin=(corIndividualModule.c.id_base_individual == id_base_individual),
+        secondaryjoin=(corIndividualModule.c.id_module == TModules.id_module),
+        foreign_keys=[corIndividualModule.c.id_base_individual, corIndividualModule.c.id_module],
+    )
 
 
 @serializable
@@ -339,12 +349,13 @@ class TMonitoringModules(TModules):
 
     individuals = DB.relationship(
         "TMonitoringIndividuals",
-        uselist=True,  # pourquoi pas par defaut ?
-        primaryjoin=TMonitoringIndividuals.id_module == id_module,
-        foreign_keys=[id_module],
         lazy="select",
+        enable_typechecks=False,
+        secondary=corIndividualModule,
+        primaryjoin=(corIndividualModule.c.id_module == id_module),
+        secondaryjoin=(corIndividualModule.c.id_base_individual == TMonitoringIndividuals.id_base_individual),
+        foreign_keys=[corIndividualModule.c.id_base_individual, corIndividualModule.c.id_module],
     )
-
     data = DB.Column(JSONB)
 
     # visits = DB.relationship(
