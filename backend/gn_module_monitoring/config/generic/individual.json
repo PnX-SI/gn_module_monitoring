@@ -1,0 +1,115 @@
+{
+    "cruved": {"C":1, "U":1, "D": 1},
+    "id_field_name": "id_base_individual",
+    "description_field_name": "id_base_individual",
+    "chained": true,
+    "filters": {
+      "active": true
+    },
+    "label": "Individu",
+    "genre": "M",
+    "display_properties": ["uuid_individual", "active"],
+    "display_list": [
+      "base_individual_name",
+      "uuid_individual",
+      "active"
+    ],
+    "uuid_field_name": "uuid_individual",
+    "generic": {
+      "id_module": {
+        "type_widget": "text",
+        "attribut_label": "ID Module",
+        "hidden": true
+      },
+      "id_base_individual": {
+        "type_widget": "text",
+        "attribut_label": "Id Base Individual",
+        "hidden": true
+      },
+      "uuid_individual": {
+        "attribut_label": "uuid"
+      },
+      "base_individual_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom de l'individu",
+        "required": true
+      },
+      "id_nomenclature_sex": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Sexe",
+        "code_nomenclature_type": "SEXE",
+        "type_util": "nomenclature"
+      },
+      "active": {
+        "type_widget": "bool_checkbox",
+        "attribut_label": "Actif",
+        "definition": "Activer cet individu",
+        "value": true
+      },
+      "comment": {
+        "type_widget": "textarea",
+        "attribut_label": "Commentaires"
+      },
+      "cd_nom": {
+        "type_widget": "taxonomy",
+        "attribut_label": "Espèce",
+        "type_util": "taxonomy",
+        "id_list": "__MODULE.ID_LIST_TAXONOMY",
+        "required": true
+      },
+      "id_digitiser": {
+        "type_widget": "text",
+        "attribut_label": "Numérisateur",
+        "required": true,
+        "hidden": true,
+        "type_util": "user"
+      },
+      "marking_date": {
+        "type_widget": "date",
+        "attribut_label": "Date description",
+        "required": true
+      },
+      "id_operator": {
+        "type_widget": "text",
+        "attribut_label": "Opérateur",
+        "type_util": "user",
+        "required": true
+      },
+      "id_base_marking_site": {
+        "type_widget": "datalist",
+        "attribut_label": "Site",
+        "type_util": "site",
+        "keyValue": "id_base_site",
+        "keyLabel": "base_site_name",
+        "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/site?id_module=__MODULE.ID_MODULE&fields=id_base_site&fields=base_site_name",
+        "application": "GeoNature",
+        "required": false,
+        "hidden": true
+      }, 
+      "id_nomenclature_marking_type": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Type de marquage",
+        "code_nomenclature_type": "TYP_MARQUAGE",
+        "type_util": "nomenclature",
+        "required": true
+      },
+      "marking_location": {
+        "type_widget": "text",
+        "attribut_label": "Localisation du marquage"
+      },
+      "marking_code": {
+        "type_widget": "text",
+        "attribut_label": "Code du marquage"
+      },
+      "marking_details": {
+        "type_widget": "text",
+        "attribut_label": "Code du marquage"
+      },
+      "additional_data": {
+        "type_widget": "textarea",
+        "attribut_label": "Données additionelles (json)",
+        "value": "{}"
+      }
+    }
+  }
+  
