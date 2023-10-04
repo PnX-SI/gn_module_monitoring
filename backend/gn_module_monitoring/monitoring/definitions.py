@@ -8,7 +8,7 @@ from .models import (
     TMonitoringObservationDetails,
     TMonitoringSitesGroups
 )
-from .objects import MonitoringModule, MonitoringSite
+from .objects import MonitoringModule, MonitoringSite, MonitoringIndividual
 
 from .base import monitoring_definitions
 from .repositories import MonitoringObject
@@ -38,7 +38,7 @@ MonitoringObjects_dict = {
     "observation": MonitoringObject,
     "observation_detail": MonitoringObject,
     "sites_group": MonitoringObjectGeom,
-    "individual": MonitoringObject,
+    "individual": MonitoringIndividual,
 }
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)
