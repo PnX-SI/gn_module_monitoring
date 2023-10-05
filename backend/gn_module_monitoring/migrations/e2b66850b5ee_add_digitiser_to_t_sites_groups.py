@@ -35,7 +35,6 @@ def upgrade():
                 name=f"fk_{table}_{column}",
                 onupdate="CASCADE",
             ),
-            nullable=False,
         ),
         schema=monitorings_schema,
     )
