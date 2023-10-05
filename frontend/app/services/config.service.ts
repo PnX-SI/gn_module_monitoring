@@ -236,6 +236,7 @@ export class ConfigService {
     let schemaSpecificType = {};
     let schemaTypeMerged = {};
     let keyHtmlToPop = '';
+    console.log(types_site);
     for (let type_site of types_site) {
       if ('specific' in type_site['config']) {
         for (const prop in type_site['config']['specific']) {
