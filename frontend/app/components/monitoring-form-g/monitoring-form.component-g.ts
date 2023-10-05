@@ -23,6 +23,7 @@ import { IExtraForm } from '../../interfaces/object';
 import { JsonData } from '../../types/jsondata';
 import { Observable, ReplaySubject, Subject, of } from 'rxjs';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -85,6 +86,7 @@ export class MonitoringFormComponentG implements OnInit {
   canDelete: boolean = false;
   canUpdate: boolean = false;
   canCreateOrUpdate: boolean = false;
+  geomCalculated: boolean = false;
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(
@@ -94,7 +96,8 @@ export class MonitoringFormComponentG implements OnInit {
     private _commonService: CommonService,
     private _dynformService: DynamicFormService,
     private _formService: FormService,
-    private _router: Router
+    private _router: Router,
+    private _geojsonService: GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -132,7 +135,6 @@ export class MonitoringFormComponentG implements OnInit {
         );
       })
     );
-
     this._formService.currentData
       .pipe(
         distinctUntilChanged((prev, curr) => prev['pk'] === curr['pk']),
@@ -141,6 +143,8 @@ export class MonitoringFormComponentG implements OnInit {
           this.obj = data;
           this.obj.id = this.obj[this.obj.pk];
           this.initPermission();
+          // this.bEdit ? this._geojsonService.setCurrentmapData(this.obj.geometry):null;
+          // this.bEdit &&  this._geojsonService.currentLayer == null ? (this._geojsonService.removeAllFeatureGroup(),this._geojsonService.setCurrentmapData(this.obj.geometry)) : null;
         }),
         concatMap((data: any) => this._configService.init(data.moduleCode)),
         concatMap((data) => {
@@ -164,7 +168,6 @@ export class MonitoringFormComponentG implements OnInit {
         })
       )
       .subscribe((data) => {
-        console.log(data.prop);
         this.initObj(data.prop);
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
@@ -228,8 +231,12 @@ export class MonitoringFormComponentG implements OnInit {
         this.isExtraForm ? this.addExtraFormCtrl(data['frmCtrl']) : null;
         // set geometry
         if (this.obj.config && this.obj.config['geometry_type']) {
+          const validatorRequired =
+            this.obj.objectType == 'sites_group'
+              ? this._formBuilder.control('')
+              : this._formBuilder.control('', Validators.required);
           let frmCtrlGeom = {
-            frmCtrl: this._formBuilder.control('', Validators.required),
+            frmCtrl: validatorRequired,
             frmName: 'geometry',
           };
           this.addGeomFormCtrl(frmCtrlGeom);
@@ -238,6 +245,14 @@ export class MonitoringFormComponentG implements OnInit {
         this.isExtraForm && this.bEdit ? this.updateSpecificForm() : null;
         this.isExtraForm && !this.bEdit ? this.createSpecificForm() : null;
       });
+    this.geomCalculated = this.obj.hasOwnProperty('is_geom_from_child')
+      ? this.obj.is_geom_from_child
+      : false;
+    this.geomCalculated ? (this.obj.geometry = null) : null;
+    this.bEdit
+      ? (this._geojsonService.removeAllFeatureGroup(),
+        this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
+      : null;
   }
 
   /** pour réutiliser des paramètres déjà saisis */
@@ -532,6 +547,11 @@ export class MonitoringFormComponentG implements OnInit {
         .map((it) => it.path)
         .join('/');
       this._router.navigate([urlWithoutParams]);
+
+      this._geojsonService.removeAllFeatureGroup();
+      this.obj.geometry == null
+        ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
+        : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();
@@ -741,8 +761,13 @@ export class MonitoringFormComponentG implements OnInit {
       bEdit: false,
       obj: {},
     });
+    this.obj = {};
+    this._formService.createSpecificForm({});
     this.destroyed$.next(true);
     this.destroyed$.complete();
-    this.obj = {};
+  }
+
+  isEmptyObject(obj) {
+    return obj && Object.keys(obj).length === 0;
   }
 }

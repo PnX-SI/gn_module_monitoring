@@ -11,7 +11,7 @@ import {
 import { FormControl, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Observable, iif, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, startWith, concatMap } from 'rxjs/operators';
 
 import { JsonData } from '../../types/jsondata';
 import { FormService } from '../../services/form.service';
@@ -66,12 +66,8 @@ export class BtnSelectComponent implements OnInit {
       startWith(''),
       debounceTime(400),
       distinctUntilChanged(),
-      switchMap((val: string) => {
-        return iif(
-          () => val == '',
-          of([{ name: val }]),
-          this.filterOnRequest(val, this.paramToFilt)
-        );
+      concatMap((val: string) => {
+        return this.filterOnRequest(val, this.paramToFilt);
       }),
       map((res) => (res.length > 0 ? res : [{ name: 'Pas de résultats' }]))
     );
@@ -99,7 +95,7 @@ export class BtnSelectComponent implements OnInit {
       ? this.listOptionChosen.push(event.option.viewValue) && this.addObject(event.option.value)
       : null;
     this.optionInput.nativeElement.value = '';
-    this.myControl.setValue(null);
+    this.myControl.setValue('');
     this.listOpNeeded.setValue(this.listOptionChosen);
   }
 

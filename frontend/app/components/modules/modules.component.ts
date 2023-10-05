@@ -21,13 +21,13 @@ export class ModulesComponent implements OnInit {
   currentUser: User;
   canAccessSite: boolean = false;
   currentPermission: TPermission = {
-    [ObjectsPermissionMonitorings.GNM_GRP_SITES]: {
+    [ObjectsPermissionMonitorings.MONITORINGS_GRP_SITES]: {
       canCreate: false,
       canRead: false,
       canUpdate: false,
       canDelete: false,
     },
-    [ObjectsPermissionMonitorings.GNM_SITES]: {
+    [ObjectsPermissionMonitorings.MONITORINGS_SITES]: {
       canCreate: false,
       canRead: false,
       canUpdate: false,
@@ -91,7 +91,8 @@ export class ModulesComponent implements OnInit {
         this.titleModule = this._configService.titleModule();
 
         this.canAccessSite =
-          this.currentPermission.GNM_SITES.canRead || this.currentPermission.GNM_GRP_SITES.canRead;
+          this.currentPermission.MONITORINGS_SITES.canRead ||
+          this.currentPermission.MONITORINGS_GRP_SITES.canRead;
       });
 
     this.currentUser = this._auth.getCurrentUser();

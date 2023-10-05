@@ -5,7 +5,6 @@ import datetime
 import uuid
 from flask import current_app
 from .base import MonitoringObjectBase, monitoring_definitions
-import gn_module_monitoring.monitoring.definitions as MonitoringDef
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
 from geonature.utils.env import DB
@@ -71,7 +70,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 childs_model[0]
                 .query.filter_by_readable(
                     module_code=self._module_code,
-                    object_code=MonitoringDef.MonitoringPermissions_dict[children_type],
+                    object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                        children_type
+                    ],
                 )
                 .all()
             )
@@ -119,7 +120,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         ):
             id_name = list_model[0].get_id_name()
             cruved_item_dict = get_objet_with_permission_boolean(
-                list_model, object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type]
+                list_model,
+                module_code=self._module_code,
+                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                    self._object_type
+                ],
             )
             for cruved_item in cruved_item_dict:
                 if self._id == cruved_item[id_name]:
@@ -216,7 +221,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             self.preprocess_data(properties)
 
         # ajout des données en base
-        if hasattr(self._model, "from_geofeature"):
+        if hasattr(self._model, "from_geofeature") and not (
+            len(list(post_data)) == 1 and list(post_data)[0] == "properties"
+        ):
             for key in list(post_data):
                 if key not in ("properties", "geometry", "type"):
                     post_data.pop(key)

@@ -465,7 +465,6 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   checkChangedTypeSite() {
-    console.log(this.typesSiteConfig);
     if ('types_site' in this.objFormDynamic.controls) {
       this.objFormDynamic.controls['types_site'].valueChanges
         .pipe(

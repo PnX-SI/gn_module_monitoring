@@ -6,6 +6,8 @@
     "label_list": "Groupes de sites",
     "genre": "M",
     "uuid_field_name": "uuid_sites_group",
+    "geom_field_name": "geom",
+    "geometry_type": "Polygon",
     "display_properties": [
       "sites_group_name",
       "sites_group_code",
@@ -53,6 +55,21 @@
         "type_widget": "medias",
         "attribut_label": "Médias",
         "schema_dot_table": "gn_monitoring.t_sites_groups"
-      }
-    }
+      },
+      "altitude_min": {
+        "type_widget": "integer",
+        "attribut_label": "Altitude (min)"
+        },
+      "altitude_max": {
+        "type_widget": "integer",
+        "attribut_label": "Altitude (max)"
+        },
+        "id_digitiser": {
+          "type_widget": "text",
+          "attribut_label": "Digitiser",
+          "type_util": "user",
+          "required": true,
+          "hidden": true
+        }
+    } 
   }

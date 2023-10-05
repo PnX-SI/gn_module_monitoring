@@ -6,6 +6,7 @@ import { GeoJSON } from 'geojson';
 import { MapService } from '@geonature_common/map/map.service';
 
 import { SitesService, SitesGroupService } from './api-geom.service';
+import { FormService } from './form.service';
 
 // This service will be used for sites and sites groups
 
@@ -24,11 +25,13 @@ export class GeoJSONService {
   geojsonSites: GeoJSON.FeatureCollection;
   sitesGroupFeatureGroup: L.FeatureGroup;
   sitesFeatureGroup: L.FeatureGroup;
+  currentLayer: any = null;
 
   constructor(
     private _sites_group_service: SitesGroupService,
     private _sites_service: SitesService,
-    private _mapService: MapService
+    private _mapService: MapService,
+    private _formService: FormService
   ) {}
 
   getSitesGroupsGeometries(onEachFeature: Function, params = {}) {
@@ -47,6 +50,10 @@ export class GeoJSONService {
     });
   }
 
+  setGeomSiteGroupFromExistingObject(geom) {
+    this.sitesGroupFeatureGroup = this.setMapData(geom, () => {});
+  }
+
   setMapData(
     geojson: GeoJSON.Geometry | GeoJSON.FeatureCollection,
     onEachFeature: Function,
@@ -59,6 +66,23 @@ export class GeoJSONService {
     featureGroup.addLayer(layer);
     map.fitBounds(featureGroup.getBounds());
     return featureGroup;
+  }
+
+  setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {
+    for (const layer of featureGroup) {
+      if (layer != undefined) {
+        this._mapService.map.addLayer(layer);
+      }
+    }
+  }
+
+  setCurrentmapData(geom, isGeomCalculated) {
+    isGeomCalculated ? (this.currentLayer = null) : (this.currentLayer = geom);
+  }
+
+  setMapBeforeEdit(geom) {
+    this.currentLayer = null;
+    this.setMapData(geom, () => {});
   }
 
   removeFeatureGroup(feature: L.FeatureGroup) {
@@ -112,5 +136,17 @@ export class GeoJSONService {
       }
     });
     return layers;
+  }
+
+  removeAllFeatureGroup() {
+    let listFeatureGroup: L.FeatureGroup[] = [];
+    this._mapService.map.eachLayer(function (layer) {
+      if (layer instanceof L.FeatureGroup) {
+        listFeatureGroup.push(layer);
+      }
+    });
+    for (const featureGroup of listFeatureGroup) {
+      this.removeFeatureGroup(featureGroup);
+    }
   }
 }

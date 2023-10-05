@@ -209,9 +209,17 @@ def get_objet_with_permission_boolean(
         id_role = g.current_user.id_role
     objects_out = []
     for object in objects:
-        if hasattr(object, "module"):
+        if module_code:
+            cruved_object = object.query._get_cruved_scope(
+                module_code=module_code, object_code=object_code
+            )
+        elif hasattr(object, "module"):
             cruved_object = object.query._get_cruved_scope(
                 module_code=object.module.module_code, object_code=object_code
+            )
+        elif hasattr(object, "module_code"):
+            cruved_object = object.query._get_cruved_scope(
+                module_code=object.module_code, object_code=object_code
             )
         else:
             cruved_object = object.query._get_cruved_scope(object_code=object_code)
