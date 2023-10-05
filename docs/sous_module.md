@@ -16,7 +16,6 @@ title: 'Création d''un sous-module'
     - [La variable `change`](#la-variable-change)
 - [Nomenclature](#nomenclature)
 - [Configuration de la carte](#configuration-de-la-carte)
-- [Gestion des droits](#gestion-des-droits)
 - [Exports](#exports)
   - [PDF](#pdf)
   - [CSV](#csv)
@@ -82,15 +81,6 @@ Dans le fichier `config.json` :
     }
 ```
 
-* `permission_objects` : liste des objets permissions à associer au
-    module. Elle peut contenir les valeurs suivantes
-    `["GNM_MODULES", "GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]`
-
-    * Par exemple, pour les sites, par défaut l'API va vérifier les droits pour l'objet de permission `ALL` associé au sous-module.
-
-    * Si des permissions sont définies pour ce module et l'object `GNM_SITES`, l'API des sites ira vérifier les droits en rapport avec `GNM_SITES`.
-
-
 # Configuration des objets
 
 Dans le fichier `module.json`, deux variables doivent obligatoirement
@@ -99,9 +89,6 @@ Dans le fichier `module.json`, deux variables doivent obligatoirement
 * `module_code`: un nom cours, en minuscule et simple, par exemple
     `cheveches` ou `oedic` pour les protocoles chevêches ou oedicnèmes.
 * `module_desc`: une description succinte du module.
-
-Une variable optionnelle permet de configurer les objets faisant
-l'objet de permission :
 
 Dans le cas général (`module.json`, `site.json`, `visit.json`,
 `observation.json`) on peut redéfinir au besoin certaines variables.
@@ -616,33 +603,6 @@ Pour cela éditez le fichier de configuration associé (`module.json`,
 NB : pour ajouter une popup sur la liste des sites, éditez le fichier
 `module.json`, pour la liste des visites le fichier `site.json` etc....
 
-# Gestion des droits
-
-Actuellement le CRUVED est implémenté de manière partielle au niveau du
-module MONITORING. Il n'y a actuellement pas de vérification des
-portées, les droits s'appliquent sur toutes les données.
-
-Si on définit un CRUVED sur un sous-module, alors cela surcouche pour ce
-sous-module le CRUVED défini au niveau de tout le module Monitoring.
-
-Par défaut les valeurs définies du CRUVED sont :
-
-* `site_group.json` : ` "cruved": {"C":1, "U":1,"D": 1},`
-* `site.json` : ` "cruved": {"C":1, "U":1, "D": 1},`
-* `visit.json` : ` "cruved": {"C":1, "U":1, "D": 1},`
-* `observation.json` : ` "cruved": {"C":1, "U":1, "D": 1},`
-* `observation_detail.json` : ` "cruved": {"C":1, "U":1, "D": 1},`
-
-Pour surcoucher les permissions, il faut rajouter la variable cruved
-dans les fichiers de configuration du module (`site_group.json`,
-`site.json`, ....)
-
-```json
-"cruved": {"C": 3, "U": 3, "D": 3},
-```
-
-* Pour pouvoir modifier les paramètres d'un module, il faut que le
-    CRUVED de l'utilisateur ait un U=3 pour ce sous-module.
 
 # Exports
 

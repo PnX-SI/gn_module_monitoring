@@ -177,8 +177,15 @@ Les permissions ne sont implémentées que partiellement. La notion de portée (
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
-Il est possible de spécifier les permissions pour chaque type d'objet (groupes de sites, sites, visites et observations).
+Les permissions sont définis pour chaque type d'objet (modules, groupes de sites, sites, visites et observations) :
+ * MONITORINGS_MODULES - R : permet a l'utilisateur d'accéder au module, de le voir dans la liste des modules
+ * MONITORINGS_MODULES - U : action administrateur qui permet de configurer le module et de synchroniser la synthèse
+ * MONITORINGS_MODULES - E : action qui permet aux utilisateurs d'exporter les données (si défini par le module)
+ * MONITORINGS_GRP_SITES - CRUD : action de lire, créer, modifier, supprimer un groupe de site
+ * MONITORINGS_SITES - CRUD : action de lire, créer, modifier, supprimer un site
+ * MONITORINGS_VISITES - CRUD : action de lire, créer, modifier, supprimer les visites, observations, observations détails
 
-Si aucune permission n'est associée à l'objet, les permissions auront comme valeur celles associées au sous-module.
+Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action.
 
-Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action. Il est possible de surcharger les paramètres au niveau des fichiers de configuration des objets du module. (cf doc de configuration des sous-modules).
+
+Il est possible de mettre à jour les permissions disponibles pour un module en utilisant la commande `update_module_available_permissions`

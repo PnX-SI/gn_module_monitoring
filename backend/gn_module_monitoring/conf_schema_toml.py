@@ -7,8 +7,21 @@
 from marshmallow import Schema, fields, validates_schema, ValidationError
 
 
+# Permissions associés à chaque objet monitoring
+PERMISSION_LEVEL_DEFAULT = {
+    "module": "MONITORINGS_MODULES",
+    "site": "MONITORINGS_SITES",
+    "sites_group": "MONITORINGS_GRP_SITES",
+    "visit": "MONITORINGS_VISITES",
+    "observation": "MONITORINGS_VISITES",
+    "observation_detail": "MONITORINGS_VISITES",
+}
+
+
 class GnModuleSchemaConf(Schema):
-    pass
+    PERMISSION_LEVEL = fields.Dict(
+        keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
+    )
 
 
 #     AREA_TYPE = fields.List(fields.String(), missing=["COM", "M1", "M5", "M10"])

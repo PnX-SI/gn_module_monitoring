@@ -1,5 +1,4 @@
 {
-  "cruved": {"C":1, "U":1, "D": 1},
   "id_field_name": "id_base_visit",
   "chained": true,
   "description_field_name": "visit_date_min",
@@ -83,6 +82,7 @@
       "type_util": "dataset",
       "attribut_label": "Jeu de données",
       "module_code": "__MODULE.MODULE_CODE",
+      "creatable_in_module": "__MODULE.MODULE_CODE.MONITORINGS_VISITES",
       "required": true
     },
     "nb_observations": {

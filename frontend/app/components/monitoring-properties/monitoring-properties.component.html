@@ -23,7 +23,7 @@
         </table>
       </div>
     </mat-tab>
-    <mat-tab 
+    <mat-tab
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
       label="Médias ({{(obj.properties['medias'] && obj.properties['medias'].length) || 0}})"
     >
@@ -51,7 +51,7 @@
       </ng-container>
     </mat-tab>
   </mat-tab-group>
-  
+
   <div class="tab-content" id="nav-tabContent" [ngStyle]="{'background-color': obj.template['color']}" >
     <div
       class="tab-pane fade active show"
@@ -70,7 +70,6 @@
     >
     </div>
 
-
     <button
       mat-stroked-button
       color="primary"
@@ -78,24 +77,27 @@
       (click)="onEditClick()"
       *ngIf="
         !bEdit &&
-        currentUser?.moduleCruved[obj.objectType].U >= obj.cruved('U')
+        currentUser?.moduleCruved[obj.objectType].U >= 1
       "
     >
       Éditer {{ (obj.template['label_art_def'] || "") }}
     </button>
 
     <!-- export pdf -->
-    <button
-      mat-stroked-button
-      color="primary"
-      *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])"
-      (click)="processExportPdf(exportPdfConfig)"
-      type="button"
-      class="mr-2" >
-      <i class="fa fa-file-pdf-o"></i>&nbsp;
-      {{exportPdfConfig.label}}
-    </button>
+    <span  *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])">
+      <button
+        mat-stroked-button
+        color="primary"
 
+        (click)="processExportPdf(exportPdfConfig)"
+        type="button"
+        class="mr-2"
+        *ngIf="currentUser?.moduleCruved[obj.objectType].E >= 1"
+      >
+        <i class="fa fa-file-pdf-o"></i>&nbsp;
+        {{exportPdfConfig.label}}
+      </button>
+    </span>
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
     mat-stroked-button
@@ -105,7 +107,7 @@
     *ngIf="
       !bEdit &&
       obj.objectType === 'module' &&
-      currentUser?.moduleCruved.module.U >= 3 &&
+      currentUser?.moduleCruved.module.U >= 1 &&
       obj.properties['b_synthese']
     "
     matTooltip="Attention, cette opération peux prendre du temps"
@@ -123,7 +125,7 @@
 
   <button
     mat-stroked-button
-    *ngIf="obj.template['export_csv']"
+    *ngIf="obj.template['export_csv'] && currentUser?.moduleCruved[obj.objectType].E >= 1"
     class="mr-2"
     color="primary"
     (click)="openModalExportCsv($event, modalExportCsv)">

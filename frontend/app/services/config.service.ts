@@ -71,24 +71,15 @@ export class ConfigService {
   }
 
   moduleCruved(module_code) {
-    const permObjectDict = {
-      site: 'GNM_SITES',
-      sites_group: 'GNM_GRP_SITES',
-      visit: 'GNM_VISITES',
-      observation: 'GNM_OBSERVATIONS',
-      module: 'GNM_MODULES',
-    };
-
+    const permObjectDict = this.appConfig.MONITORINGS.PERMISSION_LEVEL;
     const module = this._moduleService.getModule(module_code);
 
     const moduleCruved = {};
-
     for (const [objectCode, permObjectCode] of Object.entries(permObjectDict)) {
       moduleCruved[objectCode] =
         module.objects.find((o) => o.code_object == permObjectDict[objectCode])?.cruved ||
         module.cruved;
     }
-
     return moduleCruved;
   }
 

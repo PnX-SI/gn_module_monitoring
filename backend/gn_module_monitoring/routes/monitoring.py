@@ -27,7 +27,7 @@ from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions, MonitoringPermissions_dict
+from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
@@ -46,8 +46,10 @@ def set_current_module(endpoint, values):
 
     # recherche de l'object de permission courrant
     object_type = values.get("object_type")
+
     if object_type:
-        requested_permission_object_code = MonitoringPermissions_dict.get(object_type)
+        permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
+        requested_permission_object_code = permission_level.get(object_type)
 
         if requested_permission_object_code is None:
             # error ?
