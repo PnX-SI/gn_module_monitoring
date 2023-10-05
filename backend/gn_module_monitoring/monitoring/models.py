@@ -13,7 +13,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TMarkingEvent
+from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TMarkingEvent, corIndividualModule
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -239,60 +239,6 @@ class TMonitoringSitesGroups(DB.Model):
         )
     )
 
-
-corIndividualModule = DB.Table(
-    "cor_individual_module",
-    DB.Column(
-        "id_base_individual",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.t_individual_complements.id_base_individual", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    DB.Column(
-        "id_module",
-        DB.Integer,
-        DB.ForeignKey("gn_commons.t_modules.id_module", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    schema="gn_monitoring",
-)
-
-@serializable
-class TMonitoringIndividuals(TMarkingEvent):
-    __tablename__ = "t_individual_complements"
-    __table_args__ = {"schema": "gn_monitoring"}
-    __mapper_args__ = {
-        "polymorphic_identity": "monitoring_individuals",
-    }
-
-    id_base_individual = DB.Column(
-        DB.ForeignKey("gn_monitoring.t_marking_events.id_base_individual"),
-        primary_key=True,
-        nullable=False,
-        unique=True,
-    )
-
-    id_module = DB.Column(
-        DB.ForeignKey("gn_commons.t_modules.id_module"),
-        primary_key=True,
-        nullable=False,
-        unique=True,
-    )
-
-    data = DB.Column(JSONB)
-
-    
-    modules = DB.relationship(
-        "TModules",
-        lazy="select",
-        enable_typechecks=False,
-        secondary=corIndividualModule,
-        primaryjoin=(corIndividualModule.c.id_base_individual == id_base_individual),
-        secondaryjoin=(corIndividualModule.c.id_module == TModules.id_module),
-        foreign_keys=[corIndividualModule.c.id_base_individual, corIndividualModule.c.id_module],
-    )
-
-
 @serializable
 class TMonitoringModules(TModules):
     __tablename__ = "t_module_complements"
@@ -348,13 +294,13 @@ class TMonitoringModules(TModules):
     )
 
     individuals = DB.relationship(
-        "TMonitoringIndividuals",
+        "TMarkingEvent",
         lazy="select",
         enable_typechecks=False,
         secondary=corIndividualModule,
         primaryjoin=(corIndividualModule.c.id_module == id_module),
-        secondaryjoin=(corIndividualModule.c.id_base_individual == TMonitoringIndividuals.id_base_individual),
-        foreign_keys=[corIndividualModule.c.id_base_individual, corIndividualModule.c.id_module],
+        secondaryjoin=(corIndividualModule.c.id_individual == TMarkingEvent.id_individual),
+        foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
     )
     data = DB.Column(JSONB)
 
