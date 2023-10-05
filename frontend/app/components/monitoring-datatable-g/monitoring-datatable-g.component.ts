@@ -251,12 +251,12 @@ export class MonitoringDatatableGComponent implements OnInit {
     let objectTypeChild: ObjectsPermissionMonitorings | string;
     switch (this.activetabType) {
       case 'sites_group':
-        objectType = ObjectsPermissionMonitorings.GNM_GRP_SITES;
-        objectTypeChild = ObjectsPermissionMonitorings.GNM_SITES;
+        objectType = ObjectsPermissionMonitorings.MONITORINGS_GRP_SITES;
+        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_SITES;
         this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       case 'site':
-        objectType = ObjectsPermissionMonitorings.GNM_SITES;
+        objectType = ObjectsPermissionMonitorings.MONITORINGS_SITES;
         objectTypeChild = 'visit';
         this.canCreateChild = true;
         break;

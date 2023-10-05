@@ -1,3 +1,5 @@
+from flask import current_app
+
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
@@ -9,7 +11,6 @@ from ..utils.utils import to_int
 from sqlalchemy.orm import joinedload
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
-import gn_module_monitoring.monitoring.definitions as MonitoringDef
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ class MonitoringObject(MonitoringObjectSerializer):
             ):
                 cruved_item_dict = get_objet_with_permission_boolean(
                     [self._model],
-                    object_code=MonitoringDef.MonitoringPermissions_dict[self._object_type],
+                    object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                        self._object_type
+                    ],
                 )
                 self.cruved = cruved_item_dict[0]["cruved"]
 
