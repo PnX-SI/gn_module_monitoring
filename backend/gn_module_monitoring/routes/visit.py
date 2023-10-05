@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, current_app
 from sqlalchemy.orm import joinedload
 from werkzeug.datastructures import MultiDict
 
@@ -15,10 +15,6 @@ from gn_module_monitoring.utils.routes import (
     get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.modules import get_modules
-from gn_module_monitoring.monitoring.definitions import MonitoringPermissions_dict
-
-# Retrieves visits that do not depend on modules
-OBJECT_CODE = MonitoringPermissions_dict["visit"]
 
 
 @blueprint.route("/visits", methods=["GET"], defaults={"object_type": "visit"})
@@ -29,6 +25,10 @@ def get_visits(object_type):
         params=params, default_sort="id_base_visit", default_direction="desc"
     )
     modules_object = get_modules()
+
+    # Retrieves visits that do not depend on modules
+    OBJECT_CODE = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})["visit"]
+
     modules = get_objet_with_permission_boolean(modules_object, object_code=OBJECT_CODE)
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
     query = TMonitoringVisits.query
