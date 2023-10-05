@@ -6,13 +6,13 @@ import { ObjectsPermissionMonitorings } from '../enum/objectPermission';
 @Injectable()
 export class PermissionService {
   defaultPermission: TPermission = {
-    [ObjectsPermissionMonitorings.GNM_GRP_SITES]: {
+    [ObjectsPermissionMonitorings.MONITORINGS_GRP_SITES]: {
       canCreate: false,
       canRead: false,
       canUpdate: false,
       canDelete: false,
     },
-    [ObjectsPermissionMonitorings.GNM_SITES]: {
+    [ObjectsPermissionMonitorings.MONITORINGS_SITES]: {
       canCreate: false,
       canRead: false,
       canUpdate: false,
