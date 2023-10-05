@@ -1,14 +1,29 @@
 {
     "cruved": {"C":1, "U":1, "D": 1},
     "id_field_name": "id_base_individual",
-    "description_field_name": "id_base_individual",
+    "description_field_name": "base_individual_name",
     "chained": true,
     "filters": {
       "active": true
     },
     "label": "Individu",
     "genre": "M",
-    "display_properties": ["uuid_individual", "active"],
+    "display_properties": ["uuid_individual", 
+      "base_individual_name", 
+      "active",
+      "id_nomenclature_sex",
+      "comment",
+      "cd_nom",
+      "id_digitiser",
+      "id_operator",
+      "marking_date",
+      "id_base_marking_site",
+      "id_nomenclature_marking_type",
+      "marking_location",
+      "marking_code",
+      "marking_details",
+      "additional_data"
+    ],
     "display_list": [
       "base_individual_name",
       "uuid_individual",
@@ -66,12 +81,16 @@
       },
       "marking_date": {
         "type_widget": "date",
-        "attribut_label": "Date description",
+        "attribut_label": "Date de marquage",
         "required": true
       },
       "id_operator": {
-        "type_widget": "text",
+        "type_widget": "datalist",
         "attribut_label": "Opérateur",
+        "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+        "application": "GeoNature",
+        "keyValue": "id_role",
+        "keyLabel": "nom_complet",
         "type_util": "user",
         "required": true
       },
@@ -82,9 +101,7 @@
         "keyValue": "id_base_site",
         "keyLabel": "base_site_name",
         "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/site?id_module=__MODULE.ID_MODULE&fields=id_base_site&fields=base_site_name",
-        "application": "GeoNature",
-        "required": false,
-        "hidden": true
+        "application": "GeoNature"
       }, 
       "id_nomenclature_marking_type": {
         "type_widget": "nomenclature",
@@ -103,7 +120,7 @@
       },
       "marking_details": {
         "type_widget": "text",
-        "attribut_label": "Code du marquage"
+        "attribut_label": "Détails du marquage"
       },
       "additional_data": {
         "type_widget": "textarea",
