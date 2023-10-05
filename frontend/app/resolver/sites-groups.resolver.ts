@@ -78,11 +78,11 @@ export class SitesGroupsReslver
                 ? { sort_dir: configSchemaSite.sorts[0].dir, sort: configSchemaSite.sorts[0].prop }
                 : {};
 
-            const $getSiteGroups = this.currentPermission.GNM_GRP_SITES.canRead
+            const $getSiteGroups = this.currentPermission.MONITORINGS_GRP_SITES.canRead
               ? this.service.get(1, LIMIT, sortSiteGroupInit)
               : of({ items: [], count: 0, limit: 0, page: 1 });
             // const $getSiteGroups = this.service.get(1, LIMIT, sortSiteGroupInit)
-            const $getSites = this.currentPermission.GNM_SITES.canRead
+            const $getSites = this.currentPermission.MONITORINGS_SITES.canRead
               ? this.serviceSite.get(1, LIMIT, sortSiteInit)
               : of({ items: [], count: 0, limit: 0, page: 1 });
 

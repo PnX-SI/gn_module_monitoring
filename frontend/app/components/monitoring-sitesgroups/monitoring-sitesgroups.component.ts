@@ -108,10 +108,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       if (data.route == 'sites') {
         this.activetabIndex = 1;
         this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-        this.currentPermission.GNM_SITES.canRead ? this.getGeometriesSite() : null;
+        this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
       } else {
         this.activetabIndex = 0;
-        this.currentPermission.GNM_GRP_SITES.canRead
+        this.currentPermission.MONITORINGS_GRP_SITES.canRead
           ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
           : null;
       }
@@ -278,7 +278,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.GNM_SITES.canRead ? this.getGeometriesSite() : null;
+      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.activetabIndex = 0;
       this.currentRoute = 'sites_group';
@@ -286,7 +286,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
-      this.currentPermission.GNM_GRP_SITES.canRead
+      this.currentPermission.MONITORINGS_GRP_SITES.canRead
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;
     }
