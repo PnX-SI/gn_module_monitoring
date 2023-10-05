@@ -36,8 +36,22 @@ def upgrade():
                 name=f"fk_{table}_{column}",
                 onupdate="CASCADE",
             ),
-            nullable=False,
         ),
+        schema=monitorings_schema,
+    )
+    op.execute(
+        """
+        UPDATE gn_monitoring.t_observations o SET id_digitiser = tbv.id_digitiser
+        FROM gn_monitoring.t_base_visits AS tbv
+        WHERE tbv.id_base_visit = o.id_base_visit;
+    """
+    )
+    # Set not null constraint
+    op.alter_column(
+        table_name=table,
+        column_name=column,
+        existing_type=sa.Integer(),
+        nullable=False,
         schema=monitorings_schema,
     )
 
