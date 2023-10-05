@@ -1,11 +1,12 @@
+from geonature.core.gn_monitoring.models import TMarkingEvent
+
 from .models import (
     TMonitoringModules,
     TMonitoringSites,
     TMonitoringVisits,
     TMonitoringObservations,
     TMonitoringObservationDetails,
-    TMonitoringSitesGroups,
-    TMonitoringIndividuals,
+    TMonitoringSitesGroups
 )
 from .objects import MonitoringModule, MonitoringSite
 
@@ -27,7 +28,7 @@ MonitoringModels_dict = {
     "observation": TMonitoringObservations,
     "observation_detail": TMonitoringObservationDetails,
     "sites_group": TMonitoringSitesGroups,
-    "individual": TMonitoringIndividuals,
+    "individual": TMarkingEvent,
 }
 
 MonitoringObjects_dict = {
