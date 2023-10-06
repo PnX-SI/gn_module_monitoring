@@ -1,7 +1,7 @@
 {
     "cruved": {"C":1, "U":1, "D": 1},
-    "id_field_name": "id_base_individual",
-    "description_field_name": "base_individual_name",
+    "id_field_name": "id_individual",
+    "description_field_name": "individual_name",
     "chained": true,
     "filters": {
       "active": true
@@ -9,7 +9,7 @@
     "label": "Individu",
     "genre": "M",
     "display_properties": ["uuid_individual", 
-      "base_individual_name", 
+      "individual_name", 
       "active",
       "id_nomenclature_sex",
       "comment",
@@ -21,11 +21,10 @@
       "id_nomenclature_marking_type",
       "marking_location",
       "marking_code",
-      "marking_details",
-      "additional_data"
+      "marking_details"
     ],
     "display_list": [
-      "base_individual_name",
+      "individual_name",
       "uuid_individual",
       "active"
     ],
@@ -36,15 +35,15 @@
         "attribut_label": "ID Module",
         "hidden": true
       },
-      "id_base_individual": {
+      "id_individual": {
         "type_widget": "text",
-        "attribut_label": "Id Base Individual",
+        "attribut_label": "Id individual",
         "hidden": true
       },
       "uuid_individual": {
         "attribut_label": "uuid"
       },
-      "base_individual_name": {
+      "individual_name": {
         "type_widget": "text",
         "attribut_label": "Nom de l'individu",
         "required": true
@@ -121,11 +120,6 @@
       "marking_details": {
         "type_widget": "text",
         "attribut_label": "Détails du marquage"
-      },
-      "additional_data": {
-        "type_widget": "textarea",
-        "attribut_label": "Données additionelles (json)",
-        "value": "{}"
       }
     }
   }
