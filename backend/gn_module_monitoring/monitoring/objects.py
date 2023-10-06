@@ -1,5 +1,6 @@
 from .repositories import MonitoringObject
 from .geom import MonitoringObjectGeom
+from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules
 
@@ -47,3 +48,20 @@ class MonitoringIndividual(MonitoringObjectGeom):
             module_ids.append(id_module)
 
         data["modules"] = module_ids
+
+    def delete(self):
+        # Soft delete
+        if not self._id:
+            raise GeoNatureError("Monitoring : delete object has no id")
+        
+        try:
+            self.get()
+            monitoring_object_out = self.serialize(1)
+
+            self._model.active = False
+            DB.session.commit()
+
+            return monitoring_object_out
+
+        except Exception as e:
+            raise GeoNatureError("Delete {} raise error {}".format(self, str(e)))
