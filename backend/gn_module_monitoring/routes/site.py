@@ -106,9 +106,9 @@ def get_all_types_site_from_site_id(id_site, object_type):
 
 
 @blueprint.route("/sites", methods=["GET"], defaults={"object_type": "site"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_sites(object_type):
-    object_code = "GNM_SITES"
+    object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
     # TODO: add filter support
     limit, page = get_limit_page(params=params)
@@ -138,7 +138,7 @@ def get_sites(object_type):
 
 @blueprint.route("/sites/<int:id>", methods=["GET"], defaults={"object_type": "site"})
 @permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="GNM_SITES"
+    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def get_site_by_id(scope, id, object_type):
     site = TMonitoringSites.query.get_or_404(id)
@@ -146,7 +146,7 @@ def get_site_by_id(scope, id, object_type):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
     schema = MonitoringSitesSchema()
     response = schema.dump(site)
-    response["cruved"] = get_objet_with_permission_boolean([site], object_code="GNM_SITES")[0][
+    response["cruved"] = get_objet_with_permission_boolean([site], object_code="MONITORINGS_SITES")[0][
         "cruved"
     ]
     response["geometry"] = json.loads(response["geometry"])
@@ -154,9 +154,9 @@ def get_site_by_id(scope, id, object_type):
 
 
 @blueprint.route("/sites/geometries", methods=["GET"], defaults={"object_type": "site"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_all_site_geometries(object_type):
-    object_code = "GNM_SITES"
+    object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
     query = TMonitoringSites.query
     query_allowed = query.filter_by_readable(object_code=object_code)
@@ -177,7 +177,7 @@ def get_all_site_geometries(object_type):
 
 
 @blueprint.route("/sites/<int:id_base_site>/modules", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_module_by_id_base_site(id_base_site: int):
     modules_object = get_modules()
     modules = get_objet_with_permission_boolean(modules_object, depth=0)
@@ -206,7 +206,7 @@ def get_module_sites(module_code: str):
 
 
 @blueprint.route("/sites", methods=["POST"], defaults={"object_type": "site"})
-@check_cruved_scope("C", module_code=MODULE_CODE, object_code="GNM_SITES")
+@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def post_sites(object_type):
     module_code = "generic"
     object_type = "site"
@@ -223,7 +223,7 @@ def post_sites(object_type):
 
 @blueprint.route("/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": "site"})
 @permissions.check_cruved_scope(
-    "D", get_scope=True, module_code=MODULE_CODE, object_code="GNM_SITES"
+    "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def delete_site(scope, _id, object_type):
     site = TMonitoringSites.query.get_or_404(_id)
@@ -236,7 +236,7 @@ def delete_site(scope, _id, object_type):
 
 @blueprint.route("/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"})
 @permissions.check_cruved_scope(
-    "U", get_scope=True, module_code=MODULE_CODE, object_code="GNM_SITES"
+    "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def patch_sites(scope, _id, object_type):
     site = TMonitoringSites.query.get_or_404(_id)
