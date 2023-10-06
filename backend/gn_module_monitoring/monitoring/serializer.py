@@ -11,6 +11,7 @@ from geonature.utils.env import DB
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
+from gn_module_monitoring.monitoring.base import monitoring_definitions
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
@@ -60,25 +61,22 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             properties["data"] = data
 
     def get_readable_list_object(self, relation_name, children_type):
-        childs_model = getattr(self._model, relation_name)
-        if (
-            len(childs_model) > 0
-            and isinstance(childs_model[0], PermissionModel)
-            and not isinstance(childs_model[0], TMonitoringModules)
+        childs_model = monitoring_definitions.MonitoringModel(object_type=children_type)
+
+        if isinstance(childs_model, PermissionModel) and not isinstance(
+            childs_model, TMonitoringModules
         ):
-            all_object_readable = (
-                childs_model[0]
-                .query.filter_by_readable(
-                    module_code=self._module_code,
-                    object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                        children_type
-                    ],
-                )
-                .all()
-            )
-            child_object_readable = [v for v in childs_model if v in all_object_readable]
-            return child_object_readable
-        return childs_model
+            all_object_readable = childs_model.query.filter_by_readable(
+                module_code=self._module_code,
+                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                    children_type
+                ],
+            ).all()
+            # child_object_readable = [v for v in childs_model if v in all_object_readable]
+            return all_object_readable
+        else:
+            childs_model = getattr(self._model, relation_name)
+            return childs_model
 
     def serialize_children(self, depth):
         children_types = self.config_param("children_types")
@@ -100,6 +98,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             childs_object_readable = self.get_readable_list_object(
                 relation_name, children_type=children_type
             )
+
             for child_model in childs_object_readable:
                 child = monitoring_definitions.monitoring_object_instance(
                     self._module_code, children_type, model=child_model
@@ -160,8 +159,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             properties[field_name] = val
 
         children = None
+        # On enleve un niveau pour les enfants
         if depth >= 0:
-            children = self.serialize_children(depth)
+            children = self.serialize_children(depth - 1)
 
         # processe properties
         self.flatten_specific_properties(properties)
