@@ -38,9 +38,9 @@ def get_config_sites_groups(id=None, module_code="generic", object_type="sites_g
 
 
 @blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_GRP_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_groups(object_type: str):
-    object_code = "GNM_GRP_SITES"
+    object_code = "MONITORINGS_GRP_SITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -69,9 +69,9 @@ def get_sites_groups(object_type: str):
 @blueprint.route(
     "/sites_groups/<int:id_sites_group>", methods=["GET"], defaults={"object_type": "sites_group"}
 )
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_GRP_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 @permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
+    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
     sites_group = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
@@ -82,7 +82,7 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
     schema = MonitoringSitesGroupsSchema()
     result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
     response = schema.dump(result)
-    response["cruved"] = get_objet_with_permission_boolean([result], object_code="GNM_GRP_SITES")[
+    response["cruved"] = get_objet_with_permission_boolean([result], object_code="MONITORINGS_GRP_SITES")[
         0
     ]["cruved"]
     return jsonify(response)
@@ -91,9 +91,9 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 @blueprint.route(
     "/sites_groups/geometries", methods=["GET"], defaults={"object_type": "sites_group"}
 )
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="GNM_GRP_SITES")
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(object_type: str):
-    object_code = "GNM_GRP_SITES"
+    object_code = "MONITORINGS_GRP_SITES"
     query = TMonitoringSitesGroups.query
     query_allowed = query.filter_by_readable(object_code=object_code)
     subquery = (
@@ -119,7 +119,7 @@ def get_sites_group_geometries(object_type: str):
     "/sites_groups/<int:_id>", methods=["PATCH"], defaults={"object_type": "sites_group"}
 )
 @permissions.check_cruved_scope(
-    "U", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
+    "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def patch(scope, _id: int, object_type: str):
     # ###############################""
@@ -139,7 +139,7 @@ def patch(scope, _id: int, object_type: str):
     "/sites_groups/<int:_id>", methods=["DELETE"], defaults={"object_type": "sites_group"}
 )
 @permissions.check_cruved_scope(
-    "D", get_scope=True, module_code=MODULE_CODE, object_code="GNM_GRP_SITES"
+    "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def delete(scope, _id: int, object_type: str):
     sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
@@ -153,7 +153,7 @@ def delete(scope, _id: int, object_type: str):
 
 
 @blueprint.route("/sites_groups", methods=["POST"], defaults={"object_type": "sites_group"})
-@check_cruved_scope("C", module_code=MODULE_CODE, object_code="GNM_GRP_SITES")
+@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def post(object_type: str):
     module_code = "generic"
     get_config(module_code, force=True)
