@@ -6,7 +6,7 @@ from .models import (
     TMonitoringVisits,
     TMonitoringObservations,
     TMonitoringObservationDetails,
-    TMonitoringSitesGroups
+    TMonitoringSitesGroups,
 )
 from .objects import MonitoringModule, MonitoringSite, MonitoringIndividual
 

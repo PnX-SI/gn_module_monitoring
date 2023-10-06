@@ -34,6 +34,7 @@ class MonitoringSite(MonitoringObjectGeom):
 
         data["modules"] = module_ids
 
+
 class MonitoringIndividual(MonitoringObjectGeom):
     """
     PATCH
@@ -53,7 +54,7 @@ class MonitoringIndividual(MonitoringObjectGeom):
         # Soft delete
         if not self._id:
             raise GeoNatureError("Monitoring : delete object has no id")
-        
+
         try:
             self.get()
             monitoring_object_out = self.serialize(1)
