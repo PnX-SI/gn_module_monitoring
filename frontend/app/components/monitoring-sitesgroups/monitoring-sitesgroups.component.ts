@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { IDataTableObj, ISite, ISitesGroup } from '../../interfaces/geom';
 import { GeoJSONService } from '../../services/geojson.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { setPopup } from '../../functions/popup';
+import { Popup } from '../../utils/popup';
 import { ObjectService } from '../../services/object.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { IobjObs } from '../../interfaces/objObs';
@@ -75,7 +75,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _configJsonService: ConfigJsonService,
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     private _formService: FormService,
-    private _location: Location
+    private _location: Location,
+    private _popup: Popup
   ) {
     super();
     this.getAllItemsCallback = this.getSitesOrSitesGroups; //[this.getSitesGroups, this.getSites];
@@ -130,12 +131,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSiteGroups(): Function {
-    const baseUrl = 'monitorings/' + this.currentRoute;
+    const baseUrl = this.currentRoute;
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_sites_group,
-        'Groupe de site :' + feature.properties.sites_group_name
+      const popup = this._popup.setPopup(
+        baseUrl + '/' + feature.properties.id_sites_group,
+        feature,
+        'sites_group_name'
       );
       layer.bindPopup(popup);
     };
@@ -166,6 +167,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         this.dataTableObj.sites_group.page.limit = data.limit;
         this.dataTableObj.sites_group.page.page = data.page - 1;
       });
+    this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
@@ -180,6 +182,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.dataTableObj.site.page.limit = data.limit;
       this.dataTableObj.site.page.page = data.page - 1;
     });
+    this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
   getGeometriesSite() {
@@ -189,11 +192,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   onEachFeatureSite() {
     const baseUrl = 'monitorings/' + this.currentRoute;
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_base_site,
-        'Site :' + feature.properties.base_site_name
-      );
+      const popup = this._popup.setSitePopup(feature);
+
       layer.bindPopup(popup);
     };
   }
@@ -262,12 +262,18 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     });
   }
 
-  updateBreadCrumb() {
-    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
+  onSelectedOnDataTable(data) {
+    const typeObject = data[0];
+    const id = data[1];
+    if (typeObject == 'site') {
+      this.geojsonService.selectSitesLayer(id, true);
+    } else if (typeObject == 'sites_group') {
+      this.geojsonService.selectSitesGroupLayer(id, true);
+    }
   }
 
-  onSelect($event) {
-    this.geojsonService.selectSitesGroupLayer($event);
+  updateBreadCrumb() {
+    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
   }
 
   updateActiveTab($event) {

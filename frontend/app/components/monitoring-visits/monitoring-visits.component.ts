@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
 import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { ModuleService } from '@geonature/services/module.service';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
@@ -20,7 +21,7 @@ import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
-import { setPopup } from '../../functions/popup';
+import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
 import { TPermission } from '../../types/permission';
@@ -82,10 +83,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
+    protected _moduleService: ModuleService,
     public siteService: SitesService,
     protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
-    private _permissionService: PermissionService
+    private _permissionService: PermissionService,
+    private _popup: Popup
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -237,13 +240,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   onEachFeatureSite() {
-    const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_base_site,
-        'Site :' + feature.properties.base_site_name
-      );
+      const popup = this._popup.setSitePopup(feature);
       layer.bindPopup(popup);
     };
   }
@@ -340,7 +338,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     let schemaTypeMerged = {};
     let keyHtmlToPop = '';
     for (let type_site of this.types_site) {
-      if ('specific' in type_site['config']) {
+      if ('specific' in (type_site['config'] || {})) {
         for (const prop in type_site['config']['specific']) {
           if (
             'type_widget' in type_site['config']['specific'][prop] &&

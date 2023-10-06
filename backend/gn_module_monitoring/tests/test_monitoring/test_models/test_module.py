@@ -1,4 +1,7 @@
 import pytest
+
+from sqlalchemy import select
+
 from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
@@ -14,6 +17,10 @@ class TestModule:
         with db.session.begin_nested():
             monitoring_module.types_site.pop(0)
 
-        mon = TMonitoringModules.query.filter_by(id_module=monitoring_module.id_module).one()
+        module = db.session.execute(
+            select(TMonitoringModules).where(
+                TMonitoringModules.id_module == monitoring_module.id_module
+            )
+        ).scalar_one()
 
-        assert len(mon.types_site) == len(types_site) - 1
+        assert len(module.types_site) == len(types_site) - 1

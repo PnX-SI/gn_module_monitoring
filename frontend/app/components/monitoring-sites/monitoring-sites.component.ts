@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 import { IDataTableObj, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { setPopup } from '../../functions/popup';
+import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
@@ -74,7 +74,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private _configService: ConfigService,
     private _formService: FormService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _permissionService: PermissionService
+    private _permissionService: PermissionService,
+    private _popup: Popup
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -184,11 +185,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   onEachFeatureSite() {
     const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_base_site,
-        'Site :' + feature.properties.base_site_name
-      );
+      const popup = this._popup.setSitePopup(feature);
       layer.bindPopup(popup);
     };
   }
@@ -206,6 +203,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         this.dataTableObj.site.page.limit = data.limit;
         this.dataTableObj.site.page.page = data.page - 1;
       });
+    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
   seeDetails($event) {

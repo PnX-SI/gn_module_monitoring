@@ -1,48 +1,55 @@
 from flask import g
-from flask_sqlalchemy import BaseQuery
-from sqlalchemy import Unicode, and_, Unicode, func, or_, false
+
+from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
+from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import DateTime
+from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
+
 from geonature.core.gn_permissions.tools import get_scopes_by_action
+
 import gn_module_monitoring.monitoring.models as Models
 
 
-class Query(BaseQuery):
-    def _get_entity(self, entity):
-        if hasattr(entity, "_entities"):
-            return self._get_entity(entity._entities[0])
-        return entity.entities[0]
+class GnMonitoringGenericFilter:
+    @classmethod
+    def get_id_name(cls) -> None:
+        pk_string = class_mapper(cls).primary_key[0].name
+        if hasattr(cls, "id_g") == False:
+            pk_value = getattr(cls, pk_string)
+            setattr(cls, "id_g", pk_value)
+        return pk_string
 
-    def _get_model(self):
-        # When sqlalchemy is updated:
-        # return self._raw_columns[0].entity_namespace
-        # But for now:
-        entity = self._get_entity(self)
-        return entity.c
-
-    def filter_by_params(self, params: MultiDict = None):
-        model = self._get_model()
-        and_list = []
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        and_list = [
+            true(),
+        ]
         for key, value in params.items():
-            column = getattr(model, key)
-            if isinstance(column.type, Unicode):
-                and_list.append(column.ilike(f"%{value}%"))
-            elif isinstance(column.type, DateTime):
-                and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
-            else:
-                and_list.append(column == value)
+            if hasattr(cls, key):
+                column = getattr(cls, key)
+                if not hasattr(column, "type"):
+                    # is not an attribut
+                    pass
+                elif isinstance(column.type, Unicode):
+                    and_list.append(column.ilike(f"%{value}%"))
+                elif isinstance(column.type, DateTime):
+                    and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
+                else:
+                    and_list.append(column == value)
         and_query = and_(*and_list)
-        return self.filter(and_query)
+        return query.where(and_query)
 
-    def sort(self, label: str, direction: str):
-        model = self._get_model()
-        order_by = getattr(model, label)
+    @classmethod
+    def sort(cls, query: Select, label: str, direction: str):
+        order_by = getattr(cls, label)
         if direction == "desc":
             order_by = order_by.desc()
 
-        return self.order_by(order_by)
+        return query.order_by(order_by)
 
-    def _get_cruved_scope(self, module_code=None, object_code=None, user=None):
+    @classmethod
+    def _get_cruved_scope(cls, module_code=None, object_code=None, user=None):
         if user is None:
             user = g.current_user
         cruved = get_scopes_by_action(
@@ -50,7 +57,8 @@ class Query(BaseQuery):
         )
         return cruved
 
-    def _get_read_scope(self, module_code="MONITORINGS", object_code=None, user=None):
+    @classmethod
+    def _get_read_scope(cls, module_code="MONITORINGS", object_code=None, user=None):
         if user is None:
             user = g.current_user
         cruved = get_scopes_by_action(
@@ -58,21 +66,26 @@ class Query(BaseQuery):
         )
         return cruved["R"]
 
-    def filter_by_readable(self, module_code="MONITORINGS", object_code=None, user=None):
+    @classmethod
+    def filter_by_readable(
+        cls, query: Select, module_code="MONITORINGS", object_code=None, user=None
+    ):
         """
         Return the object where the user has autorization via its CRUVED
         """
-        return self.filter_by_scope(
-            self._get_read_scope(module_code=module_code, object_code=object_code, user=user)
+        return cls.filter_by_scope(
+            query=query,
+            scope=cls._get_read_scope(module_code=module_code, object_code=object_code, user=user),
         )
 
 
-class SitesQuery(Query):
-    def filter_by_scope(self, scope, user=None):
+class SitesQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
-            self = self.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringSites.id_digitiser == user.id_role,
@@ -84,16 +97,17 @@ class SitesQuery(Query):
                     Models.TMonitoringSites.inventor.has(id_organisme=user.id_organisme),
                     Models.TMonitoringSites.digitiser.has(id_organisme=user.id_organisme),
                 ]
-            self = self.filter(or_(*ors))
-        return self
+            query = query.where(or_(*ors))
+        return query
 
 
-class SitesGroupsQuery(Query):
-    def filter_by_scope(self, scope, user=None):
+class SitesGroupsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
-            self = self.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringSitesGroups.id_digitiser == user.id_role,
@@ -103,17 +117,18 @@ class SitesGroupsQuery(Query):
                 ors += [
                     Models.TMonitoringSitesGroups.digitiser.has(id_organisme=user.id_organisme)
                 ]
-            self = self.filter(or_(*ors))
-        return self
+            query = query.where(or_(*ors))
+        return query
 
 
-class VisitQuery(Query):
-    def filter_by_scope(self, scope, user=None):
+class VisitQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
         # Problem pas le même comportement que pour les sites et groupes de site
         if user is None:
             user = g.current_user
         if scope == 0:
-            self = self.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringVisits.id_digitiser == user.id_role,
@@ -125,22 +140,25 @@ class VisitQuery(Query):
                     Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
                     Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
                 ]
-            self = self.filter(or_(*ors))
-        return self
+            query = query.where(or_(*ors))
+        return query
 
 
-class ObservationsQuery(Query):
-    def filter_by_scope(self, scope, user=None):
+class ObservationsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
-            self = self.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
-                Models.TObservations.id_digitiser == user.id_role,
+                Models.TMonitoringObservations.id_digitiser == user.id_role,
             ]
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
-                ors += [Models.TObservations.digitiser.has(id_organisme=user.id_organisme)]
-            self = self.filter(or_(*ors))
-        return self
+                ors += [
+                    Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
+                ]
+            query = query.where(or_(*ors))
+        return query

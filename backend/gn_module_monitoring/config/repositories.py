@@ -2,14 +2,13 @@
     module de gestion de la configuarion des protocoles de suivi
 """
 
-import json
 import os
+
 from flask import current_app
-from .utils import (
+
+from gn_module_monitoring.config.utils import (
     customize_config,
     config_from_files,
-    get_directory_last_modif,
-    get_base_last_modif,
     json_config_from_file,
     get_id_table_location,
     process_config_display,
@@ -123,6 +122,20 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
     return config_object
 
 
+def get_config_with_specific(module_code=None, force=False, complements=None):
+    """
+    recupere la configuration pour le module monitoring
+    en prenant en compte les propriétés spécifiques des types de sites
+    """
+    customConfig = {"specific": {}}
+    for keys in complements.keys():
+        if "config" in complements[keys]:
+            customConfig["specific"].update(
+                (complements[keys].get("config", {}) or {}).get("specific", {})
+            )
+    get_config(module_code, force=True, customSpecConfig=customConfig)
+
+
 def get_config(module_code=None, force=False, customSpecConfig=None):
     """
     recupere la configuration pour le module monitoring
@@ -131,7 +144,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
     et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
         alors la configuration est récupéré depuis current_app.config
     sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
-
     """
     module_code = module_code if module_code else "generic"
 
@@ -149,7 +161,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
         return config
 
     module = get_monitoring_module(module_code)
-
     # derniere modification
     # fichiers
     # file_last_modif = get_directory_last_modif(monitoring_config_path())
@@ -166,7 +177,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
 
     # customize config
     if module:
-        custom = {}
         config["custom"] = {}
         for field_name in [
             "module_code",
@@ -180,7 +190,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
             var_name = "__MODULE.{}".format(field_name.upper())
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
-
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 
         config["default_display_field_names"].update(config.get("display_field_names", {}))

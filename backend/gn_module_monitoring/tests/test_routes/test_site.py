@@ -1,4 +1,5 @@
 import pytest
+
 from flask import url_for
 
 from pypnusershub.tests.utils import set_logged_user_cookie
@@ -6,7 +7,6 @@ from pypnusershub.tests.utils import set_logged_user_cookie
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.monitoring.models import TMonitoringSites
-
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -197,11 +197,13 @@ class TestSite:
         assert response.status_code == 201
 
         obj_created = response.json
-        res = TMonitoringSites.find_by_id(obj_created["id"])
+        res = db.get_or_404(TMonitoringSites, obj_created["id"])
         assert (
             res.as_dict()["base_site_name"]
             == site_to_post_with_types["properties"]["base_site_name"]
         )
+
+        assert set(res.types_site) == set([ts for k, ts in types_site.items()])
 
     def test_delete_site(self, sites, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
@@ -211,5 +213,5 @@ class TestSite:
 
         assert r.json["success"] == "Item is successfully deleted"
         with pytest.raises(Exception) as e:
-            TMonitoringSites.query.get_or_404(id_base_site)
+            db.get_or_404(TMonitoringSites, id_base_site)
         assert "404 Not Found" in str(e.value)

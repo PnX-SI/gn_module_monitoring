@@ -5,20 +5,18 @@
 from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
 
-from ..blueprint import blueprint
-from ..utils.utils import to_int
-
 from geonature.core.gn_permissions.tools import get_scopes_by_action, has_any_permissions_by_action
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
-from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
 from gn_module_monitoring import MODULE_CODE
-
-from ..modules.repositories import (
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
+from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
 )
-from ..config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_module_id,
     get_object_list_monitorings,

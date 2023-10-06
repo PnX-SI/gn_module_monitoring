@@ -1,29 +1,32 @@
+import json
+
 from flask import request, g
 from flask.json import jsonify
-import json
-from geonature.core.gn_commons.schemas import ModuleSchema
-from geonature.utils.env import db
-from sqlalchemy import and_
+
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload
 from sqlalchemy.sql import func
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
+from geonature.utils.env import db
+from geonature.core.gn_commons.schemas import ModuleSchema
+from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
-from pypnusershub.db.models import User
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+
+from pypnnomenclature.models import TNomenclatures
+
+from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config_with_specific
 from gn_module_monitoring.monitoring.models import (
-    BibTypeSite,
     TMonitoringModules,
     TMonitoringSites,
-    TNomenclatures,
 )
-from gn_module_monitoring import MODULE_CODE
-from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import (
-    create_or_update_object_api_sites_sites_group,
+    create_or_update_object_api,
     get_config_object,
 )
 from gn_module_monitoring.routes.modules import get_modules
@@ -56,8 +59,8 @@ def get_types_site():
         params=params, default_sort="id_nomenclature_type_site", default_direction="desc"
     )
 
-    query = filter_params(query=BibTypeSite.query, params=params)
-    query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+    query = filter_params(BibTypeSite, query=select(BibTypeSite), params=params)
+    query = sort(query=query, model=BibTypeSite, sort=sort_label, sort_dir=sort_dir)
 
     return paginate(
         query=query,
@@ -74,17 +77,20 @@ def get_types_site_by_label():
     sort_label, sort_dir = get_sort(
         params=params, default_sort="label_fr", default_direction="desc"
     )
-    joinquery = BibTypeSite.query.join(BibTypeSite.nomenclature).filter(
-        TNomenclatures.label_fr.ilike(f"%{params['label_fr']}%")
+
+    query = (
+        select(BibTypeSite)
+        .join(BibTypeSite.nomenclature)
+        .where(TNomenclatures.label_fr.ilike(f"%{params['label_fr']}%"))
     )
     if sort_dir == "asc":
-        joinquery = joinquery.order_by(TNomenclatures.label_fr.asc())
+        query = query.order_by(TNomenclatures.label_fr.asc())
 
     # See if there are not too much labels since they are used
     # in select in the frontend side. And an infinite select is not
     # implemented
     return paginate(
-        query=joinquery,
+        query=query,
         schema=BibTypeSiteSchema,
         limit=limit,
         page=page,
@@ -93,7 +99,8 @@ def get_types_site_by_label():
 
 @blueprint.route("/sites/types/<int:id_type_site>", methods=["GET"])
 def get_type_site_by_id(id_type_site):
-    res = BibTypeSite.find_by_id(id_type_site)
+    res = db.get_or_404(BibTypeSite, id_type_site)
+
     schema = BibTypeSiteSchema()
     return schema.dump(res)
 
@@ -116,11 +123,11 @@ def get_sites(object_type):
         params=params, default_sort="id_base_site", default_direction="desc"
     )
 
-    query = TMonitoringSites.query
+    query = select(TMonitoringSites)
     query = filter_according_to_column_type_for_site(query, params)
     query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
 
-    query_allowed = query.filter_by_readable(object_code=object_code)
+    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
     return paginate_scope(
         query=query_allowed,
         schema=MonitoringSitesSchema,
@@ -128,12 +135,6 @@ def get_sites(object_type):
         page=page,
         object_code=object_code,
     )
-    # return paginate(
-    #     query=query,
-    #     schema=MonitoringSitesSchema,
-    #     limit=limit,
-    #     page=page,
-    # )
 
 
 @blueprint.route("/sites/<int:id>", methods=["GET"], defaults={"object_type": "site"})
@@ -141,7 +142,7 @@ def get_sites(object_type):
     "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def get_site_by_id(scope, id, object_type):
-    site = TMonitoringSites.query.get_or_404(id)
+    site = db.get_or_404(TMonitoringSites, id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
     schema = MonitoringSitesSchema()
@@ -158,18 +159,16 @@ def get_site_by_id(scope, id, object_type):
 def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
-    query = TMonitoringSites.query
-    query_allowed = query.filter_by_readable(object_code=object_code)
-    subquery = (
-        query_allowed.with_entities(
-            TMonitoringSites.id_base_site,
-            TMonitoringSites.base_site_name,
-            TMonitoringSites.geom,
-            TMonitoringSites.id_sites_group,
-        )
-        .filter_by_params(params)
-        .subquery()
+    query = select(TMonitoringSites)
+    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
+    query_allowed.with_only_columns(
+        TMonitoringSites.id_base_site,
+        TMonitoringSites.base_site_name,
+        TMonitoringSites.geom,
+        TMonitoringSites.id_sites_group,
     )
+    query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
+    subquery = query_allowed.subquery()
 
     result = geojson_query(subquery)
 
@@ -184,17 +183,25 @@ def get_module_by_id_base_site(id_base_site: int):
         modules_object, object_code="MONITORINGS_VISITES", depth=0
     )
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
-    query = TMonitoringModules.query.options(
-        Load(TMonitoringModules).raiseload("*"),
-        joinedload(TMonitoringModules.types_site).options(joinedload(BibTypeSite.sites)),
-    ).filter(
-        and_(
-            TMonitoringModules.id_module.in_(ids_modules_allowed),
-            TMonitoringModules.types_site.any(BibTypeSite.sites.any(id_base_site=id_base_site)),
+
+    query = (
+        select(TMonitoringModules)
+        .options(
+            Load(TMonitoringModules).raiseload("*"),
+            joinedload(TMonitoringModules.types_site).options(joinedload(BibTypeSite.sites)),
+        )
+        .where(
+            and_(
+                TMonitoringModules.id_module.in_(ids_modules_allowed),
+                TMonitoringModules.types_site.any(
+                    BibTypeSite.sites.any(id_base_site=id_base_site)
+                ),
+            )
         )
     )
+
     schema = ModuleSchema()
-    result = query.all()
+    result = db.session.scalars(query).unique().all()
     # TODO: Is it usefull to put a limit here? Will there be more than 200 modules?
     # If limit here, implement paginated/infinite scroll on frontend side
     return [schema.dump(res) for res in result]
@@ -212,15 +219,11 @@ def get_module_sites(module_code: str):
 def post_sites(object_type):
     module_code = "generic"
     object_type = "site"
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
-    for keys in post_data["dataComplement"].keys():
-        if "config" in post_data["dataComplement"][keys]:
-            customConfig["specific"].update(
-                post_data["dataComplement"][keys]["config"]["specific"]
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
+
+    get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
+
+    return create_or_update_object_api(module_code, object_type), 201
 
 
 @blueprint.route("/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": "site"})
@@ -228,10 +231,10 @@ def post_sites(object_type):
     "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def delete_site(scope, _id, object_type):
-    site = TMonitoringSites.query.get_or_404(_id)
+    site = db.get_or_404(TMonitoringSites, _id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete site {site.id_base_site}")
-    TMonitoringSites.query.filter_by(id_base_site=_id).delete()
+    db.session.delete(site)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
 
@@ -241,19 +244,14 @@ def delete_site(scope, _id, object_type):
     "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
 def patch_sites(scope, _id, object_type):
-    site = TMonitoringSites.query.get_or_404(_id)
+    site = db.get_or_404(TMonitoringSites, _id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update site {site.id_base_site}")
     module_code = "generic"
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
-    # TODO: vérifier si utile et si oui mettre dans route POST
-    if "geometry" in post_data:
-        post_data["geometry"] = json.dumps(post_data["geometry"])
-    for keys in post_data["dataComplement"].keys():
-        if "config" in post_data["dataComplement"][keys]:
-            customConfig["specific"].update(
-                post_data["dataComplement"][keys]["config"]["specific"]
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201
+
+    get_config_with_specific(
+        module_code, force=True, complements=post_data.get("dataComplement", {})
+    )
+
+    return create_or_update_object_api(module_code, object_type, _id), 201

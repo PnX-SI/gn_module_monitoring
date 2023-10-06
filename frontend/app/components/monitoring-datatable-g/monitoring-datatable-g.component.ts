@@ -5,6 +5,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  SimpleChange,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -200,20 +201,18 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.onFilter.emit({ filters: this.filters, tabObj: this.activetabType });
   }
 
-  onSelectEvent({ selected }) {
-    const id = selected[0][selected[0]['pk']];
-
-    if (!this.rowStatus) {
+  onRowClick(event) {
+    if (!(event && event.type === 'click')) {
       return;
     }
-
-    this.rowStatus.forEach((status) => {
-      const bCond = status.id === id;
-      status['selected'] = bCond && !status['selected'];
-    });
-
-    this.setSelected();
-    this.rowStatusChange.emit(this.rowStatus);
+    switch (this.activetabType) {
+      case 'sites_group':
+        this.rowStatusChange.emit([this.activetabType, event.row.id_sites_group]);
+        break;
+      case 'site':
+        this.rowStatusChange.emit([this.activetabType, event.row.id_base_site]);
+        break;
+    }
   }
 
   addChildren(selected) {
@@ -292,33 +291,16 @@ export class MonitoringDatatableGComponent implements OnInit {
   // }
 
   ngOnChanges(changes: SimpleChanges) {
-    // IF prefered ngOnChanges compare to observable   uncomment this:
-    if (changes['dataTableObj'] && this.dataTableObj && Object.keys(this.dataTableObj).length > 0) {
-      this.filters = {};
-      for (const objType in this.dataTableObj) {
-        this.objectsStatus[objType] = this._dataTableService.initObjectsStatus(
-          this.dataTableObj[objType].rows,
-          objType
-        );
-      }
-
-      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
-      this.dataTableObj[this.activetabType].rows.length > 0
-        ? (this.columns = this._dataTableService.colsTable(
-            this.dataTableObj[this.activetabType].columns,
-            this.dataTableObj[this.activetabType].rows[0]
-          ))
-        : null;
-      this.rows = this.dataTableObj[this.activetabType].rows;
-      this.page = this.dataTableObj[this.activetabType].page;
-      this.initPermissionAction();
+    if (changes.activetabIndex) {
+      this.clearFilters();
     }
 
-    if (changes['rows'] && this.rows && this.rows.length > 0) {
-      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
-      this.rows = this.dataTableObj[this.activetabType].rows;
-      this.page = this.dataTableObj[this.activetabType].page;
-      this.initPermissionAction();
+    if (changes.obj) {
+      this.updateDataTable(changes.obj);
+    }
+
+    if (changes.rows || changes.page) {
+      this.updateRowsAndPage();
     }
 
     for (const propName of Object.keys(changes)) {
@@ -327,6 +309,40 @@ export class MonitoringDatatableGComponent implements OnInit {
           this.setSelected();
           break;
       }
+    }
+  }
+
+  private clearFilters() {
+    this.filters = {};
+  }
+
+  private updateDataTable(objChanges: SimpleChange) {
+    if (this.dataTableObj && Object.keys(this.dataTableObj).length > 0) {
+      for (const objType in this.dataTableObj) {
+        this.objectsStatus[objType] = this._dataTableService.initObjectsStatus(
+          this.dataTableObj[objType].rows,
+          objType
+        );
+      }
+
+      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
+      const dataTable = this.dataTableObj[this.activetabType];
+      if (dataTable.rows.length > 0) {
+        this.columns = this._dataTableService.colsTable(dataTable.columns, dataTable.rows[0]);
+      }
+      this.rows = dataTable.rows;
+      this.page = dataTable.page;
+      this.initPermissionAction();
+    }
+  }
+
+  private updateRowsAndPage() {
+    if (this.rows && this.rows.length > 0) {
+      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
+      const dataTable = this.dataTableObj[this.activetabType];
+      this.rows = dataTable.rows;
+      this.page = dataTable.page;
+      this.initPermissionAction();
     }
   }
   navigateToAddChildren(_, row) {

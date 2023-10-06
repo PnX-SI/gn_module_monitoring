@@ -5,6 +5,7 @@ Revises: c1528c94d350
 Create Date: 2023-10-02 13:53:05.682108
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -18,42 +19,7 @@ depends_on = None
 
 def upgrade():
     # Suppression des permissions available de ALL pour les modules monitorings
-    op.execute(
-        """
-        WITH to_del AS (
-            SELECT tp.*
-            FROM gn_permissions.t_permissions_available AS tp
-            JOIN gn_commons.t_modules AS tm
-            ON tm.id_module = tp.id_module AND tm."type" = 'monitoring_module'
-            JOIN gn_permissions.t_objects AS o
-            ON o.id_object = tp.id_object AND code_object = 'ALL'
-        )
-        DELETE FROM gn_permissions.t_permissions_available AS tp
-        USING to_del td
-        WHERE  tp.id_module = td.id_module
-        AND tp.id_object = td.id_object
-        AND tp.id_action = td.id_action
-        AND tp."label" = td."label"
-        AND tp.scope_filter = td.scope_filter
-        AND tp.sensitivity_filter = td.sensitivity_filter;
-        """
-    )
-
-    # Suppression des permissions  de ALL pour les modules monitorings
-    op.execute(
-        """
-        WITH to_del AS (
-            SELECT DISTINCT tp.id_permission
-            FROM gn_permissions.t_permissions AS tp
-            JOIN gn_commons.t_modules AS tm
-            ON tm.id_module = tp.id_module AND tm."type" = 'monitoring_module'
-            JOIN gn_permissions.t_objects AS o
-            ON o.id_object = tp.id_object AND code_object = 'ALL'
-        )
-        DELETE FROM  gn_permissions.t_permissions AS tp
-        WHERE tp.id_permission IN (SELECT id_permission FROM to_del);
-        """
-    )
+    pass
 
 
 def downgrade():

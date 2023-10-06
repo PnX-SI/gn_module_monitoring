@@ -3,34 +3,33 @@
         site, visit, observation, ...
 """
 
-
-from pathlib import Path
-from werkzeug.exceptions import NotFound, Forbidden
-from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
+from werkzeug.exceptions import Forbidden
+
+from flask import request, url_for, g, current_app
+
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp, to_json_resp
-from utils_flask_sqla_geo.generic import GenericTableGeo
-from utils_flask_sqla.generic import serializeQuery
+from utils_flask_sqla.response import to_csv_resp
+from utils_flask_sqla_geo.generic import GenericQueryGeo
 
-
-from ..blueprint import blueprint
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects, Permission
+from geonature.core.gn_permissions.models import TObjects
 
 from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
+from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions
-from ..modules.repositories import get_module
-from ..utils.utils import to_int
-from ..config.repositories import get_config
+from gn_module_monitoring.monitoring.definitions import monitoring_definitions
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.utils import to_int
+from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_site_id,
 )
@@ -40,10 +39,11 @@ from gn_module_monitoring.utils.routes import (
 def set_current_module(endpoint, values):
     # recherche du sous-module courrant
     requested_module_code = values.get("module_code") or MODULE_CODE
-    current_module = (
-        TModules.query.options(joinedload(TModules.objects))
-        .filter_by(module_code=requested_module_code)
-        .first_or_404(f"No module with code {requested_module_code} {endpoint}")
+    current_module = DB.first_or_404(
+        statement=select(TModules)
+        .options(joinedload(TModules.objects))
+        .where(TModules.module_code == requested_module_code),
+        description=f"No module with code {requested_module_code} {endpoint}",
     )
     g.current_module = current_module
 
@@ -59,10 +59,11 @@ def set_current_module(endpoint, values):
             return
 
         # Test si l'object de permission existe
-        requested_permission_object = TObjects.query.filter_by(
-            code_object=requested_permission_object_code
-        ).first_or_404(
-            f"No permission object with code {requested_permission_object_code} {endpoint}"
+        requested_permission_object = DB.first_or_404(
+            statement=select(TObjects).where(
+                TObjects.code_object == requested_permission_object_code
+            ),
+            description=f"No permission object with code {requested_permission_object_code} {endpoint}",
         )
 
         # si l'object de permission est associé au module => il devient l'objet courant
@@ -118,7 +119,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         ]
         customConfig = {"specific": {}}
         for specific_config in list_types_sites_dict:
-            customConfig["specific"].update(specific_config["specific"])
+            customConfig["specific"].update((specific_config or {}).get("specific", {}))
 
         get_config(module_code, force=True, customSpecConfig=customConfig)
     else:
@@ -133,7 +134,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
     )
 
 
-def create_or_update_object_api(module_code, object_type, id):
+def create_or_update_object_api(module_code, object_type, id=None):
     """
     route pour la création ou la modification d'un objet
     si id est renseigné, c'est une création (PATCH)
@@ -152,49 +153,15 @@ def create_or_update_object_api(module_code, object_type, id):
 
     # recupération des données post
     post_data = dict(request.get_json())
-    module = get_module("module_code", module_code)
 
-    # on rajoute id_module s'il n'est pas renseigné par défaut ??
-    post_data["properties"]["id_module"] = module.id_module
-
-    return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
-        .create_or_update(post_data)
-        .serialize(depth)
-    )
-
-
-def create_or_update_object_api_sites_sites_group(module_code, object_type, id=None):
-    """
-    route pour la création ou la modification d'un objet
-    si id est renseigné, c'est une création (PATCH)
-    sinon c'est une modification (POST)
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-    :return: renvoie l'object crée ou modifié
-    :rtype: dict
-    """
-    depth = to_int(request.args.get("depth", 1))
-
-    # recupération des données post
-    post_data = dict(request.get_json())
     if module_code != "generic":
         module = get_module("module_code", module_code)
     else:
         module = {"id_module": "generic"}
-        # TODO : A enlever une fois que le post_data contiendra geometry et type depuis le front
-        if object_type == "site" and not "geometry" in post_data:
-            post_data["geometry"] = {"type": "Point", "coordinates": [2.5, 50]}
-            post_data["type"] = "Feature"
+
     # on rajoute id_module s'il n'est pas renseigné par défaut ??
     if "id_module" not in post_data["properties"]:
-        module["id_module"] = "generic"
-        post_data["properties"]["id_module"] = module["id_module"]
+        post_data["properties"]["id_module"] = "generic"
     else:
         post_data["properties"]["id_module"] = module.id_module
 
@@ -254,15 +221,9 @@ def update_object_api(scope, module_code, object_type, id):
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
 
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
     if "dataComplement" in post_data:
-        for keys in post_data["dataComplement"].keys():
-            if "config" in post_data["dataComplement"][keys]:
-                customConfig["specific"].update(
-                    post_data["dataComplement"][keys]["config"]["specific"]
-                )
-        get_config(module_code, force=True, customSpecConfig=customConfig)
+        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
     else:
         get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
@@ -280,15 +241,9 @@ def update_object_api(scope, module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
     if "dataComplement" in post_data:
-        for keys in post_data["dataComplement"].keys():
-            if "config" in post_data["dataComplement"][keys]:
-                customConfig["specific"].update(
-                    post_data["dataComplement"][keys]["config"]["specific"]
-                )
-        get_config(module_code, force=True, customSpecConfig=customConfig)
+        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
     else:
         get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
@@ -388,25 +343,35 @@ def export_all_observations(module_code, method):
     :returns: Array of dict
     """
     id_dataset = request.args.get("id_dataset", None, int)
+    try:
+        export = GenericQueryGeo(
+            DB=DB,
+            tableName=f"v_export_{module_code.lower()}_{method}",
+            schemaName="gn_monitoring",
+            filters=[],
+            limit=50000,
+            offset=0,
+            geometry_field=None,
+            srid=None,
+        )
+    except KeyError:
+        return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
-    view = GenericTableGeo(
-        tableName=f"v_export_{module_code.lower()}_{method}",
-        schemaName="gn_monitoring",
-        engine=DB.engine,
-    )
-    columns = view.tableDef.columns
-    q = DB.session.query(*columns)
-    # Filter with dataset if is set
-    if hasattr(columns, "id_dataset") and id_dataset:
-        q = q.filter(columns.id_dataset == id_dataset)
-    data = q.all()
+    model = export.get_model()
+    columns = export.view.tableDef.columns
+    schema = export.get_marshmallow_schema()
 
+    q = select(model)
+    #  Filter with dataset if is set
+    if hasattr(model, "id_dataset") and id_dataset:
+        q = q.where(getattr(model, "id_dataset") == id_dataset)
+
+    data = DB.session.scalars(q).all()
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
-
     return to_csv_resp(
         filename,
-        data=serializeQuery(data, q.column_descriptions),
+        data=schema().dump(data, many=True),
         separator=";",
         columns=[
             db_col.key for db_col in columns if db_col.key != "geom"

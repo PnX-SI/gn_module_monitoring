@@ -1,17 +1,19 @@
 import json
+
 from flask import jsonify, request, g
-from geonature.utils.env import db
+
 from marshmallow import ValidationError
-from sqlalchemy import func
+from sqlalchemy import func, select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
+
+from geonature.utils.env import db
 from geonature.core.gn_permissions import decorators as permissions
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+
+from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.modules.repositories import get_module
-from gn_module_monitoring.monitoring.definitions import monitoring_definitions
-from gn_module_monitoring import MODULE_CODE
-from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
@@ -20,13 +22,12 @@ from gn_module_monitoring.utils.routes import (
     geojson_query,
     get_limit_page,
     get_sort,
-    paginate,
     paginate_scope,
     sort,
     get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.monitoring import (
-    create_or_update_object_api_sites_sites_group,
+    create_or_update_object_api,
     get_config_object,
 )
 from gn_module_monitoring.utils.utils import to_int
@@ -44,14 +45,16 @@ def get_sites_groups(object_type: str):
     object_code = "MONITORINGS_GRP_SITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
+
     sort_label, sort_dir = get_sort(
         params=params, default_sort="id_sites_group", default_direction="desc"
     )
-    query = filter_params(query=TMonitoringSitesGroups.query, params=params)
+    query = select(TMonitoringSitesGroups)
+    query = filter_params(TMonitoringSitesGroups, query=query, params=params)
 
-    query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+    query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
 
-    query_allowed = query.filter_by_readable(object_code=object_code)
+    query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     return paginate_scope(
         query=query_allowed,
         schema=MonitoringSitesGroupsSchema,
@@ -59,12 +62,6 @@ def get_sites_groups(object_type: str):
         page=page,
         object_code=object_code,
     )
-    # return paginate(
-    #     query=query,
-    #     schema=MonitoringSitesGroupsSchema,
-    #     limit=limit,
-    #     page=page,
-    # )
 
 
 @blueprint.route(
@@ -75,16 +72,15 @@ def get_sites_groups(object_type: str):
     "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
-    sites_group = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
     schema = MonitoringSitesGroupsSchema()
-    result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
-    response = schema.dump(result)
+    response = schema.dump(sites_group)
     response["cruved"] = get_objet_with_permission_boolean(
-        [result], object_code="MONITORINGS_GRP_SITES"
+        [sites_group], object_code="MONITORINGS_GRP_SITES"
     )[0]["cruved"]
     response["geometry"] = (
         json.loads(response["geometry"])
@@ -99,11 +95,13 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 )
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(object_type: str):
+    params = MultiDict(request.args)
     object_code = "MONITORINGS_GRP_SITES"
-    query = TMonitoringSitesGroups.query
-    query_allowed = query.filter_by_readable(object_code=object_code)
+    query = select(TMonitoringSitesGroups)
+    query = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
+    query = TMonitoringSitesGroups.filter_by_params(query=query, params=params)
     subquery_not_geom = (
-        query_allowed.with_entities(
+        query.with_only_columns(
             TMonitoringSitesGroups.id_sites_group,
             TMonitoringSitesGroups.sites_group_name,
             func.st_convexHull(func.st_collect(TMonitoringSites.geom)),
@@ -113,20 +111,21 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSites,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
-        .filter(TMonitoringSitesGroups.geom == None)
+        .where(TMonitoringSitesGroups.geom == None)
         .subquery()
     )
 
     subquery_with_geom = (
-        query_allowed.with_entities(
+        query.with_only_columns(
             TMonitoringSitesGroups.id_sites_group,
             TMonitoringSitesGroups.sites_group_name,
             TMonitoringSitesGroups.geom,
-        ).filter(TMonitoringSitesGroups.geom != None)
+        ).where(TMonitoringSitesGroups.geom != None)
     ).subquery()
 
     result_1 = geojson_query(subquery_not_geom)
     result_2 = geojson_query(subquery_with_geom)
+
     if result_1["features"] is not None:
         if result_2["features"] is not None:
             result_2["features"].extend(result_1["features"])
@@ -145,7 +144,7 @@ def get_sites_group_geometries(object_type: str):
 def patch(scope, _id: int, object_type: str):
     # ###############################""
     # FROM route/monitorings
-    sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
@@ -153,7 +152,7 @@ def patch(scope, _id: int, object_type: str):
 
     module_code = "generic"
     get_config(module_code, force=True)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201
+    return create_or_update_object_api(module_code, object_type, _id), 201
 
 
 @blueprint.route(
@@ -163,12 +162,12 @@ def patch(scope, _id: int, object_type: str):
     "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def delete(scope, _id: int, object_type: str):
-    sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}"
         )
-    TMonitoringSitesGroups.query.filter_by(id_sites_group=_id).delete()
+    db.session.delete(sites_group)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
 
@@ -178,7 +177,7 @@ def delete(scope, _id: int, object_type: str):
 def post(object_type: str):
     module_code = "generic"
     get_config(module_code, force=True)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
+    return create_or_update_object_api(module_code, object_type), 201
 
 
 @blueprint.errorhandler(ValidationError)

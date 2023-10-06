@@ -1,108 +1,52 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+
+import geoalchemy2
+
 from flask import g
-from sqlalchemy import join, select, func, and_, or_, false
-from sqlalchemy.inspection import inspect
-from sqlalchemy.sql import case
+
+from uuid import uuid4
+
+from sqlalchemy import join, select, func, and_
 from sqlalchemy.orm import (
     column_property,
-    ColumnProperty,
-    RelationshipProperty,
-    class_mapper,
-    aliased,
-)
-from sqlalchemy.orm import (
-    column_property,
-    ColumnProperty,
-    RelationshipProperty,
-    class_mapper,
     aliased,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from uuid import uuid4
 
 from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.declarative import declared_attr
 
-from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
-from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
-from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
+from geonature.core.gn_commons.models import TMedias
+from geonature.core.gn_monitoring.models import (
+    TBaseSites,
+    TBaseVisits,
+    cor_module_type,
+    cor_site_type,
+    BibTypeSite,
+    cor_visit_observer,
+    TObservations,
+)
+from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
+from geonature.core.gn_permissions.tools import has_any_permissions_by_action
+
 from pypnusershub.db.models import User
-from geonature.core.gn_monitoring.models import corVisitObserver
+
 from gn_module_monitoring.monitoring.queries import (
-    Query as MonitoringQuery,
+    GnMonitoringGenericFilter as MonitoringQuery,
     SitesQuery,
     SitesGroupsQuery,
     VisitQuery,
     ObservationsQuery,
 )
-from geonature.core.gn_permissions.tools import has_any_permissions_by_action
-
-# from geoalchemy2 import Geometry
-import geoalchemy2
 
 
-class GenericModel:
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
-
-    @classmethod
-    def set_id(cls) -> None:
-        pk_string = class_mapper(cls).primary_key[0].name
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-
-    @classmethod
-    def get_id_name(cls) -> None:
-        pk_string = class_mapper(cls).primary_key[0].name
-        # print('======= ==>', pk_string)
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-        return pk_string
-
-    @classmethod
-    def find_by_id(cls, _id: int) -> "GenericModel":
-        cls.set_id()
-        return cls.query.get_or_404(_id)
-
-    @classmethod
-    def attribute_names(cls):
-        return [
-            prop.key
-            for prop in class_mapper(cls).iterate_properties
-            if isinstance(prop, ColumnProperty)
-        ]
-
-    # TODO: Voir si on garde cette méthode pour simplifier la recherche des relationship lors des filtres
-    @classmethod
-    def attribute_names_relationship(cls):
-        relationship_cols = inspect(cls).relationships.items()
-        return relationship_cols
-        # return [ cols[0] for cols in relationship_cols]
-        # return [
-        #     prop.key
-        #     for prop in class_mapper(cls).iterate_properties
-        #     if isinstance(prop, RelationshipProperty)
-        # ]
-
-
-class PermissionModel(GenericModel):
+class PermissionModel:
     def has_permission(
         self,
         cruved_object={"C": False, "R": False, "U": False, "D": False, "E": False, "V": False},
@@ -114,72 +58,6 @@ class PermissionModel(GenericModel):
 
     def get_permission_by_action(self, module_code=None, object_code=None):
         return has_any_permissions_by_action(module_code=module_code, object_code=object_code)
-
-
-cor_module_type = DB.Table(
-    "cor_module_type",
-    DB.Column(
-        "id_module",
-        DB.Integer,
-        DB.ForeignKey("gn_commons.t_modules.id_module"),
-        primary_key=True,
-    ),
-    DB.Column(
-    DB.Column(
-        "id_type_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
-        primary_key=True,
-    ),
-    schema="gn_monitoring",
-)
-
-cor_type_site = DB.Table(
-    "cor_type_site",
-    DB.Column(
-        "id_base_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"),
-        primary_key=True,
-    ),
-    DB.Column(
-    DB.Column(
-        "id_type_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
-        primary_key=True,
-    ),
-    schema="gn_monitoring",
-)
-
-
-@serializable
-class BibTypeSite(DB.Model, PermissionModel):
-    __tablename__ = "bib_type_site"
-    __table_args__ = {"schema": "gn_monitoring"}
-    query_class = MonitoringQuery
-
-    id_nomenclature_type_site = DB.Column(
-        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
-        nullable=False,
-        primary_key=True,
-    )
-
-    id_nomenclature_type_site = DB.Column(
-        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
-        nullable=False,
-        primary_key=True,
-    )
-    config = DB.Column(JSONB)
-    nomenclature = DB.relationship(
-        TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
-        TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
-    )
-
-    sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
-
-
-    sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
 
 
 @serializable
@@ -195,30 +73,31 @@ class TMonitoringObservationDetails(DB.Model):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
         foreign_keys=[TMedias.uuid_attached_row],
+        overlaps="medias,medias",
     )
 
 
 @serializable
-class TObservations(DB.Model, PermissionModel):
-    __tablename__ = "t_observations"
+class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery):
+    __tablename__ = "t_observation_complements"
     __table_args__ = {"schema": "gn_monitoring"}
-    id_observation = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
-    id_base_visit = DB.Column(DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"))
-    id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
-    digitiser = DB.relationship(
-        User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
+    __mapper_args__ = {
+        "polymorphic_identity": "monitoring_observation",
+    }
+
+    data = DB.Column(JSONB)
+
+    id_observation = DB.Column(
+        DB.ForeignKey("gn_monitoring.t_observations.id_observation"),
+        primary_key=True,
+        nullable=False,
     )
-    cd_nom = DB.Column(DB.Integer)
-    comments = DB.Column(DB.String)
-    uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
-        primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
+        primaryjoin=(TMedias.uuid_attached_row == TObservations.uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row],
     )
 
@@ -227,25 +106,6 @@ class TObservations(DB.Model, PermissionModel):
         primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
         foreign_keys=[TMonitoringObservationDetails.id_observation],
         cascade="all,delete",
-    )
-
-
-@serializable
-class TMonitoringObservations(TObservations, PermissionModel):
-    __tablename__ = "t_observation_complements"
-    __table_args__ = {"schema": "gn_monitoring"}
-    __mapper_args__ = {
-        "polymorphic_identity": "monitoring_observation",
-    }
-
-    query_class = ObservationsQuery
-
-    data = DB.Column(JSONB)
-
-    id_observation = DB.Column(
-        DB.ForeignKey("gn_monitoring.t_observations.id_observation"),
-        primary_key=True,
-        nullable=False,
     )
 
     @hybrid_property
@@ -258,8 +118,6 @@ class TMonitoringObservations(TObservations, PermissionModel):
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return
         return actors_organism_list
 
     def has_instance_permission(self, scope):
@@ -280,13 +138,13 @@ TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
-class TMonitoringVisits(TBaseVisits, PermissionModel):
+class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
     __tablename__ = "t_visit_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_visit",
     }
-    query_class = VisitQuery
+
     id_base_visit = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
         nullable=False,
@@ -297,12 +155,12 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == TBaseVisits.uuid_base_visit),
         foreign_keys=[TMedias.uuid_attached_row],
+        overlaps="medias,medias",
     )
 
-    observers = DB.relationship(User, lazy="joined", secondary=corVisitObserver)
+    observers = DB.relationship(User, lazy="joined", secondary=cor_visit_observer)
 
     observations = DB.relation(
         "TMonitoringObservations",
@@ -313,9 +171,9 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
     )
 
     nb_observations = column_property(
-        select([func.count(TObservations.id_base_visit)]).where(
-            TObservations.id_base_visit == id_base_visit
-        )
+        select(func.count(TObservations.id_base_visit))
+        .where(TObservations.id_base_visit == id_base_visit)
+        .scalar_subquery()
     )
 
     module = DB.relationship(
@@ -340,8 +198,6 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return actors_organism_list
         return actors_organism_list
 
     def has_instance_permission(self, scope):
@@ -359,13 +215,12 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
 
 
 @geoserializable(geoCol="geom", idCol="id_base_site")
-class TMonitoringSites(TBaseSites, PermissionModel):
+class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     __tablename__ = "t_site_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_site",
     }
-    query_class = SitesQuery
 
     id_base_site = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
@@ -387,38 +242,40 @@ class TMonitoringSites(TBaseSites, PermissionModel):
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
         cascade="all,delete",
+        overlaps="t_base_visits",
     )
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
+        lazy="select",
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
         cascade="all",
+        overlaps="medias",
     )
 
     last_visit = column_property(
-        select([func.max(TBaseVisits.visit_date_min)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select(func.max(TBaseVisits.visit_date_min))
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .scalar_subquery()
     )
 
     nb_visits = column_property(
-        select([func.count(TBaseVisits.id_base_site)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select(func.count(TBaseVisits.id_base_site))
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .scalar_subquery()
     )
 
     geom_geojson = column_property(
-        select([func.st_asgeojson(TBaseSites.geom)])
+        select(func.st_asgeojson(TBaseSites.geom))
         .where(TBaseSites.id_base_site == id_base_site)
         .correlate_except(TBaseSites)
+        .scalar_subquery()
     )
-    types_site = DB.relationship("BibTypeSite", secondary=cor_type_site, lazy="joined")
+    types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     @hybrid_property
     def organism_actors(self):
-        # return self.inventor.id_organisme
         actors_organism_list = []
         if isinstance(self.inventor, list):
             for actor in self.inventor:
@@ -427,6 +284,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
         else:
             if hasattr(self.inventor, "id_organisme"):
                 actors_organism_list.append(self.inventor.id_organisme)
+        return actors_organism_list
 
     def has_instance_permission(self, scope):
         if scope == 0:
@@ -444,10 +302,9 @@ class TMonitoringSites(TBaseSites, PermissionModel):
 
 
 @geoserializable(geoCol="geom", idCol="id_sites_group")
-class TMonitoringSitesGroups(DB.Model, PermissionModel):
+class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     __tablename__ = "t_sites_groups"
     __table_args__ = {"schema": "gn_monitoring"}
-    query_class = SitesGroupsQuery
 
     id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
     id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
@@ -469,7 +326,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_sites_group),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy="joined",
+        overlaps="medias",
     )
 
     sites = DB.relationship(
@@ -477,45 +334,25 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
         uselist=True,  # pourquoi pas par defaut ?
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
-        lazy="joined",
+        lazy="select",
     )
 
     nb_sites = column_property(
-        select([func.count(TMonitoringSites.id_sites_group)]).where(
-            TMonitoringSites.id_sites_group == id_sites_group
-        )
+        select(func.count(TMonitoringSites.id_sites_group))
+        .where(TMonitoringSites.id_sites_group == id_sites_group)
+        .scalar_subquery()
     )
 
     altitude_min = DB.Column(DB.Integer)
     altitude_max = DB.Column(DB.Integer)
     nb_visits = column_property(
-        select([func.count(TMonitoringVisits.id_base_site)]).where(
-            and_(
-                TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-                TMonitoringSites.id_sites_group == id_sites_group,
-            )
+        select(func.count(TMonitoringVisits.id_base_site))
+        .where(
+            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+            TMonitoringSites.id_sites_group == id_sites_group,
         )
+        .scalar_subquery()
     )
-
-    # @hybrid_property
-    # def geom_geojson(self):
-    #     if self.geom is None:
-    #         return column_property(
-    #             select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
-    #             .select_from(
-    #                 self.__table__.alias("subquery").join(
-    #                     TMonitoringSites,
-    #                     TMonitoringSites.id_sites_group == self.id_sites_group,
-    #                 )
-    #             )
-    #             .where(
-    #                 TMonitoringSites.id_sites_group == self.id_sites_group,
-    #             )
-    #     )
-    #     else:
-    #         return column_property(
-    #         select([func.st_asgeojson(self.geom)])
-    #         )
 
     @hybrid_property
     def organism_actors(self):
@@ -527,8 +364,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return
         return actors_organism_list
 
     def has_instance_permission(self, scope):
@@ -546,13 +381,12 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
 
 
 @serializable
-class TMonitoringModules(TModules, PermissionModel):
+class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     __tablename__ = "t_module_complements"
     __table_args__ = {"schema": "gn_monitoring"}
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_module",
     }
-    query_class = MonitoringQuery
 
     id_module = DB.Column(
         DB.ForeignKey("gn_commons.t_modules.id_module"),
@@ -574,7 +408,8 @@ class TMonitoringModules(TModules, PermissionModel):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy="joined",
+        lazy="select",
+        overlaps="medias,medias",
     )
 
     # TODO: restore it with CorCategorySite
@@ -598,10 +433,13 @@ class TMonitoringModules(TModules, PermissionModel):
         "TDatasets",
         secondary=cor_module_dataset,
         join_depth=0,
-        lazy="joined",
+        overlaps="modules",
     )
 
-    types_site = DB.relationship("BibTypeSite", secondary=cor_module_type, lazy="joined")
+    types_site = DB.relationship(
+        "BibTypeSite",
+        secondary=cor_module_type,
+    )
 
     data = DB.Column(JSONB)
 
@@ -612,7 +450,6 @@ class TMonitoringModules(TModules, PermissionModel):
     #     foreign_keys=[TBaseVisits.id_module],
     #     cascade="all,delete"
     # )
-
 
 
 # Use alias since there is already a FROM caused by count (column_properties)
@@ -627,15 +464,14 @@ TMonitoringModules.sites_groups = DB.relationship(
     ),
     secondaryjoin=and_(
         TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
-        sites_alias.id_base_site == cor_type_site.c.id_base_site,
+        sites_alias.id_base_site == cor_site_type.c.id_base_site,
     ),
     secondary=join(
-        cor_type_site,
+        cor_site_type,
         cor_module_type,
-        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
     ),
-    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
-    lazy="select",
+    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
     viewonly=True,
 )
 
@@ -644,13 +480,13 @@ TMonitoringModules.sites = DB.relationship(
     "TMonitoringSites",
     uselist=True,  # pourquoi pas par defaut ?
     primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
-    secondaryjoin=TMonitoringSites.id_base_site == cor_type_site.c.id_base_site,
+    secondaryjoin=TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
     secondary=join(
-        cor_type_site,
+        cor_site_type,
         cor_module_type,
-        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
     ),
-    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
+    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
     lazy="select",
     viewonly=True,
 )
@@ -661,6 +497,7 @@ TMonitoringModules.visits = DB.relationship(
     primaryjoin=(TMonitoringModules.id_module == TMonitoringVisits.id_module),
     foreign_keys=[TMonitoringVisits.id_module],
     cascade="all",
+    overlaps="sites,sites_group,module",
 )
 
 
@@ -672,6 +509,7 @@ TMonitoringSites.sites_group = DB.relationship(
     cascade="all",
     lazy="select",
     uselist=False,
+    overlaps="sites",
 )
 
 TMonitoringSitesGroups.visits = DB.relationship(
@@ -679,21 +517,22 @@ TMonitoringSitesGroups.visits = DB.relationship(
     primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
     secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
     secondary="gn_monitoring.t_site_complements",
+    overlaps="sites,sites_group",
 )
 
 TMonitoringSitesGroups.nb_visits = column_property(
-    select([func.count(TMonitoringVisits.id_base_site)]).where(
-        and_(
-            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-        )
+    select(func.count(TMonitoringVisits.id_base_site))
+    .where(
+        TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+        TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
+    .scalar_subquery()
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
 TMonitoringSitesGroups.geom_geojson = column_property(
-    select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+    select(func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom))))
     .select_from(
         TMonitoringSitesGroups.__table__.alias("subquery").join(
             TMonitoringSites,
@@ -703,6 +542,7 @@ TMonitoringSitesGroups.geom_geojson = column_property(
     .where(
         TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
+    .scalar_subquery()
 )
 
 # case([(TMonitoringSitesGroups.geom is None, select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])

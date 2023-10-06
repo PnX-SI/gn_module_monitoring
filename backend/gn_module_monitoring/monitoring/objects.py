@@ -1,7 +1,7 @@
-from .repositories import MonitoringObject
-from .geom import MonitoringObjectGeom
 from geonature.utils.env import DB
-from geonature.core.gn_commons.models import TModules
+
+from gn_module_monitoring.monitoring.repositories import MonitoringObject
+from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
 
 class MonitoringModule(MonitoringObject):
@@ -28,7 +28,10 @@ class MonitoringSite(MonitoringObjectGeom):
     def preprocess_data(self, properties, data=[]):
         if len(data) != 0:
             if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
-                properties["id_nomenclature_type_site"] = data["types_site"][0]
+                properties["types_site"] = data["types_site"]
+
+        elif len(properties.get("types_site", [])) != 0:
+            if hasattr(self._model, "types_site"):
                 properties["types_site"] = data["types_site"]
 
             elif "data" in data and data["data"]["id_nomenclature_type_site"]:
@@ -37,10 +40,7 @@ class MonitoringSite(MonitoringObjectGeom):
                 properties["id_nomenclature_type_site"] = data["types_site"][0][
                     "id_nomenclature_type_site"
                 ]
-        else:
-            if len(properties.get("types_site", [])) != 0:
-                if hasattr(self._model, "types_site"):
-                    properties["id_nomenclature_type_site"] = properties["types_site"][0]
+
             #         properties["types_site"] = []
             #         # TODO: performance?
             #         # for type in properties['types_site']:

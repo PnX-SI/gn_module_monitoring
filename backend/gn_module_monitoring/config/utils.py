@@ -1,15 +1,16 @@
 import os, datetime, time
 import importlib
-from pathlib import Path
 import json
+from pathlib import Path
 
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 
-from geonature.core.gn_commons.models import BibTablesLocation, TModules
-from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
+from geonature.utils.errors import GeoNatureError
 from geonature.utils.config import config as gn_config
-from ..monitoring.models import TMonitoringModules
+from geonature.core.gn_commons.models import BibTablesLocation, TModules
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -35,21 +36,16 @@ def get_monitoring_module(module_code):
     if module_code == "generic":
         return None
 
-    res = (
-        DB.session.query(TMonitoringModules)
-        .filter(TMonitoringModules.module_code == module_code)
-        .all()
-    )
-
-    return res[0] if len(res) else None
+    return DB.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+    ).scalar_one_or_none()
 
 
 def get_monitorings_path():
-    return (
-        DB.session.query(TModules.module_path)
-        .filter(TModules.module_code == "MONITORINGS")
-        .one()[0]
-    )
+    module = DB.session.execute(
+        select(TModules.module_path).where(TModules.module_code == "MONITORINGS")
+    ).scalar_one()
+    return module
 
 
 def get_base_last_modif(module):
@@ -88,16 +84,14 @@ def get_id_table_location(object_type):
     id_table_location = None
 
     try:
-        id_table_location = (
-            DB.session.query(BibTablesLocation.id_table_location)
-            .filter(
+        id_table_location = DB.session.execute(
+            select(BibTablesLocation.id_table_location).where(
                 and_(
                     BibTablesLocation.schema_name == schema_name,
                     BibTablesLocation.table_name == table_name,
                 )
             )
-            .one()
-        )[0]
+        ).scalar_one()
     except Exception as e:
         print(schema_name, table_name, e)
         pass

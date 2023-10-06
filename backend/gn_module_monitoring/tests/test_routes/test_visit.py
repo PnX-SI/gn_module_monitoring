@@ -1,8 +1,9 @@
 import pytest
+
 from flask import url_for
 
-from gn_module_monitoring.monitoring.models import TMonitoringVisits
 from pypnusershub.tests.utils import set_logged_user_cookie
+
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -16,11 +17,8 @@ class TestVisits:
             )
         )
 
-        print(TMonitoringVisits.query.all())
         expected_visits = {visit.id_base_visit for visit in visits}
         current_visits = {visit["id_base_visit"] for visit in r.json["items"]}
-        print(expected_visits)
-        print(r.json["items"], current_visits)
         assert expected_visits.issubset(current_visits)
         assert all(visit["module"] is not None for visit in r.json["items"])
 

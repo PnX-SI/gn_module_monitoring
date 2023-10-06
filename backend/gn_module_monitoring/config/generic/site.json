@@ -6,7 +6,7 @@
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
-  "geometry_type": "Point",
+  "geometry_type": ["Point", "LineString", "Polygon"],
   "display_properties": [
     "base_site_name",
     "base_site_code",

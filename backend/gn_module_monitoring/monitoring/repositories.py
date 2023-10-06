@@ -1,16 +1,17 @@
 from flask import current_app
 
+from sqlalchemy import select
+
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
-from .serializer import MonitoringObjectSerializer
-from ..config.repositories import get_config
-import logging
-from ..utils.utils import to_int
 
-from sqlalchemy.orm import joinedload
+from gn_module_monitoring.monitoring.serializer import MonitoringObjectSerializer
+from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
+
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +19,6 @@ log = logging.getLogger(__name__)
 class MonitoringObject(MonitoringObjectSerializer):
     def get(self, value=None, field_name=None, depth=0):
         # par defaut on filtre sur l'id
-
         if not field_name:
             field_name = self.config_param("id_field_name")
             if not value:
@@ -30,7 +30,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         try:
             Model = self.MonitoringModel()
 
-            req = DB.session.query(Model)
+            req = select(Model)
 
             # Test pour mettre les relations à joined
             # if depth > 0:
@@ -39,7 +39,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             #         relation_name = children_type + 's'
             #         req = req.options(joinedload(relation_name))
 
-            self._model = req.filter(getattr(Model, field_name) == value).one()
+            self._model = (
+                DB.session.execute(req.where(getattr(Model, field_name) == value))
+                .unique()
+                .scalar_one()
+            )
 
             self._id = getattr(self._model, self.config_param("id_field_name"))
             if isinstance(self._model, PermissionModel) and not isinstance(
@@ -82,31 +86,13 @@ class MonitoringObject(MonitoringObjectSerializer):
             return
 
         table_name = "v_synthese_{}".format(self._module_code)
-        try:
-            import_from_table(
-                "gn_monitoring",
-                table_name,
-                self.config_param("id_field_name"),
-                self.config_value("id_field_name"),
-                limit,
-            )
-        except ValueError as e:
-            # warning
-            log.warning(
-                """Error in module monitoring, process_synthese.
-                Function import_from_table with parameters({}, {}, {}) raises the following error :
-                {}
-                """.format(
-                    table_name,
-                    self.config_param("id_field_name"),
-                    self.config_value("id_field_name"),
-                    e,
-                )
-            )
-            return {"message": "{}".format(e)}, 500
-        except Exception as e:
-            return {"message": "{}".format(e)}, 500
-
+        import_from_table(
+            "gn_monitoring",
+            table_name,
+            self.config_param("id_field_name"),
+            self.config_value("id_field_name"),
+            limit,
+        )
         return True
 
     def create_or_update(self, post_data):
@@ -125,10 +111,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             if b_creation:
                 DB.session.add(self._model)
             DB.session.commit()
-
             self._id = getattr(self._model, self.config_param("id_field_name"))
 
-            self.process_synthese()
+            # TODO module have synthese enabled
+            if not post_data["properties"]["id_module"] == "generic":
+                self.process_synthese()
 
             return self
 
@@ -217,7 +204,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         order_by = args.getlist("order_by")
 
-        req = DB.session.query(Model)
+        req = select(Model)
 
         # Traitement de la liste des colonnes à retourner
         fields_list = args.getlist("fields")
@@ -232,7 +219,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         for key in args:
             if hasattr(Model, key) and args[key] not in ["", None, "null", "undefined"]:
                 vals = args.getlist(key)
-                req = req.filter(getattr(Model, key).in_(vals))
+                req = req.where(getattr(Model, key).in_(vals))
 
         # # filtres config
 
@@ -251,7 +238,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # TODO page etc...
 
-        res = req.limit(limit).all()
+        res = DB.session.scalars(req.limit(limit)).all()
 
         # patch order by number
         out = [r.as_dict(fields=fields_list) for r in res]

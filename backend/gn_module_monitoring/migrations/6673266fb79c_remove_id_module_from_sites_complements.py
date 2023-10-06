@@ -1,10 +1,11 @@
 """remove_id_module_from_sites_complements
 
 Revision ID: 6673266fb79c
-Revises: a54bafb13ce8
+Revises: a5dce2633e4c
 Create Date: 2022-12-13 16:00:00.512562
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -12,7 +13,7 @@ from gn_module_monitoring import MODULE_CODE
 
 # revision identifiers, used by Alembic.
 revision = "6673266fb79c"
-down_revision = "a54bafb13ce8"
+down_revision = "e2b66850b5ee"
 branch_labels = None
 depends_on = None
 
@@ -70,4 +71,12 @@ def downgrade():
         """
     )
     op.execute(statement)
+
+    statement = sa.text(
+        f"""
+        DELETE FROM gn_monitoring.t_site_complements WHERE id_module IS NULL;
+        """
+    )
+    op.execute(statement)
+
     op.alter_column("t_site_complements", "id_module", nullable=False, schema=monitorings_schema)
