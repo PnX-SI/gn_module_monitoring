@@ -170,7 +170,6 @@ class TMonitoringObservationDetails(DB.Model):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
         foreign_keys=[TMedias.uuid_attached_row],
     )
@@ -192,7 +191,6 @@ class TObservations(DB.Model, PermissionModel):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row],
     )
@@ -272,7 +270,6 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == TBaseVisits.uuid_base_visit),
         foreign_keys=[TMedias.uuid_attached_row],
     )
@@ -366,7 +363,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
 
     medias = DB.relationship(
         TMedias,
-        lazy="joined",
+        lazy="select",
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
         cascade="all",
@@ -444,7 +441,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_sites_group),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy="joined",
     )
 
     sites = DB.relationship(
@@ -452,7 +448,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
         uselist=True,  # pourquoi pas par defaut ?
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
-        lazy="joined",
+        lazy="select",
     )
 
     nb_sites = column_property(
@@ -549,7 +545,7 @@ class TMonitoringModules(TModules, PermissionModel):
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
         foreign_keys=[TMedias.uuid_attached_row],
-        lazy="joined",
+        lazy="select",
     )
 
     # TODO: restore it with CorCategorySite
