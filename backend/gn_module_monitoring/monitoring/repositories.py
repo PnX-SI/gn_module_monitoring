@@ -18,7 +18,6 @@ log = logging.getLogger(__name__)
 class MonitoringObject(MonitoringObjectSerializer):
     def get(self, value=None, field_name=None, depth=0):
         # par defaut on filtre sur l'id
-
         if not field_name:
             field_name = self.config_param("id_field_name")
             if not value:
