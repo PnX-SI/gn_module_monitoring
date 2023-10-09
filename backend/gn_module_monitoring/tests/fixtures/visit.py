@@ -4,10 +4,11 @@ import pytest
 from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
+from .module import monitoring_module
 
 
 @pytest.fixture
-def visits(module, users, types_site, sites, datasets):
+def visits(module, users, types_site, sites, datasets, monitoring_module):
     now = datetime.datetime.now()
     dataset = datasets["orphan_dataset"]
     db_visits = []
@@ -15,7 +16,7 @@ def visits(module, users, types_site, sites, datasets):
         db_visits.append(
             TMonitoringVisits(
                 id_base_site=site.id_base_site,
-                id_module=module.id_module,
+                id_module=monitoring_module.id_module,
                 id_dataset=dataset.id_dataset,
                 visit_date_min=now,
             )
