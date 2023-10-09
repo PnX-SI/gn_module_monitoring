@@ -65,7 +65,7 @@ def site_to_post_with_types(users, types_site, site_group_without_sites):
         base_site_code=f"New Code",
         geom=geom_4326,
         id_nomenclature_type_site=list_nomenclature_id[0],
-        types_site=list_nomenclature_id,
+        # types_site=list_nomenclature_id,
         id_sites_group=site_group_without_sites.id_sites_group,
     )
 

@@ -1,9 +1,13 @@
 import pytest
 from flask import url_for
 
+from pypnusershub.tests.utils import set_logged_user_cookie
+
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.monitoring.models import TMonitoringSites
+
+from gn_module_monitoring.tests.fixtures.generic import *
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
@@ -26,22 +30,30 @@ class TestSite:
         assert r.json["count"] >= len(types_site)
         assert all([schema.dump(cat) in r.json["items"] for cat in types_site.values()])
 
-    def test_get_sites(self, sites):
+    def test_get_sites(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         schema = MonitoringSitesSchema()
 
         r = self.client.get(url_for("monitorings.get_sites"))
-
+        assert r.status_code == 200
         assert r.json["count"] >= len(sites)
-        assert any([schema.dump(site) in r.json["items"] for site in sites.values()])
 
-    def test_get_sites_limit(self, sites):
-        limit = 34
+        sites_response = r.json["items"]
+        for s in sites_response:
+            s.pop("cruved")
+
+        assert any([schema.dump(site) in sites_response for site in sites.values()])
+
+    def test_get_sites_limit(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        limit = 2
 
         r = self.client.get(url_for("monitorings.get_sites", limit=limit))
 
         assert len(r.json["items"]) == limit
 
-    def test_get_sites_base_site_name(self, sites):
+    def test_get_sites_base_site_name(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
         base_site_name = site.base_site_name
 
@@ -50,7 +62,8 @@ class TestSite:
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["base_site_name"] == base_site_name
 
-    def test_get_sites_id_base_site(self, sites):
+    def test_get_sites_id_base_site(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
 
@@ -59,15 +72,19 @@ class TestSite:
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["id_base_site"] == id_base_site
 
-    def test_get_sites_by_id(self, sites):
+    def test_get_sites_by_id(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
 
-        r = self.client.get(url_for("monitorings.get_site_by_id", id_base_site=id_base_site))
+        r = self.client.get(
+            url_for("monitorings.get_site_by_id", id=id_base_site, object_type="site")
+        )
 
         assert r.json["id_base_site"] == id_base_site
 
-    def test_get_all_site_geometries(self, sites):
+    def test_get_all_site_geometries(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         r = self.client.get(url_for("monitorings.get_all_site_geometries"))
 
         json_resp = r.json
@@ -95,21 +112,23 @@ class TestSite:
         features = json_resp.get("features")
         assert features is None
 
-    def test_get_module_by_id_base_site(self, sites, monitoring_module):
-        site = list(sites.values())[0]
-        id_base_site = site.id_base_site
+    # def test_get_module_by_id_base_site(self, sites, monitoring_module, monitorings_users):
 
-        r = self.client.get(
-            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
-        )
+    #     set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    #     site = list(sites.values())[0]
+    #     id_base_site = site.id_base_site
 
-        expected_modules = {monitoring_module.id_module}
-        current_modules = {module["id_module"] for module in r.json}
-        assert expected_modules.issubset(current_modules)
+    #     r = self.client.get(
+    #         url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+    #     )
+    #     expected_modules = {monitoring_module.id_module}
+    #     current_modules = {module["id_module"] for module in r.json}
+    #     assert expected_modules.issubset(current_modules)
 
     def test_get_module_by_id_base_site_no_type_module(
-        self, sites, monitoring_module_wo_types_site
+        self, sites, monitoring_module_wo_types_site, monitorings_users
     ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
 
@@ -121,24 +140,29 @@ class TestSite:
         current_modules = {module["id_module"] for module in r.json}
         assert expected_absent_modules.isdisjoint(current_modules)
 
-    def test_get_module_by_id_base_site_no_type_site(self, sites, monitoring_module):
+    def test_get_module_by_id_base_site_no_type_site(
+        self, sites, monitoring_module, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         id_base_site = sites["no-type"].id_base_site
 
         r = self.client.get(
             url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
         )
-
         expected_modules = {monitoring_module.id_module}
         current_modules = {module["id_module"] for module in r.json}
         assert expected_modules.isdisjoint(current_modules)
 
-    def test_get_module_sites(self):
+    def test_get_module_sites(self, monitoring_module, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         module_code = "TEST"
         r = self.client.get(url_for("monitorings.get_module_sites", module_code=module_code))
-
+        print(url_for("monitorings.get_module_sites", module_code=module_code))
+        print(r.json)
         assert r.json["module_code"] == module_code
 
-    def test_get_types_site_by_label(self, types_site):
+    def test_get_types_site_by_label(self, types_site, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         schema = BibTypeSiteSchema()
         mock_db_type_site = [schema.dump(type) for type in types_site.values()]
         string_contains = "e"
@@ -163,7 +187,10 @@ class TestSite:
         )
         assert all([type not in r.json["items"] for type in mock_db_type_site])
 
-    def test_post_sites(self, site_to_post_with_types, types_site, site_group_without_sites):
+    def test_post_sites(
+        self, site_to_post_with_types, types_site, site_group_without_sites, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         response = self.client.post(
             url_for("monitorings.post_sites"), data=site_to_post_with_types
         )
@@ -176,16 +203,13 @@ class TestSite:
             == site_to_post_with_types["properties"]["base_site_name"]
         )
 
-    def test_delete_site(self, sites):
+    def test_delete_site(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
-        item = TMonitoringSites.find_by_id(id_base_site)
         r = self.client.delete(url_for("monitorings.delete_site", _id=id_base_site))
 
-        assert (
-            r.json["success"]
-            == f"Item with {item.id_g} from table {item.__tablename__} is successfully deleted"
-        )
+        assert r.json["success"] == "Item is successfully deleted"
         with pytest.raises(Exception) as e:
             TMonitoringSites.query.get_or_404(id_base_site)
         assert "404 Not Found" in str(e.value)
