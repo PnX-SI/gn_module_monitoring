@@ -10,13 +10,14 @@
   <div class="text-center my-auto" style="height: 80vh" *ngIf="modules.length < 1 && !bLoading">
     Vous n'avez pas encore de protocole installé
   </div>
-  <div class="row m-2" *ngIf="modules.length > 0">
-    <div class="col-md-4 col-sm-12 des-module">{{ description }}</div>
+  <div class="text-center">{{ description }}</div>
+  <div class="m-2" *ngIf="modules.length > 0">
     <!-- <div class="w-100 d-none d-sm-block"></div> -->
-    <div class="btn-module col-md-8 col-sm-12 text-center">
+    <div class="btn-module text-center">
       <div [matTooltip]="toolTipNotAllowed" [matTooltipDisabled]="canAccessSite">
         <button
           mat-flat-button
+          class="mt-4"
           color="primary"
           [ngClass]="{ isDisableBtn: !canAccessSite }"
           [disabled]="!canAccessSite"
@@ -24,14 +25,15 @@
           *ngIf="currentUser"
         >
           Accès aux sites
+          <mat-icon> map</mat-icon>
         </button>
       </div>
-      <div class="container py-5 border rounded m-2">
+      <div class="container-fluid py-5 m-2">
         <h3>Liste des protocoles</h3>
         <div class="row row-eq-height" style="overflow-x: auto">
           <div
-            class="col-3 col-sm-5 col-md-3 col-lg-3 module"
-            style="width: 250px"
+            class="col-12 col-sm-5 col-md-3 col-lg-3 module"
+            style="min-width: 250px; max-width: 250px"
             *ngFor="let module of modules"
           >
             <a [routerLink]="['object', module.module_code, 'module', module.id_module]">
@@ -48,26 +50,6 @@
                 </div>
               </div>
             </a>
-            <!-- <div class="d-flex flex-row p-4" style="overflow-x: auto;">
-          <div class="module" style="min-width:250px; max-width: 250px;" *ngFor="let module of modules">
-            <a [routerLink]="[
-        'object',
-        module.module_code,
-        'module',
-        module.id_module
-        ]">
-              <div class="card module-card h-100">
-                <img class="card-img-top" src="{{assetsDirectory}}{{ module.module_code.toLowerCase()}}.jpg"
-                  alt="{{ module.module_label }}" title="{{ module.module_label }}">
-                <div class="card-body">
-                  <h5 class="card-title">{{ module.module_label }}</h5>
-                  <p class="card-text"> {{ module.module_desc }}</p>
-                </div>
-              </div>
-            </a>
-
-          </div>
-        </div> -->
           </div>
         </div>
       </div>
