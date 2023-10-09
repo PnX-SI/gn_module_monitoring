@@ -4,6 +4,7 @@
 import datetime
 import uuid
 from flask import current_app
+from marshmallow import EXCLUDE
 from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
@@ -11,7 +12,23 @@ from geonature.utils.env import DB
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
-from gn_module_monitoring.monitoring.base import monitoring_definitions
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringModuleSchema,
+    MonitoringSitesSchema,
+    MonitoringSitesGroupsSchema,
+    MonitoringVisitsSchema,
+    MonitoringObservationsSchema,
+    MonitoringObservationsDetailsSchema,
+)
+
+MonitoringSerializer_dict = {
+    "module": MonitoringModuleSchema,  # besoin pour retrouver le module depuis module_code à voir si on peux faire sans
+    "site": MonitoringSitesSchema,
+    "visit": MonitoringVisitsSchema,
+    "sites_group": MonitoringSitesGroupsSchema,
+    "observation": MonitoringObservationsSchema,
+    "observation_detail": MonitoringObservationsDetailsSchema,
+}
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
@@ -41,14 +58,18 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def as_dict(self, depth):
         return self._model.as_dict(depth=depth)
 
-    def flatten_specific_properties(self, properties):
+    def flatten_specific_properties(self, properties, only=None):
         # mise a plat des données spécifiques
         if "data" not in properties:
             return
+        if not only:
+            only = []
+
         data = properties.pop("data")
         data = data if data else {}
         for attribut_name in self.config_schema(type_schema="specific"):
-            properties[attribut_name] = data.get(attribut_name)
+            if attribut_name in only or not only:
+                properties[attribut_name] = data.get(attribut_name)
 
     def unflatten_specific_properties(self, properties):
         data = {}
@@ -98,12 +119,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             childs_object_readable = self.get_readable_list_object(
                 relation_name, children_type=children_type
             )
-
             for child_model in childs_object_readable:
                 child = monitoring_definitions.monitoring_object_instance(
                     self._module_code, children_type, model=child_model
                 )
-                children_of_type.append(child.serialize(depth))
+                children_of_type.append(child.serialize(depth, is_child=True))
 
             children[children_type] = children_of_type
 
@@ -135,7 +155,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         data = ["data"] if hasattr(self._model, "data") else []
         return generic + data
 
-    def serialize(self, depth=1):
+    def serialize(self, depth=1, is_child=False):
         # TODO faire avec un as_dict propre (avec props et relationships)
         if depth is None:
             depth = 1
@@ -148,45 +168,75 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 return None
 
             self._model = Model()
-
-        properties = {}
-
-        for field_name in self.properties_names():
-            # val = self._model.__dict__.get(field_name)
-            val = getattr(self._model, field_name)
-            if isinstance(val, (datetime.date, uuid.UUID)):
-                val = str(val)
-            properties[field_name] = val
-
-        children = None
-        # On enleve un niveau pour les enfants
-        if depth >= 0:
-            children = self.serialize_children(depth - 1)
-
-        # processe properties
-        self.flatten_specific_properties(properties)
-
-        schema = self.config_schema()
-        for key in schema:
-            definition = schema[key]
-            value = properties[key]
-            if not isinstance(value, list):
-                continue
-
-            type_util = definition.get("type_util")
-
-            # on passe d'une list d'objet à une liste d'id
-            # si type_util est defini pour ce champs
-            # si on a bien affaire à une liste de modèles sqla
-            properties[key] = [
-                getattr(v, id_field_name_dict[type_util])
-                if (isinstance(v, DB.Model) and type_util)
-                else v.as_dict()
-                if (isinstance(v, DB.Model) and not type_util)
-                else v
-                for v in value
+        # Liste des propriétés de l'objet qui doivent être récupérées
+        display_properties = []
+        # Liste des propriétés spécifique de l'objet qui doivent être récupérées
+        display_specific = []
+        if is_child:
+            module_config = self.config()
+            # Si l'objet est un enfant on ne serialize que les attributs utilisés dans les data list
+            display_properties = module_config[self._object_type]["display_list"]
+            # liste des propriétés "génériques"
+            display_generic = [
+                k
+                for k in display_properties
+                if k in module_config[self._object_type]["generic"].keys()
+            ]
+            # liste des propriétés "spécifique"
+            display_specific = [
+                k
+                for k in display_properties
+                if k in module_config[self._object_type]["specific"].keys()
             ]
 
+            display_generic.append("data")
+            display_generic.append(self.config_param("id_field_name"))
+
+            # Sérialisation de l'objet
+            dump_object = MonitoringSerializer_dict[self._object_type](
+                unknown=EXCLUDE, only=display_generic
+            ).dump(self._model)
+
+        else:
+            # Si l'objet n'est pas un enfant on récupére toutes les informations
+            # Pour pourvoir afficher le détails
+            dump_object = MonitoringSerializer_dict[self._object_type](unknown=EXCLUDE).dump(
+                self._model
+            )
+        properties = dump_object
+
+        # Extraction des proprités spécifiques au même niveau que les génériques
+        self.flatten_specific_properties(properties, only=display_specific)
+
+        # Sérialisation des enfants
+        children = None
+        if depth >= 0:
+            children = self.serialize_children(depth)
+
+        schema = self.config_schema()
+
+        for key in schema:
+            if key in properties:
+                definition = schema[key]
+                value = properties[key]
+                if not isinstance(value, list):
+                    continue
+
+                type_util = definition.get("type_util")
+
+                # on passe d'une list d'objet à une liste d'id
+                # si type_util est defini pour ce champs
+                # si on a bien affaire à une liste de modèles sqla
+                properties[key] = [
+                    getattr(v, id_field_name_dict[type_util])
+                    if (isinstance(v, DB.Model) and type_util)
+                    else v.as_dict()
+                    if (isinstance(v, DB.Model) and not type_util)
+                    else v
+                    for v in value
+                ]
+
+        properties["id_parent"] = to_int(self.id_parent())
         monitoring_object_dict = {
             "properties": properties,
             "object_type": self._object_type,
@@ -196,7 +246,6 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             "cruved": self.get_cruved_by_object(),
         }
 
-        properties["id_parent"] = to_int(self.id_parent())
         if children:
             monitoring_object_dict["children"] = children
 
