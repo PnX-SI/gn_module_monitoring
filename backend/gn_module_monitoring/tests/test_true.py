@@ -1,6 +1,4 @@
-
 import pytest
-
 
 
 class Tests:
