@@ -12,8 +12,8 @@ class MonitoringObjectGeom(MonitoringObject):
             geom_field_name, id_field_name, depth=depth, columns=columns
         )
 
-    def serialize(self, depth):
-        monitoring_object_dict = MonitoringObject.serialize(self, depth)
+    def serialize(self, depth, is_child=False):
+        monitoring_object_dict = MonitoringObject.serialize(self, depth, is_child)
         geometry = {}
 
         if hasattr(self._model, "geom_geojson"):
