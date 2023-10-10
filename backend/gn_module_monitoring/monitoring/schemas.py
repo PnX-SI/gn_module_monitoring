@@ -30,7 +30,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
     class Meta:
         model = TMonitoringSitesGroups
-        exclude = ("geom_geojson","geom")
+        exclude = ("geom_geojson", "geom")
         load_instance = True
 
     medias = MA.Nested(MediaSchema, many=True)
@@ -45,6 +45,14 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     def set_pk(self, obj):
         return self.Meta.model.get_id_name()
     
+    def set_is_geom_from_child(self, obj):
+        if obj.geom is None and obj.geom_geojson is None:
+            return True
+        if obj.geom is not None:
+            return False
+        if obj.geom_geojson is not None:
+            return True
+
     def set_is_geom_from_child(self, obj):
         if obj.geom is None and obj.geom_geojson is None:
             return True

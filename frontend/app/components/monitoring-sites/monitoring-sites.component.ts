@@ -126,16 +126,12 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
               );
             }),
             tap((data) => {
-              data.sitesGroup.is_geom_from_child ?
-                this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                  id_sites_group: data.sitesGroup.id_sites_group,
-                }) 
-                :
-                this._geojsonService.setGeomSiteGroupFromExistingObject(
-                  data.sitesGroup.geometry
-                )
-              }
-            ),
+              data.sitesGroup.is_geom_from_child
+                ? this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+                    id_sites_group: data.sitesGroup.id_sites_group,
+                  })
+                : this._geojsonService.setGeomSiteGroupFromExistingObject(data.sitesGroup.geometry);
+            }),
             mergeMap((data) => {
               return forkJoin({
                 objObsSite: this._siteService.initConfig(),
@@ -180,7 +176,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
       });
   }
   ngOnDestroy() {
-    this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
+    this._geojsonService.removeAllFeatureGroup();
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }
