@@ -83,7 +83,9 @@
             aria-hidden="true"
           ></i>
         </a>
-        <ng-container *ngIf="(child0.objectType == 'visit' ? true : row['nb_visits'] == 0) && this.canDeleteObj">
+        <ng-container
+          *ngIf="(child0.objectType == 'visit' ? true : row['nb_visits'] == 0) && this.canDeleteObj"
+        >
           <a
             [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
             class="nav-link link cell-link"
