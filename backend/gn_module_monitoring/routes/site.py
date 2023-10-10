@@ -146,9 +146,9 @@ def get_site_by_id(scope, id, object_type):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
     schema = MonitoringSitesSchema()
     response = schema.dump(site)
-    response["cruved"] = get_objet_with_permission_boolean([site], object_code="MONITORINGS_SITES")[0][
-        "cruved"
-    ]
+    response["cruved"] = get_objet_with_permission_boolean(
+        [site], object_code="MONITORINGS_SITES"
+    )[0]["cruved"]
     response["geometry"] = json.loads(response["geometry"])
     return response
 
