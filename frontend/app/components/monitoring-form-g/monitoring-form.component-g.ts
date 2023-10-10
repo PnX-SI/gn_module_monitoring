@@ -741,8 +741,9 @@ export class MonitoringFormComponentG implements OnInit {
       bEdit: false,
       obj: {},
     });
+    this.obj = {};
+    this._formService.createSpecificForm({});
     this.destroyed$.next(true);
     this.destroyed$.complete();
-    this.obj = {};
   }
 }
