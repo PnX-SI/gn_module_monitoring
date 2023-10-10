@@ -221,7 +221,9 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             self.preprocess_data(properties)
 
         # ajout des données en base
-        if hasattr(self._model, "from_geofeature") and not (len(list(post_data)) == 1 and list(post_data)[0] == 'properties')  :
+        if hasattr(self._model, "from_geofeature") and not (
+            len(list(post_data)) == 1 and list(post_data)[0] == "properties"
+        ):
             for key in list(post_data):
                 if key not in ("properties", "geometry", "type"):
                     post_data.pop(key)

@@ -86,6 +86,7 @@ export class MonitoringFormComponentG implements OnInit {
   canDelete: boolean = false;
   canUpdate: boolean = false;
   canCreateOrUpdate: boolean = false;
+  geomCalculated: boolean = false;
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   constructor(
@@ -96,7 +97,7 @@ export class MonitoringFormComponentG implements OnInit {
     private _dynformService: DynamicFormService,
     private _formService: FormService,
     private _router: Router,
-    private _geojsonService:GeoJSONService
+    private _geojsonService: GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -167,7 +168,6 @@ export class MonitoringFormComponentG implements OnInit {
         })
       )
       .subscribe((data) => {
-        console.log(data.prop);
         this.initObj(data.prop);
         this.obj.config = this._configService.configModuleObject(
           this.obj.moduleCode,
@@ -232,7 +232,10 @@ export class MonitoringFormComponentG implements OnInit {
         // set geometry
         console.log(this.obj)
         if (this.obj.config && this.obj.config['geometry_type']) {
-          const validatorRequired = this.obj.objectType == 'sites_group' ? this._formBuilder.control('') : this._formBuilder.control('', Validators.required)
+          const validatorRequired =
+            this.obj.objectType == 'sites_group'
+              ? this._formBuilder.control('')
+              : this._formBuilder.control('', Validators.required);
           let frmCtrlGeom = {
             frmCtrl: validatorRequired,
             frmName: 'geometry',
@@ -243,7 +246,13 @@ export class MonitoringFormComponentG implements OnInit {
         this.isExtraForm && this.bEdit ? this.updateSpecificForm() : null;
         this.isExtraForm && !this.bEdit ? this.createSpecificForm() : null;
       });
-      this.bEdit ? this._geojsonService.setCurrentmapData(this.obj.geometry):null;
+    this.geomCalculated = this.obj.hasOwnProperty('is_geom_from_child')
+      ? this.obj.is_geom_from_child
+      : false;
+    this.bEdit
+      ? (this._geojsonService.removeAllFeatureGroup(),
+        this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
+      : null;
   }
 
   /** pour réutiliser des paramètres déjà saisis */
@@ -540,6 +549,9 @@ export class MonitoringFormComponentG implements OnInit {
         .map((it) => it.path)
         .join('/');
       this._router.navigate([urlWithoutParams]);
+
+      this._geojsonService.removeAllFeatureGroup();
+      this._geojsonService.setMapBeforeEdit(this.obj.geometry);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();
@@ -756,6 +768,6 @@ export class MonitoringFormComponentG implements OnInit {
   }
 
   isEmptyObject(obj) {
-    return (obj && (Object.keys(obj).length === 0));
+    return obj && Object.keys(obj).length === 0;
   }
 }

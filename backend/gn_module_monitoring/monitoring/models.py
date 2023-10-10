@@ -37,8 +37,10 @@ from gn_module_monitoring.monitoring.queries import (
     ObservationsQuery,
 )
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
+
 # from geoalchemy2 import Geometry
 import geoalchemy2
+
 
 class GenericModel:
     @declared_attr
@@ -434,7 +436,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
     sites_group_description = DB.Column(DB.Unicode)
 
     comments = DB.Column(DB.Unicode)
-    geom = DB.Column(geoalchemy2.types.Geometry("GEOMETRY", 4326,nullable=True))
+    geom = DB.Column(geoalchemy2.types.Geometry("GEOMETRY", 4326, nullable=True))
     data = DB.Column(JSONB)
 
     medias = DB.relationship(
@@ -483,8 +485,8 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
     #             .where(
     #                 TMonitoringSites.id_sites_group == self.id_sites_group,
     #             )
-    #     )   
-    #     else:    
+    #     )
+    #     else:
     #         return column_property(
     #         select([func.st_asgeojson(self.geom)])
     #         )
@@ -670,15 +672,14 @@ TMonitoringSitesGroups.geom_geojson = column_property(select([func.st_asgeojson(
         TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
 )
-    
-    # case([(TMonitoringSitesGroups.geom is None, select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
-    #             .select_from(
-    #                 TMonitoringSitesGroups.__table__.alias("subquery").join(
-    #                     TMonitoringSites,
-    #                     TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-    #                 )
-    #             )
-    #             .where(
-    #                 TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-    #             )), (TMonitoringSitesGroups.geom is not None,select([func.st_asgeojson(TMonitoringSitesGroups.geom)]))]))
 
+# case([(TMonitoringSitesGroups.geom is None, select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+#             .select_from(
+#                 TMonitoringSitesGroups.__table__.alias("subquery").join(
+#                     TMonitoringSites,
+#                     TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+#                 )
+#             )
+#             .where(
+#                 TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+#             )), (TMonitoringSitesGroups.geom is not None,select([func.st_asgeojson(TMonitoringSitesGroups.geom)]))]))

@@ -32,8 +32,10 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
-  constructor(private _formService: FormService, public geoJsonService: GeoJSONService,) {
-  }
+  constructor(
+    private _formService: FormService,
+    public geoJsonService: GeoJSONService
+  ) {}
 
   ngOnInit() {
     // choix du type de geometrie
@@ -51,12 +53,14 @@ export class DrawFormComponent implements OnInit {
     this.displayed = true;
     switch (this.geometryType) {
       case 'Point': {
+        this.leafletDrawOptions.draw.polygon = false;
         this.leafletDrawOptions.draw.marker = {
           icon: new CustomMarkerIcon(),
         };
         break;
       }
       case 'Polygon': {
+        this.leafletDrawOptions.draw.marker = false;
         this.leafletDrawOptions.draw.polygon = {
           allowIntersection: false, // Restricts shapes to simple polygons
           drawError: {
@@ -118,9 +122,7 @@ export class DrawFormComponent implements OnInit {
 
   manageGeometryChange(geometry) {
     if (!isEqual(geometry, this.parentFormControl.value)) {
-      // this.geojsonService.removeFeatureGroup(this.geojson)
       this.parentFormControl.setValue(geometry);
-      // this.parentFormControl.markAsDirty();
     }
   }
 

@@ -10,8 +10,8 @@ import sqlalchemy as sa
 import geoalchemy2
 
 # revision identifiers, used by Alembic.
-revision = 'f3413cccdfa8'
-down_revision = 'f24adb481f54'
+revision = "f3413cccdfa8"
+down_revision = "f24adb481f54"
 branch_labels = None
 depends_on = None
 
@@ -57,7 +57,6 @@ def upgrade():
         ALTER TABLE gn_monitoring.t_sites_groups
 	        ADD CONSTRAINT enforce_srid_geom CHECK ((st_srid(geom) = 4326));
         """
-
     )
 
     op.execute(
@@ -67,7 +66,7 @@ def upgrade():
     )
 
     op.execute(
-         """
+        """
         create trigger tri_calculate_geom_local before
         insert
             or
@@ -91,13 +90,11 @@ def upgrade():
             geom on
             gn_monitoring.t_sites_groups for each row execute function ref_geo.fct_trg_calculate_alt_minmax('geom');
 
-         """       
-
+         """
     )
 
 
 def downgrade():
-
     op.execute(
         """
         DROP TRIGGER tri_calculate_geom_local
@@ -119,8 +116,4 @@ def downgrade():
         DROP COLUMN altitude_min,
         DROP COLUMN altitude_max;
         """
-        )
-    
-
-
-
+    )
