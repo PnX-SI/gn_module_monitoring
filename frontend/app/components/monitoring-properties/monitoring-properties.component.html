@@ -93,8 +93,7 @@
       role="tabpanel"
       attr.aria-labelledby="nav-medias-tab"
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
-    >
-    </div>
+    ></div>
 
     <button
       mat-stroked-button
@@ -107,56 +106,55 @@
     >
       Éditer {{ obj.template['label_art_def'] || '' }}
     </button>
- <!-- CHECK currentUser?.moduleCruved[obj.objectType].U >= 1 -->
+    <!-- CHECK currentUser?.moduleCruved[obj.objectType].U >= 1 -->
     <!-- export pdf -->
-    <span  *ngFor="let exportPdfConfig of (obj.template['export_pdf'] || [])">
+    <span *ngFor="let exportPdfConfig of obj.template['export_pdf'] || []">
       <button
         mat-stroked-button
         color="primary"
-
         (click)="processExportPdf(exportPdfConfig)"
         type="button"
         class="mr-2"
         *ngIf="currentUser?.moduleCruved[obj.objectType].E >= 1"
       >
         <i class="fa fa-file-pdf-o"></i>&nbsp;
-        {{exportPdfConfig.label}}
+        {{ exportPdfConfig.label }}
       </button>
     </span>
     <!-- Mise à jour de la synthèse (Admin) -->
     <button
-    mat-stroked-button
-    color="primary"
-    class="float-right"
-    (click)="updateSynthese()"
-    *ngIf="
-      !bEdit &&
-      obj.objectType === 'module' &&
-      currentUser?.moduleCruved.module.U >= 1 &&
-      obj.properties['b_synthese']
-    "
-    matTooltip="Attention, cette opération peux prendre du temps"
-  >
-  <span
-  [ngClass]="{ 'hide-spinner': !bUpdateSyntheseSpinner }"
-  class="spinner-border spinner-border-sm float-right"
-  role="status"
-  aria-hidden="true"
-></span>
+      mat-stroked-button
+      color="primary"
+      class="float-right"
+      (click)="updateSynthese()"
+      *ngIf="
+        !bEdit &&
+        obj.objectType === 'module' &&
+        currentUser?.moduleCruved.module.U >= 1 &&
+        obj.properties['b_synthese']
+      "
+      matTooltip="Attention, cette opération peux prendre du temps"
+    >
+      <span
+        [ngClass]="{ 'hide-spinner': !bUpdateSyntheseSpinner }"
+        class="spinner-border spinner-border-sm float-right"
+        role="status"
+        aria-hidden="true"
+      ></span>
 
       Mettre à jour la synthèse
       <mat-icon>sync</mat-icon>
     </button>
 
-  <button
-    mat-stroked-button
-    *ngIf="obj.template['export_csv'] && currentUser?.moduleCruved[obj.objectType].E >= 1"
-    class="mr-2"
-    color="primary"
-    (click)="openModalExportCsv($event, modalExportCsv)">
-    <i class="fa fa-arrow-down"></i>&nbsp;Téléchargements
-  </button>
-
+    <button
+      mat-stroked-button
+      *ngIf="obj.template['export_csv'] && currentUser?.moduleCruved[obj.objectType].E >= 1"
+      class="mr-2"
+      color="primary"
+      (click)="openModalExportCsv($event, modalExportCsv)"
+    >
+      <i class="fa fa-arrow-down"></i>&nbsp;Téléchargements
+    </button>
   </div>
 </div>
 <!--add mje modalExportCsv-->

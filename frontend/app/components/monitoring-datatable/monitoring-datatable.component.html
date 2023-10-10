@@ -23,7 +23,7 @@
     placeholder="Entrer une valeur pour filtrer les colonnes"
     (keyup)="updateFilter($event)"
   /> -->
-   <ngx-datatable
+  <ngx-datatable
     *ngIf="rows"
     #table
     class="material striped custom-dt"
@@ -49,7 +49,7 @@
           class="nav-link link cell-link"
           (click)="child0.navigateToDetail(row.id)"
           *ngIf="child0 && currentUser.moduleCruved[child0.objectType].R >= 1"
-          matTooltip="Consulter {{child0.template.label_art_def}}"
+          matTooltip="Consulter {{ child0.template.label_art_def }}"
         >
           <i class="fa fa-eye" aria-hidden="true"></i>
         </a>
