@@ -103,7 +103,7 @@ jobs:
         geonature db upgrade ref_geo_inpn_grids_10@head
       env:
         GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
-    - name: Install import module database
+    - name: Install monitoring module database
       run: |
         geonature upgrade-modules-db MONITORINGS
       env:
