@@ -12,6 +12,9 @@ from click.testing import CliRunner
 
 from gn_module_monitoring.command.cmd import process_available_permissions
 from gn_module_monitoring.command.utils import installed_modules
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+
+from sqlalchemy.exc import ProgrammingError
 
 # revision identifiers, used by Alembic.
 revision = "c1528c94d350"
@@ -21,7 +24,22 @@ depends_on = None
 
 
 def upgrade():
-    # Création des permissions disponibles pour chaque module
+    """
+    Création des permissions disponibles pour chaque module
+    et nettoyage des permissions disponibles
+    """
+
+    # Si c'est la révision est lancée dans le contexte de l'installation du module
+    # la mise à jour des permissions n'est pas nécessaire
+    # et la fonction installed_modules ne peut être lancée
+    # Si installation la requête TMonitoringModules.query.first() lance une ProgrammingError
+
+    try:
+        TMonitoringModules.query.first()
+    except ProgrammingError:
+        # Si erreur alors installation fraiche pas besoin de mettre à jour l'existant
+        return
+
     for module in installed_modules():
         process_available_permissions(module["module_code"])
 
