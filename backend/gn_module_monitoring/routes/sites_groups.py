@@ -82,9 +82,9 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
     schema = MonitoringSitesGroupsSchema()
     result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
     response = schema.dump(result)
-    response["cruved"] = get_objet_with_permission_boolean([result], object_code="MONITORINGS_GRP_SITES")[
-        0
-    ]["cruved"]
+    response["cruved"] = get_objet_with_permission_boolean(
+        [result], object_code="MONITORINGS_GRP_SITES"
+    )[0]["cruved"]
     return jsonify(response)
 
 
