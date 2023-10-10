@@ -1,66 +1,62 @@
-
 <div class="cadre" *ngIf="children0Array && children0Array.length">
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
-    <span
-      *ngFor="let child0 of children0Array"
+    <span *ngFor="let child0 of children0Array">
+      <mat-tab
+        *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= 1"
+        (click)="changeActiveTab(child0.objectType)"
+        label="{{ child0.template['label_list'] }} {{ displayNumber(child0.objectType) }}"
       >
-    <mat-tab
-       *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= 1"
-      (click)="changeActiveTab(child0.objectType)"
-      label="{{ child0.template['label_list'] }} {{ displayNumber(child0.objectType) }}"
-    >
-      <div let childrenType="child0.objectType" class="list-children">
-        <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
-          <div class="btn-float-right">
-            <button
-              mat-mini-fab
-              color="accent"
-              class="ml-2 mb-2"
-              (click)="child0.config['display_filter'] = !child0.config['display_filter']"
-              matTooltip="{{ child0.config['display_filter'] ? 'Cacher' : 'Afficher' }} les filtres"
-              *ngIf="
-                obj.moduleCode &&
-                currentUser.moduleCruved[child0.objectType].R >= 1
-              "
-            >
-              <mat-icon>filter_alt</mat-icon>
-            </button>
-            <button
-              mat-raised-button
-              [disabled]="!canCreateChild[child0.objectType]"
-              color="primary"
-              [ngClass]="{ isDisableBtn: !canCreateChild[child0.objectType] }"
-              class="btn btn-success float-right"
-              (click)="
-                canCreateChild[child0.objectType]
-                  ? obj.navigateToAddChildren(child0.objectType)
-                  : null
-              "
-              [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
-              *ngIf="obj.moduleCode"
-            >
-              <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
-              {{ child0.template['label_art_undef_new'] || '' }}
-            </button>
+        <div let childrenType="child0.objectType" class="list-children">
+          <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
+            <div class="btn-float-right">
+              <button
+                mat-mini-fab
+                color="accent"
+                class="ml-2 mb-2"
+                (click)="child0.config['display_filter'] = !child0.config['display_filter']"
+                matTooltip="{{
+                  child0.config['display_filter'] ? 'Cacher' : 'Afficher'
+                }} les filtres"
+                *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= 1"
+              >
+                <mat-icon>filter_alt</mat-icon>
+              </button>
+              <button
+                mat-raised-button
+                [disabled]="!canCreateChild[child0.objectType]"
+                color="primary"
+                [ngClass]="{ isDisableBtn: !canCreateChild[child0.objectType] }"
+                class="btn btn-success float-right"
+                (click)="
+                  canCreateChild[child0.objectType]
+                    ? obj.navigateToAddChildren(child0.objectType)
+                    : null
+                "
+                [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
+                *ngIf="obj.moduleCode"
+              >
+                <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
+                {{ child0.template['label_art_undef_new'] || '' }}
+              </button>
+            </div>
+          </div>
+          <div class="mt-2">
+            <pnx-monitoring-datatable
+              *ngIf="childrenDataTable && childrenDataTable[child0.objectType]"
+              (bEditChanged)="onbEditChanged($event)"
+              [rows]="childrenDataTable[child0.objectType]['rows']"
+              [columns]="childrenDataTable[child0.objectType]['columns']"
+              [rowStatus]="objectsStatus[child0.objectType]"
+              [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
+              (rowStatusChange)="onSelectedChildren(child0.objectType, $event)"
+              [child0]="child0"
+              [obj]="obj"
+              [sorts]="child0.configParam('sorts')"
+              [currentUser]="currentUser"
+            ></pnx-monitoring-datatable>
           </div>
         </div>
-        <div class="mt-2">
-          <pnx-monitoring-datatable
-            *ngIf="childrenDataTable && childrenDataTable[child0.objectType]"
-            (bEditChanged)="onbEditChanged($event)"
-            [rows]="childrenDataTable[child0.objectType]['rows']"
-            [columns]="childrenDataTable[child0.objectType]['columns']"
-            [rowStatus]="objectsStatus[child0.objectType]"
-            [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
-            (rowStatusChange)="onSelectedChildren(child0.objectType, $event)"
-            [child0]="child0"
-            [obj]="obj"
-            [sorts]="child0.configParam('sorts')"
-            [currentUser]="currentUser"
-          ></pnx-monitoring-datatable>
-        </div>
-      </div>
-    </mat-tab>
+      </mat-tab>
     </span>
   </mat-tab-group>
 </div>
