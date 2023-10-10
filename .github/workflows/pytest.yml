@@ -91,6 +91,10 @@ jobs:
           -e ..[tests] \
           -r requirements-dev.txt
       working-directory: ./dependencies/GeoNature/backend
+    - name: Install monitoring module
+      run: |
+        python -m pip install -e .
+      working-directory: .
     - name: Install database
       run: |
         geonature db upgrade geonature@head -x local-srid=2154
