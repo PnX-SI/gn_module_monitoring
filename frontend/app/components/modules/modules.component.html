@@ -14,7 +14,11 @@
   <div class="m-2" *ngIf="modules.length > 0">
     <!-- <div class="w-100 d-none d-sm-block"></div> -->
     <div class="btn-module text-center">
-      <div style="display: inline-block" [matTooltip]="toolTipNotAllowed" [matTooltipDisabled]="canAccessSite">
+      <div
+        style="display: inline-block"
+        [matTooltip]="toolTipNotAllowed"
+        [matTooltipDisabled]="canAccessSite"
+      >
         <button
           mat-flat-button
           class="mt-4"
