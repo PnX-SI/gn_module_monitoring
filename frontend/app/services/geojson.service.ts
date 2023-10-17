@@ -6,6 +6,7 @@ import { GeoJSON } from 'geojson';
 import { MapService } from '@geonature_common/map/map.service';
 
 import { SitesService, SitesGroupService } from './api-geom.service';
+import { FormService } from './form.service';
 
 // This service will be used for sites and sites groups
 
@@ -24,12 +25,19 @@ export class GeoJSONService {
   geojsonSites: GeoJSON.FeatureCollection;
   sitesGroupFeatureGroup: L.FeatureGroup;
   sitesFeatureGroup: L.FeatureGroup;
+  currentLayer:any = null ;
 
+  // private currentLayer = new ReplaySubject<any>(1);
+  // currentLayerForm = this.currentLayer.asObservable();
+  
   constructor(
     private _sites_group_service: SitesGroupService,
     private _sites_service: SitesService,
-    private _mapService: MapService
-  ) {}
+    private _mapService: MapService,
+    private _formService: FormService
+  ) {
+    // this.setObservables()
+  }
 
   getSitesGroupsGeometries(onEachFeature: Function, params = {}) {
     this._sites_group_service
@@ -47,6 +55,10 @@ export class GeoJSONService {
     });
   }
 
+  setGeomSiteGroupFromExistingObject(geom){
+    this.sitesFeatureGroup = this.setMapData(geom, () => {});
+  }
+
   setMapData(
     geojson: GeoJSON.Geometry | GeoJSON.FeatureCollection,
     onEachFeature: Function,
@@ -61,11 +73,37 @@ export class GeoJSONService {
     return featureGroup;
   }
 
+  setMapDataWithFeatureGroup(
+    featureGroup: L.FeatureGroup[],
+  ) {
+    for (const layer of featureGroup){
+      this._mapService.map.addLayer(layer);
+    }
+  }
+
+  setCurrentmapData(geom){
+    this.currentLayer = geom
+  }
+
+  setMapBeforeEdit(geom){
+    this.currentLayer = null;
+    this.setMapData(geom, () => {});
+  }
+
   removeFeatureGroup(feature: L.FeatureGroup) {
     if (feature) {
       this._mapService.map.removeLayer(feature);
     }
   }
+
+  removeLayerFeatureGroups() {
+    return this._mapService.removeLayerFeatureGroups
+  }
+
+  fileLayerFeatureGroup(){
+    return   this._mapService.fileLayerFeatureGroup
+  }
+
 
   onEachFeature() {}
 
@@ -113,4 +151,19 @@ export class GeoJSONService {
     });
     return layers;
   }
+  
+  removeAllFeatureGroup(){
+    // this._mapService.removeAllLayers(this._mapService.map,this._mapService.fileLayerFeatureGroup)
+    let listFeatureGroup: L.FeatureGroup[] = []
+    this._mapService.map.eachLayer( function(layer) {
+    if (layer instanceof L.FeatureGroup){
+      listFeatureGroup.push(layer)
+    }
+    } );
+    // this.currentLayer = listFeatureGroup
+    for (const featureGroup of listFeatureGroup){
+      this.removeFeatureGroup(featureGroup)
+    }
+  }
+
 }

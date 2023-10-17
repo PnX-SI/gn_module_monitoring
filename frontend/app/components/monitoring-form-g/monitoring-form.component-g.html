@@ -50,7 +50,7 @@
         <p
           class="alert alert-warning"
           style="display: inline-block; padding: 4px"
-          *ngIf="obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry"
+          *ngIf="obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry && obj.objectType != 'sites_group' "
         >
           <span> Veuillez saisir une géométrie sur la carte </span>
         </p>
@@ -61,7 +61,7 @@
           'form-scroll-info-geom':obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry  ,
           'form-scroll': !(obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry)}"
         >
-          <ng-container *ngIf="objForm.static">
+          <ng-container *ngIf="objForm.static && !isEmptyObject(objForm.static.controls)">
             <pnx-dynamic-form-generator
               class="obj-form"
               #dynamicForm

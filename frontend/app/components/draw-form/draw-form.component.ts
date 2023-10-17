@@ -1,9 +1,10 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { FormControl } from '@angular/forms';
-
+import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
 import { FormService } from '../../services/form.service';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'pnx-draw-form',
@@ -31,7 +32,8 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
-  constructor(private _formService: FormService) {}
+  constructor(private _formService: FormService, public geoJsonService: GeoJSONService,) {
+  }
 
   ngOnInit() {
     // choix du type de geometrie
@@ -80,14 +82,15 @@ export class DrawFormComponent implements OnInit {
       this.formValueChangeSubscription.unsubscribe();
     }
     if (this.parentFormControl && this.parentFormControl.value) {
+      console.log(this.parentFormControl)
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant
-      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
-        (geometry) => {
-          this.setGeojson(geometry);
-        }
-      );
+      // this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
+      //   (geometry) => {
+      //     this.setGeojson(geometry);
+      //   }
+      // );
     }
   }
 
@@ -99,16 +102,25 @@ export class DrawFormComponent implements OnInit {
 
   // suivi composant => formControl
   bindGeojsonForm(geojson) {
-    this.geojson = geojson;
     if (!this.parentFormControl) {
       this._formService.currentFormMap.subscribe((dataForm) => {
         if ('geometry' in dataForm.frmGp.controls) {
           this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl;
-          this.parentFormControl.setValue(geojson.geometry);
+          // this.parentFormControl.setValue(geojson.geometry);
+          this.manageGeometryChange(geojson.geometry);
         }
       });
     } else {
-      this.parentFormControl.setValue(geojson.geometry);
+      this.manageGeometryChange(geojson.geometry);
+      // this.parentFormControl.setValue(geojson.geometry);
+    }
+  }
+
+  manageGeometryChange(geometry) {
+    if (!isEqual(geometry, this.parentFormControl.value)) {
+      // this.geojsonService.removeFeatureGroup(this.geojson)
+      this.parentFormControl.setValue(geometry);
+      // this.parentFormControl.markAsDirty();
     }
   }
 
@@ -116,8 +128,9 @@ export class DrawFormComponent implements OnInit {
     if (changes.parentFormControl && changes.parentFormControl.currentValue) {
       this.initForm();
     }
-    if (changes.geometryType && changes.geometryType.currentValue) {
-      this.initForm();
-    }
+    // if (changes.geometryType && changes.geometryType.currentValue) {
+    //   console.log("ICI changement draw form parentFormControl et geometryType")
+    //   this.initForm();
+    // }
   }
 }

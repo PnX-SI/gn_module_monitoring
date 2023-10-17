@@ -344,6 +344,7 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.objectType == 'site'
       ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
       : null;
+    console.log(objFormValueGroup)
     const action = this.obj.id
       ? this.obj.patch(objFormValueGroup, this.dataComplement)
       : this.obj.post(objFormValueGroup, this.dataComplement);

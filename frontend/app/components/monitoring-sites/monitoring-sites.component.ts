@@ -37,7 +37,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   colsname: {};
   page: IPage;
   filters = {};
-  siteGroupLayer: L.FeatureGroup;
   @Input() bEdit: boolean;
   objForm: { static: FormGroup };
   objectType: IobjObs<ISite>;
@@ -83,7 +82,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.objForm = { static: this._formBuilder.group({}) };
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
@@ -110,11 +108,6 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
               this.checkEditParam = params['edit'];
               return params['id'] as number;
             }),
-            tap((id: number) => {
-              this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                id_sites_group: id,
-              });
-            }),
             mergeMap((id: number) => {
               return forkJoin({
                 sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
@@ -132,6 +125,17 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
                 })
               );
             }),
+            tap((data) => {
+              data.sitesGroup.is_geom_from_child ?
+                this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+                  id_sites_group: data.sitesGroup.id_sites_group,
+                }) 
+                :
+                this._geojsonService.setGeomSiteGroupFromExistingObject(
+                  data.sitesGroup.geometry
+                )
+              }
+            ),
             mergeMap((data) => {
               return forkJoin({
                 objObsSite: this._siteService.initConfig(),
@@ -155,10 +159,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
           page: data.sites.page,
           limit: data.sites.limit,
         };
-        // this.siteGroupLayer = this._geojsonService.setMapData(
-        //   data.sitesGroup.geometry,
-        //   () => {}
-        // );
+
         this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
         this.colsname = objectObs.objObsSite.dataTable.colNameObj;
         this.objParent = objectObs.objObsSiteGp;
@@ -255,6 +256,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     if ($event == 'deleted') {
       return;
     }
+    this._geojsonService.removeAllFeatureGroup()
     this.initSite();
   }
 

@@ -30,21 +30,32 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
     class Meta:
         model = TMonitoringSitesGroups
-        exclude = ("geom_geojson",)
+        exclude = ("geom_geojson","geom")
         load_instance = True
 
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
     geometry = fields.Method("serialize_geojson", dump_only=True)
     id_digitiser = fields.Method("get_id_digitiser")
+    is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
 
     def get_id_digitiser(self, obj):
         return obj.id_digitiser
 
     def set_pk(self, obj):
         return self.Meta.model.get_id_name()
+    
+    def set_is_geom_from_child(self, obj):
+        if obj.geom is None and obj.geom_geojson is None:
+            return True
+        if obj.geom is not None:
+            return False
+        if obj.geom_geojson is not None:
+            return True
 
     def serialize_geojson(self, obj):
+        if obj.geom is not None:
+            return geojson.dumps(obj.as_geofeature().get("geometry"))
         if obj.geom_geojson is not None:
             return json.loads(obj.geom_geojson)
 

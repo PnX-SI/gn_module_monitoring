@@ -56,6 +56,7 @@ export class MonitoringDatatableComponent implements OnInit {
   bDeleteSpinner: boolean = false;
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   canCreateChild: boolean = false;
+  canDeleteObj: boolean = false;
 
   constructor(
     private _monitoring: MonitoringObjectService,
@@ -72,6 +73,7 @@ export class MonitoringDatatableComponent implements OnInit {
     // TODO: Attention ici l'ajout avec l'icon ne se fait que sur un enfant (si plusieurs enfants au même niveau , le premier sera pris pour le moment)
     const childrenType = this.child0.config.children_types[0];
     this.canCreateChild = this.currentUser?.moduleCruved[childrenType]['C'];
+    this.canDeleteObj = !['site','sites_group'].includes(this.child0.objectType)
   }
 
   initDatatable() {
