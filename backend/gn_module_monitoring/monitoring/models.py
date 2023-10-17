@@ -4,6 +4,7 @@
 from flask import g
 from sqlalchemy import join, select, func, and_, or_, false
 from sqlalchemy.inspection import inspect
+from sqlalchemy.sql import case
 from sqlalchemy.orm import (
     column_property,
     ColumnProperty,
@@ -36,7 +37,8 @@ from gn_module_monitoring.monitoring.queries import (
     ObservationsQuery,
 )
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
-
+# from geoalchemy2 import Geometry
+import geoalchemy2
 
 class GenericModel:
     @declared_attr
@@ -413,8 +415,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
         elif scope == 3:
             return True
 
-
-@serializable
+@geoserializable(geoCol="geom", idCol="id_sites_group")
 class TMonitoringSitesGroups(DB.Model, PermissionModel):
     __tablename__ = "t_sites_groups"
     __table_args__ = {"schema": "gn_monitoring"}
@@ -433,7 +434,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
     sites_group_description = DB.Column(DB.Unicode)
 
     comments = DB.Column(DB.Unicode)
-
+    geom = DB.Column(geoalchemy2.types.Geometry("GEOMETRY", 4326,nullable=True))
     data = DB.Column(JSONB)
 
     medias = DB.relationship(
@@ -457,6 +458,8 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
         )
     )
 
+    altitude_min = DB.Column(DB.Integer)
+    altitude_max = DB.Column(DB.Integer)
     nb_visits = column_property(
         select([func.count(TMonitoringVisits.id_base_site)]).where(
             and_(
@@ -465,6 +468,26 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
             )
         )
     )
+
+    # @hybrid_property
+    # def geom_geojson(self):
+    #     if self.geom is None:
+    #         return column_property(
+    #             select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+    #             .select_from(
+    #                 self.__table__.alias("subquery").join(
+    #                     TMonitoringSites,
+    #                     TMonitoringSites.id_sites_group == self.id_sites_group,
+    #                 )
+    #             )
+    #             .where(
+    #                 TMonitoringSites.id_sites_group == self.id_sites_group,
+    #             )
+    #     )   
+    #     else:    
+    #         return column_property(
+    #         select([func.st_asgeojson(self.geom)])
+    #         )
 
     @hybrid_property
     def organism_actors(self):
@@ -636,8 +659,7 @@ TMonitoringSitesGroups.nb_visits = column_property(
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
-TMonitoringSitesGroups.geom_geojson = column_property(
-    select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+TMonitoringSitesGroups.geom_geojson = column_property(select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
     .select_from(
         TMonitoringSitesGroups.__table__.alias("subquery").join(
             TMonitoringSites,
@@ -648,3 +670,15 @@ TMonitoringSitesGroups.geom_geojson = column_property(
         TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
 )
+    
+    # case([(TMonitoringSitesGroups.geom is None, select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+    #             .select_from(
+    #                 TMonitoringSitesGroups.__table__.alias("subquery").join(
+    #                     TMonitoringSites,
+    #                     TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+    #                 )
+    #             )
+    #             .where(
+    #                 TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+    #             )), (TMonitoringSitesGroups.geom is not None,select([func.st_asgeojson(TMonitoringSitesGroups.geom)]))]))
+
