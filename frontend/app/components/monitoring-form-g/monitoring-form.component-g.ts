@@ -23,6 +23,7 @@ import { IExtraForm } from '../../interfaces/object';
 import { JsonData } from '../../types/jsondata';
 import { Observable, ReplaySubject, Subject, of } from 'rxjs';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -94,7 +95,8 @@ export class MonitoringFormComponentG implements OnInit {
     private _commonService: CommonService,
     private _dynformService: DynamicFormService,
     private _formService: FormService,
-    private _router: Router
+    private _router: Router,
+    private _geojsonService:GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -132,7 +134,6 @@ export class MonitoringFormComponentG implements OnInit {
         );
       })
     );
-
     this._formService.currentData
       .pipe(
         distinctUntilChanged((prev, curr) => prev['pk'] === curr['pk']),
@@ -141,6 +142,8 @@ export class MonitoringFormComponentG implements OnInit {
           this.obj = data;
           this.obj.id = this.obj[this.obj.pk];
           this.initPermission();
+          // this.bEdit ? this._geojsonService.setCurrentmapData(this.obj.geometry):null;
+          // this.bEdit &&  this._geojsonService.currentLayer == null ? (this._geojsonService.removeAllFeatureGroup(),this._geojsonService.setCurrentmapData(this.obj.geometry)) : null;
         }),
         concatMap((data: any) => this._configService.init(data.moduleCode)),
         concatMap((data) => {
@@ -227,9 +230,11 @@ export class MonitoringFormComponentG implements OnInit {
 
         this.isExtraForm ? this.addExtraFormCtrl(data['frmCtrl']) : null;
         // set geometry
+        console.log(this.obj)
         if (this.obj.config && this.obj.config['geometry_type']) {
+          const validatorRequired = this.obj.objectType == 'sites_group' ? this._formBuilder.control('') : this._formBuilder.control('', Validators.required)
           let frmCtrlGeom = {
-            frmCtrl: this._formBuilder.control('', Validators.required),
+            frmCtrl: validatorRequired,
             frmName: 'geometry',
           };
           this.addGeomFormCtrl(frmCtrlGeom);
@@ -238,6 +243,7 @@ export class MonitoringFormComponentG implements OnInit {
         this.isExtraForm && this.bEdit ? this.updateSpecificForm() : null;
         this.isExtraForm && !this.bEdit ? this.createSpecificForm() : null;
       });
+      this.bEdit ? this._geojsonService.setCurrentmapData(this.obj.geometry):null;
   }
 
   /** pour réutiliser des paramètres déjà saisis */
@@ -446,6 +452,7 @@ export class MonitoringFormComponentG implements OnInit {
       const urlWithoutParams = urlTree.root.children['primary'].segments
         .map((it) => it.path)
         .join('/');
+        console.log(urlWithoutParams)
       this._router.navigate([urlWithoutParams]);
     }
     this.bEditChange.emit(false);
@@ -483,6 +490,7 @@ export class MonitoringFormComponentG implements OnInit {
       : (this.bSaveSpinner = true);
     const { patch_update, ...sendValue } = this.dataForm;
     const objToUpdateOrCreate = this._formService.postData(sendValue, this.obj);
+    console.log(objToUpdateOrCreate)
     const action = this.obj.id
       ? this.apiService.patch(this.obj.id, objToUpdateOrCreate)
       : this.apiService.create(objToUpdateOrCreate);
@@ -745,5 +753,9 @@ export class MonitoringFormComponentG implements OnInit {
     this._formService.createSpecificForm({});
     this.destroyed$.next(true);
     this.destroyed$.complete();
+  }
+
+  isEmptyObject(obj) {
+    return (obj && (Object.keys(obj).length === 0));
   }
 }

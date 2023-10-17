@@ -1,3 +1,4 @@
+import json
 from flask import jsonify, request, g
 from geonature.utils.env import db
 from marshmallow import ValidationError
@@ -82,10 +83,9 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
     schema = MonitoringSitesGroupsSchema()
     result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
     response = schema.dump(result)
-    response["cruved"] = get_objet_with_permission_boolean(
-        [result], object_code="MONITORINGS_GRP_SITES"
-    )[0]["cruved"]
-    return jsonify(response)
+    response['cruved']=get_objet_with_permission_boolean([result], object_code="MONITORINGS_GRP_SITES")[0]['cruved']
+    response["geometry"]= json.loads(response["geometry"]) if response["geometry"] != None and isinstance(response["geometry"],str)  else  response["geometry"]
+    return response
 
 
 @blueprint.route(
@@ -96,23 +96,33 @@ def get_sites_group_geometries(object_type: str):
     object_code = "MONITORINGS_GRP_SITES"
     query = TMonitoringSitesGroups.query
     query_allowed = query.filter_by_readable(object_code=object_code)
-    subquery = (
-        query_allowed.with_entities(
+    subquery_not_geom = (query_allowed.with_entities(
             TMonitoringSitesGroups.id_sites_group,
             TMonitoringSitesGroups.sites_group_name,
             func.st_convexHull(func.st_collect(TMonitoringSites.geom)),
         )
-        .group_by(TMonitoringSitesGroups.id_sites_group, TMonitoringSitesGroups.sites_group_name)
-        .join(
+        .group_by(TMonitoringSitesGroups.id_sites_group, TMonitoringSitesGroups.sites_group_name).join(
             TMonitoringSites,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-        )
+        ).filter(TMonitoringSitesGroups.geom == None)
         .subquery()
     )
 
-    result = geojson_query(subquery)
+    subquery_with_geom = (query_allowed.with_entities(
+            TMonitoringSitesGroups.id_sites_group,
+            TMonitoringSitesGroups.sites_group_name,
+            TMonitoringSitesGroups.geom,
+        ).filter(TMonitoringSitesGroups.geom != None)).subquery()
 
-    return jsonify(result)
+    result_1 = geojson_query(subquery_not_geom)
+    result_2 = geojson_query(subquery_with_geom)
+    if(result_1['features'] is not None):
+        if(result_2['features'] is not None):
+            result_2['features'].extend(result_1['features'])
+        else:
+            result_2['features'] =  result_1['features']
+
+    return jsonify(result_2)
 
 
 @blueprint.route(

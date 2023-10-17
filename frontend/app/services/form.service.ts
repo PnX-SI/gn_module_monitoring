@@ -161,7 +161,9 @@ export class FormService {
     // TODO: A voir q'il faut remettre
     if (obj.config['geometry_type']) {
       postData['geometry'] = formValue['geometry'];
-      postData['type'] = 'Feature';
+      // if(postData['geometry'] != null){
+        postData['type'] = 'Feature';
+      // }
     }
     return postData;
   }
