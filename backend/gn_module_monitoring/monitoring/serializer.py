@@ -121,6 +121,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             id_name = list_model[0].get_id_name()
             cruved_item_dict = get_objet_with_permission_boolean(
                 list_model,
+                module_code=self._module_code,
                 object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
                     self._object_type
                 ],

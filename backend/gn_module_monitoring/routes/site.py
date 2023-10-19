@@ -180,7 +180,9 @@ def get_all_site_geometries(object_type):
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_module_by_id_base_site(id_base_site: int):
     modules_object = get_modules()
-    modules = get_objet_with_permission_boolean(modules_object, depth=0)
+    modules = get_objet_with_permission_boolean(
+        modules_object, object_code="MONITORINGS_VISITES", depth=0
+    )
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
     query = TMonitoringModules.query.options(
         Load(TMonitoringModules).raiseload("*"),
