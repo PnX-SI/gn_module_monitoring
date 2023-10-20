@@ -230,7 +230,6 @@ export class MonitoringFormComponentG implements OnInit {
 
         this.isExtraForm ? this.addExtraFormCtrl(data['frmCtrl']) : null;
         // set geometry
-        console.log(this.obj)
         if (this.obj.config && this.obj.config['geometry_type']) {
           const validatorRequired =
             this.obj.objectType == 'sites_group'
@@ -249,6 +248,7 @@ export class MonitoringFormComponentG implements OnInit {
     this.geomCalculated = this.obj.hasOwnProperty('is_geom_from_child')
       ? this.obj.is_geom_from_child
       : false;
+    this.geomCalculated ? (this.obj.geometry = null) : null;
     this.bEdit
       ? (this._geojsonService.removeAllFeatureGroup(),
         this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
@@ -461,7 +461,6 @@ export class MonitoringFormComponentG implements OnInit {
       const urlWithoutParams = urlTree.root.children['primary'].segments
         .map((it) => it.path)
         .join('/');
-        console.log(urlWithoutParams)
       this._router.navigate([urlWithoutParams]);
     }
     this.bEditChange.emit(false);
@@ -499,7 +498,6 @@ export class MonitoringFormComponentG implements OnInit {
       : (this.bSaveSpinner = true);
     const { patch_update, ...sendValue } = this.dataForm;
     const objToUpdateOrCreate = this._formService.postData(sendValue, this.obj);
-    console.log(objToUpdateOrCreate)
     const action = this.obj.id
       ? this.apiService.patch(this.obj.id, objToUpdateOrCreate)
       : this.apiService.create(objToUpdateOrCreate);
@@ -551,7 +549,9 @@ export class MonitoringFormComponentG implements OnInit {
       this._router.navigate([urlWithoutParams]);
 
       this._geojsonService.removeAllFeatureGroup();
-      this._geojsonService.setMapBeforeEdit(this.obj.geometry);
+      this.obj.geometry == null
+        ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
+        : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();

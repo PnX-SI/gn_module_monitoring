@@ -252,7 +252,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     if ($event == 'deleted') {
       return;
     }
-    this._geojsonService.removeAllFeatureGroup()
+    this._geojsonService.removeAllFeatureGroup();
     this.initSite();
   }
 

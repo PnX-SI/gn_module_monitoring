@@ -32,6 +32,8 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
+  @Input() geomFromProtocol: boolean = true;
+
   constructor(
     private _formService: FormService,
     public geoJsonService: GeoJSONService
@@ -86,7 +88,6 @@ export class DrawFormComponent implements OnInit {
       this.formValueChangeSubscription.unsubscribe();
     }
     if (this.parentFormControl && this.parentFormControl.value) {
-      console.log(this.parentFormControl)
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant

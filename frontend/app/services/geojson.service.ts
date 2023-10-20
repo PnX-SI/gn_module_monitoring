@@ -27,9 +27,6 @@ export class GeoJSONService {
   sitesFeatureGroup: L.FeatureGroup;
   currentLayer: any = null;
 
-  // private currentLayer = new ReplaySubject<any>(1);
-  // currentLayerForm = this.currentLayer.asObservable();
-  
   constructor(
     private _sites_group_service: SitesGroupService,
     private _sites_service: SitesService,
@@ -73,14 +70,14 @@ export class GeoJSONService {
 
   setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {
     for (const layer of featureGroup) {
-      this._mapService.map.addLayer(layer);
+      if (layer != undefined) {
+        this._mapService.map.addLayer(layer);
+      }
     }
   }
 
   setCurrentmapData(geom, isGeomCalculated) {
-    isGeomCalculated
-      ? (this.currentLayer = null)
-      : ((this.currentLayer = geom), this._mapService.loadGeometryReleve(geom, false));
+    isGeomCalculated ? (this.currentLayer = null) : (this.currentLayer = geom);
   }
 
   setMapBeforeEdit(geom) {
@@ -93,15 +90,6 @@ export class GeoJSONService {
       this._mapService.map.removeLayer(feature);
     }
   }
-
-  removeLayerFeatureGroups() {
-    return this._mapService.removeLayerFeatureGroups
-  }
-
-  fileLayerFeatureGroup(){
-    return   this._mapService.fileLayerFeatureGroup
-  }
-
 
   onEachFeature() {}
 

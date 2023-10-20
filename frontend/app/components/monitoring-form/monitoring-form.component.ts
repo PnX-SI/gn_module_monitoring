@@ -344,7 +344,6 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.objectType == 'site'
       ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
       : null;
-    console.log(objFormValueGroup)
     const action = this.obj.id
       ? this.obj.patch(objFormValueGroup, this.dataComplement)
       : this.obj.post(objFormValueGroup, this.dataComplement);
@@ -466,7 +465,6 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   checkChangedTypeSite() {
-    console.log(this.typesSiteConfig);
     if ('types_site' in this.objFormDynamic.controls) {
       this.objFormDynamic.controls['types_site'].valueChanges
         .pipe(
