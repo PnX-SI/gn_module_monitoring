@@ -245,7 +245,7 @@ class TMonitoringObservations(TObservations, PermissionModel):
                 g.current_user.id_role == self.id_digitiser
             ):  # or g.current_user in self.user_actors:
                 return True
-            if scope == 2 and g.current_user.organisme in self.organism_actors:
+            if scope == 2 and g.current_user.id_organisme in self.organism_actors:
                 return True
         elif scope == 3:
             return True
@@ -327,7 +327,7 @@ class TMonitoringVisits(TBaseVisits, PermissionModel):
                 observer.id_role == g.current_user.id_role for observer in self.observers
             ):  # or g.current_user in self.user_actors:
                 return True
-            if scope == 2 and g.current_user.organisme in self.organism_actors:
+            if scope == 2 and g.current_user.id_organisme in self.organism_actors:
                 return True
         elif scope == 3:
             return True
@@ -412,7 +412,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
                 or g.current_user.id_role == self.id_inventor
             ):  # or g.current_user in self.user_actors:
                 return True
-            if scope == 2 and g.current_user.organisme in self.organism_actors:
+            if scope == 2 and g.current_user.id_organisme in self.organism_actors:
                 return True
         elif scope == 3:
             return True
@@ -514,7 +514,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel):
                 g.current_user.id_role == self.id_digitiser
             ):  # or g.current_user in self.user_actors:
                 return True
-            if scope == 2 and g.current_user.organisme in self.organism_actors:
+            if scope == 2 and g.current_user.id_organisme in self.organism_actors:
                 return True
         elif scope == 3:
             return True
