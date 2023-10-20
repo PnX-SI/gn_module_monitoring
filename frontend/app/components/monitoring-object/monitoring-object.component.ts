@@ -157,7 +157,6 @@ export class MonitoringObjectComponent implements OnInit {
           }),
           type: 'FeatureCollection',
         };
-        console.log("sitesGroup",sitesGroup)
       }
       // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
       let sites = null;
@@ -178,7 +177,6 @@ export class MonitoringObjectComponent implements OnInit {
         }),
         type: 'FeatureCollection',
       };
-      console.log("sites",sites)
       this.initObjectsStatus();
     });
   }
