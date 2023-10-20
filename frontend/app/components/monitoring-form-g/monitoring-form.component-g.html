@@ -54,6 +54,16 @@
         >
           <span> Veuillez saisir une géométrie sur la carte </span>
         </p>
+        <p
+          class="alert alert-warning"
+          style="display: inline-block; padding: 4px"
+          *ngIf="obj.config && obj.config['geometry_type'] && !objForm.static.value.geometry && obj.objectType == 'sites_group' && obj.geometry == null "
+        >
+          <span>
+            La géométrie de groupe site est actuellement auto-générée sur la base des sites enfants
+            (si existants). Vous avez la possibilité de créer vous même une géométrie
+          </span>
+        </p>
         <!-- composant choix de site select + filtre -->
 
         <div
