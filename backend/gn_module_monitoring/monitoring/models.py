@@ -417,6 +417,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
         elif scope == 3:
             return True
 
+
 @geoserializable(geoCol="geom", idCol="id_sites_group")
 class TMonitoringSitesGroups(DB.Model, PermissionModel):
     __tablename__ = "t_sites_groups"
@@ -661,7 +662,8 @@ TMonitoringSitesGroups.nb_visits = column_property(
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
-TMonitoringSitesGroups.geom_geojson = column_property(select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
+TMonitoringSitesGroups.geom_geojson = column_property(
+    select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
     .select_from(
         TMonitoringSitesGroups.__table__.alias("subquery").join(
             TMonitoringSites,
