@@ -44,7 +44,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return self.Meta.model.get_id_name()
-    
+
     def set_is_geom_from_child(self, obj):
         if obj.geom is None and obj.geom_geojson is None:
             return True
