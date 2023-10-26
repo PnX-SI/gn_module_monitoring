@@ -119,13 +119,13 @@ def insert_module_available_permissions(module_code, perm_object_code):
     try:
         module = TModules.query.filter_by(module_code=module_code).one()
     except NoResultFound:
-        print("Le module {module_code} n'est pas présent")
+        print(f"Le module {module_code} n'est pas présent")
         return
 
     try:
         perm_object = PermObject.query.filter_by(code_object=perm_object_code).one()
     except NoResultFound:
-        print("L'object de permission {module_code} n'est pas présent")
+        print(f"L'object de permission {module_code} n'est pas présent")
         return
 
     txt_cor_object_module = f"""
