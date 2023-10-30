@@ -34,6 +34,31 @@ title: 'Création d''un sous-module'
 * `nomenclature.json` (pour l'ajout de nomenclatures spécifiques au sous-module)
 * `synthese.sql` (vue pour la synchronisation avec la synthèse) voir
 
+S'ajoute à ces fichiers,  des fichiers de config de `types de site` que l'on devra associer aux sous modules installés.
+
+Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux imags ci dessous) . 
+
+<details><summary> Images représentant l'interface administrateur au niveau du menu "Types de site"</summary>
+
+![Menu dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel.png)
+
+
+![Config dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel_config.png)
+
+</details>
+
+Ces types de site , une fois créés pourront être associés au sous module dans la configuration du module.
+
+<details open><summary> Image représentant la configuration du module avec l'association aux types de sites</summary>
+
+![Association des types de site au sous module](docs/../images/type_site_module_config_front.png)
+
+</details>
+
+
+
+
+
 ## Les exports
 
 * `exports`
