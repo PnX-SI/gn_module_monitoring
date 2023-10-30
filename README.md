@@ -2,9 +2,9 @@
 
 ## Module générique de gestion des données de protocoles de type suivis
 
-Ce module permet de gérer de façon générique des données de protocoles "simples" articulés en 3 niveaux : des sites (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs) dans lesquelles on peut faire des observations (espèces).
+Ce module permet de gérer de façon générique des données de protocoles "simples" articulés jusqu'à 4 niveaux : des groupes de site, puis des sites associés à ces groupes de site (nom, type, localisation) dans lesquels on fait des visites (dates, observateurs) dans lesquelles on peut faire des observations (espèces).
 
-Ces 3 niveaux peuvent être complétés des données spécifiques à chaque protocole, qui sont stockées dynamiquement dans la base de données sous forme de jsonb.
+Les 3 niveaux que sont le sites, visites et observations peuvent être complétés des données spécifiques à chaque protocole, qui sont stockées dynamiquement dans la base de données sous forme de jsonb.
 
 ![Liste des sites du protocole de test](docs/images/apercu.png)
 
@@ -16,7 +16,13 @@ Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il 
 
 Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'alimenter automatiquement la synthèse de GeoNature à partir des données saisies dans chaque sous-module.
 
-![MCD du schema gn_monitoring](docs/images/2020-06-MCD-monitoring.jpg)
+Via le module monitoring on peut également entrer directement via les sites et groupes de sites. Il est possible de crééer des groups de sites, des sites, associer des sites à des groupes de sites et ensuite pouvoir associer ces sites / groupes de site à différents sous modules.
+
+![Page d'accueil accès aux sites](docs/images/page_accueil_monitoring_acces_sites.png)
+
+Les sites et groupes de sites sont désormais multi protocoles.
+
+![MCD du schema gn_monitoring](docs/images/2023-10-MCD_schema_monitoring.png)
 
 ## Sommaire
 
@@ -24,6 +30,7 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 * [Gestion de la synthèse](docs/synthese.md)
 * [Documentation technique](docs/documentation_technique.md)
 * [Création d'un sous-module](docs/sous_module.md)
+* [Gestion des sites et groupes de site](docs/gestion_sites_groupes_de_site.md)
 * [Mise à jour du module](docs/MAJ.md)
 * [Liste des commandes](docs/commandes.md)
 * [Permissions](#permissions)
@@ -69,7 +76,32 @@ Créer le dossier suivant dans le dossier `media` de GeoNature
 mkdir ~/geonature/backend/media/monitorings
 ```
 
-Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir <https://docs.geonature.fr/admin-manual.html#gestion-des-droits>). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+
+### Configuration générale du module monitoring
+
+Un fichier de config `monitorings_config.toml.example` peut être modifié puis copié à la racine du dossier de config de GeoNature : `~/geonature/config`.
+
+Trois champs sont paramétrable :
+
+- `TITLE_MODULE` : Titre présent sur la page d'accueil du module monitoring
+- `DESCRIPTION_MODULE` : Description du module monitoring également présente sur la page d'accueil
+- `CODE_OBSERVERS_LIST` : Liste d'observateur qui est utilisé pour le fichier de config de `site.json` , qui permet d'avoir une liste d'observateur spécifique aux créateurs lorsqu'on entre directement par les sites/groupe de site . (Par défaut c'est la liste d'observateur occtax qui est utilisée)
+
+<details><summary> Exemple d'utilisation du paramètre `CODE_OBSERVERS_LIST` (dépliez pour voir) </summary>
+
+```json
+"id_inventor": {
+      "type_widget": "observers",
+      "attribut_label": "Observateur",
+      "type_util": "user",
+      "code_list":"CODE_OBSERVERS_LIST",
+      "required": true,
+      "multi_select": false
+}
+```
+
+</details>
 
 ### Installation d'un sous-module
 
@@ -125,7 +157,7 @@ Modules installés :
 - module2: Module 2 (Deuxième exemple de module)
 ```
 
-Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le sous-module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le sous-module (voir <https://docs.geonature.fr/admin-manual.html#gestion-des-droits>). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
 
 ### Configurer le sous-module
 
@@ -173,19 +205,20 @@ D'autres exemples de sous-modules sont disponibles sur le dépôt
 
 ## Permissions
 
-Les permissions ne sont implémentées que partiellement. La notion de portée (mes données, les données de mon organisme, toutes les données) n'est pas prise en compte. Si un utilisateur a le droit de réaliser une action sur un type d'objet, il peut le faire sur l'ensemble des données.
+Les permissions peuvent désormais être définies avec une notion de portée ('mes données', 'les données de mon organisme', 'toutes les données' si on ne précise pas de portée mais qu'on accorde une permission). Ces permissions peuvent être définies sur chaque objet défini ci dessous.
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
 Les permissions sont définis pour chaque type d'objet (modules, groupes de sites, sites, visites et observations) :
- * MONITORINGS_MODULES - R : permet a l'utilisateur d'accéder au module, de le voir dans la liste des modules
- * MONITORINGS_MODULES - U : action administrateur qui permet de configurer le module et de synchroniser la synthèse
- * MONITORINGS_MODULES - E : action qui permet aux utilisateurs d'exporter les données (si défini par le module)
- * MONITORINGS_GRP_SITES - CRUD : action de lire, créer, modifier, supprimer un groupe de site
- * MONITORINGS_SITES - CRUD : action de lire, créer, modifier, supprimer un site
- * MONITORINGS_VISITES - CRUD : action de lire, créer, modifier, supprimer les visites, observations, observations détails
+
+- MONITORINGS_MODULES - R : permet a l'utilisateur d'accéder au module, de le voir dans la liste des modules
+- MONITORINGS_MODULES - U : action administrateur qui permet de configurer le module et de synchroniser la synthèse
+- MONITORINGS_MODULES - E : action qui permet aux utilisateurs d'exporter les données (si défini par le module)
+- MONITORINGS_GRP_SITES - CRUD : action de lire, créer, modifier, supprimer un groupe de site
+- MONITORINGS_SITES - CRUD : action de lire, créer, modifier, supprimer un site
+- MONITORINGS_VISITES - CRUD : action de lire, créer, modifier, supprimer les visites, observations, observations détails
+- TYPES_SITES- CRUD : action de lire, créer, modifier, supprimer les types de sites via l'interface administrateur
 
 Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action.
-
 
 Il est possible de mettre à jour les permissions disponibles pour un module en utilisant la commande `update_module_available_permissions`
