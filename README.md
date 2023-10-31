@@ -88,7 +88,7 @@ Trois champs sont paramétrable :
 - `DESCRIPTION_MODULE` : Description du module monitoring également présente sur la page d'accueil
 - `CODE_OBSERVERS_LIST` : Liste d'observateur qui est utilisé pour le fichier de config de `site.json` , qui permet d'avoir une liste d'observateur spécifique aux créateurs lorsqu'on entre directement par les sites/groupe de site . (Par défaut c'est la liste d'observateur occtax qui est utilisée)
 
-<details><summary> Exemple d'utilisation du paramètre `CODE_OBSERVERS_LIST` (dépliez pour voir) </summary>
+<details open><summary> Exemple d'utilisation du paramètre `CODE_OBSERVERS_LIST`</summary>
 
 ```json
 "id_inventor": {
@@ -209,7 +209,7 @@ Les permissions peuvent désormais être définies avec une notion de portée ('
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
-Les permissions sont définis pour chaque type d'objet (modules, groupes de sites, sites, visites et observations) :
+Les permissions sont définis pour chaque type d'objet (modules, groupes de sites, sites, visites, observations et types de site) :
 
 - MONITORINGS_MODULES - R : permet a l'utilisateur d'accéder au module, de le voir dans la liste des modules
 - MONITORINGS_MODULES - U : action administrateur qui permet de configurer le module et de synchroniser la synthèse
