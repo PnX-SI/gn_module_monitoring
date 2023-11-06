@@ -35,12 +35,15 @@ class MonitoringSite(MonitoringObjectGeom):
         data["modules"] = module_ids
 
 
-class MonitoringIndividual(MonitoringObjectGeom):
+class MonitoringIndividual(MonitoringObject):
     """
     PATCH
     pour pouvoir renseigner la table cor_individual_module
     avec la méthode from_dict
     """
+    def get_value_specific(self, param_name):
+        # DO NOT LOAD data here
+        pass
 
     def preprocess_data(self, data):
         module_ids = [module.id_module for module in self._model.modules]

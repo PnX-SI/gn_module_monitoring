@@ -194,7 +194,7 @@ def get_util_from_id_api(type_util, id):
     try:
         res = (
             DB.session.query(scope)
-            .filter(cast(getattr(obj, id_field_name), DB.String) == id)
+            .filter(getattr(obj, id_field_name) == id)
             .one()
         )
 
