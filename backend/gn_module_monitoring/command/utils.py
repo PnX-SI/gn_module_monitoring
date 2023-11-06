@@ -86,7 +86,7 @@ def process_export_csv(module_code=None):
                 print("{} - export csv erreur dans le script {} : {}".format(module_code, f, e))
 
 
-def process_available_permissions(module_code):
+def process_available_permissions(module_code, session):
     try:
         module = get_module("module_code", module_code)
     except Exception:
@@ -107,25 +107,27 @@ def process_available_permissions(module_code):
     # Insert permission object
     for permission_object_code in module_objects:
         print(f"Création des permissions pour {module_code} : {permission_object_code}")
-        insert_module_available_permissions(module_code, permission_level[permission_object_code])
+        insert_module_available_permissions(
+            module_code, permission_level[permission_object_code], session=session
+        )
 
 
-def insert_module_available_permissions(module_code, perm_object_code):
+def insert_module_available_permissions(module_code, perm_object_code, session):
     object_label = PERMISSION_LABEL.get(perm_object_code)["label"]
 
     if not object_label:
         print(f"L'object {perm_object_code} n'est pas traité")
 
     try:
-        module = TModules.query.filter_by(module_code=module_code).one()
+        module = session.query(TModules).filter_by(module_code=module_code).one()
     except NoResultFound:
         print(f"Le module {module_code} n'est pas présent")
         return
 
     try:
-        perm_object = PermObject.query.filter_by(code_object=perm_object_code).one()
+        perm_object = session.query(PermObject).filter_by(code_object=perm_object_code).one()
     except NoResultFound:
-        print(f"L'object de permission {module_code} n'est pas présent")
+        print(f"L'object de permission {perm_object_code} n'est pas présent")
         return
 
     txt_cor_object_module = f"""
@@ -136,16 +138,18 @@ def insert_module_available_permissions(module_code, perm_object_code):
         VALUES({module.id_module}, {perm_object.id_object})
         ON CONFLICT DO NOTHING
     """
-    DB.engine.execution_options(autocommit=True).execute(txt_cor_object_module)
+    session.execute(txt_cor_object_module)
 
     # Création d'une permission disponible pour chaque action
     object_actions = PERMISSION_LABEL.get(perm_object_code)["actions"]
     for action in object_actions:
-        permaction = PermAction.query.filter_by(code_action=action).one()
+        permaction = session.query(PermAction).filter_by(code_action=action).one()
         try:
-            perm = PermissionAvailable.query.filter_by(
-                module=module, object=perm_object, action=permaction
-            ).one()
+            perm = (
+                session.query(PermissionAvailable)
+                .filter_by(module=module, object=perm_object, action=permaction)
+                .one()
+            )
         except NoResultFound:
             perm = PermissionAvailable(
                 module=module,
@@ -154,8 +158,7 @@ def insert_module_available_permissions(module_code, perm_object_code):
                 label=f"{ACTION_LABEL[action]} {object_label}",
                 scope_filter=True,
             )
-            DB.session.add(perm)
-    DB.session.commit()
+            session.add(perm)
 
 
 def remove_monitoring_module(module_code):
