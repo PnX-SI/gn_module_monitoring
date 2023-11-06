@@ -16,6 +16,7 @@ from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
+    TIndividuals,
     TMarkingEvent,
     corIndividualModule,
 )
@@ -300,12 +301,12 @@ class TMonitoringModules(TModules):
     )
 
     individuals = DB.relationship(
-        "TMarkingEvent",
+        "TIndividuals",
         lazy="select",
         enable_typechecks=False,
         secondary=corIndividualModule,
         primaryjoin=(corIndividualModule.c.id_module == id_module),
-        secondaryjoin=(corIndividualModule.c.id_individual == TMarkingEvent.id_individual),
+        secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
         foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
     )
     data = DB.Column(JSONB)
@@ -352,6 +353,11 @@ TMonitoringSitesGroups.nb_visits = column_property(
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
     )
+)
+
+TIndividuals.markings = DB.relationship(
+    TMarkingEvent,
+    primaryjoin=(TIndividuals.id_individual == TMarkingEvent.id_individual),
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table

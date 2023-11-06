@@ -5,7 +5,7 @@ from .serializer import MonitoringObjectSerializer
 from ..config.repositories import get_config
 import logging
 from ..utils.utils import to_int
-
+from .base import monitoring_definitions
 from sqlalchemy.orm import joinedload
 
 log = logging.getLogger(__name__)
@@ -164,7 +164,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         if params["parents_path"]:
             object_type = params.get("parents_path", []).pop()
-            next = MonitoringObject(self._module_code, object_type)
+            next = monitoring_definitions.monitoring_object_instance(self._module_code, object_type)
 
             id_field_name = next.config_param("id_field_name")
             next._id = self.get_value(id_field_name) or params.get(id_field_name)
