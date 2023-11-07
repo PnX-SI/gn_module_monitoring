@@ -37,6 +37,7 @@ def upgrade():
             ON o.id_object = tpa.id_object AND NOT code_object = 'ALL'
             JOIN gn_commons.t_modules AS tm
             ON tm.id_module = tpa.id_module AND tm."type" = 'monitoring_module'
+            JOIN gn_permissions.bib_actions as ba ON ba.id_action = tpa.id_action
             WHERE NOT (code_object = 'MONITORINGS_MODULES' AND ba.code_action = 'U')
         ), ep AS (
                 SELECT id_role, id_action, tp.id_module , tp.id_object, scope_value, sensitivity_filter
