@@ -21,9 +21,12 @@ depends_on = None
 
 
 def upgrade():
+    bind = op.get_bind()
+    session = sa.orm.Session(bind=bind)
+
     # Création des permissions disponibles pour chaque module
     for module in installed_modules():
-        process_available_permissions(module["module_code"])
+        process_available_permissions(module["module_code"], session=session)
 
     # ########
     # Mise à jour des permissions existantes vers les sous objets
@@ -37,6 +40,8 @@ def upgrade():
             ON o.id_object = tpa.id_object AND NOT code_object = 'ALL'
             JOIN gn_commons.t_modules AS tm
             ON tm.id_module = tpa.id_module AND tm."type" = 'monitoring_module'
+            JOIN gn_permissions.bib_actions AS ba
+            ON tpa.id_action = ba.id_action
             WHERE NOT (code_object = 'MONITORINGS_MODULES' AND ba.code_action = 'U')
         ), ep AS (
                 SELECT id_role, id_action, tp.id_module , tp.id_object, scope_value, sensitivity_filter
