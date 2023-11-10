@@ -1,6 +1,8 @@
 import json
 
 from .repositories import MonitoringObject
+from gn_module_monitoring.monitoring.serializer import MonitoringSerializer_dict
+from marshmallow import EXCLUDE
 
 
 class MonitoringObjectGeom(MonitoringObject):
@@ -15,8 +17,21 @@ class MonitoringObjectGeom(MonitoringObject):
     def serialize(self, depth, is_child=False):
         monitoring_object_dict = MonitoringObject.serialize(self, depth, is_child)
         geometry = {}
+        dump_object = MonitoringSerializer_dict[self._object_type](unknown=EXCLUDE).dump(
+            self._model
+        )
+        # monitoring_object_dict['properties'] = dump_object
+        if "geometry" in dump_object and self._model.geom is not None:
+            geometry = (
+                json.loads(
+                    # self._model.__dict__.get('geom_geojson')
+                    dump_object["geometry"]
+                )
+                if dump_object["geometry"]
+                else None
+            )
 
-        if hasattr(self._model, "geom_geojson"):
+        elif hasattr(self._model, "geom_geojson"):
             geom_geojson = getattr(self._model, "geom_geojson")
 
             geometry = (

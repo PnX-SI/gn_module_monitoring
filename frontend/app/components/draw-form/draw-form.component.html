@@ -2,7 +2,7 @@
   [options]="leafletDrawOptions"
   [zoomLevel]="1"
   (layerDrawed)="bindGeojsonForm($event)"
-  [geojson]="geomFromProtocol ? (geojson ? geojson.geometry : null) : geoJsonService.currentLayer"
+  [geojson]="geoJsonService.currentLayer"
   [bZoomOnPoint]="bZoomOnPoint"
   [zoomLevelOnPoint]="zoomLevelOnPoint"
   [bEnable]="bEdit"

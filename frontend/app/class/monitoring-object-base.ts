@@ -9,7 +9,7 @@ export class MonitoringObjectBase {
   id: number; // id de l'objet
   cruved: Object;
   parentsPath = [];
-
+  is_geom_from_child: boolean;
   userCruvedObject;
   deleted = false;
 

@@ -84,7 +84,7 @@ export class MonitoringListComponent implements OnInit {
   }
 
   changeActiveTab(typeObject, tab) {
-    this.activetab = typeObject;
+    this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
     this.objectsStatusChange.emit(this.reInitStatut());
   }
@@ -112,7 +112,7 @@ export class MonitoringListComponent implements OnInit {
     if (!this.objectsStatus[chidrenType]) {
       return '';
     }
-    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible);
+    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible && s.id != undefined);
     const nbSelected = visibles.length;
     const nb = this.obj.children[chidrenType].length;
     return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;

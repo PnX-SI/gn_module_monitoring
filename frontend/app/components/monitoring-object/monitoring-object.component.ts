@@ -27,6 +27,7 @@ import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
 import { ConfigJsonService } from '../../services/config-json.service';
+import { GeoJSONService } from '../../services/geojson.service';
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -64,7 +65,8 @@ export class MonitoringObjectComponent implements OnInit {
     public mapservice: MapService,
     private _auth: AuthService,
     private _commonService: CommonService,
-    private _evtObjService: ObjectService
+    private _evtObjService: ObjectService,
+    private _geojsonService: GeoJSONService
   ) {}
 
   ngAfterViewInit() {
@@ -100,11 +102,18 @@ export class MonitoringObjectComponent implements OnInit {
         }),
         mergeMap(() => {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
+        }),
+        tap(() => {
+          if (this.obj.objectType == 'sites_group') {
+            this._geojsonService.removeAllFeatureGroup();
+            this.obj.geometry
+              ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
+              : null;
+          }
         })
       )
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
-
         this.bEdit = this.checkEditParam == true ? true : false;
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
         this.bEdit =
@@ -116,7 +125,11 @@ export class MonitoringObjectComponent implements OnInit {
 
         if (!this.sites || this.obj.children['site']) {
           this.initSites();
-        } else {
+        }
+        //  else if (this.sitesGroup || this.obj.children['sites_group']){
+        //   this.initSitesroup()
+        // }
+        else {
           this.initObjectsStatus();
         }
 
@@ -312,7 +325,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    if (obj['objectType'] === 'site') {
+    if (obj['objectType'] === 'site' || obj['objectType'] === 'sites_group') {
       this.initSites();
     }
     this.getModuleSet();
