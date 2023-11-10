@@ -360,6 +360,15 @@ TIndividuals.markings = DB.relationship(
     primaryjoin=(TIndividuals.id_individual == TMarkingEvent.id_individual),
 )
 
+TIndividuals.nb_sites = column_property(
+    select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
+        and_(
+            TMarkingEvent.id_individual == TIndividuals.id_individual,
+            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+        )
+    )
+)
+
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
 TMonitoringSitesGroups.geom_geojson = column_property(

@@ -20,7 +20,8 @@
     "display_list": [
       "individual_name",
       "uuid_individual",
-      "active"
+      "active",
+      "nb_sites"
     ],
     "uuid_field_name": "uuid_individual",
     "generic": {
@@ -28,6 +29,9 @@
         "type_widget": "text",
         "attribut_label": "Id individual",
         "hidden": true
+      },
+      "nb_sites": {
+        "attribut_label": "Nombre de sites associés"
       },
       "uuid_individual": {
         "attribut_label": "uuid"
