@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
 // import { Router } from "@angular/router";
 import { ConfigService } from '../../services/config.service';
@@ -22,6 +22,7 @@ import { EMPTY, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'pnx-monitoring-form',
@@ -69,6 +70,7 @@ export class MonitoringFormComponent implements OnInit {
 
   public queryParams = {};
 
+  geomCalculated: boolean = false;
   canDelete: boolean;
   canUpdate: boolean;
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
@@ -82,7 +84,8 @@ export class MonitoringFormComponent implements OnInit {
     private _dynformService: DynamicFormService,
     private _siteService: SitesService,
     private _formService: FormService,
-    private _router: Router
+    private _router: Router,
+    private _geojsonService: GeoJSONService
   ) {}
 
   ngOnInit() {
@@ -148,9 +151,26 @@ export class MonitoringFormComponent implements OnInit {
 
         // set geometry
         if (this.obj.config['geometry_type']) {
-          this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
+          const validatorRequired =
+            this.obj.objectType == 'sites_group'
+              ? this._formBuilder.control('')
+              : this._formBuilder.control('', Validators.required);
+          let frmCtrlGeom = {
+            frmCtrl: validatorRequired,
+            frmName: 'geometry',
+          };
+          this.addGeomFormCtrl(frmCtrlGeom);
+          // this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
         }
 
+        this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
+          ? this.obj.properties['is_geom_from_child']
+          : false;
+        this.geomCalculated ? (this.obj.geometry = null) : null;
+        this.bEdit
+          ? (this._geojsonService.removeAllFeatureGroup(),
+            this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
+          : null;
         // pour donner la valeur de idParent
         this.obj.objectType == 'site' ? this.initObjFormDef() : null;
         this.obj.objectType == 'site' ? this.firstInitForm() : this.initForm();
@@ -216,9 +236,9 @@ export class MonitoringFormComponent implements OnInit {
       )
       .subscribe((formValue) => {
         formValue.types_site = this.idsTypesSite;
-        this.objFormDynamic.disable();
+        // this.objFormDynamic.disable();
         this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
-        this.objFormDynamic.enable();
+        // this.objFormDynamic.enable();
       });
   }
 
@@ -229,9 +249,9 @@ export class MonitoringFormComponent implements OnInit {
     // pour donner la valeur de l'objet au formulaire
     this.obj.formValues(this.schemaUpdate).subscribe((formValue) => {
       formValue.types_site = this.idsTypesSite;
-      this.objFormDynamic.disable();
+      // this.objFormDynamic.disable();
       this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
-      this.objFormDynamic.enable();
+      // this.objFormDynamic.enable();
       // reset geom ?
     });
   }
@@ -379,6 +399,11 @@ export class MonitoringFormComponent implements OnInit {
         .map((it) => it.path)
         .join('/');
       this._router.navigate([urlWithoutParams]);
+
+      // this._geojsonService.removeAllFeatureGroup();
+      this.obj.geometry == null
+        ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
+        : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
       this.bEditChange.emit(false);
     } else {
       this.navigateToParent();
@@ -677,5 +702,16 @@ export class MonitoringFormComponent implements OnInit {
       'warning',
       "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
     );
+  }
+
+  addGeomFormCtrl(frmCtrl: { frmCtrl: FormControl; frmName: string }) {
+    if (frmCtrl.frmName in this.objForm.controls) {
+    } else {
+      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+    }
+  }
+
+  ngOnDestroy() {
+    this.objForm.patchValue({ geometry: null });
   }
 }

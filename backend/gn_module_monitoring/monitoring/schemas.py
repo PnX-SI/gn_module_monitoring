@@ -98,14 +98,6 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
         if obj.geom_geojson is not None:
             return True
 
-    def set_is_geom_from_child(self, obj):
-        if obj.geom is None and obj.geom_geojson is None:
-            return True
-        if obj.geom is not None:
-            return False
-        if obj.geom_geojson is not None:
-            return True
-
     def serialize_geojson(self, obj):
         if obj.geom is not None:
             return geojson.dumps(obj.as_geofeature().get("geometry"))
