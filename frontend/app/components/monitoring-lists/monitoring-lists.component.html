@@ -1,9 +1,14 @@
 <div class="cadre" *ngIf="children0Array && children0Array.length">
-  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+  <mat-tab-group
+    mat-stretch-tabs="false"
+    mat-align-tabs="start"
+    [selectedIndex]="activetabIndex"
+    (selectedTabChange)="changeActiveTab($event)"
+    animationDuration="0ms"
+  >
     <span *ngFor="let child0 of children0Array">
       <mat-tab
         *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= 1"
-        (click)="changeActiveTab(child0.objectType)"
         label="{{ child0.template['label_list'] }} {{ displayNumber(child0.objectType) }}"
       >
         <div let childrenType="child0.objectType" class="list-children">

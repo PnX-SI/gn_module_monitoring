@@ -98,9 +98,9 @@ export class MonitoringMapComponent implements OnInit {
     setTimeout(() => {
       this.initPanes();
       if (this.sites && this.sites['features']) {
-        this.initSitesStatus();
+        this.initSitesStatus('site');
         for (const site of this.sites['features']) {
-          this.setPopup(site.id);
+          this.setPopup(site.id, 'site');
           const layer = this.findSiteLayer(site.id);
           // pane
           const fClick = this.onLayerClick(site);
@@ -111,7 +111,37 @@ export class MonitoringMapComponent implements OnInit {
           layer.addTo(this._mapService.map);
         }
 
-        this.setSitesStyle();
+        this.setSitesStyle('site');
+      }
+    }, 0);
+  }
+
+  initSitesGroup() {
+    this.removeLabels();
+    const layers = this._mapService.map['_layers'];
+    for (const key of Object.keys(layers)) {
+      const layer = layers[key];
+      try {
+        layer.unbindTooltip();
+      } catch {}
+    }
+    setTimeout(() => {
+      this.initPanes();
+      if (this.sitesGroup && this.sitesGroup['features']) {
+        this.initSitesStatus('sites_group');
+        for (const site of this.sitesGroup['features']) {
+          this.setPopup(site.id, 'sites_group');
+          const layer = this.findSiteLayer(site.id, 'sites_group');
+          // pane
+          const fClick = this.onLayerClick(site);
+          layer.off('click', fClick);
+          layer.on('click', fClick);
+          //
+          layer.removeFrom(this._mapService.map);
+          layer.addTo(this._mapService.map);
+        }
+
+        this.setSitesStyle('sites_group');
       }
     }, 0);
   }
@@ -160,7 +190,7 @@ export class MonitoringMapComponent implements OnInit {
   onLayerClick(site) {
     return (event) => {
       const id = this.selectedSiteId === site.id ? -1 : site.id;
-      this.setSelectedSite(id);
+      this.setSelectedSite(id, site.objectType);
       this.bListen = false;
       this.objectsStatusChange.emit(Utils.copy(this.objectsStatus));
     };
@@ -179,18 +209,24 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  initSitesStatus() {
-    if (!this.objectsStatus['site']) {
-      this.objectsStatus['site'] = [];
+  initSitesStatus(objectType = 'site') {
+    if (!this.objectsStatus[objectType]) {
+      this.objectsStatus[objectType] = [];
     }
     const $this = this;
-    this.sites['features'].forEach((site) => {
-      const status = $this.objectsStatus['site'].find((s) => s.id === site.id);
+    let objectData: any = [];
+    if (objectType == 'site') {
+      objectData = this.sites['features'];
+    } else {
+      objectData = this.sitesGroup['features'];
+    }
+    objectData.forEach((site) => {
+      const status = $this.objectsStatus[objectType].find((s) => s.id === site.id);
       if (status) {
         return;
       }
 
-      $this.objectsStatus['site'].push({
+      $this.objectsStatus[objectType].push({
         selected: false,
         visible: true,
         id: site.id,
@@ -198,41 +234,51 @@ export class MonitoringMapComponent implements OnInit {
     });
   }
 
-  setSelectedSite(id) {
-    if (id == this.selectedSiteId) {
+  setSelectedSite(id, objectType = 'site') {
+    if (id == this.selectedSiteId || !(objectType in this.objectsStatus)) {
       return;
     }
 
     // Get old select site
-    let old_s_site = this.objectsStatus['site'].filter((site) => site.id == this.selectedSiteId);
+    let old_s_site = this.objectsStatus[objectType].filter(
+      (site) => site.id == this.selectedSiteId
+    );
     if (old_s_site.length > 0) {
       old_s_site[0]['selected'] = false;
-      this.setSiteStyle(old_s_site[0]);
+      this.setSiteStyle(old_s_site[0], true, objectType);
     }
 
     // Get new select site
-    let new_s_site = this.objectsStatus['site'].filter((site) => site.id == id);
+    let new_s_site = this.objectsStatus[objectType].filter((site) => site.id == id);
     if (new_s_site.length > 0) {
       new_s_site[0]['selected'] = true;
-      this.setSiteStyle(new_s_site[0]);
+      this.setSiteStyle(new_s_site[0], true, objectType);
     }
     this.selectedSiteId = id;
   }
 
-  setSitesStyle() {
-    const objectType = this.objectsStatus['type'];
+  setSitesStyle(objectType = 'site') {
+    let objectTypeFromObj;
+    if (!['site', 'sites_group'].includes(objectType)) {
+      objectTypeFromObj = ['site', 'sites_group'];
+    } else {
+      objectTypeFromObj = [objectType];
+    }
+    // const objectTypeFromObj = this.objectsStatus['type'];
     let openPopup = true;
 
     if (this._mapService.map) {
-      this.objectsStatus[objectType] &&
-        this.objectsStatus[objectType].forEach((status) => {
-          this.setSiteStyle(status, openPopup, objectType);
-        });
+      for (const type of objectTypeFromObj) {
+        this.objectsStatus[type] &&
+          this.objectsStatus[type].forEach((status) => {
+            this.setSiteStyle(status, openPopup, type);
+          });
+      }
     }
     // Si le dessin des groupes de sites est actif calcul de l'aire
-    if (this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']) {
-      this.publicDisplaySitesGroup = true;
-    }
+    // if (this._configService.config()[this.obj.moduleCode]['module']['b_draw_sites_group']) {
+    this.publicDisplaySitesGroup = true;
+    // }
   }
 
   setSiteStyle(status, openPopup = true, objectType = 'site') {
@@ -272,7 +318,7 @@ export class MonitoringMapComponent implements OnInit {
 
     if (status['selected'] && openPopup == true) {
       if (!(layer as any)._popup) {
-        this.setPopup(status.id);
+        this.setPopup(status.id, objectType);
         layer = this.findSiteLayer(status.id, objectType);
       }
       layer.openPopup();
@@ -326,11 +372,13 @@ export class MonitoringMapComponent implements OnInit {
     return [];
   }
 
-  setPopup(id) {
-    const layer = this.findSiteLayer(id);
+  setPopup(id, objectType = 'site') {
+    const layer = this.findSiteLayer(id, objectType);
     if (layer['_popup']) {
       return;
     }
+    const idKey = layer['feature'].config.id_field_name;
+    const fieldName = layer['feature'].config.description_field_name;
     // TODO verifier si le fait de spécifier # en dur
     //  Ne pose pas de soucis pour certaine configuration
     const url = [
@@ -338,13 +386,13 @@ export class MonitoringMapComponent implements OnInit {
       this._configService.frontendModuleMonitoringUrl(),
       'object',
       this.obj.moduleCode,
-      'site',
-      layer['feature'].properties.id_base_site,
+      objectType,
+      layer['feature'].properties[idKey],
     ].join('/');
 
     const sPopup = `
     <div>
-      <h4>  <a href=${url}>${layer['feature'].properties.base_site_name}</a></h4>
+      <h4>  <a href=${url}>${layer['feature'].properties[fieldName]}</a></h4>
       ${layer['feature'].properties.description || ''}
     </div>
     `;
@@ -365,15 +413,18 @@ export class MonitoringMapComponent implements OnInit {
           if (!this.bListen) {
             this.bListen = true;
           } else {
-            this.setSitesStyle();
+            this.setSitesStyle(this.obj.objectType);
           }
           break;
         case 'bEdit':
-          this.setSitesStyle();
+          this.setSitesStyle(this.obj.objectType);
 
           break;
         case 'sites':
           this.initSites();
+          break;
+        case 'sitesGroup':
+          this.initSitesGroup();
       }
     }
   }
