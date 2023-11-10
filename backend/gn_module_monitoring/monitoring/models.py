@@ -364,6 +364,15 @@ TIndividuals.nb_sites = column_property(
     )
 )
 
+TMonitoringSites.nb_individuals = column_property(
+    select([func.count(func.distinct(TIndividuals.id_individual))]).where(
+        and_(
+            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+            TMarkingEvent.id_individual == TIndividuals.id_individual,
+        )
+    )
+)
+
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
 TMonitoringSitesGroups.geom_geojson = column_property(
