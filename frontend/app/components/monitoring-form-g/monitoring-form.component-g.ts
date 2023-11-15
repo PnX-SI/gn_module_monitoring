@@ -248,7 +248,7 @@ export class MonitoringFormComponentG implements OnInit {
     this.geomCalculated = this.obj.hasOwnProperty('is_geom_from_child')
       ? this.obj.is_geom_from_child
       : false;
-    this.geomCalculated ? (this.obj.geometry = null) : null;
+    this.geomCalculated || this.obj.id == undefined ? (this.obj.geometry = null) : null;
     this.bEdit
       ? (this._geojsonService.removeAllFeatureGroup(),
         this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
