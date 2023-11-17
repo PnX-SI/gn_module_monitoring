@@ -224,7 +224,7 @@ def list_object_api(module_code, object_type):
 
 # mise à jour de la synthèse
 @blueprint.route("synthese/<string:module_code>", methods=["POST"])
-@check_cruved_scope("E")
+@check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
     get_config(module_code, force=True)
@@ -239,7 +239,7 @@ def update_synthese_api(module_code):
 # export add mje
 # export all observations
 @blueprint.route("/exports/csv/<module_code>/<method>", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
 def export_all_observations(module_code, method):
     """
     Export all data in csv of a custom module view
@@ -280,6 +280,7 @@ def export_all_observations(module_code, method):
 
 
 @blueprint.route("/exports/pdf/<module_code>/<object_type>/<int:id>", methods=["POST"])
+@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
 def post_export_pdf(module_code, object_type, id):
     """
     Export the fiche individu as a PDF file.
