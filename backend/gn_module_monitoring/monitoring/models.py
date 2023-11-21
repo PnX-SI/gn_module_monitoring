@@ -56,6 +56,7 @@ class TObservations(DB.Model):
     cd_nom = DB.Column(DB.Integer)
     comments = DB.Column(DB.String)
     uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
+    id_individual = DB.Column(DB.ForeignKey("gn_monitoring.t_individuals.id_individual"))
 
     medias = DB.relationship(
         TMedias,
