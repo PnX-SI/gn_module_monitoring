@@ -24,7 +24,8 @@
     "base_site_code",
     "id_nomenclature_type_site",
     "last_visit",
-    "nb_visits"
+    "nb_visits",
+    "nb_individuals"
   ],
   "sorts": [
     {"prop": "last_visit", "dir": "desc"}
@@ -105,6 +106,9 @@
     },
     "nb_visits": {
       "attribut_label": "Nb. visites"
+    },
+    "nb_individuals": {
+      "attribut_label": "Nb. individus"
     },
     "uuid_base_site": {
       "attribut_label": "uuid"
