@@ -17,6 +17,11 @@
       "attribut_label": "Id visite",
       "hidden": true
     },
+    "id_individual": {
+      "type_widget": "text",
+      "attribut_label": "Id individu",
+      "hidden": true
+    },
     "cd_nom": {
       "type_widget": "taxonomy",
       "attribut_label": "Espèce",
