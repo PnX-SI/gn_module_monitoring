@@ -1,7 +1,7 @@
 """add id_individual col t_observations
 
 Revision ID: 2894b3c03c66
-Revises: fc90d31c677f
+Revises: 6a15625a0f4a
 Create Date: 2023-11-21 11:06:04.284038
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.sql import column
 
 # revision identifiers, used by Alembic.
 revision = "2894b3c03c66"
-down_revision = "fc90d31c677f"
+down_revision = "6a15625a0f4a"
 branch_labels = None
 depends_on = "84f40d008640"  # t_individuals (geonature)
 
