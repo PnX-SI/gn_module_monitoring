@@ -209,6 +209,7 @@ Pour cela il faut utiliser les variables suivantes :
 * `__MODULE.TAXONOMY_DISPLAY_FIELD_NAME`
 * `__MODULE.TYPES_SITE`
 * `__MODULE.IDS_TYPES_SITE`
+* `__MODULE.CD_NOM`
 
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
@@ -216,7 +217,7 @@ pour les datalist). Voir ci dessous
 #### Liste des widgets disponibles
 
 | Widgets      | Commentaire                                                              |
-|--------------|--------------------------------------------------------------------------|
+| ------------ | ------------------------------------------------------------------------ |
 | text         | Texte sur une seule ligne                                                |
 | textarea     | Texte sur une plusieurs lignes                                           |
 | radio        | Choix multiples uniques                                                  |
@@ -236,9 +237,9 @@ pour les datalist). Voir ci dessous
 #### Listes des paramètres disponibles par type de widgets :
 
 | Widgets                                 | Paramètres             | Commentaire                                                                                                                                       |
-|-----------------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tous                                    | attribut_label         | Label du formulaire                                                                                                                               |
-| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être défini)                                        |
+| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être défini)                                       |
 | Tous                                    | required               | Booléen : permet de rendre obligatoire cet input                                                                                                  |
 | Tous                                    | hidden                 | Booléen : permet de cacher un formulaire                                                                                                          |
 | Tous                                    | link_definition        | Ajoute un lien vers l'addresse pointé par ce paramètre. Le paramètre `definition` doit également être définit                                     |
@@ -252,7 +253,7 @@ pour les datalist). Voir ci dessous
 | nomenclature                            | cd_nomenclatures       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items de nomenclatures que l'on ne veut pas pour ce sous-module)               |
 | nomenclature / dataset                  | multi_select           | Booléan : permet de seléctionner plusieurs items de nomenclatures                                                                                 |
 | dataset                                 | module_code            | Limite aux jeu de données associés à ce module                                                                                                    |
-| html                                    | html                   | Contenu du bloc html                                                                                                |
+| html                                    | html                   | Contenu du bloc html                                                                                                                              |
 
 ## Définir une nouvelle variable
 
