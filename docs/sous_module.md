@@ -236,16 +236,23 @@ nommée `specific` dans les fichiers `site.json`, `visit.json` ou
 }
 ```
 
-* **utilisateur** : choix de plusieurs noms d'utilisateurs dans une
-    liste
+* **utilisateur** : Il est possible de choisir des observateurs de deux manières différentes. Soit les observateurs sont issus d'une liste d'observateurs (voir `observers` ci dessous) soit on choisit de renseigner textuellement une liste d'observateurs (avec le champ `observers_txt` )
 ```json
 "observers": {
     "attribut_label": "Observateurs",
     "type_widget": "observers",
     "type_util": "user",
     "code_list": "__MODULE.ID_LIST_OBSERVER",
+    "hidden": false,
+    "required": true
+},
+"observers_txt": {
+      "hidden": true,
+      "required": false
 },
 ```
+
+Par défaut c'est la liste d'observateurs lié au sous module qui est choisi. Si l'on veut plutôt renseigner des observateurs textuellement il suffit d'inverser les champs `hidden` et `required` entre `observers` et `observers_txt`.
 
 Il est important d'ajouter `"type_util": "user"`.
 
