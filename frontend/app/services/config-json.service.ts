@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ModuleService } from '@geonature/services/module.service';
-import { AppConfig } from '@geonature_config/app.config';
 import { Observable, forkJoin, of } from 'rxjs';
 import { ConfigService } from './config.service';
 import { Utils } from '../utils/utils';
@@ -33,7 +32,7 @@ export class ConfigJsonService extends ConfigService {
   /** Backend Module Url */
   backendModuleUrl() {
     // Test if api endpoint have a final slash
-    let api_url = AppConfig.API_ENDPOINT;
+    let api_url = this.appConfig.API_ENDPOINT;
     if (api_url.substring(api_url.length - 1, 1) !== '/') {
       api_url = api_url + '/';
     }
