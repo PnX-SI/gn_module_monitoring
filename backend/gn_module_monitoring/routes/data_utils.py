@@ -192,11 +192,7 @@ def get_util_from_id_api(type_util, id):
     scope = obj if field_name == "all" else getattr(obj, field_name)
     # requête
     try:
-        res = (
-            DB.session.query(scope)
-            .filter(getattr(obj, id_field_name) == id)
-            .one()
-        )
+        res = DB.session.query(scope).filter(getattr(obj, id_field_name) == id).one()
 
         return res.as_dict() if field_name == "all" else res[0]
 

@@ -41,6 +41,7 @@ class MonitoringIndividual(MonitoringObject):
     pour pouvoir renseigner la table cor_individual_module
     avec la méthode from_dict
     """
+
     def get_value_specific(self, param_name):
         # DO NOT LOAD data here
         pass

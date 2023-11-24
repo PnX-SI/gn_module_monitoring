@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '461b82ee737a'
-down_revision = '2894b3c03c66'
+revision = "461b82ee737a"
+down_revision = "2894b3c03c66"
 branch_labels = None
 depends_on = None
 
@@ -23,7 +23,7 @@ def upgrade():
         VALUES ('MONITORINGS_INDIVIDUALS', 'Permissions sur les individus'),
         ('MONITORINGS_MARKINGS', 'Permissions sur les marquages');
         """
-        )
+    )
 
 
 def downgrade():

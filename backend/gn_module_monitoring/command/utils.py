@@ -32,7 +32,7 @@ PERMISSION_LABEL = {
     "MONITORINGS_SITES": {"label": "sites", "actions": ["C", "R", "U", "D"]},
     "MONITORINGS_VISITES": {"label": "visites", "actions": ["C", "R", "U", "D"]},
     "MONITORINGS_INDIVIDUALS": {"label": "individus", "actions": ["C", "R", "U", "D"]},
-    "MONITORINGS_MARKINGS": {"label": "marquages", "actions": ["C", "R", "U", "D"]}
+    "MONITORINGS_MARKINGS": {"label": "marquages", "actions": ["C", "R", "U", "D"]},
 }
 
 ACTION_LABEL = {
