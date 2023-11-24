@@ -124,3 +124,9 @@ la configuration minimale du fichier `observation.json` doit être la suivante :
 ```
 
 Elle permet de désactiver la saisie du `cd_nom` au profit de l'individu.
+
+## Permissions
+
+Comme tout objet monitoring, des permissions seront ajoutées à l'installation 
+pour CRUD sur les objets `MONITORINGS_INDIVIDUALS` et `MONITORINGS_MARKINGS`.
+
