@@ -53,6 +53,11 @@ def upgrade():
 
 
 def downgrade():
+    op.execute("""
+        UPDATE gn_monitoring.t_observations SET cd_nom = ind.cd_nom
+        FROM gn_monitoring.t_individuals ind 
+        WHERE ind.id_individual = gn_monitoring.t_observations.id_individual;
+    """)
     op.drop_column(table_name=table, column_name=column_name, schema=monitorings_schema)
     op.alter_column(
         table_name=table, column_name=cd_nom_column_name, nullable=False, schema=monitorings_schema
