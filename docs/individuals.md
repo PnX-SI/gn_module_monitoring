@@ -25,8 +25,8 @@ individus.
 ## Implémentation dans le module
 
 Il y a donc 2 objets déclarés dans le module : 
-- individual
-- marking
+- `individual`
+- `marking`
 
 L'objet marking doit être un enfant de l'objet individual. Dans 
 le fichier `config.json` d'un sous module, il suffit de déclarer
@@ -49,21 +49,21 @@ le `tree` comme suit :
 
 L'objet individual peut-être inséré comme tel pour créer un onglet
 au même niveau que le site afin d'avoir la liste d'individus 
-facilement accessible
+facilement accessible.
 
 Il n'est actuellement pas possible de renseigner de champs personnalisés 
 sur les individus via la création d'un fichier `individual.json` 
 comme c'est le cas pour les autres objets. 
 Cette impossibilité émane du fait que le [widget individu](#le-widget-individu), 
-créé côté GeoNature, propose un formulaire avec des champs fixes qui ne doit donc
-pas être différent du formulaire côté monitoring.  
+créé côté GeoNature, propose un formulaire de création disposant de champs 
+fixes qui ne doit donc différer du formulaire côté monitoring.
 
 ## Le widget individu
 
 Ce widget, disponible dans les composants de GeoNature, permet de :
 
-- sélectionner un individu déjà présent
-- créer un nouvel individu
+- Sélectionner un individu déjà présent
+- Créer un nouvel individu
 
 Il se présente comme tel :
 ![Widget](images/individual_widget.png)
@@ -86,19 +86,19 @@ Il est paramétrable en json comme ceci :
 
 Les attributs sont tous optionnels et sont les suivants :
 
-- `id_module`: permet de spécifier le module auxquel doivent être
+- `id_module` : permet de spécifier le module auxquel doivent être
   rattachés les individus proposés dans le menu déroulant
-- `id_list`: dans le formulaire de saisie, restreint la saisie d'espèce à
+- `id_list` : dans le formulaire de saisie, restreint la saisie d'espèce à
   une liste taxonomique
-- `cd_nom`: "pré-remplit" le champ Taxon et donc ne le fait pas apparaître
-  dans le formulaire 
+- `cd_nom` : fixe le champ Taxon au cd_nom donné et donc ne le fait pas
+  apparaître dans le formulaire 
 
 
 ## Cas de l'observation
 
 Pour que les individus soient implémentés dans le module, la contrainte 
 `NOT NULL` sur la colonne `cd_nom` de `gn_monitoring.t_observations` a dû 
-être supprimée au profit d'une contrainte NOT NULL sur la colonne `cd_nom`
+être supprimée au profit d'une contrainte `NOT NULL` sur la colonne `cd_nom`
 **OU** la nouvelle colonne `id_individual`.
 
 Pour pouvoir donc saisir des individus au lieu d'espèces dans une observation,
@@ -123,4 +123,4 @@ la configuration minimale du fichier `observation.json` doit être la suivante :
 }
 ```
 
-Elle permet de désactiver la saisie du `cd_nom` au profit de l'individu
+Elle permet de désactiver la saisie du `cd_nom` au profit de l'individu.
