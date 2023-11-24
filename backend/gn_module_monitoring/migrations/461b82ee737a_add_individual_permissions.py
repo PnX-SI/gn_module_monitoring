@@ -29,6 +29,18 @@ def upgrade():
 def downgrade():
     op.execute(
         """
+        DELETE FROM gn_permissions.t_permissions WHERE id_object in 
+            (SELECT id_object FROM gn_permissions.t_objects WHERE code_object in ('MONITORINGS_INDIVIDUALS', 'MONITORINGS_MARKINGS'))
+        """
+    )
+    op.execute(
+        """
+        DELETE FROM gn_permissions.t_permissions_available WHERE id_object in 
+            (SELECT id_object FROM gn_permissions.t_objects WHERE code_object in ('MONITORINGS_INDIVIDUALS', 'MONITORINGS_MARKINGS'))
+        """
+    )
+    op.execute(
+        """
         DELETE FROM gn_permissions.t_objects where code_object in ('MONITORINGS_INDIVIDUALS', 'MONITORINGS_MARKINGS');
         """
     )
