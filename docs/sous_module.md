@@ -184,6 +184,47 @@ Pour cela il faut utiliser les variables suivantes :
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
 
+#### Liste des widgets disponibles 
+
+| Widgets      | Commentaire                                                              |
+|--------------|--------------------------------------------------------------------------|
+| text         |                                                                          |
+| textarea     | Pour un long bloc de texte                                               |
+| radio        | Choix multiples uniques                                                  |
+| select       | Liste de choix unique                                                    |
+| time         | heure                                                                    |
+| number       | -                                                                        |
+| multiselect  | Listes de choix multiples                                                |
+| html         | Insertion d'un bloc html                                                 |
+| nomenclature | Liste avec vocabulaire controlé de GeoNature                             |
+| taxonomy     | Selection d'un taxon                                                     |
+| observers    | Selection d'un observateur                                               |
+| date         | Sélection d'une date                                                     |
+| datalist     | Liste dont les items sont fournies par une API (externe ou interne à GN) |
+|              |                                                                          |
+
+
+#### Listes des paramètres disponibles par type de widgets : 
+
+| Widgets                                 | Paramètres             | Commentaire                                                                                                                                       |
+|-----------------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Tous                                    | attribut_label         | Label du formulaire                                                                                                                               |
+| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être définit                                       |
+| Tous                                    | required               | Booléen : permet de rendre obligatoire cet input                                                                                                  |
+| Tous                                    | hidden                 | Booléen : permet de cacher un formulaire                                                                                                          |
+| Tous                                    | link_definition        | Ajoute un lien vers l'addresse pointé par ce paramètre. Le paramètre `definition` doit également être définit                                     |
+| Tous                                    | pattern_message        | Ajoute un texte en rouge sous le formulaire explicitant une erreur sur le champs                                                                  |
+| Tous                                    | value                  | Valeur par défaut du formulaire                                                                                                                   |
+| select / multiselect / checkbox / radio | values                 | Valeurs de choix proposées. Attend une tableau de valeur ou un tableau clé/valeur `[{"value": "my_database_value", "label": "my_display_value"}]` |
+| select                                  | noNullOption           | Désactive la valeur vide ("-") des choix d'un select                                                                                              |
+| number                                  | min                    | Valeur minimum de l'input                                                                                                                         |
+| number                                  | max                    | Valeur maximum de l'input                                                                                                                         |
+| nomenclature                            | code_nomenclature_type | Code de la nomenclature à afficher                                                                                                                |
+| nomenclature                            | cd_nomenclatures       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items de nomenclatures que l'on ne veut pas pour ce sous-module)               |
+| nomenclature / dataset                  | multi_select           | Booléan : permet de seléctionner plusieurs items de nomenclatures                                                                                 |
+| dataset                                 | module_code            | Limite aux jeu de données associés à ce module                                                                                                    |
+| html                                    | html                   | Contenu du bloc html                                                                                                |
+
 ## Définir une nouvelle variable
 
 Pour définir une nouvelle variable ou aussi redéfinir une
@@ -300,6 +341,10 @@ La variable `"module_code": "__MODULE.MODULE_CODE"` permet de
 selectionner uniquement les jeux de données associés au module.
 
 Il est important d'ajouter `"type_util": "dataset",`.
+
+####Liste des widgets et de leur paramètres associés
+
+
 
 ## Redéfinir une variable existante
 
