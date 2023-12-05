@@ -9,6 +9,8 @@ title: 'Création d''un sous-module'
 - [Configuration générale](#configuration-générale)
 - [Configuration des objets](#configuration-des-objets)
   - [Les schémas génériques](#les-schémas-génériques)
+      - [Liste des widgets disponibles](#liste-des-widgets-disponibles)
+      - [Listes des paramètres disponibles par type de widgets :](#listes-des-paramètres-disponibles-par-type-de-widgets-)
   - [Définir une nouvelle variable](#définir-une-nouvelle-variable)
   - [Redéfinir une variable existante](#redéfinir-une-variable-existante)
   - [`datalists`](#datalists)
@@ -95,7 +97,7 @@ Dans le cas général (`module.json`, `site.json`, `visit.json`,
 
 * `label` : permet de nommer les objets, par exemple `"Site"` pour
     site,
-* `description_field_name` : le nom du champs qui servira à décrire le
+* `description_field_name` : le nom du champ qui servira à décrire le
     site (pour le titre du site), par exemple :
     * `"visit_date_min"` pour une visite,
     * `"base_site_name"` pour un site;
@@ -163,10 +165,10 @@ Chaque entrée de la variable `generic` est le nom d'une variable
     * `required` : permet de rendre un input obligatoire
     * `definition` : permet d'ajouter une définiton à la variable
         pour aider l'utilisateur
-* les attributs [spéciaux]{.title-ref} :
+* les attributs spéciaux :
     * `type_util`: peut prendre pour valeur `"user"`,
         `"nomenclature"`, `"dataset"` ou `"taxonomy"`. Permet
-        d'indiquer qu'il s'agit ici d'un id (d'une nomenclature) et
+        d'indiquer qu'il s'agit ici d'un identifiant (exemple : nomenclature) et
         de traiter cette variable en fonction.
 
 On peut mettre en valeur de ces attributs des données de la
@@ -184,15 +186,15 @@ Pour cela il faut utiliser les variables suivantes :
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
 
-#### Liste des widgets disponibles 
+#### Liste des widgets disponibles
 
 | Widgets      | Commentaire                                                              |
 |--------------|--------------------------------------------------------------------------|
-| text         |                                                                          |
-| textarea     | Pour un long bloc de texte                                               |
+| text         | Texte sur une seule ligne                                                |
+| textarea     | Texte sur une plusieurs lignes                                           |
 | radio        | Choix multiples uniques                                                  |
 | select       | Liste de choix unique                                                    |
-| time         | heure                                                                    |
+| time         | Heure                                                                    |
 | number       | -                                                                        |
 | multiselect  | Listes de choix multiples                                                |
 | html         | Insertion d'un bloc html                                                 |
@@ -204,16 +206,16 @@ pour les datalist). Voir ci dessous
 |              |                                                                          |
 
 
-#### Listes des paramètres disponibles par type de widgets : 
+#### Listes des paramètres disponibles par type de widgets :
 
 | Widgets                                 | Paramètres             | Commentaire                                                                                                                                       |
 |-----------------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | Tous                                    | attribut_label         | Label du formulaire                                                                                                                               |
-| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être définit                                       |
+| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être défini)                                        |
 | Tous                                    | required               | Booléen : permet de rendre obligatoire cet input                                                                                                  |
 | Tous                                    | hidden                 | Booléen : permet de cacher un formulaire                                                                                                          |
 | Tous                                    | link_definition        | Ajoute un lien vers l'addresse pointé par ce paramètre. Le paramètre `definition` doit également être définit                                     |
-| Tous                                    | pattern_message        | Ajoute un texte en rouge sous le formulaire explicitant une erreur sur le champs                                                                  |
+| Tous                                    | pattern_message        | Ajoute un texte en rouge sous le formulaire explicitant une erreur sur le champ                                                                   |
 | Tous                                    | value                  | Valeur par défaut du formulaire                                                                                                                   |
 | select / multiselect / checkbox / radio | values                 | Valeurs de choix proposées. Attend une tableau de valeur ou un tableau clé/valeur `[{"value": "my_database_value", "label": "my_display_value"}]` |
 | select                                  | noNullOption           | Désactive la valeur vide ("-") des choix d'un select                                                                                              |
@@ -341,9 +343,6 @@ La variable `"module_code": "__MODULE.MODULE_CODE"` permet de
 selectionner uniquement les jeux de données associés au module.
 
 Il est important d'ajouter `"type_util": "dataset",`.
-
-####Liste des widgets et de leur paramètres associés
-
 
 
 ## Redéfinir une variable existante
@@ -701,9 +700,9 @@ placés dans le dossier `<module_code>/exports/csv/`.
 ```
 
 * Paramètres :
-    * label : Nom de l'export
-    * method : Nom de la vue sans le code du module
-    * filter_dataset (true|false) : Ajoute le filtre des datasets.
+    * `label` : Nom de l'export
+    * `method` : Nom de la vue sans le code du module
+    * `filter_dataset` (true|false) : Ajoute le filtre des datasets.
         Dans ce cas il faut que la vue ait un champ `id_dataset`
 * La commande `geonature monitorings process_export_csv <module_code>`
     permet de :
