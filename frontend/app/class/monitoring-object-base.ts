@@ -66,8 +66,8 @@ export class MonitoringObjectBase {
       (this.testPremiereLettreVoyelle(this.configParam('label'))
         ? "l'"
         : this.configParam('genre') == 'F'
-        ? 'la '
-        : 'le ') + this.configParam('label').toLowerCase()
+          ? 'la '
+          : 'le ') + this.configParam('label').toLowerCase()
     );
   }
 
@@ -76,8 +76,8 @@ export class MonitoringObjectBase {
       (this.testPremiereLettreVoyelle(this.configParam('label'))
         ? "de l'"
         : this.configParam('genre') == 'F'
-        ? 'de la '
-        : 'du ') + this.configParam('label').toLowerCase();
+          ? 'de la '
+          : 'du ') + this.configParam('label').toLowerCase();
     return labelDu;
   }
 
@@ -237,8 +237,8 @@ export class MonitoringObjectBase {
     return this.parentsPath && this.parentsPath.length
       ? this.parentsPath[this.parentsPath.length - 1]
       : this.parentTypes().length
-      ? this.parentTypes()[0]
-      : null;
+        ? this.parentTypes()[0]
+        : null;
   }
 
   child0(childrenType) {
