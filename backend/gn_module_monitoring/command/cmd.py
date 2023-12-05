@@ -138,7 +138,8 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.commit()
 
     # Ajouter les permissions disponibles
-    process_available_permissions(module_code)
+    process_available_permissions(module_code, session=DB.session)
+    DB.session.commit()
 
     #  run specific sql
     if (module_config_dir_path / "synthese.sql").exists:
@@ -196,10 +197,13 @@ def cmd_process_available_permission_module(module_code):
     """
 
     if module_code:
-        return process_available_permissions(module_code)
+        process_available_permissions(module_code, session=DB.session)
+        DB.session.commit()
+        return
 
     for module in installed_modules():
-        process_available_permissions(module["module_code"])
+        process_available_permissions(module["module_code"], session=DB.session)
+    DB.session.commit()
 
 
 @click.command("remove")

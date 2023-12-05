@@ -135,7 +135,6 @@ def get_config(module_code=None, force=False):
 
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config)
-
     # customize config
     if module:
         custom = {}

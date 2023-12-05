@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
+
+from flask import current_app
 from sqlalchemy import and_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB, BACKEND_DIR
-from geonature.core.gn_permissions.models import PermObject
+from geonature.core.gn_permissions.models import PermObject, PermissionAvailable, PermAction
 from geonature.core.gn_commons.models import TModules
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -16,11 +18,28 @@ from ..config.repositories import get_config
 
 from ..modules.repositories import get_module, get_source_by_code, get_modules
 
+
 """
 utils.py
 
 fonctions pour les commandes du module monitoring
 """
+
+
+PERMISSION_LABEL = {
+    "MONITORINGS_MODULES": {"label": "modules", "actions": ["R", "U", "E"]},
+    "MONITORINGS_GRP_SITES": {"label": "groupes de sites", "actions": ["C", "R", "U", "D"]},
+    "MONITORINGS_SITES": {"label": "sites", "actions": ["C", "R", "U", "D"]},
+    "MONITORINGS_VISITES": {"label": "visites", "actions": ["C", "R", "U", "D"]},
+}
+
+ACTION_LABEL = {
+    "C": "Créer des",
+    "R": "Voir les",
+    "U": "Modifier les",
+    "D": "Supprimer des",
+    "E": "Exporter les",
+}
 
 
 def process_for_all_module(process_func):
@@ -32,12 +51,6 @@ def process_for_all_module(process_func):
     for module in get_modules():
         process_func(module.module_code)
     return
-
-
-def getMonitoringPermissionObjectLabel_dict():
-    return __import__(
-        "gn_module_monitoring"
-    ).monitoring.definitions.MonitoringPermissionObjectLabel_dict
 
 
 def process_export_csv(module_code=None):
@@ -73,7 +86,7 @@ def process_export_csv(module_code=None):
                 print("{} - export csv erreur dans le script {} : {}".format(module_code, f, e))
 
 
-def process_available_permissions(module_code):
+def process_available_permissions(module_code, session):
     try:
         module = get_module("module_code", module_code)
     except Exception:
@@ -85,33 +98,36 @@ def process_available_permissions(module_code):
         print(f"Il y a un problème de configuration pour le module {module_code}")
         return
 
-    insert_module_available_permissions(module_code, "ALL")
+    tree = config.get("tree", [])
+
+    module_objects = [k for k in extract_keys(tree, keys=[])]
+
+    permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
 
     # Insert permission object
-    for permission_object_code in config.get("permission_objects", []):
-        insert_module_available_permissions(module_code, permission_object_code)
+    for permission_object_code in module_objects:
+        print(f"Création des permissions pour {module_code} : {permission_object_code}")
+        insert_module_available_permissions(
+            module_code, permission_level[permission_object_code], session=session
+        )
 
 
-def insert_module_available_permissions(module_code, perm_object_code):
-    print(
-        f"process permissions for (module_code, perm_object)= ({module_code},{perm_object_code})"
-    )
-
-    object_label = getMonitoringPermissionObjectLabel_dict().get(perm_object_code)
+def insert_module_available_permissions(module_code, perm_object_code, session):
+    object_label = PERMISSION_LABEL.get(perm_object_code)["label"]
 
     if not object_label:
         print(f"L'object {perm_object_code} n'est pas traité")
 
     try:
-        module = TModules.query.filter_by(module_code=module_code).one()
+        module = session.query(TModules).filter_by(module_code=module_code).one()
     except NoResultFound:
-        print("Le module {module_code} n'est pas présent")
+        print(f"Le module {module_code} n'est pas présent")
         return
 
     try:
-        perm_object = PermObject.query.filter_by(code_object=perm_object_code).one()
+        perm_object = session.query(PermObject).filter_by(code_object=perm_object_code).one()
     except NoResultFound:
-        print("L'object de permission {module_code} n'est pas présent")
+        print(f"L'object de permission {perm_object_code} n'est pas présent")
         return
 
     txt_cor_object_module = f"""
@@ -122,33 +138,27 @@ def insert_module_available_permissions(module_code, perm_object_code):
         VALUES({module.id_module}, {perm_object.id_object})
         ON CONFLICT DO NOTHING
     """
-    DB.engine.execution_options(autocommit=True).execute(txt_cor_object_module)
+    session.execute(txt_cor_object_module)
 
-    txt_perm_available = f"""
-        INSERT INTO gn_permissions.t_permissions_available (
-                id_module,
-                id_object,
-                id_action,
-                label,
-                scope_filter)
-        SELECT
-            {module.id_module},
-            {perm_object.id_object},
-            a.id_action,
-            v.label,
-            true
-        FROM
-            ( VALUES
-                ('C', 'Créer des {object_label}'),
-                ('R', 'Voir les {object_label}'),
-                ('U', 'Modifier les {object_label}'),
-                ('D', 'Supprimer des {object_label}'),
-                ('E', 'Exporter les {object_label}')
-            ) AS v (action_code, label)
-        JOIN gn_permissions.bib_actions a ON v.action_code = a.code_action
-        ON CONFLICT DO NOTHING
-        """
-    DB.engine.execution_options(autocommit=True).execute(txt_perm_available)
+    # Création d'une permission disponible pour chaque action
+    object_actions = PERMISSION_LABEL.get(perm_object_code)["actions"]
+    for action in object_actions:
+        permaction = session.query(PermAction).filter_by(code_action=action).one()
+        try:
+            perm = (
+                session.query(PermissionAvailable)
+                .filter_by(module=module, object=perm_object, action=permaction)
+                .one()
+            )
+        except NoResultFound:
+            perm = PermissionAvailable(
+                module=module,
+                object=perm_object,
+                action=permaction,
+                label=f"{ACTION_LABEL[action]} {object_label}",
+                scope_filter=True,
+            )
+            session.add(perm)
 
 
 def remove_monitoring_module(module_code):
@@ -313,3 +323,14 @@ def available_modules():
             available_modules_.append({**module, "module_code": d})
         break
     return available_modules_
+
+
+def extract_keys(test_dict, keys=[]):
+    """
+    FOnction permettant d'extraire de façon récursive les clés d'un dictionnaire
+    """
+    for key, val in test_dict.items():
+        keys.append(key)
+        if isinstance(val, dict):
+            extract_keys(val, keys)
+    return keys

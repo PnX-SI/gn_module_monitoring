@@ -251,12 +251,12 @@ export class MonitoringMapComponent implements OnInit {
     const style_name = !status['visible']
       ? 'hidden'
       : status['current']
-      ? 'current'
-      : status['selected']
-      ? 'selected'
-      : this.bEdit
-      ? 'edit'
-      : 'default';
+        ? 'current'
+        : status['selected']
+          ? 'selected'
+          : this.bEdit
+            ? 'edit'
+            : 'default';
 
     const style = this.styles[style_name] || this.styles['default'];
 

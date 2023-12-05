@@ -19,7 +19,7 @@ from ..modules.repositories import (
 )
 
 
-@blueprint.route("/module/<value>", methods=["GET"])
+@blueprint.route("/module/<int:value>", methods=["GET"])
 @check_cruved_scope("R", module_code=MODULE_CODE)
 @json_resp
 def get_module_api(value):
@@ -37,7 +37,9 @@ def get_module_api(value):
     module_out = []
     if module:
         module_out = module.as_dict(depth=depth)
-        module_out["cruved"] = get_scopes_by_action(module_code=module.module_code)
+        module_out["cruved"] = get_scopes_by_action(
+            module_code=module.module_code, object_code="MONITORINGS_MODULES"
+        )
 
     return module_out
 
@@ -56,7 +58,9 @@ def get_modules_api():
     modules = get_modules()
     for module in modules:
         module_out = module.as_dict(depth=depth)
-        module_out["cruved"] = get_scopes_by_action(module_code=module.module_code)
+        module_out["cruved"] = get_scopes_by_action(
+            module_code=module.module_code, object_code="MONITORINGS_MODULES"
+        )
 
         modules_out.append(module_out)
 

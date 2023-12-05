@@ -78,8 +78,6 @@ def get_modules():
     :return:
     """
 
-    modules_out = []
-
     try:
         res = DB.session.query(TMonitoringModules).order_by(TMonitoringModules.module_label).all()
 
@@ -88,9 +86,6 @@ def get_modules():
     except Exception as e:
         raise GeoNatureError("MONITORINGS - get_modules : {}".format(str(e)))
         # en cas d'erreur on revoie []
-        pass
-
-    return modules_out
 
 
 def get_source_by_code(value):

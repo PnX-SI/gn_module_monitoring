@@ -1,12 +1,25 @@
 CHANGELOG
 =========
 
+0.7.1 (05-12-23)
+------------------
+
+**🚀 Nouveautés**
+* La gestion des permissions est définie pour chaque objet (module, site, visite) et l'objet ALL n'est plus pris en compte (#249). De fait les paramètres cruved des fichiers de configuration ainsi que permission object de `module.json` sont obsolètes.
+* Ajout de tests
+
+
+**🐛 Corrections**
+
+* export avec un filtre par jeux de données (#241)
+
+
 0.7.0 (2023-08-23)
 ------------------
 
 Nécessite la version 2.13.0 (ou plus) de GeoNature
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Compatibilité avec GeoNature 2.13.0 et la refonte des permissions, en définissant les permissions disponibles du module (#232)
 * Gestion des permissions disponibles des sous-modules lors de leur installation et création de la commande `update_module_available_permissions` permettant de les mettre à jour (#236)
@@ -25,7 +38,7 @@ Nécessite la version 2.13.0 (ou plus) de GeoNature
 
 Nécessite GeoNature version 2.12.0 (ou plus)
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Utilisation de la gestion dynamique de la configuration de GeoNature (#224)
 * Les dossiers de configuration des sous-modules sont déplacés du dossier `<gn_module_monitoring>/config/monitorings` vers le dossier `media/monitorings` de GeoNature. Cela permet d'homogéneiser et centraliser la configuration de GeoNature et de ses sous-modules, de permettre la dockerisation du module Monitoring et de simplifier sa mise à jour (#224)
@@ -43,7 +56,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
   rm -R ~/geonature/backend/media/monitorings/generic
   ```
 
-  Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.  
+  Adapter cette commande si le répertoire `medias` de GeoNature est différent de l'exemple ci-dessus.
   Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
 
 * L'installation des sous-modules se fait désormais en deux temps :
@@ -62,7 +75,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 Nécessite GeoNature version 2.12.0 (ou plus)
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Compatibilité avec GeoNature 2.12 (Passage à la version 15 d'Angular et révision des permissions)
 * Centralisation de la configuration du module dans le dossier de configuration de GeoNature
@@ -72,7 +85,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 * Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
 * Remplacement du composant `datalist` par le composant `dataset` pour le champs de selection du JDD de la visite, dans la configuration générique des sous-modules
 
-**Corrections**
+**🐛 Corrections**
 
 * Correction de l'API ``get_util_from_id_api`` en traitant les ``id`` en ``str`` (#175)
 
@@ -94,15 +107,15 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 0.4.1 (2023-02-05)
 ==================
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Configuration des exports pour rendre optionnelle la sélection du
     jeu de données avec le nouveau paramètre `filter_dataset` (#158)
 
-**Corrections**
+**🐛 Corrections**
 
 * Amélioration des performances du chargement des observations (#142)
-* Correction du modèle \"Observation détail\" qui permet d'ajouter
+* Correction du modèle "Observation détail" qui permet d'ajouter
     des informations sous le niveau observation
 
 **⚠️ Notes de version**
@@ -123,13 +136,13 @@ concernés (dans leur fichier `module.json`). Exemple :
 
 Nécessite la version 2.11.0 (ou plus) de GeoNature.
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Packaging du module (#190)
 * Gestion de la base de données avec Alembic (#190)
 * Améliorations du typage frontend
 
-**Corrections**
+**🐛 Corrections**
 
 * Correction du marqueur Leaflet non visible lors de la création d'un
     point sur la carte (#187)
@@ -175,7 +188,7 @@ geonature db upgrade monitorings@head
 
 Nécessite la version 2.10.0 (ou plus) de GeoNature.
 
-**Evolutions**
+**🚀 Nouveautés**
 
 * Compatibilité avec Angular version 12, mis à jour dans la version
     2.10.0 de GeoNature (#135)
@@ -472,7 +485,7 @@ Si vous mettez à jour le module :
 
 Nécessite la version 2.5.2 de GeoNature minimum.
 
-**Nouveautés**
+**🚀 Nouveautés**
 
 * Possibilité de renseigner le JDD à chaque visite
     ([#30](https://github.com/PnX-SI/gn_module_monitoring/issues/30))
@@ -513,7 +526,7 @@ Nécessite la version 2.5.2 de GeoNature minimum.
 * Clarification et remplacement des `module_path` et `module_code`
     ([#40](https://github.com/PnX-SI/gn_module_monitoring/issues/40))
 
-**Corrections**
+**🐛 Corrections**
 
 * Amélioration des modèles SLQA pour optimiser la partie sérialisation
     ([#46](https://github.com/PnX-SI/gn_module_monitoring/issues/46))

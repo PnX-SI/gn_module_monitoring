@@ -27,7 +27,7 @@ from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions, MonitoringPermissions_dict
+from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
@@ -46,8 +46,10 @@ def set_current_module(endpoint, values):
 
     # recherche de l'object de permission courrant
     object_type = values.get("object_type")
+
     if object_type:
-        requested_permission_object_code = MonitoringPermissions_dict.get(object_type)
+        permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
+        requested_permission_object_code = permission_level.get(object_type)
 
         if requested_permission_object_code is None:
             # error ?
@@ -222,7 +224,7 @@ def list_object_api(module_code, object_type):
 
 # mise à jour de la synthèse
 @blueprint.route("synthese/<string:module_code>", methods=["POST"])
-@check_cruved_scope("E")
+@check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
     get_config(module_code, force=True)
@@ -237,7 +239,7 @@ def update_synthese_api(module_code):
 # export add mje
 # export all observations
 @blueprint.route("/exports/csv/<module_code>/<method>", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
 def export_all_observations(module_code, method):
     """
     Export all data in csv of a custom module view
@@ -250,7 +252,7 @@ def export_all_observations(module_code, method):
 
     :returns: Array of dict
     """
-    id_dataset = request.args.get("id_dataset", int, None)
+    id_dataset = request.args.get("id_dataset", None, int)
 
     view = GenericTableGeo(
         tableName=f"v_export_{module_code.lower()}_{method}",
@@ -261,7 +263,7 @@ def export_all_observations(module_code, method):
     q = DB.session.query(*columns)
     # Filter with dataset if is set
     if hasattr(columns, "id_dataset") and id_dataset:
-        data = q.filter(columns.id_dataset == id_dataset)
+        q = q.filter(columns.id_dataset == id_dataset)
     data = q.all()
 
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
@@ -278,6 +280,7 @@ def export_all_observations(module_code, method):
 
 
 @blueprint.route("/exports/pdf/<module_code>/<object_type>/<int:id>", methods=["POST"])
+@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
 def post_export_pdf(module_code, object_type, id):
     """
     Export the fiche individu as a PDF file.
