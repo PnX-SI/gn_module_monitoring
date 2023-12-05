@@ -1,11 +1,13 @@
 CHANGELOG
 =========
 
-0.7.1 (unreleased)
+0.7.1 (05-12-23)
 ------------------
 
 **🚀 Nouveautés**
 * La gestion des permissions est définie pour chaque objet (module, site, visite) et l'objet ALL n'est plus pris en compte (#249). De fait les paramètres cruved des fichiers de configuration ainsi que permission object de `module.json` sont obsolètes.
+* Ajout de tests
+
 
 **🐛 Corrections**
 
