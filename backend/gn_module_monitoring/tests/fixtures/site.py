@@ -86,7 +86,6 @@ def site_to_post_with_types(users, types_site, site_group_without_sites):
     post_data["type"] = "Feature"
     post_data["properties"]["types_site"] = list_nomenclature_id
 
-
     for type_site in mock_db_type_site:
         specific_config = type_site["config"]["specific"]
         for key_specific in specific_config:
