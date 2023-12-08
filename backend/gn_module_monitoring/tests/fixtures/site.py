@@ -61,9 +61,9 @@ def site_to_post_with_types(users, types_site, site_group_without_sites):
     site_to_post_with_types = TMonitoringSites(
         id_inventor=user.id_role,
         id_digitiser=user.id_role,
-        base_site_name=f"New Site",
-        base_site_description=f"New Description",
-        base_site_code=f"New Code",
+        base_site_name="New Site",
+        base_site_description="New Description",
+        base_site_code="New Code",
         geom=geom_4326,
         id_nomenclature_type_site=list_nomenclature_id[0],
         # types_site=list_nomenclature_id,
@@ -85,7 +85,6 @@ def site_to_post_with_types(users, types_site, site_group_without_sites):
 
     post_data["type"] = "Feature"
     post_data["properties"]["types_site"] = list_nomenclature_id
-
 
     for type_site in mock_db_type_site:
         specific_config = type_site["config"]["specific"]
