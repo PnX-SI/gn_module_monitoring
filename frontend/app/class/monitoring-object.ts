@@ -162,7 +162,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     let parentOut = null;
 
-    if (parentType!='module' && !(this.parentId(parentType))) {
+    if (parentType != 'module' && !this.parentId(parentType)) {
       return of(null);
     }
 
