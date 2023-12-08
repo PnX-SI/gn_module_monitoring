@@ -25,7 +25,7 @@ def upgrade():
     session = sa.orm.Session(bind=bind)
 
     # Création des permissions disponibles pour chaque module
-    for module in installed_modules():
+    for module in installed_modules(session):
         process_available_permissions(module["module_code"], session=session)
 
     # ########
