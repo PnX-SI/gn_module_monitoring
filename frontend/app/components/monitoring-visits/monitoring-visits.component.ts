@@ -340,7 +340,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     let schemaTypeMerged = {};
     let keyHtmlToPop = '';
     for (let type_site of this.types_site) {
-      if ('specific' in type_site['config']) {
+      if ('specific' in (type_site['config'] || {})) {
         for (const prop in type_site['config']['specific']) {
           if (
             'type_widget' in type_site['config']['specific'][prop] &&
