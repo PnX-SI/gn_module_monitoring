@@ -43,7 +43,7 @@
       </mat-tab>
       <!-- TODO: tester l'ajout de médias et voir le comportement de obj.properties -->
       <mat-tab
-      *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
+      *ngIf="obj?.properties['medias'] && obj.properties['medias'].length"
       label="Médias ({{(obj.properties['medias'] && obj.properties['medias'].length) || 0}})"
     >
       <ng-container *ngFor="let media of obj.properties['medias']; index as i">
