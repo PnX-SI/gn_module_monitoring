@@ -13,7 +13,7 @@ jobs:
         uses: psf/black@stable
         with:
           src: "setup.py ./backend/gn_module_monitoring"
-  frontend:
+
   frontend:
     runs-on: ubuntu-latest
     steps:
