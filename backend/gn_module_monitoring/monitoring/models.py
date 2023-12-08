@@ -411,7 +411,7 @@ class TMonitoringSites(TBaseSites, PermissionModel):
         .where(TBaseSites.id_base_site == id_base_site)
         .correlate_except(TBaseSites)
     )
-    types_site = DB.relationship("BibTypeSite", secondary=cor_type_site, lazy="joined")
+    types_site = DB.relationship("BibTypeSite", secondary=cor_type_site)
 
     @hybrid_property
     def organism_actors(self):
@@ -594,10 +594,12 @@ class TMonitoringModules(TModules, PermissionModel):
         "TDatasets",
         secondary=cor_module_dataset,
         join_depth=0,
-        lazy="joined",
     )
 
-    types_site = DB.relationship("BibTypeSite", secondary=cor_module_type, lazy="joined")
+    types_site = DB.relationship(
+        "BibTypeSite",
+        secondary=cor_module_type,
+    )
 
     data = DB.Column(JSONB)
 
@@ -631,7 +633,6 @@ TMonitoringModules.sites_groups = DB.relationship(
         cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
     ),
     foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
-    lazy="select",
     viewonly=True,
 )
 
