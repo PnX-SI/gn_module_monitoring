@@ -123,6 +123,20 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
     return config_object
 
 
+def get_config_with_specific(module_code=None, force=False, complements=None):
+    """
+    recupere la configuration pour le module monitoring
+    en prenant en compte les propriétés spécifiques des types de sites
+    """
+    customConfig = {"specific": {}}
+    for keys in complements.keys():
+        if "config" in complements[keys]:
+            customConfig["specific"].update(
+                (complements[keys].get("config", {}) or {}).get("specific", {})
+            )
+    get_config(module_code, force=True, customSpecConfig=customConfig)
+
+
 def get_config(module_code=None, force=False, customSpecConfig=None):
     """
     recupere la configuration pour le module monitoring
@@ -131,7 +145,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
     et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
         alors la configuration est récupéré depuis current_app.config
     sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
-
     """
     module_code = module_code if module_code else "generic"
 
