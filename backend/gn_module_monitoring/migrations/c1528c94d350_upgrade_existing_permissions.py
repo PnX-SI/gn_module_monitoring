@@ -12,9 +12,6 @@ from click.testing import CliRunner
 
 from gn_module_monitoring.command.cmd import process_available_permissions
 from gn_module_monitoring.command.utils import installed_modules
-from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-from sqlalchemy.exc import ProgrammingError
 
 # revision identifiers, used by Alembic.
 revision = "c1528c94d350"
