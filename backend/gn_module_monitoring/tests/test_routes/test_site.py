@@ -203,6 +203,8 @@ class TestSite:
             == site_to_post_with_types["properties"]["base_site_name"]
         )
 
+        assert set(res.types_site) == set([ts for k, ts in types_site.items()])
+
     def test_delete_site(self, sites, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         site = list(sites.values())[0]
