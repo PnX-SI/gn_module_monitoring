@@ -70,7 +70,7 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
         pass
 
 
-def get_modules(session):
+def get_modules(session=None):
     """
     récupère les modules de protocole de suivi
     renvoie un tableau de dictionnaires
