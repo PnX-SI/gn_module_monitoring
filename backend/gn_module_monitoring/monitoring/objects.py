@@ -25,10 +25,28 @@ class MonitoringSite(MonitoringObjectGeom):
     avec la méthode from_dict
     """
 
-    def preprocess_data(self, data):
-        module_ids = [module.id_module for module in self._model.modules]
-        id_module = int(data["id_module"])
-        if id_module not in module_ids:
-            module_ids.append(id_module)
+    def preprocess_data(self, properties, data=[]):
+        if len(data) != 0:
+            if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
+                properties["id_nomenclature_type_site"] = data["types_site"][0]
+                properties["types_site"] = data["types_site"]
 
-        data["modules"] = module_ids
+            elif "data" in data and data["data"]["id_nomenclature_type_site"]:
+                properties["id_nomenclature_type_site"] = data["data"]["id_nomenclature_type_site"]
+            else:
+                properties["id_nomenclature_type_site"] = data["types_site"][0][
+                    "id_nomenclature_type_site"
+                ]
+        else:
+            if len(properties.get("types_site", [])) != 0:
+                if hasattr(self._model, "types_site"):
+                    properties["id_nomenclature_type_site"] = properties["types_site"][0]
+            #         properties["types_site"] = []
+            #         # TODO: performance?
+            #         # for type in properties['types_site']:
+            #         #     properties['types_site'].append(types_site)
+            #         types_site = [
+            #             typ.nomenclature.id_nomenclature for typ in self._model.types_site
+            #         ]
+            #         properties["types_site"] = types_site
+            # TODO: A enlever une fois qu'on aura enelever le champ "id_nomenclature_type_site" du model et de la bdd

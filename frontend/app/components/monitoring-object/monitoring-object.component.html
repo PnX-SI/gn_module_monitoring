@@ -2,11 +2,7 @@
   <pnx-modal-msg [bDisplayModal]="bLoadingModal">
     <h2>Chargement en cours</h2>
     <div>
-      <span
-        class="center spinner-border"
-        role="status"
-        aria-hidden="true"
-      ></span>
+      <span class="center spinner-border" role="status" aria-hidden="true"></span>
     </div>
   </pnx-modal-msg>
 
@@ -32,7 +28,11 @@
       ></pnx-monitoring-breadcrumbs>
 
       <div>
-        <span class='obj-title' *ngIf="obj.bIsInitialized" [innerHTML]="obj.titleHTML(this.bEdit)"></span>
+        <span
+          class="obj-title"
+          *ngIf="obj.bIsInitialized"
+          [innerHTML]="obj.titleHTML(this.bEdit)"
+        ></span>
       </div>
       <div *ngIf="!moduleSet && obj.bIsInitialized" class="alert alert-warning">
         <p>Le module n'est pas encore configuré.</p>

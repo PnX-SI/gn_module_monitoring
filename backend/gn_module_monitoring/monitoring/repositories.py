@@ -1,3 +1,5 @@
+from flask import current_app
+
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
@@ -7,6 +9,8 @@ import logging
 from ..utils.utils import to_int
 
 from sqlalchemy.orm import joinedload
+from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
+from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +18,6 @@ log = logging.getLogger(__name__)
 class MonitoringObject(MonitoringObjectSerializer):
     def get(self, value=None, field_name=None, depth=0):
         # par defaut on filtre sur l'id
-
         if not field_name:
             field_name = self.config_param("id_field_name")
             if not value:
@@ -38,6 +41,16 @@ class MonitoringObject(MonitoringObjectSerializer):
             self._model = req.filter(getattr(Model, field_name) == value).one()
 
             self._id = getattr(self._model, self.config_param("id_field_name"))
+            if isinstance(self._model, PermissionModel) and not isinstance(
+                self._model, TMonitoringModules
+            ):
+                cruved_item_dict = get_objet_with_permission_boolean(
+                    [self._model],
+                    object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                        self._object_type
+                    ],
+                )
+                self.cruved = cruved_item_dict[0]["cruved"]
 
             return self
 
@@ -165,10 +178,12 @@ class MonitoringObject(MonitoringObjectSerializer):
         if params["parents_path"]:
             object_type = params.get("parents_path", []).pop()
             next = MonitoringObject(self._module_code, object_type)
-
-            id_field_name = next.config_param("id_field_name")
-            next._id = self.get_value(id_field_name) or params.get(id_field_name)
-            next.get(0)
+            if next._object_type == "module":
+                next.get(field_name="module_code", value=self._module_code)
+            else:
+                id_field_name = next.config_param("id_field_name")
+                next._id = self.get_value(id_field_name) or params.get(id_field_name)
+                next.get(0)
         else:
             next = self.get_parent()
 

@@ -1,0 +1,43 @@
+<div>
+  <span class="obj-title"
+    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ _sitesGroupService.objectObs.label }}:</span
+  >
+  <span *ngIf="sitesGroup" class="obj-description"> {{ sitesGroup.sites_group_name }} </span>
+</div>
+<pnx-monitoring-properties-g
+  *ngIf="!bEdit"
+  [(bEdit)]="bEdit"
+  [selectedObj]="sitesGroup"
+  [newParentType]="objParent"
+  [selectedObjRaw]="sitesGroup"
+  [permission]="currentPermission"
+>
+</pnx-monitoring-properties-g>
+<pnx-monitoring-form-g
+  [apiService]="_sitesGroupService"
+  [obj]="sitesGroup"
+  (objChanged)="onObjChanged($event)"
+  *ngIf="bEdit"
+  [(bEdit)]="bEdit"
+  [objForm]="objForm"
+  [currentUser]="currentUser"
+></pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
+  [dataTableArray]="dataTableArray"
+  [dataTableObj]="dataTableObj"
+  [rows]="siteResolvedProperties"
+  [colsname]="colsname"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [obj]="rows"
+  (onDetailsRow)="seeDetails($event)"
+  (addFromTable)="onAddChildren($event)"
+  (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
+  (saveOptionChildren)="onSaveAddChildren($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
+  [permission]="currentPermission"
+></pnx-monitoring-datatable-g>

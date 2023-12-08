@@ -1,0 +1,4 @@
+export enum ObjectsPermissionMonitorings {
+  MONITORINGS_GRP_SITES = 'MONITORINGS_GRP_SITES',
+  MONITORINGS_SITES = 'MONITORINGS_SITES',
+}

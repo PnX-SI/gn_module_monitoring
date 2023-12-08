@@ -1,20 +1,22 @@
 {
   "tree": {
     "module": {
-      "site": {
-        "visit": {
-          "observation": null
+      "sites_group": {
+        "site": {
+          "visit": {
+            "observation": null
+          }
         }
       }
     }
   },
-  "synthese" : "__MODULE.B_SYNTHESE",
+  "synthese": "__MODULE.B_SYNTHESE",
   "default_display_field_names": {
     "user": "nom_complet",
     "nomenclature": "label_fr",
     "dataset": "dataset_name",
     "observer_list": "nom_liste",
-    "taxonomy" : "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+    "taxonomy": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
     "taxonomy_list": "nom_liste",
     "sites_group": "sites_group_name",
     "habitat": "lb_hab_fr",
