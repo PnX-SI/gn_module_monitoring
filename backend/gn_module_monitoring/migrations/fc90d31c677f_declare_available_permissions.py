@@ -123,3 +123,12 @@ def downgrade():
             module_code = 'MONITORINGS'
         """
     )
+
+    op.execute(
+        """
+        DELETE FROM
+            gn_permissions.t_objects
+            WHERE code_object = 'TYPES_SITES'
+        ;
+        """
+    )
