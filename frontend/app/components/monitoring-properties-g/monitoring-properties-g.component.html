@@ -42,7 +42,7 @@
         </div>
       </mat-tab>
       <!-- TODO: tester l'ajout de médias et voir le comportement de obj.properties -->
-      <!-- <mat-tab 
+      <mat-tab
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
       label="Médias ({{(obj.properties['medias'] && obj.properties['medias'].length) || 0}})"
     >
@@ -68,7 +68,7 @@
           </div>
         </div>
       </ng-container>
-    </mat-tab> -->
+    </mat-tab>
     </mat-tab-group>
 
     <div class="tab-content" id="nav-tabContent" [ngStyle]="{ 'background-color': color }">
@@ -174,11 +174,11 @@
     role="status"
     aria-hidden="true"
     ></span>
-    
+
       Mettre à jour la synthèse
       <mat-icon>sync</mat-icon>
     </button>
-    
+
     <button
       mat-stroked-button
       *ngIf="obj.template['export_csv']"
