@@ -137,32 +137,6 @@ class MonitoringObjectBase:
 
     def config_schema(self, type_schema="all"):
         return repositories_config_schema(self._module_code, self._object_type, type_schema)
-        pass
-
-    # def base_type_object(self):
-    #     """
-    #         renvoie:
-    #         - le type d'objet dont herite l'objet
-    #         - le type d'objet sinon
-
-    #     """
-    #     return self.config_param('inherit_type') or self._object_type
-
-    # def is_similar_to_parent(self):
-    #     '''
-    #         on teste si le type de parent est similaire au type de l'object (ou au type herite de l'object)
-    #     '''
-    #     base_object_type = self.base_type_object()
-    #     parent_type = self.config_param('parent_type')
-
-    #     if not parent_type:
-    #         return False
-
-    #     base_parent_type = (
-    #         repositories_config_param(self._module_code, parent_type, 'inherit_type') or parent_type
-    #     )
-
-    #     return base_object_type == base_parent_type
 
     def id_parent_fied_name(self):
         return self.parent_config_param("id_field_name")
