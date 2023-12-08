@@ -59,7 +59,7 @@ def upgrade():
 def downgrade():
     statement = sa.text(
         f"""
-        ALTER TABLE {monitorings_schema}.{table} DROP CONSTRAINT fk_t_sites_groups_id_digitiser;
+        ALTER TABLE {monitorings_schema}.{table} DROP CONSTRAINT fk_{table}_{column};
         """
     )
     op.execute(statement)
