@@ -33,13 +33,13 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table("t_module_complements", monitorings_schema)
-    op.drop_table("t_observation_complements", monitorings_schema)
-    op.drop_table("t_observation_details", monitorings_schema)
-    op.drop_table("t_observations", monitorings_schema)
-    op.drop_table("t_site_complements", monitorings_schema)
-    op.drop_table("t_sites_groups", monitorings_schema)
-    op.drop_table("t_visit_complements", monitorings_schema)
+    op.drop_table("t_module_complements", schema=monitorings_schema)
+    op.drop_table("t_observation_complements", schema=monitorings_schema)
+    op.drop_table("t_observation_details", schema=monitorings_schema)
+    op.drop_table("t_observations", schema=monitorings_schema)
+    op.drop_table("t_site_complements", schema=monitorings_schema)
+    op.drop_table("t_sites_groups", schema=monitorings_schema)
+    op.drop_table("t_visit_complements", schema=monitorings_schema)
 
     # Remove all GNM related objects
     statement = sa.delete(TObjects).where(TObjects.code_object.like("GNM_%"))

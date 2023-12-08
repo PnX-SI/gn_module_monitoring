@@ -12,7 +12,7 @@ from werkzeug.exceptions import Forbidden
 from geonature.core.gn_permissions import decorators as permissions
 from pypnusershub.db.models import User
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringModules,
@@ -212,14 +212,10 @@ def get_module_sites(module_code: str):
 def post_sites(object_type):
     module_code = "generic"
     object_type = "site"
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
-    for keys in post_data["dataComplement"].keys():
-        if "config" in post_data["dataComplement"][keys]:
-            customConfig["specific"].update(
-                post_data["dataComplement"][keys]["config"]["specific"]
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
+
+    get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
+
     return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
 
 
@@ -245,15 +241,8 @@ def patch_sites(scope, _id, object_type):
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update site {site.id_base_site}")
     module_code = "generic"
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
-    # TODO: vérifier si utile et si oui mettre dans route POST
-    if "geometry" in post_data:
-        post_data["geometry"] = json.dumps(post_data["geometry"])
-    for keys in post_data["dataComplement"].keys():
-        if "config" in post_data["dataComplement"][keys]:
-            customConfig["specific"].update(
-                post_data["dataComplement"][keys]["config"]["specific"]
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
+
+    get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
+
     return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201

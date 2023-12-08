@@ -467,10 +467,12 @@ export class MonitoringFormComponent implements OnInit {
     for (const typeSite of typeSiteObj) {
       this.idsTypesSite.push(typeSite.id_nomenclature_type_site);
       this.typesSiteConfig[typeSite.label] = typeSite;
-      keysConfigToExclude.push(
-        ...Object.keys(this.typesSiteConfig[typeSite.label].config.specific)
-      );
-      Object.assign(this.schemaUpdate, this.typesSiteConfig[typeSite.label].config.specific);
+      if (this.typesSiteConfig[typeSite.label].config?.specific) {
+        keysConfigToExclude.push(
+          ...Object.keys(this.typesSiteConfig[typeSite.label].config.specific)
+        );
+        Object.assign(this.schemaUpdate, this.typesSiteConfig[typeSite.label].config.specific);
+      }
     }
     if (!this.obj.id) {
       this.schemaUpdate = keysConfigToExclude

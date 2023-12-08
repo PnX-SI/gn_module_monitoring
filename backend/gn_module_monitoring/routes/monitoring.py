@@ -30,7 +30,7 @@ from gn_module_monitoring import MODULE_CODE
 from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
-from ..config.repositories import get_config
+from ..config.repositories import get_config, get_config_with_specific
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_site_id,
 )
@@ -118,7 +118,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         ]
         customConfig = {"specific": {}}
         for specific_config in list_types_sites_dict:
-            customConfig["specific"].update(specific_config["specific"])
+            customConfig["specific"].update((specific_config or {}).get("specific", {}))
 
         get_config(module_code, force=True, customSpecConfig=customConfig)
     else:
@@ -183,14 +183,12 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
 
     # recupération des données post
     post_data = dict(request.get_json())
+
     if module_code != "generic":
         module = get_module("module_code", module_code)
     else:
         module = {"id_module": "generic"}
-        # TODO : A enlever une fois que le post_data contiendra geometry et type depuis le front
-        if object_type == "site" and not "geometry" in post_data:
-            post_data["geometry"] = {"type": "Point", "coordinates": [2.5, 50]}
-            post_data["type"] = "Feature"
+
     # on rajoute id_module s'il n'est pas renseigné par défaut ??
     if "id_module" not in post_data["properties"]:
         module["id_module"] = "generic"
@@ -254,15 +252,9 @@ def update_object_api(scope, module_code, object_type, id):
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
 
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
     if "dataComplement" in post_data:
-        for keys in post_data["dataComplement"].keys():
-            if "config" in post_data["dataComplement"][keys]:
-                customConfig["specific"].update(
-                    post_data["dataComplement"][keys]["config"]["specific"]
-                )
-        get_config(module_code, force=True, customSpecConfig=customConfig)
+        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
     else:
         get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
@@ -280,15 +272,9 @@ def update_object_api(scope, module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    customConfig = {"specific": {}}
     post_data = dict(request.get_json())
     if "dataComplement" in post_data:
-        for keys in post_data["dataComplement"].keys():
-            if "config" in post_data["dataComplement"][keys]:
-                customConfig["specific"].update(
-                    post_data["dataComplement"][keys]["config"]["specific"]
-                )
-        get_config(module_code, force=True, customSpecConfig=customConfig)
+        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
     else:
         get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
