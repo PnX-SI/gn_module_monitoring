@@ -19,7 +19,7 @@ export class MonitoringMapListComponent {
   obj: any;
   bEdit: boolean;
   objForm: FormGroup;
-  heightMap: string="80vh";
+  heightMap: string = '80vh';
   //
   displayMap: boolean = true;
   siteSiteGroup: SiteSiteGroup | null = null;
@@ -37,7 +37,6 @@ export class MonitoringMapListComponent {
     setTimeout(() => {
       this.heightMap = height - 80 + 'px';
     });
-
   }
 
   onActivate(component) {
