@@ -10,6 +10,7 @@ from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import select
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp, to_json_resp
@@ -40,10 +41,11 @@ from gn_module_monitoring.utils.routes import (
 def set_current_module(endpoint, values):
     # recherche du sous-module courrant
     requested_module_code = values.get("module_code") or MODULE_CODE
-    current_module = (
-        TModules.query.options(joinedload(TModules.objects))
-        .filter_by(module_code=requested_module_code)
-        .first_or_404(f"No module with code {requested_module_code} {endpoint}")
+    current_module = DB.first_or_404(
+        statement=select(TModules)
+        .options(joinedload(TModules.objects))
+        .where(TModules.module_code == requested_module_code),
+        description=f"No module with code {requested_module_code} {endpoint}",
     )
     g.current_module = current_module
 
@@ -59,10 +61,11 @@ def set_current_module(endpoint, values):
             return
 
         # Test si l'object de permission existe
-        requested_permission_object = TObjects.query.filter_by(
-            code_object=requested_permission_object_code
-        ).first_or_404(
-            f"No permission object with code {requested_permission_object_code} {endpoint}"
+        requested_permission_object = DB.first_or_404(
+            statement=select(TObjects).where(
+                TObjects.code_object == requested_permission_object_code
+            ),
+            description=f"No permission object with code {requested_permission_object_code} {endpoint}",
         )
 
         # si l'object de permission est associé au module => il devient l'objet courant

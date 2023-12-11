@@ -4,6 +4,7 @@ from geonature.utils.env import db
 from pypnusershub.db.models import User
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
+from sqlalchemy.sql.expression import select
 from flask import current_app
 from pathlib import Path
 
@@ -38,6 +39,7 @@ def monitorings_users(app):
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
+        "ALL",
     ]
 
     def create_user(username, organisme=None, scope=None, sensitivity_filter=False):
@@ -60,10 +62,12 @@ def monitorings_users(app):
             db.session.add(right)
             if scope > 0:
                 for co in type_code_object:
-                    object_all = PermObject.query.filter_by(code_object=co).one()
+                    object_all = db.session.scalars(
+                        select(PermObject).where(PermObject.code_object == co)
+                    ).all()
                     for action in actions.values():
                         for module in modules:
-                            for obj in [object_all] + module.objects:
+                            for obj in object_all + module.objects:
                                 permission = Permission(
                                     role=user,
                                     action=action,

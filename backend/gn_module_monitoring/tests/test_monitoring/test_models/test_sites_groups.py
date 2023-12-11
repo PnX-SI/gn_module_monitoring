@@ -1,6 +1,10 @@
 import pytest
 
+from sqlalchemy.sql.expression import select
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
+
+
+from geonature.utils.env import DB
 
 
 @pytest.mark.usefixtures("temporary_transaction")
@@ -11,12 +15,16 @@ class TestTMonitoringSitesGroups:
                 "This test cannot work if there is less than 2 sites_groups in database (via fixtures or not)"
             )
 
-        query = TMonitoringSitesGroups.query.filter(
-            TMonitoringSitesGroups.id_sites_group.in_(
-                group.id_sites_group for group in sites_groups.values()
+        query = (
+            select(TMonitoringSitesGroups)
+            .filter(
+                TMonitoringSitesGroups.id_sites_group.in_(
+                    group.id_sites_group for group in sites_groups.values()
+                )
             )
-        ).sort(label="id_sites_group", direction="desc")
-        result = query.all()
+            .order_by(TMonitoringSitesGroups.id_sites_group.desc())
+        )
+        result = DB.session.scalars(query).all()
 
         assert result[0].id_sites_group > result[1].id_sites_group
 
@@ -26,11 +34,15 @@ class TestTMonitoringSitesGroups:
                 "This test cannot work if there is less than 2 sites_groups in database (via fixtures or not)"
             )
 
-        query = TMonitoringSitesGroups.query.filter(
-            TMonitoringSitesGroups.id_sites_group.in_(
-                group.id_sites_group for group in sites_groups.values()
+        query = (
+            select(TMonitoringSitesGroups)
+            .filter(
+                TMonitoringSitesGroups.id_sites_group.in_(
+                    group.id_sites_group for group in sites_groups.values()
+                )
             )
-        ).sort(label="id_sites_group", direction="asc")
-        result = query.all()
+            .order_by(TMonitoringSitesGroups.id_sites_group.asc())
+        )
+        result = DB.session.scalars(query).all()
 
         assert result[0].id_sites_group < result[1].id_sites_group
