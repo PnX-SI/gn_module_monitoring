@@ -5,6 +5,7 @@ import click
 from pathlib import Path
 from flask.cli import with_appcontext
 from sqlalchemy.sql import text
+from sqlalchemy.sql.expression import select
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.gn_synthese.models import TSources
@@ -15,7 +16,7 @@ from geonature.core.gn_commons.models import TModules
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
 from ..config.utils import json_from_file, monitoring_module_config_path
-from ..modules.repositories import get_module, get_simple_module
+from ..modules.repositories import get_simple_module
 
 from .utils import (
     process_export_csv,
@@ -145,15 +146,15 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     if (module_config_dir_path / "synthese.sql").exists:
         click.secho("Execution du script synthese.sql")
         sql_script = module_config_dir_path / "synthese.sql"
+        txt = (
+            Path(sql_script)
+            .read_text()
+            .replace(":'module_code'", "'{}'".format(module_code))
+            .replace(":module_code", "{}".format(module_code))
+        )
         try:
-            DB.engine.execute(
-                text(
-                    open(sql_script, "r")
-                    .read()
-                    .replace(":'module_code'", "'{}'".format(module_code))
-                    .replace(":module_code", "{}".format(module_code))
-                ).execution_options(autocommit=True)
-            )
+            DB.session.execute(text(txt))
+            DB.session.commit()
         except Exception as e:
             print(e)
             click.secho("Erreur dans le script synthese.sql", fg="red")
@@ -238,7 +239,9 @@ def synchronize_synthese(module_code, offset):
     Synchronise les données d'un module dans la synthese
     """
     click.secho(f"Start synchronize data for module {module_code} ...", fg="green")
-    module = TModules.query.filter_by(module_code=module_code).one()
+    module = DB.session.execute(
+        select(TModules).where(TModules.module_code == module_code)
+    ).scalar_one()
     table_name = "v_synthese_{}".format(module_code)
     import_from_table(
         "gn_monitoring",

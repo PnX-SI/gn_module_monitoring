@@ -162,7 +162,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
         return config
 
     module = get_monitoring_module(module_code)
-
     # derniere modification
     # fichiers
     # file_last_modif = get_directory_last_modif(monitoring_config_path())
@@ -193,7 +192,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
             var_name = "__MODULE.{}".format(field_name.upper())
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
-
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 
         config["default_display_field_names"].update(config.get("display_field_names", {}))
