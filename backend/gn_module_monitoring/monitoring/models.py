@@ -21,12 +21,18 @@ from sqlalchemy.ext.declarative import declared_attr
 
 from pypnnomenclature.models import TNomenclatures
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_monitoring.models import (
+    TBaseSites,
+    TBaseVisits,
+    cor_module_type,
+    cor_type_site,
+    BibTypeSite,
+)
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
-from geonature.core.gn_monitoring.models import corVisitObserver
+from geonature.core.gn_monitoring.models import cor_visit_observer
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
     SitesQuery,
@@ -49,41 +55,6 @@ class PermissionModel:
 
     def get_permission_by_action(self, module_code=None, object_code=None):
         return has_any_permissions_by_action(module_code=module_code, object_code=object_code)
-
-
-cor_module_type = DB.Table(
-    "cor_module_type",
-    DB.Column(
-        "id_module",
-        DB.Integer,
-        DB.ForeignKey("gn_commons.t_modules.id_module"),
-        primary_key=True,
-    ),
-    DB.Column(
-        "id_type_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
-        primary_key=True,
-    ),
-    schema="gn_monitoring",
-)
-
-cor_type_site = DB.Table(
-    "cor_type_site",
-    DB.Column(
-        "id_base_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"),
-        primary_key=True,
-    ),
-    DB.Column(
-        "id_type_site",
-        DB.Integer,
-        DB.ForeignKey("gn_monitoring.bib_type_site.id_nomenclature_type_site"),
-        primary_key=True,
-    ),
-    schema="gn_monitoring",
-)
 
 
 @serializable
@@ -203,7 +174,7 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         overlaps="medias,medias",
     )
 
-    observers = DB.relationship(User, lazy="joined", secondary=corVisitObserver)
+    observers = DB.relationship(User, lazy="joined", secondary=cor_visit_observer)
 
     observations = DB.relation(
         "TMonitoringObservations",

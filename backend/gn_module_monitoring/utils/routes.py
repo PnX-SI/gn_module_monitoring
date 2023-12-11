@@ -65,15 +65,27 @@ def paginate_scope(
 
 
 def filter_params(model, query: Select, params: MultiDict) -> Select:
-    if len(params) != 0:
-        query = model.filter_by_params(query=query, params=params)
-    return query
+    if len(params) == 0:
+        return query
+
+    if getattr(query, "filter_by_params", None):
+        return query.filter_by_params(params)
+    else:
+        raise GeoNatureError("filter_params : La requête n'a pas de méthode filter_by_params")
 
 
 def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
-    if sort_dir in ["desc", "asc"]:
-        query = model.sort(query=query, label=sort, direction=sort_dir)
-    return query
+    if sort_dir not in ["desc", "asc"]:
+        return query
+
+    if getattr(query, "sort", None):
+        return query.sort(label=sort, direction=sort_dir)
+
+    if getattr(model, sort, None):
+        order_by = getattr(model, sort)
+        if sort_dir == "desc":
+            order_by = order_by.desc()
+        return query.order_by(order_by)
 
 
 def geojson_query(subquery) -> bytes:
