@@ -62,7 +62,8 @@
         "attribut_label": "Espèce",
         "type_util": "taxonomy",
         "id_list": "__MODULE.ID_LIST_TAXONOMY",
-        "required": true
+        "required": "({value}) => '__MODULE.CD_NOM' === 'None'",
+        "hidden": "({value}) => '__MODULE.CD_NOM' !== 'None'"
       },
       "id_digitiser": {
         "type_widget": "text",
@@ -71,6 +72,15 @@
         "hidden": true,
         "type_util": "user"
       }
-  }
+  },
+  "change": [
+    "({objForm, meta}) => {",
+    "const cd_nom = __MODULE.CD_NOM",
+    "if (!objForm.controls.cd_nom.dirty) {",
+    "objForm.patchValue({cd_nom: cd_nom})",
+    "}",
+    "}",
+    ""
+  ]
 }
   
