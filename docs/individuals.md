@@ -80,18 +80,20 @@ Il est paramétrable en json comme ceci :
     "attribut_label": "Choix de l'individu",
     "id_module": "__MODULE.ID_MODULE",
     "id_list": "__MODULE.ID_LIST_TAXONOMY",
-    "cd_nom": 4342
+    "cd_nom": "__MODULE.CD_NOM"
 }
 ```
 
-Les attributs sont tous optionnels et sont les suivants :
+Les attributs sont optionnels si le contraire n'est pas spécifié et sont les suivants :
 
-- `id_module` : permet de spécifier le module auxquel doivent être
-  rattachés les individus proposés dans le menu déroulant
+- `id_module` (**obligatoire**) : permet de spécifier le module auxquel 
+  doivent être rattachés les individus proposés dans le menu déroulant.
+  Il est obligatoire pour assurer le calcul de permissions de 
+  l'utilisateur en "Read" et en "Create".
 - `id_list` : dans le formulaire de saisie, restreint la saisie d'espèce à
   une liste taxonomique
 - `cd_nom` : fixe le champ Taxon au cd_nom donné et donc ne le fait pas
-  apparaître dans le formulaire 
+  apparaître dans le formulaire.
 
 
 ## Cas de l'observation
