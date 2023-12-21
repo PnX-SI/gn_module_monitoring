@@ -310,6 +310,7 @@ class TMonitoringModules(TModules):
         primaryjoin=(corIndividualModule.c.id_module == id_module),
         secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
         foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
+        viewonly=True
     )
     data = DB.Column(JSONB)
 
@@ -364,7 +365,7 @@ TIndividuals.nb_sites = column_property(
             TMarkingEvent.id_individual == TIndividuals.id_individual,
             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
         )
-    )
+    ).scalar_subquery()
 )
 
 TMonitoringSites.nb_individuals = column_property(
@@ -373,7 +374,7 @@ TMonitoringSites.nb_individuals = column_property(
             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
             TMarkingEvent.id_individual == TIndividuals.id_individual,
         )
-    )
+    ).scalar_subquery()
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table
