@@ -77,6 +77,13 @@
         "marking_details": {
             "type_widget": "text",
             "attribut_label": "Détails du marquage"
+        },
+        "id_digitiser": {
+          "type_widget": "text",
+          "attribut_label": "Numérisateur",
+          "required": true,
+          "hidden": true,
+          "type_util": "user"
         }
     }
 }
