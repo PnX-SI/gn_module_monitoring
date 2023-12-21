@@ -352,10 +352,6 @@ TMonitoringSitesGroups.nb_visits = column_property(
     )
 )
 
-TIndividuals.markings = DB.relationship(
-    TMarkingEvent,
-    primaryjoin=(TIndividuals.id_individual == TMarkingEvent.id_individual),
-)
 
 TIndividuals.nb_sites = column_property(
     select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
