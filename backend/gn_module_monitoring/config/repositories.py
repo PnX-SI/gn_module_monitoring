@@ -213,7 +213,7 @@ def config_schema(module_code, object_type, type_schema="all"):
         {
             "attribut_name": "id_base_site",
             "Label": "Id du site",
-            "type_widget": "integer",
+            "type_widget": "text",
             "required": "true",
         }
 

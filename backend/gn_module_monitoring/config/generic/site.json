@@ -27,7 +27,10 @@
     "nb_visits"
   ],
   "sorts": [
-    {"prop": "last_visit", "dir": "desc"}
+    {
+      "prop": "last_visit",
+      "dir": "desc"
+    }
   ],
   "generic": {
     "id_base_site": {
@@ -54,7 +57,6 @@
       "type_widget": "textarea",
       "attribut_label": "Description"
     },
-
     "id_sites_group": {
       "type_widget": "datalist",
       "attribut_label": "Groupe de sites",
@@ -115,12 +117,12 @@
       "schema_dot_table": "gn_monitoring.t_base_sites"
     },
     "altitude_min": {
-      "type_widget": "integer",
+      "type_widget": "number",
       "attribut_label": "Altitude (min)"
-      },
-      "altitude_max": {
-      "type_widget": "integer",
+    },
+    "altitude_max": {
+      "type_widget": "number",
       "attribut_label": "Altitude (max)"
-      }
+    }
   }
 }
