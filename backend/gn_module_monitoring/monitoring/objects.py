@@ -53,20 +53,3 @@ class MonitoringIndividual(MonitoringObject):
             module_ids.append(id_module)
 
         data["modules"] = module_ids
-
-    def delete(self):
-        # Soft delete
-        if not self._id:
-            raise GeoNatureError("Monitoring : delete object has no id")
-
-        try:
-            self.get()
-            monitoring_object_out = self.serialize(1)
-
-            self._model.active = False
-            DB.session.commit()
-
-            return monitoring_object_out
-
-        except Exception as e:
-            raise GeoNatureError("Delete {} raise error {}".format(self, str(e)))
