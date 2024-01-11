@@ -3,7 +3,6 @@
         site, visit, observation, ...
 """
 
-
 from pathlib import Path
 from werkzeug.exceptions import NotFound
 from flask import request, send_from_directory, url_for, g, current_app
