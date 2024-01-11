@@ -68,31 +68,13 @@ class MonitoringObject(MonitoringObjectSerializer):
             return
 
         table_name = "v_synthese_{}".format(self._module_code)
-        try:
-            import_from_table(
-                "gn_monitoring",
-                table_name,
-                self.config_param("id_field_name"),
-                self.config_value("id_field_name"),
-                limit,
-            )
-        except ValueError as e:
-            # warning
-            log.warning(
-                """Error in module monitoring, process_synthese.
-                Function import_from_table with parameters({}, {}, {}) raises the following error :
-                {}
-                """.format(
-                    table_name,
-                    self.config_param("id_field_name"),
-                    self.config_value("id_field_name"),
-                    e,
-                )
-            )
-            return {"message": "{}".format(e)}, 500
-        except Exception as e:
-            return {"message": "{}".format(e)}, 500
-
+        import_from_table(
+            "gn_monitoring",
+            table_name,
+            self.config_param("id_field_name"),
+            self.config_value("id_field_name"),
+            limit,
+        )
         return True
 
     def create_or_update(self, post_data):
