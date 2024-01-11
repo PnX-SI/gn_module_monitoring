@@ -131,10 +131,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             if b_creation:
                 DB.session.add(self._model)
             DB.session.commit()
-
             self._id = getattr(self._model, self.config_param("id_field_name"))
 
-            self.process_synthese()
+            # TODO module have synthese enabled
+            if not post_data["properties"]["id_module"] == "generic":
+                self.process_synthese()
 
             return self
 

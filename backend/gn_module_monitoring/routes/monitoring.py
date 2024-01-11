@@ -136,38 +136,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
     )
 
 
-def create_or_update_object_api(module_code, object_type, id):
-    """
-    route pour la création ou la modification d'un objet
-    si id est renseigné, c'est une création (PATCH)
-    sinon c'est une modification (POST)
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-    :return: renvoie l'object crée ou modifié
-    :rtype: dict
-    """
-    depth = to_int(request.args.get("depth", 1))
-
-    # recupération des données post
-    post_data = dict(request.get_json())
-    module = get_module("module_code", module_code)
-
-    # on rajoute id_module s'il n'est pas renseigné par défaut ??
-    post_data["properties"]["id_module"] = module.id_module
-
-    return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
-        .create_or_update(post_data)
-        .serialize(depth)
-    )
-
-
-def create_or_update_object_api_sites_sites_group(module_code, object_type, id=None):
+def create_or_update_object_api(module_code, object_type, id=None):
     """
     route pour la création ou la modification d'un objet
     si id est renseigné, c'est une création (PATCH)
@@ -194,8 +163,7 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
 
     # on rajoute id_module s'il n'est pas renseigné par défaut ??
     if "id_module" not in post_data["properties"]:
-        module["id_module"] = "generic"
-        post_data["properties"]["id_module"] = module["id_module"]
+        post_data["properties"]["id_module"] = "generic"
     else:
         post_data["properties"]["id_module"] = module.id_module
 

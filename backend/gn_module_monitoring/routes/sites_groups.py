@@ -26,7 +26,7 @@ from gn_module_monitoring.utils.routes import (
     get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.monitoring import (
-    create_or_update_object_api_sites_sites_group,
+    create_or_update_object_api,
     get_config_object,
 )
 from gn_module_monitoring.utils.utils import to_int
@@ -149,7 +149,7 @@ def patch(scope, _id: int, object_type: str):
 
     module_code = "generic"
     get_config(module_code, force=True)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201
+    return create_or_update_object_api(module_code, object_type, _id), 201
 
 
 @blueprint.route(
@@ -174,7 +174,7 @@ def delete(scope, _id: int, object_type: str):
 def post(object_type: str):
     module_code = "generic"
     get_config(module_code, force=True)
-    return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
+    return create_or_update_object_api(module_code, object_type), 201
 
 
 @blueprint.errorhandler(ValidationError)
