@@ -24,7 +24,7 @@ from gn_module_monitoring import MODULE_CODE
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import (
-    create_or_update_object_api_sites_sites_group,
+    create_or_update_object_api,
     get_config_object,
 )
 from gn_module_monitoring.routes.modules import get_modules
@@ -227,7 +227,7 @@ def post_sites(object_type):
 
     get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
 
-    return create_or_update_object_api_sites_sites_group(module_code, object_type), 201
+    return create_or_update_object_api(module_code, object_type), 201
 
 
 @blueprint.route("/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": "site"})
@@ -256,4 +256,4 @@ def patch_sites(scope, _id, object_type):
 
     get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
 
-    return create_or_update_object_api_sites_sites_group(module_code, object_type, _id), 201
+    return create_or_update_object_api(module_code, object_type, _id), 201

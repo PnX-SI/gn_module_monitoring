@@ -21,6 +21,31 @@ from pypnusershub.db.models import (
     UserApplicationRight,
 )
 from .generic import monitorings_users
+import pytest
+import shutil
+
+from pathlib import Path
+from flask import current_app
+
+from gn_module_monitoring.command.cmd import (
+    cmd_install_monitoring_module,
+    cmd_remove_monitoring_module_cmd,
+)
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from geonature.utils.env import BACKEND_DIR, DB
+
+
+@pytest.fixture
+def install_module_test():
+    # Copy des fichiers du module de test
+    path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
+    path_module_test = path_gn_monitoring / Path("contrib/test")
+    path_gn_monitoring = BACKEND_DIR / Path("media/monitorings/test")
+    shutil.copytree(path_module_test, path_gn_monitoring, dirs_exist_ok=True)
+
+    # Installation du module
+    runner = current_app.test_cli_runner()
+    result = runner.invoke(cmd_install_monitoring_module, ["test"])
 
 
 @pytest.fixture
@@ -31,6 +56,7 @@ def monitoring_module(types_site, monitorings_users):
         module_label="test",
         active_frontend=True,
         active_backend=False,
+        b_synthese=False,
         module_path="test",
         types_site=list(types_site.values()),
     )
@@ -70,6 +96,7 @@ def monitoring_module_wo_types_site():
         active_frontend=True,
         active_backend=False,
         module_path="NoType",
+        b_synthese=False,
     )
 
     with db.session.begin_nested():
