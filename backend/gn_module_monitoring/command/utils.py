@@ -2,9 +2,8 @@ import os
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import and_, text, delete
+from sqlalchemy import and_, text, delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql.expression import select
 from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -153,10 +152,11 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
         ).scalar_one()
         try:
             perm = session.execute(
-                select(PermissionAvailable)
-                .where(PermissionAvailable.module == module)
-                .where(PermissionAvailable.object == perm_object)
-                .where(PermissionAvailable.action == permaction)
+                select(PermissionAvailable).where(
+                    PermissionAvailable.module == module,
+                    PermissionAvailable.object == perm_object,
+                    PermissionAvailable.action == permaction,
+                )
             ).scalar_one()
         except NoResultFound:
             perm = PermissionAvailable(

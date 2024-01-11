@@ -4,8 +4,7 @@ import click
 
 from pathlib import Path
 from flask.cli import with_appcontext
-from sqlalchemy.sql import text
-from sqlalchemy.sql.expression import select
+from sqlalchemy.sql import text, select
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.gn_synthese.models import TSources

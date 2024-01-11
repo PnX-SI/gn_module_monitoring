@@ -3,10 +3,9 @@ from flask.json import jsonify
 import json
 from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.utils.env import db
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload
 from sqlalchemy.sql import func
-from sqlalchemy.sql.expression import select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
@@ -57,7 +56,7 @@ def get_types_site():
         params=params, default_sort="id_nomenclature_type_site", default_direction="desc"
     )
 
-    query = filter_params(BibTypeSite, query=BibTypeSite.query, params=params)
+    query = filter_params(BibTypeSite, query=select(BibTypeSite), params=params)
     query = sort(query=query, model=BibTypeSite, sort=sort_label, sort_dir=sort_dir)
 
     return paginate(
@@ -163,9 +162,9 @@ def get_site_by_id(scope, id, object_type):
 def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
-    query = TMonitoringSites.query
+    query = select(TMonitoringSites)
     query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
-    query_allowed.with_entities(
+    query_allowed.with_only_columns(
         TMonitoringSites.id_base_site,
         TMonitoringSites.base_site_name,
         TMonitoringSites.geom,

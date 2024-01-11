@@ -1,6 +1,6 @@
 import pytest
 
-from sqlalchemy.sql.expression import select
+from sqlalchemy import select
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 
 
@@ -17,7 +17,7 @@ class TestTMonitoringSitesGroups:
 
         query = (
             select(TMonitoringSitesGroups)
-            .filter(
+            .where(
                 TMonitoringSitesGroups.id_sites_group.in_(
                     group.id_sites_group for group in sites_groups.values()
                 )
