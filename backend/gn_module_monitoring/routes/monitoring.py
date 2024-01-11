@@ -9,8 +9,8 @@ from werkzeug.exceptions import NotFound, Forbidden
 from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import select
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp, to_json_resp

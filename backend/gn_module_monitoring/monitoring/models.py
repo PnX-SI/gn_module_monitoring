@@ -474,10 +474,8 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     nb_visits = column_property(
         select(func.count(TMonitoringVisits.id_base_site))
         .where(
-            and_(
-                TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-                TMonitoringSites.id_sites_group == id_sites_group,
-            )
+            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+            TMonitoringSites.id_sites_group == id_sites_group,
         )
         .scalar_subquery()
     )
@@ -674,10 +672,8 @@ TMonitoringSitesGroups.visits = DB.relationship(
 TMonitoringSitesGroups.nb_visits = column_property(
     select(func.count(TMonitoringVisits.id_base_site))
     .where(
-        and_(
-            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-        )
+        TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+        TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
     .scalar_subquery()
 )

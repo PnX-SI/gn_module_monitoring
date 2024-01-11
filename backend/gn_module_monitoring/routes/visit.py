@@ -1,6 +1,6 @@
 from flask import request, current_app
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import select
 from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db

@@ -20,10 +20,10 @@ from gn_module_monitoring.monitoring.models import (
 from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
 from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
-from sqlalchemy import cast, func, text
+from sqlalchemy import cast, func, text, select
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import load_only, joinedload
-from sqlalchemy.sql.expression import Select, select
+from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.monitoring.schemas import paginate_schema

@@ -2,6 +2,7 @@ from flask import g
 from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
 from sqlalchemy.orm import Query, load_only, joinedload
 from sqlalchemy.types import DateTime
+from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
 
@@ -11,7 +12,7 @@ import gn_module_monitoring.monitoring.models as Models
 
 class GnMonitoringGenericFilter:
     @classmethod
-    def filter_by_params(cls, query: Query, params: MultiDict = None, **kwargs):
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
         and_list = [
             true(),
         ]
@@ -27,7 +28,7 @@ class GnMonitoringGenericFilter:
         return query.where(and_query)
 
     @classmethod
-    def sort(cls, query: Query, label: str, direction: str):
+    def sort(cls, query: Select, label: str, direction: str):
         order_by = getattr(cls, label)
         if direction == "desc":
             order_by = order_by.desc()

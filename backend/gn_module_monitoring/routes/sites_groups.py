@@ -2,7 +2,7 @@ import json
 from flask import jsonify, request, g
 from geonature.utils.env import db
 from marshmallow import ValidationError
-from sqlalchemy import func
+from sqlalchemy import func, select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 from geonature.core.gn_permissions import decorators as permissions
@@ -95,7 +95,7 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(object_type: str):
     object_code = "MONITORINGS_GRP_SITES"
-    query = db.select(TMonitoringSitesGroups)
+    query = select(TMonitoringSitesGroups)
     query = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     subquery_not_geom = (
         query.with_only_columns(
@@ -108,7 +108,7 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSites,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
-        .filter(TMonitoringSitesGroups.geom == None)
+        .where(TMonitoringSitesGroups.geom == None)
         .subquery()
     )
 

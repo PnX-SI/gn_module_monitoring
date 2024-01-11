@@ -4,7 +4,7 @@ from geonature.utils.env import db
 from pypnusershub.db.models import User
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
-from sqlalchemy.sql.expression import select
+from sqlalchemy import select
 from flask import current_app
 from pathlib import Path
 

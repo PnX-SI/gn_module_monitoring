@@ -3,8 +3,7 @@ import importlib
 from pathlib import Path
 import json
 
-from sqlalchemy import and_
-from sqlalchemy.sql.expression import select
+from sqlalchemy import and_, select
 from sqlalchemy.exc import NoResultFound
 
 from geonature.core.gn_commons.models import BibTablesLocation, TModules

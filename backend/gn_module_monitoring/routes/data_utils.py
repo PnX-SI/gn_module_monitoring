@@ -8,9 +8,8 @@
 """
 
 from flask import request
-from sqlalchemy import and_, inspect, cast
+from sqlalchemy import and_, inspect, cast, select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy.sql.expression import select
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnnomenclature.repository import get_nomenclature_list
