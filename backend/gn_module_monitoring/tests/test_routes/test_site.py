@@ -213,5 +213,5 @@ class TestSite:
 
         assert r.json["success"] == "Item is successfully deleted"
         with pytest.raises(Exception) as e:
-            TMonitoringSites.query.get_or_404(id_base_site)
+            db.get_or_404(TMonitoringSites, id_base_site)
         assert "404 Not Found" in str(e.value)

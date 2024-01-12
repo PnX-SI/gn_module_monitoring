@@ -1,6 +1,8 @@
 import pytest
 from werkzeug.datastructures import MultiDict
 
+from sqlalchemy import select
+
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
 from gn_module_monitoring.utils.routes import get_limit_page, paginate
@@ -21,7 +23,7 @@ def test_paginate(sites):
     page = 2
 
     res = paginate(
-        query=TMonitoringSites.query, schema=MonitoringSitesSchema, limit=limit, page=page
+        query=select(TMonitoringSites), schema=MonitoringSitesSchema, limit=limit, page=page
     )
 
     assert res.json["page"] == page

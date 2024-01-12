@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
 from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
@@ -64,7 +65,14 @@ def monitoring_module(types_site, monitorings_users):
     with db.session.begin_nested():
         db.session.add(t_monitoring_module)
         # Set module Permission
-        actions = {code: PermAction.query.filter_by(code_action=code).one() for code in "CRUVED"}
+
+        actions = {
+            code: db.session.execute(
+                select(PermAction).where(PermAction.code_action == code)
+            ).scalar_one()
+            for code in "CRUVED"
+        }
+
         type_code_object = [
             "MONITORINGS_MODULES",
             "MONITORINGS_GRP_SITES",
@@ -72,7 +80,10 @@ def monitoring_module(types_site, monitorings_users):
             "MONITORINGS_VISITES",
         ]
         for co in type_code_object:
-            object_all = PermObject.query.filter_by(code_object=co).one()
+            object_all = db.session.execute(
+                select(PermObject).where(PermObject.code_object == co)
+            ).scalar_one()
+
             for action in actions.values():
                 for obj in [object_all] + t_monitoring_module.objects:
                     permission = Permission(

@@ -28,12 +28,19 @@ from pypnusershub.db.models import (
 
 @pytest.fixture(scope="session")
 def monitorings_users(app):
-    app = Application.query.filter(Application.code_application == "GN").one()
-    profil = Profil.query.filter(Profil.nom_profil == "Lecteur").one()
+    app = db.session.execute(
+        select(Application).where(Application.code_application == "GN")
+    ).scalar_one()
+    profil = db.session.execute(select(Profil).where(Profil.nom_profil == "Lecteur")).scalar_one()
 
-    modules = TModules.query.all()
+    modules = db.session.scalars(select(TModules)).all()
 
-    actions = {code: PermAction.query.filter_by(code_action=code).one() for code in "CRUVED"}
+    actions = {
+        code: db.session.execute(
+            select(PermAction).where(PermAction.code_action == code)
+        ).scalar_one()
+        for code in "CRUVED"
+    }
     type_code_object = [
         "MONITORINGS_MODULES",
         "MONITORINGS_GRP_SITES",
