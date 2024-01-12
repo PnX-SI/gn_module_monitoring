@@ -263,12 +263,15 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   onDelete(row) {
-    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
-    this._objectService.changeDisplayingDeleteModal(this.bDeleteModal);
-    this._objectService.changeSelectRow({ rowSelected: row, objectType: this.child0.objectType });
-    this._objectService.currentDeleteModal.subscribe(
-      (deletedModal) => (this.bDeleteModal = deletedModal)
-    );
+    this.child0.id = row.id
+    this.child0.delete().subscribe((objData) => {
+      this.bDeleteSpinner = this.bDeleteModal = false;
+      this.child0.deleted = true;
+      this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+      setTimeout(() => {
+        window.location.reload()
+      }, 100);
+    });
   }
 
   alertMessage(row) {
