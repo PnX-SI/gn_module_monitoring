@@ -17,6 +17,7 @@ La vue pour la synthèse
         * donner des valeurs plus spécifique au module pour les champs
             de type nomenclature (la plupart sont en commentaires dans
             la vue)
+        * :warning: Les olonnes `id_observation` et `unique_id_sinp` sont obligatoire pour assurer la synchronisation entre la vue et la synthese
     * À la configuration du sous-module (page du sous-module, cliquer
         sur `éditer le module`), activer la synthèse.
 
