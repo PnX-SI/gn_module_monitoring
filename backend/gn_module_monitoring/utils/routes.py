@@ -4,6 +4,8 @@ from sqlalchemy import and_
 from flask import Response, g
 from flask.json import jsonify
 from geonature.utils.env import DB
+from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
+from geonature.utils.errors import GeoNatureError
 from pypnusershub.db.models import User
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
@@ -17,8 +19,6 @@ from gn_module_monitoring.monitoring.models import (
 )
 
 
-from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
-from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
 from sqlalchemy import cast, func, text, select
 from sqlalchemy.dialects.postgresql import JSON
@@ -79,7 +79,7 @@ def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
 def geojson_query(subquery) -> bytes:
     subquery_name = "q"
     subquery = subquery.alias(subquery_name)
-    query = DB.session.query(
+    query = select(
         func.json_build_object(
             text("'type'"),
             text("'FeatureCollection'"),
@@ -87,7 +87,7 @@ def geojson_query(subquery) -> bytes:
             func.json_agg(cast(func.st_asgeojson(subquery), JSON)),
         )
     )
-    result = query.first()
+    result = DB.session.execute(query.limit(1)).first()
     if len(result) > 0:
         return result[0]
     return b""
