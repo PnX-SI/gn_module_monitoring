@@ -1,5 +1,8 @@
 import pytest
 
+from sqlalchemy import select
+
+from geonature.utils.env import db
 from gn_module_monitoring.monitoring.models import BibTypeSite
 
 
@@ -7,14 +10,16 @@ from gn_module_monitoring.monitoring.models import BibTypeSite
 class TestBibTypeSite:
     def test_get_bib_type_site(self, types_site):
         type_site = list(types_site.values())[0]
-        get_type_site = BibTypeSite.query.filter_by(
-            id_nomenclature_type_site=type_site.id_nomenclature_type_site
-        ).one()
+        get_type_site = db.session.execute(
+            select(BibTypeSite).where(
+                BibTypeSite.id_nomenclature_type_site == type_site.id_nomenclature_type_site
+            )
+        ).scalar_one()
 
         assert get_type_site.id_nomenclature_type_site == type_site.id_nomenclature_type_site
 
     def test_get_all_bib_type_site(self, types_site):
-        get_types_site = BibTypeSite.query.all()
+        get_types_site = db.session.scalars(select(BibTypeSite)).all()
 
         assert all(
             type_site.id_nomenclature_type_site

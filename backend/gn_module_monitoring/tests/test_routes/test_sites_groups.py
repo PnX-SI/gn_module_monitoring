@@ -1,6 +1,10 @@
 import pytest
 from flask import url_for
 
+from sqlalchemy import select
+
+from geonature.utils.env import db
+
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
@@ -59,9 +63,11 @@ class TestSitesGroups:
         assert schema.dump(sites_groups[name_not_present]) not in json_sites_groups
 
     def test_serialize_sites_groups(self, sites_groups, sites):
-        groups = TMonitoringSitesGroups.query.filter(
-            TMonitoringSitesGroups.id_sites_group.in_(
-                [s.id_sites_group for s in sites_groups.values()]
+        groups = db.session.scalars(
+            select(TMonitoringSitesGroups).where(
+                TMonitoringSitesGroups.id_sites_group.in_(
+                    [s.id_sites_group for s in sites_groups.values()]
+                )
             )
         ).all()
         schema = MonitoringSitesGroupsSchema()
