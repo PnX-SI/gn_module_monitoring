@@ -1,19 +1,17 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+import geoalchemy2
 from flask import g
-from sqlalchemy import join, select, func, and_, or_, false
-from sqlalchemy.inspection import inspect
-from sqlalchemy.sql import case
+
+from uuid import uuid4
+
+from sqlalchemy import join, select, func, and_
 from sqlalchemy.orm import (
     column_property,
-    ColumnProperty,
-    RelationshipProperty,
-    class_mapper,
     aliased,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from uuid import uuid4
 
 from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
@@ -21,7 +19,7 @@ from utils_flask_sqla_geo.serializers import geoserializable
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.declarative import declared_attr
 
-from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from pypnnomenclature.models import TNomenclatures
 from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
 from geonature.core.gn_meta.models import TDatasets
@@ -38,57 +36,8 @@ from gn_module_monitoring.monitoring.queries import (
 )
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
-# from geoalchemy2 import Geometry
-import geoalchemy2
 
-
-class GenericModel:
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
-
-    @classmethod
-    def set_id(cls) -> None:
-        pk_string = class_mapper(cls).primary_key[0].name
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-
-    @classmethod
-    def get_id_name(cls) -> None:
-        pk_string = class_mapper(cls).primary_key[0].name
-        if hasattr(cls, "id_g") == False:
-            pk_value = getattr(cls, pk_string)
-            setattr(cls, "id_g", pk_value)
-        return pk_string
-
-    @classmethod
-    def find_by_id(cls, _id: int) -> "GenericModel":
-        cls.set_id()
-        return cls.query.get_or_404(_id)
-
-    @classmethod
-    def attribute_names(cls):
-        return [
-            prop.key
-            for prop in class_mapper(cls).iterate_properties
-            if isinstance(prop, ColumnProperty)
-        ]
-
-    # TODO: Voir si on garde cette méthode pour simplifier la recherche des relationship lors des filtres
-    @classmethod
-    def attribute_names_relationship(cls):
-        relationship_cols = inspect(cls).relationships.items()
-        return relationship_cols
-        # return [ cols[0] for cols in relationship_cols]
-        # return [
-        #     prop.key
-        #     for prop in class_mapper(cls).iterate_properties
-        #     if isinstance(prop, RelationshipProperty)
-        # ]
-
-
-class PermissionModel(GenericModel):
+class PermissionModel:
     def has_permission(
         self,
         cruved_object={"C": False, "R": False, "U": False, "D": False, "E": False, "V": False},

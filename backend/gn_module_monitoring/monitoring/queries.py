@@ -1,6 +1,6 @@
 from flask import g
 from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
-from sqlalchemy.orm import Query, load_only, joinedload
+from sqlalchemy.orm import Query, class_mapper
 from sqlalchemy.types import DateTime
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
@@ -11,6 +11,14 @@ import gn_module_monitoring.monitoring.models as Models
 
 
 class GnMonitoringGenericFilter:
+    @classmethod
+    def get_id_name(cls) -> None:
+        pk_string = class_mapper(cls).primary_key[0].name
+        if hasattr(cls, "id_g") == False:
+            pk_value = getattr(cls, pk_string)
+            setattr(cls, "id_g", pk_value)
+        return pk_string
+
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
         and_list = [

@@ -197,7 +197,7 @@ class TestSite:
         assert response.status_code == 201
 
         obj_created = response.json
-        res = TMonitoringSites.find_by_id(obj_created["id"])
+        res = db.get_or_404(TMonitoringSites, obj_created["id"])
         assert (
             res.as_dict()["base_site_name"]
             == site_to_post_with_types["properties"]["base_site_name"]
