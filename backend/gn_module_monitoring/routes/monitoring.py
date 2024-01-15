@@ -345,16 +345,20 @@ def export_all_observations(module_code, method):
     :returns: Array of dict
     """
     id_dataset = request.args.get("id_dataset", None, int)
-    export = GenericQueryGeo(
-        DB=DB,
-        tableName=f"v_export_{module_code.lower()}_{method}",
-        schemaName="gn_monitoring",
-        filters=[],
-        limit=50000,
-        offset=0,
-        geometry_field=None,
-        srid=None,
-    )
+    try:
+        export = GenericQueryGeo(
+            DB=DB,
+            tableName=f"v_export_{module_code.lower()}_{method}",
+            schemaName="gn_monitoring",
+            filters=[],
+            limit=50000,
+            offset=0,
+            geometry_field=None,
+            srid=None,
+        )
+    except KeyError:
+        return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
+
     model = export.get_model()
     columns = export.view.tableDef.columns
     schema = export.get_marshmallow_schema()
