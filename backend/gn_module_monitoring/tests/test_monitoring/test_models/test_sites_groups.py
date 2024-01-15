@@ -36,7 +36,7 @@ class TestTMonitoringSitesGroups:
 
         query = (
             select(TMonitoringSitesGroups)
-            .filter(
+            .where(
                 TMonitoringSitesGroups.id_sites_group.in_(
                     group.id_sites_group for group in sites_groups.values()
                 )

@@ -48,7 +48,7 @@ def get_sites_groups(object_type: str):
     sort_label, sort_dir = get_sort(
         params=params, default_sort="id_sites_group", default_direction="desc"
     )
-    query = db.select(TMonitoringSitesGroups)
+    query = select(TMonitoringSitesGroups)
     query = filter_params(TMonitoringSitesGroups, query=query, params=params)
 
     query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
@@ -117,7 +117,7 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSitesGroups.id_sites_group,
             TMonitoringSitesGroups.sites_group_name,
             TMonitoringSitesGroups.geom,
-        ).filter(TMonitoringSitesGroups.geom != None)
+        ).where(TMonitoringSitesGroups.geom != None)
     ).subquery()
 
     result_1 = geojson_query(subquery_not_geom)

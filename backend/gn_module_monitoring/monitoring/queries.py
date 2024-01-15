@@ -1,6 +1,6 @@
 from flask import g
 from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
-from sqlalchemy.orm import Query, class_mapper
+from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import DateTime
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
@@ -63,7 +63,7 @@ class GnMonitoringGenericFilter:
 
     @classmethod
     def filter_by_readable(
-        cls, query: Query, module_code="MONITORINGS", object_code=None, user=None
+        cls, query: Select, module_code="MONITORINGS", object_code=None, user=None
     ):
         """
         Return the object where the user has autorization via its CRUVED
@@ -76,7 +76,7 @@ class GnMonitoringGenericFilter:
 
 class SitesQuery(GnMonitoringGenericFilter):
     @classmethod
-    def filter_by_scope(cls, query: Query, scope, user=None):
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
@@ -98,7 +98,7 @@ class SitesQuery(GnMonitoringGenericFilter):
 
 class SitesGroupsQuery(GnMonitoringGenericFilter):
     @classmethod
-    def filter_by_scope(cls, query: Query, scope, user=None):
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
@@ -118,7 +118,7 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
 
 class VisitQuery(GnMonitoringGenericFilter):
     @classmethod
-    def filter_by_scope(cls, query: Query, scope, user=None):
+    def filter_by_scope(cls, query: Select, scope, user=None):
         # Problem pas le même comportement que pour les sites et groupes de site
         if user is None:
             user = g.current_user
@@ -141,7 +141,7 @@ class VisitQuery(GnMonitoringGenericFilter):
 
 class ObservationsQuery(GnMonitoringGenericFilter):
     @classmethod
-    def filter_by_scope(cls, query: Query, scope, user=None):
+    def filter_by_scope(cls, query: Select, scope, user=None):
         if user is None:
             user = g.current_user
         if scope == 0:
