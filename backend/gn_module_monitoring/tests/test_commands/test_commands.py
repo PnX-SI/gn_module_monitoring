@@ -47,10 +47,10 @@ class TestCommands:
         # Commande process all
         result = runner.invoke(cmd_process_all, ["test"])
         # Pas de result juste <Result okay>
-        assert result
+        assert result.exit_code == 0
         result = runner.invoke(cmd_process_export_csv, ["test"])
         # Pas de result juste <Result okay>
-        assert result
+        assert result.exit_code == 0
 
     def test_process_all_without_module(self, install_module_test):
         runner = current_app.test_cli_runner()

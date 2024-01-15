@@ -48,6 +48,8 @@ def install_module_test():
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_install_monitoring_module, ["test"])
 
+    assert result.exit_code == 0
+
 
 @pytest.fixture
 def monitoring_module(types_site, monitorings_users):
