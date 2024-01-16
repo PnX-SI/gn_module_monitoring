@@ -116,8 +116,6 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return
         return actors_organism_list
 
     def has_instance_permission(self, scope):
@@ -198,8 +196,6 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return actors_organism_list
         return actors_organism_list
 
     def has_instance_permission(self, scope):
@@ -278,7 +274,6 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
 
     @hybrid_property
     def organism_actors(self):
-        # return self.inventor.id_organisme
         actors_organism_list = []
         if isinstance(self.inventor, list):
             for actor in self.inventor:
@@ -287,6 +282,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         else:
             if hasattr(self.inventor, "id_organisme"):
                 actors_organism_list.append(self.inventor.id_organisme)
+        return actors_organism_list
 
     def has_instance_permission(self, scope):
         if scope == 0:
@@ -386,8 +382,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
-        else:
-            return
         return actors_organism_list
 
     def has_instance_permission(self, scope):
