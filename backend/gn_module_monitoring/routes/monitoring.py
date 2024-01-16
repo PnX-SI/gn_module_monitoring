@@ -9,11 +9,12 @@ from werkzeug.exceptions import NotFound, Forbidden
 from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp, to_json_resp
-from utils_flask_sqla_geo.generic import GenericTableGeo
+from utils_flask_sqla_geo.generic import GenericQueryGeo
 from utils_flask_sqla.generic import serializeQuery
 
 
@@ -40,10 +41,11 @@ from gn_module_monitoring.utils.routes import (
 def set_current_module(endpoint, values):
     # recherche du sous-module courrant
     requested_module_code = values.get("module_code") or MODULE_CODE
-    current_module = (
-        TModules.query.options(joinedload(TModules.objects))
-        .filter_by(module_code=requested_module_code)
-        .first_or_404(f"No module with code {requested_module_code} {endpoint}")
+    current_module = DB.first_or_404(
+        statement=select(TModules)
+        .options(joinedload(TModules.objects))
+        .where(TModules.module_code == requested_module_code),
+        description=f"No module with code {requested_module_code} {endpoint}",
     )
     g.current_module = current_module
 
@@ -59,10 +61,11 @@ def set_current_module(endpoint, values):
             return
 
         # Test si l'object de permission existe
-        requested_permission_object = TObjects.query.filter_by(
-            code_object=requested_permission_object_code
-        ).first_or_404(
-            f"No permission object with code {requested_permission_object_code} {endpoint}"
+        requested_permission_object = DB.first_or_404(
+            statement=select(TObjects).where(
+                TObjects.code_object == requested_permission_object_code
+            ),
+            description=f"No permission object with code {requested_permission_object_code} {endpoint}",
         )
 
         # si l'object de permission est associé au module => il devient l'objet courant
@@ -133,38 +136,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
     )
 
 
-def create_or_update_object_api(module_code, object_type, id):
-    """
-    route pour la création ou la modification d'un objet
-    si id est renseigné, c'est une création (PATCH)
-    sinon c'est une modification (POST)
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-    :return: renvoie l'object crée ou modifié
-    :rtype: dict
-    """
-    depth = to_int(request.args.get("depth", 1))
-
-    # recupération des données post
-    post_data = dict(request.get_json())
-    module = get_module("module_code", module_code)
-
-    # on rajoute id_module s'il n'est pas renseigné par défaut ??
-    post_data["properties"]["id_module"] = module.id_module
-
-    return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
-        .create_or_update(post_data)
-        .serialize(depth)
-    )
-
-
-def create_or_update_object_api_sites_sites_group(module_code, object_type, id=None):
+def create_or_update_object_api(module_code, object_type, id=None):
     """
     route pour la création ou la modification d'un objet
     si id est renseigné, c'est une création (PATCH)
@@ -191,8 +163,7 @@ def create_or_update_object_api_sites_sites_group(module_code, object_type, id=N
 
     # on rajoute id_module s'il n'est pas renseigné par défaut ??
     if "id_module" not in post_data["properties"]:
-        module["id_module"] = "generic"
-        post_data["properties"]["id_module"] = module["id_module"]
+        post_data["properties"]["id_module"] = "generic"
     else:
         post_data["properties"]["id_module"] = module.id_module
 
@@ -374,25 +345,35 @@ def export_all_observations(module_code, method):
     :returns: Array of dict
     """
     id_dataset = request.args.get("id_dataset", None, int)
+    try:
+        export = GenericQueryGeo(
+            DB=DB,
+            tableName=f"v_export_{module_code.lower()}_{method}",
+            schemaName="gn_monitoring",
+            filters=[],
+            limit=50000,
+            offset=0,
+            geometry_field=None,
+            srid=None,
+        )
+    except KeyError:
+        return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
-    view = GenericTableGeo(
-        tableName=f"v_export_{module_code.lower()}_{method}",
-        schemaName="gn_monitoring",
-        engine=DB.engine,
-    )
-    columns = view.tableDef.columns
-    q = DB.session.query(*columns)
-    # Filter with dataset if is set
-    if hasattr(columns, "id_dataset") and id_dataset:
-        q = q.filter(columns.id_dataset == id_dataset)
-    data = q.all()
+    model = export.get_model()
+    columns = export.view.tableDef.columns
+    schema = export.get_marshmallow_schema()
 
+    q = select(model)
+    #  Filter with dataset if is set
+    if hasattr(model, "id_dataset") and id_dataset:
+        q = q.where(getattr(model, "id_dataset") == id_dataset)
+
+    data = DB.session.scalars(q).all()
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
-
     return to_csv_resp(
         filename,
-        data=serializeQuery(data, q.column_descriptions),
+        data=schema().dump(data, many=True),
         separator=";",
         columns=[
             db_col.key for db_col in columns if db_col.key != "geom"

@@ -2,6 +2,9 @@ import json
 import os
 
 import pytest
+
+from sqlalchemy import select
+
 from geonature.utils.env import db
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
@@ -21,8 +24,10 @@ def get_test_data(filename):
 def nomenclature_types_site():
     mnemoniques = ("Test_Grotte", "Test_Mine")
     nomenclatures = []
-    type_site = BibNomenclaturesTypes.query.filter(
-        BibNomenclaturesTypes.mnemonique == "TYPE_SITE"
+    type_site = db.session.scalars(
+        select(BibNomenclaturesTypes)
+        .where(BibNomenclaturesTypes.mnemonique == "TYPE_SITE")
+        .limit(1)
     ).first()
     for mnemo in mnemoniques:
         nomenclatures.append(

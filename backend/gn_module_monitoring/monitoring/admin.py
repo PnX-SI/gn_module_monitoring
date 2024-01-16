@@ -5,6 +5,7 @@ from geonature.core.admin.admin import CruvedProtectedMixin
 from geonature.utils.env import DB
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 from wtforms.validators import ValidationError
+from sqlalchemy import exists
 
 from gn_module_monitoring.monitoring.models import BibTypeSite
 from gn_module_monitoring.monitoring.utils import json_formatter
@@ -26,9 +27,11 @@ class Unique:
     def __call__(self, form, field):
         if field.object_data == field.data:
             return
-        if self.model.query.filter(
-            getattr(self.model, self.field) == getattr(field.data, self.compare_field)
-        ).first():
+        if DB.session.scalar(
+            exists()
+            .where(getattr(self.model, self.field) == getattr(field.data, self.compare_field))
+            .select()
+        ):
             raise ValidationError(self.message)
 
 

@@ -3,7 +3,7 @@
 """
 import datetime
 import uuid
-from flask import current_app
+from flask import current_app, g
 from marshmallow import EXCLUDE
 from .base import MonitoringObjectBase, monitoring_definitions
 from ..utils.utils import to_int
@@ -84,17 +84,18 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_readable_list_object(self, relation_name, children_type):
         childs_model = monitoring_definitions.MonitoringModel(object_type=children_type)
 
-        if isinstance(childs_model, PermissionModel) and not isinstance(
-            childs_model, TMonitoringModules
-        ):
-            all_object_readable = childs_model.query.filter_by_readable(
+        if getattr(childs_model, "has_instance_permission"):
+            scope = get_scopes_by_action(
+                id_role=g.current_user.id_role,
                 module_code=self._module_code,
                 object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
                     children_type
                 ],
-            ).all()
-            # child_object_readable = [v for v in childs_model if v in all_object_readable]
-            return all_object_readable
+            )["R"]
+            childs_model = [
+                m for m in getattr(self._model, relation_name) if m.has_instance_permission(scope)
+            ]
+            return childs_model
         else:
             childs_model = getattr(self._model, relation_name)
             return childs_model

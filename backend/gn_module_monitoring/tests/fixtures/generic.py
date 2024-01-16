@@ -4,6 +4,7 @@ from geonature.utils.env import db
 from pypnusershub.db.models import User
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
+from sqlalchemy import select
 from flask import current_app
 from pathlib import Path
 
@@ -27,17 +28,25 @@ from pypnusershub.db.models import (
 
 @pytest.fixture(scope="session")
 def monitorings_users(app):
-    app = Application.query.filter(Application.code_application == "GN").one()
-    profil = Profil.query.filter(Profil.nom_profil == "Lecteur").one()
+    app = db.session.execute(
+        select(Application).where(Application.code_application == "GN")
+    ).scalar_one()
+    profil = db.session.execute(select(Profil).where(Profil.nom_profil == "Lecteur")).scalar_one()
 
-    modules = TModules.query.all()
+    modules = db.session.scalars(select(TModules)).all()
 
-    actions = {code: PermAction.query.filter_by(code_action=code).one() for code in "CRUVED"}
+    actions = {
+        code: db.session.execute(
+            select(PermAction).where(PermAction.code_action == code)
+        ).scalar_one()
+        for code in "CRUVED"
+    }
     type_code_object = [
         "MONITORINGS_MODULES",
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
+        "ALL",
     ]
 
     def create_user(username, organisme=None, scope=None, sensitivity_filter=False):
@@ -60,10 +69,12 @@ def monitorings_users(app):
             db.session.add(right)
             if scope > 0:
                 for co in type_code_object:
-                    object_all = PermObject.query.filter_by(code_object=co).one()
+                    object_all = db.session.scalars(
+                        select(PermObject).where(PermObject.code_object == co)
+                    ).all()
                     for action in actions.values():
                         for module in modules:
-                            for obj in [object_all] + module.objects:
+                            for obj in object_all + module.objects:
                                 permission = Permission(
                                     role=user,
                                     action=action,

@@ -197,7 +197,7 @@ class TestSite:
         assert response.status_code == 201
 
         obj_created = response.json
-        res = TMonitoringSites.find_by_id(obj_created["id"])
+        res = db.get_or_404(TMonitoringSites, obj_created["id"])
         assert (
             res.as_dict()["base_site_name"]
             == site_to_post_with_types["properties"]["base_site_name"]
@@ -213,5 +213,5 @@ class TestSite:
 
         assert r.json["success"] == "Item is successfully deleted"
         with pytest.raises(Exception) as e:
-            TMonitoringSites.query.get_or_404(id_base_site)
+            db.get_or_404(TMonitoringSites, id_base_site)
         assert "404 Not Found" in str(e.value)
