@@ -68,8 +68,8 @@ def filter_params(model, query: Select, params: MultiDict) -> Select:
     if len(params) == 0:
         return query
 
-    if getattr(query, "filter_by_params", None):
-        return query.filter_by_params(params)
+    if getattr(model, "filter_by_params", None):
+        return model.filter_by_params(query=query, params=params)
     else:
         raise GeoNatureError("filter_params : La requête n'a pas de méthode filter_by_params")
 

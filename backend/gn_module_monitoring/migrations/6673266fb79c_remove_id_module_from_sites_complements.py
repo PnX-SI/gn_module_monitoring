@@ -12,7 +12,7 @@ from gn_module_monitoring import MODULE_CODE
 
 # revision identifiers, used by Alembic.
 revision = "6673266fb79c"
-down_revision = "a5dce2633e4c"
+down_revision = "e2b66850b5ee"
 branch_labels = None
 depends_on = None
 

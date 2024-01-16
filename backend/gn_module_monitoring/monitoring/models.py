@@ -32,7 +32,7 @@ from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
 from pypnusershub.db.models import User
-from geonature.core.gn_monitoring.models import cor_visit_observer
+from geonature.core.gn_monitoring.models import cor_visit_observer, TObservations
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
     SitesQuery,
@@ -77,34 +77,6 @@ class TMonitoringObservationDetails(DB.Model):
 
 
 @serializable
-class TObservations(DB.Model, PermissionModel):
-    __tablename__ = "t_observations"
-    __table_args__ = {"schema": "gn_monitoring"}
-    id_observation = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
-    id_base_visit = DB.Column(DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"))
-    id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
-    digitiser = DB.relationship(
-        User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
-    )
-    cd_nom = DB.Column(DB.Integer)
-    comments = DB.Column(DB.String)
-    uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
-
-    medias = DB.relationship(
-        TMedias,
-        primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
-        foreign_keys=[TMedias.uuid_attached_row],
-    )
-
-    observation_details = DB.relation(
-        TMonitoringObservationDetails,
-        primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
-        foreign_keys=[TMonitoringObservationDetails.id_observation],
-        cascade="all,delete",
-    )
-
-
-@serializable
 class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery):
     __tablename__ = "t_observation_complements"
     __table_args__ = {"schema": "gn_monitoring"}
@@ -118,6 +90,19 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
         DB.ForeignKey("gn_monitoring.t_observations.id_observation"),
         primary_key=True,
         nullable=False,
+    )
+
+    medias = DB.relationship(
+        TMedias,
+        primaryjoin=(TMedias.uuid_attached_row == TObservations.uuid_observation),
+        foreign_keys=[TMedias.uuid_attached_row],
+    )
+
+    observation_details = DB.relation(
+        TMonitoringObservationDetails,
+        primaryjoin=(id_observation == TMonitoringObservationDetails.id_observation),
+        foreign_keys=[TMonitoringObservationDetails.id_observation],
+        cascade="all,delete",
     )
 
     @hybrid_property
@@ -315,24 +300,6 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
                 return True
         elif scope == 3:
             return True
-
-
-@serializable
-class BibTypeSite(DB.Model, PermissionModel, MonitoringQuery):
-    __tablename__ = "bib_type_site"
-    __table_args__ = {"schema": "gn_monitoring"}
-
-    id_nomenclature_type_site = DB.Column(
-        DB.ForeignKey("ref_nomenclatures.t_nomenclatures.id_nomenclature"),
-        nullable=False,
-        primary_key=True,
-    )
-    config = DB.Column(JSONB)
-    nomenclature = DB.relationship(
-        TNomenclatures, uselist=False, backref=DB.backref("bib_type_site", uselist=False)
-    )
-
-    sites = DB.relationship("TMonitoringSites", secondary=cor_type_site, lazy="noload")
 
 
 @geoserializable(geoCol="geom", idCol="id_sites_group")
