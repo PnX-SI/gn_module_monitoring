@@ -33,10 +33,10 @@ from geonature.utils.errors import GeoNatureError
 from ..blueprint import blueprint
 
 from ..config.repositories import get_config
+from geonature.core.gn_monitoring.models import BibTypeSite
 from gn_module_monitoring.utils.routes import get_sites_groups_from_module_id
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.monitoring.models import (
-    BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
 )
