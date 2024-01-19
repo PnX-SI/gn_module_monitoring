@@ -253,6 +253,8 @@ def patch_sites(scope, _id, object_type):
     module_code = "generic"
     post_data = dict(request.get_json())
 
-    get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
+    get_config_with_specific(
+        module_code, force=True, complements=post_data.get("dataComplement", {})
+    )
 
     return create_or_update_object_api(module_code, object_type, _id), 201

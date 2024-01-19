@@ -148,10 +148,12 @@ class ObservationsQuery(GnMonitoringGenericFilter):
             query = query.where(false())
         elif scope in (1, 2):
             ors = [
-                Models.TObservations.id_digitiser == user.id_role,
+                Models.TMonitoringObservations.id_digitiser == user.id_role,
             ]
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
-                ors += [Models.TObservations.digitiser.has(id_organisme=user.id_organisme)]
+                ors += [
+                    Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
+                ]
             query = query.where(or_(*ors))
         return query

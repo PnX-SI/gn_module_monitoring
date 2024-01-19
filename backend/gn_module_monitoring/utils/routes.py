@@ -11,7 +11,7 @@ from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
-    cor_type_site,
+    cor_site_type,
     TBaseSites,
     cor_module_type,
     TModules,
@@ -65,15 +65,27 @@ def paginate_scope(
 
 
 def filter_params(model, query: Select, params: MultiDict) -> Select:
-    if len(params) != 0:
-        query = model.filter_by_params(query=query, params=params)
-    return query
+    if len(params) == 0:
+        return query
+
+    if getattr(model, "filter_by_params", None):
+        return model.filter_by_params(query=query, params=params)
+    else:
+        raise GeoNatureError("filter_params : La requête n'a pas de méthode filter_by_params")
 
 
 def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
-    if sort_dir in ["desc", "asc"]:
-        query = model.sort(query=query, label=sort, direction=sort_dir)
-    return query
+    if sort_dir not in ["desc", "asc"]:
+        return query
+
+    if getattr(query, "sort", None):
+        return query.sort(label=sort, direction=sort_dir)
+
+    if getattr(model, sort, None):
+        order_by = getattr(model, sort)
+        if sort_dir == "desc":
+            order_by = order_by.desc()
+        return query.order_by(order_by)
 
 
 def geojson_query(subquery) -> bytes:
@@ -104,10 +116,10 @@ def get_sites_groups_from_module_id(module_id: int):
             TMonitoringSites,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
-        .join(cor_type_site, cor_type_site.c.id_base_site == TBaseSites.id_base_site)
+        .join(cor_site_type, cor_site_type.c.id_base_site == TBaseSites.id_base_site)
         .join(
             BibTypeSite,
-            BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
+            BibTypeSite.id_nomenclature_type_site == cor_site_type.c.id_type_site,
         )
         .join(
             cor_module_type,
@@ -123,11 +135,11 @@ def query_all_types_site_from_site_id(id_site: int):
     query = (
         select(BibTypeSite)
         .join(
-            cor_type_site,
-            BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
+            cor_site_type,
+            BibTypeSite.id_nomenclature_type_site == cor_site_type.c.id_type_site,
         )
-        .join(TBaseSites, cor_type_site.c.id_base_site == TBaseSites.id_base_site)
-        .where(cor_type_site.c.id_base_site == id_site)
+        .join(TBaseSites, cor_site_type.c.id_base_site == TBaseSites.id_base_site)
+        .where(cor_site_type.c.id_base_site == id_site)
     )
 
     return DB.session.scalars(query).unique().all()
