@@ -8,8 +8,6 @@ from werkzeug.exceptions import Forbidden
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.modules.repositories import get_module
-from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring import MODULE_CODE
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
@@ -20,7 +18,6 @@ from gn_module_monitoring.utils.routes import (
     geojson_query,
     get_limit_page,
     get_sort,
-    paginate,
     paginate_scope,
     sort,
     get_objet_with_permission_boolean,

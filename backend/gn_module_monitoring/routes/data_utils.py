@@ -14,7 +14,6 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnnomenclature.repository import get_nomenclature_list
 
-# from geonature.core.taxonomie.models import Taxref, BibListes
 from geonature.core.users.models import VUserslistForallMenu
 
 
@@ -30,10 +29,10 @@ from geonature.utils.env import DB
 
 from geonature.utils.errors import GeoNatureError
 
-from ..blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint
 
-from ..config.repositories import get_config
 from geonature.core.gn_monitoring.models import BibTypeSite
+from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.utils.routes import get_sites_groups_from_module_id
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.monitoring.models import (

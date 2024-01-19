@@ -1,9 +1,7 @@
-from flask import request
-
 from utils_flask_sqla.response import json_resp
 
-from ..blueprint import blueprint
-from ..config.repositories import get_config, get_config_frontend
+from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.config.repositories import get_config_frontend
 
 
 @blueprint.route("/config/<string:module_code>", methods=["GET"])

@@ -11,7 +11,6 @@ from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
-    paginate,
     paginate_scope,
     sort,
     get_objet_with_permission_boolean,
