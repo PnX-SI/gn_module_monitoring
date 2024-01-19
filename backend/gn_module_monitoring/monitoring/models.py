@@ -25,7 +25,7 @@ from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
     cor_module_type,
-    cor_type_site,
+    cor_site_type,
     BibTypeSite,
 )
 from geonature.core.gn_meta.models import TDatasets
@@ -273,7 +273,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         .correlate_except(TBaseSites)
         .scalar_subquery()
     )
-    types_site = DB.relationship("BibTypeSite", secondary=cor_type_site, overlaps="sites")
+    types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     @hybrid_property
     def organism_actors(self):
@@ -483,14 +483,14 @@ TMonitoringModules.sites_groups = DB.relationship(
     primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
     secondaryjoin=and_(
         TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
-        sites_alias.id_base_site == cor_type_site.c.id_base_site,
+        sites_alias.id_base_site == cor_site_type.c.id_base_site,
     ),
     secondary=join(
-        cor_type_site,
+        cor_site_type,
         cor_module_type,
-        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
     ),
-    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
+    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
     viewonly=True,
 )
 
@@ -499,13 +499,13 @@ TMonitoringModules.sites = DB.relationship(
     "TMonitoringSites",
     uselist=True,  # pourquoi pas par defaut ?
     primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
-    secondaryjoin=TMonitoringSites.id_base_site == cor_type_site.c.id_base_site,
+    secondaryjoin=TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
     secondary=join(
-        cor_type_site,
+        cor_site_type,
         cor_module_type,
-        cor_type_site.c.id_type_site == cor_module_type.c.id_type_site,
+        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
     ),
-    foreign_keys=[cor_type_site.c.id_base_site, cor_module_type.c.id_module],
+    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
     lazy="select",
     viewonly=True,
 )

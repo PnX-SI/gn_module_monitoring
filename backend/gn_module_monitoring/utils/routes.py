@@ -11,7 +11,7 @@ from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
-    cor_type_site,
+    cor_site_type,
     TBaseSites,
     cor_module_type,
     TModules,
@@ -116,10 +116,10 @@ def get_sites_groups_from_module_id(module_id: int):
             TMonitoringSites,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
-        .join(cor_type_site, cor_type_site.c.id_base_site == TBaseSites.id_base_site)
+        .join(cor_site_type, cor_site_type.c.id_base_site == TBaseSites.id_base_site)
         .join(
             BibTypeSite,
-            BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
+            BibTypeSite.id_nomenclature_type_site == cor_site_type.c.id_type_site,
         )
         .join(
             cor_module_type,
@@ -135,11 +135,11 @@ def query_all_types_site_from_site_id(id_site: int):
     query = (
         select(BibTypeSite)
         .join(
-            cor_type_site,
-            BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
+            cor_site_type,
+            BibTypeSite.id_nomenclature_type_site == cor_site_type.c.id_type_site,
         )
-        .join(TBaseSites, cor_type_site.c.id_base_site == TBaseSites.id_base_site)
-        .where(cor_type_site.c.id_base_site == id_site)
+        .join(TBaseSites, cor_site_type.c.id_base_site == TBaseSites.id_base_site)
+        .where(cor_site_type.c.id_base_site == id_site)
     )
 
     return DB.session.scalars(query).unique().all()
