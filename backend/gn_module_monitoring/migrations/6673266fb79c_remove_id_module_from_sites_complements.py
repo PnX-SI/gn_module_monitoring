@@ -70,4 +70,12 @@ def downgrade():
         """
     )
     op.execute(statement)
+
+    statement = sa.text(
+        f"""
+        DELETE FROM gn_monitoring.t_site_complements WHERE id_module IS NULL;
+        """
+    )
+    op.execute(statement)
+
     op.alter_column("t_site_complements", "id_module", nullable=False, schema=monitorings_schema)

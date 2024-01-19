@@ -127,6 +127,18 @@ def downgrade():
     op.execute(
         """
         DELETE FROM
+            gn_permissions.t_permissions p
+        USING gn_permissions.t_objects o
+            WHERE
+                p.id_object = o.id_object
+                AND o.code_object = 'TYPES_SITES'
+            ;
+        """
+    )
+
+    op.execute(
+        """
+        DELETE FROM
             gn_permissions.t_objects
             WHERE code_object = 'TYPES_SITES'
         ;
