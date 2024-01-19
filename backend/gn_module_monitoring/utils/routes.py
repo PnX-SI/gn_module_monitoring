@@ -4,7 +4,7 @@ from sqlalchemy import and_
 from flask import Response, g
 from flask.json import jsonify
 from geonature.utils.env import DB
-from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
+from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
 from geonature.utils.errors import GeoNatureError
 from pypnusershub.db.models import User
 from gn_module_monitoring.monitoring.models import (

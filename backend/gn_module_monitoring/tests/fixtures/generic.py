@@ -1,22 +1,16 @@
 import pytest
-from geonature.tests.fixtures import users
 from geonature.utils.env import db
 from pypnusershub.db.models import User
-from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from sqlalchemy import select
-from flask import current_app
-from pathlib import Path
 
-import tempfile
 
 from geonature.core.gn_permissions.models import (
-    PermFilterType,
     PermAction,
     PermObject,
     Permission,
 )
-from geonature.core.gn_commons.models import TModules, TMedias, BibTablesLocation
+from geonature.core.gn_commons.models import TModules
 from pypnusershub.db.models import (
     User,
     Organisme,

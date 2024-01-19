@@ -17,7 +17,6 @@ from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.declarative import declared_attr
 
 from pypnnomenclature.models import TNomenclatures
 from geonature.core.gn_commons.models import TMedias

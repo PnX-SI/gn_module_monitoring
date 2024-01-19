@@ -2,14 +2,11 @@
     module de gestion de la configuarion des protocoles de suivi
 """
 
-import json
 import os
 from flask import current_app
 from .utils import (
     customize_config,
     config_from_files,
-    get_directory_last_modif,
-    get_base_last_modif,
     json_config_from_file,
     get_id_table_location,
     process_config_display,
