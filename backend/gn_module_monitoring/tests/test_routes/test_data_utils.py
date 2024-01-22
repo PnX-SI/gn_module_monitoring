@@ -1,7 +1,5 @@
 import pytest
 from flask import url_for
-from pypnusershub.tests.utils import set_logged_user_cookie
-from geonature.utils.errors import GeoNatureError
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
@@ -24,8 +22,7 @@ class TestRouteDataUtils:
                 cd_nomenclature=cd_nomenclature,
             ),
         )
-        print(valid_response.json)
-        assert valid_response.status_code == 201
+        assert valid_response.status_code == 200
 
     def test_get_util_nomenclature_api_invalid(self, install_module_test):
         code_nomenclature_type = "TYPE_MEDIAsss"
