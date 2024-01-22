@@ -11,6 +11,7 @@ from werkzeug.exceptions import Forbidden
 
 from geonature.utils.env import db
 from geonature.core.gn_commons.schemas import ModuleSchema
+from geonature.core.gn_monitoring.models import BibTypeSite, TNomenclatures
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
@@ -20,7 +21,6 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config_with_specific
 from gn_module_monitoring.monitoring.models import (
-    BibTypeSite,
     TMonitoringModules,
     TMonitoringSites,
 )
