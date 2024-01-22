@@ -90,7 +90,6 @@ class MonitoringObjectBase:
         try:
             Model = monitoring_definitions.MonitoringModel(self._object_type)
             return Model
-            pass
 
         except Exception:
             pass

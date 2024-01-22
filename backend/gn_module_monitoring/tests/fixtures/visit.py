@@ -7,7 +7,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringVisits
 
 
 @pytest.fixture
-def visits(module, users, types_site, sites, datasets, monitoring_module):
+def visits(sites, datasets, monitoring_module):
     now = datetime.datetime.now()
     dataset = datasets["orphan_dataset"]
     db_visits = []
