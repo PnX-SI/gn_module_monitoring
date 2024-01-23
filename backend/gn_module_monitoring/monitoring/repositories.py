@@ -5,9 +5,9 @@ from sqlalchemy import select
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
+
 from gn_module_monitoring.monitoring.serializer import MonitoringObjectSerializer
 from gn_module_monitoring.utils.utils import to_int
-
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 

@@ -1,11 +1,11 @@
 import os
+
 from pathlib import Path
 
 from flask import current_app
 from sqlalchemy import and_, text, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from geonature.utils.env import DB

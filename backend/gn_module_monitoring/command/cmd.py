@@ -9,7 +9,6 @@ from geonature.core.gn_synthese.models import TSources
 from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
 
-
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.monitoring.models import TMonitoringModules

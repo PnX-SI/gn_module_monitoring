@@ -1,12 +1,13 @@
 from flask import g
+
 from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import DateTime
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
-
 from geonature.core.gn_permissions.tools import get_scopes_by_action
+
 import gn_module_monitoring.monitoring.models as Models
 
 

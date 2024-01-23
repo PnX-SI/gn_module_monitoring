@@ -1,7 +1,9 @@
 import pytest
+
 from flask import url_for
 
 from pypnusershub.tests.utils import set_logged_user_cookie
+
 from gn_module_monitoring.tests.fixtures.generic import *
 
 

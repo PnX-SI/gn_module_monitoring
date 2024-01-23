@@ -1,15 +1,19 @@
 import json
+
 from flask import jsonify, request, g
-from geonature.utils.env import db
+
 from marshmallow import ValidationError
 from sqlalchemy import func, select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
+
+from geonature.utils.env import db
 from geonature.core.gn_permissions import decorators as permissions
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+
+from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring import MODULE_CODE
-from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage

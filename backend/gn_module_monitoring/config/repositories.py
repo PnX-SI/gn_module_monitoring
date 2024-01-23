@@ -3,8 +3,10 @@
 """
 
 import os
+
 from flask import current_app
-from .utils import (
+
+from gn_module_monitoring.config.utils import (
     customize_config,
     config_from_files,
     json_config_from_file,

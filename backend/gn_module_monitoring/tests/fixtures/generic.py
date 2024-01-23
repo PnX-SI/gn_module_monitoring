@@ -1,16 +1,16 @@
 import pytest
-from geonature.utils.env import db
-from pypnusershub.db.models import User
 
 from sqlalchemy import select
 
-
+from geonature.utils.env import db
 from geonature.core.gn_permissions.models import (
     PermAction,
     PermObject,
     Permission,
 )
 from geonature.core.gn_commons.models import TModules
+
+from pypnusershub.db.models import User
 from pypnusershub.db.models import (
     User,
     Organisme,
