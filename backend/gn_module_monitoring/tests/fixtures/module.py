@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+
 from sqlalchemy import select
 from geonature.utils.env import db
 
@@ -23,6 +24,8 @@ from gn_module_monitoring.command.cmd import (
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from geonature.utils.env import BACKEND_DIR, DB
+
+from gn_module_monitoring.tests.fixtures.generic import monitorings_users
 
 
 @pytest.fixture
