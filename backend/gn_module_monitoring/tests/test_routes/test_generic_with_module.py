@@ -78,14 +78,14 @@ class TestModules:
             type_code_object="MONITORINGS_MODULES",
             code_action="E",
         )
-        # TODO pb vue non touvée
-        # response = self.client.get(
-        #     url_for("monitorings.export_all_observations", module_code="test", method="sites")
-        # )
 
-        # expected_headers_content_type = "text/plain"
-        # expected = '"base_site_code";"longitude";"latitude"'
+        response = self.client.get(
+            url_for("monitorings.export_all_observations", module_code="test", method="sites")
+        )
 
-        # assert response.status_code == 200
-        # assert response.headers.get("content-type") == expected_headers_content_type
-        # assert expected in response.text
+        expected_headers_content_type = "text/plain"
+        expected = '"base_site_code";"longitude";"latitude"'
+
+        assert response.status_code == 200
+        assert response.headers.get("content-type") == expected_headers_content_type
+        assert expected in response.text
