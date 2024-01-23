@@ -21,7 +21,6 @@ from gn_module_monitoring.command.utils import (
     add_nomenclature,
     available_modules,
     installed_modules,
-    clean_existing_permissions,
 )
 
 
@@ -181,29 +180,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     return
 
 
-@click.command("clean_existing_permissions")
-@click.argument("module_code", required=False, default="")
-@with_appcontext
-def cmd_clean_existing_permissions(module_code):
-    """
-    Nettoyage des permissions disponibles
-        Mise à jour des objets permissions associés au module
-        Transfert des droits pour les utilisateurs
-        Nettoyages des permissions et des permissions disponibles
-
-    """
-    if module_code:
-        process_available_permissions(module_code, session=DB.session)
-        clean_existing_permissions(module_code, session=DB.session)
-        DB.session.commit()
-        return
-
-    for module in installed_modules():
-        process_available_permissions(module["module_code"], session=DB.session)
-        clean_existing_permissions(module["module_code"], session=DB.session)
-    DB.session.commit()
-
-
 @click.command("update_module_available_permissions")
 @click.argument("module_code", required=False, default="")
 @with_appcontext
@@ -281,5 +257,4 @@ commands = [
     cmd_add_module_nomenclature_cli,
     cmd_process_all,
     synchronize_synthese,
-    cmd_clean_existing_permissions,
 ]
