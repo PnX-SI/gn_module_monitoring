@@ -82,8 +82,10 @@ def process_export_csv(module_code=None):
                 continue
             txt = Path(Path(root) / Path(f)).read_text()
             try:
-                DB.session.execute(text(txt).bindparams(module_code=module_code))
-                DB.session.commit()
+                DB.engine.execute(
+                    text(open(Path(root) / f, "r").read()),
+                    module_code=module_code,
+                )
                 print("{} - export csv file : {}".format(module_code, f))
 
             except Exception as e:
