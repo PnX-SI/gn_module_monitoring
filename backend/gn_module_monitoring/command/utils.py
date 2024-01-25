@@ -75,11 +75,11 @@ def process_export_csv(module_code=None):
                 continue
 
             try:
-                DB.engine.execute(
-                    text(open(Path(root) / f, "r").read())
-                    .execution_options(autocommit=True)
-                    .bindparams(module_code=module_code)
+                DB.session.execute(
+                    text(open(Path(root) / f, "r").read()),
+                    module_code=module_code,
                 )
+                DB.session.commit()
                 print("{} - export csv file : {}".format(module_code, f))
 
             except Exception as e:
