@@ -3,6 +3,7 @@
 """
 
 import geoalchemy2
+
 from flask import g
 
 from uuid import uuid4
@@ -18,9 +19,8 @@ from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.serializers import geoserializable
 
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.declarative import declared_attr
 
-from pypnnomenclature.models import TNomenclatures
+from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TMedias
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
@@ -28,12 +28,15 @@ from geonature.core.gn_monitoring.models import (
     cor_module_type,
     cor_site_type,
     BibTypeSite,
+    cor_visit_observer,
+    TObservations,
 )
 from geonature.core.gn_meta.models import TDatasets
-from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
+from geonature.core.gn_permissions.tools import has_any_permissions_by_action
+
 from pypnusershub.db.models import User
-from geonature.core.gn_monitoring.models import cor_visit_observer, TObservations
+
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
     SitesQuery,
@@ -41,7 +44,6 @@ from gn_module_monitoring.monitoring.queries import (
     VisitQuery,
     ObservationsQuery,
 )
-from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
 
 class PermissionModel:

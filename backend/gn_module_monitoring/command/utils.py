@@ -1,14 +1,14 @@
 import os
+
 from pathlib import Path
 
 from flask import current_app
 from sqlalchemy import and_, text, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from geonature.utils.env import DB, BACKEND_DIR
+from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import (
     PermObject,
     PermissionAvailable,
@@ -19,11 +19,15 @@ from geonature.core.gn_commons.models import TModules
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
-from ..config.utils import json_from_file, monitoring_module_config_path, SUB_MODULE_CONFIG_DIR
+from gn_module_monitoring.config.utils import (
+    json_from_file,
+    monitoring_module_config_path,
+    SUB_MODULE_CONFIG_DIR,
+)
 
-from ..config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config
 
-from ..modules.repositories import get_module, get_source_by_code, get_modules
+from gn_module_monitoring.modules.repositories import get_module, get_source_by_code, get_modules
 
 
 """

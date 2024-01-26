@@ -1,39 +1,26 @@
-from uuid import uuid4
-
 import pytest
+import pytest
+import shutil
+
+from uuid import uuid4
+from pathlib import Path
+from flask import current_app
+
 from sqlalchemy import select
-from geonature.utils.env import db
 
-from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-
+from geonature.utils.env import db, BACKEND_DIR
 from geonature.core.gn_permissions.models import (
-    PermFilterType,
     PermAction,
     PermObject,
     Permission,
 )
-from geonature.core.gn_commons.models import TModules, TMedias, BibTablesLocation
-from pypnusershub.db.models import (
-    User,
-    Organisme,
-    Application,
-    Profils as Profil,
-    UserApplicationRight,
-)
-from .generic import monitorings_users
-import pytest
-import shutil
 
-from pathlib import Path
-from flask import current_app
-
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.command.cmd import (
     cmd_install_monitoring_module,
-    cmd_remove_monitoring_module_cmd,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from geonature.utils.env import BACKEND_DIR, DB
+from gn_module_monitoring.tests.fixtures.generic import monitorings_users
 
 
 @pytest.fixture

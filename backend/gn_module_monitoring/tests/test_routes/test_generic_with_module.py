@@ -2,13 +2,13 @@ import pytest
 from flask import url_for
 
 from geonature.utils.env import db
-from pypnusershub.tests.utils import set_logged_user_cookie
-
 from geonature.core.gn_permissions.models import (
     PermAction,
     PermObject,
     Permission,
 )
+
+from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.monitoring.models import TMonitoringModules

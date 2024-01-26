@@ -1,12 +1,10 @@
 import pytest
-import shutil
 
-from pathlib import Path
 from flask import url_for, current_app
 
-from pypnusershub.tests.utils import set_logged_user_cookie
-
 from sqlalchemy import select
+
+from geonature.utils.env import DB
 
 from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.command.cmd import (
@@ -17,7 +15,6 @@ from gn_module_monitoring.command.cmd import (
     cmd_add_module_nomenclature_cli,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from geonature.utils.env import BACKEND_DIR, DB
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")

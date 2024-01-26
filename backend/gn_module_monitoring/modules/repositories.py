@@ -4,16 +4,15 @@
     get_modules
 """
 
-from sqlalchemy.orm import Load
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy import select
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
-
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_synthese.models import TSources
-from ..monitoring.models import TMonitoringModules
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
 def get_simple_module(field_name, value):

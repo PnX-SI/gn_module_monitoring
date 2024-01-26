@@ -1,16 +1,16 @@
 import os, datetime, time
 import importlib
-from pathlib import Path
 import json
+from pathlib import Path
 
 from sqlalchemy import and_, select
-from sqlalchemy.exc import NoResultFound
 
-from geonature.core.gn_commons.models import BibTablesLocation, TModules
-from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
+from geonature.utils.errors import GeoNatureError
 from geonature.utils.config import config as gn_config
-from ..monitoring.models import TMonitoringModules
+from geonature.core.gn_commons.models import BibTablesLocation, TModules
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 

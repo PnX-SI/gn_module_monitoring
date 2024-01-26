@@ -1,10 +1,9 @@
 import datetime
-
 import pytest
+
 from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
-from .module import monitoring_module
 
 
 @pytest.fixture

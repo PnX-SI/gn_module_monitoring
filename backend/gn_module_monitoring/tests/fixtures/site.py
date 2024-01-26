@@ -1,8 +1,10 @@
 import pytest
 import json
+
 from geoalchemy2.shape import from_shape
-from geonature.utils.env import db
 from shapely.geometry import Point
+
+from geonature.utils.env import db
 
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
