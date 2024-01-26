@@ -11,7 +11,7 @@ from geonature.core.admin.admin import CruvedProtectedMixin
 
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
-from gn_module_monitoring.monitoring.models import BibTypeSite
+from geonature.core.gn_monitoring.models import BibTypeSite
 from gn_module_monitoring.monitoring.utils import json_formatter
 
 SITE_TYPE = "TYPE_SITE"

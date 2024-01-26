@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import select
 
 from geonature.utils.env import db
-from gn_module_monitoring.monitoring.models import BibTypeSite
+from geonature.core.gn_monitoring.models import BibTypeSite
 
 
 @pytest.mark.usefixtures("temporary_transaction")
