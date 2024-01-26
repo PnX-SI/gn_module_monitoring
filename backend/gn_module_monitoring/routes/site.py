@@ -201,7 +201,7 @@ def get_module_by_id_base_site(id_base_site: int):
     )
 
     schema = ModuleSchema()
-    result = db.session.scalars(query).all()
+    result = db.session.scalars(query).unique().all()
     # TODO: Is it usefull to put a limit here? Will there be more than 200 modules?
     # If limit here, implement paginated/infinite scroll on frontend side
     return [schema.dump(res) for res in result]
