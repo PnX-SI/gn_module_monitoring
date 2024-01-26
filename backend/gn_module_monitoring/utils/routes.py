@@ -11,13 +11,13 @@ from sqlalchemy.sql.expression import Select
 
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
+from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.utils.errors import GeoNatureError
 
 from pypnusershub.db.models import User
 from pypnnomenclature.models import TNomenclatures
 
 from gn_module_monitoring.monitoring.models import (
-    BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
     cor_site_type,

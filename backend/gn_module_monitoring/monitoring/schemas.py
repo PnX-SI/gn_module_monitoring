@@ -5,12 +5,13 @@ from marshmallow import Schema, fields, validate
 
 from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
+from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
 
 from pypnusershub.db.models import User
 
+
 from gn_module_monitoring.monitoring.models import (
-    BibTypeSite,
     TMonitoringSites,
     TMonitoringSitesGroups,
     TMonitoringVisits,

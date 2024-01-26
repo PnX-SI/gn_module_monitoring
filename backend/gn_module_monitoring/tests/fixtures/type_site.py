@@ -8,7 +8,7 @@ from geonature.utils.env import db
 
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
-from gn_module_monitoring.monitoring.models import BibTypeSite
+from geonature.core.gn_monitoring.models import BibTypeSite
 
 
 def get_test_data(filename):
