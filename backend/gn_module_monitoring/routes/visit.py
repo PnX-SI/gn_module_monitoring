@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
+
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
 from gn_module_monitoring.monitoring.schemas import MonitoringVisitsSchema
@@ -11,7 +12,6 @@ from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
-    paginate,
     paginate_scope,
     sort,
     get_objet_with_permission_boolean,

@@ -1,4 +1,5 @@
 import pytest
+
 from flask import url_for
 
 from sqlalchemy import select
@@ -9,7 +10,6 @@ from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
-
 from gn_module_monitoring.tests.fixtures.generic import *
 
 

@@ -1,12 +1,21 @@
-from typing import Tuple
-
-from sqlalchemy import and_
 from flask import Response, g
 from flask.json import jsonify
+
+from typing import Tuple
+from marshmallow import Schema
+from werkzeug.datastructures import MultiDict
+from sqlalchemy import cast, func, text, select, and_
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.orm import load_only
+from sqlalchemy.sql.expression import Select
+
 from geonature.utils.env import DB
-from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
+from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
 from geonature.utils.errors import GeoNatureError
+
 from pypnusershub.db.models import User
+from pypnnomenclature.models import TNomenclatures
+
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringSites,
@@ -15,17 +24,7 @@ from gn_module_monitoring.monitoring.models import (
     TBaseSites,
     cor_module_type,
     TModules,
-    TNomenclatures,
 )
-
-
-from marshmallow import Schema
-from sqlalchemy import cast, func, text, select
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import load_only, joinedload
-from sqlalchemy.sql.expression import Select
-from werkzeug.datastructures import MultiDict
-
 from gn_module_monitoring.monitoring.schemas import paginate_schema
 
 

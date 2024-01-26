@@ -3,35 +3,33 @@
         site, visit, observation, ...
 """
 
-
-from pathlib import Path
-from werkzeug.exceptions import NotFound, Forbidden
-from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
+
+from werkzeug.exceptions import Forbidden
+
+from flask import request, url_for, g, current_app
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp, to_json_resp
+from utils_flask_sqla.response import to_csv_resp
 from utils_flask_sqla_geo.generic import GenericQueryGeo
-from utils_flask_sqla.generic import serializeQuery
 
-
-from ..blueprint import blueprint
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects, Permission
+from geonature.core.gn_permissions.models import TObjects
 
 from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
+from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions
-from ..modules.repositories import get_module
-from ..utils.utils import to_int
-from ..config.repositories import get_config, get_config_with_specific
+from gn_module_monitoring.monitoring.definitions import monitoring_definitions
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.utils import to_int
+from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_site_id,
 )

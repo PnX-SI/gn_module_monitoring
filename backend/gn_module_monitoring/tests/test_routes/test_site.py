@@ -1,4 +1,5 @@
 import pytest
+
 from flask import url_for
 
 from pypnusershub.tests.utils import set_logged_user_cookie
@@ -6,7 +7,6 @@ from pypnusershub.tests.utils import set_logged_user_cookie
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.monitoring.models import TMonitoringSites
-
 from gn_module_monitoring.tests.fixtures.generic import *
 
 

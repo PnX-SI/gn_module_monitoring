@@ -1,8 +1,9 @@
 import json
 
-from .repositories import MonitoringObject
-from gn_module_monitoring.monitoring.serializer import MonitoringSerializer_dict
 from marshmallow import EXCLUDE
+
+from gn_module_monitoring.monitoring.repositories import MonitoringObject
+from gn_module_monitoring.monitoring.serializer import MonitoringSerializer_dict
 
 
 class MonitoringObjectGeom(MonitoringObject):

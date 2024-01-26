@@ -8,32 +8,31 @@
 """
 
 from flask import request
+
 from sqlalchemy import and_, inspect, cast, select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+
+from geonature.utils.env import DB
+from geonature.core.users.models import VUserslistForallMenu
+from geonature.core.gn_meta.models import TDatasets
+from geonature.utils.errors import GeoNatureError
+from geonature.core.gn_monitoring.models import BibTypeSite
+
+from pypnusershub.db.models import User, UserList
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnnomenclature.repository import get_nomenclature_list
 
-# from geonature.core.taxonomie.models import Taxref, BibListes
-from geonature.core.users.models import VUserslistForallMenu
-
-
-from pypnusershub.db.models import User, UserList
-from pypn_habref_api.models import Habref
 from apptax.taxonomie.models import Taxref, BibListes
 
 from utils_flask_sqla.response import json_resp
 
-from geonature.core.gn_meta.models import TDatasets
+from pypn_habref_api.models import Habref
+
 from ref_geo.models import LAreas, LiMunicipalities
-from geonature.utils.env import DB
 
-from geonature.utils.errors import GeoNatureError
-
-from ..blueprint import blueprint
-
-from ..config.repositories import get_config
-from geonature.core.gn_monitoring.models import BibTypeSite
+from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.utils.routes import get_sites_groups_from_module_id
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.monitoring.models import (

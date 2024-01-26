@@ -1,23 +1,20 @@
-import os
-from pydoc import cli
 import click
 
 from pathlib import Path
 from flask.cli import with_appcontext
 from sqlalchemy.sql import text, select
 
-from geonature.utils.env import DB, BACKEND_DIR
+from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
 from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
 
+from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules.repositories import get_simple_module
 
-from ..monitoring.models import TMonitoringModules
-from ..config.repositories import get_config
-from ..config.utils import json_from_file, monitoring_module_config_path
-from ..modules.repositories import get_simple_module
-
-from .utils import (
+from gn_module_monitoring.command.utils import (
     process_export_csv,
     process_available_permissions,
     remove_monitoring_module,

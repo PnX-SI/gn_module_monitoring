@@ -1,8 +1,9 @@
 import pytest
+
 from flask import url_for
 
-from gn_module_monitoring.monitoring.models import TMonitoringVisits
 from pypnusershub.tests.utils import set_logged_user_cookie
+
 from gn_module_monitoring.tests.fixtures.generic import *
 
 

@@ -1,10 +1,10 @@
 import pytest
 
 from sqlalchemy import select
-from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
-
 
 from geonature.utils.env import DB
+
+from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 
 
 @pytest.mark.usefixtures("temporary_transaction")

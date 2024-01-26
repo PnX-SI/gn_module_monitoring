@@ -1,7 +1,7 @@
-from .repositories import MonitoringObject
-from .geom import MonitoringObjectGeom
 from geonature.utils.env import DB
-from geonature.core.gn_commons.models import TModules
+
+from gn_module_monitoring.monitoring.repositories import MonitoringObject
+from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
 
 class MonitoringModule(MonitoringObject):

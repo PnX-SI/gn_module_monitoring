@@ -1,11 +1,15 @@
 from flask import json
+
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import fields
-from geonature.core.admin.admin import CruvedProtectedMixin
-from geonature.utils.env import DB
-from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
-from wtforms.validators import ValidationError
+
 from sqlalchemy import exists
+from wtforms.validators import ValidationError
+
+from geonature.utils.env import DB
+from geonature.core.admin.admin import CruvedProtectedMixin
+
+from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
 from gn_module_monitoring.monitoring.models import BibTypeSite
 from gn_module_monitoring.monitoring.utils import json_formatter

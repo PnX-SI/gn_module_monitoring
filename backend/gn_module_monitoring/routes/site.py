@@ -1,26 +1,29 @@
+import json
+
 from flask import request, g
 from flask.json import jsonify
-import json
-from geonature.core.gn_commons.schemas import ModuleSchema
-from geonature.utils.env import db
+
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload
 from sqlalchemy.sql import func
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
+from geonature.utils.env import db
+from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.core.gn_permissions import decorators as permissions
-from pypnusershub.db.models import User
+from geonature.core.gn_permissions.decorators import check_cruved_scope
+
+from pypnnomenclature.models import TNomenclatures
+
+from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
+from gn_module_monitoring.config.repositories import get_config_with_specific
 from gn_module_monitoring.monitoring.models import (
     BibTypeSite,
     TMonitoringModules,
     TMonitoringSites,
-    TNomenclatures,
 )
-from gn_module_monitoring import MODULE_CODE
-from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api,
@@ -132,12 +135,6 @@ def get_sites(object_type):
         page=page,
         object_code=object_code,
     )
-    # return paginate(
-    #     query=query,
-    #     schema=MonitoringSitesSchema,
-    #     limit=limit,
-    #     page=page,
-    # )
 
 
 @blueprint.route("/sites/<int:id>", methods=["GET"], defaults={"object_type": "site"})
