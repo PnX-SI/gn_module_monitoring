@@ -206,6 +206,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
         this.dataTableObj.site.page.limit = data.limit;
         this.dataTableObj.site.page.page = data.page - 1;
       });
+    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
   seeDetails($event) {

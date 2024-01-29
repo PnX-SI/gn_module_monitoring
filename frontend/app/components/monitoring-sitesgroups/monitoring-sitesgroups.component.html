@@ -19,6 +19,7 @@
     (addFromTable)="onAddChildren($event)"
     (saveOptionChildren)="onSaveAddChildren($event)"
     [bDeleteModalEmitter]="bDeleteModalEmitter"
+    (rowStatusChange)="onSelectedOnDataTable($event)"
     [permission]="currentPermission"
     [currentUser]="currentUser"
   ></pnx-monitoring-datatable-g>
