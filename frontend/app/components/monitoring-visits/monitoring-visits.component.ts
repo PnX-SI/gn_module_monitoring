@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
 import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { ModuleService } from '@geonature/services/module.service';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
@@ -82,6 +83,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
+    protected _moduleService: ModuleService,
     public siteService: SitesService,
     protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
@@ -237,7 +239,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   onEachFeatureSite() {
-    const baseUrl = this.router.url + '/site';
+    const baseUrl = this._moduleService.currentModule.module_path + '/sites';
     return (feature, layer) => {
       const popup = setPopup(
         baseUrl,
@@ -271,9 +273,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   getModules() {
     this.siteService.getSiteModules(this.site.id_base_site).subscribe(
       (data: Module[]) =>
-        (this.modules = data.map((item) => {
-          return { id: item.module_code, label: item.module_label };
-        }))
+      (this.modules = data.map((item) => {
+        return { id: item.module_code, label: item.module_label };
+      }))
     );
   }
 
