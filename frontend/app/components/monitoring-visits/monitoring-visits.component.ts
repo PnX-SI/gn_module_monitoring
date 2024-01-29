@@ -273,9 +273,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   getModules() {
     this.siteService.getSiteModules(this.site.id_base_site).subscribe(
       (data: Module[]) =>
-      (this.modules = data.map((item) => {
-        return { id: item.module_code, label: item.module_label };
-      }))
+        (this.modules = data.map((item) => {
+          return { id: item.module_code, label: item.module_label };
+        }))
     );
   }
 
