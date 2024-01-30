@@ -21,7 +21,7 @@ import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
-import { setPopup } from '../../functions/popup';
+import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
 import { TPermission } from '../../types/permission';
@@ -87,7 +87,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     public siteService: SitesService,
     protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
-    private _permissionService: PermissionService
+    private _permissionService: PermissionService,
+    private _popup: Popup
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -241,11 +242,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   onEachFeatureSite() {
     const baseUrl = this._moduleService.currentModule.module_path + '/sites';
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_base_site,
-        'Site :' + feature.properties.base_site_name
-      );
+      const popup = this._popup.setSitePopup(feature.properties.id_base_site, feature);
       layer.bindPopup(popup);
     };
   }

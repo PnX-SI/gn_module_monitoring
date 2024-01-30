@@ -5,7 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { IDataTableObj, ISite, ISitesGroup } from '../../interfaces/geom';
 import { GeoJSONService } from '../../services/geojson.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { setPopup } from '../../functions/popup';
+import { Popup } from '../../utils/popup';
 import { ObjectService } from '../../services/object.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { IobjObs } from '../../interfaces/objObs';
@@ -75,7 +75,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _configJsonService: ConfigJsonService,
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     private _formService: FormService,
-    private _location: Location
+    private _location: Location,
+    private _popup: Popup
   ) {
     super();
     this.getAllItemsCallback = this.getSitesOrSitesGroups; //[this.getSitesGroups, this.getSites];
@@ -130,12 +131,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSiteGroups(): Function {
-    const baseUrl = 'monitorings/' + this.currentRoute;
+    const baseUrl = this.currentRoute;
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_sites_group,
-        'Groupe de site :' + feature.properties.sites_group_name
+      const popup = this._popup.setPopup(
+        baseUrl + '/' + feature.properties.id_sites_group,
+        feature,
+        'sites_group_name'
       );
       layer.bindPopup(popup);
     };
@@ -189,11 +190,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   onEachFeatureSite() {
     const baseUrl = 'monitorings/' + this.currentRoute;
     return (feature, layer) => {
-      const popup = setPopup(
-        baseUrl,
-        feature.properties.id_base_site,
-        'Site :' + feature.properties.base_site_name
-      );
+      const popup = this._popup.setSitePopup(feature.properties.id_base_site, feature);
+
       layer.bindPopup(popup);
     };
   }
