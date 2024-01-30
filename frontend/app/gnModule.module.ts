@@ -60,6 +60,9 @@ import { SitesGroupsReslver } from './resolver/sites-groups.resolver';
 import { CreateSiteResolver } from './resolver/create-site.resolver';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { ObjectsPermissionMonitorings } from './enum/objectPermission';
+
+import { Popup } from './utils/popup';
+
 // my module routing
 const routes: Routes = [
   /** modules  */
@@ -208,6 +211,7 @@ const routes: Routes = [
     SitesGroupsReslver,
     CreateSiteResolver,
     PermissionService,
+    Popup,
   ],
   bootstrap: [ModulesComponent],
   schemas: [

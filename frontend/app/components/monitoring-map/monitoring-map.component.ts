@@ -5,6 +5,7 @@ import { MonitoringObject } from '../../class/monitoring-object';
 import { Layer, svg, Path } from 'leaflet';
 import { ConfigService } from '../../services/config.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { Popup } from '../../utils/popup';
 
 import { MapService } from '@geonature_common/map/map.service';
 import { MapListService } from '@geonature_common/map-list/map-list.service';
@@ -81,7 +82,8 @@ export class MonitoringMapComponent implements OnInit {
     protected _mapService: MapService,
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
-    private _mapListService: MapListService
+    private _mapListService: MapListService,
+    private _popup: Popup
   ) {}
 
   ngOnInit() {}
@@ -374,29 +376,16 @@ export class MonitoringMapComponent implements OnInit {
 
   setPopup(id, objectType = 'site') {
     const layer = this.findSiteLayer(id, objectType);
+    const feature = layer['feature'];
     if (layer['_popup']) {
       return;
     }
-    const idKey = layer['feature'].config.id_field_name;
-    const fieldName = layer['feature'].config.description_field_name;
-    // TODO verifier si le fait de spécifier # en dur
-    //  Ne pose pas de soucis pour certaine configuration
-    const url = [
-      '#',
-      this._configService.frontendModuleMonitoringUrl(),
-      'object',
-      this.obj.moduleCode,
-      objectType,
-      layer['feature'].properties[idKey],
-    ].join('/');
+    const idKey = feature.config.id_field_name;
+    const fieldName = feature.config.description_field_name;
 
-    const sPopup = `
-    <div>
-      <h4>  <a href=${url}>${layer['feature'].properties[fieldName]}</a></h4>
-      ${layer['feature'].properties.description || ''}
-    </div>
-    `;
+    const url = ['object', this.obj.moduleCode, objectType, feature.properties[idKey]].join('/');
 
+    const sPopup = this._popup.setPopup(url, feature, fieldName);
     layer.bindPopup(sPopup).closePopup();
   }
 
