@@ -15,10 +15,9 @@ from gn_module_monitoring.command.utils import installed_modules
 
 # revision identifiers, used by Alembic.
 revision = "c1528c94d350"
-down_revision = "3ffeea74a9dd"
+down_revision = "398f94b364f7"
 branch_labels = None
 depends_on = None
-
 
 def upgrade():
     bind = op.get_bind()
@@ -115,6 +114,7 @@ def upgrade():
         WHERE tp.id_permission IN (SELECT id_permission FROM to_del);
     """
     )
+    pass
 
 
 def downgrade():
