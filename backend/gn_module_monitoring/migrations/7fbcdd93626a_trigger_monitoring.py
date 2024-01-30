@@ -1,10 +1,11 @@
-"""trigger monitoring
+"""trigger drop synthese monitoring
 
 Revision ID: 7fbcdd93626a
 Revises: f3413cccdfa8
 Create Date: 2024-01-11 17:25:05.135068
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -19,6 +20,8 @@ depends_on = None
 def upgrade():
     op.execute(
         """
+
+        DROP TRIGGER IF EXISTS trg_delete_synthese_observations ON gn_monitoring.t_observations;
         DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_observations();
 
         CREATE FUNCTION gn_synthese.fct_trg_delete_synthese_observations() RETURNS trigger AS $$
@@ -33,6 +36,7 @@ def upgrade():
             FOR EACH ROW EXECUTE PROCEDURE gn_synthese.fct_trg_delete_synthese_observations();
 
 
+        DROP TRIGGER IF EXISTS trg_delete_synthese_visits ON gn_monitoring.t_base_visits;
         DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_visits() CASCADE;
 
         CREATE FUNCTION gn_synthese.fct_trg_delete_synthese_visits() RETURNS trigger AS $$
@@ -46,7 +50,6 @@ def upgrade():
         CREATE TRIGGER trg_delete_synthese_visits AFTER DELETE ON gn_monitoring.t_base_visits
             FOR EACH ROW EXECUTE PROCEDURE gn_synthese.fct_trg_delete_synthese_visits();
 
-
     """
     )
 
@@ -55,9 +58,9 @@ def downgrade():
     op.execute(
         """
         DROP TRIGGER trg_delete_synthese_observations ON gn_monitoring.t_observations;
-        DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_observations();
+        DROP FUNCTION gn_synthese.fct_trg_delete_synthese_observations();
 
         DROP TRIGGER trg_delete_synthese_visits ON gn_monitoring.t_base_visits;
-        DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_visits();
+        DROP FUNCTION gn_synthese.fct_trg_delete_synthese_visits();
     """
     )
