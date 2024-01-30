@@ -71,7 +71,7 @@ export class DrawFormComponent implements OnInit {
     }
     // default if not specified
     if (
-      !this.geometryType.includes('LineString') &&
+      !this.geometryType.includes('Point') &&
       !this.geometryType.includes('LineString') &&
       !this.geometryType.includes('Polygon')
     ) {
