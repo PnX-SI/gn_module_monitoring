@@ -240,9 +240,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   onEachFeatureSite() {
-    const baseUrl = this._moduleService.currentModule.module_path + '/sites';
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature.properties.id_base_site, feature);
+      const popup = this._popup.setSitePopup(feature);
       layer.bindPopup(popup);
     };
   }

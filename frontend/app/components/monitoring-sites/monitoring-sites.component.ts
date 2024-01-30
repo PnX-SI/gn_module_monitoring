@@ -185,7 +185,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   onEachFeatureSite() {
     const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature.properties.id_base_site, feature);
+      const popup = this._popup.setSitePopup(feature);
       layer.bindPopup(popup);
     };
   }

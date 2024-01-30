@@ -18,8 +18,8 @@ export class Popup {
     return popup;
   }
 
-  setSitePopup(id: number, feature): string {
-    const url = ['sites', id].join('/');
+  setSitePopup(feature): string {
+    const url = ['sites', feature.properties.id_base_site].join('/');
     return this.setPopup(url, feature, 'base_site_name');
   }
 }

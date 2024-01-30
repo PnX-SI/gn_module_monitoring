@@ -190,7 +190,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   onEachFeatureSite() {
     const baseUrl = 'monitorings/' + this.currentRoute;
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature.properties.id_base_site, feature);
+      const popup = this._popup.setSitePopup(feature);
 
       layer.bindPopup(popup);
     };
