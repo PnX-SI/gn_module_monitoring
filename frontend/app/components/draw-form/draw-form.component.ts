@@ -51,35 +51,33 @@ export class DrawFormComponent implements OnInit {
       this.displayed = false;
       return;
     }
-
     this.displayed = true;
-    switch (this.geometryType) {
-      case 'Point': {
-        this.leafletDrawOptions.draw.polygon = false;
-        this.leafletDrawOptions.draw.marker = {
-          icon: new CustomMarkerIcon(),
-        };
-        break;
-      }
-      case 'Polygon': {
-        this.leafletDrawOptions.draw.marker = false;
-        this.leafletDrawOptions.draw.polygon = {
-          allowIntersection: false, // Restricts shapes to simple polygons
-          drawError: {
-            color: '#e1e100', // Color the shape will turn when intersects
-            message: 'Intersection forbidden !', // Message that will show when intersect
-          },
-        };
-        break;
-      }
-      case 'LineString': {
-        this.leafletDrawOptions.draw.polyline = true;
-        break;
-      }
-      default: {
-        this.leafletDrawOptions.draw.marker = true;
-        break;
-      }
+    if (this.geometryType.includes('Point')) {
+      this.leafletDrawOptions.draw.marker = {
+        icon: new CustomMarkerIcon(),
+      };
+    }
+    if (this.geometryType.includes('Polygon')) {
+      this.leafletDrawOptions.draw.polygon = {
+        allowIntersection: false, // Restricts shapes to simple polygons
+        drawError: {
+          color: '#e1e100', // Color the shape will turn when intersects
+          message: 'Intersection forbidden !', // Message that will show when intersect
+        },
+      };
+    }
+    if (this.geometryType.includes('LineString')) {
+      this.leafletDrawOptions.draw.polyline = true;
+    }
+    // default if not specified
+    if (
+      !this.geometryType.includes('Point') &&
+      !this.geometryType.includes('LineString') &&
+      !this.geometryType.includes('Polygon')
+    ) {
+      this.leafletDrawOptions.draw.marker = {
+        icon: new CustomMarkerIcon(),
+      };
     }
 
     this.leafletDrawOptions = { ...this.leafletDrawOptions };
