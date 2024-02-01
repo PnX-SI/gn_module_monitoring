@@ -59,41 +59,49 @@ def process_for_all_module(process_func):
         et exécute la fonction <process_func> pour chacun
         (sauf generic)
     """
+    # Unused ???
     for module in get_modules():
         process_func(module.module_code)
     return
 
 
-def process_export_csv(module_code=None):
-    """
-    fonction qui va chercher les fichier sql de exports/csv et qui les joue
-    """
-
-    if not module_code:
-        """
-        pour tous les modules
-        """
-        return process_for_all_module(process_export_csv)
-
-    export_csv_dir = Path(monitoring_module_config_path(module_code)) / "exports/csv"
-
-    if not export_csv_dir.is_dir():
+def process_sql_files(
+    dir=None, module_code=None, depth=1, allowed_files=["export.sql", "synthese.sql"]
+):
+    sql_dir = Path(monitoring_module_config_path(module_code))
+    if dir:
+        sql_dir = sql_dir / "exports/csv"
+    if not sql_dir.is_dir():
         return
 
-    for root, dirs, files in os.walk(export_csv_dir, followlinks=True):
+    if not allowed_files:
+        allowed_files = []
+    count_depth = 0
+    for root, dirs, files in os.walk(sql_dir, followlinks=True):
+        count_depth = count_depth + 1
         for f in files:
             if not f.endswith(".sql"):
                 continue
-            txt = Path(Path(root) / Path(f)).read_text()
-            try:
-                DB.engine.execute(
-                    text(open(Path(root) / f, "r").read()),
-                    module_code=module_code,
-                )
-                print("{} - export csv file : {}".format(module_code, f))
+            if not f in allowed_files and allowed_files:
+                continue
 
-            except Exception as e:
-                print("{} - export csv erreur dans le script {} : {}".format(module_code, f, e))
+            execute_sql_file(root, f, module_code)
+        # Limite profondeur de la recherche dans les répertoires
+        if depth:
+            if count_depth >= depth:
+                break
+
+
+def execute_sql_file(root, file, module_code):
+    try:
+        DB.engine.execute(
+            text(open(Path(root) / file, "r").read()),
+            module_code=module_code,
+        )
+        print("{} - execute file : {}".format(module_code, file))
+
+    except Exception as e:
+        print("{} - erreur dans le script {} : {}".format(module_code, file, e))
 
 
 def process_available_permissions(module_code, session):
