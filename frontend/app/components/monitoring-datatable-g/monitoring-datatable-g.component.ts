@@ -200,20 +200,18 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.onFilter.emit({ filters: this.filters, tabObj: this.activetabType });
   }
 
-  onSelectEvent({ selected }) {
-    const id = selected[0][selected[0]['pk']];
-
-    if (!this.rowStatus) {
+  onRowClick(event) {
+    if (!(event && event.type === 'click')) {
       return;
     }
-
-    this.rowStatus.forEach((status) => {
-      const bCond = status.id === id;
-      status['selected'] = bCond && !status['selected'];
-    });
-
-    this.setSelected();
-    this.rowStatusChange.emit(this.rowStatus);
+    switch (this.activetabType) {
+      case 'sites_group':
+        this.rowStatusChange.emit([this.activetabType, event.row.id_sites_group]);
+        break;
+      case 'site':
+        this.rowStatusChange.emit([this.activetabType, event.row.id_base_site]);
+        break;
+    }
   }
 
   addChildren(selected) {

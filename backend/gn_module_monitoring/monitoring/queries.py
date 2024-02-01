@@ -26,13 +26,17 @@ class GnMonitoringGenericFilter:
             true(),
         ]
         for key, value in params.items():
-            column = getattr(cls, key)
-            if isinstance(column.type, Unicode):
-                and_list.append(column.ilike(f"%{value}%"))
-            elif isinstance(column.type, DateTime):
-                and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
-            else:
-                and_list.append(column == value)
+            if hasattr(cls, key):
+                column = getattr(cls, key)
+                if not hasattr(column, "type"):
+                    # is not an attribut
+                    pass
+                elif isinstance(column.type, Unicode):
+                    and_list.append(column.ilike(f"%{value}%"))
+                elif isinstance(column.type, DateTime):
+                    and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
+                else:
+                    and_list.append(column == value)
         and_query = and_(*and_list)
         return query.where(and_query)
 
