@@ -26,7 +26,11 @@ def upgrade():
             description_object
             )
         VALUES
-            ('TYPES_SITES','Types de sites à associer aux protocoles du module MONITORINGS')
+            ('TYPES_SITES','Types de sites à associer aux protocoles du module MONITORINGS'),('GNM_SITES', 'Permissions sur les sites'),
+            ('GNM_VISITES', 'Permissions sur les visites'),
+            ('GNM_OBSERVATIONS', 'Permissions sur les observation'),
+            ('GNM_GRP_SITES', 'Permissions sur les groupes de sites')
+            ON CONFLICT DO NOTHING;
         """
     )
     op.execute(
@@ -125,7 +129,7 @@ def downgrade():
             pa.id_object IN (
                 SELECT to2.id_object  
                 FROM gn_permissions.t_objects to2 
-                WHERE code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES')
+                WHERE code_object IN ('TYPES_SITES')
             )
         """
     )
@@ -137,7 +141,7 @@ def downgrade():
         USING gn_permissions.t_objects o
             WHERE
                 p.id_object = o.id_object
-                AND o.code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES', 'GNM_MODULES')
+                AND o.code_object IN ('TYPES_SITES')
             ;
         """
     )
@@ -146,7 +150,7 @@ def downgrade():
         """
         DELETE FROM
             gn_permissions.t_objects
-            WHERE code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES', 'GNM_MODULES')
+            WHERE code_object IN ('TYPES_SITES')
         ;
         """
     )
