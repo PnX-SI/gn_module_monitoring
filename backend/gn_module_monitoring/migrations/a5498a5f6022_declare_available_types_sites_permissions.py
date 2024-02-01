@@ -47,8 +47,7 @@ def upgrade():
             v.scope_filter
         FROM
             (
-                VALUES
-                    ('MONITORINGS', 'ALL', 'R', False, 'Accéder au module'),
+                VALUES 
                     ('MONITORINGS', 'TYPES_SITES', 'R', False, 'Accéder aux types de site'),
                     ('MONITORINGS', 'TYPES_SITES', 'C', False, 'Créer des types de site'),
                     ('MONITORINGS', 'TYPES_SITES', 'U', False, 'Modifier des types de site'),
@@ -122,6 +121,12 @@ def downgrade():
             pa.id_module = m.id_module
             AND
             module_code = 'MONITORINGS'
+            AND 
+            pa.id_object IN (
+                SELECT to2.id_object  
+                FROM gn_permissions.t_objects to2 
+                WHERE code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES')
+            )
         """
     )
 
@@ -132,7 +137,7 @@ def downgrade():
         USING gn_permissions.t_objects o
             WHERE
                 p.id_object = o.id_object
-                AND o.code_object = 'TYPES_SITES'
+                AND o.code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES', 'GNM_MODULES')
             ;
         """
     )
@@ -141,7 +146,7 @@ def downgrade():
         """
         DELETE FROM
             gn_permissions.t_objects
-            WHERE code_object = 'TYPES_SITES'
+            WHERE code_object IN ('TYPES_SITES', 'GNM_SITES', 'GNM_GRP_SITES', 'GNM_MODULES')
         ;
         """
     )
