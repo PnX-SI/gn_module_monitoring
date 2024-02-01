@@ -167,6 +167,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         this.dataTableObj.sites_group.page.limit = data.limit;
         this.dataTableObj.sites_group.page.page = data.page - 1;
       });
+    this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
@@ -181,6 +182,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.dataTableObj.site.page.limit = data.limit;
       this.dataTableObj.site.page.page = data.page - 1;
     });
+    this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
   getGeometriesSite() {
@@ -260,12 +262,18 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     });
   }
 
-  updateBreadCrumb() {
-    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
+  onSelectedOnDataTable(data) {
+    const typeObject = data[0];
+    const id = data[1];
+    if (typeObject == 'site') {
+      this.geojsonService.selectSitesLayer(id, true);
+    } else if (typeObject == 'sites_group') {
+      this.geojsonService.selectSitesGroupLayer(id, true);
+    }
   }
 
-  onSelect($event) {
-    this.geojsonService.selectSitesGroupLayer($event);
+  updateBreadCrumb() {
+    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
   }
 
   updateActiveTab($event) {

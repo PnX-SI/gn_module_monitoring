@@ -39,6 +39,7 @@ export class GeoJSONService {
       .get_geometries(params)
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
+        this.removeFeatureGroup(this.sitesGroupFeatureGroup);
         this.sitesGroupFeatureGroup = this.setMapData(data, onEachFeature, siteGroupStyle);
       });
   }
@@ -65,6 +66,7 @@ export class GeoJSONService {
     this._mapService.map.addLayer(featureGroup);
     featureGroup.addLayer(layer);
     map.fitBounds(featureGroup.getBounds());
+
     return featureGroup;
   }
 
@@ -104,12 +106,17 @@ export class GeoJSONService {
     }
   }
 
-  selectSitesGroupLayer(id: number) {
+  selectSitesGroupLayer(id: number, zoom: boolean) {
     this.sitesGroupFeatureGroup.eachLayer((layer) => {
       if (layer instanceof L.GeoJSON) {
         layer.eachLayer((sublayer: L.GeoJSON) => {
           const feature = sublayer.feature as GeoJSON.Feature;
           if (feature.properties['id_sites_group'] == id) {
+            if (zoom == true) {
+              const featureGroup = new L.FeatureGroup();
+              featureGroup.addLayer(sublayer);
+              this._mapService.map.fitBounds(featureGroup.getBounds());
+            }
             sublayer.openPopup();
             return;
           }
@@ -119,16 +126,21 @@ export class GeoJSONService {
   }
 
   removeLayerByIdSite(id: number) {
-    const layers = this.selectSitesLayer(id);
+    const layers = this.selectSitesLayer(id, false);
     this.removeFeatureGroup(layers);
   }
 
-  selectSitesLayer(id: number) {
+  selectSitesLayer(id: number, zoom: boolean) {
     const layers = this.sitesFeatureGroup.eachLayer((layer) => {
       if (layer instanceof L.GeoJSON) {
         layer.eachLayer((sublayer: L.GeoJSON) => {
           const feature = sublayer.feature as GeoJSON.Feature;
           if (feature.properties['id_base_site'] == id) {
+            if (zoom == true) {
+              const featureGroup = new L.FeatureGroup();
+              featureGroup.addLayer(sublayer);
+              this._mapService.map.fitBounds(featureGroup.getBounds());
+            }
             sublayer.openPopup();
             return;
           }
