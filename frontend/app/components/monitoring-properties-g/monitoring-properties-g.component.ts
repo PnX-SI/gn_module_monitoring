@@ -63,7 +63,10 @@ export class MonitoringPropertiesGComponent implements OnInit {
   }
 
   initSpecificProperties() {
-    this.specificFieldsNames = this.newParentType.template_specific.fieldNames;
+    // Suppression des propriétés génériques incluses dans les propriétés spécifiques
+    this.specificFieldsNames = this.newParentType.template_specific.fieldNames.filter(
+      (field) => !this.fieldsNames.includes(field)
+    );
     this.specificFields = this.newParentType.template_specific.fieldLabels;
     this.specificFieldDefinitions = this.newParentType.template_specific.fieldDefinitions;
   }
