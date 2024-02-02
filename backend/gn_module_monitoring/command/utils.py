@@ -37,6 +37,19 @@ fonctions pour les commandes du module monitoring
 """
 
 
+FORBIDDEN_SQL_INSTRUCTION = [
+    "INSERT ",
+    "DROP ",
+    "DELETE ",
+    "UPDATE ",
+    "EXECUTE ",
+    "TRUNCATE ",
+    "ALTER ",
+    "GRANT ",
+    "COPY ",
+    "PERFORM ",
+]
+
 PERMISSION_LABEL = {
     "MONITORINGS_MODULES": {"label": "modules", "actions": ["R", "U", "E"]},
     "MONITORINGS_GRP_SITES": {"label": "groupes de sites", "actions": ["C", "R", "U", "D"]},
@@ -51,18 +64,6 @@ ACTION_LABEL = {
     "D": "Supprimer des",
     "E": "Exporter les",
 }
-
-
-def process_for_all_module(process_func):
-    """
-    boucle sur les répertoire des module
-        et exécute la fonction <process_func> pour chacun
-        (sauf generic)
-    """
-    # Unused ???
-    for module in get_modules():
-        process_func(module.module_code)
-    return
 
 
 def process_sql_files(
@@ -84,24 +85,44 @@ def process_sql_files(
                 continue
             if not f in allowed_files and allowed_files:
                 continue
+            # Vérification commandes non autorisée
+            try:
+                execute_sql_file(root, f, module_code, FORBIDDEN_SQL_INSTRUCTION)
+                print("{} - exécution du fichier : {}".format(module_code, f))
+            except Exception as e:
+                print(e)
 
-            execute_sql_file(root, f, module_code)
         # Limite profondeur de la recherche dans les répertoires
         if depth:
             if count_depth >= depth:
                 break
 
 
-def execute_sql_file(root, file, module_code):
+def execute_sql_file(dir, file, module_code, forbidden_instruction=[]):
+    """
+    Execution d'un fichier sql dans la base de donnée
+    dir : nom du répertoire
+    file : nom du fichier à éxécuter
+    module_code : code du module
+    forbidden_instruction : liste d'instructions sql qui sont proscrites du fichier.
+
+    """
+    sql_content = Path(Path(dir) / file).read_text()
+    for sql_cmd in forbidden_instruction:
+        if sql_cmd.lower() in sql_content.lower():
+            raise Exception(
+                "erreur dans le script {} instruction sql non autorisée {}".format(
+                    module_code, file, sql_cmd
+                )
+            )
+
     try:
         DB.engine.execute(
-            text(open(Path(root) / file, "r").read()),
+            text(sql_content),
             module_code=module_code,
         )
-        print("{} - execute file : {}".format(module_code, file))
-
     except Exception as e:
-        print("{} - erreur dans le script {} : {}".format(module_code, file, e))
+        raise Exception("{} - erreur dans le script {} : {}".format(module_code, file, e))
 
 
 def process_available_permissions(module_code, session):
