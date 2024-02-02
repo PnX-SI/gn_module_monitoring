@@ -354,26 +354,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         .scalar_subquery()
     )
 
-    # @hybrid_property
-    # def geom_geojson(self):
-    #     if self.geom is None:
-    #         return column_property(
-    #             select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
-    #             .select_from(
-    #                 self.__table__.alias("subquery").join(
-    #                     TMonitoringSites,
-    #                     TMonitoringSites.id_sites_group == self.id_sites_group,
-    #                 )
-    #             )
-    #             .where(
-    #                 TMonitoringSites.id_sites_group == self.id_sites_group,
-    #             )
-    #     )
-    #     else:
-    #         return column_property(
-    #         select([func.st_asgeojson(self.geom)])
-    #         )
-
     @hybrid_property
     def organism_actors(self):
         # return self.digitiser.id_organisme

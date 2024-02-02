@@ -177,7 +177,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
 
     # customize config
     if module:
-        custom = {}
         config["custom"] = {}
         for field_name in [
             "module_code",
