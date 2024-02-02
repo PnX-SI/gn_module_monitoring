@@ -1,5 +1,4 @@
-DROP VIEW IF EXISTS gn_monitoring.v_export_test_sites;
-
+ 
 CREATE
 OR REPLACE VIEW gn_monitoring.v_export_test_sites AS WITH MOD AS (
     SELECT

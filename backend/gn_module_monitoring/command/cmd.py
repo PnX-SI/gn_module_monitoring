@@ -15,12 +15,12 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_simple_module
 
 from gn_module_monitoring.command.utils import (
-    process_export_csv,
     process_available_permissions,
     remove_monitoring_module,
     add_nomenclature,
     available_modules,
     installed_modules,
+    process_sql_files,
 )
 
 
@@ -30,9 +30,18 @@ from gn_module_monitoring.command.utils import (
 def cmd_process_all(module_code):
     """
     Met à jour les paramètres de configuration pour un module
+        Fichiers sql synthese et export
     """
-    # process export csv
-    process_export_csv(module_code)
+    if module_code:
+        modules = [module_code]
+    else:
+        modules = [module["module_code"] for module in installed_modules()]
+
+    for module in modules:
+        # process Synthese
+        process_sql_files(dir=None, module_code=module, depth=1)
+        # process Exports
+        process_sql_files(dir="exports/csv", module_code=module, depth=None, allowed_files=None)
 
 
 @click.command("process_export_csv")
@@ -42,7 +51,13 @@ def cmd_process_export_csv(module_code):
     """
     Met à jour les fichiers pour les exports pdf
     """
-    process_export_csv(module_code)
+    if module_code:
+        modules = [module_code]
+    else:
+        modules = [module["module_code"] for module in installed_modules()]
+
+    for module in modules:
+        process_sql_files(dir="exports/csv", module_code=module, depth=None, allowed_files=None)
 
 
 @click.command("install")
@@ -95,8 +110,10 @@ def cmd_install_monitoring_module(module_code):
     except Exception:
         pass
 
-    # process export csv
-    process_export_csv(module_code)
+    # process Synthese
+    process_sql_files(dir=None, module_code=module_code, depth=1)
+    # process Exports
+    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     config = get_config(module_code, force=True)
 
@@ -138,23 +155,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     process_available_permissions(module_code, session=DB.session)
     DB.session.commit()
 
-    #  run specific sql
-    if (module_config_dir_path / "synthese.sql").exists:
-        click.secho("Execution du script synthese.sql")
-        sql_script = module_config_dir_path / "synthese.sql"
-        txt = (
-            Path(sql_script)
-            .read_text()
-            .replace(":'module_code'", "'{}'".format(module_code))
-            .replace(":module_code", "{}".format(module_code))
-        )
-        try:
-            DB.session.execute(text(txt))
-            DB.session.commit()
-        except Exception as e:
-            print(e)
-            click.secho("Erreur dans le script synthese.sql", fg="red")
-
     # insert nomenclature
     add_nomenclature(module_code)
 
@@ -192,14 +192,13 @@ def cmd_process_available_permission_module(module_code):
         module_code ([string]): code du sous module
 
     """
-
     if module_code:
-        process_available_permissions(module_code, session=DB.session)
-        DB.session.commit()
-        return
+        modules = [module_code]
+    else:
+        modules = [module["module_code"] for module in installed_modules()]
 
-    for module in installed_modules():
-        process_available_permissions(module["module_code"], session=DB.session)
+    for module in modules:
+        process_available_permissions(module, session=DB.session)
     DB.session.commit()
 
 
