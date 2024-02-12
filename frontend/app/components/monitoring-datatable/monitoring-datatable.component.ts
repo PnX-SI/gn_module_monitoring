@@ -263,13 +263,13 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   onDelete(row) {
-    this.child0.id = row.id
+    this.child0.id = row.id;
     this.child0.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.child0.deleted = true;
       this._commonService.regularToaster('info', this.msgToaster('Suppression'));
       setTimeout(() => {
-        window.location.reload()
+        window.location.reload();
       }, 100);
     });
   }
