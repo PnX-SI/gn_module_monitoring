@@ -294,15 +294,15 @@ export class MonitoringDatatableGComponent implements OnInit {
     if (changes.activetabIndex) {
       this.clearFilters();
     }
-  
+
     if (changes.obj) {
       this.updateDataTable(changes.obj);
     }
-  
+
     if (changes.rows || changes.page) {
       this.updateRowsAndPage();
     }
-  
+
     for (const propName of Object.keys(changes)) {
       switch (propName) {
         case 'rowStatus':
@@ -311,11 +311,11 @@ export class MonitoringDatatableGComponent implements OnInit {
       }
     }
   }
-  
+
   private clearFilters() {
     this.filters = {};
   }
-  
+
   private updateDataTable(objChanges: SimpleChange) {
     if (this.dataTableObj && Object.keys(this.dataTableObj).length > 0) {
       for (const objType in this.dataTableObj) {
@@ -324,7 +324,7 @@ export class MonitoringDatatableGComponent implements OnInit {
           objType
         );
       }
-  
+
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
       const dataTable = this.dataTableObj[this.activetabType];
       if (dataTable.rows.length > 0) {
@@ -335,7 +335,7 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.initPermissionAction();
     }
   }
-  
+
   private updateRowsAndPage() {
     if (this.rows && this.rows.length > 0) {
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
