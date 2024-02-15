@@ -1,18 +1,15 @@
-import { Observable, of } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
-import { threadId } from 'worker_threads';
-import { forkJoin } from 'rxjs';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
-
+import { Observable, of } from 'rxjs';
+import { forkJoin } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
 export class MonitoringObjectBase {
   moduleCode: string;
   objectType: string;
   id: number; // id de l'objet
-
+  cruved: Object;
   parentsPath = [];
-
-  userCruved;
+  is_geom_from_child: boolean;
   userCruvedObject;
   deleted = false;
 
@@ -33,6 +30,7 @@ export class MonitoringObjectBase {
   siteId;
 
   template = {};
+  template_specific = {};
 
   // configParams = ["geometry_type", "chained"];
   config = {};
@@ -123,7 +121,6 @@ export class MonitoringObjectBase {
   }
 
   setData(data) {
-    this.userCruved = data.cruved;
     this.userCruvedObject = data.cruved_objects;
     this.properties = data.properties || {};
     this.geometry = data.geometry;
@@ -131,6 +128,7 @@ export class MonitoringObjectBase {
     this.medias = data.medias;
     this.siteId = data.site_id;
     this.idTableLocation = data.id_table_location;
+    this.cruved = data.cruved;
   }
 
   idFieldName() {
@@ -171,6 +169,10 @@ export class MonitoringObjectBase {
   setResolvedProperties(): Observable<any> {
     const observables = {};
     const schema = this.schema();
+
+    if (Object.keys(this.template_specific).length > 0) {
+      Object.assign(schema, this.template_specific['schema']);
+    }
     for (const attribut_name of Object.keys(schema)) {
       observables[attribut_name] = this.resolveProperty(
         schema[attribut_name],
@@ -191,11 +193,6 @@ export class MonitoringObjectBase {
     return this._objService
       .configService()
       .configModuleObjectParam(this.moduleCode, this.objectType, fieldName);
-  }
-
-  cruved(c = null) {
-    const cruved = this.configParam('cruved') || {};
-    return c ? (![undefined, null].includes(cruved[c]) ? cruved[c] : 1) : cruved;
   }
 
   childrenTypes(configParam: string = null): Array<string> {
@@ -375,9 +372,10 @@ export class MonitoringObjectBase {
     );
   }
 
-  navigateToDetail(id = null) {
+  navigateToDetail(id = null, toEdit = false) {
     this._objService.navigate('object', this.moduleCode, this.objectType, id || this.id, {
       parents_path: this.parentsPath,
+      edit: toEdit,
     });
   }
 

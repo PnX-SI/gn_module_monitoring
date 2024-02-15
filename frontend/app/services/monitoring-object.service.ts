@@ -188,7 +188,24 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        x = !(x instanceof Array) ? [x] : x;
+        const codeListObservers = this._configService.codeListObservers();
+        x == null
+          ? (x = [])
+          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
+              mergeMap((users) => {
+                let currentUser;
+                if (Array.isArray(users)) {
+                  for (const user of users) {
+                    if (user.id_role == val) {
+                      currentUser = user;
+                    }
+                  }
+                } else {
+                  return of(null);
+                }
+                return of([currentUser]);
+              })
+            ));
         break;
       }
       case 'taxonomy': {
@@ -222,7 +239,8 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        x = elem.max_length === 1 && x instanceof Array && x.length === 1 ? x[0] : x;
+        //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
+        x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
         break;
       }
       case 'taxonomy': {
@@ -264,6 +282,12 @@ export class MonitoringObjectService {
   }
 
   navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
     this._router.navigate(
       [
         this._configService.frontendModuleMonitoringUrl(),
@@ -271,6 +295,7 @@ export class MonitoringObjectService {
         moduleCode,
         objectType,
         id,
+        { edit: editParams },
       ].filter((s) => !!s),
       {
         queryParams,

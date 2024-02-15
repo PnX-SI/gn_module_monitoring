@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+0.7.1dev (unrelease)
+------------------
+
+
+**⚠️ Notes de version**
+ 
+* Si vous installé le module sans être passé par la version 0.7.0 :
+Après mise à jour du module, utiliser la commande pour générer les permissions disponibles pour les sous-modules déjà installés
+  ```
+  geonature monitorings update_module_available_permissions
+  ```
+
+Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles
+
 0.7.1 (05-12-23)
 ------------------
 

@@ -1,6 +1,6 @@
 from geonature.utils.errors import GeoNatureError
 
-from ..config.repositories import (
+from gn_module_monitoring.config.repositories import (
     config_param as repositories_config_param,
     config_schema as repositories_config_schema,
     get_config as repositories_get_config,
@@ -64,6 +64,7 @@ class MonitoringObjectBase:
     _model = None
     _children = {}
     _parent = None
+    cruved = {}
 
     def __init__(self, module_code, object_type, id=None, model=None):
         self._module_code = module_code
@@ -89,7 +90,6 @@ class MonitoringObjectBase:
         try:
             Model = monitoring_definitions.MonitoringModel(self._object_type)
             return Model
-            pass
 
         except Exception:
             pass

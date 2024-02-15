@@ -1,6 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MonitoringListComponent } from './monitoring-lists.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('MonitoringListComponent', () => {
   let component: MonitoringListComponent;

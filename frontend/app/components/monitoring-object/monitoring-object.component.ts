@@ -1,5 +1,15 @@
 import { Observable, of, forkJoin } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
+import {
+  mergeMap,
+  concatMap,
+  map,
+  tap,
+  take,
+  takeUntil,
+  distinctUntilChanged,
+  catchError,
+  skipWhile,
+} from 'rxjs/operators';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Component, OnInit } from '@angular/core';
@@ -13,8 +23,11 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { MapService } from '@geonature_common/map/map.service';
+import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
+import { ConfigJsonService } from '../../services/config-json.service';
+import { GeoJSONService } from '../../services/geojson.service';
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -31,6 +44,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   objForm: FormGroup;
 
+  checkEditParam: boolean;
   bEdit = false;
   bLoadingModal = false;
 
@@ -40,6 +54,7 @@ export class MonitoringObjectComponent implements OnInit {
   heightMap;
 
   moduleSet = false;
+  bDeleteModal = false;
 
   constructor(
     private _route: ActivatedRoute,
@@ -49,7 +64,9 @@ export class MonitoringObjectComponent implements OnInit {
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
     private _auth: AuthService,
-    private _commonService: CommonService
+    private _commonService: CommonService,
+    private _evtObjService: ObjectService,
+    private _geojsonService: GeoJSONService
   ) {}
 
   ngAfterViewInit() {
@@ -85,11 +102,19 @@ export class MonitoringObjectComponent implements OnInit {
         }),
         mergeMap(() => {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
+        }),
+        tap(() => {
+          if (this.obj.objectType == 'sites_group') {
+            this._geojsonService.removeAllFeatureGroup();
+            this.obj.geometry
+              ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
+              : null;
+          }
         })
       )
       .subscribe(() => {
         this.obj.initTemplate(); // pour le html
-
+        this.bEdit = this.checkEditParam == true ? true : false;
         // si on est sur une création (pas d'id et id_parent ou pas de module_code pour module (root))
         this.bEdit =
           this.bEdit ||
@@ -100,9 +125,15 @@ export class MonitoringObjectComponent implements OnInit {
 
         if (!this.sites || this.obj.children['site']) {
           this.initSites();
-        } else {
+        }
+        //  else if (this.sitesGroup || this.obj.children['sites_group']){
+        //   this.initSitesroup()
+        // }
+        else {
           this.initObjectsStatus();
         }
+
+        this.evenListnerTable();
       });
   }
 
@@ -229,6 +260,11 @@ export class MonitoringObjectComponent implements OnInit {
         );
         this.objForm = this._formBuilder.group({});
 
+        if (params.get('edit')) {
+          this.checkEditParam = Boolean(params.get('edit'));
+        } else {
+          this.checkEditParam = false;
+        }
         // query param snapshot
 
         // this.obj.parentId = params.get('parentId') && parseInt(params.get('parentId'));
@@ -239,6 +275,22 @@ export class MonitoringObjectComponent implements OnInit {
 
   initConfig(): Observable<any> {
     return this._configService.init(this.obj.moduleCode).pipe(
+      concatMap(() => {
+        if (this.obj.objectType == 'site' && this.obj.id != null) {
+          return this._objService
+            .configService()
+            .loadConfigSpecificConfig(this.obj)
+            .pipe(
+              tap((config) => {
+                this.obj.template_specific = this._objService
+                  .configService()
+                  .addSpecificConfig(config);
+              })
+            );
+        } else {
+          return of(null);
+        }
+      }),
       mergeMap(() => {
         this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
         this.backendUrl = this._configService.backendUrl();
@@ -273,9 +325,45 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    if (obj['objectType'] === 'site') {
+    if (obj['objectType'] === 'site' || obj['objectType'] === 'sites_group') {
       this.initSites();
     }
     this.getModuleSet();
+  }
+
+  onDeleteFromTable(event) {
+    return this._objService
+      .dataMonitoringObjectService()
+      .deleteObject(this.obj.moduleCode, event.objectType, event.rowSelected.id);
+  }
+
+  evenListnerTable() {
+    const $displayModal = this._evtObjService.currentDeleteModal;
+    const $rowSelected = this._evtObjService.currentRowSelected;
+
+    $displayModal
+      .pipe(
+        distinctUntilChanged((prev, curr) => prev === curr),
+        tap((displayModal) => {
+          this.bDeleteModal = displayModal;
+        }),
+        concatMap(() => {
+          return $rowSelected;
+        }),
+        concatMap((rowSelected) => {
+          return this.onDeleteFromTable(rowSelected).pipe(
+            distinctUntilChanged((prev, curr) => prev.rowSelected === curr.rowSelected)
+          );
+        }),
+        catchError((err) => {
+          console.log(err);
+          this._evtObjService.changeDisplayingDeleteModal(false);
+          return of(null);
+        })
+      )
+      .subscribe((deletedObj) => {
+        this.initSites();
+        this._evtObjService.changeDisplayingDeleteModal(false);
+      });
   }
 }
