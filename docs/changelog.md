@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.7.2 (unreleased)
+------------------
+ 
+**🚀 Nouveautés**
+* mise à jour de la documentation sur la synthèse
+
+**🐛 Corrections**
+
+* Erreur lors de l'installation du module (#284)
+ 
+
 0.7.1 (05-12-23)
 ------------------
 
