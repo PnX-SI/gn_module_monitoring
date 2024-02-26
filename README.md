@@ -85,17 +85,19 @@ source ~/geonature/backend/venv/bin/activate
 
 #### Copie du dossier de configuration
 
-Copier le dossier du sous-module dans le dossier `media` de GeoNature
+Créer un dossier pour référencer les configurations des sous-modules dans GeoNature (`geonature/backend/media/monitorings`)
 
 ```sh
-cp -R  <dossier du sous-module> ~/geonature/backend/media/monitorings/<module_code>
+mkdir geonature/backend/media/monitorings
 ```
 
-PS : Si l'on souhaite développer un sous-module il peut être pratique de plutôt faire un lien symbolique vers le dossier du sous-module, plutôt que de le copier dans le dossier `media` de GeoNature :
+Créer un lien symbolique vers le dossier du sous-module dans le dossier `media` de GeoNature
 
 ```sh
-ln -s <dossier du sous module> ~/geonature/backend/media/monitorings/<module_code>
+ln -s <chemin du dossier du sous-module> ~/geonature/backend/media/monitorings/<nom du dossier du sous-module>
 ```
+
+Exemple pour le module "test" : `ln -s gn_module_monitoring/contrib/test ~/geonature/backend/media/monitorings/test`
 
 #### Lancer la commande d'installation du sous-module
 
