@@ -49,7 +49,7 @@ def cmd_process_all(module_code):
 @with_appcontext
 def cmd_process_export_csv(module_code):
     """
-    Met à jour les fichiers pour les exports pdf
+    Met à jour les fichiers pour les exports csv
     """
     if module_code:
         modules = [module_code]

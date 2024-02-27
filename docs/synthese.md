@@ -7,7 +7,7 @@ La vue pour la synthèse
 * Copier le fichier `data/synthese_svo.sql` dans
     `<repertoire_sous_module>/synthese.sql`.
     * Ce script SQL sera exécuté automatiquement à l\'installation du
-        module (utiliser la commande `geonature monitorings process_csv` pour le jouer
+        module (utiliser la commande `geonature monitorings process_all <module_code>` pour le jouer
         à la demande).
     * Cette vue peut être personalisée pour chaque module, on peut
         notamment :
@@ -17,6 +17,7 @@ La vue pour la synthèse
         * donner des valeurs plus spécifique au module pour les champs
             de type nomenclature (la plupart sont en commentaires dans
             la vue)
+        * :warning: Les colonnes `id_observation`, `unique_id_sinp` et `ids_observers` (tableau d'id_role) sont obligatoires pour assurer la synchronisation entre la vue et la synthese
     * À la configuration du sous-module (page du sous-module, cliquer
         sur `éditer le module`), activer la synthèse.
 
@@ -42,17 +43,22 @@ observation.
 
 Tous les fichiers de vue pour la synthèse peuvent être re-exécutés avec la commande :
 
-- `geonature monitorings process_csv` (tous les modules)
-- `geonature monitorings process_csv <module_code>` (un seul module)
+- `geonature monitorings process_all` (tous les modules)
+- `geonature monitorings process_all <module_code>` (un seul module)
+
+> **Warning:** La commande `process_all` va aussi update la vue pour les exports CSV.
+
 
 ## Mettre à jour la synthèse après une intégration massive de données
 
 Deux options:
 
-* `SQL` : exécuter la commande :
-```sql
-SELECT gn_synthese.import_row_from_table('id_module', '<id_du module>', 'gn_monitoring.<nom de la vue>')
+* `Ligne de commande` : exécuter la commande :
+```sh
+geonature monitorings synchronize_synthese <module_code>
 ```
 
 * `frontend` : sur la page du module (en mode admin),
     appuyer sur le boutton `mettre à jour la synthèse`
+    
+> **Warning:** Le bouton `mettre à jour la synthèse` depuis le frontend timeout après 60 secondes. Si votre volume de données est trop important, vous tomberez donc en erreur. Il est conseillé de passer par la ligne de commande pour éviter ce genre d'erreur.
