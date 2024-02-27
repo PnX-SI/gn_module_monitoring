@@ -1,17 +1,18 @@
 CHANGELOG
 =========
 
-0.7.2 (unreleased)
+0.7.2 (27-02-23)
 ------------------
  
 **🚀 Nouveautés**
 
-* Mise à jour de la documentation d'alimentation de la synthèse
-
+* Mise à jour de la documentation sur l'alimentation de la synthèse et l'installation d'un sous-module
+* Ajout des groupes de sites dans le sous-module de `test`
+  
 **🐛 Corrections**
 
 * Erreur lors de l'installation du module (#284)
- 
+* Corrections des permissions (export PDF, groupes de sites)
 
 0.7.1 (05-12-23)
 ------------------
