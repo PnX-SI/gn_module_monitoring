@@ -19,9 +19,7 @@
 -- ne pas remplacer cette variable, elle est indispensable pour les scripts d'installations
 -- le module pouvant être installé avec un code différent de l'original
 
-DROP VIEW IF EXISTS gn_monitoring.v_synthese_:module_code;
-CREATE VIEW gn_monitoring.v_synthese_:module_code AS
-
+CREATE OR REPLACE VIEW gn_monitoring.v_synthese_:module_code AS
 WITH source AS (
 
 	SELECT
@@ -29,7 +27,7 @@ WITH source AS (
         id_source
 
     FROM gn_synthese.t_sources
-	WHERE name_source = CONCAT('MONITORING_', UPPER(:'module_code'))
+	WHERE name_source = CONCAT('MONITORING_', UPPER(:module_code))
 	LIMIT 1
 
 ), sites AS (
@@ -152,8 +150,4 @@ SELECT
 
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(s.geom_local) alt (altitude_min, altitude_max)
         ON TRUE
-    WHERE m.module_code = :'module_code'
-    ;
-
-
---SELECT * FROM gn_monitoring.v_synthese_:module_code
+    WHERE m.module_code = :module_code;
