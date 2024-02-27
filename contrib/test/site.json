@@ -1,5 +1,6 @@
 {
   "display_properties": [
+    "id_sites_group",
     "base_site_name",
     "base_site_code",
     "base_site_description",
@@ -29,6 +30,10 @@
       "default": {
         "cd_nomenclature": "1"
       }
+    },
+    "id_sites_group": { 
+      "required": true,
+      "hidden": false
     },
     "contact_name": {
       "type_widget": "text",
