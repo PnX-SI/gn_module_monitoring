@@ -1,10 +1,14 @@
 {
   "tree": {
     "module": {
-      "site": {
-        "visit": {
-          "observation": null
+      "sites_group": {
+        "site": {
+          "visit": {
+            "observation": null
+          }
         }
+      },
+      "site": {
       }
     }
   }

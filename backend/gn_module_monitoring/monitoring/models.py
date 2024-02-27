@@ -125,7 +125,6 @@ class TMonitoringVisits(TBaseVisits):
         )
     )
 
-
 @geoserializable
 class TMonitoringSites(TBaseSites):
     __tablename__ = "t_site_complements"
@@ -181,11 +180,7 @@ class TMonitoringSites(TBaseSites):
         )
     )
 
-    geom_geojson = column_property(
-        select([func.st_asgeojson(TBaseSites.geom)])
-        .where(TBaseSites.id_base_site == id_base_site)
-        .correlate_except(TBaseSites)
-    )
+    geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
 
 
 @serializable

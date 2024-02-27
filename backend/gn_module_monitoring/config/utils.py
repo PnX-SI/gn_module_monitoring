@@ -13,6 +13,15 @@ from ..monitoring.models import TMonitoringModules
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
+SITES_GROUP_CONFIG = {
+    "type_widget": "datalist",
+    "attribut_label": "Groupe de sites",
+    "type_util": "sites_group",
+    "keyValue": "id_sites_group",
+    "keyLabel": "sites_group_name",
+    "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name",
+    "application": "GeoNature",
+}
 
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
@@ -193,19 +202,22 @@ def process_schema(object_type, config):
     keys_s = list(specific.keys())
     keys_g = list(generic.keys())
     for key_s in keys_s:
-        for key_g in keys_g:
-            if key_s == key_g:
-                key = key_s
+        # Cas particulier de sites_group
+        # définition spécifique du datalist
+        #    récupérée depuis la constante SITES_GROUP_CONFIG
+        if key_s == "id_sites_group":
+            generic[key_s] = SITES_GROUP_CONFIG
+        if key_s in keys_g:
+            key = key_s
 
-                type_widget_s = specific[key].get("type_widget")
-                type_widget_g = generic[key].get("type_widget")
+            type_widget_s = specific[key].get("type_widget")
+            type_widget_g = generic[key].get("type_widget")
 
-                if type_widget_s and type_widget_s == type_widget_g:
-                    generic[key] = copy_dict(specific[key])
-                else:
-                    generic[key].update(copy_dict(specific[key]))
-
-                del specific[key]
+            if type_widget_s and type_widget_s == type_widget_g:
+                generic[key] = copy_dict(specific[key])
+            else:
+                generic[key].update(copy_dict(specific[key]))
+            del specific[key]
 
 
 def process_config_display(object_type, config):
