@@ -70,7 +70,7 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
         pass
 
 
-def get_modules():
+def get_modules(session=None):
     """
     récupère les modules de protocole de suivi
     renvoie un tableau de dictionnaires
@@ -78,8 +78,10 @@ def get_modules():
     :return:
     """
 
+    if not session:
+        session = DB.session
     try:
-        res = DB.session.query(TMonitoringModules).order_by(TMonitoringModules.module_label).all()
+        res = session.query(TMonitoringModules).order_by(TMonitoringModules.module_label).all()
 
         return res
 

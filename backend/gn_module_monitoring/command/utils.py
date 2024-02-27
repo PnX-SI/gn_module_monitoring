@@ -297,14 +297,14 @@ def add_nomenclature(module_code):
         DB.session.commit()
 
 
-def installed_modules():
+def installed_modules(session=None):
     return [
         {
             "module_code": module.module_code,
             "module_label": module.module_label,
             "module_desc": module.module_desc,
         }
-        for module in get_modules()
+        for module in get_modules(session)
     ]
 
 

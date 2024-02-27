@@ -92,7 +92,7 @@
         (click)="processExportPdf(exportPdfConfig)"
         type="button"
         class="mr-2"
-        *ngIf="currentUser?.moduleCruved[obj.objectType].E >= 1"
+        *ngIf="currentUser?.moduleCruved['module'].E >= 1" 
       >
         <i class="fa fa-file-pdf-o"></i>&nbsp;
         {{exportPdfConfig.label}}
