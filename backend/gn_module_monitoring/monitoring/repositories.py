@@ -32,13 +32,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
             req = select(Model)
 
-            # Test pour mettre les relations à joined
-            # if depth > 0:
-            #     options = []
-            #     for children_type in self.config_param('children_types'):
-            #         relation_name = children_type + 's'
-            #         req = req.options(joinedload(relation_name))
-
             self._model = (
                 DB.session.execute(req.where(getattr(Model, field_name) == value))
                 .unique()
@@ -56,7 +49,6 @@ class MonitoringObject(MonitoringObjectSerializer):
                     ],
                 )
                 self.cruved = cruved_item_dict[0]["cruved"]
-
             return self
 
         except Exception as e:
