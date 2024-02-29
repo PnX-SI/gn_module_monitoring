@@ -1,6 +1,7 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import column_property
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -124,6 +125,7 @@ class TMonitoringVisits(TBaseVisits):
             TObservations.id_base_visit == id_base_visit
         )
     )
+
 
 @geoserializable
 class TMonitoringSites(TBaseSites):

@@ -1,6 +1,7 @@
 """
     serialiser
 """
+
 import datetime
 import uuid
 from flask import current_app
@@ -131,11 +132,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             # si type_util est defini pour ce champs
             # si on a bien affaire à une liste de modèles sqla
             properties[key] = [
-                getattr(v, id_field_name_dict[type_util])
-                if (isinstance(v, DB.Model) and type_util)
-                else v.as_dict()
-                if (isinstance(v, DB.Model) and not type_util)
-                else v
+                (
+                    getattr(v, id_field_name_dict[type_util])
+                    if (isinstance(v, DB.Model) and type_util)
+                    else v.as_dict() if (isinstance(v, DB.Model) and not type_util) else v
+                )
                 for v in value
             ]
 
