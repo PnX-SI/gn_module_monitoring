@@ -126,10 +126,8 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         get_config(module_code, force=True)
 
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
-            depth=depth
-        )
-        # .get(value=value, field_name = field_name)
+        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        .get(depth=depth)
         .serialize(depth)
     )
 
