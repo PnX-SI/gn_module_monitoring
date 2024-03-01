@@ -1,3 +1,5 @@
+from geonature.core.gn_monitoring.models import TIndividuals, TMarkingEvent
+
 from .models import (
     TMonitoringModules,
     TMonitoringSites,
@@ -6,7 +8,7 @@ from .models import (
     TMonitoringObservationDetails,
     TMonitoringSitesGroups,
 )
-from .objects import MonitoringModule, MonitoringSite
+from .objects import MonitoringModule, MonitoringSite, MonitoringIndividual
 
 from .base import monitoring_definitions
 from .repositories import MonitoringObject
@@ -26,6 +28,8 @@ MonitoringModels_dict = {
     "observation": TMonitoringObservations,
     "observation_detail": TMonitoringObservationDetails,
     "sites_group": TMonitoringSitesGroups,
+    "individual": TIndividuals,
+    "marking": TMarkingEvent,
 }
 
 MonitoringObjects_dict = {
@@ -35,6 +39,8 @@ MonitoringObjects_dict = {
     "observation": MonitoringObject,
     "observation_detail": MonitoringObject,
     "sites_group": MonitoringObjectGeom,
+    "individual": MonitoringIndividual,
+    "marking": MonitoringObject,
 }
 
 monitoring_definitions.set(MonitoringObjects_dict, MonitoringModels_dict)

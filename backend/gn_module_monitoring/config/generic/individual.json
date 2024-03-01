@@ -1,0 +1,86 @@
+{
+    "cruved": {"C":1, "U":1, "D": 1},
+    "id_field_name": "id_individual",
+    "description_field_name": "individual_name",
+    "chained": true,
+    "filters": {
+      "active": true
+    },
+    "label": "Individu",
+    "genre": "M",
+    "display_properties": ["uuid_individual", 
+      "individual_name", 
+      "active",
+      "id_nomenclature_sex",
+      "comment",
+      "cd_nom",
+      "id_digitiser",
+      "id_operator"
+    ],
+    "display_list": [
+      "individual_name",
+      "uuid_individual",
+      "active",
+      "nb_sites"
+    ],
+    "uuid_field_name": "uuid_individual",
+    "generic": {
+      "id_individual": {
+        "type_widget": "text",
+        "attribut_label": "Id individual",
+        "hidden": true
+      },
+      "nb_sites": {
+        "attribut_label": "Nombre de sites associés"
+      },
+      "uuid_individual": {
+        "attribut_label": "uuid"
+      },
+      "individual_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom de l'individu",
+        "required": true
+      },
+      "id_nomenclature_sex": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Sexe",
+        "code_nomenclature_type": "SEXE",
+        "type_util": "nomenclature"
+      },
+      "active": {
+        "type_widget": "bool_checkbox",
+        "attribut_label": "Actif",
+        "definition": "Activer cet individu",
+        "value": true
+      },
+      "comment": {
+        "type_widget": "textarea",
+        "attribut_label": "Commentaires"
+      },
+      "cd_nom": {
+        "type_widget": "taxonomy",
+        "attribut_label": "Espèce",
+        "type_util": "taxonomy",
+        "id_list": "__MODULE.ID_LIST_TAXONOMY",
+        "required": "({value}) => '__MODULE.CD_NOM' === 'None'",
+        "hidden": "({value}) => '__MODULE.CD_NOM' !== 'None'"
+      },
+      "id_digitiser": {
+        "type_widget": "text",
+        "attribut_label": "Numérisateur",
+        "required": true,
+        "hidden": true,
+        "type_util": "user"
+      }
+  },
+  "change": [
+    "({objForm, meta}) => {",
+    "const cd_nom = __MODULE.CD_NOM",
+    "if (!objForm.controls.cd_nom.dirty) {",
+    "objForm.patchValue({cd_nom: cd_nom})",
+    "}",
+    "}",
+    ""
+  ]
+}
+  

@@ -9,6 +9,9 @@ from ..utils.utils import to_int
 from ..routes.data_utils import id_field_name_dict
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.core.gn_monitoring.models import (
+    TIndividuals,
+)
 
 
 class MonitoringObjectSerializer(MonitoringObjectBase):
@@ -154,8 +157,24 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return monitoring_object_dict
 
     def preprocess_data(self, data):
-        # a redefinir dans la classe
-        pass
+
+        # Query TIndividuals to get the cd_nom
+        if (
+            self._object_type == "observation"
+            and data["cd_nom"] is None
+            and data["id_individual"] is not None
+            or (
+                self._object_type == "observation"
+                and self._id is not None
+                and data["id_individual"] is not None
+            )
+        ):
+            individual = TIndividuals.query.get(data["id_individual"])
+            if individual is None:
+                raise ValueError("TIndividuals with provided id_individual not found")
+            else:
+                data["cd_nom"] = individual.cd_nom
+        return data
 
     def populate(self, post_data):
         # pour la partie sur les relationships mettre le from_dict dans utils_flask_sqla ???

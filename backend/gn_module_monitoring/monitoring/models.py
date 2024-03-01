@@ -13,7 +13,13 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_monitoring.models import (
+    TBaseSites,
+    TBaseVisits,
+    TIndividuals,
+    TMarkingEvent,
+    corIndividualModule,
+)
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -50,6 +56,7 @@ class TObservations(DB.Model):
     cd_nom = DB.Column(DB.Integer)
     comments = DB.Column(DB.String)
     uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
+    id_individual = DB.Column(DB.ForeignKey("gn_monitoring.t_individuals.id_individual"))
 
     medias = DB.relationship(
         TMedias,
@@ -254,6 +261,7 @@ class TMonitoringModules(TModules):
 
     id_list_observer = DB.Column(DB.Integer)
     id_list_taxonomy = DB.Column(DB.Integer)
+    cd_nom = DB.Column(DB.Integer)
 
     taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
@@ -289,6 +297,16 @@ class TMonitoringModules(TModules):
         lazy="joined",
     )
 
+    individuals = DB.relationship(
+        "TIndividuals",
+        lazy="select",
+        enable_typechecks=False,
+        secondary=corIndividualModule,
+        primaryjoin=(corIndividualModule.c.id_module == id_module),
+        secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
+        foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
+        # viewonly=True,
+    )
     data = DB.Column(JSONB)
 
     # visits = DB.relationship(
@@ -333,6 +351,29 @@ TMonitoringSitesGroups.nb_visits = column_property(
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
     )
+)
+
+
+TIndividuals.nb_sites = column_property(
+    select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+    .where(
+        and_(
+            TMarkingEvent.id_individual == TIndividuals.id_individual,
+            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+        )
+    )
+    # .scalar_subquery()
+)
+
+TMonitoringSites.nb_individuals = column_property(
+    select([func.count(func.distinct(TIndividuals.id_individual))])
+    .where(
+        and_(
+            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+            TMarkingEvent.id_individual == TIndividuals.id_individual,
+        )
+    )
+    # .scalar_subquery()
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table
