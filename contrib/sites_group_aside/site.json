@@ -4,6 +4,7 @@
     "base_site_code",
     "id_nomenclature_type_site",
     "id_inventor",
+    "observers",
     "id_sites_group",
     "first_use_date",
     "last_visit",
@@ -21,7 +22,11 @@
       "api": "nomenclatures/nomenclature/TYPE_SITE",
       "application": "GeoNature",
       "filters": {
-        "cd_nomenclature": ["1", "2", "3"]
+        "cd_nomenclature": [
+          "1",
+          "2",
+          "3"
+        ]
       },
       "default": {
         "cd_nomenclature": "1"

@@ -6,14 +6,15 @@
     "id_nomenclature_type_site",
     "cd_hab",
     "id_inventor",
+    "observers",
     "first_use_date",
     "last_visit",
     "nb_visits"
   ],
   "export_pdf": [
     {
-        "template": "fiche_site.html",
-        "label": "Export PDF"
+      "template": "fiche_site.html",
+      "label": "Export PDF"
     }
   ],
   "map_label_field_name": "base_site_name",
@@ -24,7 +25,11 @@
     },
     "id_nomenclature_type_site": {
       "filters": {
-        "cd_nomenclature": ["1", "2", "3"]
+        "cd_nomenclature": [
+          "1",
+          "2",
+          "3"
+        ]
       },
       "default": {
         "cd_nomenclature": "1"
@@ -48,8 +53,8 @@
       "keyLabel": "search_name",
       "type_util": "habitat",
       "params": {
-          "cd_typo": 7,
-          "search_name": ""
+        "cd_typo": 7,
+        "search_name": ""
       }
     }
   }
