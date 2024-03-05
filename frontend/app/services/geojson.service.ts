@@ -40,6 +40,7 @@ export class GeoJSONService {
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
         this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+        this.removeFeatureGroup(this.sitesFeatureGroup);
         this.sitesGroupFeatureGroup = this.setMapData(data, onEachFeature, siteGroupStyle);
       });
   }
@@ -47,6 +48,7 @@ export class GeoJSONService {
   getSitesGroupsChildGeometries(onEachFeature: Function, params = {}) {
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
       this.removeFeatureGroup(this.sitesFeatureGroup);
+      this.removeFeatureGroup(this.sitesGroupFeatureGroup);
       this.sitesFeatureGroup = this.setMapData(data, onEachFeature);
     });
   }

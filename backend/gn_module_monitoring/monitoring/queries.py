@@ -100,6 +100,16 @@ class SitesQuery(GnMonitoringGenericFilter):
             query = query.where(or_(*ors))
         return query
 
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        query = super().filter_by_params(query, params)
+
+        for key, value in params.items():
+            if key == "modules":
+                query = query.filter(cls.modules.any(id_module=value))
+
+        return query
+
 
 class SitesGroupsQuery(GnMonitoringGenericFilter):
     @classmethod
@@ -118,6 +128,17 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringSitesGroups.digitiser.has(id_organisme=user.id_organisme)
                 ]
             query = query.where(or_(*ors))
+        return query
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        query = super().filter_by_params(query, params)
+
+        for key, value in params.items():
+            if key == "modules":
+                query = query.join(Models.TMonitoringSites)
+                query = query.filter(Models.TMonitoringSites.modules.any(id_module=value))
+
         return query
 
 

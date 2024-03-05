@@ -168,6 +168,7 @@ def get_all_site_geometries(object_type):
         TMonitoringSites.id_sites_group,
     )
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
+
     subquery = query_allowed.subquery()
 
     result = geojson_query(subquery)

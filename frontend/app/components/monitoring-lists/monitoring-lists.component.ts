@@ -19,6 +19,10 @@ export class MonitoringListComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
+  @Input() filters;
+  @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
+  @Input() objectsType: String;
+  @Output() objectsTypeChange: EventEmitter<String> = new EventEmitter<String>();
 
   activetab: string;
 
@@ -83,10 +87,18 @@ export class MonitoringListComponent implements OnInit {
     this.objectsStatusChange.emit(status_type);
   }
 
+  onFilterChange(event) {
+    this.filters = event;
+    this.filtersChange.emit(Utils.copy(this.filters));
+    this.objectsTypeChange.emit(Utils.copy(this.objectsType));
+  }
+
   changeActiveTab(typeObject, tab) {
     this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
-    this.objectsStatusChange.emit(this.reInitStatut());
+    // this.objectsStatusChange.emit(this.reInitStatut());
+    this.objectsType = this.children0Array[typeObject['index']]['objectType'];
+    this.objectsTypeChange.emit(this.objectsType);
   }
 
   reInitStatut() {

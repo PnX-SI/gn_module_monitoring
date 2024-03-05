@@ -28,6 +28,7 @@ import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { GeoJSONService } from '../../services/geojson.service';
+
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -36,8 +37,10 @@ import { GeoJSONService } from '../../services/geojson.service';
 export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
-  sites;
-  sitesGroup;
+
+  filters: Object = {};
+  pre_filters: Object = {};
+  objectsType: String;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -104,12 +107,12 @@ export class MonitoringObjectComponent implements OnInit {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
         }),
         tap(() => {
-          if (this.obj.objectType == 'sites_group') {
-            this._geojsonService.removeAllFeatureGroup();
-            this.obj.geometry
-              ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
-              : null;
-          }
+          // if (this.obj.objectType == 'sites_group') {
+          //   this._geojsonService.removeAllFeatureGroup();
+          //   this.obj.geometry
+          //     ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
+          //     : null;
+          // }
         })
       )
       .subscribe(() => {
@@ -122,19 +125,13 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-
-        if (!this.sites || this.obj.children['site']) {
-          this.initSites();
-        }
-        //  else if (this.sitesGroup || this.obj.children['sites_group']){
-        //   this.initSitesroup()
-        // }
-        else {
-          this.initObjectsStatus();
-        }
-
+        this.initFilters();
         this.evenListnerTable();
       });
+  }
+
+  onEachFeatureSite() {
+    return (feature, layer) => {};
   }
 
   initCurrentUser() {
@@ -155,88 +152,96 @@ export class MonitoringObjectComponent implements OnInit {
     });
   }
 
-  initSites() {
+  initFilters() {
+    this.pre_filters = {};
     return this.module.get(1).subscribe(() => {
-      // TODO liste indépendantes carte et listes
+      // modules
+      this.pre_filters['modules'] = this.module.id;
 
-      // affichage des groupes de site uniquement si l'objet est un module
-      if (this.obj.objectType == 'module' && this.obj['children']['sites_group']) {
-        const sitesGroup = this.obj['children']['sites_group'];
-        this.sitesGroup = {
-          features: sitesGroup.map((group) => {
-            group['id'] = group['properties']['id_sites_group'];
-            group['type'] = 'Feature';
-            return group;
-          }),
-          type: 'FeatureCollection',
-        };
+      // filtre objet géographique de référence
+      if (this.obj.objectType == 'sites_group') {
+        this.pre_filters['id_sites_group'] = this.obj.id;
+      } else if (this.obj.objectType == 'site') {
+        this.pre_filters['id_base_site'] = this.obj.id;
+      } else if (this.obj['siteId'] !== undefined) {
+        // affichage du site parent
+        this.pre_filters['id_base_site'] = this.obj['siteId'];
       }
-      // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
-      let sites = null;
-      let cur = this.obj;
-      do {
-        sites = cur['children']['site'];
-        cur = cur.parent();
-      } while (!!cur && !sites);
-
-      if (!sites) {
-        return;
-      }
-      this.sites = {
-        features: sites.map((site) => {
-          site['id'] = site['properties']['id_base_site'];
-          site['type'] = 'Feature';
-          return site;
-        }),
-        type: 'FeatureCollection',
-      };
-      this.initObjectsStatus();
     });
   }
 
-  initObjectsStatus() {
-    const objectsStatus = {};
-    for (const childrenType of Object.keys(this.obj.children)) {
-      objectsStatus[childrenType] = this.obj.children[childrenType].map((child) => {
-        return {
-          id: child.id,
-          selected: false,
-          visible: true,
-          current: false,
-        };
-      });
-    }
+  // initSites() {
+  //   return this.module.get(1).subscribe(() => {
+  //     // TODO liste indépendantes carte et listes
 
-    // init site status
-    if (this.obj.siteId) {
-      objectsStatus['site'] = [];
-      this.sites['features'].forEach((f) => {
-        // determination du site courrant
-        let cur = false;
-        if (f.properties.id_base_site == this.obj.siteId) {
-          cur = true;
-        }
+  //     // affichage des groupes de site uniquement si l'objet est un module
+  //     if (this.obj.objectType == 'module' && this.obj['children']['sites_group']) {
+  //       const sitesGroup = this.obj['children']['sites_group'];
+  //       this.sitesGroup = {
+  //         features: sitesGroup.map((group) => {
+  //           group['id'] = group['properties']['id_sites_group'];
+  //           group['type'] = 'Feature';
+  //           return group;
+  //         }),
+  //         type: 'FeatureCollection',
+  //       };
+  //     }
+  //     // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
+  //     let sites = null;
+  //     let cur = this.obj;
+  //     do {
+  //       sites = cur['children']['site'];
+  //       cur = cur.parent();
+  //     } while (!!cur && !sites);
 
-        objectsStatus['site'].push({
-          id: f.properties.id_base_site,
-          selected: false,
-          visible: true,
-          current: cur,
-        });
-      });
-    }
+  //     if (!sites) {
+  //       return;
+  //     }
+  //     this.sites = {
+  //       features: sites.map((site) => {
+  //         site['id'] = site['properties']['id_base_site'];
+  //         site['type'] = 'Feature';
+  //         return site;
+  //       }),
+  //       type: 'FeatureCollection',
+  //     };
+  //     this.initObjectsStatus();
+  //   });
+  // }
 
-    this.objectsStatus = objectsStatus;
-  }
+  // initObjectsStatus() {
+  //   const objectsStatus = {};
+  //   for (const childrenType of Object.keys(this.obj.children)) {
+  //     objectsStatus[childrenType] = this.obj.children[childrenType].map((child) => {
+  //       return {
+  //         id: child.id,
+  //         selected: false,
+  //         visible: true,
+  //         current: false,
+  //       };
+  //     });
+  //   }
 
-  // initRoutesQueryParams() {
+  //   // init site status
+  //   if (this.obj.siteId) {
+  //     objectsStatus['site'] = [];
+  //     this.sites['features'].forEach((f) => {
+  //       // determination du site courrant
+  //       let cur = false;
+  //       if (f.properties.id_base_site == this.obj.siteId) {
+  //         cur = true;
+  //       }
 
-  //   return this._route.queryParamMap.pipe(
-  //     mergeMap((params) => {
-  //       this.obj.parentsPath = params.getAll("parents_path") || [];
-  //       return of(true);
-  //     })
-  //   );
+  //       objectsStatus['site'].push({
+  //         id: f.properties.id_base_site,
+  //         selected: false,
+  //         visible: true,
+  //         current: cur,
+  //       });
+  //     });
+  //   }
+
+  //   this.objectsStatus = objectsStatus;
   // }
 
   initRoutesParams() {
@@ -326,7 +331,8 @@ export class MonitoringObjectComponent implements OnInit {
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
     if (obj['objectType'] === 'site' || obj['objectType'] === 'sites_group') {
-      this.initSites();
+      // this.initSites();
+      this.initFilters();
     }
     this.getModuleSet();
   }
@@ -340,7 +346,6 @@ export class MonitoringObjectComponent implements OnInit {
   evenListnerTable() {
     const $displayModal = this._evtObjService.currentDeleteModal;
     const $rowSelected = this._evtObjService.currentRowSelected;
-
     $displayModal
       .pipe(
         distinctUntilChanged((prev, curr) => prev === curr),
@@ -362,7 +367,8 @@ export class MonitoringObjectComponent implements OnInit {
         })
       )
       .subscribe((deletedObj) => {
-        this.initSites();
+        // this.initSites();
+        this.initFilters();
         this._evtObjService.changeDisplayingDeleteModal(false);
       });
   }

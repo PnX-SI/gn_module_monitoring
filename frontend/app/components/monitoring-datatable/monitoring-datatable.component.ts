@@ -35,6 +35,9 @@ export class MonitoringDatatableComponent implements OnInit {
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
 
+  @Input() filters: Object;
+  @Output() onFilter = new EventEmitter<Object>();
+
   @Output() bEditChanged = new EventEmitter<boolean>();
 
   @Input() currentUser;
@@ -44,7 +47,6 @@ export class MonitoringDatatableComponent implements OnInit {
 
   row_save;
   selected = [];
-  filters = {};
   customColumnComparator;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
@@ -98,7 +100,6 @@ export class MonitoringDatatableComponent implements OnInit {
 
   filter(bInitFilter = false) {
     // filter all
-
     let bChange = false;
     const temp = this.row_save.filter((row, index) => {
       let bCondVisible = true;
@@ -120,12 +121,14 @@ export class MonitoringDatatableComponent implements OnInit {
       bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
       this.rowStatus[index]['visible'] = bCondVisible;
       this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;
+
       return bCondVisible;
     });
 
     if (bChange || bInitFilter) {
       this.rowStatusChange.emit(this.rowStatus);
     }
+    this.onFilter.emit(this.filters);
     // update the rows
     this.rows = temp;
     // Whenever the filter changes, always go back to the first page

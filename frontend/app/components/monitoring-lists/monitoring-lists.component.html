@@ -54,6 +54,8 @@
               [rowStatus]="objectsStatus[child0.objectType]"
               [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
               (rowStatusChange)="onSelectedChildren(child0.objectType, $event)"
+              [(filters)]="filters"
+              (onFilter)="onFilterChange($event)"
               [child0]="child0"
               [obj]="obj"
               [sorts]="child0.configParam('sorts')"

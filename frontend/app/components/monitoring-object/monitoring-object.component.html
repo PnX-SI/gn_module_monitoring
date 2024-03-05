@@ -8,31 +8,17 @@
 
   <div class="flex-container" id="object">
     <div id="monitoring-map-container" class="cadre">
-      <pnx-monitoring-map
-        *ngIf="heightMap"
-        [obj]="obj"
-        [bEdit]="bEdit"
-        [objForm]="objForm"
-        [(objectsStatus)]="objectsStatus"
-        [sites]="sites"
-        [sitesGroup]="sitesGroup"
-        [heightMap]="heightMap"
-      ></pnx-monitoring-map>
+      <pnx-monitoring-map *ngIf="heightMap" [obj]="obj" [bEdit]="bEdit" [objForm]="objForm" [(objectsStatus)]="objectsStatus"
+        [pre_filters]="pre_filters" [(filters)]="filters" [(objectsType)]="objectsType"
+        [heightMap]="heightMap"></pnx-monitoring-map>
     </div>
 
     <div id="monitoring-elem-container" class="cadre scroll">
-      <pnx-monitoring-breadcrumbs
-        *ngIf="obj && obj.bIsInitialized"
-        [obj]="obj"
-        [(bEdit)]="bEdit"
-      ></pnx-monitoring-breadcrumbs>
+      <pnx-monitoring-breadcrumbs *ngIf="obj && obj.bIsInitialized" [obj]="obj"
+        [(bEdit)]="bEdit"></pnx-monitoring-breadcrumbs>
 
       <div>
-        <span
-          class="obj-title"
-          *ngIf="obj.bIsInitialized"
-          [innerHTML]="obj.titleHTML(this.bEdit)"
-        ></span>
+        <span class="obj-title" *ngIf="obj.bIsInitialized" [innerHTML]="obj.titleHTML(this.bEdit)"></span>
       </div>
       <div *ngIf="!moduleSet && obj.bIsInitialized" class="alert alert-warning">
         <p>Le module n'est pas encore configuré.</p>
@@ -40,30 +26,14 @@
         <p>Veuillez éditer le module et renseigner les champs requis.</p>
       </div>
 
-      <pnx-monitoring-properties
-        id="nav-properties"
-        [obj]="obj"
-        *ngIf="!bEdit && obj.bIsInitialized"
-        [(bEdit)]="bEdit"
-        [currentUser]="currentUser"
-      ></pnx-monitoring-properties>
-      <pnx-monitoring-form
-        [obj]="obj"
-        (objChanged)="onObjChanged($event)"
-        *ngIf="bEdit && obj?.bIsInitialized"
-        [(bEdit)]="bEdit"
-        [objForm]="objForm"
-        [currentUser]="currentUser"
-        [sites]="sites"
-      ></pnx-monitoring-form>
+      <pnx-monitoring-properties id="nav-properties" [obj]="obj" *ngIf="!bEdit && obj.bIsInitialized" [(bEdit)]="bEdit"
+        [currentUser]="currentUser"></pnx-monitoring-properties>
+      <pnx-monitoring-form [obj]="obj" (objChanged)="onObjChanged($event)" *ngIf="bEdit && obj?.bIsInitialized"
+        [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
-      <pnx-monitoring-lists
-        [obj]="obj"
-        [(objectsStatus)]="objectsStatus"
-        [(bEdit)]="bEdit"
-        *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
-        [currentUser]="currentUser"
-      ></pnx-monitoring-lists>
+      <pnx-monitoring-lists [obj]="obj" [(objectsStatus)]="objectsStatus" [(bEdit)]="bEdit" [(filters)]="filters"
+        [(objectsType)]="objectsType" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
+        [currentUser]="currentUser"></pnx-monitoring-lists>
     </div>
   </div>
 </div>

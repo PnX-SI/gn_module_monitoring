@@ -5,6 +5,7 @@ import { MonitoringObject } from '../../class/monitoring-object';
 import { Layer, svg, Path } from 'leaflet';
 import { ConfigService } from '../../services/config.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { GeoJSONService } from '../../services/geojson.service';
 import { Popup } from '../../utils/popup';
 
 import { MapService } from '@geonature_common/map/map.service';
@@ -26,9 +27,9 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() objForm: FormGroup;
 
-  @Input() sites: {};
-  @Input() sitesGroup: {};
-
+  @Input() filters: {};
+  @Input() pre_filters: {};
+  @Input() objectsType: String;
   @Input() heightMap;
 
   bListen = true;
@@ -39,12 +40,7 @@ export class MonitoringMapComponent implements OnInit {
   currentSiteId: Number;
   publicDisplaySitesGroup: boolean = false;
 
-  // Layer des contours groupes de sites
-  sitesGroupEmprisePoly = [];
-  sitesGroupEmpriseLabel = [];
-
   // todo mettre en config
-
   styles = {
     hidden: {
       opacity: 0,
@@ -83,70 +79,97 @@ export class MonitoringMapComponent implements OnInit {
     private _configService: ConfigService,
     private _data: DataMonitoringObjectService,
     private _mapListService: MapListService,
+    private _geojsonService: GeoJSONService,
     private _popup: Popup
   ) {}
 
   ngOnInit() {}
 
-  initSites() {
-    this.removeLabels();
-    const layers = this._mapService.map['_layers'];
-    for (const key of Object.keys(layers)) {
-      const layer = layers[key];
-      try {
-        layer.unbindTooltip();
-      } catch {}
-    }
-    setTimeout(() => {
-      this.initPanes();
-      if (this.sites && this.sites['features']) {
-        this.initSitesStatus('site');
-        for (const site of this.sites['features']) {
-          this.setPopup(site.id, 'site');
-          const layer = this.findSiteLayer(site.id);
-          // pane
-          const fClick = this.onLayerClick(site);
-          layer.off('click', fClick);
-          layer.on('click', fClick);
-          //
-          layer.removeFrom(this._mapService.map);
-          layer.addTo(this._mapService.map);
-        }
-
-        this.setSitesStyle('site');
+  refresh_geom_data() {
+    const params = {
+      ...this.pre_filters,
+      ...this.filters,
+    };
+    if (this.obj.objectType == 'module') {
+      if (this.objectsType == 'sites_group') {
+        this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSite(), params);
+      } else {
+        this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
       }
-    }, 0);
+    } else if (this.obj.objectType == 'sites_group') {
+      this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSite(), params);
+    } else {
+      this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
+    }
   }
 
-  initSitesGroup() {
-    this.removeLabels();
-    const layers = this._mapService.map['_layers'];
-    for (const key of Object.keys(layers)) {
-      const layer = layers[key];
-      try {
-        layer.unbindTooltip();
-      } catch {}
-    }
-    setTimeout(() => {
-      this.initPanes();
-      if (this.sitesGroup && this.sitesGroup['features']) {
-        this.initSitesStatus('sites_group');
-        for (const site of this.sitesGroup['features']) {
-          this.setPopup(site.id, 'sites_group');
-          const layer = this.findSiteLayer(site.id, 'sites_group');
-          // pane
-          const fClick = this.onLayerClick(site);
-          layer.off('click', fClick);
-          layer.on('click', fClick);
-          //
-          layer.removeFrom(this._mapService.map);
-          layer.addTo(this._mapService.map);
-        }
-
-        this.setSitesStyle('sites_group');
-      }
-    }, 0);
+  onEachFeatureSite() {
+    const baseUrl = ''; //this.router.url + '/site';
+    return (feature, layer) => {
+      const popup = this._popup.setSitePopup(feature);
+      layer.bindPopup(popup);
+    };
   }
+
+  // initSites() {
+  //   this.removeLabels();
+  //   const layers = this._mapService.map['_layers'];
+  //   for (const key of Object.keys(layers)) {
+  //     const layer = layers[key];
+  //     try {
+  //       layer.unbindTooltip();
+  //     } catch {}
+  //   }
+  //   setTimeout(() => {
+  //     this.initPanes();
+  //     if (this.sites && this.sites['features']) {
+  //       this.initSitesStatus('site');
+  //       for (const site of this.sites['features']) {
+  //         this.setPopup(site.id, 'site');
+  //         const layer = this.findSiteLayer(site.id);
+  //         // pane
+  //         const fClick = this.onLayerClick(site);
+  //         layer.off('click', fClick);
+  //         layer.on('click', fClick);
+  //         //
+  //         layer.removeFrom(this._mapService.map);
+  //         layer.addTo(this._mapService.map);
+  //       }
+
+  //       this.setSitesStyle('site');
+  //     }
+  //   }, 0);
+  // }
+
+  // initSitesGroup() {
+  //   this.removeLabels();
+  //   const layers = this._mapService.map['_layers'];
+  //   for (const key of Object.keys(layers)) {
+  //     const layer = layers[key];
+  //     try {
+  //       layer.unbindTooltip();
+  //     } catch {}
+  //   }
+  //   setTimeout(() => {
+  //     this.initPanes();
+  //     if (this.sitesGroup && this.sitesGroup['features']) {
+  //       this.initSitesStatus('sites_group');
+  //       for (const site of this.sitesGroup['features']) {
+  //         this.setPopup(site.id, 'sites_group');
+  //         const layer = this.findSiteLayer(site.id, 'sites_group');
+  //         // pane
+  //         const fClick = this.onLayerClick(site);
+  //         layer.off('click', fClick);
+  //         layer.on('click', fClick);
+  //         //
+  //         layer.removeFrom(this._mapService.map);
+  //         layer.addTo(this._mapService.map);
+  //       }
+
+  //       this.setSitesStyle('sites_group');
+  //     }
+  //   }, 0);
+  // }
 
   removeLabels() {
     if (!this._mapService.map) {
@@ -211,30 +234,30 @@ export class MonitoringMapComponent implements OnInit {
     }
   }
 
-  initSitesStatus(objectType = 'site') {
-    if (!this.objectsStatus[objectType]) {
-      this.objectsStatus[objectType] = [];
-    }
-    const $this = this;
-    let objectData: any = [];
-    if (objectType == 'site') {
-      objectData = this.sites['features'];
-    } else {
-      objectData = this.sitesGroup['features'];
-    }
-    objectData.forEach((site) => {
-      const status = $this.objectsStatus[objectType].find((s) => s.id === site.id);
-      if (status) {
-        return;
-      }
+  // initSitesStatus(objectType = 'site') {
+  //   if (!this.objectsStatus[objectType]) {
+  //     this.objectsStatus[objectType] = [];
+  //   }
+  //   const $this = this;
+  //   let objectData: any = [];
+  //   if (objectType == 'site') {
+  //     objectData = this.sites['features'];
+  //   } else {
+  //     objectData = this.sitesGroup['features'];
+  //   }
+  //   objectData.forEach((site) => {
+  //     const status = $this.objectsStatus[objectType].find((s) => s.id === site.id);
+  //     if (status) {
+  //       return;
+  //     }
 
-      $this.objectsStatus[objectType].push({
-        selected: false,
-        visible: true,
-        id: site.id,
-      });
-    });
-  }
+  //     $this.objectsStatus[objectType].push({
+  //       selected: false,
+  //       visible: true,
+  //       id: site.id,
+  //     });
+  //   });
+  // }
 
   setSelectedSite(id, objectType = 'site') {
     if (id == this.selectedSiteId || !(objectType in this.objectsStatus)) {
@@ -398,22 +421,22 @@ export class MonitoringMapComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case 'objectsStatus':
-          if (!this.bListen) {
-            this.bListen = true;
-          } else {
-            this.setSitesStyle(this.obj.objectType);
-          }
-          break;
         case 'bEdit':
           this.setSitesStyle(this.obj.objectType);
-
           break;
-        case 'sites':
-          this.initSites();
-          break;
-        case 'sitesGroup':
-          this.initSitesGroup();
+        case 'filters':
+          // Filtres du tableau
+          // A appliquer que si on est au niveau du module pour les objets sites et groupes de sites
+          if (
+            this.obj.objectType == 'module' &&
+            (this.objectsType == 'sites_group' || this.objectsType == 'site')
+          ) {
+            this.refresh_geom_data();
+          }
+        case 'pre_filters':
+          this.refresh_geom_data();
+        case 'objectsType':
+          this.refresh_geom_data();
       }
     }
   }
