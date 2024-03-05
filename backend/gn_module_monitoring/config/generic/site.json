@@ -6,12 +6,17 @@
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
-  "geometry_type": ["Point", "LineString", "Polygon"],
+  "geometry_type": [
+    "Point",
+    "LineString",
+    "Polygon"
+  ],
   "display_properties": [
     "base_site_name",
     "base_site_code",
     "base_site_description",
     "id_inventor",
+    "observers",
     "first_use_date",
     "last_visit",
     "nb_visits",
@@ -25,10 +30,14 @@
     "last_visit",
     "id_inventor",
     "nb_visits",
+    "observers",
     "types_site"
   ],
   "sorts": [
-    {"prop": "last_visit", "dir": "desc"}
+    {
+      "prop": "last_visit",
+      "dir": "desc"
+    }
   ],
   "generic": {
     "id_base_site": {
@@ -54,9 +63,21 @@
       "type_widget": "observers",
       "attribut_label": "Observateur",
       "type_util": "user",
-      "code_list":"CODE_OBSERVERS_LIST",
+      "code_list": "CODE_OBSERVERS_LIST",
       "required": true,
       "multi_select": false
+    },
+    "observers": {
+      "type_widget": "datalist",
+      "attribut_label": "Observateurs",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
+      "type_util": "user",
+      "multiple": true,
+      "hidden": false,
+      "required": true
     },
     "id_digitiser": {
       "type_widget": "text",
@@ -88,36 +109,37 @@
     "altitude_min": {
       "type_widget": "integer",
       "attribut_label": "Altitude (min)"
-      },
+    },
     "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
-      },
-      "types_site": {
-        "type_widget": "datalist",
-        "attribut_label": "Type(s) de site",
-        "type_util": "types_site",
-        "keyValue": "id_nomenclature_type_site",
-        "keyLabel": "label",
-        "multiple": true,
-        "api" : "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
-        "application": "GeoNature",
-        "required": true,
-        "nullDefault":true,
-        "definition": "Permet de n'avoir que les types de site lié au module"
-      },
-      "id_sites_group": {
-        "type_widget": "datalist",
-        "attribut_label": "Groupe de site",
-        "keyValue": "id_sites_group",
-        "keyLabel": "sites_group_name",
-        "multiple": false,
-        "api" : "monitorings/sites_groups",
-        "application": "GeoNature",
-        "data_path":"items",
-        "required": false,
-        "default":null,
-        "nullDefault":true,
-        "definition": "Associer un site à un groupe de site"
-      }  }
+    },
+    "types_site": {
+      "type_widget": "datalist",
+      "attribut_label": "Type(s) de site",
+      "type_util": "types_site",
+      "keyValue": "id_nomenclature_type_site",
+      "keyLabel": "label",
+      "multiple": true,
+      "api": "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
+      "application": "GeoNature",
+      "required": true,
+      "nullDefault": true,
+      "definition": "Permet de n'avoir que les types de site lié au module"
+    },
+    "id_sites_group": {
+      "type_widget": "datalist",
+      "attribut_label": "Groupe de site",
+      "keyValue": "id_sites_group",
+      "keyLabel": "sites_group_name",
+      "multiple": false,
+      "api": "monitorings/sites_groups",
+      "application": "GeoNature",
+      "data_path": "items",
+      "required": false,
+      "default": null,
+      "nullDefault": true,
+      "definition": "Associer un site à un groupe de site"
+    }
+  }
 }

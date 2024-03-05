@@ -6,14 +6,6 @@ Create Date: 2023-10-02 12:09:53.695122
 
 """
 
-from alembic import op
-import sqlalchemy as sa
-
-from click.testing import CliRunner
-
-from gn_module_monitoring.command.cmd import process_available_permissions
-from gn_module_monitoring.command.utils import installed_modules
-
 # revision identifiers, used by Alembic.
 revision = "c1528c94d350"
 down_revision = "3ffeea74a9dd"
