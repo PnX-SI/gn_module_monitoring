@@ -133,7 +133,7 @@ export class MonitoringDatatableComponent implements OnInit {
     this.rows = temp;
     // Whenever the filter changes, always go back to the first page
     this.table.offset = 0;
-    this.setSelected();
+    // this.setSelected();
   }
 
   onRowClick(event) {
@@ -142,41 +142,41 @@ export class MonitoringDatatableComponent implements OnInit {
     }
     const id = event.row && event.row.id;
 
-    if (!this.rowStatus) {
-      return;
-    }
+    // if (!this.rowStatus) {
+    //   return;
+    // }
 
-    this.rowStatus.forEach((status) => {
-      const bCond = status.id === id;
-      status['selected'] = bCond && !status['selected'];
-    });
+    // this.rowStatus.forEach((status) => {
+    //   const bCond = status.id === id;
+    //   status['selected'] = bCond && !status['selected'];
+    // });
 
-    this.setSelected();
-    this.rowStatusChange.emit(this.rowStatus);
+    // this.setSelected();
+    this.rowStatusChange.emit(event.row);
   }
 
-  setSelected() {
-    // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
+  // setSelected() {
+  //   // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
 
-    if (!this.rowStatus) {
-      return;
-    }
+  //   if (!this.rowStatus) {
+  //     return;
+  //   }
 
-    const status_selected = this.rowStatus.find((status) => status.selected);
-    if (!status_selected) {
-      return;
-    }
+  //   const status_selected = this.rowStatus.find((status) => status.selected);
+  //   if (!status_selected) {
+  //     return;
+  //   }
 
-    const index_row_selected = this.table._internalRows.findIndex(
-      (row) => row.id === status_selected.id
-    );
-    if (index_row_selected === -1) {
-      return;
-    }
+  //   const index_row_selected = this.table._internalRows.findIndex(
+  //     (row) => row.id === status_selected.id
+  //   );
+  //   if (index_row_selected === -1) {
+  //     return;
+  //   }
 
-    this.selected = [this.table._internalRows[index_row_selected]];
-    this.table.offset = Math.floor(index_row_selected / this.table._limit);
-  }
+  //   this.selected = [this.table._internalRows[index_row_selected]];
+  //   this.table.offset = Math.floor(index_row_selected / this.table._limit);
+  // }
 
   ngOnDestroy() {
     this.filterSubject.unsubscribe();
@@ -194,9 +194,9 @@ export class MonitoringDatatableComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case 'rowStatus':
-          this.setSelected();
-          break;
+        // case 'rowStatus':
+        //   this.setSelected();
+        //   break;
         case 'child0':
           this.customColumnComparator = this.customColumnComparator_();
           break;

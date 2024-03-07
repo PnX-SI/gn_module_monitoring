@@ -40,7 +40,8 @@ export class MonitoringObjectComponent implements OnInit {
 
   filters: Object = {};
   pre_filters: Object = {};
-  objectsType: String;
+  selectedObject: Object = undefined;
+  objectListType: String;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;

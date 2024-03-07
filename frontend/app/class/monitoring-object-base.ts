@@ -161,6 +161,7 @@ export class MonitoringObjectBase {
 
     const fieldName = this._objService.configUtils(elem, this.moduleCode);
     if (val && fieldName && elem.type_widget) {
+      console.log(elem.type_util, val, fieldName, elem.value_field_name);
       return this._objService
         .dataUtilsService()
         .getUtil(elem.type_util, val, fieldName, elem.value_field_name);

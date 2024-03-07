@@ -5,6 +5,9 @@ from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import DateTime
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
+from sqlalchemy.orm import aliased
+from pypnusershub.db.models import User
+
 
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 
@@ -35,8 +38,13 @@ class GnMonitoringGenericFilter:
                     and_list.append(column.ilike(f"%{value}%"))
                 elif isinstance(column.type, DateTime):
                     and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
+                elif key == "id_inventor" and not type(value) == int:
+                    join_inventor = aliased(User)
+                    query = query.join(join_inventor, cls.inventor)
+                    query = query.filter(join_inventor.nom_complet.ilike(f"%{value}%"))
                 else:
                     and_list.append(column == value)
+
         and_query = and_(*and_list)
         return query.where(and_query)
 

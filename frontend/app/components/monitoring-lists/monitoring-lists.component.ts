@@ -21,8 +21,11 @@ export class MonitoringListComponent implements OnInit {
   @Input() currentUser;
   @Input() filters;
   @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
-  @Input() objectsType: String;
-  @Output() objectsTypeChange: EventEmitter<String> = new EventEmitter<String>();
+  @Input() objectListType: String;
+  @Output() objectListTypeChange: EventEmitter<String> = new EventEmitter<String>();
+
+  @Input() selectedObject;
+  @Output() selectedObjectChange: EventEmitter<String> = new EventEmitter<String>();
 
   activetab: string;
 
@@ -66,6 +69,9 @@ export class MonitoringListComponent implements OnInit {
 
     this.children0Array = this.obj.children0Array();
     this.activetab = this.children0Array[0] && this.children0Array[0].objectType;
+
+    this.objectListType = this.children0Array[0] && this.children0Array[0].objectType;
+
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
@@ -81,24 +87,22 @@ export class MonitoringListComponent implements OnInit {
   }
 
   onSelectedChildren(typeObject, event) {
-    this.objectsStatus[typeObject] = event;
-    let status_type = Utils.copy(this.objectsStatus);
-    status_type['type'] = typeObject;
-    this.objectsStatusChange.emit(status_type);
+    this.selectedObject = event;
+    this.selectedObjectChange.emit(event);
   }
 
   onFilterChange(event) {
     this.filters = event;
     this.filtersChange.emit(Utils.copy(this.filters));
-    this.objectsTypeChange.emit(Utils.copy(this.objectsType));
+    this.objectListTypeChange.emit(Utils.copy(this.objectListType));
   }
 
   changeActiveTab(typeObject, tab) {
     this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
     // this.objectsStatusChange.emit(this.reInitStatut());
-    this.objectsType = this.children0Array[typeObject['index']]['objectType'];
-    this.objectsTypeChange.emit(this.objectsType);
+    this.objectListType = this.children0Array[typeObject['index']]['objectType'];
+    this.objectListTypeChange.emit(this.objectListType);
   }
 
   reInitStatut() {
