@@ -41,8 +41,6 @@ export class MonitoringListComponent implements OnInit {
   queyParamsNewObject = {};
 
   // medias;
-
-  @Input() objectsStatus: Object;
   @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   canCreateChild: { [key: string]: boolean } = {};

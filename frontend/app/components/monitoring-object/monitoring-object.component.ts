@@ -54,7 +54,6 @@ export class MonitoringObjectComponent implements OnInit {
 
   currentUser: User;
 
-  objectsStatus: Object = {};
   heightMap;
 
   moduleSet = false;
@@ -170,80 +169,6 @@ export class MonitoringObjectComponent implements OnInit {
       }
     });
   }
-
-  // initSites() {
-  //   return this.module.get(1).subscribe(() => {
-  //     // TODO liste indépendantes carte et listes
-
-  //     // affichage des groupes de site uniquement si l'objet est un module
-  //     if (this.obj.objectType == 'module' && this.obj['children']['sites_group']) {
-  //       const sitesGroup = this.obj['children']['sites_group'];
-  //       this.sitesGroup = {
-  //         features: sitesGroup.map((group) => {
-  //           group['id'] = group['properties']['id_sites_group'];
-  //           group['type'] = 'Feature';
-  //           return group;
-  //         }),
-  //         type: 'FeatureCollection',
-  //       };
-  //     }
-  //     // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
-  //     let sites = null;
-  //     let cur = this.obj;
-  //     do {
-  //       sites = cur['children']['site'];
-  //       cur = cur.parent();
-  //     } while (!!cur && !sites);
-
-  //     if (!sites) {
-  //       return;
-  //     }
-  //     this.sites = {
-  //       features: sites.map((site) => {
-  //         site['id'] = site['properties']['id_base_site'];
-  //         site['type'] = 'Feature';
-  //         return site;
-  //       }),
-  //       type: 'FeatureCollection',
-  //     };
-  //     this.initObjectsStatus();
-  //   });
-  // }
-
-  // initObjectsStatus() {
-  //   const objectsStatus = {};
-  //   for (const childrenType of Object.keys(this.obj.children)) {
-  //     objectsStatus[childrenType] = this.obj.children[childrenType].map((child) => {
-  //       return {
-  //         id: child.id,
-  //         selected: false,
-  //         visible: true,
-  //         current: false,
-  //       };
-  //     });
-  //   }
-
-  //   // init site status
-  //   if (this.obj.siteId) {
-  //     objectsStatus['site'] = [];
-  //     this.sites['features'].forEach((f) => {
-  //       // determination du site courrant
-  //       let cur = false;
-  //       if (f.properties.id_base_site == this.obj.siteId) {
-  //         cur = true;
-  //       }
-
-  //       objectsStatus['site'].push({
-  //         id: f.properties.id_base_site,
-  //         selected: false,
-  //         visible: true,
-  //         current: cur,
-  //       });
-  //     });
-  //   }
-
-  //   this.objectsStatus = objectsStatus;
-  // }
 
   initRoutesParams() {
     return this._route.paramMap.pipe(
