@@ -23,8 +23,6 @@ export class MonitoringMapComponent implements OnInit {
   @Input() obj: MonitoringObject;
 
   @Input() selectedObject: Object;
-  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
-
   @Input() objForm: FormGroup;
 
   @Input() filters: {};
@@ -98,12 +96,11 @@ export class MonitoringMapComponent implements OnInit {
         this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
       }
     } else if (this.obj.objectType == 'sites_group') {
-      this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
-
-      this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-        ...params,
-        ...{ id_sites_group: this.obj.id },
-      });
+      this._geojsonService.getSitesGroupsGeometriesWithSites(
+        this.onEachFeatureGroupSite(),
+        this.onEachFeatureSite(),
+        params
+      );
     } else {
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
     }

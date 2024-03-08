@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import * as L from 'leaflet';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
+import * as L from 'leaflet'; 
 import { GeoJSON } from 'geojson';
 import { MapService } from '@geonature_common/map/map.service';
 
@@ -10,7 +9,7 @@ import { FormService } from './form.service';
 
 // This service will be used for sites and sites groups
 
-const siteGroupStyle = {
+const defaultSiteGroupStyle = {
   fillColor: '#800080',
   fillOpacity: 0.5,
   color: '#800080',
@@ -41,20 +40,50 @@ export class GeoJSONService {
     this.removeFeatureGroup(this.sitesFeatureGroup);
   }
 
-  getSitesGroupsGeometries(onEachFeature: Function, params = {}) {
+  /*
+    Affichage des groupes de sites avec leur sites associés
+  */
+  getSitesGroupsGeometriesWithSites(
+    sitesGroupOnEachFeature: Function,
+    sitesOnEachFeature: Function,
+    params = {},
+    sitesGroupstyle?,
+    sitesStyle?
+  ) {
+    return forkJoin({
+      sitesGroup: this._sites_group_service.get_geometries(params),
+      sites: this._sites_service.get_geometries(params),
+    }).subscribe((data) => {
+      this.geojsonSitesGroups = data['sitesGroup'];
+      this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+      this.sitesGroupFeatureGroup = this.setMapData(
+        data['sitesGroup'],
+        sitesGroupOnEachFeature,
+        sitesGroupstyle || defaultSiteGroupStyle
+      );
+      this.removeFeatureGroup(this.sitesFeatureGroup);
+      this.sitesFeatureGroup = this.setMapData(data['sites'], sitesOnEachFeature, sitesStyle);
+    });
+  }
+
+  getSitesGroupsGeometries(onEachFeature: Function, params = {}, style?) {
     this._sites_group_service
       .get_geometries(params)
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
         this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-        this.sitesGroupFeatureGroup = this.setMapData(data, onEachFeature, siteGroupStyle);
+        this.sitesGroupFeatureGroup = this.setMapData(
+          data,
+          onEachFeature,
+          style || defaultSiteGroupStyle
+        );
       });
   }
 
-  getSitesGroupsChildGeometries(onEachFeature: Function, params = {}) {
+  getSitesGroupsChildGeometries(onEachFeature: Function, params = {}, style?) {
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
       this.removeFeatureGroup(this.sitesFeatureGroup);
-      this.sitesFeatureGroup = this.setMapData(data, onEachFeature);
+      this.sitesFeatureGroup = this.setMapData(data, onEachFeature, style);
     });
   }
 
@@ -109,7 +138,7 @@ export class GeoJSONService {
       );
       this.geojsonSitesGroups.features = features;
       this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-      this.setMapData(this.geojsonSitesGroups, this.onEachFeature, siteGroupStyle);
+      this.setMapData(this.geojsonSitesGroups, this.onEachFeature, defaultSiteGroupStyle);
     }
   }
 

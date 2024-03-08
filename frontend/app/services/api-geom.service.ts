@@ -114,8 +114,10 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
 
   get_geometries(params: JsonData = {}): Observable<GeoJSON.FeatureCollection> {
     // Suppression des champs avec des valeurs vides
-    const clean_params = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== ''));
-
+    const clean_params = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== '' && v !== null)
+    );
+    
     return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
       'get',
       `${this.endPoint}/geometries`,
