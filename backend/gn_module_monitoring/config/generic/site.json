@@ -15,7 +15,6 @@
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_inventor",
     "observers",
     "first_use_date",
     "last_visit",
@@ -28,7 +27,6 @@
     "base_site_name",
     "base_site_code",
     "last_visit",
-    "id_inventor",
     "nb_visits",
     "observers",
     "types_site"
@@ -58,14 +56,6 @@
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Description"
-    },
-    "id_inventor": {
-      "type_widget": "observers",
-      "attribut_label": "Observateur",
-      "type_util": "user",
-      "code_list": "CODE_OBSERVERS_LIST",
-      "required": true,
-      "multi_select": false
     },
     "observers": {
       "type_widget": "datalist",

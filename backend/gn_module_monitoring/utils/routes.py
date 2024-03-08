@@ -165,12 +165,8 @@ def filter_according_to_column_type_for_site(query, params):
             .join(BibTypeSite.nomenclature)
             .where(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
         )
-    elif "id_inventor" in params:
-        params_inventor = params.pop("id_inventor")
-        query = query.join(
-            User,
-            User.id_role == TMonitoringSites.id_inventor,
-        ).where(User.nom_complet.ilike(f"%{params_inventor}%"))
+    # TODO: filter by observers
+
     if len(params) != 0:
         query = filter_params(TMonitoringSites, query=query, params=params)
 
@@ -183,11 +179,9 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
             query = query.order_by(TNomenclatures.label_fr.asc())
         else:
             query = query.order_by(TNomenclatures.label_fr.desc())
-    elif sort_label == "id_inventor":
-        if sort_dir == "asc":
-            query = query.order_by(User.nom_complet.asc())
-        else:
-            query = query.order_by(User.nom_complet.desc())
+
+    # TODO: sort by observers
+
     else:
         query = sort(TMonitoringSites, query=query, sort=sort_label, sort_dir=sort_dir)
     return query

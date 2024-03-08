@@ -134,8 +134,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     pk = fields.Method("set_pk", dump_only=True)
     types_site = MA.Nested(BibTypeSiteSchema, many=True)
     id_sites_group = fields.Method("get_id_sites_group")
-    id_inventor = fields.Method("get_id_inventor")
-    inventor = fields.Method("get_inventor_name")
     observers = MA.Pluck(ObserverSchema, "id_role", many=True)
     medias = MA.Nested(MediaSchema, many=True)
 
@@ -148,13 +146,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def get_id_sites_group(self, obj):
         return obj.id_sites_group
-
-    def get_id_inventor(self, obj):
-        return obj.id_inventor
-
-    def get_inventor_name(self, obj):
-        if obj.inventor:
-            return [obj.inventor.nom_complet]
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):

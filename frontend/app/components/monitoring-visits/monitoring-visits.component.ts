@@ -211,8 +211,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         let siteList = this.siteService.formatLabelTypesSite([this.site]);
         this.objSelected = siteList[0];
-        const siteListResolvedProp = this.siteService.formatLabelObservers(siteList);
-        this.objResolvedProperties = siteListResolvedProp[0];
+        this.objResolvedProperties = siteList[0];
         this.addSpecificConfig();
 
         const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
@@ -269,9 +268,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   getModules() {
     this.siteService.getSiteModules(this.site.id_base_site).subscribe(
       (data: Module[]) =>
-        (this.modules = data.map((item) => {
-          return { id: item.module_code, label: item.module_label };
-        }))
+      (this.modules = data.map((item) => {
+        return { id: item.module_code, label: item.module_label };
+      }))
     );
   }
 

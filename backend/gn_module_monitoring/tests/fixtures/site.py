@@ -17,7 +17,6 @@ def sites(users, types_site, site_group_with_sites):
     sites = {}
     for i, key in enumerate(types_site.keys()):
         sites[key] = TMonitoringSites(
-            id_inventor=user.id_role,
             id_digitiser=user.id_role,
             base_site_name=f"Site{i}",
             base_site_description=f"Description{i}",
@@ -29,7 +28,6 @@ def sites(users, types_site, site_group_with_sites):
 
     # Add a special site that has no type
     sites["no-type"] = TMonitoringSites(
-        id_inventor=user.id_role,
         id_digitiser=user.id_role,
         base_site_name="no-type",
         base_site_description="Description-no-type",
@@ -57,7 +55,6 @@ def site_to_post_with_types(users, types_site, site_group_without_sites):
         list_nomenclature_id.append(type["id_nomenclature_type_site"])
 
     site_to_post_with_types = TMonitoringSites(
-        id_inventor=user.id_role,
         id_digitiser=user.id_role,
         base_site_name="New Site",
         base_site_description="New Description",
