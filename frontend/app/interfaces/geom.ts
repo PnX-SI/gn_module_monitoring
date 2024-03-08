@@ -41,8 +41,6 @@ export interface ISite extends IGeomObject {
   dataComplement: JsonData;
   types_site: JsonData[];
   id_sites_group: number;
-  id_inventor: string[];
-  inventor: string[];
 }
 
 export interface ISiteField extends Omit<ISite, 'types_site'> {

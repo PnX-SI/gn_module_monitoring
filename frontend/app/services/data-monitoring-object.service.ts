@@ -16,7 +16,7 @@ export class DataMonitoringObjectService {
     private _cacheService: CacheService,
     private _http: HttpClient,
     private _config: ConfigService
-  ) {}
+  ) { }
 
   /**
    * Renvoie la liste des cruved object liés à Monitorings et de l'utilisateur connecté
@@ -157,7 +157,6 @@ export class DataMonitoringObjectService {
    *
    * template :  nom du fichier de template pour l'export pdf (.html)
    * map_image : image de la carte leaflet
-   * id_inventor ???
    *
    **/
   postPdfExport(module_code, object_type, id, template, map_image, extra_data = {}) {

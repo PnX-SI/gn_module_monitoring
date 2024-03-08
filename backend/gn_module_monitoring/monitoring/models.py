@@ -27,8 +27,8 @@ from geonature.core.gn_monitoring.models import (
     TBaseVisits,
     cor_module_type,
     cor_site_type,
-    BibTypeSite,
     cor_visit_observer,
+    cor_site_observer,
     TObservations,
 )
 from geonature.core.gn_meta.models import TDatasets
@@ -235,6 +235,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     )
 
     data = DB.Column(JSONB)
+    observers = DB.relationship(User, lazy="joined", secondary=cor_site_observer)
 
     visits = DB.relationship(
         TMonitoringVisits,
@@ -277,22 +278,24 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     @hybrid_property
     def organism_actors(self):
         actors_organism_list = []
-        if isinstance(self.inventor, list):
-            for actor in self.inventor:
+        if isinstance(self.digitiser, list):
+            for actor in self.digitiser:
                 if actor.id_organisme is not None:
                     actors_organism_list.append(actor.id_organisme)
-        else:
-            if hasattr(self.inventor, "id_organisme"):
-                actors_organism_list.append(self.inventor.id_organisme)
+        elif isinstance(self.observers, list):
+            for actor in self.observers:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.digitiser, User):
+            actors_organism_list.append(self.digitiser.id_organisme)
         return actors_organism_list
 
     def has_instance_permission(self, scope):
         if scope == 0:
             return False
         elif scope in (1, 2):
-            if (
-                g.current_user.id_role == self.id_digitiser
-                or g.current_user.id_role == self.id_inventor
+            if g.current_user.id_role == self.id_digitiser or any(
+                observer.id_role == g.current_user.id_role for observer in self.observers
             ):  # or g.current_user in self.user_actors:
                 return True
             if scope == 2 and g.current_user.id_organisme in self.organism_actors:

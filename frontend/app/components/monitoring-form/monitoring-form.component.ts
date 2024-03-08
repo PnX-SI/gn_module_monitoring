@@ -86,7 +86,7 @@ export class MonitoringFormComponent implements OnInit {
     private _formService: FormService,
     private _router: Router,
     private _geojsonService: GeoJSONService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.initPermission();
@@ -299,7 +299,7 @@ export class MonitoringFormComponent implements OnInit {
 
   /** Pour donner des valeurs par defaut si la valeur n'est pas définie
    * id_digitiser => current_user.id_role
-   * id_inventor => current_user.id_role
+   * observers => [current_user.id_role]
    * date => today
    */
   setDefaultFormValue() {
@@ -307,7 +307,7 @@ export class MonitoringFormComponent implements OnInit {
     const date = new Date();
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
-      id_inventor: value['id_inventor'] || this.currentUser.id_role,
+      observers: value['observers'] || [this.currentUser.id_role],
       first_use_date: value['first_use_date'] || {
         year: date.getUTCFullYear(),
         month: date.getUTCMonth() + 1,

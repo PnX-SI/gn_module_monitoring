@@ -175,8 +175,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.colsname = this._sitesService.objectObs.dataTable.colNameObj;
       let siteList = this._sitesService.formatLabelTypesSite(data.items);
       this.rows = siteList;
-      const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
-      this.siteResolvedProperties = siteListResolvedProp;
+      this.siteResolvedProperties = siteList;
       this.dataTableObj.site.rows = this.siteResolvedProperties;
       this.dataTableObj.site.page.count = data.count;
       this.dataTableObj.site.page.limit = data.limit;
@@ -318,9 +317,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       if (objType == 'site') {
         let siteList = this._sitesService.formatLabelTypesSite(data[dataType].data.items);
         this.rows = siteList;
-        const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
-        objTemp[objType].rows = siteListResolvedProp;
-        this.siteResolvedProperties = siteListResolvedProp;
+        objTemp[objType].rows = siteList;
+        this.siteResolvedProperties = siteList;
       } else {
         objTemp[objType].rows = data[dataType].data.items;
       }

@@ -129,8 +129,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
             tap((data) => {
               data.sitesGroup.is_geom_from_child
                 ? this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                    id_sites_group: data.sitesGroup.id_sites_group,
-                  })
+                  id_sites_group: data.sitesGroup.id_sites_group,
+                })
                 : this._geojsonService.setGeomSiteGroupFromExistingObject(data.sitesGroup.geometry);
             }),
             mergeMap((data) => {
@@ -196,8 +196,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
       .subscribe((data: IPaginated<ISite>) => {
         let siteList = this._siteService.formatLabelTypesSite(data.items);
         this.rows = siteList;
-        const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
-        this.siteResolvedProperties = siteListResolvedProp;
+        this.siteResolvedProperties = siteList;
         this.dataTableObj.site.rows = this.rows;
         this.dataTableObj.site.page.count = data.count;
         this.dataTableObj.site.page.limit = data.limit;
@@ -279,9 +278,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       let siteList = this._siteService.formatLabelTypesSite(data[dataType].items);
       this.rows = siteList;
-      const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
-      objTemp[objType].rows = siteListResolvedProp;
-      this.siteResolvedProperties = siteListResolvedProp;
+      objTemp[objType].rows = siteList;
+      this.siteResolvedProperties = siteList;
 
       objTemp[objType].page = {
         count: data[dataType].count,
