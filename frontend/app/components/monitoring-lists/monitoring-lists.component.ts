@@ -28,7 +28,7 @@ export class MonitoringListComponent implements OnInit {
   @Output() selectedObjectChange: EventEmitter<String> = new EventEmitter<String>();
 
   activetab: string;
-
+  nbVisibleRows: Record<string, number> = {};
   frontendModuleMonitoringUrl;
   backendUrl: string;
 
@@ -75,6 +75,10 @@ export class MonitoringListComponent implements OnInit {
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
+    // Initialisation nombre d'élément affiché dans la liste
+    Object.keys(this.childrenDataTable).forEach((chidrenType) => {
+      this.nbVisibleRows[chidrenType] = this.childrenDataTable[chidrenType].rows.length;
+    });
     this.initPermission();
     // this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }
@@ -91,46 +95,34 @@ export class MonitoringListComponent implements OnInit {
     this.selectedObjectChange.emit(event);
   }
 
-  onFilterChange(event) {
-    this.filters = event;
-    this.filtersChange.emit(Utils.copy(this.filters));
-    this.objectListTypeChange.emit(Utils.copy(this.objectListType));
+  onFilterChange(type, { event, nb_row }) {
+    if (event) {
+      this.filters = event;
+      this.filtersChange.emit(Utils.copy(this.filters));
+      this.objectListTypeChange.emit(Utils.copy(this.objectListType));
+    }
+    this.nbVisibleRows[type] = nb_row;
   }
 
   changeActiveTab(typeObject, tab) {
     this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
-    // this.objectsStatusChange.emit(this.reInitStatut());
     this.objectListType = this.children0Array[typeObject['index']]['objectType'];
     this.objectListTypeChange.emit(this.objectListType);
   }
 
-  reInitStatut() {
-    let status_type = Utils.copy(this.objectsStatus);
-    for (let typeObject in status_type) {
-      if (Array.isArray(status_type[typeObject])) {
-        for (let i in status_type[typeObject]) {
-          try {
-            status_type[typeObject][i]['selected'] = false;
-          } catch (error) {
-            console.error(error.message, status_type[typeObject][i]);
-          }
-        }
-      }
-    }
-    return status_type;
-  }
   onbEditChanged(event) {
     this.bEditChange.emit(event);
   }
 
   displayNumber(chidrenType) {
-    if (!this.objectsStatus[chidrenType]) {
+    if (!this.childrenDataTable[chidrenType]) {
       return '';
     }
-    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible && s.id != undefined);
-    const nbSelected = visibles.length;
-    const nb = this.obj.children[chidrenType].length;
+
+    const nbSelected = this.nbVisibleRows[chidrenType];
+    const nb = this.childrenDataTable[chidrenType]['rows'].length;
+
     return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
   }
 
