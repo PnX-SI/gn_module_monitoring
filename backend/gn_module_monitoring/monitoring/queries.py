@@ -1,16 +1,20 @@
 from flask import g
 
-from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
+from copy import copy
+
+from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true, select
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.types import DateTime
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 from sqlalchemy.orm import aliased
+
 from pypnusershub.db.models import User
+from apptax.taxonomie.models import Taxref
 
 
 from geonature.core.gn_permissions.tools import get_scopes_by_action
-
+from pypnnomenclature.models import TNomenclatures
 import gn_module_monitoring.monitoring.models as Models
 
 
@@ -28,7 +32,8 @@ class GnMonitoringGenericFilter:
         and_list = [
             true(),
         ]
-        for key, value in params.items():
+        params_copy = copy(params)
+        for key, value in params_copy.items():
             if hasattr(cls, key):
                 column = getattr(cls, key)
                 if not hasattr(column, "type"):
@@ -44,6 +49,7 @@ class GnMonitoringGenericFilter:
                     query = query.filter(join_inventor.nom_complet.ilike(f"%{value}%"))
                 else:
                     and_list.append(column == value)
+                params.pop(key)
 
         and_query = and_(*and_list)
         return query.where(and_query)
@@ -110,11 +116,79 @@ class SitesQuery(GnMonitoringGenericFilter):
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+
+        if "modules" in params:
+            query = query.filter(cls.modules.any(id_module=params["modules"]))
+            params.pop("modules")
+        if "types_site" in params:
+            value = params["types_site"]
+            if not isinstance(value, list):
+                value = [value]
+            query = query.filter(
+                cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
+            )
+
         query = super().filter_by_params(query, params)
 
-        for key, value in params.items():
-            if key == "modules":
-                query = query.filter(cls.modules.any(id_module=value))
+        return query
+
+    @classmethod
+    def filter_by_specific(
+        cls, id_types_site: [], query: Select, params: MultiDict = None, **kwargs
+    ):
+        # Get specific
+        from gn_module_monitoring.utils.routes import filter_params
+        from geonature.utils.env import db
+        import json
+
+        specific_config_models = (
+            db.session.scalars(
+                select(Models.BibTypeSite).where(
+                    Models.BibTypeSite.id_nomenclature_type_site.in_(id_types_site)
+                )
+            )
+            .unique()
+            .all()
+        )
+        specific_properties = {}
+        for s in specific_config_models:
+            if "specific" in (getattr(s, "config") or {}):
+                specific_properties.update(s.config["specific"])
+
+        for param, value in params.items():
+            if param in specific_properties:
+                type = "text"
+                if "type_util" in specific_properties[param]:
+                    type = specific_properties[param]["type_util"]
+
+                if type == "nomenclature":
+                    join_nomenclature = aliased(TNomenclatures)
+                    query = query.join(
+                        join_nomenclature,
+                        cls.data[param].astext.cast(db.Integer)
+                        == join_nomenclature.id_nomenclature,
+                    ).where(join_nomenclature.label_default.ilike(f"{value}%"))
+                elif type == "taxonomy":
+                    # TODO filter on lb nom or nom vern ??
+                    join_taxonomy = aliased(Taxref)
+                    query = query.join(
+                        join_taxonomy,
+                        cls.data[param].astext.cast(db.Integer) == join_taxonomy.cd_nom,
+                    ).where(join_taxonomy.nom_vern_or_lb_nom.ilike(f"{value}%"))
+                elif type == "user":
+                    join_user = aliased(User)
+                    query = query.join(
+                        join_user,
+                        cls.data[param].astext.cast(db.Integer) == join_user.id_role,
+                    ).where(join_user.nom_complet.ilike(f"{value}%"))
+                elif type == "area":
+                    # TODO
+                    pass
+                elif type == "habitat":
+                    # TODO
+                    pass
+                else:
+                    query = query.where(cls.data[param].astext.ilike(f"{value}%"))
 
         return query
 
@@ -146,7 +220,17 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
             if key == "modules":
                 query = query.join(Models.TMonitoringSites)
                 query = query.filter(Models.TMonitoringSites.modules.any(id_module=value))
+            if key == "types_site":
+                if not isinstance(value, list):
+                    value = [value]
+                join_sites = aliased(Models.TMonitoringSites)
+                query = query.join(join_sites, cls.sites)
 
+                query = query.filter(
+                    join_sites.types_site.any(
+                        Models.BibTypeSite.id_nomenclature_type_site.in_(value)
+                    )
+                )
         return query
 
 

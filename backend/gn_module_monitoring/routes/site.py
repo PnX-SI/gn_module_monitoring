@@ -158,7 +158,14 @@ def get_site_by_id(scope, id, object_type):
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
-    params = MultiDict(request.args)
+    # params = request.args.to_dict(flat=True)
+    params = dict(**request.args)
+    types_site = []
+    if "types_site" in params:
+        types_site = params["types_site"]
+        if not isinstance(params["types_site"], list):
+            types_site = [params["types_site"]]
+
     query = select(TMonitoringSites)
     query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
     query_allowed.with_only_columns(
@@ -169,6 +176,10 @@ def get_all_site_geometries(object_type):
     )
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
+    if types_site:
+        query_allowed = TMonitoringSites.filter_by_specific(
+            id_types_site=types_site, query=query_allowed, params=params
+        )
     subquery = query_allowed.subquery()
 
     result = geojson_query(subquery)
