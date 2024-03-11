@@ -16,6 +16,23 @@ const defaultSiteGroupStyle = {
   opacity: 0.8,
   weight: 2,
   fill: true,
+  zIndex: 20,
+};
+
+const selectedSiteGroupStyle = {
+  fillColor: '#ac0000',
+  fillOpacity: 0.5,
+  color: '#ac0000',
+  opacity: 0.8,
+  weight: 2,
+  fill: true,
+};
+
+const selectedSiteStyle = {
+  opacity: 0.7,
+  fillOpacity: 0.5,
+  color: 'red',
+  zIndex: 30,
 };
 
 @Injectable()
@@ -26,7 +43,7 @@ export class GeoJSONService {
   sitesFeatureGroup: L.FeatureGroup;
   currentLayer: any = null;
 
-  extraLayers: Object = {};
+  extraLayers: Record<string, L.FeatureGroup> = {};
 
   constructor(
     private _sites_group_service: SitesGroupService,
@@ -40,6 +57,38 @@ export class GeoJSONService {
     this.removeFeatureGroup(this.sitesFeatureGroup);
   }
 
+  removeExtraLayers() {
+    Object.keys(this.extraLayers).forEach((key) => {
+      this.removeFeatureGroup(this.extraLayers[key]);
+    });
+  }
+
+  displayExtraLayers(type: string, onEachFeature: Function, params, style?) {
+    if (this.extraLayers[type]) {
+      // TODO forcer l'affichage du layer s'il a été désactivé
+      // ou non
+      return;
+    }
+    let observable;
+    if (type == 'site') {
+      observable = this._sites_service.get_geometries(params);
+      style = selectedSiteStyle;
+    } else if (type == 'sites_group') {
+      observable = this._sites_group_service.get_geometries(params);
+      style = selectedSiteGroupStyle;
+    } else {
+      return;
+    }
+    observable.subscribe((data: GeoJSON.FeatureCollection) => {
+      const layer: L.Layer = this._mapService.createGeojson(data, false, onEachFeature, style);
+      const featureGroup = new L.FeatureGroup();
+      featureGroup.addLayer(layer);
+      this.extraLayers[type] = featureGroup;
+      this._mapService.map.addLayer(featureGroup);
+      featureGroup.bringToBack();
+      return featureGroup;
+    });
+  }
   /*
     Affichage des groupes de sites avec leur sites associés
   */

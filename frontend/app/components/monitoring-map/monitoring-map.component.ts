@@ -27,7 +27,7 @@ export class MonitoringMapComponent implements OnInit {
 
   @Input() filters: {};
   @Input() pre_filters: {};
-  @Input() objectListType: String;
+  @Input() objectListType: string;
   @Input() heightMap;
 
   bListen = true;
@@ -90,6 +90,7 @@ export class MonitoringMapComponent implements OnInit {
     };
     this._geojsonService.removeAllLayers();
     if (this.obj.objectType == 'module') {
+      this._geojsonService.removeExtraLayers();
       if (this.objectListType == 'sites_group') {
         this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
       } else {
@@ -104,6 +105,14 @@ export class MonitoringMapComponent implements OnInit {
     } else {
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
     }
+    // if (this.obj.objectType !== 'module') {
+    //   this._geojsonService.displayExtraLayers(
+    //     'sites_group',
+    //     this.onEachFeatureGroupSite(),
+    //     this.pre_filters
+    //   );
+    //   this._geojsonService.displayExtraLayers('site', this.onEachFeatureSite(), this.pre_filters);
+    // }
   }
 
   onEachFeatureSite() {
@@ -131,6 +140,7 @@ export class MonitoringMapComponent implements OnInit {
       layer.bindPopup(popup);
     };
   }
+
   initPanes() {
     const map = this._mapService.map;
     for (const paneKey of Object.keys(this.styles)) {

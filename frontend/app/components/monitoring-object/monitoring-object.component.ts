@@ -41,7 +41,7 @@ export class MonitoringObjectComponent implements OnInit {
   filters: Object = {};
   pre_filters: Object = {};
   selectedObject: Object = undefined;
-  objectListType: String;
+  objectListType: string;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -154,18 +154,20 @@ export class MonitoringObjectComponent implements OnInit {
 
   initFilters() {
     this.pre_filters = {};
+    this.filters = {};
     return this.module.get(1).subscribe(() => {
       // modules
-      this.pre_filters['modules'] = this.module.id;
+      this.pre_filters['types_site'] =
+        this._configService.config()[this.obj.moduleCode]['module']['types_site'];
 
       // filtre objet géographique de référence
       if (this.obj.objectType == 'sites_group') {
-        this.pre_filters['id_sites_group'] = this.obj.id;
+        this.filters['id_sites_group'] = this.obj.id;
       } else if (this.obj.objectType == 'site') {
-        this.pre_filters['id_base_site'] = this.obj.id;
+        this.filters['id_base_site'] = this.obj.id;
       } else if (this.obj['siteId'] !== undefined) {
         // affichage du site parent
-        this.pre_filters['id_base_site'] = this.obj['siteId'];
+        this.filters['id_base_site'] = this.obj['siteId'];
       }
     });
   }

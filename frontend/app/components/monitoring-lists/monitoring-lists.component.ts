@@ -21,11 +21,11 @@ export class MonitoringListComponent implements OnInit {
   @Input() currentUser;
   @Input() filters;
   @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
-  @Input() objectListType: String;
-  @Output() objectListTypeChange: EventEmitter<String> = new EventEmitter<String>();
+  @Input() objectListType: string;
+  @Output() objectListTypeChange: EventEmitter<string> = new EventEmitter<string>();
 
   @Input() selectedObject;
-  @Output() selectedObjectChange: EventEmitter<String> = new EventEmitter<String>();
+  @Output() selectedObjectChange: EventEmitter<string> = new EventEmitter<string>();
 
   activetab: string;
   nbVisibleRows: Record<string, number> = {};
@@ -93,9 +93,11 @@ export class MonitoringListComponent implements OnInit {
     this.selectedObjectChange.emit(event);
   }
 
-  onFilterChange(type, { event, nb_row }) {
+  onFilterChange(type, event) {
+    const filters = event['filters'];
+    const nb_row = event['nb_row'];
     if (event) {
-      this.filters = event;
+      this.filters = filters;
       this.filtersChange.emit(Utils.copy(this.filters));
       this.objectListTypeChange.emit(Utils.copy(this.objectListType));
     }
