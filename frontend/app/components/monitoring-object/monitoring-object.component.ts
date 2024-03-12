@@ -162,12 +162,12 @@ export class MonitoringObjectComponent implements OnInit {
 
       // filtre objet géographique de référence
       if (this.obj.objectType == 'sites_group') {
-        this.filters['id_sites_group'] = this.obj.id;
+        this.pre_filters['id_sites_group'] = this.obj.id;
       } else if (this.obj.objectType == 'site') {
-        this.filters['id_base_site'] = this.obj.id;
+        this.pre_filters['id_base_site'] = this.obj.id;
       } else if (this.obj['siteId'] !== undefined) {
         // affichage du site parent
-        this.filters['id_base_site'] = this.obj['siteId'];
+        this.pre_filters['id_base_site'] = this.obj['siteId'];
       }
     });
   }

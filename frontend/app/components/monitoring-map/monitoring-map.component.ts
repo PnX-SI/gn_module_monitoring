@@ -90,7 +90,6 @@ export class MonitoringMapComponent implements OnInit {
     };
     this._geojsonService.removeAllLayers();
     if (this.obj.objectType == 'module') {
-      this._geojsonService.removeExtraLayers();
       if (this.objectListType == 'sites_group') {
         this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
       } else {
@@ -105,14 +104,6 @@ export class MonitoringMapComponent implements OnInit {
     } else {
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
     }
-    // if (this.obj.objectType !== 'module') {
-    //   this._geojsonService.displayExtraLayers(
-    //     'sites_group',
-    //     this.onEachFeatureGroupSite(),
-    //     this.pre_filters
-    //   );
-    //   this._geojsonService.displayExtraLayers('site', this.onEachFeatureSite(), this.pre_filters);
-    // }
   }
 
   onEachFeatureSite() {
@@ -189,12 +180,13 @@ export class MonitoringMapComponent implements OnInit {
           this.refresh_geom_data();
           break;
         case 'selectedObject':
-          if (this.obj.objectType == 'module')
+          if (this.obj.objectType == 'module' && Object.keys(this.selectedObject).length > 0) {
             if (this.objectListType == 'sites_group') {
               this._geojsonService.selectSitesGroupLayer(this.selectedObject['id'], true);
             } else if (this.objectListType == 'site') {
               this._geojsonService.selectSitesLayer(this.selectedObject['id'], true);
             }
+          }
           break;
       }
     }
