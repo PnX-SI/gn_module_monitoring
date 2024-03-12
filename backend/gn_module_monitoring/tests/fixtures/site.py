@@ -1,11 +1,14 @@
 import pytest
 import json
 
+from sqlalchemy import select
+
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
 from geonature.utils.env import db
 
+from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 
@@ -15,6 +18,11 @@ def sites(users, types_site, site_group_with_sites):
     user = users["user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
+    nomenclature_sex = db.session.scalars(
+        select(TNomenclatures)
+        .where(TNomenclatures.nomenclature_type.has(BibNomenclaturesTypes.mnemonique == "SEXE"))
+        .limit(1)
+    ).first()
     for i, key in enumerate(types_site.keys()):
         sites[key] = TMonitoringSites(
             id_inventor=user.id_role,
@@ -25,6 +33,11 @@ def sites(users, types_site, site_group_with_sites):
             geom=geom_4326,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
+            data={
+                "observers3": 1,
+                "cd_nom_test": 212,
+                "id_nomenclature_sex": nomenclature_sex.id_nomenclature,
+            },
         )
 
     # Add a special site that has no type
@@ -38,6 +51,39 @@ def sites(users, types_site, site_group_with_sites):
         types_site=[],
         id_sites_group=site_group_with_sites.id_sites_group,
     )
+
+    with db.session.begin_nested():
+        db.session.add_all(sites.values())
+    return sites
+
+
+@pytest.fixture()
+def sites_utils(users, types_site_type_utils, site_group_with_sites):
+    user = users["user"]
+    geom_4326 = from_shape(Point(43, 24), srid=4326)
+    sites = {}
+    nomenclature_sex = db.session.scalars(
+        select(TNomenclatures)
+        .where(TNomenclatures.nomenclature_type.has(BibNomenclaturesTypes.mnemonique == "SEXE"))
+        .where(TNomenclatures.cd_nomenclature == "2")
+        .limit(1)
+    ).first()
+    for i, key in enumerate(types_site_type_utils.keys()):
+        sites[key] = TMonitoringSites(
+            id_inventor=user.id_role,
+            id_digitiser=user.id_role,
+            base_site_name=f"Site{i}",
+            base_site_description=f"Description{i}",
+            base_site_code=f"Code{i}",
+            geom=geom_4326,
+            types_site=[types_site_type_utils[key]],
+            id_sites_group=site_group_with_sites.id_sites_group,
+            data={
+                "observers3": user.id_role,
+                "cd_nom_test": 212,
+                "id_nomenclature_sex": nomenclature_sex.id_nomenclature,
+            },
+        )
 
     with db.session.begin_nested():
         db.session.add_all(sites.values())

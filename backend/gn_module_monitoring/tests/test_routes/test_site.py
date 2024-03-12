@@ -101,7 +101,10 @@ class TestSite:
             ][0]["id_base_site"]
             assert id_ == site.id_base_site
 
-    def test_get_all_site_geometries_filter_site_group(self, sites, site_group_without_sites):
+    def test_get_all_site_geometries_filter_site_group_without_sites(
+        self, sites, site_group_without_sites, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         r = self.client.get(
             url_for(
                 "monitorings.get_all_site_geometries",
@@ -110,7 +113,46 @@ class TestSite:
         )
         json_resp = r.json
         features = json_resp.get("features")
+
+        assert r.status_code == 200
         assert features is None
+
+    def test_get_all_site_geometries_filter_site_group(
+        self, sites, site_group_with_sites, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_site_geometries",
+                id_sites_group=site_group_with_sites.id_sites_group,
+            )
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        print(features)
+        assert r.status_code == 200
+        assert features is None
+
+    def test_get_all_site_geometries_filter_utils(self, sites_utils, monitorings_users, users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        # types_site = [s.types_site[0].id_nomenclature_type_site for s in sites_utils]
+        types_site = [s for s in sites_utils]
+        id_nomenclature_type_site = (
+            sites_utils[types_site[0]].types_site[0].id_nomenclature_type_site
+        )
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_site_geometries",
+                types_site=id_nomenclature_type_site,
+                cd_nom_test="Sonneur",
+                observers3=users["user"].nom_complet,
+                id_nomenclature_sex="Femelle",
+            )
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == 1
 
     # def test_get_module_by_id_base_site(self, sites, monitoring_module, monitorings_users):
 
