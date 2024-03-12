@@ -129,9 +129,8 @@ class TestSite:
         )
         json_resp = r.json
         features = json_resp.get("features")
-        print(features)
         assert r.status_code == 200
-        assert features is None
+        assert len(features) > 0
 
     def test_get_all_site_geometries_filter_utils(self, sites_utils, monitorings_users, users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])

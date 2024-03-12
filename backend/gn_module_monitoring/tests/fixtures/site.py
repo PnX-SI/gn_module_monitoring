@@ -18,11 +18,6 @@ def sites(users, types_site, site_group_with_sites):
     user = users["user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
-    nomenclature_sex = db.session.scalars(
-        select(TNomenclatures)
-        .where(TNomenclatures.nomenclature_type.has(BibNomenclaturesTypes.mnemonique == "SEXE"))
-        .limit(1)
-    ).first()
     for i, key in enumerate(types_site.keys()):
         sites[key] = TMonitoringSites(
             id_inventor=user.id_role,
@@ -33,11 +28,6 @@ def sites(users, types_site, site_group_with_sites):
             geom=geom_4326,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
-            data={
-                "observers3": 1,
-                "cd_nom_test": 212,
-                "id_nomenclature_sex": nomenclature_sex.id_nomenclature,
-            },
         )
 
     # Add a special site that has no type
