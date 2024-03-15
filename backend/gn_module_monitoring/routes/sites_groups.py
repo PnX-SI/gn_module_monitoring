@@ -117,12 +117,16 @@ def get_sites_group_geometries(object_type: str):
     )
 
     subquery_with_geom = (
-        query.with_only_columns(
-            TMonitoringSitesGroups.id_sites_group,
-            TMonitoringSitesGroups.sites_group_name,
-            TMonitoringSitesGroups.geom,
-        ).where(TMonitoringSitesGroups.geom != None)
-    ).subquery()
+        (
+            query.with_only_columns(
+                TMonitoringSitesGroups.id_sites_group,
+                TMonitoringSitesGroups.sites_group_name,
+                TMonitoringSitesGroups.geom,
+            ).where(TMonitoringSitesGroups.geom != None)
+        )
+        .distinct()
+        .subquery()
+    )
 
     result_1 = geojson_query(subquery_not_geom)
     result_2 = geojson_query(subquery_with_geom)
