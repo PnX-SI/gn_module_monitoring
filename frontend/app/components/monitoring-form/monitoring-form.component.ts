@@ -692,7 +692,7 @@ export class MonitoringFormComponent implements OnInit {
     this.canDelete =
       this.obj.objectType == 'module'
         ? this.currentUser?.moduleCruved[this.obj.objectType]['D'] > 0
-        : this.obj.cruved['D'] && !['site', 'sites_group'].includes(this.obj.objectType);
+        : this.obj.cruved['D'];
     this.canUpdate =
       this.obj.objectType == 'module'
         ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
