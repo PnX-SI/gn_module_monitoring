@@ -89,20 +89,37 @@ export class MonitoringMapComponent implements OnInit {
       ...this.filters,
     };
     this._geojsonService.removeAllLayers();
-    if (this.obj.objectType == 'module') {
-      if (this.objectListType == 'sites_group') {
-        this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
-      } else {
-        this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
-      }
+    let displayObject;
+
+    // Choix des objets a afficher
+    if (this.bEdit && !this.obj.id) {
+      // Si création d'un nouvel objet on n'affiche rien
+      displayObject = undefined;
+    } else if (this.bEdit && this.obj.id) {
+      // Si modification affichage de l'objet en cours
+      displayObject = this.obj.objectType;
+    } else if (this.obj.objectType == 'module') {
+      // Si module affichage du type d'objet courant
+      displayObject = this.objectListType;
     } else if (this.obj.objectType == 'sites_group') {
+      // Si page détail d'un groupe de site affichage du groupe de site et de ces enfants
+      displayObject = 'sites_group_with_child';
+    } else {
+      // Sinon affichage des sites
+      displayObject = 'site';
+    }
+
+    this._geojsonService.removeAllFeatureGroup();
+    if (displayObject == 'site') {
+      this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
+    } else if (displayObject == 'sites_group') {
+      this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
+    } else if (displayObject == 'sites_group_with_child') {
       this._geojsonService.getSitesGroupsGeometriesWithSites(
         this.onEachFeatureGroupSite(),
         this.onEachFeatureSite(),
         params
       );
-    } else {
-      this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
     }
   }
 
@@ -166,10 +183,8 @@ export class MonitoringMapComponent implements OnInit {
         case 'filters':
           // Filtres du tableau
           // A appliquer que si on est au niveau du module pour les objets sites et groupes de sites
-          if (
-            this.obj.objectType == 'module' &&
-            (this.objectListType == 'sites_group' || this.objectListType == 'site')
-          ) {
+          // Ou au niveau des groupes de sites pour les sites
+          if (this.objectListType == 'sites_group' || this.objectListType == 'site') {
             this.refresh_geom_data();
           }
           break;
