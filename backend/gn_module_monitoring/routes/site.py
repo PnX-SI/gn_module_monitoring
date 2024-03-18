@@ -162,13 +162,12 @@ def get_all_site_geometries(object_type):
     params = dict(**request.args)
     types_site = []
     if "types_site" in params:
-        types_site = params["types_site"]
-        if not isinstance(params["types_site"], list):
-            types_site = [params["types_site"]]
+        types_site = request.args.getlist("types_site")
+        params["types_site"] = types_site
 
     query = select(TMonitoringSites)
     query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
-    query_allowed.with_only_columns(
+    query_allowed = query_allowed.with_only_columns(
         TMonitoringSites.id_base_site,
         TMonitoringSites.base_site_name,
         TMonitoringSites.geom,
