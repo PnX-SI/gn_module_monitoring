@@ -113,31 +113,19 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
         .where(TMonitoringSitesGroups.geom == None)
-        .subquery()
     )
 
     subquery_with_geom = (
-        (
-            query.with_only_columns(
-                TMonitoringSitesGroups.id_sites_group,
-                TMonitoringSitesGroups.sites_group_name,
-                TMonitoringSitesGroups.geom,
-            ).where(TMonitoringSitesGroups.geom != None)
-        )
-        .distinct()
-        .subquery()
-    )
+        query.with_only_columns(
+            TMonitoringSitesGroups.id_sites_group,
+            TMonitoringSitesGroups.sites_group_name,
+            TMonitoringSitesGroups.geom,
+        ).where(TMonitoringSitesGroups.geom != None)
+    ).distinct()
 
-    result_1 = geojson_query(subquery_not_geom)
-    result_2 = geojson_query(subquery_with_geom)
+    results = geojson_query(subquery_not_geom.union(subquery_with_geom).alias("grp_site"))
 
-    if result_1["features"] is not None:
-        if result_2["features"] is not None:
-            result_2["features"].extend(result_1["features"])
-        else:
-            result_2["features"] = result_1["features"]
-
-    return jsonify(result_2)
+    return jsonify(results)
 
 
 @blueprint.route(
