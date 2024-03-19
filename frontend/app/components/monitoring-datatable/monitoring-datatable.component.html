@@ -57,7 +57,7 @@
           *ngIf="child0.child0()"
           [ngClass]="{ isDisableBtn: !canCreateChild }"
           class="nav-link link cell-link"
-          (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id) : null"
+          (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id, obj.siteId) : null"
           [matTooltip]="
             canCreateChild ? 'Ajouter' + child0.child0().labelArtUndef(true) : toolTipNotAllowed
           "
@@ -66,7 +66,7 @@
             [ngClass]="{ isDisableIcon: !canCreateChild }"
             class="fa fa-plus"
             aria-hidden="true"
-          ></i>
+          ></i> 
         </a>
         <!-- TODO: rajouter les permission currentUser  *ngIf="currentUser?.moduleCruved[child0.objectType].U >= child0.config.cruved('U')" -->
         <a

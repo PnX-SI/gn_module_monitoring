@@ -89,8 +89,7 @@ export class MonitoringMapComponent implements OnInit {
       ...this.filters,
     };
     this._geojsonService.removeAllLayers();
-    let displayObject;
-
+    let displayObject; 
     // Choix des objets a afficher
     if (this.bEdit && !this.obj.id) {
       // Si création d'un nouvel objet on n'affiche rien
@@ -171,38 +170,42 @@ export class MonitoringMapComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (!this._mapService.map) {
       return;
+    }  
+    
+    if (Object.keys(changes).includes('selectedObject')) {
+      if (!this.selectedObject) {
+        return;
+      }
+      if (this.obj.objectType == 'module' && Object.keys(this.selectedObject).length > 0) {
+        if (this.objectListType == 'sites_group') {
+          this._geojsonService.selectSitesGroupLayer(this.selectedObject['id'], true);
+        } else if (this.objectListType == 'site') {
+          this._geojsonService.selectSitesLayer(this.selectedObject['id'], true);
+        }
+      }
     }
-    for (const propName of Object.keys(changes)) {
-      const chng = changes[propName];
-      const cur = chng.currentValue;
-      const pre = chng.currentValue;
-      switch (propName) {
-        case 'bEdit':
-          this.setSitesStyle(this.obj.objectType);
-          break;
-        case 'filters':
-          // Filtres du tableau
-          // A appliquer que si on est au niveau du module pour les objets sites et groupes de sites
-          // Ou au niveau des groupes de sites pour les sites
-          if (this.objectListType == 'sites_group' || this.objectListType == 'site') {
-            this.refresh_geom_data();
-          }
-          break;
-        case 'pre_filters':
-          this.refresh_geom_data();
-          break;
-        case 'objectListType':
-          this.refresh_geom_data();
-          break;
-        case 'selectedObject':
-          if (this.obj.objectType == 'module' && Object.keys(this.selectedObject).length > 0) {
-            if (this.objectListType == 'sites_group') {
-              this._geojsonService.selectSitesGroupLayer(this.selectedObject['id'], true);
-            } else if (this.objectListType == 'site') {
-              this._geojsonService.selectSitesLayer(this.selectedObject['id'], true);
-            }
-          }
-          break;
+    if (Object.keys(changes).includes('bEdit')) {
+      this.setSitesStyle(this.obj.objectType);
+    }
+
+    if (
+      Object.keys(changes).includes('filters') ||
+      Object.keys(changes).includes('pre_filters') ||
+      Object.keys(changes).includes('objectListType')
+    ) {
+      // Filtres du tableau
+      // A appliquer que si on est au niveau du module pour les objets sites et groupes de sites
+      // Ou au niveau des groupes de sites pour les sites
+      if (
+        Object.keys(changes).includes('filters') &&
+        (this.objectListType == 'sites_group' || this.objectListType == 'site')
+      ) {
+        this.refresh_geom_data();
+      } else if (
+        Object.keys(changes).includes('pre_filters') ||
+        Object.keys(changes).includes('objectListType')
+      ) {
+        this.refresh_geom_data();
       }
     }
   }

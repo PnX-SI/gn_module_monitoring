@@ -125,7 +125,6 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-        this.initFilters();
         this.evenListnerTable();
       });
   }
@@ -139,44 +138,56 @@ export class MonitoringObjectComponent implements OnInit {
     this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.obj.moduleCode);
   }
 
-  getModuleSet() {
-    // Verifie si le module est configué
-    this.module.get(0).subscribe(() => {
-      const schema = this._configService.schema(this.module.moduleCode, 'module');
-      const moduleFieldList = Object.keys(
-        this._configService.schema(this.module.moduleCode, 'module')
-      ).filter((key) => schema[key].required);
-      this.moduleSet = moduleFieldList.every(
-        (v) => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v])
-      );
-    });
+  getModuleSet(): Observable<any> {
+    // récupération des données de l'object selon le type (module, site, etc..)
+    return this.module.get(0).pipe(
+      mergeMap(() =>
+        this.getDataObject().pipe(
+          tap(() => {
+            const schema = this._configService.schema(this.module.moduleCode, 'module');
+            const moduleFieldList = Object.keys(
+              this._configService.schema(this.module.moduleCode, 'module')
+            ).filter((key) => schema[key].required);
+            this.moduleSet = moduleFieldList.every(
+              (v) =>
+                ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v])
+            );
+
+            this.initPreFilters();
+          })
+        )
+      )
+    );
   }
 
-  initFilters() {
-    this.pre_filters = {};
-    this.filters = {};
-    return this.module.get(1).subscribe(() => {
-      // modules
-      this.pre_filters['types_site'] =
-        this._configService.config()[this.obj.moduleCode]['module']['types_site'];
+  initPreFilters() {
+    // modules
+    const queryParams = this._route.snapshot.queryParams || {};
 
-      // filtre objet géographique de référence
-      if (this.obj.objectType == 'sites_group') {
-        this.pre_filters['id_sites_group'] = this.obj.id;
-      } else if (this.obj.objectType == 'site') {
-        this.pre_filters['id_base_site'] = this.obj.id;
-      } else if (this.obj['siteId'] !== undefined) {
-        // affichage du site parent
-        this.pre_filters['id_base_site'] = this.obj['siteId'];
-      }
-    });
+    this.pre_filters = {};
+    this.pre_filters['types_site'] =
+      this._configService.config()[this.obj.moduleCode]['module']['types_site'];
+    // filtre objet géographique de référence
+    if (this.obj.objectType == 'sites_group') {
+      this.pre_filters['id_sites_group'] = this.obj.id;
+    } else if (this.obj.objectType == 'site') {
+      this.pre_filters['id_base_site'] = this.obj.id;
+    } else if (this.obj['siteId'] !== undefined) {
+      // affichage du site parent
+      this.pre_filters['id_base_site'] = this.obj['siteId'];
+    } else if (queryParams['id_base_site'] !== undefined) {
+      // récupération du site parent via l'url
+      this.pre_filters['id_base_site'] = queryParams['id_base_site'];
+    } else if (queryParams['siteId'] !== undefined) {
+      // récupération du site parent via l'url
+      this.pre_filters['id_base_site'] = queryParams['siteId'];
+    }
   }
 
   initRoutesParams() {
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get('objectType') ? params.get('objectType') : 'module';
-
         this.obj = new MonitoringObject(
           params.get('moduleCode'),
           objectType,
@@ -233,8 +244,14 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
-    this.getModuleSet();
-    return this._dataUtilsService.getInitData(this.obj.moduleCode);
+    return of(true).pipe(
+      mergeMap(() => {
+        return this.getModuleSet();
+      }),
+      mergeMap(() => {
+        return this._dataUtilsService.getInitData(this.obj.moduleCode);
+      })
+    );
   }
 
   getDataObject(): Observable<any> {
@@ -258,11 +275,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    if (obj['objectType'] === 'site' || obj['objectType'] === 'sites_group') {
-      // this.initSites();
-      this.initFilters();
-    }
-    this.getModuleSet();
+    this.getModuleSet().subscribe();
   }
 
   onDeleteFromTable(event) {
@@ -295,8 +308,6 @@ export class MonitoringObjectComponent implements OnInit {
         })
       )
       .subscribe((deletedObj) => {
-        // this.initSites();
-        this.initFilters();
         this._evtObjService.changeDisplayingDeleteModal(false);
       });
   }
