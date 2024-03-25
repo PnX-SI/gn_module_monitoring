@@ -52,6 +52,36 @@
         "required": true,
         "type_util": "taxonomy",
         "type_widget": "taxonomy"
+      },
+      "multi_id_nomenclature_sex": {
+        "type_widget": "nomenclature",
+        "attribut_label": "Sexe",
+        "code_nomenclature_type": "SEXE",
+        "type_util": "nomenclature",
+        "required": true,
+        "value": {
+          "code_nomenclature_type": "SEXE",
+          "cd_nomenclature": "6"
+        },
+        "cd_nomenclatures": ["0", "2", "3", "6"],
+        "multiple" : true
+      }, 
+      "multi_observers3": {
+        "attribut_label": "Observateurs",
+        "code_list": "1000005",
+        "hidden": false,
+        "required": true,
+        "type_util": "user",
+        "type_widget": "observers",
+        "multiple" : true
+      },    
+      "multi_cd_nom_test": {
+        "attribut_label": "Taxon",
+        "id_list": "1000001",
+        "required": true,
+        "type_util": "taxonomy",
+        "type_widget": "taxonomy",
+        "multiple" : true
       }
     }
   }

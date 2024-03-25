@@ -12,6 +12,7 @@ from sqlalchemy.orm import aliased
 from pypnusershub.db.models import User
 from apptax.taxonomie.models import Taxref
 
+from geonature.utils.env import db
 
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from pypnnomenclature.models import TNomenclatures
@@ -134,12 +135,13 @@ class SitesQuery(GnMonitoringGenericFilter):
 
     @classmethod
     def filter_by_specific(
-        cls, id_types_site: [], query: Select, params: MultiDict = None, **kwargs
+        cls,
+        id_types_site: [],
+        query: Select,
+        params: MultiDict = None,
+        **kwargs,
     ):
         # Get specific
-        from gn_module_monitoring.utils.routes import filter_params
-        from geonature.utils.env import db
-        import json
 
         specific_config_models = (
             db.session.scalars(
@@ -150,6 +152,7 @@ class SitesQuery(GnMonitoringGenericFilter):
             .unique()
             .all()
         )
+
         specific_properties = {}
         for s in specific_config_models:
             if "specific" in (getattr(s, "config") or {}):
@@ -160,37 +163,73 @@ class SitesQuery(GnMonitoringGenericFilter):
                 type = "text"
                 if "type_util" in specific_properties[param]:
                     type = specific_properties[param]["type_util"]
+                multiple = "false"
+                if "multiple" in specific_properties[param]:
+                    multiple = specific_properties[param]["multiple"]
 
-                if type == "nomenclature":
-                    join_nomenclature = aliased(TNomenclatures)
-                    query = query.join(
-                        join_nomenclature,
-                        cls.data[param].astext.cast(db.Integer)
-                        == join_nomenclature.id_nomenclature,
-                    ).where(join_nomenclature.label_default.ilike(f"{value}%"))
-                elif type == "taxonomy":
-                    # TODO filter on lb nom or nom vern ??
-                    join_taxonomy = aliased(Taxref)
-                    query = query.join(
-                        join_taxonomy,
-                        cls.data[param].astext.cast(db.Integer) == join_taxonomy.cd_nom,
-                    ).where(join_taxonomy.nom_vern_or_lb_nom.ilike(f"{value}%"))
-                elif type == "user":
-                    join_user = aliased(User)
-                    query = query.join(
-                        join_user,
-                        cls.data[param].astext.cast(db.Integer) == join_user.id_role,
-                    ).where(join_user.nom_complet.ilike(f"{value}%"))
-                elif type == "area":
-                    # TODO
-                    pass
-                elif type == "habitat":
-                    # TODO
-                    pass
+                if type in ("nomenclature", "taxonomy", "user", "area"):
+                    join_table, join_column, filter_column = cls.get_relationship_clause(type)
+                    if multiple == "true":
+                        # Si la propriété est de type multiple
+                        # Alors jointure sur chaque element de data->'params'
+                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
+                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
+                        #       soient de nouveau dans la clause from
+                        subquery_select = (
+                            select(
+                                [
+                                    func.jsonb_array_elements_text(cls.data[param])
+                                    .cast(db.Integer)
+                                    .label("id")
+                                ]
+                            )
+                            .correlate_except()
+                            .lateral()
+                        )
+                        query = query.join(subquery_select, cls.data[param] != None)
+                        query = query.join(
+                            join_table,
+                            subquery_select.c.id == join_column,
+                        )
+                    else:
+                        # Sinon type simple, jointure sur la valeur de data->'params'
+                        query = query.join(
+                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
+                        )
+                    # Filtre sur la valeur de la table de jointure
+                    query = query.where(filter_column.ilike(f"{value}%"))
                 else:
+                    # Sinon filtre texte simple
                     query = query.where(cls.data[param].astext.ilike(f"{value}%"))
 
         return query
+
+    @classmethod
+    def get_relationship_clause(
+        cls,
+        type,
+    ):
+        join_table = None  # alias de la table de jointure
+        join_column = None  # nom de la colonne permettant la jointure entre data et la table
+        filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
+        if type == "nomenclature":
+            join_table = aliased(TNomenclatures)
+            join_column = join_table.id_nomenclature
+            filter_column = join_table.label_default
+        elif type == "taxonomy":
+            join_table = aliased(Taxref)
+            join_column = join_table.cd_nom
+            filter_column = join_table.nom_vern_or_lb_nom
+        elif type == "user":
+            join_table = aliased(User)
+            join_column = join_table.id_role
+            filter_column = join_table.nom_complet
+        elif type == "area":
+            pass
+        elif type == "habitat":
+            pass
+
+        return join_table, join_column, filter_column
 
 
 class SitesGroupsQuery(GnMonitoringGenericFilter):

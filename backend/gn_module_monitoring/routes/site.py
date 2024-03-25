@@ -172,7 +172,7 @@ def get_all_site_geometries(object_type):
         TMonitoringSites.base_site_name,
         TMonitoringSites.geom,
         TMonitoringSites.id_sites_group,
-    )
+    ).distinct()
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
     if types_site:

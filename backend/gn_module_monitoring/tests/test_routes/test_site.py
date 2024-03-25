@@ -132,12 +132,25 @@ class TestSite:
         assert r.status_code == 200
         assert len(features) > 0
 
-    def test_get_all_site_geometries_filter_utils(self, sites_utils, monitorings_users, users):
+    def test_get_all_site_geometries_filters(self, sites, monitorings_users, users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
-        # types_site = [s.types_site[0].id_nomenclature_type_site for s in sites_utils]
-        types_site = [s for s in sites_utils]
+
+        r = self.client.get(
+            url_for("monitorings.get_all_site_geometries", id_inventor=users["user"].id_role)
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == 1
+
+    def test_get_all_site_geometries_filter_utils(
+        self, sites_with_data_typeutils, monitorings_users, users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        # types_site = [s.types_site[0].id_nomenclature_type_site for s in sites_with_data_typeutils]
+        types_site = [s for s in sites_with_data_typeutils]
         id_nomenclature_type_site = (
-            sites_utils[types_site[0]].types_site[0].id_nomenclature_type_site
+            sites_with_data_typeutils[types_site[0]].types_site[0].id_nomenclature_type_site
         )
         r = self.client.get(
             url_for(
@@ -146,6 +159,22 @@ class TestSite:
                 cd_nom_test="Sonneur",
                 observers3=users["user"].nom_complet,
                 id_nomenclature_sex="Femelle",
+            )
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == 1
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_site_geometries",
+                types_site=id_nomenclature_type_site,
+                cd_nom_test="Sonneur",
+                observers3=users["user"].nom_complet,
+                id_nomenclature_sex="Femelle",
+                multiple_cd_nom_test="Sonneur",
+                multiple_observers3=users["user"].nom_complet,
+                multiple_id_nomenclature_sex="Femelle",
             )
         )
         json_resp = r.json

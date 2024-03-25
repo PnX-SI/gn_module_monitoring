@@ -48,7 +48,7 @@ def sites(users, types_site, site_group_with_sites):
 
 
 @pytest.fixture()
-def sites_utils(users, types_site_type_utils, site_group_with_sites):
+def sites_with_data_typeutils(users, types_site_type_utils, site_group_with_sites):
     user = users["user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
@@ -72,6 +72,9 @@ def sites_utils(users, types_site_type_utils, site_group_with_sites):
                 "observers3": user.id_role,
                 "cd_nom_test": 212,
                 "id_nomenclature_sex": nomenclature_sex.id_nomenclature,
+                "multiple_observers3": [user.id_role],
+                "multiple_cd_nom_test": [212, 99165],
+                "multiple_id_nomenclature_sex": [nomenclature_sex.id_nomenclature],
             },
         )
 
