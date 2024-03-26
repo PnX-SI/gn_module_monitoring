@@ -11,6 +11,8 @@ from geonature.utils.config import config as gn_config
 from geonature.core.gn_commons.models import BibTablesLocation, TModules
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -131,6 +133,24 @@ def json_config_from_file(module_code, type_config):
 
     file_path = monitoring_module_config_path(module_code) / f"{type_config}.json"
     return json_from_file(file_path, {})
+
+
+def json_config_from_db(module_code):
+    site_type_config = {"types_site": {}, "specific": {}}
+
+    module = get_module("module_code", module_code)
+    types = query_all_types_site_from_module_id(module.id_module)
+
+    process_type = {t.nomenclature.label_default: t for t in types if t.config}
+    for type_name in process_type:
+        t = process_type[type_name]
+        site_type_config["specific"].update(t.config["specific"])
+        site_type_config["types_site"][t.id_nomenclature_type_site] = {
+            "fields": [k for k in t.config["specific"]],
+            "name": type_name,
+        }
+
+    return site_type_config
 
 
 def config_from_files(config_type, module_code):

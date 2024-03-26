@@ -9,6 +9,7 @@ from flask import current_app
 from gn_module_monitoring.config.utils import (
     customize_config,
     config_from_files,
+    json_config_from_db,
     json_config_from_file,
     get_id_table_location,
     process_config_display,
@@ -99,8 +100,14 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
         if module_code == "generic"
         else json_config_from_file(module_code, object_type)
     )
+    db_config_object = {"specific": {}}
 
-    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car l'association de site à un groupe de site doit se faire par l'entrée par site
+    if object_type == "site":
+        db_config_object = json_config_from_db(module_code)
+        specific_config_object["specific"].update(db_config_object["specific"])
+
+    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car
+    #        l'association de site à un groupe de site doit se faire par l'entrée par site
     if module_code != "generic" and object_type == "site" and not is_sites_group_child:
         generic_config_object["generic"].pop("id_sites_group")
 
@@ -110,13 +117,14 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
             "attribut_label": "Type(s) de site",
         }
 
-    if object_type == "site" and custom is not None:
-        if "specific" in custom and "specific" in specific_config_object:
-            for key in custom["specific"]:
-                if key not in specific_config_object["specific"]:
-                    specific_config_object["specific"][key] = custom["specific"][key]
+    # if object_type == "site" and custom is not None:
+    #     if "specific" in custom and "specific" in specific_config_object:
+    #         for key in custom["specific"]:
+    #             if key not in specific_config_object["specific"]:
+    #                 specific_config_object["specific"][key] = custom["specific"][key]
 
     config_object = generic_config_object
+    config_object.update(db_config_object)
     config_object.update(specific_config_object)
 
     return config_object
