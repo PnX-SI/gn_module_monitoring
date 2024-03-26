@@ -14,8 +14,8 @@ from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, Monitorin
 
 
 @pytest.fixture()
-def sites(users, types_site, site_group_with_sites):
-    user = users["user"]
+def sites(monitorings_users, types_site, site_group_with_sites):
+    user = monitorings_users["user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
     for i, key in enumerate(types_site.keys()):
