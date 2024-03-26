@@ -48,11 +48,13 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
     :rtype : dict
 
     """
-
     if not hasattr(moduleCls, field_name):
         raise GeoNatureError(
             "get_module : TMonitoringModules ne possède pas de champs {}".format(field_name)
         )
+
+    if value == "generic":
+        return None
 
     try:
         module = DB.session.execute(
@@ -61,6 +63,8 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
 
         return module
 
+    except NoResultFound as e:
+        raise e
     except MultipleResultsFound:
         raise GeoNatureError(
             "get_module : multiple results found for field_name {} and value {}".format(

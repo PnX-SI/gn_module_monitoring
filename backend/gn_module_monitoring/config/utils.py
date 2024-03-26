@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from sqlalchemy import and_, select
+from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -137,17 +138,35 @@ def json_config_from_file(module_code, type_config):
 
 def json_config_from_db(module_code):
     site_type_config = {"types_site": {}, "specific": {}}
+    if module_code == "generic":
+        # Si generic récupération de tous les types de sites
+        types = query_all_types_site_from_module_id(0)
+    else:
+        try:
+            module = get_module("module_code", module_code)
+        except NoResultFound:
+            return site_type_config
+        types = query_all_types_site_from_module_id(module.id_module)
 
-    module = get_module("module_code", module_code)
-    types = query_all_types_site_from_module_id(module.id_module)
+    for t in types:
+        fields = []
 
-    process_type = {t.nomenclature.label_default: t for t in types if t.config}
-    for type_name in process_type:
-        t = process_type[type_name]
-        site_type_config["specific"].update(t.config["specific"])
+        # Configuration des champs
+        if "specific" in (t.config or {}):
+            site_type_config["specific"].update(t.config["specific"])
+            fields = [k for k in t.config["specific"]]
+
+        # Liste des champs à afficher
+        display_properties = list(fields)
+        if "display_properties" in (t.config or {}):
+            display_properties = [
+                key for key in t.config.get("display_properties") if key in fields
+            ]
+            display_properties + [key for key in fields if not key in display_properties]
+
         site_type_config["types_site"][t.id_nomenclature_type_site] = {
-            "fields": [k for k in t.config["specific"]],
-            "name": type_name,
+            "display_properties": display_properties,
+            "name": t.nomenclature.label_default,
         }
 
     return site_type_config

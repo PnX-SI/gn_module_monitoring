@@ -106,6 +106,11 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
         db_config_object = json_config_from_db(module_code)
         specific_config_object["specific"].update(db_config_object["specific"])
 
+    elif object_type == "module":
+        db_config_object = json_config_from_db(module_code)
+        specific_config_object["types_site"] = db_config_object["types_site"]
+        db_config_object = {"specific": {}}
+
     # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car
     #        l'association de site à un groupe de site doit se faire par l'entrée par site
     if module_code != "generic" and object_type == "site" and not is_sites_group_child:
@@ -198,11 +203,11 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
 
-        # Types de sites
-        if hasattr(module, field_name):
-            config["module"]["types_site"] = [
-                ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
-            ]
+        # # Types de sites
+        # if hasattr(module, field_name):
+        #     config["module"]["types_site"] = [
+        #         ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
+        #     ]
 
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 

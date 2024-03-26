@@ -77,7 +77,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         data = {}
         for attribut_name, attribut_value in self.config_schema("specific").items():
             if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
-                val = properties.pop(attribut_name)
+                if attribut_name in properties:
+                    val = properties.pop(attribut_name)
+                else:
+                    # TODO évaluer l'incidence
+                    #   voir comment générer les proprités spécifiques
+                    #    non définies dans le schéma
+                    val = None
                 data[attribut_name] = val
 
         if data:
