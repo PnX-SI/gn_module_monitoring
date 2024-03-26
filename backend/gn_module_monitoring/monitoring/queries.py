@@ -44,7 +44,7 @@ class GnMonitoringGenericFilter:
                     and_list.append(column.ilike(f"%{value}%"))
                 elif isinstance(column.type, DateTime):
                     and_list.append(func.to_char(column, "YYYY-MM-DD").ilike(f"%{value}%"))
-                elif key == "id_inventor" and not type(value) == int:
+                elif key == "id_inventor" and not value.isdigit():
                     join_inventor = aliased(User)
                     query = query.join(join_inventor, cls.inventor)
                     query = query.filter(join_inventor.nom_complet.ilike(f"%{value}%"))
