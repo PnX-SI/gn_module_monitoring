@@ -51,11 +51,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             return
         if hasattr(self._model, "id_base_site"):
             return self._model.id_base_site
-        return
-        # parent = self.get_parent()
-        # if not parent:
-        #     return
-        # return parent.get_site_id()
+
+        parent = self.get_parent()
+        if not parent:
+            return
+        return parent.get_site_id()
 
     def as_dict(self, depth):
         return self._model.as_dict(depth=depth)
