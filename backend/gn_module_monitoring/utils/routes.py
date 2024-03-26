@@ -174,6 +174,8 @@ def filter_according_to_column_type_for_site(query, params):
     if len(params) != 0:
         query = filter_params(TMonitoringSites, query=query, params=params)
 
+    # TODO: filter by observers
+
     return query
 
 
@@ -190,6 +192,9 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
             query = query.order_by(User.nom_complet.desc())
     else:
         query = sort(TMonitoringSites, query=query, sort=sort_label, sort_dir=sort_dir)
+
+    # TODO: filter by observers
+
     return query
 
 

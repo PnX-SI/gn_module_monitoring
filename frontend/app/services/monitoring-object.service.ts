@@ -188,24 +188,25 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        const codeListObservers = this._configService.codeListObservers();
-        x == null
-          ? (x = [])
-          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
-              mergeMap((users) => {
-                let currentUser;
-                if (Array.isArray(users)) {
-                  for (const user of users) {
-                    if (user.id_role == val) {
-                      currentUser = user;
-                    }
-                  }
-                } else {
-                  return of(null);
-                }
-                return of([currentUser]);
-              })
-            ));
+        if (!Array.isArray(x) || x.length == 0) {
+          x = [];
+          break;
+        }
+
+        // For performance purpose filter on Set instead of Array
+        const registeredObservers = new Set(x);
+        x = this._dataUtilsService.getUsersByCodeList(this._configService.codeListObservers()).pipe(
+          mergeMap((users: any) => {
+            let observers: any = [];
+            users.forEach((user) => {
+              if (registeredObservers.has(user.id_role)) {
+                observers.push(user);
+              }
+            });
+            return of(observers);
+          })
+        );
+        // x = codeListObservers.filter((observer) => registeredObservers.has(observer.id_role.toString())).map((observer) => observer.nom_complet)
         break;
       }
       case 'taxonomy': {
@@ -240,7 +241,7 @@ export class MonitoringObjectService {
       }
       case 'observers': {
         //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
-        x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
+        x = x.map((user) => user.id_role);
         break;
       }
       case 'taxonomy': {

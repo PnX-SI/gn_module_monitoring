@@ -263,27 +263,6 @@ export class SitesService extends ApiGeomService<ISite> {
     }
     return rowSitesTable;
   }
-
-  formatLabelObservers(sites: ISiteField[]) {
-    const rowSitesTable: ISiteField[] = [];
-    const varToFormat = 'id_inventor';
-    const varToStore = 'inventor';
-    for (const site of sites) {
-      let listFieldToUse: string[] = [];
-      if (site[varToStore]) {
-        const { [varToStore]: _, ...rest_of_site } = site;
-        for (const item of _) {
-          listFieldToUse.push(item);
-        }
-        rowSitesTable.push({
-          ...rest_of_site,
-          [varToStore]: site[varToStore],
-          [varToFormat]: listFieldToUse,
-        });
-      }
-    }
-    return rowSitesTable;
-  }
 }
 
 @Injectable()
