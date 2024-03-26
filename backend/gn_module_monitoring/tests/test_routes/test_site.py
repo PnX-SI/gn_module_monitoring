@@ -132,16 +132,36 @@ class TestSite:
         assert r.status_code == 200
         assert len(features) > 0
 
-    def test_get_all_site_geometries_filters(self, sites, monitorings_users, users):
+    def test_get_all_site_geometries_filters(
+        self,
+        sites,
+        monitorings_users,
+    ):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
 
+        # Test with user's id
         r = self.client.get(
-            url_for("monitorings.get_all_site_geometries", id_inventor=users["user"].id_role)
+            url_for(
+                "monitorings.get_all_site_geometries",
+                id_inventor=monitorings_users["user"].id_role,
+            )
         )
         json_resp = r.json
         features = json_resp.get("features")
         assert r.status_code == 200
-        assert len(features) == 1
+        assert len(features) == len(sites)
+
+        # Test with user's name
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_site_geometries",
+                id_inventor=monitorings_users["user"].nom_role,
+            )
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == len(sites)
 
     def test_get_all_site_geometries_filter_utils(
         self, sites_with_data_typeutils, monitorings_users, users
