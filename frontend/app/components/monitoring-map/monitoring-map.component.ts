@@ -89,7 +89,7 @@ export class MonitoringMapComponent implements OnInit {
       ...this.filters,
     };
     this._geojsonService.removeAllLayers();
-    let displayObject; 
+    let displayObject;
     // Choix des objets a afficher
     if (this.bEdit && !this.obj.id) {
       // Si création d'un nouvel objet on n'affiche rien
@@ -170,8 +170,8 @@ export class MonitoringMapComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (!this._mapService.map) {
       return;
-    }  
-    
+    }
+
     if (Object.keys(changes).includes('selectedObject')) {
       if (!this.selectedObject) {
         return;

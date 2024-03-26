@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import * as L from 'leaflet'; 
+import * as L from 'leaflet';
 import { GeoJSON } from 'geojson';
 import { MapService } from '@geonature_common/map/map.service';
 
