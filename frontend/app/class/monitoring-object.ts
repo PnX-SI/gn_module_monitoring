@@ -195,39 +195,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  /** Formulaires  */
-
-  /** formValues: obj -> from */
-
-  formValues(schemaUpdate = {}): Observable<any> {
-    const properties = Utils.copy(this.properties);
-    const observables = {};
-    let schema = {};
-    if (Object.keys(schemaUpdate).length == 0) {
-      schema = this.schema();
-    } else {
-      schema = schemaUpdate;
-    }
-
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      if (!elem.type_widget) {
-        continue;
-      }
-      observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
-    }
-
-    return forkJoin(observables).pipe(
-      concatMap((formValues_in) => {
-        const formValues = Utils.copy(formValues_in);
-        // geometry
-        if (this.config['geometry_type']) {
-          formValues['geometry'] = this.geometry; // copy???
-        }
-        return of(formValues);
-      })
-    );
-  }
 
   /** postData: obj -> from */
 
