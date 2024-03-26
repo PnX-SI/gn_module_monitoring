@@ -125,8 +125,8 @@ export class MonitoringObjectBase {
     this.properties = data.properties || {};
     this.geometry = data.geometry;
     this.id = this.id || (this.properties && this.properties[this.configParam('id_field_name')]);
-    this.medias = data.medias; 
-    if (data.site_id) { 
+    this.medias = data.medias;
+    if (data.site_id) {
       this.siteId = data.site_id;
     }
     this.idTableLocation = data.id_table_location;
