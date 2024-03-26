@@ -117,7 +117,7 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     const clean_params = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== '' && v !== null)
     );
-    
+
     return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
       'get',
       `${this.endPoint}/geometries`,
