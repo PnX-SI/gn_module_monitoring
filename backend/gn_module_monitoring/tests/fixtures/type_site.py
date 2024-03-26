@@ -56,3 +56,18 @@ def types_site(nomenclature_types_site):
     with db.session.begin_nested():
         db.session.add_all(types_site.values())
     return types_site
+
+
+@pytest.fixture
+def types_site_type_utils(nomenclature_types_site):
+
+    config_type_site = get_test_data("config_type_site_type_utils.json")
+    types_site = {
+        nomenc_type_site.label_default: BibTypeSite(
+            id_nomenclature_type_site=nomenc_type_site.id_nomenclature, config=config_type_site
+        )
+        for nomenc_type_site in nomenclature_types_site
+    }
+    with db.session.begin_nested():
+        db.session.add_all(types_site.values())
+    return types_site

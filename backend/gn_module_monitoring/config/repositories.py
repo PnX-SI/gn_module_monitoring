@@ -174,7 +174,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
 
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config, customSpecConfig=customSpecConfig)
-
     # customize config
     if module:
         config["custom"] = {}
@@ -190,6 +189,13 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
             var_name = "__MODULE.{}".format(field_name.upper())
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
+
+        # Types de sites
+        if hasattr(module, field_name):
+            config["module"]["types_site"] = [
+                ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
+            ]
+
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 
         config["default_display_field_names"].update(config.get("display_field_names", {}))

@@ -309,7 +309,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           (fieldName) => child.resolvedProperties[fieldName]
         );
         row['id'] = child.id;
-        row['cruved'] = child.cruved;
+        row['cruved'] = child.cruved; 
         return row;
       });
     }
