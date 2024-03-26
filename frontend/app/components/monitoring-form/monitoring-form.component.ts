@@ -168,8 +168,7 @@ export class MonitoringFormComponent implements OnInit {
           : false;
         this.geomCalculated ? (this.obj.geometry = null) : null;
         this.bEdit
-          ? (this._geojsonService.removeAllFeatureGroup(),
-            this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated))
+          ? this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated)
           : null;
         // pour donner la valeur de idParent
         this.obj.objectType == 'site' ? this.initObjFormDef() : null;

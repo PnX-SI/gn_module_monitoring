@@ -95,7 +95,8 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 )
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(object_type: str):
-    params = MultiDict(request.args)
+
+    params = request.args.to_dict(flat=True)
     object_code = "MONITORINGS_GRP_SITES"
     query = select(TMonitoringSitesGroups)
     query = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
@@ -112,7 +113,6 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
         .where(TMonitoringSitesGroups.geom == None)
-        .subquery()
     )
 
     subquery_with_geom = (
@@ -121,18 +121,11 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSitesGroups.sites_group_name,
             TMonitoringSitesGroups.geom,
         ).where(TMonitoringSitesGroups.geom != None)
-    ).subquery()
+    ).distinct()
 
-    result_1 = geojson_query(subquery_not_geom)
-    result_2 = geojson_query(subquery_with_geom)
+    results = geojson_query(subquery_not_geom.union(subquery_with_geom).alias("grp_site"))
 
-    if result_1["features"] is not None:
-        if result_2["features"] is not None:
-            result_2["features"].extend(result_1["features"])
-        else:
-            result_2["features"] = result_1["features"]
-
-    return jsonify(result_2)
+    return jsonify(results)
 
 
 @blueprint.route(

@@ -28,6 +28,7 @@ import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { GeoJSONService } from '../../services/geojson.service';
+
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -36,8 +37,11 @@ import { GeoJSONService } from '../../services/geojson.service';
 export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
-  sites;
-  sitesGroup;
+
+  filters: Object = {};
+  pre_filters: Object = {};
+  selectedObject: Object = undefined;
+  objectListType: string;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -50,7 +54,6 @@ export class MonitoringObjectComponent implements OnInit {
 
   currentUser: User;
 
-  objectsStatus: Object = {};
   heightMap;
 
   moduleSet = false;
@@ -104,12 +107,12 @@ export class MonitoringObjectComponent implements OnInit {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
         }),
         tap(() => {
-          if (this.obj.objectType == 'sites_group') {
-            this._geojsonService.removeAllFeatureGroup();
-            this.obj.geometry
-              ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
-              : null;
-          }
+          // if (this.obj.objectType == 'sites_group') {
+          //   this._geojsonService.removeAllFeatureGroup();
+          //   this.obj.geometry
+          //     ? this._geojsonService.setGeomSiteGroupFromExistingObject(this.obj.geometry)
+          //     : null;
+          // }
         })
       )
       .subscribe(() => {
@@ -122,19 +125,12 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-
-        if (!this.sites || this.obj.children['site']) {
-          this.initSites();
-        }
-        //  else if (this.sitesGroup || this.obj.children['sites_group']){
-        //   this.initSitesroup()
-        // }
-        else {
-          this.initObjectsStatus();
-        }
-
         this.evenListnerTable();
       });
+  }
+
+  onEachFeatureSite() {
+    return (feature, layer) => {};
   }
 
   initCurrentUser() {
@@ -142,108 +138,56 @@ export class MonitoringObjectComponent implements OnInit {
     this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.obj.moduleCode);
   }
 
-  getModuleSet() {
-    // Verifie si le module est configué
-    this.module.get(0).subscribe(() => {
-      const schema = this._configService.schema(this.module.moduleCode, 'module');
-      const moduleFieldList = Object.keys(
-        this._configService.schema(this.module.moduleCode, 'module')
-      ).filter((key) => schema[key].required);
-      this.moduleSet = moduleFieldList.every(
-        (v) => ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v])
-      );
-    });
+  getModuleSet(): Observable<any> {
+    // récupération des données de l'object selon le type (module, site, etc..)
+    return this.module.get(0).pipe(
+      mergeMap(() =>
+        this.getDataObject().pipe(
+          tap(() => {
+            const schema = this._configService.schema(this.module.moduleCode, 'module');
+            const moduleFieldList = Object.keys(
+              this._configService.schema(this.module.moduleCode, 'module')
+            ).filter((key) => schema[key].required);
+            this.moduleSet = moduleFieldList.every(
+              (v) =>
+                ![null, undefined].includes(this.module.properties[v] || this.obj.properties[v])
+            );
+
+            this.initPreFilters();
+          })
+        )
+      )
+    );
   }
 
-  initSites() {
-    return this.module.get(1).subscribe(() => {
-      // TODO liste indépendantes carte et listes
+  initPreFilters() {
+    // modules
+    const queryParams = this._route.snapshot.queryParams || {};
 
-      // affichage des groupes de site uniquement si l'objet est un module
-      if (this.obj.objectType == 'module' && this.obj['children']['sites_group']) {
-        const sitesGroup = this.obj['children']['sites_group'];
-        this.sitesGroup = {
-          features: sitesGroup.map((group) => {
-            group['id'] = group['properties']['id_sites_group'];
-            group['type'] = 'Feature';
-            return group;
-          }),
-          type: 'FeatureCollection',
-        };
-      }
-      // affichage des sites du premier parent qui a des sites dans l'odre de parent Path
-      let sites = null;
-      let cur = this.obj;
-      do {
-        sites = cur['children']['site'];
-        cur = cur.parent();
-      } while (!!cur && !sites);
-
-      if (!sites) {
-        return;
-      }
-      this.sites = {
-        features: sites.map((site) => {
-          site['id'] = site['properties']['id_base_site'];
-          site['type'] = 'Feature';
-          return site;
-        }),
-        type: 'FeatureCollection',
-      };
-      this.initObjectsStatus();
-    });
-  }
-
-  initObjectsStatus() {
-    const objectsStatus = {};
-    for (const childrenType of Object.keys(this.obj.children)) {
-      objectsStatus[childrenType] = this.obj.children[childrenType].map((child) => {
-        return {
-          id: child.id,
-          selected: false,
-          visible: true,
-          current: false,
-        };
-      });
+    this.pre_filters = {};
+    this.pre_filters['types_site'] =
+      this._configService.config()[this.obj.moduleCode]['module']['types_site'];
+    // filtre objet géographique de référence
+    if (this.obj.objectType == 'sites_group') {
+      this.pre_filters['id_sites_group'] = this.obj.id;
+    } else if (this.obj.objectType == 'site') {
+      this.pre_filters['id_base_site'] = this.obj.id;
+    } else if (this.obj['siteId'] !== undefined) {
+      // affichage du site parent
+      this.pre_filters['id_base_site'] = this.obj['siteId'];
+    } else if (queryParams['id_base_site'] !== undefined) {
+      // récupération du site parent via l'url
+      this.pre_filters['id_base_site'] = queryParams['id_base_site'];
+    } else if (queryParams['siteId'] !== undefined) {
+      // récupération du site parent via l'url
+      this.pre_filters['id_base_site'] = queryParams['siteId'];
     }
-
-    // init site status
-    if (this.obj.siteId) {
-      objectsStatus['site'] = [];
-      this.sites['features'].forEach((f) => {
-        // determination du site courrant
-        let cur = false;
-        if (f.properties.id_base_site == this.obj.siteId) {
-          cur = true;
-        }
-
-        objectsStatus['site'].push({
-          id: f.properties.id_base_site,
-          selected: false,
-          visible: true,
-          current: cur,
-        });
-      });
-    }
-
-    this.objectsStatus = objectsStatus;
   }
-
-  // initRoutesQueryParams() {
-
-  //   return this._route.queryParamMap.pipe(
-  //     mergeMap((params) => {
-  //       this.obj.parentsPath = params.getAll("parents_path") || [];
-  //       return of(true);
-  //     })
-  //   );
-  // }
 
   initRoutesParams() {
     return this._route.paramMap.pipe(
       mergeMap((params) => {
         const objectType = params.get('objectType') ? params.get('objectType') : 'module';
-
         this.obj = new MonitoringObject(
           params.get('moduleCode'),
           objectType,
@@ -300,8 +244,14 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
-    this.getModuleSet();
-    return this._dataUtilsService.getInitData(this.obj.moduleCode);
+    return of(true).pipe(
+      mergeMap(() => {
+        return this.getModuleSet();
+      }),
+      mergeMap(() => {
+        return this._dataUtilsService.getInitData(this.obj.moduleCode);
+      })
+    );
   }
 
   getDataObject(): Observable<any> {
@@ -325,10 +275,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    if (obj['objectType'] === 'site' || obj['objectType'] === 'sites_group') {
-      this.initSites();
-    }
-    this.getModuleSet();
+    this.getModuleSet().subscribe();
   }
 
   onDeleteFromTable(event) {
@@ -340,7 +287,6 @@ export class MonitoringObjectComponent implements OnInit {
   evenListnerTable() {
     const $displayModal = this._evtObjService.currentDeleteModal;
     const $rowSelected = this._evtObjService.currentRowSelected;
-
     $displayModal
       .pipe(
         distinctUntilChanged((prev, curr) => prev === curr),
@@ -362,7 +308,6 @@ export class MonitoringObjectComponent implements OnInit {
         })
       )
       .subscribe((deletedObj) => {
-        this.initSites();
         this._evtObjService.changeDisplayingDeleteModal(false);
       });
   }

@@ -19,9 +19,16 @@ export class MonitoringListComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
+  @Input() filters;
+  @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
+  @Input() objectListType: string;
+  @Output() objectListTypeChange: EventEmitter<string> = new EventEmitter<string>();
+
+  @Input() selectedObject;
+  @Output() selectedObjectChange: EventEmitter<string> = new EventEmitter<string>();
 
   activetab: string;
-
+  nbVisibleRows: Record<string, number> = {};
   frontendModuleMonitoringUrl;
   backendUrl: string;
 
@@ -34,8 +41,6 @@ export class MonitoringListComponent implements OnInit {
   queyParamsNewObject = {};
 
   // medias;
-
-  @Input() objectsStatus: Object;
   @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   canCreateChild: { [key: string]: boolean } = {};
@@ -62,9 +67,16 @@ export class MonitoringListComponent implements OnInit {
 
     this.children0Array = this.obj.children0Array();
     this.activetab = this.children0Array[0] && this.children0Array[0].objectType;
+
+    this.objectListType = this.children0Array[0] && this.children0Array[0].objectType;
+
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
+    // Initialisation nombre d'élément affiché dans la liste
+    Object.keys(this.childrenDataTable).forEach((chidrenType) => {
+      this.nbVisibleRows[chidrenType] = this.childrenDataTable[chidrenType].rows.length;
+    });
     this.initPermission();
     // this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }
@@ -77,44 +89,40 @@ export class MonitoringListComponent implements OnInit {
   }
 
   onSelectedChildren(typeObject, event) {
-    this.objectsStatus[typeObject] = event;
-    let status_type = Utils.copy(this.objectsStatus);
-    status_type['type'] = typeObject;
-    this.objectsStatusChange.emit(status_type);
+    this.selectedObject = event;
+    this.selectedObjectChange.emit(event);
+  }
+
+  onFilterChange(type, event) {
+    const filters = event['filters'];
+    const nb_row = event['nb_row'];
+    if (event) {
+      this.filters = filters;
+      this.filtersChange.emit(Utils.copy(this.filters));
+      this.objectListTypeChange.emit(Utils.copy(this.objectListType));
+    }
+    this.nbVisibleRows[type] = nb_row;
   }
 
   changeActiveTab(typeObject, tab) {
     this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
-    this.objectsStatusChange.emit(this.reInitStatut());
+    this.objectListType = this.children0Array[typeObject['index']]['objectType'];
+    this.objectListTypeChange.emit(this.objectListType);
   }
 
-  reInitStatut() {
-    let status_type = Utils.copy(this.objectsStatus);
-    for (let typeObject in status_type) {
-      if (Array.isArray(status_type[typeObject])) {
-        for (let i in status_type[typeObject]) {
-          try {
-            status_type[typeObject][i]['selected'] = false;
-          } catch (error) {
-            console.error(error.message, status_type[typeObject][i]);
-          }
-        }
-      }
-    }
-    return status_type;
-  }
   onbEditChanged(event) {
     this.bEditChange.emit(event);
   }
 
   displayNumber(chidrenType) {
-    if (!this.objectsStatus[chidrenType]) {
+    if (!this.childrenDataTable[chidrenType]) {
       return '';
     }
-    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible && s.id != undefined);
-    const nbSelected = visibles.length;
-    const nb = this.obj.children[chidrenType].length;
+
+    const nbSelected = this.nbVisibleRows[chidrenType];
+    const nb = this.childrenDataTable[chidrenType]['rows'].length;
+
     return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
   }
 

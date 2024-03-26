@@ -113,7 +113,7 @@
                       <a
                         [ngClass]="{ isDisableBtn: !canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="canCreateChild ? navigateToAddChildren(null, row) : null"
+                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj.siteId) : null"
                         [matTooltip]="
                           canCreateChild ? dataTableArray[i].addChildLabel : toolTipNotAllowed
                         "
