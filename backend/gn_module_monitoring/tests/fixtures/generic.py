@@ -52,6 +52,8 @@ def monitorings_users(app):
                 organisme=organisme,
                 identifiant=username,
                 password=username,
+                nom_role=username,
+                prenom_role=username,
             )
             db.session.add(user)
         # user must have been commited for user.id_role to be defined
