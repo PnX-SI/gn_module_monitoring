@@ -29,7 +29,6 @@ def install_module_test():
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
     path_module_test = path_gn_monitoring / Path("contrib/test")
     path_gn_monitoring = BACKEND_DIR / Path("media/monitorings/test")
-    print(str(path_module_test), str(path_gn_monitoring))
     shutil.copytree(src=str(path_module_test), dst=str(path_gn_monitoring), dirs_exist_ok=True)
 
     # Installation du module

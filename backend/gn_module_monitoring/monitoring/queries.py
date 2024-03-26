@@ -136,13 +136,15 @@ class SitesQuery(GnMonitoringGenericFilter):
     @classmethod
     def filter_by_specific(
         cls,
-        id_types_site: [],
         query: Select,
+        id_types_site: [] = None,
         params: MultiDict = None,
         **kwargs,
     ):
-        # Get specific
+        if not id_types_site:
+            id_types_site = []
 
+        # Get specific
         specific_config_models = (
             db.session.scalars(
                 select(Models.BibTypeSite).where(

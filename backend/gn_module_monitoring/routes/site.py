@@ -177,7 +177,7 @@ def get_all_site_geometries(object_type):
 
     if types_site:
         query_allowed = TMonitoringSites.filter_by_specific(
-            id_types_site=types_site, query=query_allowed, params=params
+            query=query_allowed, id_types_site=types_site, params=params
         )
     subquery = query_allowed.subquery()
 
