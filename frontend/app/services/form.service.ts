@@ -77,21 +77,18 @@ export class FormService {
     this.formMap.next(formMapObj);
   }
 
-  formValues(obj,schemaUpdate={}): Observable<any> {
+  formValues(obj, schemaUpdate = {}): Observable<any> {
     let schema;
     // const {properties ,remainaing} = obj
     const properties = Utils.copy(obj.properties);
     const observables = {};
-    if (obj.moduleCode && Object.keys(schemaUpdate).length != 0){
+    if (obj.moduleCode && Object.keys(schemaUpdate).length != 0) {
       schema = schemaUpdate;
-      ;
-    } else if(obj.moduleCode) {
+    } else if (obj.moduleCode) {
       schema = this._configService.schema(obj.moduleCode, obj.objectType, 'all');
-    }
-    else{
+    } else {
       schema = obj[obj.moduleCode];
     }
-
 
     // ADD specific properties if exist
     if (obj.specific != undefined) {

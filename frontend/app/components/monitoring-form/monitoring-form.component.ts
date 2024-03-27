@@ -207,7 +207,7 @@ export class MonitoringFormComponent implements OnInit {
     this._formService.formValues(this.obj).subscribe((formValue) => {
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
-    })
+    });
   }
 
   firstInitForm() {
@@ -220,18 +220,21 @@ export class MonitoringFormComponent implements OnInit {
 
     this.setQueryParams();
     // pour donner la valeur de l'objet au formulaire
-    this._formService.formValues(this.obj).pipe(
-      map((formValue) => {
-        return { ...formValue, types_site: this.idsTypesSite };
-      }),
-      concatMap((formValue) => {
-        return of({ ...formValue, ...this._formService.formValues(this.obj,this.schemaUpdate) });
-      }),
-    ).subscribe( (formValue) => {
-      // this.objFormDynamic.disable();
-      this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
-      // this.objFormDynamic.enable();
-    })
+    this._formService
+      .formValues(this.obj)
+      .pipe(
+        map((formValue) => {
+          return { ...formValue, types_site: this.idsTypesSite };
+        }),
+        concatMap((formValue) => {
+          return of({ ...formValue, ...this._formService.formValues(this.obj, this.schemaUpdate) });
+        })
+      )
+      .subscribe((formValue) => {
+        // this.objFormDynamic.disable();
+        this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
+        // this.objFormDynamic.enable();
+      });
   }
 
   initFormDynamic() {
@@ -239,7 +242,7 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
     // pour donner la valeur de l'objet au formulaire
-    this._formService.formValues(this.obj,this.schemaUpdate).subscribe((formValue) => {
+    this._formService.formValues(this.obj, this.schemaUpdate).subscribe((formValue) => {
       formValue.types_site = this.idsTypesSite;
       // this.objFormDynamic.disable();
       this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });

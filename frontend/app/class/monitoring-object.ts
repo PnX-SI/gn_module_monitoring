@@ -195,7 +195,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-
   /** postData: obj -> from */
 
   postData(formValue, dataComplement) {
