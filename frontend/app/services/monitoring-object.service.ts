@@ -57,16 +57,16 @@ export class MonitoringObjectService {
       cache[obj.id] = objData;
     }
 
-    // children
-    if (objData.children) {
-      for (const childrenType of Object.keys(objData.children)) {
-        const childrenData = objData.children[childrenType];
-        const cacheChildren = this.cache(obj.moduleCode, childrenType);
-        for (const childData of childrenData) {
-          cacheChildren[childData.id] = childData;
-        }
-      }
-    }
+    // // children
+    // if (objData.children) {
+    //   for (const childrenType of Object.keys(objData.children)) {
+    //     const childrenData = objData.children[childrenType];
+    //     const cacheChildren = this.cache(obj.moduleCode, childrenType);
+    //     for (const childData of childrenData) {
+    //       cacheChildren[childData.id] = childData;
+    //     }
+    //   }
+    // }
 
     for (const parentType of obj.parentTypes()) {
       obj.getParent(parentType, 1).subscribe(() => {
