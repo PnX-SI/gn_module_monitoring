@@ -25,7 +25,7 @@ from gn_module_monitoring.config.utils import (
 config_cache_name = "MONITORINGS_CONFIG"
 
 
-def get_config_objects(module_code, config, tree=None, parent_type=None, customSpecConfig=None):
+def get_config_objects(module_code, config, tree=None, parent_type=None):
     """
     recupere la config de chaque object present dans tree pour le module <module_code>
     """
@@ -41,7 +41,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
         if not object_type in config:
             if object_type == "site":
                 config[object_type] = config_object_from_files(
-                    module_code, object_type, customSpecConfig, is_sites_group_child
+                    module_code, object_type, is_sites_group_child
                 )
             else:
                 config[object_type] = config_object_from_files(module_code, object_type)
@@ -51,6 +51,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
 
         if not "children_types" in config[object_type]:
             config[object_type]["children_types"] = []
+
         config[object_type]["children_types"] += children_types
         config[object_type]["children_types"] = list(
             dict.fromkeys(config[object_type]["children_types"])
@@ -85,9 +86,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
 
         # recursif
         if tree[object_type]:
-            get_config_objects(
-                module_code, config, tree[object_type], object_type, customSpecConfig
-            )
+            get_config_objects(module_code, config, tree[object_type], object_type)
 
 
 def config_object_from_files(module_code, object_type, custom=None, is_sites_group_child=False):
@@ -135,21 +134,7 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
     return config_object
 
 
-def get_config_with_specific(module_code=None, force=False, complements=None):
-    """
-    recupere la configuration pour le module monitoring
-    en prenant en compte les propriétés spécifiques des types de sites
-    """
-    customConfig = {"specific": {}}
-    for keys in complements.keys():
-        if "config" in complements[keys]:
-            customConfig["specific"].update(
-                (complements[keys].get("config", {}) or {}).get("specific", {})
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
-
-
-def get_config(module_code=None, force=False, customSpecConfig=None):
+def get_config(module_code=None, force=False):
     """
     recupere la configuration pour le module monitoring
 
@@ -186,7 +171,7 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
     # return config
 
     config = config_from_files("config", module_code)
-    get_config_objects(module_code, config, customSpecConfig=customSpecConfig)
+    get_config_objects(module_code, config)
     # customize config
     if module:
         config["custom"] = {}

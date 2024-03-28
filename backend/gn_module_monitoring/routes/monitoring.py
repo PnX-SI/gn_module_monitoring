@@ -29,10 +29,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.utils import to_int
-from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
-from gn_module_monitoring.utils.routes import (
-    query_all_types_site_from_site_id,
-)
+from gn_module_monitoring.config.repositories import get_config
 
 
 @blueprint.url_value_preprocessor
@@ -109,21 +106,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
 
-    if id != None and object_type == "site":
-        types_site_obj = query_all_types_site_from_site_id(id)
-        list_types_sites_dict = [
-            values
-            for res in types_site_obj
-            for (key_type_site, values) in res.as_dict().items()
-            if key_type_site == "config"
-        ]
-        customConfig = {"specific": {}}
-        for specific_config in list_types_sites_dict:
-            customConfig["specific"].update((specific_config or {}).get("specific", {}))
-
-        get_config(module_code, force=True, customSpecConfig=customConfig)
-    else:
-        get_config(module_code, force=True)
+    get_config(module_code, force=True)
 
     return (
         monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
@@ -222,10 +205,7 @@ def update_object_api(scope, module_code, object_type, id):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
 
     post_data = dict(request.get_json())
-    if "dataComplement" in post_data:
-        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
-    else:
-        get_config(module_code, force=True)
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -242,10 +222,7 @@ def update_object_api(scope, module_code, object_type, id):
 @json_resp
 def create_object_api(module_code, object_type, id):
     post_data = dict(request.get_json())
-    if "dataComplement" in post_data:
-        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
-    else:
-        get_config(module_code, force=True)
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 

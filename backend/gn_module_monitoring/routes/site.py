@@ -19,7 +19,7 @@ from pypnnomenclature.models import TNomenclatures
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config_with_specific
+from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringSites,
@@ -232,7 +232,7 @@ def post_sites(object_type):
     object_type = "site"
     post_data = dict(request.get_json())
 
-    get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
+    get_config(module_code, force=True)
 
     return create_or_update_object_api(module_code, object_type), 201
 
@@ -261,8 +261,6 @@ def patch_sites(scope, _id, object_type):
     module_code = "generic"
     post_data = dict(request.get_json())
 
-    get_config_with_specific(
-        module_code, force=True, complements=post_data.get("dataComplement", {})
-    )
+    get_config(module_code, force=True)
 
     return create_or_update_object_api(module_code, object_type, _id), 201
