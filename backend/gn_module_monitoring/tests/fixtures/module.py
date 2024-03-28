@@ -21,10 +21,11 @@ from gn_module_monitoring.command.cmd import (
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.tests.fixtures.generic import monitorings_users
+from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 
 @pytest.fixture
-def install_module_test():
+def install_module_test(types_site):
     # Copy des fichiers du module de test
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
     path_module_test = path_gn_monitoring / Path("contrib/test")
@@ -36,6 +37,13 @@ def install_module_test():
     result = runner.invoke(cmd_install_monitoring_module, ["test"])
 
     assert result.exit_code == 0
+    # Association du module aux types de site existant
+    module = db.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+    ).scalar_one()
+    with db.session.begin_nested():
+        module.types_site = list(types_site.values())
+        db.session.add(module)
 
 
 @pytest.fixture

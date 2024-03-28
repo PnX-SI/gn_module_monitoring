@@ -16,7 +16,7 @@ class MonitoringObjectGeom(MonitoringObject):
         )
 
     def serialize(self, depth, is_child=False):
-        monitoring_object_dict = MonitoringObject.serialize(self, depth, is_child)
+        monitoring_object_dict = super(MonitoringObject, self).serialize(depth, is_child)
 
         if len(monitoring_object_dict["properties"].get("types_site", [])) != 0:
             if hasattr(self._model, "types_site"):

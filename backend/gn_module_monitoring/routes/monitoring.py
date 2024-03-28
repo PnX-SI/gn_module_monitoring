@@ -29,10 +29,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.utils import to_int
-from gn_module_monitoring.config.repositories import get_config, get_config_with_specific
-from gn_module_monitoring.utils.routes import (
-    query_all_types_site_from_site_id,
-)
+from gn_module_monitoring.config.repositories import get_config
 
 
 @blueprint.url_value_preprocessor
@@ -102,33 +99,19 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
     # value = module_code if object_type == 'module'
 
     depth = to_int(request.args.get("depth", 1))
+
+    config = get_config(module_code, force=True)
+
+    monitoring_obj = monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config, id=id
+    )
     if id != None:
-        object = monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, id
-        ).get(depth=depth)
+        object = monitoring_obj.get(depth=depth)
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
 
-    if id != None and object_type == "site":
-        types_site_obj = query_all_types_site_from_site_id(id)
-        list_types_sites_dict = [
-            values
-            for res in types_site_obj
-            for (key_type_site, values) in res.as_dict().items()
-            if key_type_site == "config"
-        ]
-        customConfig = {"specific": {}}
-        for specific_config in list_types_sites_dict:
-            customConfig["specific"].update((specific_config or {}).get("specific", {}))
-
-        get_config(module_code, force=True, customSpecConfig=customConfig)
-    else:
-        get_config(module_code, force=True)
-
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
-            depth=depth
-        )
+        monitoring_obj.get(depth=depth)
         # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
@@ -165,14 +148,17 @@ def create_or_update_object_api(module_code, object_type, id=None):
     else:
         post_data["properties"]["id_module"] = module.id_module
 
+    config = get_config(module_code, force=True)
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
         .create_or_update(post_data)
         .serialize(depth)
     )
 
 
-def get_config_object(module_code, object_type, id):
+def get_serialized_object(module_code, object_type, id):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -189,14 +175,14 @@ def get_config_object(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    get_config(module_code, force=True)
+    config = get_config(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
 
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
-            depth=depth
-        )
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        ).get(depth=depth)
         # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
@@ -215,17 +201,15 @@ def get_config_object(module_code, object_type, id):
 def update_object_api(scope, module_code, object_type, id):
     depth = to_int(request.args.get("depth", 1))
     if id != None:
+
+        config = get_config(module_code, force=True)
         object = monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, id
+            module_code, object_type, config=config, id=id
         ).get(depth=depth)
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
 
     post_data = dict(request.get_json())
-    if "dataComplement" in post_data:
-        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
-    else:
-        get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -242,10 +226,7 @@ def update_object_api(scope, module_code, object_type, id):
 @json_resp
 def create_object_api(module_code, object_type, id):
     post_data = dict(request.get_json())
-    if "dataComplement" in post_data:
-        get_config_with_specific(module_code, force=True, complements=post_data["dataComplement"])
-    else:
-        get_config(module_code, force=True)
+    # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -261,20 +242,23 @@ def create_object_api(module_code, object_type, id):
 @permissions.check_cruved_scope("D", get_scope=True)
 def delete_object_api(scope, module_code, object_type, id):
     depth = to_int(request.args.get("depth", 1))
-    if id != None:
-        object = monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, id
-        ).get(depth=depth)
-        if not object._model.has_instance_permission(scope=scope):
-            raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
 
     if object_type in ("site", "sites_group"):
         raise Exception(
             f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
         )
-    get_config(module_code, force=True)
+
+    config = get_config(module_code=module_code, force=True)
+    monitoring_obj = monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config, id=id
+    )
+    if id != None:
+        object = monitoring_obj.get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
+
     # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
-    return monitoring_definitions.monitoring_object_instance(module_code, object_type, id).delete()
+    return monitoring_obj.delete()
 
 
 # breadcrumbs
@@ -290,11 +274,13 @@ def delete_object_api(scope, module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
+    config = get_config(module_code=module_code, force=True)
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
         .get()
         .breadcrumbs(query_params)
     )
@@ -305,11 +291,11 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
-    get_config(module_code, force=True)
+    config = get_config(module_code, force=True)
 
-    return monitoring_definitions.monitoring_object_instance(module_code, object_type).get_list(
-        request.args
-    )
+    return monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config
+    ).get_list(request.args)
 
 
 # mise à jour de la synthèse
@@ -317,10 +303,10 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
-    get_config(module_code, force=True)
+    config = get_config(module_code, force=True)
 
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, "module")
+        monitoring_definitions.monitoring_object_instance(module_code, "module", config=config)
         .get()
         .process_synthese(process_module=True)
     )
@@ -389,8 +375,11 @@ def post_export_pdf(module_code, object_type, id):
     """
 
     depth = to_int(request.args.get("depth", 0))
+    config = get_config(module_code, force=True)
     monitoring_object = (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
         .get()
         .serialize(depth)
     )

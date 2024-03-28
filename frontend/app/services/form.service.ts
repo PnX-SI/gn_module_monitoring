@@ -8,6 +8,7 @@ import { Utils } from '../utils/utils';
 import { MonitoringObjectService } from './monitoring-object.service';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { IExtraForm, IFormMap } from '../interfaces/object';
+import { ConfigService } from './config.service';
 
 @Injectable()
 export class FormService {
@@ -35,7 +36,8 @@ export class FormService {
 
   constructor(
     private _objService: MonitoringObjectService,
-    private _formBuilder: FormBuilder
+    private _formBuilder: FormBuilder,
+    private _configService: ConfigService
   ) {}
 
   changeDataSub(
@@ -75,11 +77,18 @@ export class FormService {
     this.formMap.next(formMapObj);
   }
 
-  formValues(obj): Observable<any> {
+  formValues(obj, schemaUpdate = {}): Observable<any> {
+    let schema;
     // const {properties ,remainaing} = obj
     const properties = Utils.copy(obj.properties);
     const observables = {};
-    const schema = obj[obj.moduleCode];
+    if (obj.moduleCode && Object.keys(schemaUpdate).length != 0) {
+      schema = schemaUpdate;
+    } else if (obj.moduleCode) {
+      schema = this._configService.schema(obj.moduleCode, obj.objectType, 'all');
+    } else {
+      schema = obj[obj.moduleCode];
+    }
 
     // ADD specific properties if exist
     if (obj.specific != undefined) {
@@ -90,6 +99,7 @@ export class FormService {
 
     for (const attribut_name of Object.keys(schema)) {
       const elem = schema[attribut_name];
+      // NOTES: [dev-suivi-eol] ici le formValues possédant uniquement des propriétés sans type_widget ne surcouchent pas les champs specific au type de site
       if (!elem.type_widget) {
         continue;
       }

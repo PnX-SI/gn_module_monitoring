@@ -165,8 +165,9 @@ export class MonitoringObjectComponent implements OnInit {
     const queryParams = this._route.snapshot.queryParams || {};
 
     this.pre_filters = {};
-    this.pre_filters['types_site'] =
-      this._configService.config()[this.obj.moduleCode]['module']['types_site'];
+    this.pre_filters['types_site'] = Object.keys(
+      this._configService.config()[this.obj.moduleCode]['module']['types_site']
+    );
     // filtre objet géographique de référence
     if (this.obj.objectType == 'sites_group') {
       this.pre_filters['id_sites_group'] = this.obj.id;

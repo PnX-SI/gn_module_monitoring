@@ -9,6 +9,7 @@ from flask import current_app
 from gn_module_monitoring.config.utils import (
     customize_config,
     config_from_files,
+    json_config_from_db,
     json_config_from_file,
     get_id_table_location,
     process_config_display,
@@ -18,13 +19,13 @@ from gn_module_monitoring.config.utils import (
     get_data_preload,
     monitoring_module_config_path,
 )
-
+from gn_module_monitoring.utils.utils import dict_deep_update
 
 # pour stocker la config dans current_app.config
 config_cache_name = "MONITORINGS_CONFIG"
 
 
-def get_config_objects(module_code, config, tree=None, parent_type=None, customSpecConfig=None):
+def get_config_objects(module_code, config, tree=None, parent_type=None):
     """
     recupere la config de chaque object present dans tree pour le module <module_code>
     """
@@ -40,7 +41,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
         if not object_type in config:
             if object_type == "site":
                 config[object_type] = config_object_from_files(
-                    module_code, object_type, customSpecConfig, is_sites_group_child
+                    module_code, object_type, is_sites_group_child
                 )
             else:
                 config[object_type] = config_object_from_files(module_code, object_type)
@@ -50,6 +51,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
 
         if not "children_types" in config[object_type]:
             config[object_type]["children_types"] = []
+
         config[object_type]["children_types"] += children_types
         config[object_type]["children_types"] = list(
             dict.fromkeys(config[object_type]["children_types"])
@@ -84,9 +86,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None, customS
 
         # recursif
         if tree[object_type]:
-            get_config_objects(
-                module_code, config, tree[object_type], object_type, customSpecConfig
-            )
+            get_config_objects(module_code, config, tree[object_type], object_type)
 
 
 def config_object_from_files(module_code, object_type, custom=None, is_sites_group_child=False):
@@ -99,8 +99,20 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
         if module_code == "generic"
         else json_config_from_file(module_code, object_type)
     )
+    db_config_object = {"specific": {}}
 
-    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car l'association de site à un groupe de site doit se faire par l'entrée par site
+    if object_type == "site":
+        db_config_object = json_config_from_db(module_code)
+        # Mise a jour des configurations de façon récursive
+        dict_deep_update(specific_config_object["specific"], db_config_object["specific"])
+
+    elif object_type == "module":
+        db_config_object = json_config_from_db(module_code)
+        specific_config_object["types_site"] = db_config_object["types_site"]
+        db_config_object = {"specific": {}}
+
+    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car
+    #        l'association de site à un groupe de site doit se faire par l'entrée par site
     if module_code != "generic" and object_type == "site" and not is_sites_group_child:
         generic_config_object["generic"].pop("id_sites_group")
 
@@ -110,33 +122,20 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
             "attribut_label": "Type(s) de site",
         }
 
-    if object_type == "site" and custom is not None:
-        if "specific" in custom and "specific" in specific_config_object:
-            for key in custom["specific"]:
-                if key not in specific_config_object["specific"]:
-                    specific_config_object["specific"][key] = custom["specific"][key]
+    # if object_type == "site" and custom is not None:
+    #     if "specific" in custom and "specific" in specific_config_object:
+    #         for key in custom["specific"]:
+    #             if key not in specific_config_object["specific"]:
+    #                 specific_config_object["specific"][key] = custom["specific"][key]
 
     config_object = generic_config_object
+    config_object.update(db_config_object)
     config_object.update(specific_config_object)
 
     return config_object
 
 
-def get_config_with_specific(module_code=None, force=False, complements=None):
-    """
-    recupere la configuration pour le module monitoring
-    en prenant en compte les propriétés spécifiques des types de sites
-    """
-    customConfig = {"specific": {}}
-    for keys in complements.keys():
-        if "config" in complements[keys]:
-            customConfig["specific"].update(
-                (complements[keys].get("config", {}) or {}).get("specific", {})
-            )
-    get_config(module_code, force=True, customSpecConfig=customConfig)
-
-
-def get_config(module_code=None, force=False, customSpecConfig=None):
+def get_config(module_code=None, force=False):
     """
     recupere la configuration pour le module monitoring
 
@@ -173,7 +172,7 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
     # return config
 
     config = config_from_files("config", module_code)
-    get_config_objects(module_code, config, customSpecConfig=customSpecConfig)
+    get_config_objects(module_code, config)
     # customize config
     if module:
         config["custom"] = {}
@@ -190,11 +189,11 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
 
-        # Types de sites
-        if hasattr(module, field_name):
-            config["module"]["types_site"] = [
-                ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
-            ]
+        # # Types de sites
+        # if hasattr(module, field_name):
+        #     config["module"]["types_site"] = [
+        #         ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
+        #     ]
 
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 
@@ -213,78 +212,6 @@ def get_config(module_code=None, force=False, customSpecConfig=None):
         current_app.config[config_cache_name] = {}
     current_app.config[config_cache_name][module_code] = config
 
-    return config
-
-
-def config_param(module_code, object_type, param_name):
-    """
-    revoie un parametre de la configuration des objets
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param param_name: le parametre voulu (id_field_name, label)
-    :type module_code: str
-    :type object_type: str
-    :type param_name: str
-    :return: valeur du paramètre requis
-    :rtype: str
-
-    :Exemple:
-
-    config_param('oedic', 'site', 'id_field_name')
-        renverra 'id_base_site'
-
-    config_param('oedic', 'site', 'label')
-        renverra 'Site'
-
-    """
-
-    config = get_config(module_code)
-
-    return config[object_type].get(param_name)
-
-
-def config_schema(module_code, object_type, type_schema="all"):
-    """
-    renvoie une liste d'éléments de configuration de formulaire
-
-    pour type_schema:
-        'generic' : renvoie le schema générique
-        'specific' : renvoie le schema spécifique
-        'all': par defaut renvoie tout le schema
-
-    Un élément est un dictionaire de type
-        {
-            "attribut_name": "id_base_site",
-            "Label": "Id du site",
-            "type_widget": "integer",
-            "required": "true",
-        }
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param type_schema: le type de schema requis ('all', 'generic', 'specific')
-    :type module_code: str
-    :type object_type: str
-    :type type_schema: str, optional
-    :return: tableau d'élément de configuration de formulaire
-    :rtype: list
-    """
-    # recuperation de la configuration
-    config = get_config(module_code)
-
-    if type_schema in ["generic", "specific"]:
-        return config[object_type][type_schema]
-
-    # renvoie le schema complet si type_schema == 'all' ou par defaut
-    schema = dict(config[object_type]["generic"])
-    schema.update(config[object_type]["specific"])
-
-    return schema
-
-
-def get_config_frontend(module_code=None, force=True):
-    config = dict(get_config(module_code, force))
     return config
 
 

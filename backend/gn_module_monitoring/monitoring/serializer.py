@@ -41,7 +41,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         if not self._parent:
             self._parent = monitoring_definitions.monitoring_object_instance(
-                self._module_code, parent_type, self.id_parent()
+                self._module_code, parent_type, config=self._config, id=self.id_parent()
             ).get()
 
         return self._parent
@@ -77,7 +77,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         data = {}
         for attribut_name, attribut_value in self.config_schema("specific").items():
             if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
-                val = properties.pop(attribut_name)
+                if attribut_name in properties:
+                    val = properties.pop(attribut_name)
+                else:
+                    # TODO évaluer l'incidence
+                    #   voir comment générer les proprités spécifiques
+                    #    non définies dans le schéma
+                    val = None
                 data[attribut_name] = val
 
         if data:
@@ -124,7 +130,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             )
             for child_model in childs_object_readable:
                 child = monitoring_definitions.monitoring_object_instance(
-                    self._module_code, children_type, model=child_model
+                    self._module_code, children_type, config=self._config, model=child_model
                 )
                 children_of_type.append(child.serialize(depth, is_child=True))
 

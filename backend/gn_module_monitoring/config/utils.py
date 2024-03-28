@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from sqlalchemy import and_, select
+from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -11,6 +12,8 @@ from geonature.utils.config import config as gn_config
 from geonature.core.gn_commons.models import BibTablesLocation, TModules
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -131,6 +134,42 @@ def json_config_from_file(module_code, type_config):
 
     file_path = monitoring_module_config_path(module_code) / f"{type_config}.json"
     return json_from_file(file_path, {})
+
+
+def json_config_from_db(module_code):
+    site_type_config = {"types_site": {}, "specific": {}}
+    if module_code == "generic":
+        # Si generic récupération de tous les types de sites
+        types = query_all_types_site_from_module_id(0)
+    else:
+        try:
+            module = get_module("module_code", module_code)
+        except NoResultFound:
+            return site_type_config
+        types = query_all_types_site_from_module_id(module.id_module)
+
+    for t in types:
+        fields = []
+
+        # Configuration des champs
+        if "specific" in (t.config or {}):
+            site_type_config["specific"].update(t.config["specific"])
+            fields = [k for k in t.config["specific"]]
+
+        # Liste des champs à afficher
+        display_properties = list(fields)
+        if "display_properties" in (t.config or {}):
+            display_properties = [
+                key for key in t.config.get("display_properties") if key in fields
+            ]
+            display_properties + [key for key in fields if not key in display_properties]
+
+        site_type_config["types_site"][t.id_nomenclature_type_site] = {
+            "display_properties": display_properties,
+            "name": t.nomenclature.label_default,
+        }
+
+    return site_type_config
 
 
 def config_from_files(config_type, module_code):
