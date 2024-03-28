@@ -233,7 +233,7 @@ def post_sites(object_type):
     object_type = "site"
     post_data = dict(request.get_json())
 
-    # get_config(module_code, force=True)
+    get_config(module_code, force=True)
 
     return create_or_update_object_api(module_code, object_type), 201
 
@@ -262,6 +262,6 @@ def patch_sites(scope, _id, object_type):
     module_code = "generic"
     post_data = dict(request.get_json())
 
-    # get_config(module_code, force=True)
+    get_config(module_code, force=True)
 
     return create_or_update_object_api(module_code, object_type, _id), 201

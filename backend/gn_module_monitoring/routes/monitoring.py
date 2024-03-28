@@ -110,6 +110,8 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
 
+    get_config(module_code, force=True)
+
     return (
         monitoring_obj.get(depth=depth)
         # .get(value=value, field_name = field_name)
@@ -210,6 +212,7 @@ def update_object_api(scope, module_code, object_type, id):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
 
     post_data = dict(request.get_json())
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -226,7 +229,7 @@ def update_object_api(scope, module_code, object_type, id):
 @json_resp
 def create_object_api(module_code, object_type, id):
     post_data = dict(request.get_json())
-    # get_config(module_code, force=True)
+    get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
