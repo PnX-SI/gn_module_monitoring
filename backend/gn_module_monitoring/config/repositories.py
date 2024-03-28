@@ -19,7 +19,7 @@ from gn_module_monitoring.config.utils import (
     get_data_preload,
     monitoring_module_config_path,
 )
-
+from gn_module_monitoring.utils.utils import dict_deep_update
 
 # pour stocker la config dans current_app.config
 config_cache_name = "MONITORINGS_CONFIG"
@@ -103,7 +103,8 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
 
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
-        specific_config_object["specific"].update(db_config_object["specific"])
+        # Mise a jour des configurations de façon récursive
+        dict_deep_update(specific_config_object["specific"], db_config_object["specific"])
 
     elif object_type == "module":
         db_config_object = json_config_from_db(module_code)
