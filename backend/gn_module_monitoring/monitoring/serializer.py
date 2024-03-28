@@ -41,7 +41,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         if not self._parent:
             self._parent = monitoring_definitions.monitoring_object_instance(
-                self._module_code, parent_type, self.id_parent()
+                self._module_code, parent_type, config=self._config, id=self.id_parent()
             ).get()
 
         return self._parent
@@ -130,7 +130,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             )
             for child_model in childs_object_readable:
                 child = monitoring_definitions.monitoring_object_instance(
-                    self._module_code, children_type, model=child_model
+                    self._module_code, children_type, config=self._config, model=child_model
                 )
                 children_of_type.append(child.serialize(depth, is_child=True))
 

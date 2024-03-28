@@ -15,7 +15,6 @@ from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
 )
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_module_id,
@@ -87,11 +86,10 @@ def get_modules_api():
 
     return modules_out
 
-
+# TODEL ?
 @blueprint.route("/modules/<string:module_code>/types_sites", methods=["GET"])
 def get_all_types_site_from_module_id(module_code):
-    config = get_config(module_code, True)
-    id_module = config["custom"]["__MODULE.ID_MODULE"]
-    types_site = query_all_types_site_from_module_id(id_module)
+    module = get_module("module_code", module_code)
+    types_site = query_all_types_site_from_module_id(module.id_module)
     schema = BibTypeSiteSchema()
     return [schema.dump(res) for res in types_site]
