@@ -1,5 +1,6 @@
 import collections.abc
 
+
 def to_int(s):
     try:
         return int(s)

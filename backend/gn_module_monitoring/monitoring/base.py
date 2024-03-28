@@ -1,5 +1,6 @@
 from geonature.utils.errors import GeoNatureError
 
+
 class MonitoringDefinitions:
     """
     class pour pouvoir obtenir les classes filles de MonitoringObjectBase

@@ -86,6 +86,7 @@ def get_modules_api():
 
     return modules_out
 
+
 # TODEL ?
 @blueprint.route("/modules/<string:module_code>/types_sites", methods=["GET"])
 def get_all_types_site_from_module_id(module_code):
