@@ -107,6 +107,7 @@ export class MonitoringFormComponent implements OnInit {
         // .subscribe((queryParams) => {
         this.queryParams = this._route.snapshot.queryParams || {};
         this.bChainInput = this._configService.frontendParams()['bChainInput'];
+        // NOTES: ici schemaGeneric = this.obj.config.generic
         this.schemaGeneric = this.obj.schema();
         this.obj.objectType == 'site' ? delete this.schemaGeneric['types_site'] : null;
         this.obj.id != undefined && this.obj.objectType == 'site'
@@ -114,6 +115,7 @@ export class MonitoringFormComponent implements OnInit {
           : null;
         // init objFormsDefinition
 
+        // NOTES: ici schemaGeneric = this.obj.config.generic
         const schema = this.schemaGeneric;
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
@@ -458,10 +460,14 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   initExtraSchema(typeSiteObj) {
+    // NOTES: typeSiteObj doit être remplacé par this.obj.config.types_site ( key = id_nomenclature_type_site, value = label et typeSite.label = this.obj.config.types_site[key].name et ensuite il faut boucler sur  les display properties 
+    //  et voir ce qui match avec les keys de this.obj.config.specific
+    // TODO: Chaner la manière de mettre en place le schemaUpdate , idsTypesSite, typesSiteConfig et schemaGeneric
     let keysConfigToExclude: string[] = [];
-    for (const typeSite of typeSiteObj) {
-      this.idsTypesSite.push(typeSite.id_nomenclature_type_site);
-      this.typesSiteConfig[typeSite.label] = typeSite;
+    typeSiteObj = this.obj.config.types_site
+    for (const idTypeSite in typeSiteObj) {
+      this.idsTypesSite.push(idTypeSite);
+      this.typesSiteConfig[typeSiteObj[idTypeSite].name] = typeSite;
       if (this.typesSiteConfig[typeSite.label].config?.specific) {
         keysConfigToExclude.push(
           ...Object.keys(this.typesSiteConfig[typeSite.label].config.specific)
@@ -706,6 +712,14 @@ export class MonitoringFormComponent implements OnInit {
     } else {
       this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
+  }
+
+
+  initTypeSiteConfig() {
+    
+  }
+  updateTypeSiteConfig(){
+
   }
 
   ngOnDestroy() {
