@@ -99,3 +99,13 @@ class TestCommands:
         # Pas de result juste <Result okay>
         assert result.exit_code == 2
         assert "Missing argument 'MODULE_CODE'" in result.output
+
+    def test_cmd_add_module_nomenclature_cli(self, install_module_test):
+        runner = current_app.test_cli_runner()
+        # Commande add_module_nomenclature
+        result = runner.invoke(cmd_add_module_nomenclature_cli, ["test"])
+        # Pas de result juste <Result okay>
+        assert result.exit_code == 0
+        assert "nomenclature type TEST_METEO - Météo - already exist" in result.output
+        assert "nomenclature METEO_M - Mauvais temps - updated" in result.output
+        assert 'probleme de type avec mnemonique="TEST_UNKWONW_TYPE"' in result.output

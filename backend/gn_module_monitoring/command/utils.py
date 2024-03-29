@@ -256,19 +256,20 @@ def add_nomenclature(module_code):
         return
 
     for data in nomenclature.get("types", []):
-        nomenclature_type = None
-        try:
-            nomenclature_type = DB.session.execute(
-                select(BibNomenclaturesTypes).where(
-                    data.get("mnemonique") == BibNomenclaturesTypes.mnemonique
-                )
-            ).scalar_one()
-
-        except Exception:
-            pass
+        nomenclature_type = DB.session.execute(
+            select(BibNomenclaturesTypes).where(
+                data.get("mnemonique") == BibNomenclaturesTypes.mnemonique
+            )
+        ).scalar_one_or_none()
 
         if nomenclature_type:
-            print("no insert type", nomenclature_type)
+            action = "already exist"
+            print(
+                "nomenclature type {} - {} - {}".format(
+                    nomenclature_type.mnemonique, nomenclature_type.label_default, action
+                )
+            )
+
             continue
 
         data["label_fr"] = data.get("label_fr") or data["label_default"]
@@ -279,69 +280,70 @@ def add_nomenclature(module_code):
         nomenclature_type = BibNomenclaturesTypes(**data)
         DB.session.add(nomenclature_type)
         DB.session.commit()
-
-    for data in nomenclature["nomenclatures"]:
-        nomenclature = None
-        try:
-            nomenclature = DB.session.execute(
-                select(TNomenclatures)
-                .join(
-                    BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type
-                )
-                .where(
-                    and_(
-                        data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
-                        data.get("type") == BibNomenclaturesTypes.mnemonique,
-                    )
-                )
-            ).scalar_one()
-
-        except Exception as e:
-            pass
-
-        if nomenclature:
-            # TODO make update
-            print(
-                "nomenclature {} - {} already exist".format(
-                    nomenclature.cd_nomenclature, nomenclature.label_default
-                )
-            )
-            continue
-
-        id_type = None
-        try:
-            id_type = DB.session.execute(
-                select(BibNomenclaturesTypes.id_type).where(
-                    BibNomenclaturesTypes.mnemonique == data["type"]
-                )
-            ).scalar_one()
-        except Exception as e:
-            pass
-
-        if not id_type:
-            print(
-                'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
-                    data["type"], data
-                )
-            )
-            continue
-
-        data["label_fr"] = data.get("label_fr") or data["label_default"]
-        data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
-        data["source"] = data.get("source") or "monitoring"
-        data["statut"] = data.get("statut") or "Validation en cours"
-        data["active"] = True
-        data["id_type"] = id_type
-        data.pop("type")
-
-        nomenclature = TNomenclatures(**data)
-        DB.session.add(nomenclature)
-        DB.session.commit()
+        action = "added"
         print(
-            "nomenclature {} - {} added".format(
-                nomenclature.cd_nomenclature, nomenclature.label_default
+            "nomenclature type {} - {} - {}".format(
+                nomenclature_type.mnemonique, nomenclature_type.label_default, action
             )
         )
+
+    for data in nomenclature["nomenclatures"]:
+        insert_update_nomenclature(data)
+
+
+def insert_update_nomenclature(data):
+
+    # Get Id type
+    id_type = DB.session.execute(
+        select(BibNomenclaturesTypes.id_type).where(
+            BibNomenclaturesTypes.mnemonique == data["type"]
+        )
+    ).scalar_one_or_none()
+
+    if not id_type:
+        print(
+            'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
+                data["type"], data
+            )
+        )
+        return
+
+    # Get nomenclature if exist
+    action = "updated"
+    nomenclature = DB.session.execute(
+        select(TNomenclatures)
+        .join(BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type)
+        .where(
+            and_(
+                data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
+                data.get("type") == BibNomenclaturesTypes.mnemonique,
+            )
+        )
+    ).scalar_one_or_none()
+
+    # If not create new one
+    if not nomenclature:
+        nomenclature = TNomenclatures()
+        action = "added"
+
+    data["label_fr"] = data.get("label_fr") or data["label_default"]
+    data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
+    data["source"] = data.get("source") or "monitoring"
+    data["statut"] = data.get("statut") or "Validation en cours"
+    data["active"] = True
+    data["id_type"] = id_type
+
+    for key, value in data.items():
+        if hasattr(nomenclature, key):
+            setattr(nomenclature, key, value)
+
+    DB.session.add(nomenclature)
+    DB.session.commit()
+    print(
+        "nomenclature {} - {} - {}".format(
+            nomenclature.cd_nomenclature, nomenclature.label_default, action
+        )
+    )
 
 
 def installed_modules(session=None):
