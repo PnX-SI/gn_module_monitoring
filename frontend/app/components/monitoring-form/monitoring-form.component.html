@@ -89,6 +89,7 @@
           (myFormGroupChange)="initForm()"
           (change)="onObjFormValueChange($event)"
         ></pnx-dynamic-form-generator>
+        <p>SEPARATE FORM</p>
         <ng-container *ngIf="obj.objectType == 'site'">
           <pnx-dynamic-form-generator
             class="obj-form"
