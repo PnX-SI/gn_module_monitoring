@@ -89,12 +89,14 @@ class SitesQuery(GnMonitoringGenericFilter):
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringSites.id_digitiser == user.id_role,
+                Models.TMonitoringSites.id_inventor == user.id_role,
                 Models.TMonitoringSites.observers.any(id_role=user.id_role),
             ]
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
                 ors += [
                     Models.TMonitoringSites.digitiser.has(id_organisme=user.id_organisme),
+                    Models.TMonitoringSites.inventor.has(id_organisme=user.id_organisme),
                     Models.TMonitoringSites.observers.any(id_organisme=user.id_organisme),
                 ]
             query = query.where(or_(*ors))
