@@ -20,6 +20,13 @@
       "mnemonique": "Mauvais",
       "label_default": "Mauvais temps",
       "definition_default": "Mauvais temps (test)"
+    },
+    {
+      "type": "TEST_UNKWONW_TYPE",
+      "cd_nomenclature": "0",
+      "mnemonique": "0",
+      "label_default": "Nomenclature avec un type inexistant",
+      "definition_default": "Nomenclature avec un type inexistant"
     }
   ]
 }
