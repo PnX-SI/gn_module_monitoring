@@ -188,25 +188,34 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        if (!Array.isArray(x) || x.length == 0) {
-          x = [];
-          break;
+        // For performance reasons, filter on Set instead of Array
+        let registeredObservers = new Set();
+        if (elem.multi_select === true) {
+          if (!Array.isArray(x) || x.length == 0) {
+            x = [];
+            break;
+          }
+          registeredObservers = new Set(x);
+        } else {
+          registeredObservers.add(x);
         }
 
-        // For performance purpose filter on Set instead of Array
-        const registeredObservers = new Set(x);
         x = this._dataUtilsService.getUsersByCodeList(this._configService.codeListObservers()).pipe(
           mergeMap((users: any) => {
             let observers: any = [];
             users.forEach((user) => {
               if (registeredObservers.has(user.id_role)) {
-                observers.push(user);
+                if (elem.multi_select === true) {
+                  observers.push(user);
+                } else {
+                  observers = [user];
+                  return;
+                }
               }
             });
             return of(observers);
           })
         );
-        // x = codeListObservers.filter((observer) => registeredObservers.has(observer.id_role.toString())).map((observer) => observer.nom_complet)
         break;
       }
       case 'taxonomy': {
@@ -240,8 +249,10 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
         x = x.map((user) => user.id_role);
+        if (elem.multi_select === false) {
+          x = x[0];
+        }
         break;
       }
       case 'taxonomy': {
