@@ -110,7 +110,6 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
 
     @hybrid_property
     def organism_actors(self):
-        # return self.digitiser.id_organisme
         actors_organism_list = []
         if isinstance(self.digitiser, list):
             for actor in self.digitiser:
@@ -282,20 +281,28 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
             for actor in self.digitiser:
                 if actor.id_organisme is not None:
                     actors_organism_list.append(actor.id_organisme)
+        elif isinstance(self.inventor, list):
+            for actor in self.inventor:
+                if actor.id_organisme is not None:
+                    actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.observers, list):
             for actor in self.observers:
                 if actor.id_organisme is not None:
                     actors_organism_list.append(actor.id_organisme)
         elif isinstance(self.digitiser, User):
             actors_organism_list.append(self.digitiser.id_organisme)
+        elif isinstance(self.inventor, User):
+            actors_organism_list.append(self.inventor.id_organisme)
         return actors_organism_list
 
     def has_instance_permission(self, scope):
         if scope == 0:
             return False
         elif scope in (1, 2):
-            if g.current_user.id_role == self.id_digitiser or any(
-                observer.id_role == g.current_user.id_role for observer in self.observers
+            if (
+                g.current_user.id_role == self.id_digitiser
+                or g.current_user.id_role == self.id_inventor
+                or any(observer.id_role == g.current_user.id_role for observer in self.observers)
             ):  # or g.current_user in self.user_actors:
                 return True
             if scope == 2 and g.current_user.id_organisme in self.organism_actors:
