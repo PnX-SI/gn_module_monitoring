@@ -157,7 +157,6 @@ export class DataMonitoringObjectService {
    *
    * template :  nom du fichier de template pour l'export pdf (.html)
    * map_image : image de la carte leaflet
-   * id_inventor ???
    *
    **/
   postPdfExport(module_code, object_type, id, template, map_image, extra_data = {}) {

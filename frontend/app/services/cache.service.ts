@@ -1,4 +1,3 @@
-import { ObserversComponent } from '@geonature_common/form/observers/observers.component';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 

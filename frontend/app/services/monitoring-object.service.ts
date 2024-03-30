@@ -188,24 +188,34 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        const codeListObservers = this._configService.codeListObservers();
-        x == null
-          ? (x = [])
-          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
-              mergeMap((users) => {
-                let currentUser;
-                if (Array.isArray(users)) {
-                  for (const user of users) {
-                    if (user.id_role == val) {
-                      currentUser = user;
-                    }
-                  }
+        // For performance reasons, filter on Set instead of Array
+        let registeredObservers = new Set();
+        if (elem.multi_select === true) {
+          if (!Array.isArray(x) || x.length == 0) {
+            x = [];
+            break;
+          }
+          registeredObservers = new Set(x);
+        } else {
+          registeredObservers.add(x);
+        }
+
+        x = this._dataUtilsService.getUsersByCodeList(this._configService.codeListObservers()).pipe(
+          mergeMap((users: any) => {
+            let observers: any = [];
+            users.forEach((user) => {
+              if (registeredObservers.has(user.id_role)) {
+                if (elem.multi_select === true) {
+                  observers.push(user);
                 } else {
-                  return of(null);
+                  observers = [user];
+                  return;
                 }
-                return of([currentUser]);
-              })
-            ));
+              }
+            });
+            return of(observers);
+          })
+        );
         break;
       }
       case 'taxonomy': {
@@ -239,8 +249,10 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
-        x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
+        x = x.map((user) => user.id_role);
+        if (elem.multi_select === false) {
+          x = x[0];
+        }
         break;
       }
       case 'taxonomy': {
