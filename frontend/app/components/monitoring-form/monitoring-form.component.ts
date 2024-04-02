@@ -18,7 +18,7 @@ import {
   map,
   toArray,
 } from 'rxjs/operators';
-import { forkJoin, from, iif, of } from 'rxjs';
+import { EMPTY, forkJoin, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
@@ -49,18 +49,19 @@ export class MonitoringFormComponent implements OnInit {
 
   objFormsDefinition;
 
-  meta: {};
+  meta:JsonData = {};
 
   objFormDynamic: FormGroup = this._formBuilder.group({});
   objFormsDefinitionDynamic;
   typesSiteConfig: JsonData = {};
   specificConfig: JsonData = {};
+  confiGenericSpec: JsonData = {};
   schemaUpdate = {};
   idsTypesSite: number[] = [];
   lastGeom = {};
   dataComplement = {};
   schemaGeneric = {};
-  schemaGeneric2 = {};
+  // confiGenericSpec = {};
 
   public bSaveSpinner = false;
   public bSaveAndAddChildrenSpinner = false;
@@ -76,6 +77,10 @@ export class MonitoringFormComponent implements OnInit {
   canDelete: boolean;
   canUpdate: boolean;
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
+  isSiteObject: boolean = false;
+  isEditObject: boolean = false;
+  displayProperties: string[] = [];
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -95,106 +100,218 @@ export class MonitoringFormComponent implements OnInit {
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
+        map(()=>{
+          this.isSiteObject = this.obj.objectType === 'site';
+          this.isEditObject = this.obj.id !== undefined;
+        }
+        ),
         switchMap(() =>
+        // Initialisation des config 
           iif(
-            () => this.obj.objectType === 'site' && this.obj.id !== undefined,
+            () => this.isSiteObject && this.isEditObject ,
             this.initTypeSiteConfig(
               this.obj.config['specific'],
               this.obj['properties'],
               this.obj.config['types_site']
             ).pipe(
-              switchMap(({ idsTypesSite, typesSiteConfig }) => {
+              concatMap(({ idsTypesSite, typesSiteConfig }) => {
                 this.idsTypesSite = idsTypesSite;
                 this.typesSiteConfig = typesSiteConfig;
                 return this.initSpecificConfig(
                   this.obj.config['specific'],
                   this.obj.config['types_site']
                 );
+              }),
+              concatMap((specificConfig) => {
+                this.specificConfig = specificConfig;
+                this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
+                return EMPTY
               })
             ),
-            this.initSpecificConfig(this.obj.config['specific'])
+            this.initSpecificConfig(this.obj.config['specific']).pipe(
+              concatMap((specificConfig) => {
+                this.specificConfig = specificConfig;
+                this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
+                return EMPTY
+              })
+            )
           )
+        ),
+        map((_)=> {
+          // Initialisation des variables queryParams , bChainInput
+          this.queryParams = this._route.snapshot.queryParams || {};
+          this.bChainInput = this._configService.frontendParams()['bChainInput'];
+          this.meta = {
+            nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+            dataset: this._dataUtilsService.getDataUtil('dataset'),
+            id_role: this.currentUser.id_role,
+            bChainInput: this.bChainInput,
+            parents: this.obj.parents,
+          };
+        }),
+      concatMap((_) =>
+        // Initialisation definition des champs de l'object objForm 
+         {this.initObjFormDefiniton(this.confiGenericSpec, this.meta).pipe(
+          map((objFormDefinition) =>
+          this.objFormsDefinition = objFormDefinition)
+         )
+         return EMPTY
+        }
+      ),
+      switchMap((_) =>
+       // Initialisation definition des champs de l'object objFormDynamic
+        iif(
+          () => this.isSiteObject && this.isEditObject ,
+          this.initObjFormDefiniton(this.typesSiteConfig,this.meta).pipe(
+              map((objFormDefinition) =>{
+              this.objFormsDefinition = objFormDefinition
+              return EMPTY})
+             )
+          ,
+          EMPTY
         )
-      )
-      .subscribe((specificConfig) => {
-        this.specificConfig = specificConfig;
+        ), 
+      concatMap((_) => {
+        // Initialisation de l'ordre d'affichage des champs objForDefinition
+        this.displayProperties = [...(this.obj.configParam('display_properties') || [])];
+        this.sortObjFormDefinition(this.displayProperties, this.objFormsDefinition).pipe(
+            tap(objFormsDefinition => this.objFormsDefinition = objFormsDefinition)
+        )
+        return EMPTY
+      }),
+      switchMap((_) =>
+      // Initialisation definition des champs de l'object objFormDynamic
+       iif(
+         () => this.isSiteObject && this.isEditObject ,
+         this.sortObjFormDefinition(this.displayProperties,this.objFormsDefinition).pipe(
+          tap(objFormsDefinitionDynamic => this.objFormsDefinitionDynamic = objFormsDefinitionDynamic)
+        )
+         ,
+         EMPTY
+       )
+       ),
+       concatMap(() => {
+        // Ajout du champ géométrique à l'object form et du champ patch
+        return this.addFormCtrlToObjForm({ frmCtrl: this._formBuilder.control(0), frmName: 'patch_update' }, this.objForm).pipe(
+          concatMap((objForm) => {
+            // set geometry
+            if (this.obj.config['geometry_type']) {
+              const validatorRequired =
+                this.obj.objectType == 'sites_group'
+                  ? this._formBuilder.control('')
+                  : this._formBuilder.control('', Validators.required);
+              let frmCtrlGeom = {
+                frmCtrl: validatorRequired,
+                frmName: 'geometry',
+              };
+              return this.addFormCtrlToObjForm(frmCtrlGeom, objForm)
+            }
+            return of(objForm);
+          })
+        )}),
+          concatMap((objForm) => {
+             return this.setQueryParams(this.obj)
+          }),
+          concatMap((obj) => {
+            this.obj = obj
+            // On match les valeurs de l'objet en lien avec l'object Form et ensuite on patch l'object form
+            return forkJoin([
+              this.initObjFormValues(this.obj, this.confiGenericSpec,this.idsTypesSite),
+              iif(
+                () => this.isSiteObject,
+                this.initObjFormSpecificValues(this.obj, this.typesSiteConfig),
+                of(null)
+              )
+            ]).pipe(
+              tap(([genericFormValues, specificFormValues]) => {
+                this.objForm.patchValue(genericFormValues);
+                if (specificFormValues !== null) {
+                  this.objFormDynamic.patchValue(specificFormValues)
+                }
+              })
+            );
+          })
+        )
+      .subscribe((objForm) => {
+        console.log(objForm)
+        // this.specificConfig = specificConfig;
         // return this._route.queryParamMap;
         // })
         // .subscribe((queryParams) => {
-        this.queryParams = this._route.snapshot.queryParams || {};
-        this.bChainInput = this._configService.frontendParams()['bChainInput'];
+        // this.queryParams = this._route.snapshot.queryParams || {};
+        // this.bChainInput = this._configService.frontendParams()['bChainInput'];
         // NOTES: ici schemaGeneric = this.obj.config.generic
-        this.schemaGeneric = this.obj.schema();
+        // this.schemaGeneric = this.obj.schema();
 
         // TODO: utilisé cette manière et plus besoin de mettre à jour le schema Generic
-        this.schemaGeneric2 = this.obj.config['generic'];
-        this.obj.objectType == 'site' ? delete this.schemaGeneric['types_site'] : null;
-        this.obj.id != undefined && this.obj.objectType == 'site' ? this.initExtraSchema() : null;
+        // this.confiGenericSpec = this.obj.config['generic'];
+        // this.obj.objectType == 'site' ? delete this.schemaGeneric['types_site'] : null;
+        // this.obj.id != undefined && this.obj.objectType == 'site' ? this.initExtraSchema() : null;
         // init objFormsDefinition
 
         // NOTES: ici schemaGeneric = this.obj.config.generic
-        const schema = this.schemaGeneric2;
+        // const schema = this.confiGenericSpec;
         // meta pour les parametres dynamiques
         // ici pour avoir acces aux nomenclatures
-        this.meta = {
-          nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
-          dataset: this._dataUtilsService.getDataUtil('dataset'),
-          id_role: this.currentUser.id_role,
-          bChainInput: this.bChainInput,
-          parents: this.obj.parents,
-        };
-        this.objFormsDefinition = this._dynformService
-          .formDefinitionsdictToArray(schema, this.meta)
-          .filter((formDef) => formDef.type_widget)
-          .sort((a, b) => {
-            if (a.attribut_name === 'types_site') return 1;
-            if (b.attribut_name === 'types_site') return -1;
-            if (a.attribut_name === 'medias') return 1;
-            if (b.attribut_name === 'medias') return -1;
-            return 0;
-          });
+        // this.meta = {
+        //   nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+        //   dataset: this._dataUtilsService.getDataUtil('dataset'),
+        //   id_role: this.currentUser.id_role,
+        //   bChainInput: this.bChainInput,
+        //   parents: this.obj.parents,
+        // };
+        // this.objFormsDefinition = this._dynformService
+        //   .formDefinitionsdictToArray(schema, this.meta)
+        //   .filter((formDef) => formDef.type_widget)
+        //   .sort((a, b) => {
+        //     if (a.attribut_name === 'types_site') return 1;
+        //     if (b.attribut_name === 'types_site') return -1;
+        //     if (a.attribut_name === 'medias') return 1;
+        //     if (b.attribut_name === 'medias') return -1;
+        //     return 0;
+        //   });
 
         // display_form pour customiser l'ordre dans le formulaire
         // les éléments de display form sont placé en haut dans l'ordre du tableau
         // tous les éléments non cachés restent affichés
-        let displayProperties = [...(this.obj.configParam('display_properties') || [])];
-        if (displayProperties && displayProperties.length) {
-          displayProperties.reverse();
-          this.objFormsDefinition.sort((a, b) => {
-            let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
-            let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
-            return indexB - indexA;
-          });
-        }
+        // let displayProperties = [...(this.obj.configParam('display_properties') || [])];
+        // if (displayProperties && displayProperties.length) {
+        //   displayProperties.reverse();
+        //   this.objFormsDefinition.sort((a, b) => {
+        //     let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
+        //     let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
+        //     return indexB - indexA;
+        //   });
+        // }
 
         // champs patch pour simuler un changement de valeur et déclencher le recalcul des propriété
         // par exemple quand bChainInput change
-        this.objForm.addControl('patch_update', this._formBuilder.control(0));
+        // this.objForm.addControl('patch_update', this._formBuilder.control(0));
 
-        // set geometry
-        if (this.obj.config['geometry_type']) {
-          const validatorRequired =
-            this.obj.objectType == 'sites_group'
-              ? this._formBuilder.control('')
-              : this._formBuilder.control('', Validators.required);
-          let frmCtrlGeom = {
-            frmCtrl: validatorRequired,
-            frmName: 'geometry',
-          };
-          this.addGeomFormCtrl(frmCtrlGeom);
-          // this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
-        }
+        // // set geometry
+        // if (this.obj.config['geometry_type']) {
+        //   const validatorRequired =
+        //     this.obj.objectType == 'sites_group'
+        //       ? this._formBuilder.control('')
+        //       : this._formBuilder.control('', Validators.required);
+        //   let frmCtrlGeom = {
+        //     frmCtrl: validatorRequired,
+        //     frmName: 'geometry',
+        //   };
+        //   this.addGeomFormCtrl(frmCtrlGeom);
+        //   // this.objForm.addControl('geometry', this._formBuilder.control('', Validators.required));
+        // }
 
-        this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
-          ? this.obj.properties['is_geom_from_child']
-          : false;
-        this.geomCalculated ? (this.obj.geometry = null) : null;
-        this.bEdit
-          ? this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated)
-          : null;
+        // this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
+        //   ? this.obj.properties['is_geom_from_child']
+        //   : false;
+        // this.geomCalculated ? (this.obj.geometry = null) : null;
+        // this.bEdit
+        //   ? this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated)
+        //   : null;
         // pour donner la valeur de idParent
-        this.obj.objectType == 'site' ? this.initObjFormDef(this.typesSiteConfig) : null;
-        this.obj.objectType == 'site' ? this.firstInitForm() : this.initForm();
+        // this.obj.objectType == 'site' ? this.initObjFormDef(this.typesSiteConfig) : null;
+        // this.obj.objectType == 'site' ? this.firstInitForm() : this.initForm();
       });
   }
 
@@ -205,16 +322,17 @@ export class MonitoringFormComponent implements OnInit {
     );
   }
 
-  setQueryParams() {
+  setQueryParams(obj:MonitoringObject) {
     // par le biais des parametre query de route on donne l'id du ou des parents
     // permet d'avoir un 'tree' ou un objet est sur plusieurs branches
     // on attend des ids d'où test avec parseInt
     for (const key of Object.keys(this.queryParams)) {
       const strToInt = parseInt(this.queryParams[key]);
       if (!Number.isNaN(strToInt)) {
-        this.obj.properties[key] = strToInt;
+        obj.properties[key] = strToInt;
       }
     }
+    return of(obj)
   }
 
   /** initialise le formulaire quand le formulaire est prêt ou l'object est prêt */
@@ -223,13 +341,24 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
 
-    this.setQueryParams();
+    // this.setQueryParams();
 
     // pour donner la valeur de l'objet au formulaire
-    this._formService.formValues(this.obj, this.schemaGeneric2).subscribe((formValue) => {
-      this.objForm.patchValue(formValue);
-      this.setDefaultFormValue();
-    });
+    // this._formService.formValues(this.obj, this.confiGenericSpec).subscribe((formValue) => {
+    //   this.objForm.patchValue(formValue);
+    //   this.setDefaultFormValue();
+    // });
+   this._formService.formValues(this.obj, this.confiGenericSpec)
+      .pipe(
+        map((genericFormValues) => {
+          genericFormValues['types_site'] = this.idsTypesSite;
+          return genericFormValues;
+        })
+      )
+      .subscribe((formValue) => {
+        this.objForm.patchValue(formValue);
+        this.setDefaultFormValue();
+      });
   }
 
   firstInitForm() {
@@ -240,10 +369,10 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
 
-    this.setQueryParams();
+    // this.setQueryParams();
     // pour donner la valeur de l'objet au formulaire
     // this._formService
-    //   .formValues(this.obj, this.schemaGeneric2)
+    //   .formValues(this.obj, this.confiGenericSpec)
     //   .pipe(
     //     concatMap((formValue) => {
     //       return { ...formValue, ...this._formService.formValues(this.obj, this.specificConfig)};
@@ -260,14 +389,11 @@ export class MonitoringFormComponent implements OnInit {
     //     // this.objFormDynamic.enable();
     //   });
 
-    forkJoin({
-      genericFormValues: this._formService.formValues(this.obj, this.schemaGeneric2),
-      specificFormValues: this._formService.formValues(this.obj, this.specificConfig),
-    })
+      this._formService.formValues(this.obj, this.confiGenericSpec)
       .pipe(
-        map(({ genericFormValues, specificFormValues }) => {
+        map((genericFormValues) => {
           genericFormValues['types_site'] = this.idsTypesSite;
-          return { ...genericFormValues, ...specificFormValues };
+          return genericFormValues;
         }),
         concatMap((formValue) => {
           this.objForm.patchValue(formValue);
@@ -286,12 +412,12 @@ export class MonitoringFormComponent implements OnInit {
     // pour donner la valeur de l'objet au formulaire
     this._formService
       .formValues(this.obj, this.typesSiteConfig)
-      .pipe(
-        map((formValue) => {
-          formValue.types_site = this.idsTypesSite;
-          return formValue;
-        })
-      )
+      // .pipe(
+      //   map((formValue) => {
+      //     formValue.types_site = this.idsTypesSite;
+      //     return formValue;
+      //   })
+      // )
       .subscribe((formValue) => {
         // this.objFormDynamic.disable();
         this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
@@ -770,6 +896,30 @@ export class MonitoringFormComponent implements OnInit {
       this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
   }
+
+  addFormCtrlToObjForm(frmCtrl: { frmCtrl: FormControl; frmName: string }, objForm) {
+      if (frmCtrl.frmName in objForm.controls) {
+      } else {
+        objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
+      }
+      return of(objForm)
+    }
+
+
+  initObjFormDefiniton(schema:JsonData,meta:JsonData){
+    const objectFormDefiniton = this._dynformService
+          .formDefinitionsdictToArray(schema, this.meta)
+          .filter((formDef) => formDef.type_widget)
+          .sort((a, b) => {
+            if (a.attribut_name === 'types_site') return 1;
+            if (b.attribut_name === 'types_site') return -1;
+            if (a.attribut_name === 'medias') return 1;
+            if (b.attribut_name === 'medias') return -1;
+            return 0;
+          });
+     return of(objectFormDefiniton)
+  }
+
   initTypeSiteConfig(configSpecific, properties, configTypesSite) {
     const idsTypesSite = [];
     const typesSiteConfig = {};
@@ -795,25 +945,41 @@ export class MonitoringFormComponent implements OnInit {
     return of(specificConfig);
   }
 
-  // initTypeSiteConfig(configSpecific, properties, configTypesSite) {
-  //   for (const keyTypeSite in configTypesSite){
-  //     let typeSiteName = configTypesSite[keyTypeSite].name
-  //     if (properties["types_site"].includes(typeSiteName)){
-  //       this.idsTypesSite.push(parseInt(keyTypeSite))
-  //       for (const prop of configTypesSite[keyTypeSite].display_properties){
-  //         this.typesSiteConfig[prop] = configSpecific[prop]
-  //       }
-  //     }
-  //   };
-  // }
+  sortObjFormDefinition(displayProperties:string[], objFormDef: JsonData) {
+    // let displayProperties = [...(this.obj.configParam('display_properties') || [])];
+    if (displayProperties && displayProperties.length) {
+      displayProperties.reverse();
+      objFormDef.sort((a, b) => {
+        let indexA = displayProperties.findIndex((e) => e == a.attribut_name);
+        let indexB = displayProperties.findIndex((e) => e == b.attribut_name);
+        return indexB - indexA;
+      });
+    }
+    return of(objFormDef)
 
-  // initSpecificConfig(configSpecific, configTypesSite={}){
-  //   if (configTypesSite){
-  //    this.specificConfig =  this.getRemainingProperties(this.typesSiteConfig,configSpecific )
-  //   } else {
-  //     this.specificConfig = configSpecific
-  //   }
-  // }
+  }
+
+  initObjFormValues(obj, config, idsTypesSite){
+    return this._formService.formValues(obj, config)
+      .pipe(
+        concatMap((genericFormValues) => {
+          if (idsTypesSite.length == 0) {
+            genericFormValues['types_site'] = idsTypesSite;
+          }
+          return of(genericFormValues);
+        })
+      )
+      // .subscribe((formValue) => {
+      //   objForm.patchValue(formValue);
+      //   // A mettre après
+      //   this.setDefaultFormValue();
+      // });
+  }
+
+
+  initObjFormSpecificValues(obj, config){
+    return this._formService.formValues(obj, config)
+  }
 
   updateTypeSiteConfig() {}
 
@@ -831,6 +997,19 @@ export class MonitoringFormComponent implements OnInit {
     }
 
     return remainingObj;
+  }
+
+  mergeObjects(obj1: JsonData, obj2: JsonData): JsonData {
+    const mergedObject: JsonData = { ...obj1 }; // Start with a copy of obj1
+    
+    // Loop through obj2 and overwrite or add keys to mergedObject
+    for (const key in obj2) {
+      if (obj2.hasOwnProperty(key)) {
+        mergedObject[key] = obj2[key];
+      }
+    }
+    
+    return mergedObject;
   }
 
   ngOnDestroy() {
