@@ -1,6 +1,7 @@
 import os
 
 from pathlib import Path
+from typing import Dict, Any, List
 
 from flask import current_app
 from sqlalchemy import and_, text, delete, select
@@ -18,6 +19,7 @@ from geonature.core.gn_permissions.models import (
 from geonature.core.gn_commons.models import TModules
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+from geonature.core.gn_monitoring.models import BibTypeSite
 
 from gn_module_monitoring.config.utils import (
     json_from_file,
@@ -29,6 +31,8 @@ from gn_module_monitoring.config.repositories import get_config
 
 from gn_module_monitoring.modules.repositories import get_module, get_source_by_code, get_modules
 
+
+JsonDataType = Dict[str, List[Dict[str, Any]]]
 
 """
 utils.py
@@ -342,6 +346,199 @@ def add_nomenclature(module_code):
                 nomenclature.cd_nomenclature, nomenclature.label_default
             )
         )
+
+
+def find_json_files(directory: str) -> List[Path]:
+    """
+    Fonction pour chercher les fichiers json
+    """
+    json_files = []
+    dir_path = Path(directory)
+
+    for item in dir_path.iterdir():
+        if item.is_file() and item.suffix.lower() == ".json":
+            json_files.append(item)
+
+    return json_files
+
+
+def process_json_file_types_sites(json_file: Path) -> None:
+    """
+    Fonction pour charger les fichier types de site et les traiter
+    """
+    type_site_file = json_from_file(json_file, None)
+    if not type_site_file:
+        print("Il y a un problème avec le fichier {}".format(json_file))
+        return
+
+    for data in type_site_file.get("types", []):
+        nomenclature_type = None
+        try:
+            nomenclature_type = DB.session.execute(
+                select(BibNomenclaturesTypes).where(
+                    data.get("mnemonique") == BibNomenclaturesTypes.mnemonique
+                )
+            ).scalar_one()
+
+        except Exception:
+            pass
+
+        if nomenclature_type:
+            print("no insert type", nomenclature_type)
+            continue
+
+        data["label_fr"] = data.get("label_fr") or data["label_default"]
+        data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
+        data["source"] = data.get("source") or "monitoring"
+        data["statut"] = data.get("statut") or "Validation en cours"
+
+        nomenclature_type = BibNomenclaturesTypes(**data)
+        DB.session.add(nomenclature_type)
+        DB.session.commit()
+
+    for data in type_site_file["nomenclatures"]:
+        nomenclature = None
+        try:
+            nomenclature = DB.session.execute(
+                select(TNomenclatures)
+                .join(
+                    BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type
+                )
+                .where(
+                    and_(
+                        data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
+                        data.get("type") == BibNomenclaturesTypes.mnemonique,
+                    )
+                )
+            ).scalar_one()
+        except NoResultFound:
+            # Handle case where no result is found
+            nomenclature = None  # or any other default value you want to return
+        except Exception as e:
+            pass
+
+        if nomenclature:
+            # TODO make update
+            print(
+                "nomenclature {} - {} already exist".format(
+                    nomenclature.cd_nomenclature, nomenclature.label_default
+                )
+            )
+            continue
+
+        id_type = None
+        try:
+            id_type = DB.session.execute(
+                select(BibNomenclaturesTypes.id_type).where(
+                    BibNomenclaturesTypes.mnemonique == data["type"]
+                )
+            ).scalar_one()
+        except Exception as e:
+            pass
+
+        if not id_type:
+            print(
+                'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
+                    data["type"], data
+                )
+            )
+            continue
+
+        data["label_fr"] = data.get("label_fr") or data["label_default"]
+        data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
+        data["source"] = data.get("source") or "monitoring"
+        data["statut"] = data.get("statut") or "Validation en cours"
+        data["active"] = True
+        data["id_type"] = id_type
+        data.pop("type")
+
+        nomenclature = TNomenclatures(**data)
+        DB.session.add(nomenclature)
+        DB.session.commit()
+        print(
+            "nomenclature {} - {} added".format(
+                nomenclature.cd_nomenclature, nomenclature.label_default
+            )
+        )
+    for data in type_site_file["configs"]:
+        type_site = None
+        id_type = None
+        id_nomenclature = None
+        try:
+            id_type, id_nomenclature = DB.session.execute(
+                select(BibNomenclaturesTypes.id_type, TNomenclatures.id_nomenclature)
+                .join(TNomenclatures, TNomenclatures.id_type == BibNomenclaturesTypes.id_type)
+                .where(
+                    BibNomenclaturesTypes.mnemonique == data["type"],
+                    data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
+                )
+            ).first()
+        except Exception as e:
+            pass
+
+        if not id_type:
+            print(
+                'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
+                    data["type"], data
+                )
+            )
+            continue
+
+        try:
+            type_site = DB.session.execute(
+                select(BibTypeSite)
+                .join(
+                    TNomenclatures,
+                    TNomenclatures.id_nomenclature == BibTypeSite.id_nomenclature_type_site,
+                )
+                .join(
+                    BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type
+                )
+                .where(
+                    and_(
+                        data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
+                        data.get("type") == BibNomenclaturesTypes.mnemonique,
+                    )
+                )
+            ).scalar_one()
+
+        except Exception as e:
+            pass
+
+        if type_site:
+            # TODO make update
+            print(
+                "type_site {} - {} already exist".format(
+                    type_site.id_nomenclature, nomenclature.label_default
+                )
+            )
+            continue
+
+        cd_nomenclature = data.get("cd_nomenclature")
+        data["id_nomenclature_type_site"] = id_nomenclature
+        data.pop("type")
+        data.pop("cd_nomenclature")
+
+        type_site = BibTypeSite(**data)
+        DB.session.add(type_site)
+        DB.session.commit()
+        print("type site {}  added".format(cd_nomenclature))
+
+
+def add_types_site(module_code):
+    types_site_dir = Path(monitoring_module_config_path(module_code))
+    types_site_dir = types_site_dir / "types_sites"
+    if not types_site_dir.is_dir():
+        print("Il n'y a pas de dossier 'types_sites' à la racine de votre protocole")
+        return
+
+    json_files = find_json_files(types_site_dir)
+
+    if not json_files:
+        print("No JSON files found in the directory")
+    else:
+        for json_file in json_files:
+            process_json_file_types_sites(json_file)
 
 
 def installed_modules(session=None):
