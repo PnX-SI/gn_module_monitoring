@@ -102,13 +102,15 @@ export class MonitoringFormComponent implements OnInit {
       .pipe(
         map(()=>{
           this.isSiteObject = this.obj.objectType === 'site';
-          this.isEditObject = this.obj.id !== undefined;
+          this.isEditObject = this.obj.id !== undefined && this.obj.id !== null;
+          console.log("1- CHECK TYPE OBJECT AND EDIT or NOT",  `Object type is ${this.obj.objectType} and is Edit Object ? ${this.isEditObject}`)
+          return of(null)
         }
         ),
-        switchMap(() =>
+        switchMap((_) =>
         // Initialisation des config 
           iif(
-            () => this.isSiteObject && this.isEditObject ,
+            () => this.isSiteObject,
             this.initTypeSiteConfig(
               this.obj.config['specific'],
               this.obj['properties'],
@@ -125,20 +127,21 @@ export class MonitoringFormComponent implements OnInit {
               concatMap((specificConfig) => {
                 this.specificConfig = specificConfig;
                 this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
-                return EMPTY
+                return of(null)
               })
             ),
             this.initSpecificConfig(this.obj.config['specific']).pipe(
               concatMap((specificConfig) => {
                 this.specificConfig = specificConfig;
                 this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
-                return EMPTY
+                return of(null)
               })
             )
           )
         ),
         map((_)=> {
           // Initialisation des variables queryParams , bChainInput
+          console.log("Initialisation des variables queryParams , bChainInput")
           this.queryParams = this._route.snapshot.queryParams || {};
           this.bChainInput = this._configService.frontendParams()['bChainInput'];
           this.meta = {
@@ -151,47 +154,54 @@ export class MonitoringFormComponent implements OnInit {
         }),
       concatMap((_) =>
         // Initialisation definition des champs de l'object objForm 
-         {this.initObjFormDefiniton(this.confiGenericSpec, this.meta).pipe(
-          map((objFormDefinition) =>
-          this.objFormsDefinition = objFormDefinition)
-         )
-         return EMPTY
+         {  console.log("Initialisation definition des champs de l'object objForm ")
+         return this.initObjFormDefiniton(this.confiGenericSpec, this.meta).pipe(
+          map((objFormDefinition) => {
+            this.objFormsDefinition = objFormDefinition;
+            return null; // Return a value to continue the chain
+          })
+        );
         }
       ),
       switchMap((_) =>
        // Initialisation definition des champs de l'object objFormDynamic
         iif(
-          () => this.isSiteObject && this.isEditObject ,
+          () => this.isSiteObject ,
           this.initObjFormDefiniton(this.typesSiteConfig,this.meta).pipe(
               map((objFormDefinition) =>{
-              this.objFormsDefinition = objFormDefinition
-              return EMPTY})
+              console.log('Initialisation definition des champs de l object objFormDynamic', objFormDefinition);
+              this.objFormsDefinitionDynamic = objFormDefinition
+              return null})
              )
           ,
-          EMPTY
+          of(null)
         )
         ), 
       concatMap((_) => {
         // Initialisation de l'ordre d'affichage des champs objForDefinition
+        console.log("Initialisation de l'ordre d'affichage des champs objForDefinition");
         this.displayProperties = [...(this.obj.configParam('display_properties') || [])];
         this.sortObjFormDefinition(this.displayProperties, this.objFormsDefinition).pipe(
             tap(objFormsDefinition => this.objFormsDefinition = objFormsDefinition)
         )
-        return EMPTY
+        console.log("this.objFormsDefinition :", this.objFormsDefinition);
+        return of(null)
       }),
       switchMap((_) =>
-      // Initialisation definition des champs de l'object objFormDynamic
+      // Initialisation de l'ordre d'affichage des champs de l'object objFormDynamic
        iif(
-         () => this.isSiteObject && this.isEditObject ,
+         () => this.isSiteObject ,
          this.sortObjFormDefinition(this.displayProperties,this.objFormsDefinition).pipe(
-          tap(objFormsDefinitionDynamic => this.objFormsDefinitionDynamic = objFormsDefinitionDynamic)
+          tap(objFormsDefinitionDynamic => {console.log("Initialisation de l'ordre d'affichage des champs objFormsDefinitionDynamic"),
+          this.objFormsDefinitionDynamic = objFormsDefinitionDynamic})
         )
          ,
-         EMPTY
+         of(null)
        )
        ),
        concatMap(() => {
         // Ajout du champ géométrique à l'object form et du champ patch
+        console.log("Ajout du champ géométrique à l'object form et du champ patch")
         return this.addFormCtrlToObjForm({ frmCtrl: this._formBuilder.control(0), frmName: 'patch_update' }, this.objForm).pipe(
           concatMap((objForm) => {
             // set geometry
@@ -210,11 +220,13 @@ export class MonitoringFormComponent implements OnInit {
           })
         )}),
           concatMap((objForm) => {
+            console.log("setQueryParams")
              return this.setQueryParams(this.obj)
           }),
           concatMap((obj) => {
             this.obj = obj
             // On match les valeurs de l'objet en lien avec l'object Form et ensuite on patch l'object form
+            console.log(" On match les valeurs de l'objet en lien avec l'object Form et ensuite on patch l'object form")
             return forkJoin([
               this.initObjFormValues(this.obj, this.confiGenericSpec,this.idsTypesSite),
               iif(
@@ -233,7 +245,10 @@ export class MonitoringFormComponent implements OnInit {
           })
         )
       .subscribe((objForm) => {
+        console.log(" ObjForm Initialisé")
         console.log(objForm)
+        console.log(" ObjFormDynamic Initialisé")
+        console.log(this.objFormDynamic)
         // this.specificConfig = specificConfig;
         // return this._route.queryParamMap;
         // })
