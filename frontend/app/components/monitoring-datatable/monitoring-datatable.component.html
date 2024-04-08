@@ -59,7 +59,7 @@
           class="nav-link link cell-link"
           (click)="canCreateChild ? child0.navigateToAddChildren(null, row.id, obj.siteId) : null"
           [matTooltip]="
-            canCreateChild ? 'Ajouter' + child0.child0().labelArtUndef(true) : toolTipNotAllowed
+            canCreateChild ? 'Ajouter ' + child0.child0().labelArtUndef(true) : toolTipNotAllowed
           "
         >
           <i
@@ -74,7 +74,7 @@
           class="nav-link link cell-link"
           (click)="row.cruved['U'] ? child0.navigateToDetail(row.id, true) : null"
           [matTooltip]="
-            row.cruved['U'] ? 'Editer' + child0.template.label_art_def : toolTipNotAllowed
+            row.cruved['U'] ? 'Editer ' + child0.template.label_art_def : toolTipNotAllowed
           "
         >
           <i
@@ -91,7 +91,7 @@
             class="nav-link link cell-link"
             (click)="row.cruved['D'] ? alertMessage(row) : null"
             [matTooltip]="
-              row.cruved['D'] ? 'Supprimer' + child0.template.label_art_def : toolTipNotAllowed
+              row.cruved['D'] ? 'Supprimer ' + child0.template.label_art_def : toolTipNotAllowed
             "
           >
             <i
