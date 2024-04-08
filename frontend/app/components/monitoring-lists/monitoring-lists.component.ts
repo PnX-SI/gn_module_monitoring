@@ -20,12 +20,15 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() currentUser;
   @Input() filters;
+  @Input() forceReload;
   @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
   @Input() objectListType: string;
   @Output() objectListTypeChange: EventEmitter<string> = new EventEmitter<string>();
 
   @Input() selectedObject;
   @Output() selectedObjectChange: EventEmitter<string> = new EventEmitter<string>();
+
+  @Output() onDeleteRow: EventEmitter<Object> = new EventEmitter<Object>();
 
   activetab: string;
   nbVisibleRows: Record<string, number> = {};
@@ -104,6 +107,10 @@ export class MonitoringListComponent implements OnInit {
     this.nbVisibleRows[type] = nb_row;
   }
 
+  onDeleteRowChange(event) {
+    this.onDeleteRow.emit(event);
+  }
+
   changeActiveTab(typeObject, tab) {
     this.activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
@@ -133,6 +140,9 @@ export class MonitoringListComponent implements OnInit {
       const prev = chng.previousValue;
       switch (propName) {
         case 'obj':
+          this.initDataTable();
+          break;
+        case 'forceReload':
           this.initDataTable();
           break;
       }

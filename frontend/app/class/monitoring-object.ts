@@ -84,9 +84,9 @@ export class MonitoringObject extends MonitoringObjectBase {
           .getObject(this.moduleCode, this.objectType, this.id, depth);
       }),
       mergeMap((postData) => {
-        if (!bFromCache) {
-          this._objService.setCache(this, postData);
-        }
+        // if (!bFromCache) {
+        //   this._objService.setCache(this, postData);
+        // }
         return this.init(postData);
       })
     );

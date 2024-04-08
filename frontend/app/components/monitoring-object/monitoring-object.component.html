@@ -32,9 +32,11 @@
       <pnx-monitoring-form [obj]="obj" (objChanged)="onObjChanged($event)" *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
-      <pnx-monitoring-lists [obj]="obj" [(bEdit)]="bEdit" [(filters)]="filters"
+      <pnx-monitoring-lists [(obj)]="obj" [(bEdit)]="bEdit" [(filters)]="filters"
         [(objectListType)]="objectListType" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
-        [(selectedObject)] = "selectedObject"
+        [(selectedObject)] = "selectedObject" 
+        [forceReload] = "forceReload"
+        (onDeleteRow) = "onDeleteRowChange($event)"
         [currentUser]="currentUser"></pnx-monitoring-lists>
     </div>
   </div>
