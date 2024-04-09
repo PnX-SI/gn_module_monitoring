@@ -20,8 +20,11 @@ export class MonitoringListComponent implements OnInit {
 
   @Input() currentUser;
   @Input() filters;
-  @Input() forceReload;
   @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
+
+  @Input() forceReload;
+  @Output() forceReloadChange = new EventEmitter<boolean>();
+
   @Input() objectListType: string;
   @Output() objectListTypeChange: EventEmitter<string> = new EventEmitter<string>();
 
@@ -143,7 +146,11 @@ export class MonitoringListComponent implements OnInit {
           this.initDataTable();
           break;
         case 'forceReload':
-          this.initDataTable();
+          if (cur == true) {
+            this.initDataTable();
+            this.forceReload = false;
+            this.forceReloadChange.emit(false);
+          }
           break;
       }
     }

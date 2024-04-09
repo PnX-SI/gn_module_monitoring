@@ -35,7 +35,7 @@
       <pnx-monitoring-lists [(obj)]="obj" [(bEdit)]="bEdit" [(filters)]="filters"
         [(objectListType)]="objectListType" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
         [(selectedObject)] = "selectedObject" 
-        [forceReload] = "forceReload"
+        [(forceReload)] = "forceReload"
         (onDeleteRow) = "onDeleteRowChange($event)"
         [currentUser]="currentUser"></pnx-monitoring-lists>
     </div>
