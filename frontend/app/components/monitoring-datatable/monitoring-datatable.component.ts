@@ -27,7 +27,6 @@ export class MonitoringDatatableComponent implements OnInit {
   @Input() columns;
 
   @Input() sorts;
-
   @Input() obj;
   @Input() child0;
   @Input() frontendModuleMonitoringUrl;
@@ -36,6 +35,7 @@ export class MonitoringDatatableComponent implements OnInit {
 
   @Input() filters: Object;
   @Output() onFilter = new EventEmitter<Object>();
+  @Output() onDeleteRow = new EventEmitter<Object>();
 
   @Output() bEditChanged = new EventEmitter<boolean>();
 
@@ -243,12 +243,18 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   onDelete(row) {
-    this._commonService.regularToaster('info', this.msgToaster('Suppression'));
-    this._objectService.changeDisplayingDeleteModal(this.bDeleteModal);
-    this._objectService.changeSelectRow({ rowSelected: row, objectType: this.child0.objectType });
-    this._objectService.currentDeleteModal.subscribe(
-      (deletedModal) => (this.bDeleteModal = deletedModal)
-    );
+    this._monitoring
+      .dataMonitoringObjectService()
+      .deleteObject(this.obj.moduleCode, this.child0.objectType, row.id)
+      .subscribe(() => {
+        this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+
+        this.onDeleteRow.emit({
+          rowSelected: row,
+          objectType: this.child0.objectType,
+        });
+        this.bDeleteModal = false;
+      });
   }
 
   alertMessage(row) {

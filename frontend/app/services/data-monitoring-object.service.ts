@@ -109,8 +109,9 @@ export class DataMonitoringObjectService {
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  deleteObject(moduleCode, objectType, id) {
+  deleteObject(moduleCode, objectType, id): Observable<any> {
     const url = this.urlMonitoring('object', moduleCode, objectType, id);
+
     return this._cacheService.request('delete', url);
   }
 

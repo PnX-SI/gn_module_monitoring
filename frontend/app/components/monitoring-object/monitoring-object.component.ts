@@ -42,6 +42,7 @@ export class MonitoringObjectComponent implements OnInit {
   pre_filters: Object = {};
   selectedObject: Object = undefined;
   objectListType: string;
+  forceReload: boolean = false;
 
   backendUrl: string;
   frontendModuleMonitoringUrl: string;
@@ -125,7 +126,6 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-        this.evenListnerTable();
       });
   }
 
@@ -278,37 +278,10 @@ export class MonitoringObjectComponent implements OnInit {
     this.getModuleSet().subscribe();
   }
 
-  onDeleteFromTable(event) {
-    return this._objService
-      .dataMonitoringObjectService()
-      .deleteObject(this.obj.moduleCode, event.objectType, event.rowSelected.id);
-  }
-
-  evenListnerTable() {
-    const $displayModal = this._evtObjService.currentDeleteModal;
-    const $rowSelected = this._evtObjService.currentRowSelected;
-    $displayModal
-      .pipe(
-        distinctUntilChanged((prev, curr) => prev === curr),
-        tap((displayModal) => {
-          this.bDeleteModal = displayModal;
-        }),
-        concatMap(() => {
-          return $rowSelected;
-        }),
-        concatMap((rowSelected) => {
-          return this.onDeleteFromTable(rowSelected).pipe(
-            distinctUntilChanged((prev, curr) => prev.rowSelected === curr.rowSelected)
-          );
-        }),
-        catchError((err) => {
-          console.log(err);
-          this._evtObjService.changeDisplayingDeleteModal(false);
-          return of(null);
-        })
-      )
-      .subscribe((deletedObj) => {
-        this._evtObjService.changeDisplayingDeleteModal(false);
-      });
+  onDeleteRowChange(event) {
+    this.getDataObject().subscribe((obj) => {
+      this.forceReload = true;
+      this.onObjChanged(obj);
+    });
   }
 }
