@@ -507,19 +507,19 @@ export class MonitoringFormComponent implements OnInit {
     isAddChildrend
       ? (this.bSaveAndAddChildrenSpinner = this.bAddChildren = true)
       : (this.bSaveSpinner = true);
-    if (this.obj.objectType == 'site') {
-      this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
-    }
+    // if (this.obj.objectType == 'site') {
+    //   this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
+    // }
     let objFormValueGroup = {};
     this.obj.objectType == 'site'
       ? (objFormValueGroup = this.flattenFormGroup(this.objForm))
       : (objFormValueGroup = this.objForm.value);
-    this.obj.objectType == 'site'
-      ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
-      : null;
+    // this.obj.objectType == 'site'
+    //   ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
+    //   : null;
     const action = this.obj.id
-      ? this.obj.patch(objFormValueGroup, this.dataComplement)
-      : this.obj.post(objFormValueGroup, this.dataComplement);
+      ? this.obj.patch(objFormValueGroup)
+      : this.obj.post(objFormValueGroup);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
