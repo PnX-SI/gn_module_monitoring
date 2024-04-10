@@ -92,10 +92,10 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  post(formValue, dataComplement = {}): Observable<any> {
+  post(formValue,): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
-      .postObject(this.moduleCode, this.objectType, this.postData(formValue, dataComplement))
+      .postObject(this.moduleCode, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
           this.id = postData['id'];
@@ -105,14 +105,14 @@ export class MonitoringObject extends MonitoringObjectBase {
       );
   }
 
-  patch(formValue, dataComplement = {}) {
+  patch(formValue) {
     return this._objService
       .dataMonitoringObjectService()
       .patchObject(
         this.moduleCode,
         this.objectType,
         this.id,
-        this.postData(formValue, dataComplement)
+        this.postData(formValue)
       )
       .pipe(
         mergeMap((postData) => {
@@ -197,7 +197,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   /** postData: obj -> from */
 
-  postData(formValue, dataComplement) {
+  postData(formValue) {
     const propertiesData = {};
     const schema = this.schema();
     for (const attribut_name of Object.keys(schema)) {
@@ -209,18 +209,22 @@ export class MonitoringObject extends MonitoringObjectBase {
     }
 
     let postData = {};
-    if (Object.keys(dataComplement).length == 0) {
-      postData = {
-        properties: propertiesData,
-        // id_parent: this.parentId
-      };
-    } else {
-      postData = {
-        properties: propertiesData,
-        dataComplement: dataComplement,
-        // id_parent: this.parentId
-      };
-    }
+    postData = {
+      properties: propertiesData,
+      // id_parent: this.parentId
+    };
+    // if (Object.keys(dataComplement).length == 0) {
+    //   postData = {
+    //     properties: propertiesData,
+    //     // id_parent: this.parentId
+    //   };
+    // } else {
+    //   postData = {
+    //     properties: propertiesData,
+    //     dataComplement: dataComplement,
+    //     // id_parent: this.parentId
+    //   };
+    // }
 
     if (this.config['geometry_type']) {
       postData['geometry'] = formValue['geometry'];
