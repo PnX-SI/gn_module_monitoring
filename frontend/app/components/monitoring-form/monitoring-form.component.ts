@@ -1,5 +1,12 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, FormArray, AbstractControl } from '@angular/forms';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormControl,
+  FormArray,
+  AbstractControl,
+} from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
 // import { Router } from "@angular/router";
 import { ConfigService } from '../../services/config.service';
@@ -51,7 +58,7 @@ export class MonitoringFormComponent implements OnInit {
 
   objFormsDefinition;
 
-  meta:JsonData = {};
+  meta: JsonData = {};
 
   // objFormDynamic: FormGroup = this._formBuilder.group({});
   // objFormsDefinitionDynamic;
@@ -109,15 +116,17 @@ export class MonitoringFormComponent implements OnInit {
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
-        map(()=>{
+        map(() => {
           this.isSiteObject = this.obj.objectType === 'site';
           this.isEditObject = this.obj.id !== undefined && this.obj.id !== null;
-          console.log("1- CHECK TYPE OBJECT AND EDIT or NOT",  `Object type is ${this.obj.objectType} and is Edit Object ? ${this.isEditObject}`)
-          return of(null)
-        }
-        ),
+          console.log(
+            '1- CHECK TYPE OBJECT AND EDIT or NOT',
+            `Object type is ${this.obj.objectType} and is Edit Object ? ${this.isEditObject}`
+          );
+          return of(null);
+        }),
         switchMap((_) =>
-        // Initialisation des config 
+          // Initialisation des config
           iif(
             () => this.isSiteObject,
             // CONDITION avec types de site
@@ -140,20 +149,26 @@ export class MonitoringFormComponent implements OnInit {
                   this.addDynamicFormGroup(typeSite);
                 }
 
-                return of(specificConfig)
+                return of(specificConfig);
               }),
               concatMap((specificConfig) => {
                 this.specificConfig = specificConfig;
-                this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
-                return of(null)
+                this.confiGenericSpec = this.mergeObjects(
+                  this.specificConfig,
+                  this.obj.config['generic']
+                );
+                return of(null);
               })
             ),
             // CONDITION sans types de site
             this.initSpecificConfig(this.obj.config['specific']).pipe(
               concatMap((specificConfig) => {
                 this.specificConfig = specificConfig;
-                this.confiGenericSpec = this.mergeObjects(this.specificConfig, this.obj.config['generic'])
-                return of(null)
+                this.confiGenericSpec = this.mergeObjects(
+                  this.specificConfig,
+                  this.obj.config['generic']
+                );
+                return of(null);
               })
             )
           )
@@ -329,7 +344,7 @@ export class MonitoringFormComponent implements OnInit {
     );
   }
 
-  setQueryParams(obj:MonitoringObject) {
+  setQueryParams(obj: MonitoringObject) {
     // par le biais des parametre query de route on donne l'id du ou des parents
     // permet d'avoir un 'tree' ou un objet est sur plusieurs branches
     // on attend des ids d'où test avec parseInt
@@ -339,7 +354,7 @@ export class MonitoringFormComponent implements OnInit {
         obj.properties[key] = strToInt;
       }
     }
-    return of(obj)
+    return of(obj);
   }
 
   /** initialise le formulaire quand le formulaire est prêt ou l'object est prêt */
@@ -361,7 +376,6 @@ export class MonitoringFormComponent implements OnInit {
       });
   }
 
-
   initFormDynamic(typeSite: string) {
     if (!(this.objFormsDefinition[typeSite] && this.obj.bIsInitialized)) {
       return;
@@ -369,7 +383,7 @@ export class MonitoringFormComponent implements OnInit {
     // pour donner la valeur de l'objet au formulaire
     this._formService
       .formValues(this.obj, this.typesSiteConfig[typeSite])
-      .subscribe((formValue) => {;
+      .subscribe((formValue) => {
         this.patchValuesInDynamicGroups(formValue);
       });
   }
@@ -585,8 +599,6 @@ export class MonitoringFormComponent implements OnInit {
     this.procesPatchUpdateForm();
   }
 
-
-  
   updateTypeSiteForm() {
     return this.objForm.controls['types_site'].valueChanges.pipe(
       distinctUntilChanged(),
@@ -651,7 +663,7 @@ export class MonitoringFormComponent implements OnInit {
           })
         );
       })
-      // TODO: VERIFIER SI NECESSAIRE (A PRIORI à l'ajout de site non mais peut être nécessaire si 
+      // TODO: VERIFIER SI NECESSAIRE (A PRIORI à l'ajout de site non mais peut être nécessaire si
       // on veut garder les valeurs qui étaient présente pour l'édition d'un site)
       // concatMap(() => {
       //   return forkJoin(
@@ -720,40 +732,38 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   addFormCtrlToObjForm(frmCtrl: { frmCtrl: FormControl; frmName: string }, objForm) {
-      if (frmCtrl.frmName in objForm.controls) {
-      } else {
-        objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
-      }
-      return of(objForm)
+    if (frmCtrl.frmName in objForm.controls) {
+    } else {
+      objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
-
-
-  initObjFormDefiniton(schema:JsonData,meta:JsonData){
-    const objectFormDefiniton = this._dynformService
-          .formDefinitionsdictToArray(schema, this.meta)
-          .filter((formDef) => formDef.type_widget)
-          .sort((a, b) => {
-            if (a.attribut_name === 'types_site') return 1;
-            if (b.attribut_name === 'types_site') return -1;
-            if (a.attribut_name === 'medias') return 1;
-            if (b.attribut_name === 'medias') return -1;
-            return 0;
-          });
-     return of(objectFormDefiniton)
+    return of(objForm);
   }
 
+  initObjFormDefiniton(schema: JsonData, meta: JsonData) {
+    const objectFormDefiniton = this._dynformService
+      .formDefinitionsdictToArray(schema, this.meta)
+      .filter((formDef) => formDef.type_widget)
+      .sort((a, b) => {
+        if (a.attribut_name === 'types_site') return 1;
+        if (b.attribut_name === 'types_site') return -1;
+        if (a.attribut_name === 'medias') return 1;
+        if (b.attribut_name === 'medias') return -1;
+        return 0;
+      });
+    return of(objectFormDefiniton);
+  }
 
   initTypeSiteConfig(configSpecific, properties, configTypesSite) {
     const idsTypesSite = [];
     const typesSiteConfig = {};
     for (const keyTypeSite in configTypesSite) {
-      typesSiteConfig[keyTypeSite] = {}
-      let typeSiteName = configTypesSite[keyTypeSite].name
-      if (!this.isEditObject){
+      typesSiteConfig[keyTypeSite] = {};
+      let typeSiteName = configTypesSite[keyTypeSite].name;
+      if (!this.isEditObject) {
         for (const prop of configTypesSite[keyTypeSite].display_properties) {
           typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
         }
-      } else{
+      } else {
         if (properties['types_site'].includes(typeSiteName)) {
           idsTypesSite.push(parseInt(keyTypeSite));
           for (const prop of configTypesSite[keyTypeSite].display_properties) {
@@ -827,17 +837,17 @@ export class MonitoringFormComponent implements OnInit {
 
   mergeObjects(obj1: JsonData, obj2: JsonData): JsonData {
     const mergedObject: JsonData = { ...obj1 }; // Start with a copy of obj1
-    
+
     // Loop through obj2 and overwrite or add keys to mergedObject
     for (const key in obj2) {
       if (obj2.hasOwnProperty(key)) {
         mergedObject[key] = obj2[key];
       }
     }
-    
+
     return mergedObject;
   }
-  
+
   addDynamicFormGroup(groupName: string) {
     const newFormGroup = this._formBuilder.group({});
     this.objFormsDynamic[groupName] = newFormGroup;
@@ -851,7 +861,9 @@ export class MonitoringFormComponent implements OnInit {
 
     // Remove form group from the dynamicGroups FormArray
     const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
-    const index = dynamicGroupsArray.controls.findIndex(group => group === this.objFormsDynamic[groupName]);
+    const index = dynamicGroupsArray.controls.findIndex(
+      (group) => group === this.objFormsDynamic[groupName]
+    );
     if (index !== -1) {
       dynamicGroupsArray.removeAt(index);
     }
@@ -861,13 +873,13 @@ export class MonitoringFormComponent implements OnInit {
     // Clear objFormsDynamic and objFormsDefinitionDynamic
     this.objFormsDynamic = {};
     this.objFormsDefinitionDynamic = {};
-  
+
     // Clear controls inside dynamicGroups FormArray
     const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
     while (dynamicGroupsArray.length) {
       dynamicGroupsArray.removeAt(0); // Remove controls from the beginning
     }
-    }
+  }
 
   createFormWithDynamicGroups(objFormGroup): FormGroup {
     const dynamicGroups = this._formBuilder.array([]);
@@ -885,11 +897,11 @@ export class MonitoringFormComponent implements OnInit {
     }
 
     for (let i = dynamicGroups.controls.length - 1; i >= 0; i--) {
-        const control = dynamicGroups.controls[i];
-        const controlName = control.get('name')?.value;
-        if (!formGroups[controlName]) {
-            dynamicGroups.removeAt(i);
-        }
+      const control = dynamicGroups.controls[i];
+      const controlName = control.get('name')?.value;
+      if (!formGroups[controlName]) {
+        dynamicGroups.removeAt(i);
+      }
     }
 
     for (const key in formGroups) {
@@ -898,7 +910,9 @@ export class MonitoringFormComponent implements OnInit {
       );
 
       if (existingControlIndex !== -1) {
-        dynamicGroups.controls[existingControlIndex].patchValue(formGroups[key].value, { emitEvent: false });
+        dynamicGroups.controls[existingControlIndex].patchValue(formGroups[key].value, {
+          emitEvent: false,
+        });
       } else {
         const newControl = formGroups[key];
         newControl.addControl('name', this._formBuilder.control(key)); // Adding control with key as 'name'
@@ -906,26 +920,26 @@ export class MonitoringFormComponent implements OnInit {
       }
     }
     return targetForm;
-}
+  }
 
   // Method to patch values inside dynamic form groups
-patchValuesInDynamicGroups(valuesToPatch: { [key: string]: any }): void {
-  Object.keys(this.objFormsDynamic).forEach(groupName => {
-    const formGroup = this.objFormsDynamic[groupName];
-    if (formGroup instanceof FormGroup) {
-      this.patchValuesInFormGroup(formGroup, valuesToPatch);
-    }
-  });
-}
+  patchValuesInDynamicGroups(valuesToPatch: { [key: string]: any }): void {
+    Object.keys(this.objFormsDynamic).forEach((groupName) => {
+      const formGroup = this.objFormsDynamic[groupName];
+      if (formGroup instanceof FormGroup) {
+        this.patchValuesInFormGroup(formGroup, valuesToPatch);
+      }
+    });
+  }
 
-// Method to patch values inside a form group
-patchValuesInFormGroup(formGroup: FormGroup, valuesToPatch: { [key: string]: any }): void {
-  Object.keys(valuesToPatch).forEach(controlName => {
-    if (formGroup.contains(controlName)) {
-      formGroup.get(controlName).patchValue(valuesToPatch[controlName]);
-    }
-  });
-}
+  // Method to patch values inside a form group
+  patchValuesInFormGroup(formGroup: FormGroup, valuesToPatch: { [key: string]: any }): void {
+    Object.keys(valuesToPatch).forEach((controlName) => {
+      if (formGroup.contains(controlName)) {
+        formGroup.get(controlName).patchValue(valuesToPatch[controlName]);
+      }
+    });
+  }
 
   flattenFormGroup(formGroup: FormGroup): { [key: string]: any } {
     const flatObject: { [key: string]: any } = {};
@@ -951,9 +965,9 @@ patchValuesInFormGroup(formGroup: FormGroup, valuesToPatch: { [key: string]: any
     return flatObject;
   }
 
-  // TODO: VERIFIER si on garde cette "method" pour vérifier la validité des formGroup liés aux types de sites 
-  // Pour l'instant on choisi de ne garder que l'objForm qui contient le formArray dynamicGroup 
-  // qui lui même contient l'équivalent de l'ensemble des formGroup liés aux types de site 
+  // TODO: VERIFIER si on garde cette "method" pour vérifier la validité des formGroup liés aux types de sites
+  // Pour l'instant on choisi de ne garder que l'objForm qui contient le formArray dynamicGroup
+  // qui lui même contient l'équivalent de l'ensemble des formGroup liés aux types de site
   areDynamicFormsValid(): boolean {
     // Iterate through each objFormDynamic and check if it's valid
     for (const typeSite in this.objFormsDynamic) {
