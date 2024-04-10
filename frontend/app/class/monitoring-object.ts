@@ -92,7 +92,7 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  post(formValue,): Observable<any> {
+  post(formValue): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
       .postObject(this.moduleCode, this.objectType, this.postData(formValue))
@@ -108,12 +108,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   patch(formValue) {
     return this._objService
       .dataMonitoringObjectService()
-      .patchObject(
-        this.moduleCode,
-        this.objectType,
-        this.id,
-        this.postData(formValue)
-      )
+      .patchObject(this.moduleCode, this.objectType, this.id, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
           this._objService.setCache(this, postData);
