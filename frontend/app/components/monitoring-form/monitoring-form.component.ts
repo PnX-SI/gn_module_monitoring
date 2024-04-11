@@ -321,9 +321,9 @@ export class MonitoringFormComponent implements OnInit {
           );
         })
       )
-      .subscribe((objForm) => {
+      .subscribe(() => {
         console.log(' ObjForm Initialisé');
-        console.log(objForm);
+        console.log(this.objForm);
         console.log(' ObjFormDynamic Initialisé');
         console.log(this.objFormsDynamic);
 
@@ -377,7 +377,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   initFormDynamic(typeSite: string) {
-    if (!(this.objFormsDefinition[typeSite] && this.obj.bIsInitialized)) {
+    if (!(this.objFormsDynamic[typeSite] && this.obj.bIsInitialized)) {
       return;
     }
     // pour donner la valeur de l'objet au formulaire
@@ -689,23 +689,6 @@ export class MonitoringFormComponent implements OnInit {
     );
   }
 
-  initObjFormDef(schema = null) {
-    if (schema) {
-      this.schemaUpdate = schema;
-      // this.schemaUpdate['types_site'] = schema['types_site'];
-    } else {
-      const schema = this.obj.schema();
-      this.schemaUpdate['types_site'] = schema['types_site'];
-    }
-
-    this.objFormsDefinitionDynamic = this._dynformService
-      .formDefinitionsdictToArray(this.schemaUpdate, this.meta)
-      .filter((formDef) => formDef.type_widget)
-      .sort((a, b) => {
-        return a.attribut_name === 'types_site' ? -1 : b.attribut_name === 'types_site' ? +1 : 0;
-      });
-  }
-
   initPermission() {
     this.canDelete =
       this.obj.objectType == 'module'
@@ -804,10 +787,10 @@ export class MonitoringFormComponent implements OnInit {
     return of(objFormDef);
   }
 
-  initObjFormValues(obj, config, idsTypesSite) {
+  initObjFormValues(obj, config, idsTypesSite = []) {
     return this._formService.formValues(obj, config).pipe(
       concatMap((genericFormValues) => {
-        if (idsTypesSite.length == 0) {
+        if (idsTypesSite.length != 0) {
           genericFormValues['types_site'] = idsTypesSite;
         }
         return of(genericFormValues);
