@@ -171,15 +171,21 @@ export class MonitoringFormComponent implements OnInit {
                 return of(null);
               })
             )
+          ).pipe(
+            tap((_) => {
+              // Initialize objForm based on isSiteObject condition
+              if (this.isSiteObject) {
+                this.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
+              }
+            }),
+            tap((_) => {
+              // Perform further actions based on the result of the tap operator
+              if(this.isEditObject && this.isSiteObject){
+                this.hasDynamicGroups = this.obj.properties['types_site'].length > 0
+              }
+            })
           )
         ),
-        map((_) => {
-          // Initialize objForm based on isSiteObject condition
-          if (this.isSiteObject) {
-            this.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
-          }
-          return of(null);
-        }),
         map((_) => {
           // Initialisation des variables queryParams , bChainInput
           console.log('Initialisation des variables queryParams , bChainInput');
@@ -333,10 +339,14 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   subscribeToDynamicGroupsChanges(dynamicGroupsArray: FormArray): void {
-    dynamicGroupsArray.valueChanges.subscribe((value) => {
-      this.hasDynamicGroups = dynamicGroupsArray.controls.length > 0;
+    dynamicGroupsArray.valueChanges.pipe(
+      scan((prevLength, currentValue) => dynamicGroupsArray.controls.length, 0),
+      distinctUntilChanged()
+    ).subscribe((length) => {
+      this.hasDynamicGroups = length > 0;
     });
   }
+  
   /** pour réutiliser des paramètres déjà saisis */
   keepDefinitions() {
     return this.objFormsDefinition.filter((def) =>
@@ -560,7 +570,6 @@ export class MonitoringFormComponent implements OnInit {
     // Check si types_site est modifié
     if (event.types_site != null && event.types_site.length != this.idsTypesSite.size) {
       this.updateTypeSiteForm().subscribe((_) => {
-        this.hasDynamicGroups = true;
         this.objForm = this.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
       });
     }
@@ -621,7 +630,6 @@ export class MonitoringFormComponent implements OnInit {
         if (isTypeSelectedEmpty) {
           this.idsTypesSite = new Set<number>();
           this.removeAllDynamicGroups();
-          this.hasDynamicGroups = false;
         }
         return !isTypeSelectedEmpty;
       }),
