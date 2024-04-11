@@ -28,6 +28,7 @@ import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { ConfigJsonService } from '../../services/config-json.service';
 import { GeoJSONService } from '../../services/geojson.service';
+import { ListService } from '../../services/list.service';
 
 @Component({
   selector: 'pnx-object',
@@ -38,10 +39,7 @@ export class MonitoringObjectComponent implements OnInit {
   obj: MonitoringObject;
   module: MonitoringObject;
 
-  filters: Object = {};
-  pre_filters: Object = {};
   selectedObject: Object = undefined;
-  objectListType: string;
   forceReload: boolean = false;
 
   backendUrl: string;
@@ -70,7 +68,8 @@ export class MonitoringObjectComponent implements OnInit {
     private _auth: AuthService,
     private _commonService: CommonService,
     private _evtObjService: ObjectService,
-    private _geojsonService: GeoJSONService
+    private _geojsonService: GeoJSONService,
+    public _listService: ListService
   ) {}
 
   ngAfterViewInit() {
@@ -164,27 +163,41 @@ export class MonitoringObjectComponent implements OnInit {
     // modules
     const queryParams = this._route.snapshot.queryParams || {};
 
-    this.pre_filters = {};
-    this.pre_filters['types_site'] = Object.keys(
+    let pre_filters = this._listService.preFilters;
+    pre_filters['site']['types_site'] = Object.keys(
       this._configService.config()[this.obj.moduleCode]['module']['types_site']
     );
-    this.pre_filters['modules'] =
-      this._configService.config()[this.obj.moduleCode]['module']['id_module'];
-    // filtre objet géographique de référence
+    if (this.obj.objectType == 'module') {
+      pre_filters['sites_group']['modules'] = this.obj.properties['id_module'];
+    }
     if (this.obj.objectType == 'sites_group') {
-      this.pre_filters['id_sites_group'] = this.obj.id;
+      pre_filters['sites_group']['id_sites_group'] = this.obj.id;
     } else if (this.obj.objectType == 'site') {
-      this.pre_filters['id_base_site'] = this.obj.id;
+      pre_filters['site']['id_base_site'] = this.obj.id;
     } else if (this.obj['siteId'] !== undefined) {
       // affichage du site parent
-      this.pre_filters['id_base_site'] = this.obj['siteId'];
+      pre_filters['id_base_site'] = this.obj['siteId'];
     } else if (queryParams['id_base_site'] !== undefined) {
       // récupération du site parent via l'url
-      this.pre_filters['id_base_site'] = queryParams['id_base_site'];
+      pre_filters['site']['id_base_site'] = queryParams['id_base_site'];
     } else if (queryParams['siteId'] !== undefined) {
       // récupération du site parent via l'url
-      this.pre_filters['id_base_site'] = queryParams['siteId'];
-    } 
+      pre_filters['site']['id_base_site'] = queryParams['siteId'];
+    }
+
+    this._listService.preFilters = pre_filters;
+
+    // L'objet n'a aucun enfant initialisation du paramètre listType
+    if (Object.keys(this.obj.children || []).length == 0) {
+      this._listService.tableFilters = {};
+      if (this.obj.objectType == 'sites_group') {
+        this._listService.listType = 'sites_group';
+      } else {
+        this._listService.listType = 'site';
+      }
+    } else {
+      this._listService.listType = this.obj.children0Array()[0].objectType;
+    }
   }
 
   initRoutesParams() {
@@ -247,6 +260,9 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initData(): Observable<any> {
+    // Réinitialisation des services
+    this._listService.reinitializeObservables();
+
     return of(true).pipe(
       mergeMap(() => {
         return this.getModuleSet();

@@ -39,6 +39,7 @@ import { DataTableService } from './services/data-table.service';
 import { MonitoringPropertiesGComponent } from './components/monitoring-properties-g/monitoring-properties-g.component';
 import { GeoJSONService } from './services/geojson.service';
 import { MonitoringSitesgroupsDetailComponent } from './components/monitoring-sitesgroups-detail/monitoring-sitesgroups-detail.component';
+
 import { MonitoringMapListComponent } from './components/monitoring-map-list/monitoring-map-list.component';
 import { FormService } from './services/form.service';
 import { ObjectService } from './services/object.service';
@@ -61,6 +62,7 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
 import { ObjectsPermissionMonitorings } from './enum/objectPermission';
 
 import { Popup } from './utils/popup';
+import { ListService } from './services/list.service';
 
 // my module routing
 const routes: Routes = [
@@ -202,6 +204,7 @@ const routes: Routes = [
     SitesGroupService,
     SitesService,
     GeoJSONService,
+    ListService,
     FormService,
     ObjectService,
     ApiGeomService,
