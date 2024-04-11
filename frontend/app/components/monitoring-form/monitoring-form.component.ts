@@ -23,11 +23,12 @@ import {
   switchMap,
   tap,
   map,
-  toArray,
   reduce,
   filter,
+  defaultIfEmpty,
+  scan,
 } from 'rxjs/operators';
-import { EMPTY, forkJoin, from, iif, of } from 'rxjs';
+import { defer, forkJoin, from, iif, of } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
@@ -226,7 +227,20 @@ export class MonitoringFormComponent implements OnInit {
                       objFormDefinition
                     );
                     this.objFormsDefinitionDynamic[typeSite] = objFormDefinition;
-                    return null;
+                    return typeSite;
+                  })
+                );
+              }),
+              concatMap((typeSite) => {
+                return this.sortObjFormDefinition(
+                  this.displayProperties,
+                  this.objFormsDefinitionDynamic[typeSite]
+                ).pipe(
+                  tap((objFormsDefinitionDynamic) => {
+                    console.log(
+                      "Initialisation de l'ordre d'affichage des champs objFormsDefinitionDynamic"
+                    ),
+                      (this.objFormsDefinitionDynamic[typeSite] = objFormsDefinitionDynamic);
                   })
                 );
               })
@@ -244,29 +258,7 @@ export class MonitoringFormComponent implements OnInit {
           console.log('this.objFormsDefinition :', this.objFormsDefinition);
           return of(null);
         }),
-        switchMap((_) =>
-          // Initialisation de l'ordre d'affichage des champs de l'object objFormDynamic
-          iif(
-            () => this.isSiteObject && this.isEditObject,
-            from(Object.entries(this.allTypesSiteConfig)).pipe(
-              concatMap(([typeSite, config]) => {
-                return this.sortObjFormDefinition(
-                  this.displayProperties,
-                  this.objFormsDefinitionDynamic[typeSite]
-                ).pipe(
-                  tap((objFormsDefinitionDynamic) => {
-                    console.log(
-                      "Initialisation de l'ordre d'affichage des champs objFormsDefinitionDynamic"
-                    ),
-                      (this.objFormsDefinitionDynamic[typeSite] = objFormsDefinitionDynamic);
-                  })
-                );
-              })
-            ),
-            of(null)
-          )
-        ),
-        concatMap(() => {
+        concatMap((_) => {
           // Ajout du champ géométrique à l'object form et du champ patch
           console.log("Ajout du champ géométrique à l'object form et du champ patch");
           return this.addFormCtrlToObjForm(
@@ -311,19 +303,33 @@ export class MonitoringFormComponent implements OnInit {
           console.log(
             " On match les valeurs de l'objet en lien avec l'object Form et ensuite on patch l'object form"
           );
-          return forkJoin([
-            this.initObjFormValues(this.obj, this.confiGenericSpec, Array.from(this.idsTypesSite)),
-            iif(
-              () => this.isSiteObject,
-              this.initObjFormSpecificValues(this.obj, this.allTypesSiteConfig),
-              of(null)
-            ),
-          ]).pipe(
-            tap(([genericFormValues, specificFormValues]) => {
-              this.objForm.patchValue(genericFormValues);
-              if (specificFormValues !== null) {
-                this.patchValuesInDynamicGroups(specificFormValues);
-              }
+          return of(obj)
+        }),
+        switchMap((obj) => {
+          const initObjFormValues$ = this.initObjFormValues(this.obj, this.confiGenericSpec, Array.from(this.idsTypesSite));
+        
+          return initObjFormValues$.pipe(
+            concatMap(genericFormValues => {
+              const specificValues$ = defer(() => {
+                if (this.isSiteObject && !this.isEditObject) {
+                  return this.initObjFormSpecificValues(this.obj, this.allTypesSiteConfig).pipe(defaultIfEmpty(null));
+                } else if (this.isSiteObject && this.isEditObject) {
+                  const filteredTypesSiteConfig = this.filterObject(this.allTypesSiteConfig, Array.from(this.idsTypesSite));
+                  return this.initObjFormSpecificValues(this.obj, filteredTypesSiteConfig).pipe(defaultIfEmpty(null));
+                } else {
+                  return of(null);
+                }
+              });
+        
+              return specificValues$.pipe(
+                tap((specificFormValues) => {
+                  console.log("Patching the object form values");
+                  this.objForm.patchValue(genericFormValues);
+                  if (specificFormValues !== null) {
+                    this.patchValuesInDynamicGroups(specificFormValues);
+                  }
+                })
+              );
             })
           );
         })
