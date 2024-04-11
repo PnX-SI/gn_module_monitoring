@@ -9,8 +9,7 @@
   <div class="flex-container" id="object">
     <div id="monitoring-map-container" class="cadre">
       <pnx-monitoring-map *ngIf="heightMap" [obj]="obj" [bEdit]="bEdit" [objForm]="objForm"
-        [(selectedObject)]="selectedObject" [(pre_filters)]="pre_filters" [(filters)]="filters"
-        [(objectListType)]="objectListType"
+        [(selectedObject)]="selectedObject"
         [heightMap]="heightMap"></pnx-monitoring-map>
     </div>
 
@@ -32,8 +31,7 @@
       <pnx-monitoring-form [obj]="obj" (objChanged)="onObjChanged($event)" *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
-      <pnx-monitoring-lists [obj]="obj" [(bEdit)]="bEdit" [(filters)]="filters"
-        [(objectListType)]="objectListType" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
+      <pnx-monitoring-lists [obj]="obj" [(bEdit)]="bEdit" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
         [(selectedObject)] = "selectedObject"
         [currentUser]="currentUser"></pnx-monitoring-lists>
     </div>

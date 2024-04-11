@@ -142,7 +142,7 @@ export class GeoJSONService {
   }
 
   removeFeatureGroup(feature: L.FeatureGroup) {
-    if (feature) {
+    if (feature && this._mapService.map) {
       this._mapService.map.removeLayer(feature);
     }
   }
@@ -206,6 +206,9 @@ export class GeoJSONService {
 
   removeAllFeatureGroup() {
     let listFeatureGroup: L.FeatureGroup[] = [];
+    if (!this._mapService.map) {
+      return;
+    }
     this._mapService.map.eachLayer(function (layer) {
       if (layer instanceof L.FeatureGroup) {
         listFeatureGroup.push(layer);
