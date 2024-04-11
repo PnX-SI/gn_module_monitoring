@@ -145,10 +145,11 @@ export class MonitoringFormComponent implements OnInit {
               }),
               concatMap((specificConfig) => {
                 // Initialisation des formGroup Dynamic
-                for (const typeSite in this.allTypesSiteConfig) {
+                const objFiltered = this.filterObject(this.allTypesSiteConfig, Array.from(this.idsTypesSite))
+                for (const typeSite in objFiltered) {
                   this.addDynamicFormGroup(typeSite);
                 }
-
+        
                 return of(specificConfig);
               }),
               concatMap((specificConfig) => {
@@ -392,7 +393,7 @@ export class MonitoringFormComponent implements OnInit {
     }
     // pour donner la valeur de l'objet au formulaire
     this._formService
-      .formValues(this.obj, this.typesSiteConfig[typeSite])
+      .formValues(this.obj, this.allTypesSiteConfig[typeSite])
       .subscribe((formValue) => {
         this.patchValuesInDynamicGroups(formValue);
       });
@@ -750,18 +751,12 @@ export class MonitoringFormComponent implements OnInit {
     for (const keyTypeSite in configTypesSite) {
       typesSiteConfig[keyTypeSite] = {};
       let typeSiteName = configTypesSite[keyTypeSite].name;
-      if (!this.isEditObject) {
-        for (const prop of configTypesSite[keyTypeSite].display_properties) {
-          typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
-        }
-      } else {
-        if (properties['types_site'].includes(typeSiteName)) {
-          idsTypesSite.push(parseInt(keyTypeSite));
-          for (const prop of configTypesSite[keyTypeSite].display_properties) {
-            typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
-          }
-        }
+      for (const prop of configTypesSite[keyTypeSite].display_properties) {
+        typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
       }
+      properties['types_site'].includes(typeSiteName)
+        ? idsTypesSite.push(parseInt(keyTypeSite))
+        : null;
     }
     return of({ idsTypesSite, typesSiteConfig });
   }
@@ -954,6 +949,17 @@ export class MonitoringFormComponent implements OnInit {
     flattenControl(formGroup);
 
     return flatObject;
+  }
+
+  filterObject(objToFilt: JsonData, arrayUseToFilt:  (string | number)[]): JsonData {
+    const keysToFilter: (string | number)[] = arrayUseToFilt.map(String) as (string | number)[];
+    const filteredObject = Object.keys(objToFilt).reduce((obj, key) => {
+      if (keysToFilter.includes(key)) {
+        obj[key] = objToFilt[key];
+      }
+      return obj;
+    }, {});
+    return filteredObject;
   }
 
   // TODO: VERIFIER si on garde cette "method" pour vérifier la validité des formGroup liés aux types de sites
