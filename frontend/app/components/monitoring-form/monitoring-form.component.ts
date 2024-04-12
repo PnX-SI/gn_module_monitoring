@@ -146,6 +146,17 @@ export class MonitoringFormComponent implements OnInit {
             )
           )
         ),
+        concatMap(() => {
+          const objFiltered = Utils.filterObject(
+            this.allTypesSiteConfig,
+            Array.from(this.idsTypesSite)
+          );
+          for (const typeSite in objFiltered) {
+            this.objFormsDynamic[typeSite] = this._formBuilder.group({});
+            this.isInitialzedObjFormDynamic[typeSite] = true;
+          }
+          return of(null);
+        }),
         tap(() => {
           if (this.isSiteObject) {
             this._formService.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
@@ -682,76 +693,106 @@ export class MonitoringFormComponent implements OnInit {
     return of({ isSiteObject, isEditObject, hasDynamicGroups })
   }
 
-  initializeTypeSiteConfig(genericConfig, specificConfig, typesSiteConfig, propertiesTypesSite): Observable<{ specificConfig: any, confiGenericSpec: any, allTypesSiteConfig: any, idsTypesSiteSet: Set<number> }> {
-    return this.initTypeSiteConfig(
-      specificConfig,
-      propertiesTypesSite,
-      typesSiteConfig
-    ).pipe(
-      concatMap(({ idsTypesSite, typesSiteConfig }) => {
+  /**
+   * Initializes type site config from generic config and specific config objects.
+   * @param genericConfig Generic config object
+   * @param specificConfig Specific config object
+   * @param typesSiteConfig Type site config object
+   * @param propertiesTypesSite Properties types site object
+   * @returns Observable of specific config object, generic config, type site config and set of ids of type site objects
+   */
+  initializeTypeSiteConfig(
+    genericConfig: JsonData,
+    specificConfig: JsonData,
+    typesSiteConfig: JsonData,
+    propertiesTypesSite: any
+  ): Observable<{
+    specificConfig: JsonData;
+    confiGenericSpec: JsonData;
+    allTypesSiteConfig: JsonData;
+    idsTypesSiteSet: Set<number>;
+  }> {
+    return this.initTypeSiteConfig(specificConfig, propertiesTypesSite, typesSiteConfig).pipe(
+      concatMap(({ idsTypesSite, typesSiteConfig }: { idsTypesSite: number[]; typesSiteConfig: JsonData }) => {
         const allTypesSiteConfig = typesSiteConfig;
         const idsTypesSiteSet = new Set(idsTypesSite);
-
-        const dynamicForms$ = of(null).pipe(
-          concatMap(() => {
-            const objFiltered = Utils.filterObject(allTypesSiteConfig, Array.from(idsTypesSiteSet));
-            for (const typeSite in objFiltered) {
-              this.addDynamicFormGroup(typeSite);
-              this.isInitialzedObjFormDynamic[typeSite] = true;
-            }
-            return of(null);
-          })
-        );
-
-        return dynamicForms$.pipe(
-          concatMap(() => {
-            return this.initializeSpecificConfig(genericConfig, specificConfig,typesSiteConfig, allTypesSiteConfig).pipe(
-              concatMap(({ specificConfig, confiGenericSpec }) => {
-                return of({ specificConfig, confiGenericSpec, allTypesSiteConfig, idsTypesSiteSet });
-              })
-            );
+        return this.initializeSpecificConfig(
+          genericConfig,
+          specificConfig,
+          typesSiteConfig,
+          allTypesSiteConfig
+        ).pipe(
+          concatMap(({ specificConfig, confiGenericSpec }: { specificConfig: JsonData; confiGenericSpec: JsonData }) => {
+            return of({ specificConfig, confiGenericSpec, allTypesSiteConfig, idsTypesSiteSet });
           })
         );
       })
     );
   }
 
-  initializeSpecificConfig(genericConfig, specificConfig, configTyepSite = {}, allTypesSiteConfig = {}): Observable<{ specificConfig: any, confiGenericSpec: any }> {
-    return this.initSpecificConfig(
-      specificConfig,
-      configTyepSite,
-      allTypesSiteConfig
-    ).pipe(
-      concatMap(specificConfig => {
+  /**
+   * Initializes specific config from generic config and type site configs.
+   * @param genericConfig Generic config object
+   * @param specificConfig Specific config object
+   * @param configTyepSite Type site config object
+   * @param allTypesSiteConfig All type site config object
+   * @returns Observable of specific config object and its merged generic config
+   */
+  initializeSpecificConfig(
+    genericConfig: JsonData,
+    specificConfig: JsonData,
+    configTyepSite: JsonData = {},
+    allTypesSiteConfig: JsonData = {}
+  ): Observable<{ specificConfig: JsonData; confiGenericSpec: JsonData }> {
+    return this.initSpecificConfig(specificConfig, configTyepSite, allTypesSiteConfig).pipe(
+      concatMap((specificConfig) => {
         const confiGenericSpec = Utils.mergeObjects(specificConfig, genericConfig);
         return of({ specificConfig, confiGenericSpec });
       })
     );
   }
 
-  initTypeSiteConfig(configSpecific, typeSiteProperties, configTypesSite) {
+
+  /**
+   * Initializes type site config from generic config and type site properties.
+   * @param configSpecific Generic config object
+   * @param typeSiteProperties Type site property names array
+   * @param configTypesSite Type site config object
+   * @returns Observable of type site config object
+   */
+  initTypeSiteConfig(
+    configSpecific: JsonData,
+    typeSiteProperties: string[],
+    configTypesSite: { [typeSiteId: string]: { display_properties: string[]; name: string } }
+  ): Observable<{ idsTypesSite: number[]; typesSiteConfig: { [typeSiteId: string]: JsonData } }> {
     const idsTypesSite = [];
-    const typesSiteConfig = {};
+    const typesSiteConfig: { [typeSiteId: string]: JsonData } = {};
     for (const keyTypeSite in configTypesSite) {
       typesSiteConfig[keyTypeSite] = {};
       let typeSiteName = configTypesSite[keyTypeSite].name;
       for (const prop of configTypesSite[keyTypeSite].display_properties) {
         typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
       }
-      typeSiteProperties.includes(typeSiteName)
-        ? idsTypesSite.push(parseInt(keyTypeSite))
-        : null;
+      typeSiteProperties.includes(typeSiteName) ? idsTypesSite.push(parseInt(keyTypeSite)) : null;
     }
     return of({ idsTypesSite, typesSiteConfig });
   }
 
-  initSpecificConfig(configSpecific, configTypesSite = {}, allTypesSiteConfig = {}) {
-    let specificConfig = {};
-    if (configTypesSite) {
-      const allTypeSiteConfigCombined = Object.assign(
-        {},
-        ...Object.values(allTypesSiteConfig)
-      );
+  /**
+   * Initializes specific config from generic config and type site config, if any.
+   * @param configSpecific Generic config object
+   * @param configTypesSite Optional type site config object
+   * @param allTypesSiteConfig Optional type site config object containing all type sites
+   * @returns Observable of strongly typed specific config object
+   */
+  initSpecificConfig(
+    configSpecific: JsonData,
+    configTypesSite: JsonData = {},
+    allTypesSiteConfig: Record<string, JsonData> = {}
+  ): Observable<JsonData> {
+    let specificConfig: JsonData = {};
+    if (Object.keys(configTypesSite).length) {
+      const allTypeSiteConfigCombined = Object.assign({}, ...Object.values(allTypesSiteConfig));
       specificConfig = Utils.getRemainingProperties(allTypeSiteConfigCombined, configSpecific);
     } else {
       specificConfig = configSpecific;
