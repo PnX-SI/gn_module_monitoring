@@ -65,7 +65,7 @@ export class MonitoringFormComponent implements OnInit {
   // objFormsDefinitionDynamic;
 
   objFormsDynamic: { [key: string]: FormGroup } = {};
-  objFormsDefinitionDynamic: { [key: string]: any } = {};
+  objFormsDefinitionDynamic: JsonData = {};
 
   allTypesSiteConfig: JsonData = {};
   typesSiteConfig: JsonData = {};
@@ -507,7 +507,7 @@ export class MonitoringFormComponent implements OnInit {
     //   this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
     // }
     let objFormValueGroup = {};
-    this.obj.objectType == 'site'
+    this.isSiteObject
       ? (objFormValueGroup = this.flattenFormGroup(this.objForm))
       : (objFormValueGroup = this.objForm.value);
     // this.obj.objectType == 'site'
@@ -722,12 +722,6 @@ export class MonitoringFormComponent implements OnInit {
     );
   }
 
-  addGeomFormCtrl(frmCtrl: { frmCtrl: FormControl; frmName: string }) {
-    if (frmCtrl.frmName in this.objForm.controls) {
-    } else {
-      this.objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
-    }
-  }
 
   addFormCtrlToObjForm(frmCtrl: { frmCtrl: FormControl; frmName: string }, objForm) {
     if (frmCtrl.frmName in objForm.controls) {
@@ -737,6 +731,7 @@ export class MonitoringFormComponent implements OnInit {
     return of(objForm);
   }
 
+  
   initObjFormDefiniton(schema: JsonData, meta: JsonData) {
     const objectFormDefiniton = this._dynformService
       .formDefinitionsdictToArray(schema, this.meta)
@@ -915,7 +910,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   // Method to patch values inside dynamic form groups
-  patchValuesInDynamicGroups(valuesToPatch: { [key: string]: any }): void {
+  patchValuesInDynamicGroups(valuesToPatch: JsonData): void {
     Object.keys(this.objFormsDynamic).forEach((groupName) => {
       const formGroup = this.objFormsDynamic[groupName];
       if (formGroup instanceof FormGroup) {
@@ -925,7 +920,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   // Method to patch values inside a form group
-  patchValuesInFormGroup(formGroup: FormGroup, valuesToPatch: { [key: string]: any }): void {
+  patchValuesInFormGroup(formGroup: FormGroup, valuesToPatch: JsonData): void {
     Object.keys(valuesToPatch).forEach((controlName) => {
       if (formGroup.contains(controlName)) {
         formGroup.get(controlName).patchValue(valuesToPatch[controlName]);
@@ -933,8 +928,8 @@ export class MonitoringFormComponent implements OnInit {
     });
   }
 
-  flattenFormGroup(formGroup: FormGroup): { [key: string]: any } {
-    const flatObject: { [key: string]: any } = {};
+  flattenFormGroup(formGroup: FormGroup): JsonData {
+    const flatObject: JsonData = {};
 
     // Recursive function to process nested controls
     const flattenControl = (control: AbstractControl, keyPrefix: string = ''): void => {
@@ -967,6 +962,8 @@ export class MonitoringFormComponent implements OnInit {
     }, {});
     return filteredObject;
   }
+
+
 
   // TODO: VERIFIER si on garde cette "method" pour vérifier la validité des formGroup liés aux types de sites
   // Pour l'instant on choisi de ne garder que l'objForm qui contient le formArray dynamicGroup
