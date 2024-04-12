@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs/Observable';
+import { JsonData } from '../types/jsondata';
 
 export class Utils {
   /** Fonction pour copier un objet de type dictionnaire */
@@ -65,5 +66,43 @@ export class Utils {
     }, {});
 
     return obj;
+  }
+
+  static getRemainingProperties(obj1: JsonData, obj2: JsonData): JsonData {
+    const remainingObj: JsonData = {};
+    for (let key in obj1) {
+      if (!obj2.hasOwnProperty(key) || obj1[key] !== obj2[key]) {
+        remainingObj[key] = obj1[key];
+      }
+    }
+    for (let key in obj2) {
+      if (!obj1.hasOwnProperty(key) || obj1[key] !== obj2[key]) {
+        remainingObj[key] = obj2[key];
+      }
+    }
+
+    return remainingObj;
+  }
+
+  static mergeObjects(obj1: JsonData, obj2: JsonData): JsonData {
+    const mergedObject: JsonData = { ...obj1 };
+    for (const key in obj2) {
+      if (obj2.hasOwnProperty(key)) {
+        mergedObject[key] = obj2[key];
+      }
+    }
+
+    return mergedObject;
+  }
+
+  static filterObject(objToFilt: JsonData, arrayUseToFilt: (string | number)[]): JsonData {
+    const keysToFilter: (string | number)[] = arrayUseToFilt.map(String) as (string | number)[];
+    const filteredObject = Object.keys(objToFilt).reduce((obj, key) => {
+      if (keysToFilter.includes(key)) {
+        obj[key] = objToFilt[key];
+      }
+      return obj;
+    }, {});
+    return filteredObject;
   }
 }
