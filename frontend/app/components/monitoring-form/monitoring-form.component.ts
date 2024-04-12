@@ -621,29 +621,6 @@ export class MonitoringFormComponent implements OnInit {
           })
         );
       })
-      // TODO: VERIFIER SI NECESSAIRE (A PRIORI à l'ajout de site non mais peut être nécessaire si
-      // on veut garder les valeurs qui étaient présente pour l'édition d'un site)
-      // concatMap(() => {
-      //   return forkJoin(
-      //     Object.entries(this.typesSiteConfig).map(([typeSite, config]) => {
-      //       return this.initObjFormSpecificValues(this.obj, config).pipe(
-      //         map((formValue) => ({
-      //           typeSite,
-      //           formValue
-      //         }))
-      //       );
-      //     })
-      //   ).pipe(
-      //     tap(() => console.log('All initObjFormSpecificValues completed'))
-      //   );
-      // }),
-      // map((results) => {
-      //   results.forEach(({ typeSite, formValue }) => {
-      //     this.objFormsDynamic[typeSite].patchValue(formValue);
-      //   });
-      //   console.log('All operations completed');
-      //   return results;
-      // })
     );
   }
 
@@ -828,13 +805,6 @@ export class MonitoringFormComponent implements OnInit {
 
   initObjFormSpecificValues(obj, config) {
     return this._formService.formValues(obj, config);
-  }
-
-  
-  addDynamicFormGroup(groupName: string) {
-    const newFormGroup = this._formBuilder.group({});
-    this.objFormsDynamic[groupName] = newFormGroup;
-    return of(newFormGroup);
   }
 
   removeDynamicFormGroup(groupName: string): void {
