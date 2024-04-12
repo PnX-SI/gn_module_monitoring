@@ -129,8 +129,20 @@ export class MonitoringFormComponent implements OnInit {
         switchMap((isSiteObject ) =>
           iif(
             () => isSiteObject,
-            this.initializeTypeSiteConfig(this.obj),
-            this.initializeSpecificConfig(this.obj)
+            this.initializeTypeSiteConfig(this.obj.config['generic'],this.obj.config['specific'],this.obj.config['types_site'],this.obj['properties']['types_site']).pipe(
+              map(({specificConfig, confiGenericSpec, allTypesSiteConfig, idsTypesSiteSet}) => {
+                this.specificConfig = specificConfig;
+                this.confiGenericSpec = confiGenericSpec;
+                this.allTypesSiteConfig = allTypesSiteConfig;
+                this.idsTypesSite = idsTypesSiteSet
+              })
+            ),
+            this.initializeSpecificConfig(this.obj.config['generic'],this.obj.config['specific']).pipe(
+              map(({specificConfig, confiGenericSpec}) => {
+                this.specificConfig = specificConfig;
+                this.confiGenericSpec = confiGenericSpec;
+              })
+            )
           )
         ),
         tap(() => {
@@ -678,61 +690,54 @@ export class MonitoringFormComponent implements OnInit {
     return of({ isSiteObject, isEditObject, hasDynamicGroups })
   }
 
-  initializeTypeSiteConfig(obj:MonitoringObject) {
+  initializeTypeSiteConfig(genericConfig, specificConfig, typesSiteConfig, propertiesTypesSite): Observable<{ specificConfig: any, confiGenericSpec: any, allTypesSiteConfig: any, idsTypesSiteSet: Set<number> }> {
     return this.initTypeSiteConfig(
-        obj.config['specific'],
-        obj['properties'],
-        obj.config['types_site']
-      )
-      .pipe(
-        concatMap(({ idsTypesSite, typesSiteConfig }) => {
-          idsTypesSite.forEach(number => this.idsTypesSite.add(number));
-          this.allTypesSiteConfig = typesSiteConfig;
-          return this.initSpecificConfig(
-            obj.config['specific'],
-            obj.config['types_site']
-          );
-        }),
-        concatMap(specificConfig => {
-          const objFiltered = this.filterObject(
-            this.allTypesSiteConfig,
-            Array.from(this.idsTypesSite)
-          );
-          for (const typeSite in objFiltered) {
-            this.addDynamicFormGroup(typeSite);
-            this.isInitialzedObjFormDynamic[typeSite] = true
-          }
-          return of(specificConfig);
-        }),
-        concatMap(specificConfig => {
-          this.specificConfig = specificConfig;
-          this.confiGenericSpec = this.mergeObjects(
-            this.specificConfig,
-            obj.config['generic']
-          );
-          return of(null);
-        })
-      );
+      specificConfig,
+      propertiesTypesSite,
+      typesSiteConfig
+    ).pipe(
+      concatMap(({ idsTypesSite, typesSiteConfig }) => {
+        const allTypesSiteConfig = typesSiteConfig;
+        const idsTypesSiteSet = new Set(idsTypesSite);
+
+        const dynamicForms$ = of(null).pipe(
+          concatMap(() => {
+            const objFiltered = this.filterObject(allTypesSiteConfig, Array.from(idsTypesSiteSet));
+            for (const typeSite in objFiltered) {
+              this.addDynamicFormGroup(typeSite);
+              this.isInitialzedObjFormDynamic[typeSite] = true;
+            }
+            return of(null);
+          })
+        );
+
+        return dynamicForms$.pipe(
+          concatMap(() => {
+            return this.initializeSpecificConfig(genericConfig, specificConfig,typesSiteConfig, allTypesSiteConfig).pipe(
+              concatMap(({ specificConfig, confiGenericSpec }) => {
+                return of({ specificConfig, confiGenericSpec, allTypesSiteConfig, idsTypesSiteSet });
+              })
+            );
+          })
+        );
+      })
+    );
   }
 
-  initializeSpecificConfig(obj:MonitoringObject) {
+  initializeSpecificConfig(genericConfig, specificConfig, configTyepSite = {}, allTypesSiteConfig = {}): Observable<{ specificConfig: any, confiGenericSpec: any }> {
     return this.initSpecificConfig(
-        obj.config['specific'],
-        obj.config['types_site']
-      )
-      .pipe(
-        concatMap(specificConfig => {
-          this.specificConfig = specificConfig;
-          this.confiGenericSpec = this.mergeObjects(
-            this.specificConfig,
-            obj.config['generic']
-          );
-          return of(null);
-        })
-      );
+      specificConfig,
+      configTyepSite,
+      allTypesSiteConfig
+    ).pipe(
+      concatMap(specificConfig => {
+        const confiGenericSpec = this.mergeObjects(specificConfig, genericConfig);
+        return of({ specificConfig, confiGenericSpec });
+      })
+    );
   }
 
-  initTypeSiteConfig(configSpecific, properties, configTypesSite) {
+  initTypeSiteConfig(configSpecific, typeSiteProperties, configTypesSite) {
     const idsTypesSite = [];
     const typesSiteConfig = {};
     for (const keyTypeSite in configTypesSite) {
@@ -741,19 +746,19 @@ export class MonitoringFormComponent implements OnInit {
       for (const prop of configTypesSite[keyTypeSite].display_properties) {
         typesSiteConfig[keyTypeSite][prop] = configSpecific[prop];
       }
-      properties['types_site'].includes(typeSiteName)
+      typeSiteProperties.includes(typeSiteName)
         ? idsTypesSite.push(parseInt(keyTypeSite))
         : null;
     }
     return of({ idsTypesSite, typesSiteConfig });
   }
 
-  initSpecificConfig(configSpecific, configTypesSite = {}) {
+  initSpecificConfig(configSpecific, configTypesSite = {}, allTypesSiteConfig = {}) {
     let specificConfig = {};
     if (configTypesSite) {
       const allTypeSiteConfigCombined = Object.assign(
         {},
-        ...Object.values(this.allTypesSiteConfig)
+        ...Object.values(allTypesSiteConfig)
       );
       specificConfig = this.getRemainingProperties(allTypeSiteConfigCombined, configSpecific);
     } else {
