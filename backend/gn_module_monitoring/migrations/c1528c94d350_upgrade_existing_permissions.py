@@ -1,7 +1,7 @@
 """Upgrade existing permissions
 
 Revision ID: c1528c94d350
-Revises: 3ffeea74a9dd
+Revises: 398f94b364f7
 Create Date: 2023-10-02 12:09:53.695122
 
 """
@@ -114,7 +114,6 @@ def upgrade():
         WHERE tp.id_permission IN (SELECT id_permission FROM to_del);
     """
     )
-    pass
 
 
 def downgrade():
