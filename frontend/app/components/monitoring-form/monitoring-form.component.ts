@@ -115,66 +115,48 @@ export class MonitoringFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Initialisation des permissions de l'utilisateur courant
     this.initPermission();
+
+    // Récupération de la configuration du module
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
-        switchMap(() =>
-          this.initializeVariables$(this.obj).pipe(
-            map(({ isSiteObject, isEditObject, hasDynamicGroups }) => {
-              this.isSiteObject = isSiteObject;
-              this.isEditObject = isEditObject;
-              this.hasDynamicGroups = hasDynamicGroups;
-              return isSiteObject;
-            })
-          )
-        ),
-        switchMap((isSiteObject) =>
-          iif(
-            () => isSiteObject,
+        tap(() => {
+          // Initialisation des variables
+          this.initializeVariables(this.obj);
+
+          // Initialisation des configurations
+          //  Selon si l'objet est ou non de type site
+          if (this.isSiteObject) {
             this.initializeTypeSiteConfig(
               this.obj.config['generic'],
               this.obj.config['specific'],
               this.obj.config['types_site'],
               this.obj['properties']['types_site']
-            ).pipe(
-              map(({ specificConfig, confiGenericSpec, allTypesSiteConfig, idsTypesSiteSet }) => {
-                this.specificConfig = specificConfig;
-                this.confiGenericSpec = confiGenericSpec;
-                this.allTypesSiteConfig = allTypesSiteConfig;
-                this.idsTypesSite = idsTypesSiteSet;
-              })
-            ),
-            this.initializeSpecificConfig(
-              this.obj.config['generic'],
-              this.obj.config['specific']
-            ).pipe(
-              map(({ specificConfig, confiGenericSpec }) => {
-                this.specificConfig = specificConfig;
-                this.confiGenericSpec = confiGenericSpec;
-              })
-            )
-          )
-        ),
-        concatMap(() => {
-          const objFiltered = Utils.filterObject(
-            this.allTypesSiteConfig,
-            Array.from(this.idsTypesSite)
-          );
-          for (const typeSite in objFiltered) {
-            this.objFormsDynamic[typeSite] = this._formBuilder.group({});
-            this.isInitialzedObjFormDynamic[typeSite] = true;
-          }
-          return of(null);
-        }),
-        tap(() => {
-          if (this.isSiteObject) {
+            );
+            // Filtre des types de site du module par rapport au type de site de l'objet
+            // Utile pour affichier les formulaires des types de sites de l'objet
+            // Utile pour traiter les types de site de l'objet non présents dans le module @TODO
+            const objFiltered = Utils.filterObject(
+              this.allTypesSiteConfig,
+              Array.from(this.idsTypesSite)
+            );
+            for (const typeSite in objFiltered) {
+              this.objFormsDynamic[typeSite] = this._formBuilder.group({});
+              this.isInitialzedObjFormDynamic[typeSite] = true;
+            }
+            // Initialisation des sous forms group par type de site
             this._formService.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
+          } else {
+            this.initializeSpecificConfig(this.obj.config['generic'], this.obj.config['specific']);
           }
-        }),
-        tap(() => {
+
+          // Initialisation des paramètres par défaut du formulaire
           this.queryParams = this._route.snapshot.queryParams || {};
+
           this.bChainInput = this._configService.frontendParams()['bChainInput'];
+
           this.meta = {
             nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
             dataset: this._dataUtilsService.getDataUtil('dataset'),
@@ -182,102 +164,70 @@ export class MonitoringFormComponent implements OnInit {
             bChainInput: this.bChainInput,
             parents: this.obj.parents,
           };
-        }),
-        switchMap(() =>
-          this.initObjFormDefiniton(this.confiGenericSpec, this.meta).pipe(
-            map((objFormsDefinition) => {
-              this.objFormsDefinition = objFormsDefinition;
-              return objFormsDefinition;
-            })
-          )
-        ),
-        switchMap((objFormsDefinition) =>
-          iif(
-            () => this.isSiteObject,
-            from(Object.entries(this.allTypesSiteConfig)).pipe(
-              concatMap(([typeSite, config]) =>
-                this.initObjFormDefiniton(config, this.meta).pipe(
-                  map((objFormDefinition) => ({ typeSite, objFormDefinition }))
-                )
-              ),
-              concatMap(({ typeSite, objFormDefinition }) =>
-                this.sortObjFormDefinition(this.displayProperties, objFormDefinition).pipe(
-                  tap((sortedFormDefinition) => {
-                    console.log(
-                      'Initialization of dynamic form definition for',
-                      typeSite,
-                      sortedFormDefinition
-                    );
-                    this.objFormsDefinitionDynamic[typeSite] = sortedFormDefinition;
-                  })
-                )
-              )
-            ),
-            of(null)
-          )
-        ),
-        tap(() => {
+
+          // Récupération de la définition du formulaire
+          this.objFormsDefinition = this.initObjFormDefiniton(
+            this.confiGenericSpec,
+            this.meta
+          );
+          // Tri des proprités en fonction de la variable display_properties
           this.displayProperties = [...(this.obj.configParam('display_properties') || [])];
-          this.sortObjFormDefinition(this.displayProperties, this.objFormsDefinition).pipe(
-            tap((sortedFormDefinition) => (this.objFormsDefinition = sortedFormDefinition))
+          this.objFormsDefinition = this.sortObjFormDefinition(
+            this.displayProperties,
+            this.objFormsDefinition
           );
-          console.log('this.objFormsDefinition :', this.objFormsDefinition);
+
+          // Si le type d'objet est un site rajout des définitions des types de site
+          //  a l'objet principal
+          if (this.isSiteObject) {
+            Object.entries(this.allTypesSiteConfig).forEach(([typeSite, config]) => {
+              let objFormDefinitonTypeSite = this.initObjFormDefiniton(config, this.meta);
+              // Tri des propriétés spécifiques au type de site
+              this.objFormsDefinitionDynamic[typeSite] = this.sortObjFormDefinition(
+                this.obj.config['types_site'][typeSite]['display_properties'],
+                objFormDefinitonTypeSite
+              );
+            });
+          }
+          // Ajout de controle (champ) au formulaire
+          // Ajout patch_update ?? TODO comprendre pourquoi
+          this.objForm = this._formService.addFormCtrlToObjForm(
+            { frmCtrl: this._formBuilder.control(0), frmName: 'patch_update' },
+            this.objForm
+          );
+
+          if (this.obj.config['geometry_type']) {
+            const validatorRequired =
+              this.obj.objectType == 'sites_group'
+                ? this._formBuilder.control('')
+                : this._formBuilder.control('', Validators.required);
+
+            let frmCtrlGeom = {
+              frmCtrl: validatorRequired,
+              frmName: 'geometry',
+            };
+
+            this.objForm = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.objForm);
+          }
+          // Conversion des query params de type entier mais en string en int
+          //  ??? A comprendre
+          this.obj = this.setQueryParams(this.obj);
         }),
         switchMap(() =>
-          this._formService
-            .addFormCtrlToObjForm(
-              { frmCtrl: this._formBuilder.control(0), frmName: 'patch_update' },
-              this.objForm
-            )
-            .pipe(
-              concatMap((objForm) => {
-                if (this.obj.config['geometry_type']) {
-                  const validatorRequired =
-                    this.obj.objectType == 'sites_group'
-                      ? this._formBuilder.control('')
-                      : this._formBuilder.control('', Validators.required);
-                  let frmCtrlGeom = {
-                    frmCtrl: validatorRequired,
-                    frmName: 'geometry',
-                  };
-                  return this._formService.addFormCtrlToObjForm(frmCtrlGeom, objForm);
-                }
-                return of(objForm);
-              })
-            )
-        ),
-        tap((objForm) => {
-          this.objForm = objForm;
-          this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
-            ? this.obj.properties['is_geom_from_child']
-            : false;
-          this.geomCalculated ? (this.obj.geometry = null) : null;
-          this.bEdit
-            ? this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated)
-            : null;
-        }),
-        switchMap(() => this.setQueryParams(this.obj)),
-        tap((obj) => {
-          this.obj = obj;
-          console.log(
-            " On match les valeurs de l'objet en lien avec l'object Form et ensuite on patch l'object form"
-          );
-        }),
-        switchMap((obj) =>
-          this.initObjFormValues(obj, this.confiGenericSpec, Array.from(this.idsTypesSite))
+          this.initObjFormValues(this.obj, this.confiGenericSpec, Array.from(this.idsTypesSite))
         ),
         switchMap((genericFormValues) =>
           defer(() => {
-            if (this.isSiteObject && !this.isEditObject) {
-              return this.initObjFormSpecificValues(this.obj, this.allTypesSiteConfig).pipe(
-                defaultIfEmpty(null)
-              );
-            } else if (this.isSiteObject && this.isEditObject) {
-              const filteredTypesSiteConfig = Utils.filterObject(
-                this.allTypesSiteConfig,
-                Array.from(this.idsTypesSite)
-              );
-              return this.initObjFormSpecificValues(this.obj, filteredTypesSiteConfig).pipe(
+            // Patch les valeurs du formulaire avec celle des propriétés spécifique aux types de site
+            if (this.isSiteObject) {
+              let siteConfig = this.allTypesSiteConfig;
+              if (this.isEditObject) {
+                siteConfig = Utils.filterObject(
+                  this.allTypesSiteConfig,
+                  Array.from(this.idsTypesSite)
+                );
+              }
+              return this.initObjFormSpecificValues(this.obj, siteConfig).pipe(
                 defaultIfEmpty(null)
               );
             } else {
@@ -327,16 +277,18 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   setQueryParams(obj: MonitoringObject) {
-    // par le biais des parametre query de route on donne l'id du ou des parents
+    // par le biais des parametres query de route on donne l'id du ou des parents
     // permet d'avoir un 'tree' ou un objet est sur plusieurs branches
     // on attend des ids d'où test avec parseInt
+
+    // TODO COMPRENDRE Comment c'est utilisé par la suite
     for (const key of Object.keys(this.queryParams)) {
       const strToInt = parseInt(this.queryParams[key]);
       if (!Number.isNaN(strToInt)) {
         obj.properties[key] = strToInt;
       }
     }
-    return of(obj);
+    return obj;
   }
 
   /** initialise le formulaire quand le formulaire est prêt ou l'object est prêt */
@@ -372,6 +324,7 @@ export class MonitoringFormComponent implements OnInit {
     }
     // pour donner la valeur de l'objet au formulaire
   }
+
   keepNames() {
     return this.obj.configParam('keep') || [];
   }
@@ -677,8 +630,8 @@ export class MonitoringFormComponent implements OnInit {
       "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
     );
   }
-
-  initObjFormDefiniton(schema: JsonData, meta: JsonData) {
+ 
+  initObjFormDefiniton(schema: JsonData, meta: JsonData) { 
     const objectFormDefiniton = this._dynformService
       .formDefinitionsdictToArray(schema, this.meta)
       .filter((formDef) => formDef.type_widget)
@@ -697,14 +650,22 @@ export class MonitoringFormComponent implements OnInit {
    * @param obj The `MonitoringObject` used to initialize the variables.
    * @returns An object with the initialized variables.
    */
-  initializeVariables$(
-    obj: MonitoringObject
-  ): Observable<{ isSiteObject: boolean; isEditObject: boolean; hasDynamicGroups: boolean }> {
-    const isSiteObject = obj.objectType === 'site';
-    const isEditObject = obj.id !== undefined && obj.id !== null;
-    const hasDynamicGroups = isSiteObject && obj.properties['types_site'].length > 0;
+  initializeVariables(obj: MonitoringObject) {
+    this.isSiteObject = obj.objectType === 'site';
+    this.isEditObject = obj.id !== undefined && obj.id !== null;
+    this.hasDynamicGroups = this.isSiteObject && obj.properties['types_site'].length > 0;
 
-    return of({ isSiteObject, isEditObject, hasDynamicGroups });
+    this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
+      ? this.obj.properties['is_geom_from_child']
+      : false;
+
+    if (this.geomCalculated) {
+      this.obj.geometry = null;
+    }
+    // Si mode édition initialisation du layer de l'objet en cours du composant carto
+    if (this.bEdit) {
+      this._geojsonService.setCurrentmapData(this.obj.geometry, this.geomCalculated);
+    }
   }
 
   /**
@@ -717,52 +678,26 @@ export class MonitoringFormComponent implements OnInit {
    */
   initializeTypeSiteConfig(
     genericConfig: JsonData,
-    specificConfig: JsonData,
-    typesSiteConfig: JsonData,
+    specificConfigInit: JsonData,
+    typesSiteConfigInit: JsonData,
     propertiesTypesSite: any
-  ): Observable<{
-    specificConfig: JsonData;
-    confiGenericSpec: JsonData;
-    allTypesSiteConfig: JsonData;
-    idsTypesSiteSet: Set<number>;
-  }> {
-    return this.initTypeSiteConfig(specificConfig, propertiesTypesSite, typesSiteConfig).pipe(
-      concatMap(
-        ({
-          idsTypesSite,
-          typesSiteConfig,
-        }: {
-          idsTypesSite: number[];
-          typesSiteConfig: JsonData;
-        }) => {
-          const allTypesSiteConfig = typesSiteConfig;
-          const idsTypesSiteSet = new Set(idsTypesSite);
-          return this.initializeSpecificConfig(
-            genericConfig,
-            specificConfig,
-            typesSiteConfig,
-            allTypesSiteConfig
-          ).pipe(
-            concatMap(
-              ({
-                specificConfig,
-                confiGenericSpec,
-              }: {
-                specificConfig: JsonData;
-                confiGenericSpec: JsonData;
-              }) => {
-                return of({
-                  specificConfig,
-                  confiGenericSpec,
-                  allTypesSiteConfig,
-                  idsTypesSiteSet,
-                });
-              }
-            )
-          );
-        }
-      )
+  ) {
+    const initTypeSiteConfigData = this.initTypeSiteConfig(
+      specificConfigInit,
+      propertiesTypesSite,
+      typesSiteConfigInit
     );
+    const { idsTypesSite, typesSiteConfig } = initTypeSiteConfigData;
+    const allTypesSiteConfig = typesSiteConfig;
+    const idsTypesSiteSet = new Set(idsTypesSite);
+    this.initializeSpecificConfig(
+      genericConfig,
+      specificConfigInit,
+      typesSiteConfig,
+      allTypesSiteConfig
+    );
+    this.allTypesSiteConfig = allTypesSiteConfig;
+    this.idsTypesSite = idsTypesSiteSet;
   }
 
   /**
@@ -771,20 +706,23 @@ export class MonitoringFormComponent implements OnInit {
    * @param specificConfig Specific config object
    * @param configTyepSite Type site config object
    * @param allTypesSiteConfig All type site config object
-   * @returns Observable of specific config object and its merged generic config
    */
+
   initializeSpecificConfig(
     genericConfig: JsonData,
     specificConfig: JsonData,
     configTyepSite: JsonData = {},
     allTypesSiteConfig: JsonData = {}
-  ): Observable<{ specificConfig: JsonData; confiGenericSpec: JsonData }> {
-    return this.initSpecificConfig(specificConfig, configTyepSite, allTypesSiteConfig).pipe(
-      concatMap((specificConfig) => {
-        const confiGenericSpec = Utils.mergeObjects(specificConfig, genericConfig);
-        return of({ specificConfig, confiGenericSpec });
-      })
+  ) {
+    const cleanSpecificConfig = this.initSpecificConfig(
+      specificConfig,
+      configTyepSite,
+      allTypesSiteConfig
     );
+    cleanSpecificConfig;
+    const confiGenericSpec = Utils.mergeObjects(cleanSpecificConfig, genericConfig);
+    this.specificConfig = specificConfig;
+    this.confiGenericSpec = confiGenericSpec;
   }
 
   /**
@@ -798,7 +736,7 @@ export class MonitoringFormComponent implements OnInit {
     configSpecific: JsonData,
     typeSiteProperties: string[],
     configTypesSite: { [typeSiteId: string]: { display_properties: string[]; name: string } }
-  ): Observable<{ idsTypesSite: number[]; typesSiteConfig: { [typeSiteId: string]: JsonData } }> {
+  ): { idsTypesSite: number[]; typesSiteConfig: { [typeSiteId: string]: JsonData } } {
     const idsTypesSite = [];
     const typesSiteConfig: { [typeSiteId: string]: JsonData } = {};
     for (const keyTypeSite in configTypesSite) {
@@ -809,7 +747,7 @@ export class MonitoringFormComponent implements OnInit {
       }
       typeSiteProperties.includes(typeSiteName) ? idsTypesSite.push(parseInt(keyTypeSite)) : null;
     }
-    return of({ idsTypesSite, typesSiteConfig });
+    return { idsTypesSite: idsTypesSite, typesSiteConfig: typesSiteConfig };
   }
 
   /**
@@ -823,7 +761,7 @@ export class MonitoringFormComponent implements OnInit {
     configSpecific: JsonData,
     configTypesSite: JsonData = {},
     allTypesSiteConfig: Record<string, JsonData> = {}
-  ): Observable<JsonData> {
+  ) {
     let specificConfig: JsonData = {};
     if (Object.keys(configTypesSite).length) {
       const allTypeSiteConfigCombined = Object.assign({}, ...Object.values(allTypesSiteConfig));
@@ -831,10 +769,12 @@ export class MonitoringFormComponent implements OnInit {
     } else {
       specificConfig = configSpecific;
     }
-    return of(specificConfig);
+    return specificConfig;
   }
 
   sortObjFormDefinition(displayProperties: string[], objFormDef: JsonData) {
+    //  Tri des propriétés en fonction des displays properties
+
     // let displayProperties = [...(this.obj.configParam('display_properties') || [])];
     // TODO: Vérifier mais normalement plus nécessaire d'utiliser cette évaluation de condition (objFormDef ne devrait pas être nul ici)
     if (!objFormDef) return;
@@ -846,7 +786,7 @@ export class MonitoringFormComponent implements OnInit {
         return indexB - indexA;
       });
     }
-    return of(objFormDef);
+    return objFormDef;
   }
 
   initObjFormValues(obj, config, idsTypesSite = []) {

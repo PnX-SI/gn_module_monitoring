@@ -188,13 +188,13 @@ export class FormService {
   addFormCtrlToObjForm(
     frmCtrl: { frmCtrl: FormControl; frmName: string },
     objForm: FormGroup
-  ): Observable<FormGroup> {
+  ): FormGroup {
     if (frmCtrl.frmName in objForm.controls) {
       // Si le champ existe déjà dans l'objet form, on ne fait rien
     } else {
       objForm.addControl(frmCtrl.frmName, frmCtrl.frmCtrl);
     }
-    return of(objForm);
+    return objForm;
   }
 
   /**
@@ -208,6 +208,7 @@ export class FormService {
     formGroups: { [key: string]: FormGroup },
     targetForm: FormGroup
   ): FormGroup {
+    // TODO ANALYSER ce qui est réeelement nécessaire
     let dynamicGroups = targetForm.get('dynamicGroups') as FormArray;
 
     if (!dynamicGroups) {
