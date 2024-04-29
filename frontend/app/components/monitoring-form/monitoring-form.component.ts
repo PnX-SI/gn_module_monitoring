@@ -597,16 +597,14 @@ export class MonitoringFormComponent implements OnInit {
 
         return forkJoin(
           keys.map((typeSite) => {
-            return this.initObjFormDefiniton(this.typesSiteConfig[typeSite], this.meta).pipe(
-              tap((objFormDefinition) => {
-                console.log(
-                  'Initialisation de l objFormDefinition basé sur les nouveaux types de sites',
-                  typeSite,
-                  objFormDefinition
-                );
-                this.objFormsDefinitionDynamic[typeSite] = objFormDefinition;
-              })
+            const objFormDefinition = this.initObjFormDefiniton(this.typesSiteConfig[typeSite], this.meta);
+            console.log(
+              'Initialisation de l objFormDefinition basé sur les nouveaux types de sites',
+              typeSite,
+              objFormDefinition
             );
+            this.objFormsDefinitionDynamic[typeSite] = objFormDefinition;
+            return of(objFormDefinition);
           })
         );
       })
@@ -642,7 +640,7 @@ export class MonitoringFormComponent implements OnInit {
         if (b.attribut_name === 'medias') return -1;
         return 0;
       });
-    return of(objectFormDefiniton);
+    return objectFormDefiniton;
   }
 
   /**
