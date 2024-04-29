@@ -72,6 +72,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         for attribut_name in self.config_schema(type_schema="specific"):
             if attribut_name in only or not only:
                 properties[attribut_name] = data.get(attribut_name)
+        # TODO: Vérifier si à appliquer à tout types d'objet
+        # Nécessaire pour récupérer tous les données des champs additionnels mêmes ceux non présents dans la config
+        for prop in data:
+            if prop not in properties.keys():
+                properties[prop] = data[prop]
 
     def unflatten_specific_properties(self, properties):
         data = {}
