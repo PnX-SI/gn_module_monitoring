@@ -300,7 +300,10 @@ export class MonitoringFormComponent implements OnInit {
       .formValues(this.obj, this.confiGenericSpec)
       .pipe(
         map((genericFormValues) => {
-          genericFormValues['types_site'] = Array.from(this.idsTypesSite);
+          // FIXME: renvoyer les ids des types de site coté backend et non les types de site en chaine de caractères
+          if(this.idsTypesSite.size != 0 && genericFormValues['types_site'].every(item => typeof item !== 'number' && !Number.isInteger(item))) {
+            genericFormValues['types_site'] = Array.from(this.idsTypesSite);
+          }
           return genericFormValues;
         })
       )
