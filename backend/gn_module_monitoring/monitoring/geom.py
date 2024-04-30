@@ -22,7 +22,10 @@ class MonitoringObjectGeom(MonitoringObject):
             if hasattr(self._model, "types_site"):
                 # TODO: performance?
                 types_site = [typ.nomenclature.label_fr for typ in self._model.types_site]
+                # On récupères tous les ids des types de site associé au site (nécessaire pour garder l'ensemble des types de site associé à un site)
+                ids_types_site = [typ.id_nomenclature_type_site for typ in self._model.types_site]
             monitoring_object_dict["properties"]["types_site"] = types_site
+            monitoring_object_dict["properties"]["ids_types_site"] = ids_types_site
 
         # On ne sérialise la géométrie que si l'objet n'est pas un enfant
         # si l'objet est de type enfant il va être affiché au niveau du tableau

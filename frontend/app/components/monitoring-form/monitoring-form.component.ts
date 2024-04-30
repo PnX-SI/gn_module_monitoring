@@ -100,6 +100,7 @@ export class MonitoringFormComponent implements OnInit {
   displayProperties: string[] = [];
   hasDynamicGroups: boolean = false;
   isInitialzedObjFormDynamic: { keys: string; value: boolean } | {} = {};
+  remainingTypeSiteProp:JsonData = {};
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -437,9 +438,13 @@ export class MonitoringFormComponent implements OnInit {
     // this.obj.objectType == 'site'
     //   ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
     //   : null;
+
+    // On merge l'objet avec les nouvelles valeurs issues du formulaire et les propriétés mises de cotés mais qui doivent être conservées
+    const finalObject = Utils.mergeObjects(this.remainingTypeSiteProp,objFormValueGroup)
+    this.isSiteObject ? finalObject['types_site'] = finalObject['ids_types_site'] : null;
     const action = this.obj.id
-      ? this.obj.patch(objFormValueGroup)
-      : this.obj.post(objFormValueGroup);
+      ? this.obj.patch(finalObject)
+      : this.obj.post(finalObject);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
@@ -699,6 +704,9 @@ export class MonitoringFormComponent implements OnInit {
     );
     this.allTypesSiteConfig = allTypesSiteConfig;
     this.idsTypesSite = idsTypesSiteSet;
+    // On met de coté l'ensemble des propriétés restantes et notamment (les champs "additional_data_keys" et "ids_types_site")
+    const mergeConfig = Utils.mergeObjects(specificConfigInit, genericConfig);
+    this.remainingTypeSiteProp = Utils.getRemainingKeys(this.obj.properties, mergeConfig);
   }
 
   /**

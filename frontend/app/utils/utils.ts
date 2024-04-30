@@ -84,6 +84,21 @@ export class Utils {
     return remainingObj;
   }
 
+  static getRemainingKeys(obj1, obj2): JsonData {
+    const remainingKeys = {};
+    
+    // Iterate through the keys of obj1
+    for (const key in obj1) {
+        // Check if the key does not exist in obj2
+        if (!(key in obj2)) {
+            // Add the key and its value to the remainingKeys object
+            remainingKeys[key] = obj1[key];
+        }
+    }
+    
+    return remainingKeys;
+  }
+
   static mergeObjects(obj1: JsonData, obj2: JsonData): JsonData {
     const mergedObject: JsonData = { ...obj1 };
     for (const key in obj2) {
