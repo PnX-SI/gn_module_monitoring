@@ -441,7 +441,7 @@ export class MonitoringFormComponent implements OnInit {
 
     // On merge l'objet avec les nouvelles valeurs issues du formulaire et les propriétés mises de cotés mais qui doivent être conservées
     const finalObject = Utils.mergeObjects(this.remainingTypeSiteProp,objFormValueGroup)
-    this.isSiteObject ? finalObject['types_site'] = finalObject['ids_types_site'] : null;
+    this.isSiteObject ? finalObject['types_site'] = Array.from(this.idsTypesSite) : null;
     const action = this.obj.id
       ? this.obj.patch(finalObject)
       : this.obj.post(finalObject);
