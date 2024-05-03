@@ -206,7 +206,8 @@ def process_schema(object_type, config):
         # définition spécifique du datalist
         #    récupérée depuis la constante SITES_GROUP_CONFIG
         if key_s == "id_sites_group":
-            generic[key_s] = SITES_GROUP_CONFIG
+            generic[key_s] = SITES_GROUP_CONFIG.copy()
+            keys_g.append("id_sites_group")
         if key_s in keys_g:
             key = key_s
 

@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.7.3 (03/05/23)
+------------------
+  
+**🐛 Corrections**
+ 
+* Correction du selecteur des groupes de sites
+
 0.7.2 (27-02-23)
 ------------------
  
