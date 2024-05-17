@@ -67,24 +67,34 @@ import { Popup } from './utils/popup';
 const routes: Routes = [
   /** modules  */
   { path: '', component: ModulesComponent },
-
-  /** module  */
-  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
-  /** create module */
-  { path: 'module', component: MonitoringObjectComponent },
-
-  /** object */
   {
-    path: 'object/:moduleCode/:objectType/:id',
-    component: MonitoringObjectComponent,
+    path: 'object/generic/site',
+    component: MonitoringMapListComponent,
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsReslver,
+        },
+        runGuardsAndResolvers: 'always',
+      },
+      {
+        path: 'create',
+        component: MonitoringSitesCreateComponent,
+        resolve: {
+          data: CreateSiteResolver,
+        },
+      },
+      {
+        path: ':id',
+        component: MonitoringVisitsComponent,
+      },
+    ],
   },
-  /** create object */
+
   {
-    path: 'create_object/:moduleCode/:objectType',
-    component: MonitoringObjectComponent,
-  },
-  {
-    path: 'sites_group',
+    path: 'object/generic/site_group',
     component: MonitoringMapListComponent,
     children: [
       {
@@ -121,30 +131,20 @@ const routes: Routes = [
       },
     ],
   },
+  /** module  */
+  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
+  /** create module */
+  { path: 'module', component: MonitoringObjectComponent },
+
+  /** object */
   {
-    path: 'sites',
-    component: MonitoringMapListComponent,
-    children: [
-      {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsReslver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesCreateComponent,
-        resolve: {
-          data: CreateSiteResolver,
-        },
-      },
-      {
-        path: ':id',
-        component: MonitoringVisitsComponent,
-      },
-    ],
+    path: 'object/:moduleCode/:objectType/:id',
+    component: MonitoringObjectComponent,
+  },
+  /** create object */
+  {
+    path: 'create_object/:moduleCode/:objectType',
+    component: MonitoringObjectComponent,
   },
   { path: 'not-found', component: PageNotFoundComponent },
   { path: '**', redirectTo: 'not-found' },

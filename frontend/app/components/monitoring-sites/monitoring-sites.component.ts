@@ -209,7 +209,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   seeDetails($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`site/${$event.id_base_site}`], {
+    this.router.navigate([`object/generic/site/${$event.id_base_site}`], {
       relativeTo: this._Activatedroute,
     });
   }
@@ -217,7 +217,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`site/${$event.id_base_site}`, { edit: true }], {
+    this.router.navigate([`object/generic/site/${$event.id_base_site}`, { edit: true }], {
       relativeTo: this._Activatedroute,
     });
   }

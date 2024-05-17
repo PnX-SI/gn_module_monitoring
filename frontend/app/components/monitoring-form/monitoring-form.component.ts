@@ -100,7 +100,7 @@ export class MonitoringFormComponent implements OnInit {
   displayProperties: string[] = [];
   hasDynamicGroups: boolean = false;
   isInitialzedObjFormDynamic: { keys: string; value: boolean } | {} = {};
-  remainingTypeSiteProp:JsonData = {};
+  remainingTypeSiteProp: JsonData = {};
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -165,12 +165,8 @@ export class MonitoringFormComponent implements OnInit {
             bChainInput: this.bChainInput,
             parents: this.obj.parents,
           };
-
           // Récupération de la définition du formulaire
-          this.objFormsDefinition = this.initObjFormDefiniton(
-            this.confiGenericSpec,
-            this.meta
-          );
+          this.objFormsDefinition = this.initObjFormDefiniton(this.confiGenericSpec, this.meta);
           // Tri des proprités en fonction de la variable display_properties
           this.displayProperties = [...(this.obj.configParam('display_properties') || [])];
           this.objFormsDefinition = this.sortObjFormDefinition(
@@ -253,7 +249,7 @@ export class MonitoringFormComponent implements OnInit {
         console.log(this.objForm);
         console.log(' ObjFormDynamic Initialized');
         console.log(this.objFormsDynamic);
-
+        this.obj.bIsInitialized = true;
         const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
         if (dynamicGroupsArray) this.subscribeToDynamicGroupsChanges(dynamicGroupsArray);
       });
@@ -302,7 +298,12 @@ export class MonitoringFormComponent implements OnInit {
       .pipe(
         map((genericFormValues) => {
           // FIXME: renvoyer les ids des types de site coté backend et non les types de site en chaine de caractères
-          if(this.idsTypesSite.size != 0 && genericFormValues['types_site'].every(item => typeof item !== 'number' && !Number.isInteger(item))) {
+          if (
+            this.idsTypesSite.size != 0 &&
+            genericFormValues['types_site'].every(
+              (item) => typeof item !== 'number' && !Number.isInteger(item)
+            )
+          ) {
             genericFormValues['types_site'] = Array.from(this.idsTypesSite);
           }
           return genericFormValues;
@@ -440,11 +441,9 @@ export class MonitoringFormComponent implements OnInit {
     //   : null;
 
     // On merge l'objet avec les nouvelles valeurs issues du formulaire et les propriétés mises de cotés mais qui doivent être conservées
-    const finalObject = Utils.mergeObjects(this.remainingTypeSiteProp,objFormValueGroup)
-    this.isSiteObject ? finalObject['types_site'] = Array.from(this.idsTypesSite) : null;
-    const action = this.obj.id
-      ? this.obj.patch(finalObject)
-      : this.obj.post(finalObject);
+    const finalObject = Utils.mergeObjects(this.remainingTypeSiteProp, objFormValueGroup);
+    this.isSiteObject ? (finalObject['types_site'] = Array.from(this.idsTypesSite)) : null;
+    const action = this.obj.id ? this.obj.patch(finalObject) : this.obj.post(finalObject);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
@@ -605,7 +604,10 @@ export class MonitoringFormComponent implements OnInit {
 
         return forkJoin(
           keys.map((typeSite) => {
-            const objFormDefinition = this.initObjFormDefiniton(this.typesSiteConfig[typeSite], this.meta);
+            const objFormDefinition = this.initObjFormDefiniton(
+              this.typesSiteConfig[typeSite],
+              this.meta
+            );
             console.log(
               'Initialisation de l objFormDefinition basé sur les nouveaux types de sites',
               typeSite,
@@ -636,8 +638,8 @@ export class MonitoringFormComponent implements OnInit {
       "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
     );
   }
- 
-  initObjFormDefiniton(schema: JsonData, meta: JsonData) { 
+
+  initObjFormDefiniton(schema: JsonData, meta: JsonData) {
     const objectFormDefiniton = this._dynformService
       .formDefinitionsdictToArray(schema, this.meta)
       .filter((formDef) => formDef.type_widget)

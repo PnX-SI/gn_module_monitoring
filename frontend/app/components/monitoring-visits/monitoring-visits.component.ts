@@ -25,6 +25,9 @@ import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
 import { TPermission } from '../../types/permission';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
+
+import { MonitoringObject } from '../../class/monitoring-object';
 
 @Component({
   selector: 'monitoring-visits',
@@ -72,6 +75,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   currentUser: User;
   currentPermission: TPermission;
 
+  obj: MonitoringObject;
+
   constructor(
     private _auth: AuthService,
     private _sitesGroupService: SitesGroupService,
@@ -88,7 +93,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     private _permissionService: PermissionService,
-    private _popup: Popup
+    private _popup: Popup,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -102,14 +108,38 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
 
-    this.siteGroupIdParent = parseInt(
-      this._Activatedroute.pathFromRoot[this._Activatedroute.pathFromRoot.length - 2].snapshot
-        .params['id']
+    this._configService.init().subscribe(() => {
+      this.initSiteVisit();
+    });
+  }
+
+  initConfig(): Observable<any> {
+    return this._configService.init().pipe(
+      concatMap(() => {
+        if (this.obj.objectType == 'site' && this.obj.id != null) {
+          return this._monitoringObjServiceMonitoring
+            .configService()
+            .loadConfigSpecificConfig(this.obj)
+            .pipe(
+              tap((config) => {
+                this.obj.template_specific = this._monitoringObjServiceMonitoring
+                  .configService()
+                  .addSpecificConfig(config);
+              })
+            );
+        } else {
+          return of(null);
+        }
+      }),
+      mergeMap(() => {
+        return of(true);
+      })
     );
-    this.initSiteVisit();
   }
 
   initSiteVisit() {
+    // Get obj data
+
     const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
     const $permissionUserObject = this._permissionService.currentPermissionObj;
     $getPermissionMonitoring
@@ -126,6 +156,13 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
+
+              this.obj = new MonitoringObject(
+                'generic',
+                'site',
+                params['id'],
+                this._monitoringObjServiceMonitoring
+              );
               return params['id'] as number;
             }),
             tap((id: number) => {
@@ -154,6 +191,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
               return forkJoin({
                 objObsSite: this.siteService.initConfig(),
                 objObsVisit: this._visits_service.initConfig(),
+                obj: this.obj.get(0),
               }).pipe(
                 tap((objConfig) => (this.objParent = objConfig.objObsSite)),
                 map((objConfig) => {
@@ -207,6 +245,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           count: data.visits.count,
           limit: data.visits.limit,
         };
+
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         let siteList = this.siteService.formatLabelTypesSite([this.site]);
