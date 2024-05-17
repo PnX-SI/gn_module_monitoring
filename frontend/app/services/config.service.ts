@@ -19,7 +19,6 @@ export class ConfigService {
 
   init(moduleCode: string | null = null) {
     // a definir ailleurs
-
     moduleCode = moduleCode || 'generic';
 
     if (this._config && this._config[moduleCode]) {
@@ -147,7 +146,7 @@ export class ConfigService {
 
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
-    moduleCode = moduleCode || 'generic';
+    moduleCode = moduleCode || 'MONITORINGS';
     const configObject = this._config[moduleCode][objectType];
     // gerer quand les paramètres ont un fonction comme valeur
     if (configObject) {

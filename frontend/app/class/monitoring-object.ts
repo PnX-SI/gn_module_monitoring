@@ -202,9 +202,9 @@ export class MonitoringObject extends MonitoringObjectBase {
       }
       propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
     }
-    // On récupère les champs spécifiques qui ne sont ni dans la config spécifique, générique ou des types de sites sélectionnés 
+    // On récupère les champs spécifiques qui ne sont ni dans la config spécifique, générique ou des types de sites sélectionnés
     // Permet de garder les propriétés du site sur un autre protocole qui appelle ce site avec d'autres types de sites associés
-    if('additional_data_keys' in formValue && formValue['additional_data_keys'].length > 0) {
+    if ('additional_data_keys' in formValue && formValue['additional_data_keys'].length > 0) {
       for (const key of formValue['additional_data_keys']) {
         propertiesData[key] = formValue[key];
       }
