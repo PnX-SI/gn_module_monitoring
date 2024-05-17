@@ -101,12 +101,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         limit: data.sitesGroups.data.limit,
         page: data.sitesGroups.data.page - 1,
       };
-
       this.sitesGroups = data.sitesGroups.data.items;
       // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
       this.colsname = data.sitesGroups.objConfig.dataTable.colNameObj;
       this.currentRoute = data.route;
-      if (data.route == 'sites') {
+      if (data.route == 'site') {
         this.activetabIndex = 1;
         this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
         this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
@@ -204,7 +203,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
     }
-    this.router.navigate(['monitorings', this.currentRoute, $event[$event.id]]);
+    this.router.navigate(['monitorings/object/generic/', this.currentRoute, $event[$event.id]]);
   }
 
   editChild($event) {
@@ -228,8 +227,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         setTimeout(() => {
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 0;
-          this.currentRoute = 'sites_group';
-          this.router.navigate(['/monitorings/sites_group', { delete: true }], {
+          this.currentRoute = 'site_group';
+          this.router.navigate(['/monitorings/object/generic/site_group', { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
@@ -243,8 +242,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         setTimeout(() => {
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 1;
-          this.currentRoute = 'sites';
-          this.router.navigate(['/monitorings/sites', { delete: true }], {
+          this.currentRoute = 'site';
+          this.router.navigate(['/monitorings/object/generic/site', { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
@@ -279,16 +278,16 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   updateActiveTab($event) {
     if ($event == 'site') {
       this.activetabIndex = 1;
-      this.currentRoute = 'sites';
-      this._location.go('/monitorings/sites');
+      this.currentRoute = 'site';
+      this._location.go('/monitorings/object/generic/site');
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.activetabIndex = 0;
-      this.currentRoute = 'sites_group';
-      this._location.go('/monitorings/sites_group');
+      this.currentRoute = 'site_group';
+      this._location.go('/monitorings/object/generic/site_group');
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
