@@ -5,6 +5,7 @@ Revises: 398f94b364f7
 Create Date: 2023-10-02 12:09:53.695122
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -18,6 +19,7 @@ revision = "c1528c94d350"
 down_revision = "398f94b364f7"
 branch_labels = None
 depends_on = None
+
 
 def upgrade():
     bind = op.get_bind()

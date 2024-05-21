@@ -1,6 +1,7 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import column_property
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -131,6 +132,7 @@ class TMonitoringVisits(TBaseVisits):
             TObservations.id_base_visit == id_base_visit
         )
     )
+
 
 @geoserializable
 class TMonitoringSites(TBaseSites):
@@ -355,8 +357,7 @@ TMonitoringSitesGroups.nb_visits = column_property(
 
 
 TIndividuals.nb_sites = column_property(
-    select([func.count(func.distinct(TMonitoringSites.id_base_site))])
-    .where(
+    select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
         and_(
             TMarkingEvent.id_individual == TIndividuals.id_individual,
             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
@@ -366,8 +367,7 @@ TIndividuals.nb_sites = column_property(
 )
 
 TMonitoringSites.nb_individuals = column_property(
-    select([func.count(func.distinct(TIndividuals.id_individual))])
-    .where(
+    select([func.count(func.distinct(TIndividuals.id_individual))]).where(
         and_(
             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
             TMarkingEvent.id_individual == TIndividuals.id_individual,
