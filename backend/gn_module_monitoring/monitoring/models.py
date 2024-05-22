@@ -192,7 +192,7 @@ class TMonitoringSites(TBaseSites):
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
 
     nb_individuals = column_property(
-            select([func.count(TIndividuals.id_individual)])
+            select([func.count(func.distinct(TIndividuals.id_individual))])
             .join_from(TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit)
             .join_from(TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual)
             .where(TBaseVisits.id_base_site == id_base_site)
