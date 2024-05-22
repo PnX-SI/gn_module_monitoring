@@ -191,6 +191,14 @@ class TMonitoringSites(TBaseSites):
 
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
 
+    nb_individuals = column_property(
+            select([func.count(TIndividuals.id_individual)])
+            .join_from(TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit)
+            .join_from(TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual)
+            .where(TBaseVisits.id_base_site == id_base_site)
+            .correlate_except(TBaseVisits) # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+            .scalar_subquery()
+        )
 
 @serializable
 class TMonitoringSitesGroups(DB.Model):
@@ -355,26 +363,41 @@ TMonitoringSitesGroups.nb_visits = column_property(
     )
 )
 
-
 TIndividuals.nb_sites = column_property(
-    select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
-        and_(
-            TMarkingEvent.id_individual == TIndividuals.id_individual,
-            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+        select(
+            [func.count(func.distinct(TMonitoringSites.id_base_site))]
         )
+        .where(
+            and_(
+                TObservations.id_individual == TIndividuals.id_individual,
+                TObservations.id_base_visit == TMonitoringVisits.id_base_visit,
+                TBaseVisits.id_base_site == TMonitoringSites.id_base_site
+            )
+        )
+        .correlate_except(TMonitoringSites)
+        .scalar_subquery()
     )
-    # .scalar_subquery()
-)
+# NOTES: [SUIVI_INDIVIDU] ici le id_base_marking_site peut être null si on renseigne un marquage en entrant directement par les inidividus
+# TIndividuals.nb_sites = column_property(
+#     select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
+#         and_(
+#             TMarkingEvent.id_individual == TIndividuals.id_individual,
+#             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+#         )
+#     )
+#     .scalar_subquery()
+# )
+# NOTES: [SUIVI_INDIVIDU] ici pareil le id_base_marking_site peut être null si on renseigne un marquage en entrant directement par les inidividus
+# TMonitoringSites.nb_individuals = column_property(
+#     select([func.count(func.distinct(TIndividuals.id_individual))]).where(
+#         and_(
+#             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+#             TMarkingEvent.id_individual == TIndividuals.id_individual,
+#         )
+#     )
+#      .scalar_subquery()
+# )
 
-TMonitoringSites.nb_individuals = column_property(
-    select([func.count(func.distinct(TIndividuals.id_individual))]).where(
-        and_(
-            TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
-            TMarkingEvent.id_individual == TIndividuals.id_individual,
-        )
-    )
-    # .scalar_subquery()
-)
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
