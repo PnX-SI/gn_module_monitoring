@@ -143,9 +143,11 @@ export class MonitoringFormComponent implements OnInit {
               this.allTypesSiteConfig,
               Array.from(this.idsTypesSite)
             );
+            this.typesSiteConfig = {}
             for (const typeSite in objFiltered) {
               this.objFormsDynamic[typeSite] = this._formBuilder.group({});
               this.isInitialzedObjFormDynamic[typeSite] = true;
+              this.typesSiteConfig[typeSite] = this.allTypesSiteConfig[typeSite];
             }
             // Initialisation des sous forms group par type de site
             this._formService.addMultipleFormGroupsToObjForm(this.objFormsDynamic, this.objForm);
@@ -245,10 +247,6 @@ export class MonitoringFormComponent implements OnInit {
         )
       )
       .subscribe(() => {
-        console.log(' ObjForm Initialized');
-        console.log(this.objForm);
-        console.log(' ObjFormDynamic Initialized');
-        console.log(this.objFormsDynamic);
         this.obj.bIsInitialized = true;
         const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
         if (dynamicGroupsArray) this.subscribeToDynamicGroupsChanges(dynamicGroupsArray);
@@ -261,7 +259,7 @@ export class MonitoringFormComponent implements OnInit {
         scan((prevLength, currentValue) => dynamicGroupsArray.controls.length, 0),
         distinctUntilChanged()
       )
-      .subscribe((length) => {
+      .subscribe((length) => {        
         this.hasDynamicGroups = length > 0;
       });
   }
@@ -501,27 +499,14 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onObjFormValueChange(event) {
-    console.log('CHANGE MAIN FORM');
     // Check si types_site est modifié
     if (event.types_site != null && event.types_site.length != this.idsTypesSite.size) {
-      this.updateTypeSiteForm().subscribe((_) => {
-        this.objForm = this._formService.addMultipleFormGroupsToObjForm(
-          this.objFormsDynamic,
-          this.objForm
-        );
-      });
+      this.updateTypeSiteForm()
     }
-    const change = this.obj.change();
-    if (!change) {
-      return;
-    }
-    setTimeout(() => {
-      change({ objForm: this.objForm, meta: this.meta });
-    }, 100);
+
   }
 
   onObjFormValueChangeDynamic(event, typeSite) {
-    console.log('CHANGE DYNAMIC');
     this.objForm = this._formService.addMultipleFormGroupsToObjForm(
       this.objFormsDynamic,
       this.objForm
@@ -530,6 +515,7 @@ export class MonitoringFormComponent implements OnInit {
     if (!change) {
       return;
     }
+    
     setTimeout(() => {
       change({ objForm: this.objFormsDynamic[typeSite], meta: this.meta });
     }, 100);
@@ -550,76 +536,59 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   updateTypeSiteForm() {
-    return this.objForm.controls['types_site'].valueChanges.pipe(
+    this.objForm.controls['types_site'].valueChanges.pipe(
       distinctUntilChanged(),
-      switchMap((idsTypesSite) =>
-        iif(
-          () => idsTypesSite == undefined || idsTypesSite.length == 0,
-          of({}),
-          from(idsTypesSite).pipe(
-            mergeMap((idTypeSite: number) => {
-              return of({ [idTypeSite]: this.allTypesSiteConfig[idTypeSite] });
-            }),
-            reduce((acc, cur) => ({ ...acc, ...cur }), {})
-          )
-        )
-      ),
-      filter((typesSiteObject) => {
-        // Ici on filtre pour empêcher de continuer l'enchainement cascade des opérations suivant si la liste des types de site est vide
-        const isTypeSelectedEmpty =
-          typesSiteObject === null || Object.keys(typesSiteObject).length === 0;
-        if (isTypeSelectedEmpty) {
-          this.idsTypesSite = new Set<number>();
-          Object.keys(this.isInitialzedObjFormDynamic).forEach(
-            (key) => (this.isInitialzedObjFormDynamic[key] = true)
-          );
-          this.removeAllDynamicGroups();
-        }
-        return !isTypeSelectedEmpty;
-      }),
-      tap((typesSiteObject) => {
-        this.typesSiteConfig = typesSiteObject;
-        this.idsTypesSite = new Set<number>(Object.keys(typesSiteObject).map(Number)); // Update idsTypesSite with the keys of filteredTypeSiteConfig
-      }),
-      concatMap(() => {
-        const keys = Object.keys(this.typesSiteConfig);
-
-        // Create or update form groups for each typeSite
-        keys.forEach((typeSite) => {
-          if (!this.objFormsDynamic[typeSite]) {
-            // Si dans la liste de type de site un nouveau type de site est ajouté alors on créé un formGroup
-            this.objFormsDynamic[typeSite] = this._formBuilder.group({});
-            this.isInitialzedObjFormDynamic[typeSite] = true;
-          }
-        });
-
-        // Si la nouvelle liste de type de site ne match pas avec la liste de "keys" du objFormDynamic on supprime
+    ).subscribe(idsTypeSite => {
+      
+      if(idsTypeSite && idsTypeSite.length == 0) {
+        // suppresson de tous les champs dynamiques si le champs est vide
+        this.removeAllDynamicGroups();
+      } else {
+        
+        // // Suppressin des formGroup des idSite déselectionnés
         Object.keys(this.objFormsDynamic).forEach((key) => {
-          if (!keys.includes(key)) {
+          if (!idsTypeSite.includes(key)) {
             this.isInitialzedObjFormDynamic[key] = true;
             delete this.objFormsDynamic[key];
           }
         });
-        console.log('Initialisation objFormsDynamic avec comme keys:', keys);
-
-        return forkJoin(
-          keys.map((typeSite) => {
+        this.idsTypesSite = new Set<number>(idsTypeSite); 
+        this.typesSiteConfig = {}
+        // creation des nouveaux formGroup
+        idsTypeSite.forEach((idTypeSite) => {
+          this.typesSiteConfig[idTypeSite] = this.allTypesSiteConfig[idTypeSite];
+          
+          if (!this.objFormsDynamic[idTypeSite]) {
+            // Si dans la liste de type de site un nouveau type de site est ajouté alors on créé un formGroup
+            this.objFormsDynamic[idTypeSite] = this._formBuilder.group({});
             const objFormDefinition = this.initObjFormDefiniton(
-              this.typesSiteConfig[typeSite],
+              this.typesSiteConfig[idTypeSite],
               this.meta
             );
-            console.log(
-              'Initialisation de l objFormDefinition basé sur les nouveaux types de sites',
-              typeSite,
-              objFormDefinition
-            );
-            this.objFormsDefinitionDynamic[typeSite] = objFormDefinition;
-            return of(objFormDefinition);
-          })
-        );
-      })
-    );
+            this.objFormsDefinitionDynamic[idTypeSite] = objFormDefinition;
+            this.isInitialzedObjFormDynamic[idTypeSite] = true;
+          }
+        });
+        
+
+      }
+      this.objForm = this._formService.addMultipleFormGroupsToObjForm(
+        this.objFormsDynamic,
+        this.objForm
+      );
+      console.log("OHH", this.objFormsDynamic);
+
+      const change = this.obj.change();
+      if (!change) {
+        return;
+      }
+      
+      setTimeout(() => {
+        change({ objForm: this.objForm, meta: this.meta });
+      }, 100);
+    })
   }
+
 
   initPermission() {
     this.canDelete =
