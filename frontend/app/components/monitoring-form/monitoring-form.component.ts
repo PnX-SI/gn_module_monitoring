@@ -544,7 +544,7 @@ export class MonitoringFormComponent implements OnInit {
         } else {
           // // Suppressin des formGroup des idSite déselectionnés
           Object.keys(this.objFormsDynamic).forEach((key) => {
-            if (!idsTypeSite.includes(key)) {
+            if (!idsTypeSite.includes(parseInt(key))) {
               this.isInitialzedObjFormDynamic[key] = true;
               delete this.objFormsDynamic[key];
             }
@@ -554,7 +554,6 @@ export class MonitoringFormComponent implements OnInit {
           // creation des nouveaux formGroup
           idsTypeSite.forEach((idTypeSite) => {
             this.typesSiteConfig[idTypeSite] = this.allTypesSiteConfig[idTypeSite];
-
             if (!this.objFormsDynamic[idTypeSite]) {
               // Si dans la liste de type de site un nouveau type de site est ajouté alors on créé un formGroup
               this.objFormsDynamic[idTypeSite] = this._formBuilder.group({});
@@ -571,7 +570,6 @@ export class MonitoringFormComponent implements OnInit {
           this.objFormsDynamic,
           this.objForm
         );
-        console.log('OHH', this.objFormsDynamic);
 
         const change = this.obj.change();
         if (!change) {
