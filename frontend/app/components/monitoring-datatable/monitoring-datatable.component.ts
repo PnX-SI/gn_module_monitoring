@@ -9,13 +9,14 @@ import {
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
+import { ListService } from '../../services/list.service';
 import { Subject } from 'rxjs';
 import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
 import { CommonService } from '@geonature_common/service/common.service';
 import { ObjectService } from '../../services/object.service';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { Utils } from '../../utils/utils';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -62,7 +63,8 @@ export class MonitoringDatatableComponent implements OnInit {
   constructor(
     private _monitoring: MonitoringObjectService,
     private _commonService: CommonService,
-    private _objectService: ObjectService
+    private _objectService: ObjectService,
+    private _listService: ListService
   ) {}
 
   ngOnInit() {
@@ -79,8 +81,21 @@ export class MonitoringDatatableComponent implements OnInit {
 
   initDatatable() {
     this.filters = this.child0.configParam('filters');
+
+    if (this._listService.arrayTableFilters$.getValue() == null) {
+      this._listService.arrayTableFilters = [];
+    }
+    this._listService.arrayTableFilters[this.child0.objectType] = Utils.copy(this.filters);
+
+    // Default value
+    if (this._listService.listType$.getValue() == this.child0.objectType) {
+      this._listService.tableFilters = Utils.copy(this.filters);
+    }
+
+    // Subscribe to filters event
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
-      this.filter();
+      this.filter(false);
+      this._listService.tableFilters = Utils.copy(this.filters);
     });
 
     this.customColumnComparator = this.customColumnComparator_();
@@ -100,7 +115,6 @@ export class MonitoringDatatableComponent implements OnInit {
   filter(bInitFilter = false) {
     // filter all
     let bChange = false;
-
     const temp = this.row_save.filter((row, index) => {
       let bCondVisible = true;
       for (const key of Object.keys(this.filters)) {
@@ -120,9 +134,10 @@ export class MonitoringDatatableComponent implements OnInit {
     });
 
     this.rowStatusChange.emit({});
+
     // Emmet les filtrers et le nombre de données répondant aux critères dans la liste
     this.onFilter.emit({ filters: this.filters, nb_row: temp.length });
-    // update the rows
+
     this.rows = temp;
     // Whenever the filter changes, always go back to the first page
     this.table.offset = 0;

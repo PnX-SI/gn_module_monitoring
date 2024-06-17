@@ -37,9 +37,6 @@ export class MonitoringFormComponent implements OnInit {
   @Input() obj: MonitoringObject;
   @Output() objChanged = new EventEmitter<MonitoringObject>();
 
-  @Input() objectsStatus;
-  @Output() objectsStatusChange = new EventEmitter<Object>();
-
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
 

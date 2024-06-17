@@ -6,6 +6,7 @@ import { MonitoringObject } from '../../class/monitoring-object';
 
 import { Utils } from '../../utils/utils';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { ListService } from '../../services/list.service';
 
 @Component({
   selector: 'pnx-monitoring-lists',
@@ -19,15 +20,11 @@ export class MonitoringListComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
-  @Input() filters;
   @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
-  @Input() objectListType: string;
-  @Output() objectListTypeChange: EventEmitter<string> = new EventEmitter<string>();
 
   @Input() selectedObject;
   @Output() selectedObjectChange: EventEmitter<string> = new EventEmitter<string>();
 
-  activetab: string;
   nbVisibleRows: Record<string, number> = {};
   frontendModuleMonitoringUrl;
   backendUrl: string;
@@ -41,16 +38,18 @@ export class MonitoringListComponent implements OnInit {
   queyParamsNewObject = {};
 
   // medias;
-  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
-
   canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
-  constructor(private _configService: ConfigService) {}
+  constructor(
+    private _configService: ConfigService,
+    private _listService: ListService
+  ) {}
 
   ngOnInit() {
-    this._configService.init(this.obj.moduleCode).subscribe(() => {
-      this.initDataTable();
-    });
+    // Permet d'éviter une double initialisation du composant
+    // this._configService.init(this.obj.moduleCode).subscribe(() => {
+    //   this.initDataTable();
+    // });
   }
 
   initDataTable() {
@@ -66,9 +65,6 @@ export class MonitoringListComponent implements OnInit {
     this.backendUrl = this._configService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
-    this.activetab = this.children0Array[0] && this.children0Array[0].objectType;
-
-    this.objectListType = this.children0Array[0] && this.children0Array[0].objectType;
 
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
@@ -94,21 +90,16 @@ export class MonitoringListComponent implements OnInit {
   }
 
   onFilterChange(type, event) {
-    const filters = event['filters'];
     const nb_row = event['nb_row'];
-    if (event) {
-      this.filters = filters;
-      this.filtersChange.emit(Utils.copy(this.filters));
-      this.objectListTypeChange.emit(Utils.copy(this.objectListType));
-    }
     this.nbVisibleRows[type] = nb_row;
   }
 
   changeActiveTab(typeObject, tab) {
-    this.activetab = this.children0Array[typeObject['index']];
+    const activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
-    this.objectListType = this.children0Array[typeObject['index']]['objectType'];
-    this.objectListTypeChange.emit(this.objectListType);
+    this._listService.listType = activetab['objectType'];
+    this._listService.tableFilters =
+      this._listService.arrayTableFilters$.getValue()[activetab['objectType']];
   }
 
   onbEditChanged(event) {
