@@ -8,7 +8,7 @@ export interface IobjObs<T> {
   properties: T | {};
   endPoint: endPoints;
   objectType: 'site' | 'sites_group' | 'visit';
-  routeBase: 'sites' | 'sites_group' | 'visit';
+  routeBase: 'site' | 'site_group' | 'visit';
   label: string;
   addObjLabel: string;
   editObjLabel: string;
