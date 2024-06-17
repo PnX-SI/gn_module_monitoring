@@ -358,20 +358,10 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    if (this.dataTableArray.length == 1) {
+      
       this.router.navigate(['create'], {
         relativeTo: this._Activatedroute,
       });
-    } else {
-      this.router.navigate([
-        'monitorings',
-        this.dataTableArray[this.activetabIndex].routeBase,
-        'create',
-      ]);
-    }
-
-    // TODO: gérer la gestion de l'ajout (et ajout d'objet enfant) d'objet de type "site" depuis la page d'accueil de visualisation de groupe de site/ site
-    //
   }
 
   navigateToDetail(row) {
