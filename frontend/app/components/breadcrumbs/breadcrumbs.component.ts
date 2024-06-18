@@ -79,12 +79,20 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   onClick(elem) {
+    console.log('la??????', elem);
+
     this.bEditChange.emit(false);
     setTimeout(() => {
       if (elem) {
         if (this.obj == undefined) {
-          const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');
-          this._router.navigateByUrl(url);
+          console.log(elem.url);
+
+          this._router.navigate([
+            this._configService.frontendModuleMonitoringUrl(),
+            'object',
+            'generic',
+            elem.url,
+          ]);
         } else {
           this._router.navigate(
             [
