@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of} from 'rxjs';
+import { mergeMap, concatMap, tap } from 'rxjs/operators'; 
 
 import { endPoints } from '../../enum/endpoints';
 import { ISite, ISiteType } from '../../interfaces/geom';
@@ -15,7 +16,11 @@ import { IBreadCrumb } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 import { GeoJSONService } from '../../services/geojson.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { concatMap, tap } from 'rxjs/operators';
+
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
+import { MonitoringObject } from '../../class/monitoring-object';
+
 
 @Component({
   selector: 'monitoring-sites-create',
@@ -24,7 +29,7 @@ import { concatMap, tap } from 'rxjs/operators';
 })
 export class MonitoringSitesCreateComponent implements OnInit {
   site: ISite;
-  form: FormGroup;
+  objForm: FormGroup;
   paramToFilt: string = 'label';
   funcToFilt: Function;
   titleBtn: string = 'Choix des types de sites';
@@ -39,89 +44,89 @@ export class MonitoringSitesCreateComponent implements OnInit {
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
   breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
 
+  obj: MonitoringObject;
+  bEdit: boolean = true;
   currentUser: User;
   constructor(
     private _auth: AuthService,
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private _sitesGroupService: SitesGroupService,
-    public siteService: SitesService,
-    private route: ActivatedRoute,
+    public siteService: SitesService, 
     private _objService: ObjectService,
-    public geojsonService: GeoJSONService
+    public geojsonService: GeoJSONService,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService, 
+    protected _configService: ConfigService, 
+    private _route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
+    console.log("ngOnInit")  
+    this.bEdit = true;
+    this.objForm = this._formBuilder.group({});
+
+    const elements = document.getElementsByClassName('monitoring-map-container');
+    if (elements.length >= 1) {
+      elements[0].remove();
+    } 
+
+    this.obj = new MonitoringObject(
+      'generic',
+      'site',
+      null,
+      this._monitoringObjServiceMonitoring
+    ); 
     this.currentUser = this._auth.getCurrentUser();
-    this.route.parent.url
-      .pipe(
-        tap((urlPath) => {
-          const urlParent = urlPath[urlPath.length - 1].path;
-          this.urlRelative =
-            urlParent == 'sites'
-              ? '/monitorings'
-              : this.removeLastPart(this.route.snapshot['_routerState'].url);
-        }),
-        concatMap(() => {
-          return this.route.data;
+
+    this._route.paramMap.pipe( 
+        mergeMap(() => {
+          return this.initConfig();
+        }), 
+        mergeMap(() => {
+         return this.obj.get(0);
         })
       )
-      .subscribe(({ data }) => {
-        data ? (this.id_sites_group = data.id_sites_group) : (this.id_sites_group = null);
-
-        this._formService.dataToCreate(
-          {
-            module: 'generic',
-            objectType: 'site',
-            id: null,
-            id_sites_group: this.id_sites_group,
-            id_relationship: ['id_sites_group', 'types_site'],
-            endPoint: endPoints.sites,
-            objSelected: data ? data.objectType : {},
-          },
-          this.urlRelative
-        );
-        this.form = this._formBuilder.group({});
-        this.funcToFilt = this.partialfuncToFilt.bind(this);
-        data ? this.updateBreadCrumb(data) : null;
-      });
+      .subscribe((params) => { 
+        this.obj.initTemplate();
+        this._formService.changeFormMapObj({
+          frmGp: this.objForm,
+          bEdit: true,
+          obj: this.obj,
+        });
+        this.obj.bIsInitialized = true;
+      }) 
+  } 
+  
+  onObjChanged(obj: MonitoringObject) {
+    this.obj = obj;
+    
   }
-
-  removeLastPart(url: string): string {
-    return url.slice(0, url.lastIndexOf('/'));
-  }
-
-  partialfuncToFilt(
-    pageNumber: number,
-    limit: number,
-    valueToFilter: string
-  ): Observable<IPaginated<ISiteType>> {
-    return this.siteService.getTypeSites(pageNumber, limit, {
-      label_fr: valueToFilter,
-      sort_dir: 'desc',
-    });
-  }
-
-  onSendConfig(config: JsonData): void {
-    this.config = this.addTypeSiteListIds(config);
-    this.createFormSpec();
-  }
-
-  addTypeSiteListIds(config: JsonData): JsonData {
-    if (config && config.length != 0) {
-      config.types_site = [];
-      for (const key in config) {
-        if ('id_nomenclature_type_site' in config[key]) {
-          config.types_site.push(config[key]['id_nomenclature_type_site']);
+ 
+  initConfig(): Observable<any> {
+    return this._configService.init().pipe(
+      concatMap(() => {
+        if (this.obj.objectType == 'site' && this.obj.id != null) {
+          return this._monitoringObjServiceMonitoring
+            .configService()
+            .loadConfigSpecificConfig(this.obj)
+            .pipe(
+              tap((config) => {
+                this.obj.template_specific = this._monitoringObjServiceMonitoring
+                  .configService()
+                  .addSpecificConfig(config);
+              })
+            );
+        } else {
+          return of(null);
         }
-      }
-    }
-    return config;
+      }),
+      mergeMap(() => {
+        return of(true);
+      })
+    ); 
   }
-
-  createFormSpec() {
-    this._formService.createSpecificForm(this.config);
-  }
+ 
+   
 
   updateBreadCrumb(sitesGroup) {
     this.breadCrumbElemnt.description = sitesGroup.sites_group_name;

@@ -2,19 +2,6 @@
   <span class="obj-title">{{ siteService.objectObs.addObjLabel }}</span>
 </div>
 <div>
-  <pnx-monitoring-form-g
-    [apiService]="siteService"
-    [isExtraForm]="true"
-    [objForm]="form"
-    [currentUser]="currentUser"
-  >
-    <btn-select
-      add-select
-      (sendobject)="onSendConfig($event)"
-      [titleBtn]="titleBtn"
-      [placeholderText]="placeholderText"
-      [callBackFunction]="funcToFilt"
-      [paramToFilt]="paramToFilt"
-    ></btn-select>
-  </pnx-monitoring-form-g>
+  <pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
+    [(bEdit)]="bEdit"></pnx-monitoring-form>
 </div>
