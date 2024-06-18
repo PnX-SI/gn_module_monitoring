@@ -218,7 +218,14 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this._sites_group_service.objectObs.objectType,
       this._sites_group_service.objectObs.endPoint
     );
-    this.router.navigate(['monitorings', this.currentRoute, $event[$event.id], { edit: true }]);
+    this.router.navigate([
+      'monitorings',
+      'object',
+      'generic',
+      this.currentRoute,
+      $event[$event.id],
+      { edit: true },
+    ]);
   }
 
   onDelete(event) {

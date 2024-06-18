@@ -358,10 +358,10 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-      
-      this.router.navigate(['create'], {
-        relativeTo: this._Activatedroute,
-      });
+
+    this.router.navigate(['create'], {
+      relativeTo: this._Activatedroute,
+    });
   }
 
   navigateToDetail(row) {
@@ -370,6 +370,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   editSelectedItem(row) {
+    console.log('YESSSSS');
+
     row['id'] = row.pk;
     this.onEditEvent.emit(row);
   }

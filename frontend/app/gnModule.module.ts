@@ -88,6 +88,7 @@ const routes: Routes = [
       },
       {
         path: ':id',
+        // TODO : POURQUOI le composant est nomé visite ??
         component: MonitoringVisitsComponent,
       },
     ],

@@ -1,13 +1,13 @@
 const getElementSiteGroupBC = {
   description: 'Liste des groupes de site',
   label: '',
-  url: 'sites_group',
+  url: 'site_group',
 };
 
 const getElementSiteBC = {
   description: 'Liste des sites',
   label: '',
-  url: 'sites',
+  url: 'site',
 };
 
 export class breadCrumbBase {
