@@ -30,11 +30,11 @@ import { MonitoringObjectService } from '../../services/monitoring-object.servic
 import { MonitoringObject } from '../../class/monitoring-object';
 
 @Component({
-  selector: 'monitoring-visits',
-  templateUrl: './monitoring-visits.component.html',
-  styleUrls: ['./monitoring-visits.component.css'],
+  selector: 'monitoring-sites-detail',
+  templateUrl: './monitoring-sites-detail.component.html',
+  styleUrls: ['./monitoring-sites-detail.component.css'],
 })
-export class MonitoringVisitsComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IVisit[];
   @Input() page: IPage;
   // colsname: typeof columnNameVisit = columnNameVisit;

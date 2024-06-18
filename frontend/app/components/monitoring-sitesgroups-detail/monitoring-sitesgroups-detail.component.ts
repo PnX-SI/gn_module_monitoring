@@ -26,11 +26,11 @@ import { PermissionService } from '../../services/permission.service';
 const LIMIT = 10;
 
 @Component({
-  selector: 'monitoring-sites',
-  templateUrl: './monitoring-sites.component.html',
-  styleUrls: ['./monitoring-sites.component.css'],
+  selector: 'monitoring-sitesgroups-detail',
+  templateUrl: './monitoring-sitesgroups-detail.component.html',
+  styleUrls: ['./monitoring-sitesgroups-detail.component.css'],
 })
-export class MonitoringSitesComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringSitesgroupsDetailComponent extends MonitoringGeomComponent implements OnInit {
   siteGroupId: number;
   sites: ISite[];
   sitesGroup: ISitesGroup;
