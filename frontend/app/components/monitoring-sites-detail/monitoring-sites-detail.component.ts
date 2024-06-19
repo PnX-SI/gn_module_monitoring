@@ -374,7 +374,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   addSpecificConfig() {
     // const schemaSpecificType = Object.assign({},...this.types_site)
     let schemaSpecificType = {};
-    let schemaTypeMerged = {};
+    let schemaTypeMerged: any = {};
     let keyHtmlToPop = '';
     for (let type_site of this.types_site) {
       if ('specific' in (type_site['config'] || {})) {
@@ -392,27 +392,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       }
     }
 
-    const fieldNames = this._configJsonService.fieldNames(
-      'generic',
-      'site',
-      'display_properties',
-      schemaTypeMerged
-    );
-    const fieldNamesList = this._configJsonService.fieldNames(
-      'generic',
-      'site',
-      'display_list',
-      schemaTypeMerged
-    );
     const fieldLabels = this._configJsonService.fieldLabels(schemaSpecificType);
     const fieldDefinitions = this._configJsonService.fieldDefinitions(schemaSpecificType);
     this.objParent['template_specific'] = {};
-    this.objParent['template_specific']['fieldNames'] = fieldNames;
-    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
+    this.objParent['template_specific']['fieldNames'] = Object.keys(schemaTypeMerged.specific); // on affiche tous les champs spécifique aux type de site dans l'onglet proprietés spécifique
+    this.objParent['template_specific']['fieldNamesList'] = []; // sur la liste on affiche pasles champs spécifiques aux type de site
     this.objParent['template_specific']['schema'] = schemaSpecificType;
     this.objParent['template_specific']['fieldLabels'] = fieldLabels;
     this.objParent['template_specific']['fieldDefinitions'] = fieldDefinitions;
-    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
   }
 
   initValueToSend() {

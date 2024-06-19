@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, of} from 'rxjs';
-import { mergeMap, concatMap, tap } from 'rxjs/operators'; 
+import { Observable, of } from 'rxjs';
+import { mergeMap, concatMap, tap } from 'rxjs/operators';
 
 import { endPoints } from '../../enum/endpoints';
 import { ISite, ISiteType } from '../../interfaces/geom';
@@ -20,7 +20,6 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 import { MonitoringObject } from '../../class/monitoring-object';
-
 
 @Component({
   selector: 'monitoring-sites-create',
@@ -52,41 +51,37 @@ export class MonitoringSitesCreateComponent implements OnInit {
     private _formService: FormService,
     private _formBuilder: FormBuilder,
     private _sitesGroupService: SitesGroupService,
-    public siteService: SitesService, 
+    public siteService: SitesService,
     private _objService: ObjectService,
     public geojsonService: GeoJSONService,
-    private _monitoringObjServiceMonitoring: MonitoringObjectService, 
-    protected _configService: ConfigService, 
-    private _route: ActivatedRoute,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService,
+    protected _configService: ConfigService,
+    private _route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    console.log("ngOnInit")  
+    console.log('ngOnInit');
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
 
     const elements = document.getElementsByClassName('monitoring-map-container');
     if (elements.length >= 1) {
       elements[0].remove();
-    } 
+    }
 
-    this.obj = new MonitoringObject(
-      'generic',
-      'site',
-      null,
-      this._monitoringObjServiceMonitoring
-    ); 
+    this.obj = new MonitoringObject('generic', 'site', null, this._monitoringObjServiceMonitoring);
     this.currentUser = this._auth.getCurrentUser();
 
-    this._route.paramMap.pipe( 
+    this._route.paramMap
+      .pipe(
         mergeMap(() => {
           return this.initConfig();
-        }), 
+        }),
         mergeMap(() => {
-         return this.obj.get(0);
+          return this.obj.get(0);
         })
       )
-      .subscribe((params) => { 
+      .subscribe((params) => {
         this.obj.initTemplate();
         this._formService.changeFormMapObj({
           frmGp: this.objForm,
@@ -94,14 +89,13 @@ export class MonitoringSitesCreateComponent implements OnInit {
           obj: this.obj,
         });
         this.obj.bIsInitialized = true;
-      }) 
-  } 
-  
+      });
+  }
+
   onObjChanged(obj: MonitoringObject) {
     this.obj = obj;
-    
   }
- 
+
   initConfig(): Observable<any> {
     return this._configService.init().pipe(
       concatMap(() => {
@@ -123,10 +117,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
       mergeMap(() => {
         return of(true);
       })
-    ); 
+    );
   }
- 
-   
 
   updateBreadCrumb(sitesGroup) {
     this.breadCrumbElemnt.description = sitesGroup.sites_group_name;

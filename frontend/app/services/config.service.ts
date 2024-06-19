@@ -276,8 +276,14 @@ export class ConfigService {
   }
 
   fieldNames(moduleCode, objectType, typeDisplay = '', confObject = {}) {
+    console.log('HOOOO');
+
     if (['display_properties', 'display_list'].includes(typeDisplay)) {
       if (Object.keys(confObject).length > 0) {
+        console.log('LA?????');
+        console.log(confObject);
+        console.log(typeDisplay);
+
         return confObject[typeDisplay];
       }
       return this.configModuleObjectParam(moduleCode, objectType, typeDisplay);

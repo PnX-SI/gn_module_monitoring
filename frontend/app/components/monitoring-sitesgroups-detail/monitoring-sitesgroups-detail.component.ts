@@ -30,7 +30,10 @@ const LIMIT = 10;
   templateUrl: './monitoring-sitesgroups-detail.component.html',
   styleUrls: ['./monitoring-sitesgroups-detail.component.css'],
 })
-export class MonitoringSitesgroupsDetailComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringSitesgroupsDetailComponent
+  extends MonitoringGeomComponent
+  implements OnInit
+{
   siteGroupId: number;
   sites: ISite[];
   sitesGroup: ISitesGroup;
