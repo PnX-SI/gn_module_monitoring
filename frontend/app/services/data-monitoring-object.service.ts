@@ -73,7 +73,7 @@ export class DataMonitoringObjectService {
    * @param id l'identifiant de l'objet
    */
   getObject(moduleCode, objectType, id = null, depth = null) {
-    const url = this.urlMonitoring('object', moduleCode, objectType, id); 
+    const url = this.urlMonitoring('object', moduleCode, objectType, id);
     const queryParams = this.paramsMonitoring(objectType, { depth });
     return this._cacheService.request('get', url, { queryParams });
   }

@@ -134,7 +134,7 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   initCurrentUser() {
-    this.currentUser = this._auth.getCurrentUser(); 
+    this.currentUser = this._auth.getCurrentUser();
     this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.obj.moduleCode);
   }
 

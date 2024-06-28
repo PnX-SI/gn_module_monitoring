@@ -234,7 +234,7 @@ export class MonitoringObjectService {
   fromForm(elem, val) {
     let x = val;
     if (x == undefined) {
-      return x
+      return x;
     }
     switch (elem.type_widget) {
       case 'date': {
@@ -284,7 +284,7 @@ export class MonitoringObjectService {
     return this._configService;
   }
 
-  navigate(routeType, moduleCode, objectType, id, queryParams = {}) { 
+  navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
     let editParams = '';
     if ('edit' in queryParams && queryParams.edit == true) {
       editParams = 'true';

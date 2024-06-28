@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, of} from 'rxjs';
-import { mergeMap, concatMap, tap } from 'rxjs/operators'; 
+import { Observable, of } from 'rxjs';
+import { mergeMap, concatMap, tap } from 'rxjs/operators';
 
 import { endPoints } from '../../enum/endpoints';
 import { ISite, ISiteType } from '../../interfaces/geom';
@@ -20,7 +20,6 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 import { MonitoringObject } from '../../class/monitoring-object';
-
 
 @Component({
   selector: 'monitoring-sites-create',
