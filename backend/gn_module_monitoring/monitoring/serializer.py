@@ -36,7 +36,8 @@ MonitoringSerializer_dict = {
 class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_parent(self):
         parent_type = self.parent_type()
-        if not parent_type:
+
+        if not parent_type or parent_type == "module":
             return
 
         if not self._parent:
@@ -264,6 +265,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 ]
 
         properties["id_parent"] = to_int(self.id_parent())
+
         monitoring_object_dict = {
             "properties": properties,
             "object_type": self._object_type,
