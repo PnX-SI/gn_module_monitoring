@@ -350,15 +350,16 @@ export class MonitoringDatatableGComponent implements OnInit {
     //  && this.dataTableArray.length == 1 ??? Pourquoi ce test
     if (row) {
       row['id'] = row[row.pk];
+      let queryParams = {};
+      queryParams[row['pk']] = row['id'];
+
       this.router.navigate(
         [
           'monitorings/object/generic/',
           this.dataTableArray[this.activetabIndex]['childType'],
           'create',
         ],
-        {
-          queryParams: { id_parent: row['id'] },
-        }
+        { queryParams: queryParams }
       );
     }
   }
