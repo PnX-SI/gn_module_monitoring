@@ -40,7 +40,6 @@ import { MonitoringPropertiesGComponent } from './components/monitoring-properti
 import { GeoJSONService } from './services/geojson.service';
 import { MonitoringSitesgroupsDetailComponent } from './components/monitoring-sitesgroups-detail/monitoring-sitesgroups-detail.component';
 import { MonitoringMapListComponent } from './components/monitoring-map-list/monitoring-map-list.component';
-import { MonitoringFormComponentG } from './components/monitoring-form-g/monitoring-form.component-g';
 import { FormService } from './services/form.service';
 import { ObjectService } from './services/object.service';
 import { PermissionService } from './services/permission.service';
@@ -94,7 +93,7 @@ const routes: Routes = [
   },
 
   {
-    path: 'object/generic/site_group',
+    path: 'object/generic/sites_group',
     component: MonitoringMapListComponent,
     children: [
       {
@@ -167,7 +166,6 @@ const routes: Routes = [
     MonitoringSitesgroupsDetailComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
-    MonitoringFormComponentG,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
     BtnSelectComponent,

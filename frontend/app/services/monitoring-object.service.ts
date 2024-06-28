@@ -67,12 +67,12 @@ export class MonitoringObjectService {
         }
       }
     }
-
-    for (const parentType of obj.parentTypes()) {
-      obj.getParent(parentType, 1).subscribe(() => {
-        this.setParentCache(obj, objData, parentType);
-      });
-    }
+    //  A voir si necéssaire pb dans le cas des groupes de site du gestionnaire de site
+    // for (const parentType of obj.parentTypes()) {
+    //   obj.getParent(parentType, 1).subscribe(() => {
+    //     this.setParentCache(obj, objData, parentType);
+    //   });
+    // }
   }
 
   setParentCache(obj: MonitoringObject, objData, parentType) {
@@ -233,6 +233,9 @@ export class MonitoringObjectService {
 
   fromForm(elem, val) {
     let x = val;
+    if (x == undefined) {
+      return x
+    }
     switch (elem.type_widget) {
       case 'date': {
         x = x && x.year && x.month && x.day ? `${x.year}-${x.month}-${x.day}` : null;
@@ -281,7 +284,7 @@ export class MonitoringObjectService {
     return this._configService;
   }
 
-  navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+  navigate(routeType, moduleCode, objectType, id, queryParams = {}) { 
     let editParams = '';
     if ('edit' in queryParams && queryParams.edit == true) {
       editParams = 'true';

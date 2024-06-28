@@ -43,9 +43,9 @@ export class BreadcrumbsComponent implements OnInit {
 
   ngOnInit() {
     if (this.obj === undefined) {
-      this._objectService.currentDataBreadCrumb.subscribe(
-        (breadCrumb) => (this.breadcrumbs = breadCrumb)
-      );
+      this._objectService.currentDataBreadCrumb.subscribe((breadCrumb) => {
+        this.breadcrumbs = breadCrumb;
+      });
       return;
     }
   }
@@ -79,20 +79,12 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   onClick(elem) {
-    console.log('la??????', elem);
-
     this.bEditChange.emit(false);
     setTimeout(() => {
       if (elem) {
         if (this.obj == undefined) {
-          console.log(elem.url);
-
-          this._router.navigate([
-            this._configService.frontendModuleMonitoringUrl(),
-            'object',
-            'generic',
-            elem.url,
-          ]);
+          const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');
+          this._router.navigateByUrl(url);
         } else {
           this._router.navigate(
             [

@@ -137,7 +137,7 @@ export class MonitoringFormComponent implements OnInit {
               this.obj['properties']['types_site']
             );
             // Filtre des types de site du module par rapport au type de site de l'objet
-            // Utile pour affichier les formulaires des types de sites de l'objet
+            // Utile pour afficher les formulaires des types de sites de l'objet
             // Utile pour traiter les types de site de l'objet non présents dans le module @TODO
             const objFiltered = Utils.filterObject(
               this.allTypesSiteConfig,
@@ -605,10 +605,13 @@ export class MonitoringFormComponent implements OnInit {
       .formDefinitionsdictToArray(schema, this.meta)
       .filter((formDef) => formDef.type_widget)
       .sort((a, b) => {
-        if (a.attribut_name === 'types_site') return 1;
-        if (b.attribut_name === 'types_site') return -1;
         if (a.attribut_name === 'medias') return 1;
         if (b.attribut_name === 'medias') return -1;
+        return 0;
+      })
+      .sort((a, b) => {
+        if (a.attribut_name === 'types_site') return 1;
+        if (b.attribut_name === 'types_site') return -1;
         return 0;
       });
     return objectFormDefiniton;
@@ -676,22 +679,21 @@ export class MonitoringFormComponent implements OnInit {
    * Initializes specific config from generic config and type site configs.
    * @param genericConfig Generic config object
    * @param specificConfig Specific config object
-   * @param configTyepSite Type site config object
+   * @param configTypeSite Type site config object
    * @param allTypesSiteConfig All type site config object
    */
 
   initializeSpecificConfig(
     genericConfig: JsonData,
     specificConfig: JsonData,
-    configTyepSite: JsonData = {},
+    configTypeSite: JsonData = {},
     allTypesSiteConfig: JsonData = {}
   ) {
     const cleanSpecificConfig = this.initSpecificConfig(
       specificConfig,
-      configTyepSite,
+      configTypeSite,
       allTypesSiteConfig
     );
-    cleanSpecificConfig;
     const confiGenericSpec = Utils.mergeObjects(cleanSpecificConfig, genericConfig);
     this.specificConfig = specificConfig;
     this.confiGenericSpec = confiGenericSpec;

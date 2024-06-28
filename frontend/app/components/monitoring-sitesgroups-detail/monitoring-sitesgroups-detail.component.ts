@@ -22,6 +22,8 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 const LIMIT = 10;
 
@@ -41,7 +43,7 @@ export class MonitoringSitesgroupsDetailComponent
   page: IPage;
   filters = {};
   @Input() bEdit: boolean;
-  objForm: { static: FormGroup };
+  form: FormGroup;
   objectType: IobjObs<ISite>;
   objParent: any;
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
@@ -64,6 +66,8 @@ export class MonitoringSitesgroupsDetailComponent
   currentUser: User;
   currentPermission: TPermission;
 
+  obj: MonitoringObject;
+
   constructor(
     private _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
@@ -78,7 +82,8 @@ export class MonitoringSitesgroupsDetailComponent
     private _formService: FormService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _permissionService: PermissionService,
-    private _popup: Popup
+    private _popup: Popup,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -86,11 +91,13 @@ export class MonitoringSitesgroupsDetailComponent
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this.objForm = { static: this._formBuilder.group({}) };
+    this.form = this._formBuilder.group({});
     // this._sitesGroupService.init()
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
-    this.initSite();
+    this._configService.init().subscribe(() => {
+      this.initSite();
+    });
   }
 
   initSite() {
@@ -110,6 +117,13 @@ export class MonitoringSitesgroupsDetailComponent
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
+
+              this.obj = new MonitoringObject(
+                'generic',
+                'sites_group',
+                params['id'],
+                this._monitoringObjServiceMonitoring
+              );
               return params['id'] as number;
             }),
             mergeMap((id: number) => {
@@ -140,6 +154,7 @@ export class MonitoringSitesgroupsDetailComponent
               return forkJoin({
                 objObsSite: this._siteService.initConfig(),
                 objObsSiteGp: this._sitesGroupService.initConfig(),
+                obj: this.obj.get(0),
               }).pipe(
                 map((objObs) => {
                   return { data, objectObs: objObs };
@@ -220,7 +235,9 @@ export class MonitoringSitesgroupsDetailComponent
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`object/generic/site/${$event.id_base_site}`, { edit: true }], {});
+    this.router.navigate([`object/generic/site/${$event.id_base_site}`, { edit: true }], {
+      relativeTo: this._Activatedroute,
+    });
   }
 
   onDelete(event) {

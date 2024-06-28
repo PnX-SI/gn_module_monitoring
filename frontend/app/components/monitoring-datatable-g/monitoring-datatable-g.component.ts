@@ -59,7 +59,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() onFilter = new EventEmitter<any>();
   @Output() onSetPage = new EventEmitter<any>();
   @Output() onDetailsRow = new EventEmitter<any>();
-  @Output() addEvent = new EventEmitter<any>();
   @Output() tabChanged = new EventEmitter<any>();
 
   @Output() onDeleteEvent = new EventEmitter<any>();
@@ -345,23 +344,33 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.initPermissionAction();
     }
   }
+
   navigateToAddChildren(_, row) {
-    this.addEvent.emit(row);
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    if (row && this.dataTableArray.length == 1) {
+    //  && this.dataTableArray.length == 1 ??? Pourquoi ce test
+    if (row) {
       row['id'] = row[row.pk];
-      this.router.navigate([row.id, 'create'], {
-        relativeTo: this._Activatedroute,
-      });
+      this.router.navigate(
+        [
+          'monitorings/object/generic/',
+          this.dataTableArray[this.activetabIndex]['childType'],
+          'create',
+        ],
+        {
+          queryParams: { id_parent: row['id'] },
+        }
+      );
     }
   }
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
 
-    this.router.navigate(['create'], {
-      relativeTo: this._Activatedroute,
-    });
+    this.router.navigate([
+      'monitorings/object/generic/',
+      this.dataTableArray[this.activetabIndex]['objectType'],
+      'create',
+    ]);
   }
 
   navigateToDetail(row) {
@@ -370,8 +379,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   editSelectedItem(row) {
-    console.log('YESSSSS');
-
     row['id'] = row.pk;
     this.onEditEvent.emit(row);
   }

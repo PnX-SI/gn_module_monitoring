@@ -113,30 +113,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     });
   }
 
-  initConfig(): Observable<any> {
-    return this._configService.init().pipe(
-      concatMap(() => {
-        if (this.obj.objectType == 'site' && this.obj.id != null) {
-          return this._monitoringObjServiceMonitoring
-            .configService()
-            .loadConfigSpecificConfig(this.obj)
-            .pipe(
-              tap((config) => {
-                this.obj.template_specific = this._monitoringObjServiceMonitoring
-                  .configService()
-                  .addSpecificConfig(config);
-              })
-            );
-        } else {
-          return of(null);
-        }
-      }),
-      mergeMap(() => {
-        return of(true);
-      })
-    );
-  }
-
   initSiteVisit() {
     // Get obj data
 
@@ -374,7 +350,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   addSpecificConfig() {
     // const schemaSpecificType = Object.assign({},...this.types_site)
     let schemaSpecificType = {};
-    let schemaTypeMerged: any = {};
+    let schemaTypeMerged = {};
     let keyHtmlToPop = '';
     for (let type_site of this.types_site) {
       if ('specific' in (type_site['config'] || {})) {
@@ -392,14 +368,27 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       }
     }
 
+    const fieldNames = this._configJsonService.fieldNames(
+      'generic',
+      'site',
+      'display_properties',
+      schemaTypeMerged
+    );
+    const fieldNamesList = this._configJsonService.fieldNames(
+      'generic',
+      'site',
+      'display_list',
+      schemaTypeMerged
+    );
     const fieldLabels = this._configJsonService.fieldLabels(schemaSpecificType);
     const fieldDefinitions = this._configJsonService.fieldDefinitions(schemaSpecificType);
     this.objParent['template_specific'] = {};
-    this.objParent['template_specific']['fieldNames'] = Object.keys(schemaTypeMerged.specific); // on affiche tous les champs spécifique aux type de site dans l'onglet proprietés spécifique
-    this.objParent['template_specific']['fieldNamesList'] = []; // sur la liste on affiche pasles champs spécifiques aux type de site
+    this.objParent['template_specific']['fieldNames'] = fieldNames;
+    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
     this.objParent['template_specific']['schema'] = schemaSpecificType;
     this.objParent['template_specific']['fieldLabels'] = fieldLabels;
     this.objParent['template_specific']['fieldDefinitions'] = fieldDefinitions;
+    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
   }
 
   initValueToSend() {
@@ -443,7 +432,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.breadCrumbChild['url'] = [
       this.breadCrumbElementBase.url,
       this.breadCrumbParent.id?.toString(),
-      this.breadCrumbChild.objectType,
+      'object/generic/site',
       this.breadCrumbChild.id?.toString(),
     ].join('/');
 
@@ -457,10 +446,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.breadCrumbChild.label = 'Site';
     this.breadCrumbChild['id'] = sites.id_base_site;
     this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
-    this.breadCrumbChild['url'] = [
-      this.breadCrumbChild.objectType,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
+    this.breadCrumbChild['url'] = ['object/generic/site', this.breadCrumbChild.id?.toString()].join(
+      '/'
+    );
 
     this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbChild];
     this._objService.changeBreadCrumb(this.breadCrumbList, true);
