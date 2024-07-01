@@ -65,6 +65,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() onEditEvent = new EventEmitter<any>();
 
   @Input() bDeleteModalEmitter: EventEmitter<boolean>;
+  @Input() parentPath: string;
+
   bDeleteModal: boolean = false;
   bDeleteSpinner: boolean = false;
 
@@ -352,6 +354,7 @@ export class MonitoringDatatableGComponent implements OnInit {
       row['id'] = row[row.pk];
       let queryParams = {};
       queryParams[row['pk']] = row['id'];
+      queryParams['parents_path'] = this.parentPath;
 
       this.router.navigate(
         [
@@ -404,5 +407,4 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.rowSelected['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
   }
-
 }

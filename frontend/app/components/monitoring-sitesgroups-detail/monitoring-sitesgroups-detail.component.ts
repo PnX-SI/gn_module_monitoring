@@ -226,19 +226,17 @@ export class MonitoringSitesgroupsDetailComponent
   seeDetails($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([
-      `/monitorings/object/generic/site/${$event.id_base_site}`,
-      { parents_path: ['module', 'sites_group'] },
-    ]);
+    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+      queryParams: { parents_path: ['module', 'sites_group'] },
+    });
   }
 
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([
-      `/monitorings/object/generic/site/${$event.id_base_site}`,
-      { edit: true, parents_path: ['module', 'sites_group'] },
-    ]);
+    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+      queryParams: { parents_path: ['module', 'sites_group'] },
+    }); 
   }
 
   onDelete(event) {

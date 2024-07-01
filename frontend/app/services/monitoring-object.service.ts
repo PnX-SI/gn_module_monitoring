@@ -305,4 +305,26 @@ export class MonitoringObjectService {
       }
     );
   }
+  
+  navigateGeneric(routeType, moduleCode, objectType, id, action, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
+    this._router.navigate(
+      [
+        this._configService.frontendModuleMonitoringUrl(),
+        routeType,
+        moduleCode,
+        objectType,
+        id,
+        { edit: editParams },
+      ].filter((s) => !!s),
+      {
+        queryParams,
+      }
+    );
+  }
 }
