@@ -130,13 +130,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSiteGroups(): Function {
-    const baseUrl = this.currentRoute;
     return (feature, layer) => {
-      const popup = this._popup.setPopup(
-        baseUrl + '/' + feature.properties.id_sites_group,
-        feature,
-        'sites_group_name'
-      );
+      const popup = this._popup.setSiteGroupPopup('generic', feature, {});
       layer.bindPopup(popup);
     };
   }
@@ -189,10 +184,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSite() {
-    const baseUrl = 'monitorings/' + this.currentRoute;
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature);
-
+      const popup = this._popup.setSitePopup('generic', feature, {});
       layer.bindPopup(popup);
     };
   }
@@ -365,9 +358,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this._configJsonService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
       const keys = Object.keys(this._configJsonService.config()[moduleCode]);
-      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.siteSelectedId, parents_path: parent_paths },
+        queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
       });
     });
   }

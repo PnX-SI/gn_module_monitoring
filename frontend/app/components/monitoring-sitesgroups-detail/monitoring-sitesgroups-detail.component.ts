@@ -91,7 +91,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this.form = this._formBuilder.group({}); 
+    this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
     this._configService.init().subscribe(() => {
@@ -200,9 +200,10 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   onEachFeatureSite() {
-    const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature);
+      const popup = this._popup.setSitePopup('generic', feature, {
+        parents_path: ['module', 'sites_group'],
+      });
       layer.bindPopup(popup);
     };
   }
@@ -236,7 +237,7 @@ export class MonitoringSitesgroupsDetailComponent
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
     this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
       queryParams: { parents_path: ['module', 'sites_group'] },
-    }); 
+    });
   }
 
   onDelete(event) {
@@ -341,9 +342,9 @@ export class MonitoringSitesgroupsDetailComponent
     this._configJsonService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
       const keys = Object.keys(this._configJsonService.config()[moduleCode]);
-      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.siteSelectedId, parents_path: parent_paths },
+        queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
       });
     });
   }
