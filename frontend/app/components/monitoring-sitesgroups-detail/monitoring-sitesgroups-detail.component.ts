@@ -91,8 +91,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this.form = this._formBuilder.group({});
-    // this._sitesGroupService.init()
+    this.form = this._formBuilder.group({}); 
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
     this._configService.init().subscribe(() => {
@@ -227,17 +226,19 @@ export class MonitoringSitesgroupsDetailComponent
   seeDetails($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`object/generic/site/${$event.id_base_site}`], {
-      relativeTo: this._Activatedroute,
-    });
+    this.router.navigate([
+      `/monitorings/object/generic/site/${$event.id_base_site}`,
+      { parents_path: ['module', 'sites_group'] },
+    ]);
   }
 
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`object/generic/site/${$event.id_base_site}`, { edit: true }], {
-      relativeTo: this._Activatedroute,
-    });
+    this.router.navigate([
+      `/monitorings/object/generic/site/${$event.id_base_site}`,
+      { edit: true, parents_path: ['module', 'sites_group'] },
+    ]);
   }
 
   onDelete(event) {
@@ -322,6 +323,7 @@ export class MonitoringSitesgroupsDetailComponent
   onSaveAddChildren($event: SelectObject) {
     this.addNewVisit($event);
   }
+
   getModules() {
     this._siteService
       .getSiteModules(this.siteSelectedId)

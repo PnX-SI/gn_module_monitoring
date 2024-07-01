@@ -196,6 +196,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       layer.bindPopup(popup);
     };
   }
+
   seeDetails($event) {
     // TODO: routerLink
     if (this.activetabIndex == 1) {
@@ -203,7 +204,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
     }
-    this.router.navigate(['monitorings/object/generic/', this.currentRoute, $event[$event.id]]);
+    this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]]);
   }
 
   editChild($event) {
@@ -219,7 +220,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this._sites_group_service.objectObs.endPoint
     );
     this.router.navigate([
-      'monitorings/object/generic/',
+      '/monitorings/object/generic/',
       this.currentRoute,
       $event[$event.id],
       { edit: true },

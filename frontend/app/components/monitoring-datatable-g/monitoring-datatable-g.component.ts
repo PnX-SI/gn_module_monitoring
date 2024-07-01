@@ -355,7 +355,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
       this.router.navigate(
         [
-          'monitorings/object/generic/',
+          '/monitorings/object/generic/',
           this.dataTableArray[this.activetabIndex]['childType'],
           'create',
         ],
@@ -368,7 +368,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
 
     this.router.navigate([
-      'monitorings/object/generic/',
+      '/monitorings/object/generic/',
       this.dataTableArray[this.activetabIndex]['objectType'],
       'create',
     ]);
@@ -405,41 +405,4 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.bDeleteModal = true;
   }
 
-  // TODO: Comprendre le fonctionnement de ObjectStatuts et RowsStatus
-  // initObjectsStatus() {
-  //   const objectsStatus = {};
-  //   for (const childrenType of Object.keys(this.obj.children)) {
-  //     objectsStatus[childrenType] = this.obj.children[childrenType].map(
-  //       (child) => {
-  //         return {
-  //           id: child.id,
-  //           selected: false,
-  //           visible: true,
-  //           current: false,
-  //         };
-  //       }
-  //     );
-  //   }
-
-  //   // init site status
-  //   if (this.obj.siteId) {
-  //     objectsStatus["site"] = [];
-  //     this.sites["features"].forEach((f) => {
-  //       // determination du site courrant
-  //       let cur = false;
-  //       if (f.properties.id_base_site == this.obj.siteId) {
-  //         cur = true;
-  //       }
-
-  //       objectsStatus["site"].push({
-  //         id: f.properties.id_base_site,
-  //         selected: false,
-  //         visible: true,
-  //         current: cur,
-  //       });
-  //     });
-  //   }
-
-  //   this.objectsStatus = objectsStatus;
-  // }
 }

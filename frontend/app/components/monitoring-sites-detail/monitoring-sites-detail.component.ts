@@ -61,7 +61,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   breadCrumbList: IBreadCrumb[] = [];
   objSelected: ISiteField;
   objResolvedProperties: ISiteField;
-
+  parentsPath: string[] = [];
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
@@ -115,7 +115,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   initSiteVisit() {
     // Get obj data
-
     const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
     const $permissionUserObject = this._permissionService.currentPermissionObj;
     $getPermissionMonitoring
@@ -132,7 +131,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
-
+              this.parentsPath = params['parents_path'].split(',');
               this.obj = new MonitoringObject(
                 'generic',
                 'site',
@@ -189,6 +188,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
               );
             }),
             mergeMap((data) => {
+              if (this.parentsPath.includes('sites_group')) {
+                this.siteGroupIdParent = data.site.id_sites_group;
+              }
               if (isNaN(this.siteGroupIdParent)) {
                 return of(data);
               } else {
@@ -277,7 +279,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   seeDetails($event) {
     this.router.navigate([
-      `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
+      `/monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
     ]);
   }
 
