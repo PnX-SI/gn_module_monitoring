@@ -112,7 +112,7 @@
         <button
           mat-raised-button
           color="primary"
-          *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName()"
+          *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName() && addChildren"
           class="btn btn-success float-right"
           (click)="canUpdate ? onSubmit(true) : notAllowedMessage()"
           [disabled]="!objForm.valid"

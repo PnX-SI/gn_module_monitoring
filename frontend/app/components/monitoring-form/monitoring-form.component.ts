@@ -56,6 +56,9 @@ export class MonitoringFormComponent implements OnInit {
 
   @Input() sites: {};
 
+  // Possibilité d'ajouter des enfants depuis le formulaire parent
+  @Input() addChildren: boolean = true;
+
   searchSite = '';
 
   objFormsDefinition;
