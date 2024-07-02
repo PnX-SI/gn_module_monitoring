@@ -159,7 +159,7 @@ class MonitoringObjectBase:
     def parent_config_param(self, param_name):
         parent_type = self.parent_type()
         if parent_type:
-            return self.config_param(param_name)
+            return self._config[parent_type].get(param_name)
 
     def config_schema(self, type_schema="all"):
         """

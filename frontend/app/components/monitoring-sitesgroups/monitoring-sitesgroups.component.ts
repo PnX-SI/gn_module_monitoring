@@ -197,7 +197,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
     }
-    this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]]);
+    this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]], {
+      queryParams: { parents_path: ['module', 'sites_group'] },
+    });
   }
 
   editChild($event) {

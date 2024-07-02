@@ -279,9 +279,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   seeDetails($event) {
-    this.router.navigate([
-      `/monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
-    ]);
+    this.router.navigate(
+      [`/monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`],
+      {
+        queryParams: { parents_path: ['module', 'site'] },
+      }
+    );
   }
 
   getModules() {
