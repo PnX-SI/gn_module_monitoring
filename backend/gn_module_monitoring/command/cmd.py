@@ -17,6 +17,7 @@ from gn_module_monitoring.modules.repositories import get_simple_module
 from gn_module_monitoring.command.utils import (
     process_available_permissions,
     remove_monitoring_module,
+    add_types_site,
     add_nomenclature,
     available_modules,
     installed_modules,
@@ -224,6 +225,11 @@ def cmd_remove_monitoring_module_cmd(module_code):
 def cmd_add_module_nomenclature_cli(module_code):
     return add_nomenclature(module_code)
 
+@click.command("add_module_type_site")
+@click.argument("module_code")
+@with_appcontext
+def cmd_add_module_type_site_cli(module_code):
+    return add_types_site(module_code)
 
 @click.command("synchronize_synthese")
 @click.argument("module_code")
@@ -254,6 +260,7 @@ commands = [
     cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
+    cmd_add_module_type_site_cli,
     cmd_process_all,
     synchronize_synthese,
 ]
