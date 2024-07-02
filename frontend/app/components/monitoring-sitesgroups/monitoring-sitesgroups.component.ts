@@ -222,6 +222,30 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     ]);
   }
 
+  navigateToAddChildren($event) {
+    const row = $event;
+    if (row) {
+      row['id'] = row[row.pk];
+      let queryParams = {};
+      queryParams[row['pk']] = row['id'];
+      queryParams['parents_path'] = ['module', 'sites_group'];
+
+      this.router.navigate(['/monitorings/object/generic/', row['object_type'], 'create'], {
+        queryParams: queryParams,
+      });
+    }
+  }
+
+  navigateToAddObj($event) {
+    const type = $event;
+    const queryParams = {
+      parents_path: ['module'],
+    };
+    this.router.navigate(['/monitorings/object/generic/', type, 'create'], {
+      queryParams: queryParams,
+    });
+  }
+
   onDelete(event) {
     if (event.objectType == 'sites_group') {
       this._sites_group_service.delete(event.rowSelected.id_sites_group).subscribe((del) => {
@@ -330,7 +354,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  onAddChildren(event) {
+  addChildrenVisit(event) {
     if (event.objectType == 'site') {
       this.siteSelectedId = event.rowSelected[event.rowSelected['pk']];
       this.getModules();

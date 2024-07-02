@@ -49,7 +49,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
-  @Output() addFromTable = new EventEmitter<Object>();
+  @Output() addVisitFromTable = new EventEmitter<Object>();
   @Output() saveOptionChildren = new EventEmitter<SelectObject>();
   @Output() bEditChanged = new EventEmitter<boolean>();
   @Input() currentUser;
@@ -63,6 +63,8 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   @Output() onDeleteEvent = new EventEmitter<any>();
   @Output() onEditEvent = new EventEmitter<any>();
+  @Output() onAddChildren = new EventEmitter<any>();
+  @Output() onAddObj = new EventEmitter<any>();
 
   @Input() bDeleteModalEmitter: EventEmitter<boolean>;
   @Input() parentPath: string;
@@ -216,10 +218,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
   }
 
-  addChildren(selected) {
-    this.addFromTable.emit({ rowSelected: selected, objectType: this.activetabType });
-  }
-
   saveOptionChild($event: SelectObject) {
     this.saveOptionChildren.emit($event);
   }
@@ -347,34 +345,19 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
   }
 
+  addChildrenVisit(selected) {
+    this.addVisitFromTable.emit({ rowSelected: selected, objectType: this.activetabType });
+  }
+
   navigateToAddChildren(_, row) {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    //  && this.dataTableArray.length == 1 ??? Pourquoi ce test
-    if (row) {
-      row['id'] = row[row.pk];
-      let queryParams = {};
-      queryParams[row['pk']] = row['id'];
-      queryParams['parents_path'] = this.parentPath;
-
-      this.router.navigate(
-        [
-          '/monitorings/object/generic/',
-          this.dataTableArray[this.activetabIndex]['childType'],
-          'create',
-        ],
-        { queryParams: queryParams }
-      );
-    }
+    row['object_type'] = this.dataTableArray[this.activetabIndex]['childType'];
+    this.onAddChildren.emit(row);
   }
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-
-    this.router.navigate([
-      '/monitorings/object/generic/',
-      this.dataTableArray[this.activetabIndex]['objectType'],
-      'create',
-    ]);
+    this.onAddObj.emit(this.dataTableArray[this.activetabIndex]['objectType']);
   }
 
   navigateToDetail(row) {

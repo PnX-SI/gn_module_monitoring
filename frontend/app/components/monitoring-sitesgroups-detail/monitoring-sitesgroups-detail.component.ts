@@ -240,6 +240,18 @@ export class MonitoringSitesgroupsDetailComponent
     });
   }
 
+  navigateToAddObj($event) {
+    const type = $event;
+    const queryParams = {
+      parents_path: ['module', 'sites_group'],
+    };
+
+    queryParams['id_sites_group'] = this.obj.id;
+    this.router.navigate(['/monitorings/object/generic/', type, 'create'], {
+      queryParams: queryParams,
+    });
+  }
+
   onDelete(event) {
     this._siteService.delete(event.rowSelected.id_base_site).subscribe((del) => {
       setTimeout(() => {
