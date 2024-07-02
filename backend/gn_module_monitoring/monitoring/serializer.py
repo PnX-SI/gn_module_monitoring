@@ -94,11 +94,14 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                     #    non définies dans le schéma
                     val = None
                 data[attribut_name] = val
+
         if data:
             properties["data"] = data
-
+        else:
+            properties["data"] = {}
         # On ajoute les propriétés associées aux types de site qui ne sont ni dans le schema specific ni dans generic ou appartenant au modèle
         prop_remaining_to_check = list(properties.keys())
+
         for prop in prop_remaining_to_check:
             is_in_model = hasattr(self._model, prop)
             if (
