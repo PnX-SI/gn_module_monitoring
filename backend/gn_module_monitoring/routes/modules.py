@@ -91,6 +91,9 @@ def get_modules_api():
 @blueprint.route("/modules/<string:module_code>/types_sites", methods=["GET"])
 def get_all_types_site_from_module_id(module_code):
     module = get_module("module_code", module_code)
-    types_site = query_all_types_site_from_module_id(module.id_module)
+    id_module = None
+    if module:
+        id_module = module.id_module
+    types_site = query_all_types_site_from_module_id(id_module)
     schema = BibTypeSiteSchema()
     return [schema.dump(res) for res in types_site]

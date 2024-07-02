@@ -367,13 +367,24 @@ export class MonitoringObjectBase {
     queryParamsAddChildren['siteId'] = siteId || this.siteId;
     queryParamsAddChildren['parents_path'] = this.parentsPath.concat(this.objectType);
 
-    this._objService.navigate(
-      'create_object',
-      this.moduleCode,
-      childrenType || this.uniqueChildrenType(),
-      null,
-      queryParamsAddChildren
-    );
+    if (this.moduleCode == 'generic') {
+      this._objService.navigateGeneric(
+        'object',
+        this.moduleCode,
+        childrenType || this.uniqueChildrenType(),
+        null,
+        'create',
+        queryParamsAddChildren
+      );
+    } else {
+      this._objService.navigate(
+        'create_object',
+        this.moduleCode,
+        childrenType || this.uniqueChildrenType(),
+        null,
+        queryParamsAddChildren
+      );
+    }
   }
 
   navigateToDetail(id = null, toEdit = false) {
@@ -387,7 +398,6 @@ export class MonitoringObjectBase {
     // cas module
     if (this.objectType.includes('module')) {
       this.navigateToDetail();
-
       // autres cas
     } else {
       const parentType = this.parentType();

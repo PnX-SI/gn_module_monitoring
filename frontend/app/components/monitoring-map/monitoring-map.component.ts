@@ -124,26 +124,15 @@ export class MonitoringMapComponent implements OnInit {
 
   onEachFeatureSite() {
     return (feature, layer) => {
-      const url = [
-        'object',
-        this.obj.moduleCode,
-        'site',
-        layer['feature'].properties.id_base_site,
-      ].join('/');
-      const popup = this._popup.setPopup(url, feature, 'base_site_name');
+      const popup = this._popup.setSitePopup(this.obj.moduleCode, feature, {});
       layer.bindPopup(popup);
     };
   }
 
   onEachFeatureGroupSite() {
     return (feature, layer) => {
-      const url = [
-        'object',
-        this.obj.moduleCode,
-        'sites_group',
-        layer['feature'].properties.id_sites_group,
-      ].join('/');
-      const popup = this._popup.setPopup(url, feature, 'sites_group_name');
+      const popup = this._popup.setSiteGroupPopup(this.obj.moduleCode, feature, {});
+
       layer.bindPopup(popup);
     };
   }

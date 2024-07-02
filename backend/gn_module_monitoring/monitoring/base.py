@@ -72,7 +72,11 @@ class MonitoringObjectBase:
     cruved = {}
 
     def __init__(self, module_code, object_type, config, id=None, model=None):
+        if module_code == "generic":
+            module_code = "MONITORINGS"
+
         self._module_code = module_code
+
         self._object_type = object_type
 
         self._id = id
@@ -126,7 +130,6 @@ class MonitoringObjectBase:
             renverra 'Site'
 
         """
-
         return self._config[self._object_type].get(param_name)
 
     def get_value_generic(self, param_name):
@@ -156,7 +159,7 @@ class MonitoringObjectBase:
     def parent_config_param(self, param_name):
         parent_type = self.parent_type()
         if parent_type:
-            return self.config_param(param_name)
+            return self._config[parent_type].get(param_name)
 
     def config_schema(self, type_schema="all"):
         """

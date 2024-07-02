@@ -8,28 +8,15 @@
   >
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
-<pnx-monitoring-form-g
-  #monitoringFormComponentG
-  [obj]="site"
+<pnx-monitoring-form [obj]="obj" [objForm]="form"
   (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
   [currentUser]="currentUser"
->
-  <btn-select
-    add-select
-    *ngIf="bEdit"
-    (sendobject)="onSendConfig($event)"
-    [titleBtn]="titleBtn"
-    [placeholderText]="placeholderText"
-    [callBackFunction]="funcToFilt"
-    [initValueFunction]="funcInitValues"
-    [paramToFilt]="paramToFilt"
-    [isInitialValues]="isInitialValues"
-  ></btn-select>
-</pnx-monitoring-form-g>
+> 
+</pnx-monitoring-form>
 <pnx-monitoring-properties-g
   *ngIf="!bEdit"
   [(bEdit)]="bEdit"
@@ -54,6 +41,7 @@
   (onDeleteEvent)="onDelete($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
   [permission]="currentPermission"
+  parentPath="site"
 >
   <option-list-btn
     add-button

@@ -239,7 +239,7 @@ export class DataUtilsService {
   // }
 
   getDataUtil(key) {
-    return this._cacheService['_cache']['util'][key];
+    return (this._cacheService['_cache']['util'] || [])[key];
   }
 
   getNomenclatures() {

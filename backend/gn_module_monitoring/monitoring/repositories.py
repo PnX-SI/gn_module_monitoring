@@ -29,9 +29,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         try:
             Model = self.MonitoringModel()
-
             req = select(Model)
-
             # Test pour mettre les relations à joined
             # if depth > 0:
             #     options = []

@@ -43,9 +43,9 @@ export class BreadcrumbsComponent implements OnInit {
 
   ngOnInit() {
     if (this.obj === undefined) {
-      this._objectService.currentDataBreadCrumb.subscribe(
-        (breadCrumb) => (this.breadcrumbs = breadCrumb)
-      );
+      this._objectService.currentDataBreadCrumb.subscribe((breadCrumb) => {
+        this.breadcrumbs = breadCrumb;
+      });
       return;
     }
   }

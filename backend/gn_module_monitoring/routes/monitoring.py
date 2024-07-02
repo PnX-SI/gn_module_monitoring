@@ -36,6 +36,9 @@ from gn_module_monitoring.config.repositories import get_config
 def set_current_module(endpoint, values):
     # recherche du sous-module courrant
     requested_module_code = values.get("module_code") or MODULE_CODE
+    if requested_module_code == "generic":
+        requested_module_code = "MONITORINGS"
+
     current_module = DB.first_or_404(
         statement=select(TModules)
         .options(joinedload(TModules.objects))
@@ -62,7 +65,6 @@ def set_current_module(endpoint, values):
             ),
             description=f"No permission object with code {requested_permission_object_code} {endpoint}",
         )
-
         # si l'object de permission est associé au module => il devient l'objet courant
         # - sinon se sera 'ALL' par defaut
         for module_perm_object in current_module.objects:

@@ -67,12 +67,12 @@ export class MonitoringObjectService {
         }
       }
     }
-
-    for (const parentType of obj.parentTypes()) {
-      obj.getParent(parentType, 1).subscribe(() => {
-        this.setParentCache(obj, objData, parentType);
-      });
-    }
+    //  A voir si necéssaire pb dans le cas des groupes de site du gestionnaire de site
+    // for (const parentType of obj.parentTypes()) {
+    //   obj.getParent(parentType, 1).subscribe(() => {
+    //     this.setParentCache(obj, objData, parentType);
+    //   });
+    // }
   }
 
   setParentCache(obj: MonitoringObject, objData, parentType) {
@@ -167,7 +167,7 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem, moduleCode) {
-    return this._configService.config()[moduleCode].display_field_names[elem.type_util];
+    return (this._configService.config()[moduleCode].display_field_names || [])[elem.type_util];
   }
 
   toForm(elem, val): Observable<any> {
@@ -233,6 +233,9 @@ export class MonitoringObjectService {
 
   fromForm(elem, val) {
     let x = val;
+    if (x == undefined) {
+      return x;
+    }
     switch (elem.type_widget) {
       case 'date': {
         x = x && x.year && x.month && x.day ? `${x.year}-${x.month}-${x.day}` : null;
@@ -282,6 +285,28 @@ export class MonitoringObjectService {
   }
 
   navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
+    this._router.navigate(
+      [
+        this._configService.frontendModuleMonitoringUrl(),
+        routeType,
+        moduleCode,
+        objectType,
+        id,
+        { edit: editParams },
+      ].filter((s) => !!s),
+      {
+        queryParams,
+      }
+    );
+  }
+
+  navigateGeneric(routeType, moduleCode, objectType, id, action, queryParams = {}) {
     let editParams = '';
     if ('edit' in queryParams && queryParams.edit == true) {
       editParams = 'true';

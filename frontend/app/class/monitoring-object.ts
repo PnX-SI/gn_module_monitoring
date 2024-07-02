@@ -92,10 +92,10 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  post(formValue, dataComplement = {}): Observable<any> {
+  post(formValue): Observable<any> {
     return this._objService
       .dataMonitoringObjectService()
-      .postObject(this.moduleCode, this.objectType, this.postData(formValue, dataComplement))
+      .postObject(this.moduleCode, this.objectType, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
           this.id = postData['id'];
@@ -105,15 +105,10 @@ export class MonitoringObject extends MonitoringObjectBase {
       );
   }
 
-  patch(formValue, dataComplement = {}) {
+  patch(formValue) {
     return this._objService
       .dataMonitoringObjectService()
-      .patchObject(
-        this.moduleCode,
-        this.objectType,
-        this.id,
-        this.postData(formValue, dataComplement)
-      )
+      .patchObject(this.moduleCode, this.objectType, this.id, this.postData(formValue))
       .pipe(
         mergeMap((postData) => {
           this._objService.setCache(this, postData);
@@ -197,7 +192,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
   /** postData: obj -> from */
 
-  postData(formValue, dataComplement) {
+  postData(formValue) {
     const propertiesData = {};
     const schema = this.schema();
     for (const attribut_name of Object.keys(schema)) {
@@ -207,20 +202,31 @@ export class MonitoringObject extends MonitoringObjectBase {
       }
       propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
     }
+    // On récupère les champs spécifiques qui ne sont ni dans la config spécifique, générique ou des types de sites sélectionnés
+    // Permet de garder les propriétés du site sur un autre protocole qui appelle ce site avec d'autres types de sites associés
+    if ('additional_data_keys' in formValue && formValue['additional_data_keys'].length > 0) {
+      for (const key of formValue['additional_data_keys']) {
+        propertiesData[key] = formValue[key];
+      }
+    }
 
     let postData = {};
-    if (Object.keys(dataComplement).length == 0) {
-      postData = {
-        properties: propertiesData,
-        // id_parent: this.parentId
-      };
-    } else {
-      postData = {
-        properties: propertiesData,
-        dataComplement: dataComplement,
-        // id_parent: this.parentId
-      };
-    }
+    postData = {
+      properties: propertiesData,
+      // id_parent: this.parentId
+    };
+    // if (Object.keys(dataComplement).length == 0) {
+    //   postData = {
+    //     properties: propertiesData,
+    //     // id_parent: this.parentId
+    //   };
+    // } else {
+    //   postData = {
+    //     properties: propertiesData,
+    //     dataComplement: dataComplement,
+    //     // id_parent: this.parentId
+    //   };
+    // }
 
     if (this.config['geometry_type']) {
       postData['geometry'] = formValue['geometry'];

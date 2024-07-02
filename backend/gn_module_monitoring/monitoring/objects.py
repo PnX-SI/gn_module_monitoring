@@ -26,6 +26,9 @@ class MonitoringSite(MonitoringObjectGeom):
     """
 
     def preprocess_data(self, properties, data=[]):
+        if all(isinstance(x, int) for x in properties["types_site"]):
+            return
+        # TODO: VERIFIER CE QUI EST NECESSAIRE A GARDER ICI
         if len(data) != 0:
             if len(data["types_site"]) > 0 and all(isinstance(x, int) for x in data["types_site"]):
                 properties["types_site"] = data["types_site"]
