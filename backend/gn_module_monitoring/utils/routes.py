@@ -144,7 +144,7 @@ def query_all_types_site_from_site_id(id_site: int):
     return DB.session.scalars(query).unique().all()
 
 
-def query_all_types_site_from_module_id(id_module: int):
+def query_all_types_site_from_module_id(id_module: int = None):
     query = (
         select(BibTypeSite)
         .join(
@@ -152,8 +152,9 @@ def query_all_types_site_from_module_id(id_module: int):
             BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
         )
         .join(TModules, cor_module_type.c.id_module == TModules.id_module)
-        .where(cor_module_type.c.id_module == id_module)
     )
+    if id_module:
+        query = query.where(cor_module_type.c.id_module == id_module)
     return DB.session.scalars(query).unique().all()
 
 
