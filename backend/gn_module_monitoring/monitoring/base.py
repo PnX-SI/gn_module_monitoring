@@ -1,11 +1,5 @@
 from geonature.utils.errors import GeoNatureError
 
-from gn_module_monitoring.config.repositories import (
-    config_param as repositories_config_param,
-    config_schema as repositories_config_schema,
-    get_config as repositories_get_config,
-)
-
 
 class MonitoringDefinitions:
     """
@@ -39,8 +33,18 @@ class MonitoringDefinitions:
                 )
             )
 
-    def monitoring_object_instance(self, module_code, object_type, id=None, model=None):
-        return self.MonitoringObject(object_type)(module_code, object_type, id, model)
+    def monitoring_object_instance(
+        self,
+        module_code,
+        object_type,
+        config,
+        id=None,
+        model=None,
+    ):
+        # force config
+        return self.MonitoringObject(object_type)(
+            module_code, object_type, config=config, id=id, model=model
+        )
 
     def MonitoringModel(self, object_type):
         try:
@@ -60,17 +64,19 @@ class MonitoringObjectBase:
     _object_type = None
     _module_code = None
     _id = None
+    _config = None
 
     _model = None
     _children = {}
     _parent = None
     cruved = {}
 
-    def __init__(self, module_code, object_type, id=None, model=None):
+    def __init__(self, module_code, object_type, config, id=None, model=None):
         self._module_code = module_code
         self._object_type = object_type
 
         self._id = id
+        self._config = config
         if not self._id and model:
             self._id = getattr(model, self.config_param("id_field_name"))
 
@@ -100,11 +106,28 @@ class MonitoringObjectBase:
         Model = monitoring_definitions.MonitoringModel(new_object_type)
         return Model
 
-    def config(self):
-        return repositories_get_config(self._module_code)
+    def config(self, force=False):
+        return self._config
 
     def config_param(self, param_name):
-        return repositories_config_param(self._module_code, self._object_type, param_name)
+        """
+        revoie un parametre de la configuration des objets
+
+        :param param_name: le parametre voulu (id_field_name, label)
+        :return: valeur du paramètre requis
+        :rtype: str
+
+        :Exemple:
+
+        config_param('id_field_name')
+            renverra 'id_base_site'
+
+        config_param('label')
+            renverra 'Site'
+
+        """
+
+        return self._config[self._object_type].get(param_name)
 
     def get_value_generic(self, param_name):
         if not hasattr(self._model, param_name):
@@ -133,11 +156,38 @@ class MonitoringObjectBase:
     def parent_config_param(self, param_name):
         parent_type = self.parent_type()
         if parent_type:
-            return repositories_config_param(self._module_code, parent_type, param_name)
+            return self.config_param(param_name)
 
     def config_schema(self, type_schema="all"):
-        return repositories_config_schema(self._module_code, self._object_type, type_schema)
-        pass
+        """
+        renvoie une liste d'éléments de configuration de formulaire
+
+        pour type_schema:
+            'generic' : renvoie le schema générique
+            'specific' : renvoie le schema spécifique
+            'all': par defaut renvoie tout le schema
+
+        Un élément est un dictionaire de type
+            {
+                "attribut_name": "id_base_site",
+                "Label": "Id du site",
+                "type_widget": "integer",
+                "required": "true",
+            }
+
+        :param module_code: reference le module concerne
+        :param object_type: le type d'object (site, visit, obervation)
+        :param type_schema: le type de schema requis ('all', 'generic', 'specific')
+        :return: tableau d'élément de configuration de formulaire
+        :rtype: list
+        """
+        if type_schema in ["generic", "specific"]:
+            return self._config[self._object_type][type_schema]
+
+        # renvoie le schema complet si type_schema == 'all' ou par defaut
+        schema = dict(self._config[self._object_type]["generic"])
+        schema.update(self._config[self._object_type]["specific"])
+        return schema
 
     # def base_type_object(self):
     #     """

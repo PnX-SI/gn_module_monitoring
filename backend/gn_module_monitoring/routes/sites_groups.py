@@ -28,14 +28,15 @@ from gn_module_monitoring.utils.routes import (
 )
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api,
-    get_config_object,
+    get_serialized_object,
 )
 from gn_module_monitoring.utils.utils import to_int
 
 
 @blueprint.route("/sites_groups/config", methods=["GET"])
 def get_config_sites_groups(id=None, module_code="generic", object_type="sites_group"):
-    obj = get_config_object(module_code, object_type, id)
+    # A QUOI SERT CETTE ROUTE
+    obj = get_serialized_object(module_code, object_type, id)
     return obj["properties"]
 
 
@@ -144,7 +145,7 @@ def patch(scope, _id: int, object_type: str):
         )
 
     module_code = "generic"
-    get_config(module_code, force=True)
+    # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, _id), 201
 
 
@@ -169,7 +170,7 @@ def delete(scope, _id: int, object_type: str):
 @check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def post(object_type: str):
     module_code = "generic"
-    get_config(module_code, force=True)
+    # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type), 201
 
 
