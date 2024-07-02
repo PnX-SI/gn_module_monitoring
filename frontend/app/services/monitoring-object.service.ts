@@ -305,7 +305,7 @@ export class MonitoringObjectService {
       }
     );
   }
-  
+
   navigateGeneric(routeType, moduleCode, objectType, id, action, queryParams = {}) {
     let editParams = '';
     if ('edit' in queryParams && queryParams.edit == true) {

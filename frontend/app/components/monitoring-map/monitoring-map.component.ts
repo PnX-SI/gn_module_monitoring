@@ -132,7 +132,7 @@ export class MonitoringMapComponent implements OnInit {
   onEachFeatureGroupSite() {
     return (feature, layer) => {
       const popup = this._popup.setSiteGroupPopup(this.obj.moduleCode, feature, {});
-       
+
       layer.bindPopup(popup);
     };
   }

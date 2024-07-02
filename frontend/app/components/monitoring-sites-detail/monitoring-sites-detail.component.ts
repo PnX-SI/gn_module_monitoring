@@ -132,7 +132,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             map((params) => {
               this.checkEditParam = params['edit'];
               this.parentsPath =
-                this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || []; 
+                this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
               this.obj = new MonitoringObject(
                 'generic',
                 'site',
