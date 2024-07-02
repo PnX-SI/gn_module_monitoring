@@ -12,10 +12,10 @@ import { SitesService } from '../../services/api-geom.service';
 import {
   concatMap,
   distinctUntilChanged,
-  exhaustMap,
   mergeMap,
   switchMap,
   tap,
+  map,
   toArray,
 } from 'rxjs/operators';
 import { EMPTY, from, iif, of } from 'rxjs';
@@ -204,10 +204,9 @@ export class MonitoringFormComponent implements OnInit {
     this.setQueryParams();
 
     // pour donner la valeur de l'objet au formulaire
-    this.obj.formValues().subscribe((formValue) => {
+    this._formService.formValues(this.obj).subscribe((formValue) => {
       this.objForm.patchValue(formValue);
       this.setDefaultFormValue();
-      // reset geom ?
     });
   }
 
@@ -221,20 +220,17 @@ export class MonitoringFormComponent implements OnInit {
 
     this.setQueryParams();
     // pour donner la valeur de l'objet au formulaire
-    this.obj
-      .formValues()
+    this._formService
+      .formValues(this.obj)
       .pipe(
-        exhaustMap((formValue) => {
-          this.objForm.patchValue(formValue);
-          this.setDefaultFormValue();
-          return of(true);
+        map((formValue) => {
+          return { ...formValue, types_site: this.idsTypesSite };
         }),
-        concatMap(() => {
-          return this.obj.formValues(this.schemaUpdate);
+        concatMap((formValue) => {
+          return of({ ...formValue, ...this._formService.formValues(this.obj, this.schemaUpdate) });
         })
       )
       .subscribe((formValue) => {
-        formValue.types_site = this.idsTypesSite;
         // this.objFormDynamic.disable();
         this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
         // this.objFormDynamic.enable();
@@ -246,7 +242,7 @@ export class MonitoringFormComponent implements OnInit {
       return;
     }
     // pour donner la valeur de l'objet au formulaire
-    this.obj.formValues(this.schemaUpdate).subscribe((formValue) => {
+    this._formService.formValues(this.obj, this.schemaUpdate).subscribe((formValue) => {
       formValue.types_site = this.idsTypesSite;
       // this.objFormDynamic.disable();
       this.objFormDynamic.patchValue(formValue, { onlySelf: true, emitEvent: false });
