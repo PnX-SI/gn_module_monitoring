@@ -130,9 +130,8 @@ class TMonitoringVisits(TBaseVisits):
     )
 
     nb_observations = column_property(
-        select([func.count(TObservations.id_base_visit)]).where(
-            TObservations.id_base_visit == id_base_visit
-        )
+        select([func.count(TObservations.id_base_visit)])
+        .where(TObservations.id_base_visit == id_base_visit)
         .scalar_subquery()
     )
 
@@ -183,16 +182,14 @@ class TMonitoringSites(TBaseSites):
     )
 
     last_visit = column_property(
-        select([func.max(TBaseVisits.visit_date_min)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select([func.max(TBaseVisits.visit_date_min)])
+        .where(TBaseVisits.id_base_site == id_base_site)
         .scalar_subquery()
     )
 
     nb_visits = column_property(
-        select([func.count(TBaseVisits.id_base_site)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select([func.count(TBaseVisits.id_base_site)])
+        .where(TBaseVisits.id_base_site == id_base_site)
         .scalar_subquery()
     )
 
@@ -253,14 +250,14 @@ class TMonitoringSitesGroups(DB.Model):
     )
 
     nb_sites = column_property(
-        select([func.count(TMonitoringSites.id_sites_group)]).where(
-            TMonitoringSites.id_sites_group == id_sites_group
-        )
+        select([func.count(TMonitoringSites.id_sites_group)])
+        .where(TMonitoringSites.id_sites_group == id_sites_group)
         .scalar_subquery()
     )
 
     nb_visits = column_property(
-        select([func.count(TMonitoringVisits.id_base_site)]).where(
+        select([func.count(TMonitoringVisits.id_base_site)])
+        .where(
             and_(
                 TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
                 TMonitoringSites.id_sites_group == id_sites_group,
@@ -374,11 +371,12 @@ TMonitoringSitesGroups.visits = DB.relationship(
     primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
     secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
     secondary="gn_monitoring.t_site_complements",
-     overlaps="sites,sites_group",
+    overlaps="sites,sites_group",
 )
 
 TMonitoringSitesGroups.nb_visits = column_property(
-    select([func.count(TMonitoringVisits.id_base_site)]).where(
+    select([func.count(TMonitoringVisits.id_base_site)])
+    .where(
         and_(
             TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
