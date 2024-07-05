@@ -15,7 +15,7 @@ from sqlalchemy.sql import column
 revision = "2894b3c03c66"
 down_revision = "6a15625a0f4a"
 branch_labels = None
-depends_on = "84f40d008640"  # t_individuals (geonature)
+depends_on = ("84f40d008640",)  # t_individuals (geonature)
 
 monitorings_schema = "gn_monitoring"
 table = "t_observations"

@@ -1,7 +1,7 @@
 """add cd_nom t_module_complements
 
 Revision ID: 398f94b364f7
-Revises: 3ffeea74a9dd
+Revises: 2894b3c03c66
 Create Date: 2023-12-20 13:52:18.563621
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "398f94b364f7"
-down_revision = "3ffeea74a9dd"
+down_revision = "2894b3c03c66"
 branch_labels = None
 depends_on = None
 
