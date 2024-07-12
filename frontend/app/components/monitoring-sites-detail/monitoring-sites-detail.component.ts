@@ -190,9 +190,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             }),
             mergeMap((data) => {
               if (this.parentsPath.includes('sites_group')) {
-                this.siteGroupIdParent = data.site.id_sites_group;
+                this.siteGroupIdParent = data.site.id_sites_group;                
               }
-              if (isNaN(this.siteGroupIdParent)) {
+              if (!this.siteGroupIdParent) {
                 return of(data);
               } else {
                 return iif(
