@@ -192,13 +192,17 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   seeDetails($event) {
     // TODO: routerLink
+    let objectType;
     if (this.activetabIndex == 1) {
       this._objService.changeObjectTypeParent(this._sitesService.objectObs);
+      objectType = "sites"
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
+      objectType = "sites_group"
+
     }
     this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]], {
-      queryParams: { parents_path: ['module', 'sites_group'] },
+      queryParams: { parents_path: ['module', objectType] },
     });
   }
 
