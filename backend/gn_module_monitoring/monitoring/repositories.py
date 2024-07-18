@@ -103,7 +103,6 @@ class MonitoringObject(MonitoringObjectSerializer):
             # ajout de l'objet dans le cas d'une creation
 
             # on assigne les données post à l'objet et on commite
-            self.process_post_data_properties(post_data)
             self.populate(post_data)
 
             if b_creation:

@@ -317,6 +317,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     sites_group_name = DB.Column(DB.Unicode)
     sites_group_code = DB.Column(DB.Unicode)
     sites_group_description = DB.Column(DB.Unicode)
+    id_nomenclature_type_grp_site = DB.Column(DB.Integer)
 
     comments = DB.Column(DB.Unicode)
     geom = DB.Column(geoalchemy2.types.Geometry("GEOMETRY", 4326, nullable=True))
@@ -403,6 +404,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
     b_draw_sites_group = DB.Column(DB.Boolean)
+    id_nomenclature_type_grp_site = DB.Column(DB.Integer)
 
     medias = DB.relationship(
         TMedias,

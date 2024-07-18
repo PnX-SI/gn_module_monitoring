@@ -11,6 +11,7 @@
     "display_properties": [
       "sites_group_name",
       "sites_group_code",
+      "id_nomenclature_type_grp_site",
       "nb_sites",
       "nb_visits",
       "comments"
@@ -70,6 +71,12 @@
           "type_util": "user",
           "required": true,
           "hidden": true
+        },
+        "id_nomenclature_type_grp_site": {
+          "type_widget": "nomenclature",
+          "attribut_label": "Type de groupe de site",
+          "required": true,
+          "code_nomenclature_type": "TYPE_GRP_SITE"
         }
     } 
   }

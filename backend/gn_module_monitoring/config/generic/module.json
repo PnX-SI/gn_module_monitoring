@@ -7,7 +7,9 @@
   "display_properties": [
     "module_label",
     "module_desc",
-    "datasets"
+    "datasets",
+    "types_site",
+    "id_nomenclature_type_grp_site"
   ],
   "generic": {
     "id_module": {
@@ -98,8 +100,6 @@
       "definition": "Affichage des groupes de site en dessinant l'enveloppe des sites du groupe et en affichant l'aire du groupe de sites",
       "hidden": true
     },
-
-
     "taxonomy_display_field_name": {
       "type_widget": "datalist",
       "attribut_label": "Affichage des taxons",
@@ -132,7 +132,14 @@
       "application": "GeoNature",
       "required": true,
       "data_path": "items",
-      "definition": "Permet de paramétrer la compatibilité de ce module avec les types de sites"
+      "definition": "Seuls les sites associé à ces types remontront dans le module"
+    },
+    "id_nomenclature_type_grp_site": {
+      "type_widget": "nomenclature",
+      "attribut_label": "Type de groupe de site",
+      "required": true,
+      "code_nomenclature_type": "TYPE_GRP_SITE",
+      "definition": "Seuls les groupes sites associé à ces types de groupes remontront dans le module"
     },
     
     "medias": {
