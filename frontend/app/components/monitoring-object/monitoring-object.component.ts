@@ -168,6 +168,10 @@ export class MonitoringObjectComponent implements OnInit {
     this.pre_filters['types_site'] = Object.keys(
       this._configService.config()[this.obj.moduleCode]['module']['types_site']
     );
+    if (this.obj.objectType == 'module') {      
+      this.pre_filters['id_nomenclature_type_grp_site'] = this.obj.properties["id_nomenclature_type_grp_site"]
+    }
+    
     // filtre objet géographique de référence
     if (this.obj.objectType == 'sites_group') {
       this.pre_filters['id_sites_group'] = this.obj.id;

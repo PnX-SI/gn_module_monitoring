@@ -14,7 +14,11 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringSites,
+    TMonitoringSitesGroups,
+    TMonitoringModules,
+)
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
@@ -102,6 +106,7 @@ def get_sites_group_geometries(object_type: str):
     query = select(TMonitoringSitesGroups)
     query = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     query = TMonitoringSitesGroups.filter_by_params(query=query, params=params)
+    print("PARAMS ???????", params)
     subquery_not_geom = (
         query.with_only_columns(
             TMonitoringSitesGroups.id_sites_group,
@@ -123,7 +128,7 @@ def get_sites_group_geometries(object_type: str):
             TMonitoringSitesGroups.geom,
         ).where(TMonitoringSitesGroups.geom != None)
     ).distinct()
-
+    print(subquery_not_geom)
     results = geojson_query(subquery_not_geom.union(subquery_with_geom).alias("grp_site"))
 
     return jsonify(results)
