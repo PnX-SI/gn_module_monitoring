@@ -1,7 +1,7 @@
 import json
 import geojson
 
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, post_dump
 
 from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
@@ -50,6 +50,10 @@ class ObserverSchema(MA.SQLAlchemyAutoSchema):
 
     nom_complet = fields.Str(dump_only=True)
 
+class FlatenModuleSchema(ModuleSchema):
+    @post_dump
+    def flat(self, data, **kw):
+        return data["module_label"]
 
 class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
@@ -87,6 +91,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     geometry = fields.Method("serialize_geojson", dump_only=True)
     id_digitiser = fields.Method("get_id_digitiser")
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
+    modules = fields.Nested(FlatenModuleSchema, many=True)
 
     def get_id_digitiser(self, obj):
         return obj.id_digitiser
