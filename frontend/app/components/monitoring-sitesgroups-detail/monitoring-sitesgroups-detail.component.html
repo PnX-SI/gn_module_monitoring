@@ -13,15 +13,9 @@
   [permission]="currentPermission"
 >
 </pnx-monitoring-properties-g>
-<pnx-monitoring-form-g
-  [apiService]="_sitesGroupService"
-  [obj]="sitesGroup"
-  (objChanged)="onObjChanged($event)"
-  *ngIf="bEdit"
-  [(bEdit)]="bEdit"
-  [objForm]="objForm"
-  [currentUser]="currentUser"
-></pnx-monitoring-form-g>
+<pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)" *ngIf="bEdit" [(bEdit)]="bEdit"
+  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
+</pnx-monitoring-form>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
   [dataTableArray]="dataTableArray"
@@ -34,10 +28,12 @@
   (onSetPage)="setPage($event)"
   [obj]="rows"
   (onDetailsRow)="seeDetails($event)"
-  (addFromTable)="onAddChildren($event)"
+  (addVisitFromTable)="onAddChildren($event)"
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
   (saveOptionChildren)="onSaveAddChildren($event)"
+  (onAddObj)="navigateToAddObj($event)" 
   [bDeleteModalEmitter]="bDeleteModalEmitter"
   [permission]="currentPermission"
+  parentPath="sites_group"
 ></pnx-monitoring-datatable-g>

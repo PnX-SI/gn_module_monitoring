@@ -71,11 +71,11 @@ def get_init_data(module_code):
     """
     renvoie les données nomenclatures, etc à précharger par le module
     """
-
+    if module_code == "MONITORINGS":
+        module_code = "generic"
     out = {}
     config = get_config(module_code, True)
     data = config.get("data")
-
     if not data:
         return {}
 
