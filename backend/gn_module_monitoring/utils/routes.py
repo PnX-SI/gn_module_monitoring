@@ -148,9 +148,9 @@ def query_all_types_site_from_module_id(id_module: int = None):
     query = select(BibTypeSite)
     if id_module:
         query = query.join(
-                cor_module_type,
-                BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
-            )
+            cor_module_type,
+            BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
+        )
         query = query.where(cor_module_type.c.id_module == id_module)
     return DB.session.scalars(query).unique().all()
 

@@ -5,13 +5,14 @@ Revises: 0defdace9997
 Create Date: 2024-07-11 16:44:23.736722
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '34253c8fa9b9'
-down_revision = '0defdace9997'
+revision = "34253c8fa9b9"
+down_revision = "0defdace9997"
 branch_labels = None
 depends_on = None
 
