@@ -354,6 +354,14 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         .scalar_subquery()
     )
 
+    geom_geojson = column_property(
+        select(func.st_asgeojson(func.st_convexHull(func.st_collect(TMonitoringSites.geom))))
+        .where(
+            TMonitoringSites.id_sites_group == id_sites_group,
+        )
+        .scalar_subquery()
+    )
+
     @hybrid_property
     def organism_actors(self):
         # return self.digitiser.id_organisme
@@ -413,21 +421,37 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     )
 
     # TODO: restore it with CorCategorySite
-    # sites = DB.relationship(
-    #     'TMonitoringSites',
-    #     uselist=True,  # pourquoi pas par defaut ?
-    #     primaryjoin=TMonitoringSites.id_module == id_module,
-    #     foreign_keys=[id_module],
-    #     lazy="select",
-    # )
+    sites = DB.relationship(
+        "TMonitoringSites",
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=(id_module == cor_module_type.c.id_module),
+        secondaryjoin=(TMonitoringSites.id_base_site == cor_site_type.c.id_base_site),
+        secondary=join(
+            cor_site_type,
+            cor_module_type,
+            cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
+        ),
+        foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
+        lazy="select",
+        viewonly=True,
+    )
 
-    # sites_groups = DB.relationship(
-    #     'TMonitoringSitesGroups',
-    #     uselist=True,  # pourquoi pas par defaut ?
-    #     primaryjoin=TMonitoringSitesGroups.id_module == id_module,
-    #     foreign_keys=[id_module],
-    #     lazy="select",
-    # )
+    sites_groups = DB.relationship(
+        "TMonitoringSitesGroups",
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=id_module == cor_module_type.c.id_module,
+        secondaryjoin=and_(
+            TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group,
+            TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
+        ),
+        secondary=join(
+            cor_site_type,
+            cor_module_type,
+            cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
+        ),
+        foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
+        viewonly=True,
+    )
 
     datasets = DB.relationship(
         "TDatasets",
@@ -450,108 +474,11 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     #     foreign_keys=[TBaseVisits.id_module],
     #     cascade="all,delete"
     # )
-
-
-# Use alias since there is already a FROM caused by count (column_properties)
-sites_alias = aliased(TMonitoringSites)
-TMonitoringModules.sites_groups = DB.relationship(
-    "TMonitoringSitesGroups",
-    uselist=True,  # pourquoi pas par defaut ?
-    primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
-    secondaryjoin=and_(
-        TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
-        sites_alias.id_base_site == cor_type_site.c.id_base_site,
-    ),
-    secondaryjoin=and_(
-        TMonitoringSitesGroups.id_sites_group == sites_alias.id_sites_group,
-        sites_alias.id_base_site == cor_site_type.c.id_base_site,
-    ),
-    secondary=join(
-        cor_site_type,
-        cor_module_type,
-        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
-    ),
-    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
-    viewonly=True,
-)
-
-
-TMonitoringModules.sites = DB.relationship(
-    "TMonitoringSites",
-    uselist=True,  # pourquoi pas par defaut ?
-    primaryjoin=TMonitoringModules.id_module == cor_module_type.c.id_module,
-    secondaryjoin=TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
-    secondary=join(
-        cor_site_type,
-        cor_module_type,
-        cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
-    ),
-    foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
-    lazy="select",
-    viewonly=True,
-)
-
-TMonitoringModules.visits = DB.relationship(
-    TMonitoringVisits,
-    lazy="select",
-    primaryjoin=(TMonitoringModules.id_module == TMonitoringVisits.id_module),
-    foreign_keys=[TMonitoringVisits.id_module],
-    cascade="all",
-    overlaps="sites,sites_group,module",
-)
-
-
-# add sites_group relationship to TMonitoringSites
-
-TMonitoringSites.sites_group = DB.relationship(
-    TMonitoringSitesGroups,
-    primaryjoin=(TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group),
-    cascade="all",
-    lazy="select",
-    uselist=False,
-    overlaps="sites",
-)
-
-TMonitoringSitesGroups.visits = DB.relationship(
-    TMonitoringVisits,
-    primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
-    secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
-    secondary="gn_monitoring.t_site_complements",
-    overlaps="sites,sites_group",
-)
-
-TMonitoringSitesGroups.nb_visits = column_property(
-    select(func.count(TMonitoringVisits.id_base_site))
-    .where(
-        TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-        TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+    visits = DB.relationship(
+        TMonitoringVisits,
+        lazy="select",
+        primaryjoin=(id_module == TMonitoringVisits.id_module),
+        foreign_keys=[TMonitoringVisits.id_module],
+        cascade="all",
+        overlaps="sites,sites_group,module",
     )
-    .scalar_subquery()
-)
-
-# note the alias is mandotory otherwise the where is done on the subquery table
-# and not the global TMonitoring table
-TMonitoringSitesGroups.geom_geojson = column_property(
-    select(func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom))))
-    .select_from(
-        TMonitoringSitesGroups.__table__.alias("subquery").join(
-            TMonitoringSites,
-            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-        )
-    )
-    .where(
-        TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-    )
-    .scalar_subquery()
-)
-
-# case([(TMonitoringSitesGroups.geom is None, select([func.st_asgeojson(func.st_convexHull(func.st_collect(TBaseSites.geom)))])
-#             .select_from(
-#                 TMonitoringSitesGroups.__table__.alias("subquery").join(
-#                     TMonitoringSites,
-#                     TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-#                 )
-#             )
-#             .where(
-#                 TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
-#             )), (TMonitoringSitesGroups.geom is not None,select([func.st_asgeojson(TMonitoringSitesGroups.geom)]))]))
