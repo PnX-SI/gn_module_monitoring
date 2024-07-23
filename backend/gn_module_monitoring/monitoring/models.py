@@ -30,6 +30,7 @@ from geonature.core.gn_monitoring.models import (
     BibTypeSite,
     cor_visit_observer,
     TObservations,
+    cor_grp_site_module,
 )
 from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -336,6 +337,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
+    modules = DB.relationship("TMonitoringModules", uselist=True, secondary=cor_grp_site_module)
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))
