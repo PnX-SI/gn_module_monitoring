@@ -299,6 +299,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
                 return True
         elif scope == 3:
             return True
+        return False
 
 
 @geoserializable(geoCol="geom", idCol="id_sites_group")
