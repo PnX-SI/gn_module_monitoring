@@ -3,8 +3,6 @@
   <span class="obj-title">{{ sitesGroupService.objectObs.addObjLabel }}</span>
 </div>
 <div>
-  <pnx-monitoring-form-g
-    [apiService]="sitesGroupService"
-    [currentUser]="currentUser"
-  ></pnx-monitoring-form-g>
+<pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
+  [(bEdit)]="bEdit"></pnx-monitoring-form>
 </div>

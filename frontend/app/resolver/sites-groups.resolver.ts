@@ -91,7 +91,7 @@ export class SitesGroupsReslver
                 return {
                   sitesGroups: { data: siteGroups, objConfig: configs[0] },
                   sites: { data: sites, objConfig: configs[1] },
-                  route: route['_urlSegment'].segments[1].path,
+                  route: route['_urlSegment'].segments[3].path,
                   permission: this.currentPermission,
                 };
               })

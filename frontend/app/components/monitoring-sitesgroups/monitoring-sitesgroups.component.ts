@@ -101,12 +101,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         limit: data.sitesGroups.data.limit,
         page: data.sitesGroups.data.page - 1,
       };
-
       this.sitesGroups = data.sitesGroups.data.items;
       // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
       this.colsname = data.sitesGroups.objConfig.dataTable.colNameObj;
       this.currentRoute = data.route;
-      if (data.route == 'sites') {
+      if (data.route == 'site') {
         this.activetabIndex = 1;
         this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
         this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
@@ -131,13 +130,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSiteGroups(): Function {
-    const baseUrl = this.currentRoute;
     return (feature, layer) => {
-      const popup = this._popup.setPopup(
-        baseUrl + '/' + feature.properties.id_sites_group,
-        feature,
-        'sites_group_name'
-      );
+      const popup = this._popup.setSiteGroupPopup('generic', feature, {});
       layer.bindPopup(popup);
     };
   }
@@ -190,21 +184,26 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   onEachFeatureSite() {
-    const baseUrl = 'monitorings/' + this.currentRoute;
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature);
-
+      const popup = this._popup.setSitePopup('generic', feature, {});
       layer.bindPopup(popup);
     };
   }
+
   seeDetails($event) {
     // TODO: routerLink
+    let objectType;
     if (this.activetabIndex == 1) {
       this._objService.changeObjectTypeParent(this._sitesService.objectObs);
+      objectType = "sites"
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
+      objectType = "sites_group"
+
     }
-    this.router.navigate(['monitorings', this.currentRoute, $event[$event.id]]);
+    this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]], {
+      queryParams: { parents_path: ['module', objectType] },
+    });
   }
 
   editChild($event) {
@@ -219,7 +218,36 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this._sites_group_service.objectObs.objectType,
       this._sites_group_service.objectObs.endPoint
     );
-    this.router.navigate(['monitorings', this.currentRoute, $event[$event.id], { edit: true }]);
+    this.router.navigate([
+      '/monitorings/object/generic/',
+      this.currentRoute,
+      $event[$event.id],
+      { edit: true },
+    ]);
+  }
+
+  navigateToAddChildren($event) {
+    const row = $event;
+    if (row) {
+      row['id'] = row[row.pk];
+      let queryParams = {};
+      queryParams[row['pk']] = row['id'];
+      queryParams['parents_path'] = ['module', 'sites_group'];
+
+      this.router.navigate(['/monitorings/object/generic/', row['object_type'], 'create'], {
+        queryParams: queryParams,
+      });
+    }
+  }
+
+  navigateToAddObj($event) {
+    const type = $event;
+    const queryParams = {
+      parents_path: ['module'],
+    };
+    this.router.navigate(['/monitorings/object/generic/', type, 'create'], {
+      queryParams: queryParams,
+    });
   }
 
   onDelete(event) {
@@ -229,7 +257,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 0;
           this.currentRoute = 'sites_group';
-          this.router.navigate(['/monitorings/sites_group', { delete: true }], {
+          this.router.navigate(['/monitorings/object/generic/sites_group', { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
@@ -243,8 +271,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         setTimeout(() => {
           this.bDeleteModalEmitter.emit(false);
           this.activetabIndex = 1;
-          this.currentRoute = 'sites';
-          this.router.navigate(['/monitorings/sites', { delete: true }], {
+          this.currentRoute = 'site';
+          this.router.navigate(['/monitorings/object/generic/site', { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
           this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
@@ -254,12 +282,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         }, 100);
       });
     }
-  }
-
-  addSiteGpChild($event) {
-    this.router.navigate(['monitorings', this.currentRoute, $event[$event.pk], 'create'], {
-      replaceUrl: true,
-    });
   }
 
   onSelectedOnDataTable(data) {
@@ -279,8 +301,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   updateActiveTab($event) {
     if ($event == 'site') {
       this.activetabIndex = 1;
-      this.currentRoute = 'sites';
-      this._location.go('/monitorings/sites');
+      this.currentRoute = 'site';
+      this._location.go('/monitorings/object/generic/site');
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
@@ -288,7 +310,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     } else {
       this.activetabIndex = 0;
       this.currentRoute = 'sites_group';
-      this._location.go('/monitorings/sites_group');
+      this._location.go('/monitorings/object/generic/sites_group');
       this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
@@ -336,7 +358,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  onAddChildren(event) {
+  addChildrenVisit(event) {
     if (event.objectType == 'site') {
       this.siteSelectedId = event.rowSelected[event.rowSelected['pk']];
       this.getModules();
@@ -366,9 +388,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this._configJsonService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
       const keys = Object.keys(this._configJsonService.config()[moduleCode]);
-      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.siteSelectedId, parents_path: parent_paths },
+        queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
       });
     });
   }

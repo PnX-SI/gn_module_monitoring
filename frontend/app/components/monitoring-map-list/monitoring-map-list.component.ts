@@ -1,7 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { tap, mergeMap, map, distinctUntilChanged } from 'rxjs/operators';
 import { SiteSiteGroup } from '../../interfaces/objObs';
-import { MonitoringSitesComponent } from '../monitoring-sites/monitoring-sites.component';
 import { FormService } from '../../services/form.service';
 import { ApiGeomService } from '../../services/api-geom.service';
 import { ConfigJsonService } from '../../services/config-json.service';

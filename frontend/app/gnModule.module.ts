@@ -38,9 +38,8 @@ import { MonitoringSitesGroupsComponent } from './components/monitoring-sitesgro
 import { DataTableService } from './services/data-table.service';
 import { MonitoringPropertiesGComponent } from './components/monitoring-properties-g/monitoring-properties-g.component';
 import { GeoJSONService } from './services/geojson.service';
-import { MonitoringSitesComponent } from './components/monitoring-sites/monitoring-sites.component';
+import { MonitoringSitesgroupsDetailComponent } from './components/monitoring-sitesgroups-detail/monitoring-sitesgroups-detail.component';
 import { MonitoringMapListComponent } from './components/monitoring-map-list/monitoring-map-list.component';
-import { MonitoringFormComponentG } from './components/monitoring-form-g/monitoring-form.component-g';
 import { FormService } from './services/form.service';
 import { ObjectService } from './services/object.service';
 import { PermissionService } from './services/permission.service';
@@ -53,7 +52,7 @@ import {
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
 import { BtnSelectComponent } from './components/btn-select/btn-select.component';
-import { MonitoringVisitsComponent } from './components/monitoring-visits/monitoring-visits.component';
+import { MonitoringSitesDetailComponent } from './components/monitoring-sites-detail/monitoring-sites-detail.component';
 import { OptionListButtonComponent } from './components/option-list-btn/option-list-btn.component';
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsReslver } from './resolver/sites-groups.resolver';
@@ -67,62 +66,8 @@ import { Popup } from './utils/popup';
 const routes: Routes = [
   /** modules  */
   { path: '', component: ModulesComponent },
-
-  /** module  */
-  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
-  /** create module */
-  { path: 'module', component: MonitoringObjectComponent },
-
-  /** object */
   {
-    path: 'object/:moduleCode/:objectType/:id',
-    component: MonitoringObjectComponent,
-  },
-  /** create object */
-  {
-    path: 'create_object/:moduleCode/:objectType',
-    component: MonitoringObjectComponent,
-  },
-  {
-    path: 'sites_group',
-    component: MonitoringMapListComponent,
-    children: [
-      {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsReslver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesGroupsCreateComponent,
-      },
-      {
-        path: ':id',
-        children: [
-          {
-            path: '',
-            component: MonitoringSitesComponent,
-          },
-          {
-            path: 'create',
-            component: MonitoringSitesCreateComponent,
-            resolve: {
-              data: CreateSiteResolver,
-            },
-          },
-          {
-            path: 'site/:id',
-            component: MonitoringVisitsComponent,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    path: 'sites',
+    path: 'object/generic/site',
     component: MonitoringMapListComponent,
     children: [
       {
@@ -142,9 +87,63 @@ const routes: Routes = [
       },
       {
         path: ':id',
-        component: MonitoringVisitsComponent,
+        component: MonitoringSitesDetailComponent,
       },
     ],
+  },
+
+  {
+    path: 'object/generic/sites_group',
+    component: MonitoringMapListComponent,
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsReslver,
+        },
+        runGuardsAndResolvers: 'always',
+      },
+      {
+        path: 'create',
+        component: MonitoringSitesGroupsCreateComponent,
+      },
+      {
+        path: ':id',
+        children: [
+          {
+            path: '',
+            component: MonitoringSitesgroupsDetailComponent,
+          },
+          {
+            path: 'create',
+            component: MonitoringSitesCreateComponent,
+            resolve: {
+              data: CreateSiteResolver,
+            },
+          },
+          {
+            path: 'site/:id',
+            component: MonitoringSitesDetailComponent,
+          },
+        ],
+      },
+    ],
+  },
+  /** module  */
+  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
+  /** create module */
+  { path: 'module', component: MonitoringObjectComponent },
+
+  /** object */
+  {
+    path: 'object/:moduleCode/:objectType/:id',
+    component: MonitoringObjectComponent,
+  },
+  /** create object */
+  {
+    path: 'create_object/:moduleCode/:objectType',
+    component: MonitoringObjectComponent,
   },
   { path: 'not-found', component: PageNotFoundComponent },
   { path: '**', redirectTo: 'not-found' },
@@ -164,14 +163,13 @@ const routes: Routes = [
     MonitoringDatatableComponent,
     MonitoringMapListComponent,
     MonitoringSitesGroupsComponent,
-    MonitoringSitesComponent,
+    MonitoringSitesgroupsDetailComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
-    MonitoringFormComponentG,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
     BtnSelectComponent,
-    MonitoringVisitsComponent,
+    MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
     PageNotFoundComponent,

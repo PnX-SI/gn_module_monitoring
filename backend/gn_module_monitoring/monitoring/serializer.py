@@ -36,7 +36,8 @@ MonitoringSerializer_dict = {
 class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_parent(self):
         parent_type = self.parent_type()
-        if not parent_type:
+
+        if not parent_type or parent_type == "module":
             return
 
         if not self._parent:
@@ -72,6 +73,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         for attribut_name in self.config_schema(type_schema="specific"):
             if attribut_name in only or not only:
                 properties[attribut_name] = data.get(attribut_name)
+        # Nécessaire pour récupérer tous les données des champs additionnels mêmes ceux non présents dans la config specific
+        # Nécessaire pour les récupérer coté frontend lors de l'envoie de l'objet (patch et post)
+        properties["additional_data_keys"] = []
+        for prop in data:
+            if prop not in properties.keys():
+                properties[prop] = data[prop]
+                properties["additional_data_keys"].append(prop)
 
     def unflatten_specific_properties(self, properties):
         data = {}
@@ -80,7 +88,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 if attribut_name in properties:
                     val = properties.pop(attribut_name)
                 else:
-                    # TODO évaluer l'incidence
+                    # TODO [DEV-SUIVI-EOLIEN] évaluer l'incidence
+                    # TODO [DEV-SUIVI-EOLIEN] Ici il faut exclure les properties liés à la config generic + aux propriétés du model
                     #   voir comment générer les proprités spécifiques
                     #    non définies dans le schéma
                     val = None
@@ -88,6 +97,19 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         if data:
             properties["data"] = data
+        else:
+            properties["data"] = {}
+        # On ajoute les propriétés associées aux types de site qui ne sont ni dans le schema specific ni dans generic ou appartenant au modèle
+        prop_remaining_to_check = list(properties.keys())
+
+        for prop in prop_remaining_to_check:
+            is_in_model = hasattr(self._model, prop)
+            if (
+                not is_in_model
+                and prop not in self.config_schema("generic").keys()
+                and prop != "id_module"
+            ):
+                properties["data"][prop] = properties.pop(prop)
 
     def get_readable_list_object(self, relation_name, children_type):
         childs_model = monitoring_definitions.MonitoringModel(object_type=children_type)
@@ -246,6 +268,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 ]
 
         properties["id_parent"] = to_int(self.id_parent())
+
         monitoring_object_dict = {
             "properties": properties,
             "object_type": self._object_type,
