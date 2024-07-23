@@ -49,7 +49,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
-  @Output() addFromTable = new EventEmitter<Object>();
+  @Output() addVisitFromTable = new EventEmitter<Object>();
   @Output() saveOptionChildren = new EventEmitter<SelectObject>();
   @Output() bEditChanged = new EventEmitter<boolean>();
   @Input() currentUser;
@@ -59,13 +59,16 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() onFilter = new EventEmitter<any>();
   @Output() onSetPage = new EventEmitter<any>();
   @Output() onDetailsRow = new EventEmitter<any>();
-  @Output() addEvent = new EventEmitter<any>();
   @Output() tabChanged = new EventEmitter<any>();
 
   @Output() onDeleteEvent = new EventEmitter<any>();
   @Output() onEditEvent = new EventEmitter<any>();
+  @Output() onAddChildren = new EventEmitter<any>();
+  @Output() onAddObj = new EventEmitter<any>();
 
   @Input() bDeleteModalEmitter: EventEmitter<boolean>;
+  @Input() parentPath: string;
+
   bDeleteModal: boolean = false;
   bDeleteSpinner: boolean = false;
 
@@ -215,10 +218,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
   }
 
-  addChildren(selected) {
-    this.addFromTable.emit({ rowSelected: selected, objectType: this.activetabType });
-  }
-
   saveOptionChild($event: SelectObject) {
     this.saveOptionChildren.emit($event);
   }
@@ -345,33 +344,20 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.initPermissionAction();
     }
   }
+
+  addChildrenVisit(selected) {
+    this.addVisitFromTable.emit({ rowSelected: selected, objectType: this.activetabType });
+  }
+
   navigateToAddChildren(_, row) {
-    this.addEvent.emit(row);
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    if (row && this.dataTableArray.length == 1) {
-      row['id'] = row[row.pk];
-      this.router.navigate([row.id, 'create'], {
-        relativeTo: this._Activatedroute,
-      });
-    }
+    row['object_type'] = this.dataTableArray[this.activetabIndex]['childType'];
+    this.onAddChildren.emit(row);
   }
 
   navigateToAddObj() {
     this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    if (this.dataTableArray.length == 1) {
-      this.router.navigate(['create'], {
-        relativeTo: this._Activatedroute,
-      });
-    } else {
-      this.router.navigate([
-        'monitorings',
-        this.dataTableArray[this.activetabIndex].routeBase,
-        'create',
-      ]);
-    }
-
-    // TODO: gérer la gestion de l'ajout (et ajout d'objet enfant) d'objet de type "site" depuis la page d'accueil de visualisation de groupe de site/ site
-    //
+    this.onAddObj.emit(this.dataTableArray[this.activetabIndex]['objectType']);
   }
 
   navigateToDetail(row) {
@@ -404,42 +390,4 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.rowSelected['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
   }
-
-  // TODO: Comprendre le fonctionnement de ObjectStatuts et RowsStatus
-  // initObjectsStatus() {
-  //   const objectsStatus = {};
-  //   for (const childrenType of Object.keys(this.obj.children)) {
-  //     objectsStatus[childrenType] = this.obj.children[childrenType].map(
-  //       (child) => {
-  //         return {
-  //           id: child.id,
-  //           selected: false,
-  //           visible: true,
-  //           current: false,
-  //         };
-  //       }
-  //     );
-  //   }
-
-  //   // init site status
-  //   if (this.obj.siteId) {
-  //     objectsStatus["site"] = [];
-  //     this.sites["features"].forEach((f) => {
-  //       // determination du site courrant
-  //       let cur = false;
-  //       if (f.properties.id_base_site == this.obj.siteId) {
-  //         cur = true;
-  //       }
-
-  //       objectsStatus["site"].push({
-  //         id: f.properties.id_base_site,
-  //         selected: false,
-  //         visible: true,
-  //         current: cur,
-  //       });
-  //     });
-  //   }
-
-  //   this.objectsStatus = objectsStatus;
-  // }
 }

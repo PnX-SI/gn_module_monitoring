@@ -22,15 +22,20 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 const LIMIT = 10;
 
 @Component({
-  selector: 'monitoring-sites',
-  templateUrl: './monitoring-sites.component.html',
-  styleUrls: ['./monitoring-sites.component.css'],
+  selector: 'monitoring-sitesgroups-detail',
+  templateUrl: './monitoring-sitesgroups-detail.component.html',
+  styleUrls: ['./monitoring-sitesgroups-detail.component.css'],
 })
-export class MonitoringSitesComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringSitesgroupsDetailComponent
+  extends MonitoringGeomComponent
+  implements OnInit
+{
   siteGroupId: number;
   sites: ISite[];
   sitesGroup: ISitesGroup;
@@ -38,7 +43,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   page: IPage;
   filters = {};
   @Input() bEdit: boolean;
-  objForm: { static: FormGroup };
+  form: FormGroup;
   objectType: IobjObs<ISite>;
   objParent: any;
   breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
@@ -61,6 +66,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   currentUser: User;
   currentPermission: TPermission;
 
+  obj: MonitoringObject;
+
   constructor(
     private _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
@@ -75,7 +82,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     private _formService: FormService,
     private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _permissionService: PermissionService,
-    private _popup: Popup
+    private _popup: Popup,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -83,11 +91,12 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
 
   ngOnInit() {
     this.currentUser = this._auth.getCurrentUser();
-    this.objForm = { static: this._formBuilder.group({}) };
-    // this._sitesGroupService.init()
+    this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
-    this.initSite();
+    this._configService.init().subscribe(() => {
+      this.initSite();
+    });
   }
 
   initSite() {
@@ -107,6 +116,13 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
+
+              this.obj = new MonitoringObject(
+                'generic',
+                'sites_group',
+                params['id'],
+                this._monitoringObjServiceMonitoring
+              );
               return params['id'] as number;
             }),
             mergeMap((id: number) => {
@@ -137,6 +153,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
               return forkJoin({
                 objObsSite: this._siteService.initConfig(),
                 objObsSiteGp: this._sitesGroupService.initConfig(),
+                obj: this.obj.get(0),
               }).pipe(
                 map((objObs) => {
                   return { data, objectObs: objObs };
@@ -183,9 +200,10 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   }
 
   onEachFeatureSite() {
-    const baseUrl = this.router.url + '/site';
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature);
+      const popup = this._popup.setSitePopup('generic', feature, {
+        parents_path: ['module', 'sites_group'],
+      });
       layer.bindPopup(popup);
     };
   }
@@ -209,16 +227,28 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   seeDetails($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`site/${$event.id_base_site}`], {
-      relativeTo: this._Activatedroute,
+    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+      queryParams: { parents_path: ['module', 'sites_group'] },
     });
   }
 
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`site/${$event.id_base_site}`, { edit: true }], {
-      relativeTo: this._Activatedroute,
+    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+      queryParams: { parents_path: ['module', 'sites_group'] },
+    });
+  }
+
+  navigateToAddObj($event) {
+    const type = $event;
+    const queryParams = {
+      parents_path: ['module', 'sites_group'],
+    };
+
+    queryParams['id_sites_group'] = this.obj.id;
+    this.router.navigate(['/monitorings/object/generic/', type, 'create'], {
+      queryParams: queryParams,
     });
   }
 
@@ -304,6 +334,7 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
   onSaveAddChildren($event: SelectObject) {
     this.addNewVisit($event);
   }
+
   getModules() {
     this._siteService
       .getSiteModules(this.siteSelectedId)
@@ -323,9 +354,9 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
     this._configJsonService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
       const keys = Object.keys(this._configJsonService.config()[moduleCode]);
-      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.siteSelectedId, parents_path: parent_paths },
+        queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
       });
     });
   }

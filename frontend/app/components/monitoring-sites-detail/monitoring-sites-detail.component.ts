@@ -25,13 +25,16 @@ import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
 import { TPermission } from '../../types/permission';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
+
+import { MonitoringObject } from '../../class/monitoring-object';
 
 @Component({
-  selector: 'monitoring-visits',
-  templateUrl: './monitoring-visits.component.html',
-  styleUrls: ['./monitoring-visits.component.css'],
+  selector: 'monitoring-sites-detail',
+  templateUrl: './monitoring-sites-detail.component.html',
+  styleUrls: ['./monitoring-sites-detail.component.css'],
 })
-export class MonitoringVisitsComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IVisit[];
   @Input() page: IPage;
   // colsname: typeof columnNameVisit = columnNameVisit;
@@ -58,7 +61,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   breadCrumbList: IBreadCrumb[] = [];
   objSelected: ISiteField;
   objResolvedProperties: ISiteField;
-
+  parentsPath: string[] = [];
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
@@ -71,6 +74,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
 
   currentUser: User;
   currentPermission: TPermission;
+
+  obj: MonitoringObject;
 
   constructor(
     private _auth: AuthService,
@@ -88,7 +93,8 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     private _permissionService: PermissionService,
-    private _popup: Popup
+    private _popup: Popup,
+    private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
     super();
     this.getAllItemsCallback = this.getVisits;
@@ -102,14 +108,13 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
 
-    this.siteGroupIdParent = parseInt(
-      this._Activatedroute.pathFromRoot[this._Activatedroute.pathFromRoot.length - 2].snapshot
-        .params['id']
-    );
-    this.initSiteVisit();
+    this._configService.init().subscribe(() => {
+      this.initSiteVisit();
+    });
   }
 
   initSiteVisit() {
+    // Get obj data
     const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
     const $permissionUserObject = this._permissionService.currentPermissionObj;
     $getPermissionMonitoring
@@ -126,6 +131,14 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
+              this.parentsPath =
+                this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
+              this.obj = new MonitoringObject(
+                'generic',
+                'site',
+                params['id'],
+                this._monitoringObjServiceMonitoring
+              );
               return params['id'] as number;
             }),
             tap((id: number) => {
@@ -154,6 +167,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
               return forkJoin({
                 objObsSite: this.siteService.initConfig(),
                 objObsVisit: this._visits_service.initConfig(),
+                obj: this.obj.get(0),
               }).pipe(
                 tap((objConfig) => (this.objParent = objConfig.objObsSite)),
                 map((objConfig) => {
@@ -175,7 +189,10 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
               );
             }),
             mergeMap((data) => {
-              if (isNaN(this.siteGroupIdParent)) {
+              if (this.parentsPath.includes('sites_group')) {
+                this.siteGroupIdParent = data.site.id_sites_group;                
+              }
+              if (!this.siteGroupIdParent) {
                 return of(data);
               } else {
                 return iif(
@@ -207,6 +224,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
           count: data.visits.count,
           limit: data.visits.limit,
         };
+
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
         let siteList = this.siteService.formatLabelTypesSite([this.site]);
@@ -241,7 +259,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
 
   onEachFeatureSite() {
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(feature);
+      const popup = this._popup.setSitePopup('generic', feature, {});
       layer.bindPopup(popup);
     };
   }
@@ -261,9 +279,12 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
   }
 
   seeDetails($event) {
-    this.router.navigate([
-      `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
-    ]);
+    this.router.navigate(
+      [`/monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`],
+      {
+        queryParams: { parents_path: ['module', 'site'] },
+      }
+    );
   }
 
   getModules() {
@@ -280,9 +301,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     //create_object/cheveches_sites_group/visit?id_base_site=47
     this._configService.init(moduleCode).subscribe(() => {
       const keys = Object.keys(this._configService.config()[moduleCode]);
-      const parent_paths = ['sites_group', 'site'].filter((item) => keys.includes(item));
+      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.site.id_base_site, parents_path: parent_paths },
+        queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
       });
     });
   }
@@ -417,7 +438,7 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.breadCrumbChild['url'] = [
       this.breadCrumbElementBase.url,
       this.breadCrumbParent.id?.toString(),
-      this.breadCrumbChild.objectType,
+      'object/generic/site',
       this.breadCrumbChild.id?.toString(),
     ].join('/');
 
@@ -431,10 +452,9 @@ export class MonitoringVisitsComponent extends MonitoringGeomComponent implement
     this.breadCrumbChild.label = 'Site';
     this.breadCrumbChild['id'] = sites.id_base_site;
     this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
-    this.breadCrumbChild['url'] = [
-      this.breadCrumbChild.objectType,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
+    this.breadCrumbChild['url'] = ['object/generic/site', this.breadCrumbChild.id?.toString()].join(
+      '/'
+    );
 
     this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbChild];
     this._objService.changeBreadCrumb(this.breadCrumbList, true);

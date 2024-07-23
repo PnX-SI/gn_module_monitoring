@@ -25,7 +25,7 @@
           color="primary"
           [ngClass]="{ isDisableBtn: !canAccessSite }"
           [disabled]="!canAccessSite"
-          [routerLink]="'sites_group'"
+          [routerLink]="'object/generic/sites_group'"
           *ngIf="currentUser"
         >
           Accès aux sites
