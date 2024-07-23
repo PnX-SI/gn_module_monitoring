@@ -195,11 +195,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     let objectType;
     if (this.activetabIndex == 1) {
       this._objService.changeObjectTypeParent(this._sitesService.objectObs);
-      objectType = "sites"
+      objectType = 'sites';
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
-      objectType = "sites_group"
-
+      objectType = 'sites_group';
     }
     this.router.navigate(['/monitorings/object/generic/', this.currentRoute, $event[$event.id]], {
       queryParams: { parents_path: ['module', objectType] },
