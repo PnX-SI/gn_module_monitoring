@@ -15,7 +15,6 @@
       "attribut_label": "ID",
       "hidden": true
     },
-
     "module_code":  {
       "type_widget": "text",
       "attribut_label": "Code",

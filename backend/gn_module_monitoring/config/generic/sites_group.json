@@ -74,6 +74,7 @@
       },
       "modules": {
         "type_widget": "datalist",
+        "type_util": "module",
         "attribut_label": "Modules",
         "keyValue": "id_module",
         "keyLabel": "module_label",
