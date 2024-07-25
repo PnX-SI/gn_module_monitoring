@@ -30,7 +30,6 @@ from geonature.core.gn_monitoring.models import (
     BibTypeSite,
     cor_visit_observer,
     TObservations,
-    cor_sites_group_module,
 )
 from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
