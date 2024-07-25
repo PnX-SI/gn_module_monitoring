@@ -109,6 +109,10 @@ def get_sites_group_geometries(object_type: str):
             func.st_convexHull(func.st_collect(TMonitoringSites.geom)),
         )
         .group_by(TMonitoringSitesGroups.id_sites_group, TMonitoringSitesGroups.sites_group_name)
+        .join(
+            TMonitoringSites,
+            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+        )
         .where(TMonitoringSitesGroups.geom == None)
     )
 

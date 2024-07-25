@@ -438,22 +438,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         viewonly=True,
     )
 
-    sites_groups = DB.relationship(
-        "TMonitoringSitesGroups",
-        uselist=True,  # pourquoi pas par defaut ?
-        primaryjoin=id_module == cor_module_type.c.id_module,
-        secondaryjoin=and_(
-            TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group,
-            TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
-        ),
-        secondary=join(
-            cor_site_type,
-            cor_module_type,
-            cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
-        ),
-        foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
-        viewonly=True,
-    )
+    sites_groups = DB.relationship(TMonitoringSitesGroups, secondary=cor_grp_site_module)
 
     datasets = DB.relationship(
         "TDatasets",
