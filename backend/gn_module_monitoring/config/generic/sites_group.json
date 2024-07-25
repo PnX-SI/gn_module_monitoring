@@ -79,9 +79,11 @@
         "keyValue": "id_module",
         "keyLabel": "module_label",
         "multiple": true,
-        "default": {
+        "default": [
+          {
           "id_module": "__MODULE.ID_MODULE"
-        },
+        }
+      ],
         "api" : "monitorings/modules",
         "application": "GeoNature",
         "required": true,
