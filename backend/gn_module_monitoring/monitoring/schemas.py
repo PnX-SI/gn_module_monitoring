@@ -50,10 +50,12 @@ class ObserverSchema(MA.SQLAlchemyAutoSchema):
 
     nom_complet = fields.Str(dump_only=True)
 
+
 class FlatenModuleSchema(ModuleSchema):
     @post_dump
     def flat(self, data, **kw):
         return data["module_label"]
+
 
 class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
