@@ -168,6 +168,8 @@ export class MonitoringObjectComponent implements OnInit {
     this.pre_filters['types_site'] = Object.keys(
       this._configService.config()[this.obj.moduleCode]['module']['types_site']
     );
+    this.pre_filters['modules'] =
+      this._configService.config()[this.obj.moduleCode]['module']['id_module'];
     // filtre objet géographique de référence
     if (this.obj.objectType == 'sites_group') {
       this.pre_filters['id_sites_group'] = this.obj.id;
@@ -182,7 +184,7 @@ export class MonitoringObjectComponent implements OnInit {
     } else if (queryParams['siteId'] !== undefined) {
       // récupération du site parent via l'url
       this.pre_filters['id_base_site'] = queryParams['siteId'];
-    }
+    } 
   }
 
   initRoutesParams() {

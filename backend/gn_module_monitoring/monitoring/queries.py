@@ -256,12 +256,13 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
-        query = super().filter_by_params(query, params)
-
         if "modules" in params:
-            requested_modules = params.getlist("modules")
-            query = query.join(Models.TMonitoringSites)
-            query = query.filter(Models.modules.any(TModules.in_(requested_modules)))
+            value = params["modules"]
+            if not isinstance(value, list):
+                value = [value]
+            query = query.filter(cls.modules.any(Models.TMonitoringModules.id_module.in_(value)))
+
+        query = super().filter_by_params(query, params)
 
         return query
 
