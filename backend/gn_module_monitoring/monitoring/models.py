@@ -30,7 +30,7 @@ from geonature.core.gn_monitoring.models import (
     BibTypeSite,
     cor_visit_observer,
     TObservations,
-    cor_grp_site_module,
+    cor_sites_group_module,
 )
 from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -337,7 +337,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
-    modules = DB.relationship("TMonitoringModules", uselist=True, secondary=cor_grp_site_module)
+    modules = DB.relationship("TMonitoringModules", uselist=True, secondary=cor_sites_group_module)
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))
@@ -438,7 +438,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         viewonly=True,
     )
 
-    sites_groups = DB.relationship(TMonitoringSitesGroups, secondary=cor_grp_site_module)
+    sites_groups = DB.relationship(TMonitoringSitesGroups, secondary=cor_sites_group_module)
 
     datasets = DB.relationship(
         "TDatasets",
