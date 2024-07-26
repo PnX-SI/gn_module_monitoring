@@ -24,6 +24,8 @@ class MonitoringObjectGeom(MonitoringObject):
                     if type(module) is dict:
                         if "id_module" in module:
                             checked_module.append(module)
+                    if type(module) is int:
+                        checked_module.append(module)
         post_data["properties"]["modules"] = checked_module
 
         return super().create_or_update(post_data)
