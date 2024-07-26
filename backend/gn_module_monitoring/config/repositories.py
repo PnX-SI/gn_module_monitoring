@@ -111,11 +111,6 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
         specific_config_object["types_site"] = db_config_object["types_site"]
         db_config_object = {"specific": {}}
 
-    # NOTE: Ici on pop la clé "id_sites_group" dans le cas ou l'entre par protocole car
-    #        l'association de site à un groupe de site doit se faire par l'entrée par site
-    if module_code != "generic" and object_type == "site" and not is_sites_group_child:
-        generic_config_object["generic"].pop("id_sites_group")
-
     if module_code == "generic" and object_type == "site":
         generic_config_object["generic"]["types_site"] = {
             "type_widget": "datalist",

@@ -11,6 +11,7 @@
     "display_properties": [
       "sites_group_name",
       "sites_group_code",
+      "modules",
       "nb_sites",
       "nb_visits",
       "comments"
@@ -64,12 +65,30 @@
         "type_widget": "integer",
         "attribut_label": "Altitude (max)"
         },
-        "id_digitiser": {
-          "type_widget": "text",
-          "attribut_label": "Digitiser",
-          "type_util": "user",
-          "required": true,
-          "hidden": true
+      "id_digitiser": {
+        "type_widget": "text",
+        "attribut_label": "Digitiser",
+        "type_util": "user",
+        "required": true,
+        "hidden": true
+      },
+      "modules": {
+        "type_widget": "datalist",
+        "type_util": "module",
+        "attribut_label": "Modules",
+        "keyValue": "id_module",
+        "keyLabel": "module_label",
+        "multiple": true,
+        "default": [
+          {
+          "id_module": "__MODULE.ID_MODULE"
         }
+      ],
+        "api" : "monitorings/modules",
+        "application": "GeoNature",
+        "required": true,
+        "designStyle": "bootstrap",
+        "definition": "Permet de contrôler dans quel(s) module(s) les groupes de site remonteront"
+      }
     } 
   }
