@@ -253,6 +253,7 @@ export class MonitoringFormComponent implements OnInit {
         this.obj.bIsInitialized = true;
         const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
         if (dynamicGroupsArray) this.subscribeToDynamicGroupsChanges(dynamicGroupsArray);
+        this.setDefaultFormValue();
       });
   }
 
