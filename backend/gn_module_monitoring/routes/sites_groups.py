@@ -15,7 +15,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
+from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsDetailSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -58,7 +58,7 @@ def get_sites_groups(object_type: str):
     query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     return paginate_scope(
         query=query_allowed,
-        schema=MonitoringSitesGroupsSchema,
+        schema=MonitoringSitesGroupsDetailSchema,
         limit=limit,
         page=page,
         object_code=object_code,
@@ -78,7 +78,7 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsSchema()
+    schema = MonitoringSitesGroupsDetailSchema()
     response = schema.dump(sites_group)
     response["cruved"] = get_objet_with_permission_boolean(
         [sites_group], object_code="MONITORINGS_GRP_SITES"

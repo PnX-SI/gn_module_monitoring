@@ -110,6 +110,10 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
             return json.loads(obj.geom_geojson)
 
 
+class MonitoringSitesGroupsDetailSchema(MonitoringSitesGroupsSchema):
+    modules = MA.Pluck(ModuleSchema, "module_label", many=True)
+
+
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     label = fields.Method("get_label_from_type_site")
     # See if useful in the future:
