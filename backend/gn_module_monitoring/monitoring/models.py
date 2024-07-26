@@ -355,7 +355,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         lazy="select",
     )
     modules = DB.relationship(
-        "TMonitoringModules", secondary=cor_sites_group_module, uselist=True, viewonly=True
+        "TMonitoringModules", secondary=cor_sites_group_module, uselist=True
     )
 
     nb_sites = column_property(
