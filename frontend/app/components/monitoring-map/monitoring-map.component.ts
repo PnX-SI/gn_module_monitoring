@@ -1,5 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
+import { merge } from 'rxjs';
+import { filter, distinctUntilChanged } from 'rxjs/operators';
+import { isEqual } from 'lodash';
+
 import { FormGroup } from '@angular/forms';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { Layer, svg, Path } from 'leaflet';
@@ -13,6 +17,7 @@ import { MapService } from '@geonature_common/map/map.service';
 import { MapListService } from '@geonature_common/map-list/map-list.service';
 import { Utils } from '../../utils/utils';
 import * as L from 'leaflet';
+import { ListService } from '../../services/list.service';
 
 @Component({
   selector: 'pnx-monitoring-map',
@@ -26,9 +31,6 @@ export class MonitoringMapComponent implements OnInit {
   @Input() selectedObject: Object;
   @Input() objForm: FormGroup;
 
-  @Input() filters: {};
-  @Input() pre_filters: {};
-  @Input() objectListType: string;
   @Input() heightMap;
 
   bListen = true;
@@ -38,6 +40,8 @@ export class MonitoringMapComponent implements OnInit {
   selectedSiteId: Number;
   currentSiteId: Number;
   publicDisplaySitesGroup: boolean = false;
+
+  listObjectSubscription: any;
 
   // todo mettre en config
   styles = {
@@ -80,16 +84,41 @@ export class MonitoringMapComponent implements OnInit {
     private _mapListService: MapListService,
     private _geojsonService: GeoJSONService,
     private _popup: Popup,
+    public listService: ListService,
     private _route: ActivatedRoute
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    // gestion des interractions carte list
+    const tableType = ['sites_group', 'site'];
+
+    // Souscription aux sujets :
+    //   * type de l'onglet actif du datatable
+    //   * filtre des datatables
+    //   * préfiltres
+    this.listObjectSubscription = merge(
+      this.listService.listType$.pipe(filter(() => this.listService.listType$.getValue() != null)),
+      this.listService.tableFilters$.pipe(
+        // Si le datatable n'est ni un site, ni un groupe de sites
+        //    on ne tient pas compte des filtres pour la route geométrie
+        filter(() => tableType.indexOf(this.listService.listType) >= 0),
+        distinctUntilChanged(isEqual)
+      )
+    ).subscribe(() => {
+      const listType = this.listService.listType$.getValue();
+      const preFilters = this.listService.preFilters;
+      const tableFilters = this.listService.tableFilters$.getValue();
+      // On attent l'initialisation des préfiltres et le type de datatable
+      if (listType !== null && preFilters !== null) {
+        // On attent l'initalisation des préfiltres pour les listes de types site et groupes de sites
+        if ((tableFilters === null && tableType.indexOf(listType) < 0) || tableFilters !== null) {
+          this.refresh_geom_data();
+        }
+      }
+    });
+  }
 
   refresh_geom_data() {
-    const params = {
-      ...this.pre_filters,
-      ...this.filters,
-    };
     this._geojsonService.removeAllLayers();
     let displayObject;
     // Choix des objets a afficher
@@ -101,7 +130,7 @@ export class MonitoringMapComponent implements OnInit {
       displayObject = this.obj.objectType;
     } else if (this.obj.objectType == 'module') {
       // Si module affichage du type d'objet courant
-      displayObject = this.objectListType;
+      displayObject = this.listService.listType;
     } else if (this.obj.objectType == 'sites_group') {
       // Si page détail d'un groupe de site affichage du groupe de site et de ces enfants
       displayObject = 'sites_group_with_child';
@@ -112,20 +141,37 @@ export class MonitoringMapComponent implements OnInit {
 
     this._geojsonService.removeAllFeatureGroup();
     if (displayObject == 'site') {
+      const params = {
+        ...this.listService.getPrefilterByType(displayObject),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsChildGeometries(
         this.onEachFeatureSite(this.buildQueryParams('site')),
         params
       );
     } else if (displayObject == 'sites_group') {
+      const params = {
+        ...this.listService.getPrefilterByType(displayObject),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsGeometries(
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
         params
       );
     } else if (displayObject == 'sites_group_with_child') {
+      const paramsSitesGroup = {
+        ...this.listService.getPrefilterByType('sites_group'),
+        ...this.listService.tableFilters$.getValue(),
+      };
+      const paramsSite = {
+        ...this.listService.getPrefilterByType('site'),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsGeometriesWithSites(
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
         this.onEachFeatureSite(this.buildQueryParams('site')),
-        params
+        paramsSitesGroup,
+        paramsSite
       );
     }
   }
@@ -185,9 +231,9 @@ export class MonitoringMapComponent implements OnInit {
         return;
       }
       if (this.obj.objectType == 'module' && Object.keys(this.selectedObject).length > 0) {
-        if (this.objectListType == 'sites_group') {
+        if (this.listService.listType == 'sites_group') {
           this._geojsonService.selectSitesGroupLayer(this.selectedObject['id'], true);
-        } else if (this.objectListType == 'site') {
+        } else if (this.listService.listType == 'site') {
           this._geojsonService.selectSitesLayer(this.selectedObject['id'], true);
         }
       }
@@ -195,26 +241,11 @@ export class MonitoringMapComponent implements OnInit {
     if (Object.keys(changes).includes('bEdit')) {
       this.setSitesStyle(this.obj.objectType);
     }
+  }
 
-    if (
-      Object.keys(changes).includes('filters') ||
-      Object.keys(changes).includes('pre_filters') ||
-      Object.keys(changes).includes('objectListType')
-    ) {
-      // Filtres du tableau
-      // A appliquer que si on est au niveau du module pour les objets sites et groupes de sites
-      // Ou au niveau des groupes de sites pour les sites
-      if (
-        Object.keys(changes).includes('filters') &&
-        (this.objectListType == 'sites_group' || this.objectListType == 'site')
-      ) {
-        this.refresh_geom_data();
-      } else if (
-        Object.keys(changes).includes('pre_filters') ||
-        Object.keys(changes).includes('objectListType')
-      ) {
-        this.refresh_geom_data();
-      }
-    }
+  ngOnDestroy() {
+    // Réinitalisations des paramètres
+    this.listService.reinitializeObservables();
+    this.listObjectSubscription.unsubscribe();
   }
 }

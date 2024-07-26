@@ -21,6 +21,26 @@ monitorings_schema = "gn_monitoring"
 
 
 def upgrade():
+    op.execute(
+        """
+    CREATE TABLE gn_monitoring.cor_sites_group_module (
+        id_sites_group int4 NOT NULL,
+        id_module int4 NOT NULL,
+        CONSTRAINT pk_cor_sites_group_module PRIMARY KEY (id_sites_group, id_module),
+        CONSTRAINT fk_cor_sites_group_module_id_sites_group FOREIGN KEY (id_sites_group) REFERENCES gn_monitoring.t_sites_groups(id_sites_group) ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT fk_cor_sites_group_module_id_module FOREIGN KEY (id_module) REFERENCES gn_commons.t_modules(id_module) ON DELETE NO ACTION ON UPDATE CASCADE
+    );
+    """
+    )
+    statement = sa.text(
+        f"""
+        INSERT INTO gn_monitoring.cor_sites_group_module
+            (id_sites_group, id_module)
+        SELECT id_sites_group, id_module
+        FROM gn_monitoring.t_sites_groups; 
+        """
+    )
+    op.execute(statement)
     op.drop_column("t_sites_groups", "id_module", schema=monitorings_schema)
 
 
@@ -40,18 +60,14 @@ def downgrade():
         ),
         schema=monitorings_schema,
     )
-    # Cannot use orm here because need the model to be "downgraded" as well
-    # Need to set nullable True above for existing rows
-    # Get data from core_site_module
-    # LIMITATION: Assume that current use is one site associated to one module associated to one site_group
+
+    # LIMITATION: On ne prend que le premier module associé
     statement = sa.text(
         f"""
         WITH sgm AS (
-            SELECT id_sites_group , csm.id_module
-            FROM gn_monitoring.t_site_complements AS tsc
-            JOIN gn_monitoring.cor_site_module AS csm
-            ON tsc.id_base_site = csm.id_base_site
-            WHERE NOT id_sites_group IS NULL
+            SELECT id_sites_group , min(id_module)
+            FROM gn_monitoring.cor_sites_group_module
+            GROUP BY id_sites_group
         )
         UPDATE gn_monitoring.t_sites_groups AS tsg
             SET id_module = sgm.id_module
@@ -61,14 +77,9 @@ def downgrade():
     )
     op.execute(statement)
 
-    statement = sa.text(
-        f"""
-        UPDATE {monitorings_schema}.t_sites_groups
-        SET id_module = (select id_module
-                          from gn_commons.t_modules tm
-                          where module_code = :module_code)
-        WHERE id_module IS NULL;
-        """
-    ).bindparams(module_code=MODULE_CODE)
-    op.execute(statement)
     op.alter_column("t_sites_groups", "id_module", nullable=False, schema=monitorings_schema)
+    op.execute(
+        """
+    DROP TABLE gn_monitoring.cor_sites_group_module;
+    """
+    )

@@ -17,6 +17,7 @@ from geonature.core.users.models import VUserslistForallMenu
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_monitoring.models import BibTypeSite
+from geonature.core.gn_commons.models import TModules
 
 from pypnusershub.db.models import User, UserList
 
@@ -53,6 +54,7 @@ model_dict = {
     "site": TMonitoringSites,
     "area": LAreas,
     "municipality": LiMunicipalities,
+    "module": TModules,
 }
 
 

@@ -61,13 +61,14 @@ export class GeoJSONService {
   getSitesGroupsGeometriesWithSites(
     sitesGroupOnEachFeature: Function,
     sitesOnEachFeature: Function,
-    params = {},
+    paramsSite = {},
+    paramsSitesGroup = {},
     sitesGroupstyle?,
     sitesStyle?
   ) {
     return forkJoin({
-      sitesGroup: this._sites_group_service.get_geometries(params),
-      sites: this._sites_service.get_geometries(params),
+      sitesGroup: this._sites_group_service.get_geometries(paramsSitesGroup),
+      sites: this._sites_service.get_geometries(paramsSite),
     }).subscribe((data) => {
       this.geojsonSitesGroups = data['sitesGroup'];
       this.removeFeatureGroup(this.sitesGroupFeatureGroup);
@@ -142,7 +143,7 @@ export class GeoJSONService {
   }
 
   removeFeatureGroup(feature: L.FeatureGroup) {
-    if (feature) {
+    if (feature && this._mapService.map) {
       this._mapService.map.removeLayer(feature);
     }
   }
@@ -206,6 +207,9 @@ export class GeoJSONService {
 
   removeAllFeatureGroup() {
     let listFeatureGroup: L.FeatureGroup[] = [];
+    if (!this._mapService.map) {
+      return;
+    }
     this._mapService.map.eachLayer(function (layer) {
       if (layer instanceof L.FeatureGroup) {
         listFeatureGroup.push(layer);

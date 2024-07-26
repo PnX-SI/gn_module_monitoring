@@ -22,6 +22,7 @@
     "habitat": "lb_hab_fr",
     "area": "area_name",
     "municipality": "nom_com_dept",
-    "site": "base_site_name"
+    "site": "base_site_name",
+    "module": "module_label"
   }
 }

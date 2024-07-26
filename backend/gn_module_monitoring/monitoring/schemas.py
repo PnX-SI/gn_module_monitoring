@@ -1,7 +1,7 @@
 import json
 import geojson
 
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, post_dump
 
 from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
@@ -87,6 +87,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     geometry = fields.Method("serialize_geojson", dump_only=True)
     id_digitiser = fields.Method("get_id_digitiser")
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
+    modules = MA.Pluck(ModuleSchema, "id_module", many=True)
 
     def get_id_digitiser(self, obj):
         return obj.id_digitiser
@@ -107,6 +108,10 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
             return geojson.dumps(obj.as_geofeature().get("geometry"))
         if obj.geom_geojson is not None:
             return json.loads(obj.geom_geojson)
+
+
+class MonitoringSitesGroupsDetailSchema(MonitoringSitesGroupsSchema):
+    modules = MA.Pluck(ModuleSchema, "module_label", many=True)
 
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
