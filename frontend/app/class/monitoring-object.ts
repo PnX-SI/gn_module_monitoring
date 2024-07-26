@@ -69,27 +69,15 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   /** Methodes get post patch delete */
-
   get(depth): Observable<any> {
-    let bFromCache = false;
-    return of(true).pipe(
-      mergeMap(() => {
-        const postData = this._objService.getFromCache(this);
-        if (postData) {
-          bFromCache = true;
-          return of(postData);
-        }
-        return this._objService
-          .dataMonitoringObjectService()
-          .getObject(this.moduleCode, this.objectType, this.id, depth);
-      }),
-      mergeMap((postData) => {
-        // if (!bFromCache) {
-        //   this._objService.setCache(this, postData);
-        // }
-        return this.init(postData);
-      })
-    );
+    return this._objService
+      .dataMonitoringObjectService()
+      .getObject(this.moduleCode, this.objectType, this.id, depth)
+      .pipe(
+        mergeMap((postData) => {
+          return this.init(postData);
+        })
+      );
   }
 
   post(formValue): Observable<any> {
