@@ -258,10 +258,18 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
         if "modules" in params:
             value = params["modules"]
-            if not isinstance(value, list):
-                value = [value]
-            query = query.filter(cls.modules.any(Models.TMonitoringModules.id_module.in_(value)))
-
+            # Cas ou le filtre provient du gestionnaire des groupes de sites.
+            # La valeur est passée en chaine de caractère
+            if not value.isdigit():
+                query = query.filter(
+                    cls.modules.any(Models.TMonitoringModules.module_label.ilike(f"%{value}%"))
+                )
+            else:
+                if not isinstance(value, list):
+                    value = [value]
+                query = query.filter(
+                    cls.modules.any(Models.TMonitoringModules.id_module.in_(value))
+                )
         query = super().filter_by_params(query, params)
 
         return query
