@@ -245,10 +245,12 @@ def create_object_api(module_code, object_type, id):
 def delete_object_api(scope, module_code, object_type, id):
     depth = to_int(request.args.get("depth", 1))
 
-    if object_type in ("site", "sites_group"):
-        raise Exception(
-            f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
-        )
+    # ??? PLUS VALABLE
+    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
+    # if object_type in ("site", "sites_group"):
+    #     raise Exception(
+    #         f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
+    #     )
 
     config = get_config(module_code=module_code, force=True)
     monitoring_obj = monitoring_definitions.monitoring_object_instance(
@@ -259,7 +261,6 @@ def delete_object_api(scope, module_code, object_type, id):
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
 
-    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
     return monitoring_obj.delete()
 
 

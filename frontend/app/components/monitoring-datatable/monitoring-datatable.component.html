@@ -83,8 +83,9 @@
             aria-hidden="true"
           ></i>
         </a>
+        <!-- On ne peut supprimer un objet que s'il n'a pas d'enfant -->
         <ng-container
-          *ngIf="(child0.objectType == 'visit' ? true : row['nb_visits'] == 0) && this.canDeleteObj"
+          *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0"
         >
           <a
             [ngClass]="{ isDisableBtn: !row.cruved['D'] }"

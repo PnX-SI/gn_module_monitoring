@@ -85,6 +85,9 @@ export class ConfigService {
   }
 
   moduleCruved(module_code) {
+    if (module_code == 'generic') {
+      module_code = 'MONITORINGS';
+    }
     const permObjectDict = this.appConfig.MONITORINGS.PERMISSION_LEVEL;
     const module = this._moduleService.getModule(module_code);
 
