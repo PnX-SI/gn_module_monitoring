@@ -15,6 +15,7 @@ export class Popup {
     fieldName: string,
     queryParams: {}
   ): string {
+    queryParams = queryParams || { parents_path: 'module' };
     const url = ['object', moduleCode, objectType, feature.properties[fieldId]].join('/');
 
     const fullurl = ['#', this._configService.frontendModuleMonitoringUrl(), url].join('/');
