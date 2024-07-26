@@ -61,13 +61,14 @@ export class GeoJSONService {
   getSitesGroupsGeometriesWithSites(
     sitesGroupOnEachFeature: Function,
     sitesOnEachFeature: Function,
-    params = {},
+    paramsSite = {},
+    paramsSitesGroup = {},
     sitesGroupstyle?,
     sitesStyle?
   ) {
     return forkJoin({
-      sitesGroup: this._sites_group_service.get_geometries(params),
-      sites: this._sites_service.get_geometries(params),
+      sitesGroup: this._sites_group_service.get_geometries(paramsSitesGroup),
+      sites: this._sites_service.get_geometries(paramsSite),
     }).subscribe((data) => {
       this.geojsonSitesGroups = data['sitesGroup'];
       this.removeFeatureGroup(this.sitesGroupFeatureGroup);

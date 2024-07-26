@@ -172,6 +172,7 @@ export class MonitoringObjectComponent implements OnInit {
     }
     if (this.obj.objectType == 'sites_group') {
       pre_filters['sites_group']['id_sites_group'] = this.obj.id;
+      pre_filters['site']['id_sites_group'] = this.obj.id;
     } else if (this.obj.objectType == 'site') {
       pre_filters['site']['id_base_site'] = this.obj.id;
     } else if (this.obj['siteId'] !== undefined) {

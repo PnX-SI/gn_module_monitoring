@@ -119,10 +119,6 @@ export class MonitoringMapComponent implements OnInit {
   }
 
   refresh_geom_data() {
-    const params = {
-      ...this.listService.getPrefilterByType(this.listService.listType),
-      ...this.listService.tableFilters$.getValue(),
-    };
     this._geojsonService.removeAllLayers();
     let displayObject;
     // Choix des objets a afficher
@@ -145,20 +141,37 @@ export class MonitoringMapComponent implements OnInit {
 
     this._geojsonService.removeAllFeatureGroup();
     if (displayObject == 'site') {
+      const params = {
+        ...this.listService.getPrefilterByType(displayObject),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsChildGeometries(
         this.onEachFeatureSite(this.buildQueryParams('site')),
         params
       );
     } else if (displayObject == 'sites_group') {
+      const params = {
+        ...this.listService.getPrefilterByType(displayObject),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsGeometries(
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
         params
       );
     } else if (displayObject == 'sites_group_with_child') {
+      const paramsSitesGroup = {
+        ...this.listService.getPrefilterByType('sites_group'),
+        ...this.listService.tableFilters$.getValue(),
+      };
+      const paramsSite = {
+        ...this.listService.getPrefilterByType('site'),
+        ...this.listService.tableFilters$.getValue(),
+      };
       this._geojsonService.getSitesGroupsGeometriesWithSites(
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
         this.onEachFeatureSite(this.buildQueryParams('site')),
-        params
+        paramsSitesGroup,
+        paramsSite
       );
     }
   }
