@@ -354,9 +354,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
-    modules = DB.relationship(
-        "TMonitoringModules", secondary=cor_sites_group_module, uselist=True
-    )
+    modules = DB.relationship("TMonitoringModules", secondary=cor_sites_group_module, uselist=True)
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))

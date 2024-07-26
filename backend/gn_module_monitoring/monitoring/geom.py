@@ -27,7 +27,7 @@ class MonitoringObjectGeom(MonitoringObject):
         post_data["properties"]["modules"] = checked_module
 
         return super().create_or_update(post_data)
-    
+
     def serialize(self, depth, is_child=False):
         monitoring_object_dict = super(MonitoringObject, self).serialize(depth, is_child)
 

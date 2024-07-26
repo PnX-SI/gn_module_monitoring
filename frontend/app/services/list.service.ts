@@ -53,7 +53,7 @@ export class ListService {
    * Null if not selected.
    */
 
-  public preFilters = {"site": {}, "sites_group": {}}
+  public preFilters = { site: {}, sites_group: {} };
 
   // public get preFilters(): {} {
   //   return this.preFilters$.getValue();
@@ -66,18 +66,18 @@ export class ListService {
   constructor() {}
 
   reinitializeObservables() {
-    this.preFilters = {"site": {}, "sites_group": {}};
+    this.preFilters = { site: {}, sites_group: {} };
     this.listType = null;
     this.arrayTableFilters = null;
     this.tableFilters = null;
   }
 
-  getPrefilterByType(type:string | null) {
-    if(!type) {
+  getPrefilterByType(type: string | null) {
+    if (!type) {
       return {
-        ...this.preFilters["site"],
-        ...this.preFilters["sites_group"],
-      }
+        ...this.preFilters['site'],
+        ...this.preFilters['sites_group'],
+      };
     }
     return this.preFilters[type];
   }
