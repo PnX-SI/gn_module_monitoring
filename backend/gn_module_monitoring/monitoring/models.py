@@ -60,6 +60,24 @@ class PermissionModel:
         return has_any_permissions_by_action(module_code=module_code, object_code=object_code)
 
 
+cor_sites_group_module = DB.Table(
+    "cor_sites_group_module",
+    DB.Column(
+        "id_sites_group",
+        DB.Integer,
+        DB.ForeignKey("gn_monitoring.t_sites_groups.id_sites_group"),
+        primary_key=True,
+    ),
+    DB.Column(
+        "id_module",
+        DB.Integer,
+        DB.ForeignKey(TModules.id_module),
+        primary_key=True,
+    ),
+    schema="gn_monitoring",
+)
+
+
 @serializable
 class TMonitoringObservationDetails(DB.Model):
     __tablename__ = "t_observation_details"
@@ -336,6 +354,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
+    modules = DB.relationship("TMonitoringModules", secondary=cor_sites_group_module, uselist=True)
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))
@@ -436,22 +455,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         viewonly=True,
     )
 
-    sites_groups = DB.relationship(
-        "TMonitoringSitesGroups",
-        uselist=True,  # pourquoi pas par defaut ?
-        primaryjoin=id_module == cor_module_type.c.id_module,
-        secondaryjoin=and_(
-            TMonitoringSitesGroups.id_sites_group == TMonitoringSites.id_sites_group,
-            TMonitoringSites.id_base_site == cor_site_type.c.id_base_site,
-        ),
-        secondary=join(
-            cor_site_type,
-            cor_module_type,
-            cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
-        ),
-        foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
-        viewonly=True,
-    )
+    sites_groups = DB.relationship(TMonitoringSitesGroups, secondary=cor_sites_group_module)
 
     datasets = DB.relationship(
         "TDatasets",

@@ -15,6 +15,21 @@ class MonitoringObjectGeom(MonitoringObject):
             geom_field_name, id_field_name, depth=depth, columns=columns
         )
 
+    def create_or_update(self, post_data):
+        # security : remove modules if no id_module provided
+        checked_module = []
+        if "modules" in post_data["properties"]:
+            if type(post_data["properties"]["modules"]) is list:
+                for module in post_data["properties"]["modules"]:
+                    if type(module) is dict:
+                        if "id_module" in module:
+                            checked_module.append(module)
+                    if type(module) is int:
+                        checked_module.append(module)
+        post_data["properties"]["modules"] = checked_module
+
+        return super().create_or_update(post_data)
+
     def serialize(self, depth, is_child=False):
         monitoring_object_dict = super(MonitoringObject, self).serialize(depth, is_child)
 

@@ -15,6 +15,7 @@ from apptax.taxonomie.models import Taxref
 from geonature.utils.env import db
 
 from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.core.gn_commons.models import TModules
 from pypnnomenclature.models import TNomenclatures
 import gn_module_monitoring.monitoring.models as Models
 
@@ -255,23 +256,14 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "modules" in params:
+            value = params["modules"]
+            if not isinstance(value, list):
+                value = [value]
+            query = query.filter(cls.modules.any(Models.TMonitoringModules.id_module.in_(value)))
+
         query = super().filter_by_params(query, params)
 
-        for key, value in params.items():
-            if key == "modules":
-                query = query.join(Models.TMonitoringSites)
-                query = query.filter(Models.TMonitoringSites.modules.any(id_module=value))
-            if key == "types_site":
-                if not isinstance(value, list):
-                    value = [value]
-                join_sites = aliased(Models.TMonitoringSites)
-                query = query.join(join_sites, cls.sites)
-
-                query = query.filter(
-                    join_sites.types_site.any(
-                        Models.BibTypeSite.id_nomenclature_type_site.in_(value)
-                    )
-                )
         return query
 
 
