@@ -7,6 +7,7 @@ import { ConfigService } from '../../services/config.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { Popup } from '../../utils/popup';
+import { ActivatedRoute } from '@angular/router';
 
 import { MapService } from '@geonature_common/map/map.service';
 import { MapListService } from '@geonature_common/map-list/map-list.service';
@@ -78,7 +79,8 @@ export class MonitoringMapComponent implements OnInit {
     private _data: DataMonitoringObjectService,
     private _mapListService: MapListService,
     private _geojsonService: GeoJSONService,
-    private _popup: Popup
+    private _popup: Popup,
+    private _route: ActivatedRoute
   ) {}
 
   ngOnInit() {}
@@ -110,29 +112,46 @@ export class MonitoringMapComponent implements OnInit {
 
     this._geojsonService.removeAllFeatureGroup();
     if (displayObject == 'site') {
-      this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
+      this._geojsonService.getSitesGroupsChildGeometries(
+        this.onEachFeatureSite(this.buildQueryParams('site')),
+        params
+      );
     } else if (displayObject == 'sites_group') {
-      this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), params);
+      this._geojsonService.getSitesGroupsGeometries(
+        this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
+        params
+      );
     } else if (displayObject == 'sites_group_with_child') {
       this._geojsonService.getSitesGroupsGeometriesWithSites(
-        this.onEachFeatureGroupSite(),
-        this.onEachFeatureSite(),
+        this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
+        this.onEachFeatureSite(this.buildQueryParams('site')),
         params
       );
     }
   }
 
-  onEachFeatureSite() {
+  buildQueryParams(displayObject: string) {
+    // Construction des queryParams
+    // Important pour le paramètre parents_path qui est essentiel pour le breadcrumb
+    let parents_path = ['module'];
+    let current_object = this._route.snapshot.params['objectType'];
+
+    if (!parents_path.includes(current_object) && current_object !== displayObject) {
+      parents_path.push(current_object);
+    }
+    return { parents_path: parents_path };
+  }
+
+  onEachFeatureSite(queryParams) {
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup(this.obj.moduleCode, feature, {});
+      const popup = this._popup.setSitePopup(this.obj.moduleCode, feature, queryParams);
       layer.bindPopup(popup);
     };
   }
 
-  onEachFeatureGroupSite() {
+  onEachFeatureGroupSite(queryParams) {
     return (feature, layer) => {
-      const popup = this._popup.setSiteGroupPopup(this.obj.moduleCode, feature, {});
-
+      const popup = this._popup.setSiteGroupPopup(this.obj.moduleCode, feature, queryParams);
       layer.bindPopup(popup);
     };
   }
