@@ -31,7 +31,7 @@ import {
 import { defer, forkJoin, from, iif, of, Observable } from 'rxjs';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
-import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { TOOLTIPMESSAGEALERT, TOOLTIPMESSAGEALERT_CHILD } from '../../constants/guard';
 import { GeoJSONService } from '../../services/geojson.service';
 import { Utils } from '../../utils/utils';
 
@@ -584,10 +584,26 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   initPermission() {
-    this.canDelete =
-      this.obj.objectType == 'module'
-        ? this.currentUser?.moduleCruved[this.obj.objectType]['D'] > 0
-        : this.obj.cruved['D'] && !['site', 'sites_group'].includes(this.obj.objectType);
+    // Si les permissions n'ont pas été initialisées
+    if (this.currentUser.moduleCruved == undefined) {
+      this.currentUser.moduleCruved = this._configService.moduleCruved(this.obj.moduleCode);
+    }
+
+    // Calcul du nombre d'enfants pour limiter l'action de suppression
+    const nb_childrens =
+      this.obj.properties['nb_sites'] ||
+      0 + this.obj.properties['nb_visits'] ||
+      0 + this.obj.properties['nb_observations'] ||
+      0;
+    if (this.obj.objectType == 'module') {
+      this.canDelete = false; // On ne peut pas supprimer un module
+    } else if (this.obj.cruved['D'] && nb_childrens > 0) {
+      this.canDelete = false; // On ne peut pas supprimer un objet s'il a des enfants
+      this.toolTipNotAllowed = TOOLTIPMESSAGEALERT_CHILD;
+    } else {
+      this.canDelete = this.obj.cruved['D'];
+    }
+
     this.canUpdate =
       this.obj.objectType == 'module'
         ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
