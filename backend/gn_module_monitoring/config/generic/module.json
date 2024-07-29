@@ -68,7 +68,8 @@
       "application": "GeoNature",
       "required": true,
       "type_util": "observer_list",
-      "definition": "Liste des observateurs. À gérer dans UsersHub."
+      "definition": "Liste des observateurs. À gérer dans UsersHub.",
+      "designStyle": "bootstrap"
     },
 
     "id_list_taxonomy": {
@@ -82,7 +83,8 @@
       "required": true,
       "type_util": "taxonomy_list",
       "data_path": "data",
-      "definition": "Liste des taxons. À gérer dans TaxHub."
+      "definition": "Liste des taxons. À gérer dans TaxHub.",
+      "designStyle": "bootstrap"
     },
 
     "b_synthese": {
@@ -111,7 +113,8 @@
           "value": "lb_nom"
         }
       ],
-      "required": true
+      "required": true,
+      "designStyle": "bootstrap"
     },
 
     "active_frontend": {
@@ -131,7 +134,8 @@
       "application": "GeoNature",
       "required": true,
       "data_path": "items",
-      "definition": "Permet de paramétrer la compatibilité de ce module avec les types de sites"
+      "definition": "Permet de paramétrer la compatibilité de ce module avec les types de sites",
+      "designStyle": "bootstrap"
     },
     
     "medias": {

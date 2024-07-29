@@ -19,34 +19,24 @@
 
 <div>
   <div id="properties-form" class="cadre" *ngIf="obj.bIsInitialized && objFormsDefinition">
-    <span
-      *ngIf="!obj.id && obj.config['chained']"
-      id="toggle-btn"
-      class="float-right"
-      matTooltip="Enchainer les saisies"
-      matTooltipPosition="left"
-    >
-      <i class="fa fa-repeat" aria-hidden="true"></i>
-      <mat-slide-toggle
-        color="primary"
-        [(ngModel)]="bChainInput"
-        (change)="bChainInputChanged($event)"
+    <div style="height: 25px;">
+      <span
+        *ngIf="!obj.id && obj.config['chained']"
+        id="toggle-btn"
+        class="float-right"
+        matTooltip="Enchainer les saisies"
+        matTooltipPosition="left"
       >
-      </mat-slide-toggle>
-    </span>
-    <!-- <div *ngIf="obj.configParam('keep') && bChainInput && objFormsDefinition">
-      <mat-form-field>
-        <mat-label>Garder les valeurs</mat-label>
-        <mat-select [(ngModel)]="keepNames" multiple>
-          <mat-option
-            *ngFor="let formDef of keepDefinitions()"
-            [value]="formDef.attribut_name"
-            >{{ formDef.attribut_label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <hr />
-    </div> -->
+        <i class="fa fa-repeat" aria-hidden="true"></i>
+        <mat-slide-toggle
+          color="primary"
+          [(ngModel)]="bChainInput"
+          (change)="bChainInputChanged($event)"
+        >
+        </mat-slide-toggle>
+      </span>
+    </div>
+
     <form [formGroup]="objForm">
       <p
         class="alert alert-warning"
@@ -113,7 +103,7 @@
           mat-raised-button
           color="primary"
           *ngIf="!bChainInput && !obj.id && obj.uniqueChildrenName() && addChildren"
-          class="btn btn-success float-right"
+          class="btn btn-success float-right mr-1"
           (click)="canUpdate ? onSubmit(true) : notAllowedMessage()"
           [disabled]="!objForm.valid"
         >
@@ -130,7 +120,7 @@
         <button
           mat-raised-button
           color="primary"
-          class="float-right"
+          class="float-right mr-1"
           (click)="canUpdate ? onSubmit() : notAllowedMessage()"
           [disabled]="!objForm.valid"
         >

@@ -10,6 +10,7 @@ import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { TPermission } from '../../types/permission';
 import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
+import { MediaService } from '@geonature_common/service/media.service';
 
 @Component({
   selector: 'pnx-monitoring-properties-g',
@@ -46,7 +47,8 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   constructor(
     private _formService: FormService,
-    private _objService: ObjectService
+    private _objService: ObjectService,
+    public ms: MediaService
   ) {}
 
   ngOnInit() {
