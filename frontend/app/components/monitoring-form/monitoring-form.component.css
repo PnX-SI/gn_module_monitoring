@@ -4,6 +4,10 @@
   padding: 0;
 }
 
+:host ::ng-deep .full-wrapper {
+  padding-bottom: 2rem!important;
+}
+
 .hide-spinner {
   display: none;
 }
