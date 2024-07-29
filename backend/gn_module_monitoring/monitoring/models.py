@@ -117,6 +117,7 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
         TMedias,
         primaryjoin=(TMedias.uuid_attached_row == TObservations.uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row],
+        overlaps="medias",
     )
 
     observation_details = DB.relation(
@@ -152,7 +153,7 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
             return True
 
 
-TBaseVisits.dataset = DB.relationship(TDatasets)
+# TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
@@ -355,7 +356,12 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
     )
-    modules = DB.relationship("TMonitoringModules", secondary=cor_sites_group_module, uselist=True)
+    modules = DB.relationship(
+        "TMonitoringModules",
+        secondary=cor_sites_group_module,
+        uselist=True,
+        back_populates="sites_groups",
+    )
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))
