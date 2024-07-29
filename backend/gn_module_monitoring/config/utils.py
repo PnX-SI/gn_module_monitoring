@@ -27,6 +27,7 @@ SITES_GROUP_CONFIG = {
     "application": "GeoNature",
 }
 
+
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
 

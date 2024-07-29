@@ -110,10 +110,8 @@
       "definition": "Permet de n'avoir que les types de site lié au module"
     },
     "id_sites_group": {
-      "type_widget": "integer",
-      "attribut_label": "ID Sites Groups",
       "hidden": true,
-      "schema_dot_table": "gn_monitoring.t_base_sites"
+      "required": false
     }
   }
 }
