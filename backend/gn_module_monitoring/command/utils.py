@@ -194,11 +194,14 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
                 )
             ).scalar_one()
         except NoResultFound:
+            label = f"{ACTION_LABEL[action]} {object_label}"
+            if action == "E" and perm_object.code_object == "MONITORINGS_MODULES":
+                label = "Export les données du module"
             perm = PermissionAvailable(
                 module=module,
                 object=perm_object,
                 action=permaction,
-                label=f"{ACTION_LABEL[action]} {object_label}",
+                label=label,
                 scope_filter=True,
             )
             session.add(perm)

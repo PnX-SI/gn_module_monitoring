@@ -4,6 +4,10 @@
   padding: 0;
 }
 
+:host ::ng-deep .full-wrapper {
+  padding-bottom: 2rem!important;
+}
+
 .hide-spinner {
   display: none;
 }
@@ -12,13 +16,14 @@
   height: 39px;
 }
 
-.float-right {
-  margin-left: 5px;
-}
 
 .float-left {
   margin-right: 10px;
   float: left;
+}
+
+.truc {
+  margin-right: 5px!important;
 }
 
 form:invalid {
