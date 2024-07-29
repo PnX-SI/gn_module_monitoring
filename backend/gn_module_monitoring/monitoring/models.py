@@ -285,12 +285,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         .scalar_subquery()
     )
 
-    geom_geojson = column_property(
-        select(func.st_asgeojson(TBaseSites.geom))
-        .where(TBaseSites.id_base_site == id_base_site)
-        .correlate_except(TBaseSites)
-        .scalar_subquery()
-    )
+    geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     @hybrid_property
