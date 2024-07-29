@@ -195,11 +195,9 @@ def get_config(module_code=None, force=False):
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
 
-        # # Types de sites
-        # if hasattr(module, field_name):
-        #     config["module"]["types_site"] = [
-        #         ts.id_nomenclature_type_site for ts in getattr(module, "types_site")
-        #     ]
+        config["custom"]["__MODULE.TYPES_SITE"] = [
+            type_site.as_dict() for type_site in module.types_site
+        ]
 
         config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
 
