@@ -1,6 +1,9 @@
 # CHANGELOG
 
-## 0.7.1dev (unrelease)
+## 0.8.0 (unrelease)
+
+- Création du gestionnaire de site : les sites et les groupes de site peuvent être utilisés dans plusieurs sous-module. Le gestionnaire de site permet de créer / modifier / supprimer des sites et des groupes de site hors d'un sous-module.
+- Possibilité de créer des champs additionnels par type de site via le backoffice GeoNature
 
 **⚠️ Notes de version**
 
@@ -9,6 +12,7 @@
   ```
   geonature monitorings update_module_available_permissions
   ```
+- mise à jour des fichiers de config comprenant `id_nomenclature_type_site` ??
 
 Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles
 
