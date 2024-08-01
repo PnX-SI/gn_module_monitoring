@@ -138,14 +138,14 @@ def create_or_update_object_api(module_code, object_type, id=None):
 
     # recupération des données post
     post_data = dict(request.get_json())
-    if module_code != "generic":
-        module = get_module("module_code", module_code)
-    else:
-        module = {"id_module": "generic"}
 
-    # on rajoute id_module s'il n'est pas renseigné par défaut ??
-    if "id_module" not in post_data["properties"]:
-        post_data["properties"]["id_module"] = module.id_module
+    # on rajoute id_module s'il n'est pas renseigné par défaut
+    post_data["properties"].setdefault("id_module", None)
+    if not post_data["properties"]["id_module"]:
+        if module_code != "generic":
+            post_data["properties"]["id_module"] = get_module("module_code", module_code).id_module
+        else:
+            post_data["properties"]["id_module"] = "generic"
 
     config = get_config(module_code, force=True)
     return (
