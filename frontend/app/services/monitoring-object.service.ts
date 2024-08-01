@@ -319,6 +319,7 @@ export class MonitoringObjectService {
         routeType,
         moduleCode,
         objectType,
+        action,
         id,
         { edit: editParams },
       ].filter((s) => !!s),
