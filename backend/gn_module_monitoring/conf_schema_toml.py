@@ -19,8 +19,8 @@ PERMISSION_LEVEL_DEFAULT = {
 
 
 class GnModuleSchemaConf(Schema):
-    DESCRIPTION_MODULE = fields.String(load_default="Vous trouverez ici la liste des modules")
-    TITLE_MODULE = fields.String(load_default="Module de suivi")
+    DESCRIPTION_MODULE = fields.String(load_default="")
+    TITLE_MODULE = fields.String(load_default="Module monitoring")
     CODE_OBSERVERS_LIST = fields.String(load_default="obsocctax")
 
     PERMISSION_LEVEL = fields.Dict(
