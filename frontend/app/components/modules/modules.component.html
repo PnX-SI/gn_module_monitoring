@@ -1,4 +1,4 @@
-<div class="modules">
+<div class="modules container">
   <pnx-modal-msg [bDisplayModal]="bLoading">
     <h2>Chargement en cours</h2>
     <div>
@@ -6,7 +6,7 @@
     </div>
   </pnx-modal-msg>
 
-  <h2 class="title-module mb-4">{{ titleModule }}</h2>
+  <h1 class="title-module display-5 mb-4">{{ titleModule }}</h1>
   <div class="text-center my-auto" style="height: 80vh" *ngIf="modules.length < 1 && !bLoading">
     Vous n'avez pas encore de protocole installé
   </div>
@@ -28,9 +28,11 @@
           [routerLink]="'object/generic/sites_group'"
           *ngIf="currentUser"
         >
-          Accès aux sites
+          Gestionnaire de sites
           <mat-icon> map</mat-icon>
         </button>
+        <br>
+        <small class="text-muted">Voir les sites et groupes de sites</small>
       </div>
       <div class="container-fluid py-5 m-2">
         <h3>Liste des protocoles</h3>
