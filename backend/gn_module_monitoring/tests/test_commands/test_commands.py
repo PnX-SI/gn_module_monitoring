@@ -9,8 +9,7 @@ from geonature.utils.env import DB
 from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.command.cmd import (
     cmd_remove_monitoring_module_cmd,
-    cmd_process_all,
-    cmd_process_export_csv,
+    cmd_process_sql,
     cmd_process_available_permission_module,
     cmd_add_module_nomenclature_cli,
 )
@@ -42,21 +41,14 @@ class TestCommands:
     def test_process_all_with_module(self, install_module_test):
         runner = current_app.test_cli_runner()
         # Commande process all
-        result = runner.invoke(cmd_process_all, ["test"])
-        # Pas de result juste <Result okay>
-        assert result.exit_code == 0
-        result = runner.invoke(cmd_process_export_csv, ["test"])
+        result = runner.invoke(cmd_process_sql, ["test"])
         # Pas de result juste <Result okay>
         assert result.exit_code == 0
 
     def test_process_all_without_module(self, install_module_test):
         runner = current_app.test_cli_runner()
         # Commande process all
-        result = runner.invoke(cmd_process_all)
-        # Pas de result
-        assert result.exit_code == 0
-
-        result = runner.invoke(cmd_process_export_csv)
+        result = runner.invoke(cmd_process_sql)
         # Pas de result
         assert result.exit_code == 0
 
@@ -64,7 +56,7 @@ class TestCommands:
         runner = current_app.test_cli_runner()
         # Commande process all
         # import pdb
-        result = runner.invoke(cmd_process_all, ["test"])
+        result = runner.invoke(cmd_process_sql, ["test"])
         # Pas de result juste <Result okay>
         assert result.exit_code == 0
 
