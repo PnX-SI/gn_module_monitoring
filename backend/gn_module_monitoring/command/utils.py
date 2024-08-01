@@ -39,7 +39,6 @@ fonctions pour les commandes du module monitoring
 
 FORBIDDEN_SQL_INSTRUCTION = [
     "INSERT ",
-    "DROP ",
     "DELETE ",
     "UPDATE ",
     "EXECUTE ",
@@ -48,6 +47,7 @@ FORBIDDEN_SQL_INSTRUCTION = [
     "GRANT ",
     "COPY ",
     "PERFORM ",
+    "CASCADE",
 ]
 
 PERMISSION_LABEL = {

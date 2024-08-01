@@ -24,10 +24,10 @@ from gn_module_monitoring.command.utils import (
 )
 
 
-@click.command("process_all")
+@click.command("process_sql")
 @click.argument("module_code", type=str, required=False, default="")
 @with_appcontext
-def cmd_process_all(module_code):
+def cmd_process_sql(module_code):
     """
     Met à jour les paramètres de configuration pour un module
         Fichiers sql synthese et export
@@ -41,22 +41,6 @@ def cmd_process_all(module_code):
         # process Synthese
         process_sql_files(dir=None, module_code=module, depth=1)
         # process Exports
-        process_sql_files(dir="exports/csv", module_code=module, depth=None, allowed_files=None)
-
-
-@click.command("process_export_csv")
-@click.argument("module_code", type=str, required=False, default="")
-@with_appcontext
-def cmd_process_export_csv(module_code):
-    """
-    Met à jour les fichiers pour les exports pdf
-    """
-    if module_code:
-        modules = [module_code]
-    else:
-        modules = [module["module_code"] for module in installed_modules()]
-
-    for module in modules:
         process_sql_files(dir="exports/csv", module_code=module, depth=None, allowed_files=None)
 
 
@@ -249,11 +233,10 @@ def synchronize_synthese(module_code, offset):
 
 
 commands = [
-    cmd_process_export_csv,
     cmd_install_monitoring_module,
     cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
-    cmd_process_all,
+    cmd_process_sql,
     synchronize_synthese,
 ]
