@@ -16,7 +16,7 @@ from geonature.core.gn_permissions.models import (
     cor_object_module,
 )
 from geonature.core.gn_commons.models import TModules
-
+from geonature.core.gn_monitoring.models import BibTypeSite
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring.config.utils import (
@@ -342,6 +342,13 @@ def insert_update_nomenclature(data):
 
     DB.session.add(nomenclature)
     DB.session.commit()
+    if data["type"] == "TYPE_SITE":
+        existing_bib_type_site = DB.session.get(BibTypeSite, nomenclature.id_nomenclature)
+        if not existing_bib_type_site:
+            bib_type_site = BibTypeSite(id_nomenclature_type_site=nomenclature.id_nomenclature)
+            DB.session.add(bib_type_site)
+            DB.session.commit()
+
     print(
         "nomenclature {} - {} - {}".format(
             nomenclature.cd_nomenclature, nomenclature.label_default, action
