@@ -5,6 +5,9 @@
 - Création du gestionnaire de site : les sites et les groupes de site peuvent être utilisés dans plusieurs sous-module. Le gestionnaire de site permet de créer / modifier / supprimer des sites et des groupes de site hors d'un sous-module.
 - Possibilité de créer des champs additionnels par type de site via le backoffice GeoNature
 
+- Suppression des commandes `process_csv` et `process_all` qui sont remplacés par la commande `process_sql`
+- [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes sql suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
+
 **⚠️ Notes de version**
 
 - Si vous installé le module sans être passé par la version 0.7.0 :
