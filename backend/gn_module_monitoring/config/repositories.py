@@ -126,6 +126,7 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
             "designStyle": "bootstrap",
             "definition": "Permet de n'avoir que les types de site lié au module",
         }
+        specific_config_object["specific"]["id_sites_group"] = {"required": False, "hidden": False}
 
     # if object_type == "site" and custom is not None:
     #     if "specific" in custom and "specific" in specific_config_object:
@@ -136,7 +137,6 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
     config_object = generic_config_object
     config_object.update(db_config_object)
     config_object.update(specific_config_object)
-
     return config_object
 
 
@@ -180,9 +180,10 @@ def get_config(module_code=None, force=False):
 
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config)
+
     # customize config
+    config["custom"] = {}
     if module:
-        config["custom"] = {}
         for field_name in [
             "module_code",
             "id_list_observer",
@@ -196,21 +197,27 @@ def get_config(module_code=None, force=False):
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
 
-        config["custom"]["__MODULE.TYPES_SITE"] = [
-            type_site.as_dict() for type_site in module.types_site
-        ]
+            config["custom"]["__MODULE.TYPES_SITE"] = [
+                type_site.as_dict() for type_site in module.types_site
+            ]
+            config["default_display_field_names"].update(config.get("display_field_names", {}))
+            config["display_field_names"] = config["default_display_field_names"]
 
-        config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
+            # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
+            config["data"] = get_data_preload(config, module)
+    else:
+        # Si module est généric
+        config["custom"]["CODE_OBSERVERS_LIST"] = current_app.config["MONITORINGS"].get(
+            "CODE_OBSERVERS_LIST", {}
+        )
+        config["custom"]["__MODULE.MODULE_CODE"] = "generic"
+        config["custom"]["__MODULE.ID_MODULE"] = None
+        config["custom"]["__MODULE.B_SYNTHESE"] = False
 
-        config["default_display_field_names"].update(config.get("display_field_names", {}))
-        config["display_field_names"] = config["default_display_field_names"]
-
-        # Remplacement des variables __MODULE.XXX
-        #   par les valeurs spécifiées en base
-        customize_config(config, config["custom"])
-
-        # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-        config["data"] = get_data_preload(config, module)
+    config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
+    # Remplacement des variables __MODULE.XXX
+    #   par les valeurs spécifiées en base
+    customize_config(config, config["custom"])
 
     # mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(config_cache_name, {}):
