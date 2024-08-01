@@ -22,9 +22,6 @@
   float: left;
 }
 
-.truc {
-  margin-right: 5px!important;
-}
 
 form:invalid {
   outline: none;
