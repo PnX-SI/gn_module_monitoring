@@ -2,41 +2,48 @@
 
 ## 0.8.0 (unreleased)
 
+Nécessite GeoNature 2.15.0 (ou plus)
+
 **🚀 Nouveautés**
 
 - Les sites (et groupes de sites) peuvent désormais être utilisés dans plusieurs protocoles (sous-modules) (#117)
   - Un gestionnaire de sites permet de gérer les sites (et groupes de sites) globalement et non plus uniquement à l'intérieur de chaque sous-module
   - Chaque site est associé à un ou plusieurs types de sites
-  - Un gestionnaire des type de sites est disponible dans le module Admin de GeoNature
+  - Un gestionnaire des types de sites est disponible dans le module Admin de GeoNature
   - Des champs additionnels peuvent être définis pour chaque type de site pour pouvoir décrire des sites globalement, et pas uniquement par protocole
   - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
-  - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites
-  - Le modèle de données a évolué pour pouvoir associer un groupe de site à plusieurs sous-module 
+  - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs id_nomenclature_type_site
+  - Le modèle de données a évolué pour pouvoir associer un groupe de sites à plusieurs sous-modules
 - Ajout de la prise en compte des portées au niveau des permissions (#92)
 - Ajout d'un champ `observers_txt` au niveau de la table des visites (#106)
 - Possibilité de définir plusieurs types de géométrie pour les sites d'un sous-module (#136)
+- Ajout de triggers de répercussion dans la Synthèse des données supprimées dans un sous-module de Monitoring (#286)
 - Ajout de tests unitaires
-- Suppression des commandes `process_csv` et `process_all` qui sont remplacées par la commande `process_sql`
+- Suppression des commandes `process_csv` et `process_all` qui sont remplacées par la commande `process_sql` (#244)
 - [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes SQL suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
+- Bascule de la table `t_observations` dans le coeur de GeoNature (#271)
 
 **🐛 Corrections**
 
-- Mise à jour de la synthèse suite à une suppression de données (#286)
-- Problème de migration lors de l'installation du module (#284)
+- Correction d'une erreur silencieuse lors de la synchronisation avec la synthèse (liée à l'absence de la vue de synchro ou d'un champs obligatoire) (#286)
 - Mise à jour de SQLAlchemy version 1.3 à 1.4
 
 **⚠️ Notes de version**
 
-- Si vous installé le module sans être passés par la version 0.7.0 :
-  Après mise à jour du module, utiliser la commande pour générer les permissions disponibles pour les sous-modules déjà installés
-  ```
-  geonature monitorings update_module_available_permissions
-  ```
-
-Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles
-
-- mise à jour des fichiers de config comprenant `id_nomenclature_type_site` ??
+- Si vous installé le module sans être passés par la version 0.7.0, éxecuter le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles (après avoir exécuté la commande `geonature monitorings update_module_available_permissions`).
 - Si vous avez des modules installés, les vues synthèses et exports ne seront pas compatibles et bloqueront la migration. Il faut les supprimer en amont et les recréer après mise à jour en tenant compte des évolutions du modèle de données.
+- Si vous aviez défini la propriété `id_nomenclature_type_site` dans la configuration de vos sous-modules, celle-ci n'existe plus et peut être remplacée par `types_sites`. Exemple :
+  ```
+  "types_site":
+      "default": [
+        {
+          "id_nomenclature_type_site": 686
+        }
+      ],
+      "hidden": true
+    }
+  ```
+- Si vous le souhaitez, vous pouvez attribuer des permissions à vos utilisateurs au nouveau gestionnaire de sites et limiter les portées des permissions par objets et par sous-modules (https://github.com/PnX-SI/gn_module_monitoring?tab=readme-ov-file#permissions)
 
 ## 0.7.3 (03/05/23)
 
@@ -65,7 +72,7 @@ Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour 
 
 **🐛 Corrections**
 
-- export avec un filtre par jeux de données (#241)
+- Export avec un filtre par jeux de données (#241)
 
 ## 0.7.0 (2023-08-23)
 
