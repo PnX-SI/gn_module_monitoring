@@ -1,10 +1,10 @@
-# Module monitoring 
+# Module Monitoring 
 
 ## Sommaire
 
-* [Concepts du module](#concepts)
-* [Installation du module](#installation)
-* [Installation d'un sous module](#installation-dun-sous-module)
+* [Présentation du module](#présentation)
+* [Installation du module](#installation-du-module)
+* [Installation d'un sous-module](#installation-dun-sous-module)
 * [Configuration des champs spécifiques d'un sous-module](docs/sous_module.md)
 * [Gestion des sites et groupes de site](docs/gestion_sites_groupes_de_site.md)
 * [Permissions](#permissions)
@@ -13,87 +13,70 @@
 * [Documentation technique](docs/documentation_technique.md)
 * [Liste des commandes](docs/commandes.md)
 
-## Concepts
+## Présentation
 
-Ce module permet de générer de façon générique des interfaces de saisies correspondant à des protocoles de suivi.
-Par "suivi", on entend un protocole dont le point d'entrée est un site géographique, sur lequel on va revenir régulièrement effectuer des relevés. Il s'oppose par sa structure au module "Occtax" dont l'objecif est de faire de la saisie de données opportunistes (sans revenir régulièrement sur le même site de suivi).
+Ce module permet de générer de façon générique des interfaces de saisie correspondant à des protocoles de suivi.  
+Par "suivi", on entend un protocole dont le point d'entrée est un site géographique, sur lequel on va revenir régulièrement effectuer des visites. Il se distingue par sa structure du module "Occtax" dont l'objectif est de faire de la saisie de données opportunistes ou d'inventaire (sans revenir régulièrement sur le même site de suivi).
 
-Le module est articulé autour des trois concepts :
+Le module est articulé autour de 3 concepts :
 
-- les sites : l'objet géographique de suivi (qui peuvent être regroupés en groupe de sites)
-- les visites : une visite est effectué sur un site (date, observateurs)
-- le observations : observations faites durant la visite (espèces)
+- les sites : l'objet géographique de suivi (qui peuvent être regroupés par groupes de sites)
+- les visites : une visite est effectuée sur un site (date, observateurs)
+- les observations : observations faites durant la visite (espèces)
 
-Les 3 niveaux que sont le site, les visites et les observations sont fourni avec un tronc commun (les champs génériques) qui peuvent être complétés par des champs spécifiques à chaque protocole. Ces champs spécifiques sont défini par des fichiers de configurations JSON.
-Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il est ainsi possible d'ajouter dynamiquement des champs de différents types (liste, nomenclature, booléen, date, radio, observateurs, texte, taxonomie...). Ceux-ci peuvent être obligatoires ou non, affichés ou non et avoir des valeurs par défaut (voir doc détaillé : [Création d'un sous-module](docs/sous_module.md)
-)
+Les 3 niveaux que sont les sites, les visites et les observations sont fournis avec un tronc commun (les champs génériques) qui peuvent être complétés par des champs spécifiques à chaque protocole. Ces champs spécifiques sont définis par des fichiers de configuration JSON.  
+Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il est ainsi possible d'ajouter dynamiquement des champs de différents types (liste, nomenclature, booléen, date, radio, observateurs, texte, taxonomie...). Ceux-ci peuvent être obligatoires ou non, affichés ou non et avoir des valeurs par défaut (voir doc détaillée : [Création d'un sous-module](docs/sous_module.md)).
 
 ![Liste des sites du protocole de test](docs/images/apercu.png)
 
 
+## Installation du module
 
-## Installation
+- Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
-### Pré-requis
-
-* Avoir GeoNature installé dans une version compatible avec celle de la version du module.
-
-### Récupération du dépôt
-
-Pour récupérer le code source du module, vous pouvez le télécharger ou le cloner.
-
-#### Téléchargement
-
-```sh
+```bash
+cd
 wget https://github.com/PnX-SI/gn_module_monitoring/archive/X.Y.Z.zip
 unzip X.Y.Z.zip
 rm X.Y.Z.zip
-mv gn_module_monitoring-X.Y.Z gn_module_monitoring
-```
-Avec `X`, `Y`, `Z` correspondant à la version souhaitée.
-
-#### Clonage du dépôt
-
-```sh
-git clone https://github.com/PnX-SI/gn_module_monitoring.git
 ```
 
-### Installation du module
+- Renommez le répertoire du module
 
-```sh
+```bash
+mv ~/gn_module_monitoring-X.Y.Z ~/gn_module_monitoring
+```
+
+- Lancez l'installation du module
+
+```bash
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_monitoring MONITORINGS
 sudo systemctl restart geonature
 deactivate
 ```
 
-Créer le dossier suivant dans le dossier `media` de GeoNature
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
 
-```sh
-mkdir ~/geonature/backend/media/monitorings
-```
+### Mise à jour du module
 
-Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir <https://docs.geonature.fr/admin-manual.html#gestion-des-droits>). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+Pour mettre à jour le modue Monitoring, suivre la documentation de [mise à jour d'un module GeoNature](https://docs.geonature.fr/installation.html#mise-a-jour-du-module)
 
-### Mise à jour
+### Configuration générale du module
 
-Pour mettre à jour le modue monitoring, suivre la documentation de [mise à jour d'un module GeoNature](https://docs.geonature.fr/installation.html#mise-a-jour-du-module)
+Le fichier de configuration `monitorings_config.toml.example` peut être modifié puis copié à la racine du dossier de config de GeoNature : `~/geonature/config`.
 
-### Configuration générale du module monitoring
+3 éléments sont paramétrables :
 
-Un fichier de config `monitorings_config.toml.example` peut être modifié puis copié à la racine du dossier de config de GeoNature : `~/geonature/config`.
-
-Trois champs sont paramétrable :
-
-- `TITLE_MODULE` : Titre présent sur la page d'accueil du module monitoring
-- `DESCRIPTION_MODULE` : Description du module monitoring également présente sur la page d'accueil
-- `CODE_OBSERVERS_LIST` : Code de la liste d'observateur qui est utilisé par défaut
+- `TITLE_MODULE` : Titre présent sur la page d'accueil du module Monitoring
+- `DESCRIPTION_MODULE` : Description du module Monitoring également présent sur la page d'accueil
+- `CODE_OBSERVERS_LIST` : Code de la liste d'observateurs qui est utilisée par défaut
 
 ### Installation d'un sous-module
 
 #### Récupérer le répertoire de configuration d'un sous-module de suivi
 
-Par exemple le sous-module `test` présent dans le repertoire `contrib/test` du module de suivi.
+Par exemple le sous-module `test` présent dans le repertoire `contrib/test` du module Monitoring.
 
 #### Activer le venv de GeoNature
 
@@ -103,7 +86,7 @@ source ~/geonature/backend/venv/bin/activate
 
 #### Copie du dossier de configuration
 
-Créer un dossier pour référencer les configurations des sous-modules dans GeoNature (`geonature/backend/media/monitorings`) :
+Si il n'existe pas déjà, créer un dossier pour stocker les configurations des sous-modules dans GeoNature (`geonature/backend/media/monitorings`) :
 
 ```sh
 mkdir geonature/backend/media/monitorings
@@ -163,37 +146,35 @@ Vous êtes désormais sur la page du sous-module. Un message apparaît pour vous
 
 #### Cliquez sur le bouton `Éditer`
 
-Le formulaire d'édition du sous-module s'affiche et vous pouvez choisir les variables suivantes :
+Le formulaire d'édition du sous-module s'affiche et vous pouvez renseigner les variables suivantes :
 
 * Jeux de données *(obligatoire)* :
-    * Un module peut concerner plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
+    * Un sous-module peut concerner un ou plusieurs jeux de données, le choix sera ensuite proposé au niveau de chaque visite.
 * Liste des observateurs *(obligatoire)* :
-    * La liste d'observateurs définit l'ensemble des observateurs possibles pour le module (et de descripteurs de site).
-    * Cette liste peut être définie dans l'application `UsersHub`.
+    * La liste d'observateurs définit l'ensemble des observateurs possibles pour le sous-module (et de descripteurs de site).
+    * Cette liste peut être gérée dans l'application `UsersHub`.
 * Liste des taxons *(obligatoire selon le module)* :
-    * Cette liste définit l'ensemble des taxons concernés par ce module. Elle est gérée dans l'application `TaxHub`.
-* Activer la synthèse *(non obligatoire, désactivée par défaut)* ?
-    * Si on décide d'intégrer les données du sous-module dans la synthèse de GeoNature.
+    * Cette liste définit l'ensemble des taxons concernés par ce sous-module. Elle est gérée dans l'application `TaxHub`.
+* Activer la synchro synthèse *(non obligatoire, désactivée par défaut)* ?
+    * Si on décide d'intégrer automatiquement les données du sous-module dans la synthèse de GeoNature.
 * Affichage des taxons *(obligatoire)* ?
     * Définit comment sont affichés les taxons dans le module :
         * `lb_nom` : Nom latin,
         * `nom_vern,lb_nom` : Nom vernaculaire par defaut s'il existe, sinon nom latin.
-* Afficher dans le menu ? *(non obligatoire, non affiché par défaut)* :
-    * On peut décider que le sous-module soit accessible directement depuis le menu de gauche de GeoNature.
+* Afficher dans le menu latéral ? *(non obligatoire, non affiché par défaut)* :
+    * On peut décider que le sous-module soit accessible directement depuis le menu latéral de GeoNature.
     * `active_frontend`
-* Type de site :
-    * Permet d'associer des sites créé dans le gestionnaire de site à un module. Tous les sites dont le type est défini ici remonteront dans le module ( [voir documentation sur le gestionnaire de sites  (#gestionnaire-de-sites) )
+* Types de sites :
+    * Permet d'associer des sites (créés dans le gestionnaire de sites) à un sous-module. Tous les sites dont le type est défini ici remonteront dans le module ([voir documentation sur le gestionnaire de sites (#gestionnaire-de-sites))
 * Options spécifiques du sous-module :
     * Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module.
-    
 
 ### Configuration des champs spécifiques du sous-module
 
-Maintenant que le sous-module est installé, vous pouvez ajouter des champs spécifiques pour le faire correspondre à votre protocole de suivi.
-Le documentation détaillé de la configuration des champs additionnels est ici :  [Configuration des champs d'un sous module](docs/sous_module.md)
+Maintenant que le sous-module est installé, vous pouvez configurer ses champs spécifiques pour le faire correspondre à votre protocole de suivi.  
+La documentation détaillée de la configuration des champs additionnels est ici :  [Configuration des champs d'un sous module](docs/sous_module.md)
 
-Des exemples de sous-modules sont disponibles sur le dépôt
-<https://github.com/PnX-SI/protocoles_suivi/> :
+Des exemples de sous-modules sont disponibles sur le dépôt <https://github.com/PnX-SI/protocoles_suivi/> :
 
 * Protocole de suivi des oedicnèmes,
 * Protocole de suivi des mâles chanteurs de l'espèce chevêche
@@ -203,67 +184,62 @@ Des exemples de sous-modules sont disponibles sur le dépôt
 
 ## Gestionnaire de sites
 
-Chaque module permet de créer ses propres sites et groupe de sites. Cependant certains sites peuvent faire l'objet de plusieurs protocoles de suivi, c'est pouquoi le module monitoring offre la possibilité de créer des sites et des groupes de site dans le **gestionnaire de site** et de les mobiliser dans plusieurs sous-modules.
+Chaque sous-module permet de créer ses propres sites et groupes de sites. Cependant certains sites peuvent faire l'objet de plusieurs protocoles de suivi, c'est pouquoi le module Monitoring offre la possibilité de créer des sites et des groupes de sites globalement dans le **gestionnaire de site** et de les utiliser dans plusieurs sous-modules.
 
 ![Page d'accueil accès aux sites](docs/images/page_accueil_monitoring_acces_sites.png)
 
-Dans le gestionnaire de site il est possible de créer, éditer, supprimer, modifier des sites et des groupes de site de manière indépendante à la gestion de sous modules. Il est également possible de saisir directement des visites et des observations en rattachant les visites au sous-module que l'on souhaite.
+Dans le gestionnaire de sites, il est possible de créer, éditer, supprimer des sites et des groupes de sites de manière indépendante à la gestion de sous-modules. Il est également possible de saisir directement des visites et des observations en rattachant les visites au sous-module que l'on souhaite.
 
 > [!IMPORTANT]
-> **Associer un site à un module**
+> **Associer un site à un sous-module**
 >
-> Plutôt que d'associer un à un les sites à des modules, l'association entre un site et un module se fait via la notion de **type de site**. Une type de site est un concept permettant de regrouper des sites qui font l'objet de multiples protocoles et qui partage potentiellement une série de descripteurs communs. 
+> Plutôt que d'associer un à un les sites à des sous-modules, l'association entre un site et un sous-module se fait via la notion de **types de sites**. Une type de sites est un concept permettant de regrouper des sites qui font l'objet de plusieurs protocoles et qui partagent potentiellement une série de descripteurs communs. 
 >
-> Un "point d'écoute" qui va par exemple faire l'objet de plusieurs protocoles ornithologiques (STOC, oiseaux migrateurs etc...) peut être définit comme un type de site.
+> Un "point d'écoute" qui va par exemple faire l'objet de plusieurs protocoles ornithologiques (STOC, oiseaux migrateurs etc...) peut être définit comme un type de sites.
 >
-> Lors de la configuration d'un module (en interface), on doit associer le module à un ou des types de site. Tous les sites créés via le gestionnaire de site dont le type correspond à celui définit au niveau du module, remonteront dans la liste des sites du module.
+> Lors de la configuration d'un sous-module (depuis l'interface), on doit l'associer à un ou des types de site. Tous les sites créés via le gestionnaire de sites dont le type correspond à celui défini au niveau du sous-module, remonteront dans la liste des sites du sous-module.
 >
-> **Associer un groupe de sites à un module**
+> **Associer un groupe de sites à un sous-module**
 >
-> L'association entre un groupe de site et un module se fait elle directement. Lorsque l'on crée un groupe de site dans le gestionnaire de site, on l'associe directement à un ou plusieurs groupes de site
+> L'association entre un groupe de sites et un sous-module se fait individuellement. Lorsque l'on crée un groupe de site dans le gestionnaire de sites, on l'associe directement à un ou plusieurs sous-modules.
 
 
 **Définir des champs spécifique à un type de site**
 
-Il est possible de définir des champs spécifiques communs à des type de sites.
-Contrairement aux configurations des modules, celle-ci ne se fait pas dans un fichier JSON, mais dans le backoffice de GeoNature (rubrique monitoring / type de sites).
+Il est possible de définir des champs spécifiques communs à chaque type de sites.  
+Contrairement aux configurations des sous-modules, celle-ci ne se fait pas dans un fichier JSON, mais dans le module Admin de GeoNature (rubrique Monitoring / Types de sites).
 
 ![admin type de sites](docs/images/admin_type_site.png)
 
-La syntaxe est la même que pour la création de champs d'un sous-module (voir [Création d'un sous-module](docs/sous_module.md)
-). La clé `specific` permettant de configurer les champs et la clé `display_properties` d'afficher les champs sur les fiches info des sites.
+La syntaxe est la même que pour la création de champs d'un sous-module (voir [Création d'un sous-module](docs/sous_module.md)). La clé `specific` permettant de configurer les champs et la clé `display_properties` de définir les champs à afficher sur les fiches info des sites.
 
 ## Permissions
 
-Les permissions peuvent désormais être définies avec une notion de portée ('mes données', 'les données de mon organisme', 'toutes les données' si on ne précise pas de portée mais qu'on accorde une permission). Ces permissions peuvent être définies sur chaque objet défini ci dessous.
+Les permissions peuvent désormais être définies avec une notion de portée ('Mes données', 'Les données de mon organisme' ou 'Toutes les données' si on ne précise pas de portée mais qu'on accorde une permission). Ces permissions peuvent être définies sur chaque objet défini ci-dessous.
 
 La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
 
-Les permissions sont définis par sous-modules pour chaque type d'objet (modules, groupes de sites, sites, visites, observations et types de site) :
+Les permissions sont définies par sous-module pour chaque type d'objet (modules, groupes de sites, sites, visites, observations et types de site) :
 
-- `MONITORINGS_MODULES` - R : permet a l'utilisateur d'accéder au module, de le voir dans la liste des modules
-- `MONITORINGS_MODULES` - U : action administrateur qui permet de configurer le module et de synchroniser la synthèse
-- `MONITORINGS_MODULES` - E : action qui permet aux utilisateurs d'exporter les données (si défini par le module)
-- `MONITORINGS_GRP_SITES` - CRUD : action de lire, créer, modifier, supprimer un groupe de site
+- `MONITORINGS_MODULES` - R : permet à l'utilisateur d'accéder au sous-module, de le voir dans la liste des sous-modules
+- `MONITORINGS_MODULES` - U : action administrateur qui permet de configurer le sous-module et de synchroniser la synthèse
+- `MONITORINGS_MODULES` - E : action qui permet aux utilisateurs d'exporter les données (si configuré au niveau du sous-module)
+- `MONITORINGS_GRP_SITES` - CRUD : action de lire, créer, modifier, supprimer un groupe de sites
 - `MONITORINGS_SITES` - CRUD : action de lire, créer, modifier, supprimer un site
 - `MONITORINGS_VISITES` - CRUD : action de lire, créer, modifier, supprimer les visites, observations, observations détails
-- `TYPES_SITES`- CRUD : action de lire, créer, modifier, supprimer les types de sites via l'interface administrateur (uniquement pour le module monitorings et non les sous modules)
+- `TYPES_SITES`- CRUD : action de lire, créer, modifier, supprimer les types de sites dans le module Admin (globalement pour tout le module Monitoring et non par sous-modules)
 
-Par défaut, dès qu'un utilisateur a un droit supérieur à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action.
+Par défaut, dès qu'un utilisateur a une permission supérieure à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action.
 
-Il est possible de mettre à jour les permissions disponibles pour un module en utilisant la commande `update_module_available_permissions`
+Il est possible de mettre à jour les permissions disponibles pour un module en utilisant la commande `update_module_available_permissions`.
 
 
 ## Base de données
 
 Le module permet de générer des sous-modules (stockés dans la table `gn_commons.t_modules`) pour chaque protocole de suivi. Ils s'appuient sur les champs fixes des 3 tables `gn_monitoring.t_base_sites`, `gn_monitoring.t_base_visits` et `gn_monitoring.t_observations` qui peuvent chacunes être étendues avec des champs spécifiques et dynamiques stockés dans des champs de type `JSONB`.
 
-
 Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'alimenter automatiquement la synthèse de GeoNature à partir des données saisies dans chaque sous-module.
 
-
-
-Les sites et groupes de sites multi modules.
+Les sites et groupes de sites peuvent être associés à plusieurs protocoles (sous-modules).
 
 ![MCD du schema gn_monitoring](docs/images/2023-10-MCD_schema_monitoring.png)
-
