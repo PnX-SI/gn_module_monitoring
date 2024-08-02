@@ -215,11 +215,11 @@ La syntaxe est la même que pour la création de champs d'un sous-module (voir [
 
 ## Permissions
 
-Les permissions peuvent désormais être définies avec une notion de portée ('Mes données', 'Les données de mon organisme' ou 'Toutes les données' si on ne précise pas de portée mais qu'on accorde une permission). Ces permissions peuvent être définies sur chaque objet défini ci-dessous.
+- Une permission définit si l'on peut accéder au module Monitoring (R sur Monitoring)
+- Des permissions définissent si on peut accéder au gestionnaire de sites et y créer, modifier, supprimer des sites et groupes de sites
+- Des permissions définissent si on peut gérer les types de sites dans le module Admin
 
-La gestion des permissions pour les rôles (utilisateur ou groupe) se réalise au niveau de l'interface d'administration des permissions de GeoNature.
-
-Les permissions sont définies par sous-module pour chaque type d'objet (modules, groupes de sites, sites, visites, observations et types de site) :
+Les permissions des sous-modules sont définies au niveau de chaque sous-module pour chaque type d'objet (sous-module, groupes de sites, sites, visites, observations) :
 
 - `MONITORINGS_MODULES` - R : permet à l'utilisateur d'accéder au sous-module, de le voir dans la liste des sous-modules
 - `MONITORINGS_MODULES` - U : action administrateur qui permet de configurer le sous-module et de synchroniser la synthèse
@@ -227,12 +227,15 @@ Les permissions sont définies par sous-module pour chaque type d'objet (modules
 - `MONITORINGS_GRP_SITES` - CRUD : action de lire, créer, modifier, supprimer un groupe de sites
 - `MONITORINGS_SITES` - CRUD : action de lire, créer, modifier, supprimer un site
 - `MONITORINGS_VISITES` - CRUD : action de lire, créer, modifier, supprimer les visites, observations, observations détails
-- `TYPES_SITES`- CRUD : action de lire, créer, modifier, supprimer les types de sites dans le module Admin (globalement pour tout le module Monitoring et non par sous-modules)
 
-Par défaut, dès qu'un utilisateur a une permission supérieure à 0 pour une action (c-a-d aucune portée) il peut réaliser cette action.
+Les permissions des sous-modules peuvent être limitées avec une notion de portée : 'Mes données' ou 'Les données de mon organisme' : 
 
-Il est possible de mettre à jour les permissions disponibles pour un module en utilisant la commande `update_module_available_permissions`.
+- Pour les groupes de sites, la portée s'appuie sur son id_digitizer (et son organisme si la portée est de niveau 2)
+- Site : id_digitizer ou id_inventor du site
+- Visite : id_digitiser ou observers de la visite
+- Observation : id_digitizer de l'observation
 
+Si vous modifiez la configuration d'un sous-module en y ajoutant des objets (ajout du niveau groupe de sites par exemple), il est possible de mettre à jour les permissions disponibles pour ce sous-module en utilisant la commande `update_module_available_permissions`.
 
 ## Base de données
 
