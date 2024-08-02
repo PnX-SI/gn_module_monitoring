@@ -6,10 +6,12 @@
 
 - Les sites (et groupes de sites) peuvent désormais être utilisés dans plusieurs protocoles (sous-modules) (#117)
   - Un gestionnaire de sites permet de gérer les sites (et groupes de sites) globalement et non plus uniquement à l'intérieur de chaque sous-module
-  - Chaque site est associé à un ou plusieurs types de sites (géré dans le module Admin de GeoNature)
+  - Chaque site est associé à un ou plusieurs types de sites
+  - Un gestionnaire des type de sites est disponible dans le module Admin de GeoNature
   - Des champs additionnels peuvent être définis pour chaque type de site pour pouvoir décrire des sites globalement, et pas uniquement par protocole
   - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
   - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites
+  - Le modèle de données a évolué pour pouvoir associer un groupe de site à plusieurs sous-module 
 - Ajout de la prise en compte des portées au niveau des permissions (#92)
 - Ajout d'un champ `observers_txt` au niveau de la table des visites (#106)
 - Possibilité de définir plusieurs types de géométrie pour les sites d'un sous-module (#136)
