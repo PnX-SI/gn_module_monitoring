@@ -71,7 +71,12 @@
         "required": true,
         "hidden": true,
         "type_util": "user"
-      }
+      },
+      "medias": {
+        "type_widget": "medias",
+        "attribut_label": "Médias",
+        "schema_dot_table": "gn_monitoring.t_individuals"
+    }
   },
   "change": [
     "({objForm, meta}) => {",
