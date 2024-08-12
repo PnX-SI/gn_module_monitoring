@@ -81,7 +81,7 @@ def get_init_data(module_code):
         out["nomenclature"] = []
         for code_type in data.get("nomenclature"):
             nomenclature_list = get_nomenclature_list(code_type=code_type)
-            for nomenclature in nomenclature_list["values"]:
+            for nomenclature in nomenclature_list.get("values", {}):
                 nomenclature["code_type"] = code_type
                 out["nomenclature"].append(nomenclature)
 
@@ -192,11 +192,7 @@ def get_util_from_id_api(type_util, id):
     scope = obj if field_name == "all" else getattr(obj, field_name)
     # requête
     try:
-        res = (
-            DB.session.query(scope)
-            .filter(cast(getattr(obj, id_field_name), DB.String) == id)
-            .one()
-        )
+        res = DB.session.query(scope).filter(getattr(obj, id_field_name) == id).one()
 
         return res.as_dict() if field_name == "all" else res[0]
 

@@ -98,8 +98,6 @@
       "definition": "Affichage des groupes de site en dessinant l'enveloppe des sites du groupe et en affichant l'aire du groupe de sites",
       "hidden": true
     },
-
-
     "taxonomy_display_field_name": {
       "type_widget": "datalist",
       "attribut_label": "Affichage des taxons",
@@ -114,7 +112,13 @@
       ],
       "required": true
     },
-
+    "cd_nom": {
+      "type_widget": "taxonomy",
+      "attribut_label": "Espèce",
+      "type_util": "taxonomy",
+      "required": false,
+      "hidden": true
+    },
     "active_frontend": {
       "type_widget": "bool_checkbox",
       "attribut_label": "Afficher dans le menu ?",

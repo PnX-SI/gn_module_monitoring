@@ -1,6 +1,7 @@
 """
     Modèles SQLAlchemy pour les modules de suivi
 """
+
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import column_property
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -13,7 +14,13 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 
 from geonature.core.gn_commons.models import TMedias
-from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits
+from geonature.core.gn_monitoring.models import (
+    TBaseSites,
+    TBaseVisits,
+    TIndividuals,
+    TMarkingEvent,
+    corIndividualModule,
+)
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
 from geonature.core.gn_commons.models import TModules, cor_module_dataset
@@ -37,6 +44,7 @@ class TMonitoringObservationDetails(DB.Model):
         lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation_detail),
         foreign_keys=[TMedias.uuid_attached_row],
+        overlaps="medias",
     )
 
 
@@ -50,12 +58,14 @@ class TObservations(DB.Model):
     cd_nom = DB.Column(DB.Integer)
     comments = DB.Column(DB.String)
     uuid_observation = DB.Column(UUID(as_uuid=True), default=uuid4)
+    id_individual = DB.Column(DB.ForeignKey("gn_monitoring.t_individuals.id_individual"))
 
     medias = DB.relationship(
         TMedias,
         lazy="joined",
         primaryjoin=(TMedias.uuid_attached_row == uuid_observation),
         foreign_keys=[TMedias.uuid_attached_row],
+        overlaps="medias,medias",
     )
 
     observation_details = DB.relation(
@@ -83,7 +93,7 @@ class TMonitoringObservations(TObservations):
     )
 
 
-TBaseVisits.dataset = DB.relationship(TDatasets)
+# TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
@@ -120,10 +130,11 @@ class TMonitoringVisits(TBaseVisits):
     )
 
     nb_observations = column_property(
-        select([func.count(TObservations.id_base_visit)]).where(
-            TObservations.id_base_visit == id_base_visit
-        )
+        select([func.count(TObservations.id_base_visit)])
+        .where(TObservations.id_base_visit == id_base_visit)
+        .scalar_subquery()
     )
+
 
 @geoserializable
 class TMonitoringSites(TBaseSites):
@@ -158,6 +169,7 @@ class TMonitoringSites(TBaseSites):
         primaryjoin=(TBaseSites.id_base_site == TBaseVisits.id_base_site),
         foreign_keys=[TBaseVisits.id_base_site],
         cascade="all,delete",
+        overlaps="t_base_visits",
     )
 
     medias = DB.relationship(
@@ -166,21 +178,37 @@ class TMonitoringSites(TBaseSites):
         primaryjoin=(TMedias.uuid_attached_row == TBaseSites.uuid_base_site),
         foreign_keys=[TMedias.uuid_attached_row],
         cascade="all",
+        overlaps="medias",
     )
 
     last_visit = column_property(
-        select([func.max(TBaseVisits.visit_date_min)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select([func.max(TBaseVisits.visit_date_min)])
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .scalar_subquery()
     )
 
     nb_visits = column_property(
-        select([func.count(TBaseVisits.id_base_site)]).where(
-            TBaseVisits.id_base_site == id_base_site
-        )
+        select([func.count(TBaseVisits.id_base_site)])
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .scalar_subquery()
     )
 
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
+
+    nb_individuals = column_property(
+        select([func.count(func.distinct(TIndividuals.id_individual))])
+        .join_from(
+            TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
+        )
+        .join_from(
+            TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual
+        )
+        .where(TBaseVisits.id_base_site == id_base_site)
+        .correlate_except(
+            TBaseVisits
+        )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+        .scalar_subquery()
+    )
 
 
 @serializable
@@ -209,6 +237,7 @@ class TMonitoringSitesGroups(DB.Model):
         primaryjoin=(TMedias.uuid_attached_row == uuid_sites_group),
         foreign_keys=[TMedias.uuid_attached_row],
         lazy="joined",
+        overlaps="medias",
     )
 
     sites = DB.relationship(
@@ -217,21 +246,24 @@ class TMonitoringSitesGroups(DB.Model):
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="joined",
+        overlaps="sites",
     )
 
     nb_sites = column_property(
-        select([func.count(TMonitoringSites.id_sites_group)]).where(
-            TMonitoringSites.id_sites_group == id_sites_group
-        )
+        select([func.count(TMonitoringSites.id_sites_group)])
+        .where(TMonitoringSites.id_sites_group == id_sites_group)
+        .scalar_subquery()
     )
 
     nb_visits = column_property(
-        select([func.count(TMonitoringVisits.id_base_site)]).where(
+        select([func.count(TMonitoringVisits.id_base_site)])
+        .where(
             and_(
                 TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
                 TMonitoringSites.id_sites_group == id_sites_group,
             )
         )
+        .scalar_subquery()
     )
 
 
@@ -254,6 +286,7 @@ class TMonitoringModules(TModules):
 
     id_list_observer = DB.Column(DB.Integer)
     id_list_taxonomy = DB.Column(DB.Integer)
+    cd_nom = DB.Column(DB.Integer)
 
     taxonomy_display_field_name = DB.Column(DB.Unicode)
     b_synthese = DB.Column(DB.Boolean)
@@ -264,6 +297,7 @@ class TMonitoringModules(TModules):
         primaryjoin=(TMedias.uuid_attached_row == uuid_module_complement),
         foreign_keys=[TMedias.uuid_attached_row],
         lazy="joined",
+        overlaps="medias,medias",
     )
 
     sites = DB.relationship(
@@ -280,6 +314,7 @@ class TMonitoringModules(TModules):
         primaryjoin=TMonitoringSitesGroups.id_module == id_module,
         foreign_keys=[id_module],
         lazy="select",
+        overlaps="sites",
     )
 
     datasets = DB.relationship(
@@ -287,8 +322,19 @@ class TMonitoringModules(TModules):
         secondary=cor_module_dataset,
         join_depth=0,
         lazy="joined",
+        overlaps="modules",
     )
 
+    individuals = DB.relationship(
+        "TIndividuals",
+        lazy="select",
+        enable_typechecks=False,
+        secondary=corIndividualModule,
+        primaryjoin=(corIndividualModule.c.id_module == id_module),
+        secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
+        foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
+        overlaps="modules",
+    )
     data = DB.Column(JSONB)
 
     # visits = DB.relationship(
@@ -317,6 +363,7 @@ TMonitoringSites.sites_group = DB.relationship(
     cascade="all",
     lazy="select",
     uselist=False,
+    overlaps="sites",
 )
 
 TMonitoringSitesGroups.visits = DB.relationship(
@@ -324,15 +371,48 @@ TMonitoringSitesGroups.visits = DB.relationship(
     primaryjoin=(TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group),
     secondaryjoin=(TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site),
     secondary="gn_monitoring.t_site_complements",
+    overlaps="sites,sites_group",
 )
 
 TMonitoringSitesGroups.nb_visits = column_property(
-    select([func.count(TMonitoringVisits.id_base_site)]).where(
+    select([func.count(TMonitoringVisits.id_base_site)])
+    .where(
         and_(
             TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
             TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
     )
+    .scalar_subquery()
+)
+
+TIndividuals.nb_sites = column_property(
+    select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+    .join_from(
+        TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
+    )
+    .join_from(
+        TBaseVisits, TMonitoringSites, TMonitoringSites.id_base_site == TBaseVisits.id_base_site
+    )
+    .where(TObservations.id_individual == TIndividuals.id_individual)
+    .correlate_except(
+        TBaseVisits
+    )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+    .scalar_subquery()
+)
+
+TMonitoringSites.nb_individuals = column_property(
+    select([func.count(func.distinct(TIndividuals.id_individual))])
+    .join_from(
+        TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
+    )
+    .join_from(
+        TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual
+    )
+    .where(TBaseVisits.id_base_site == TMonitoringSites.id_base_site)
+    .correlate_except(
+        TBaseVisits
+    )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+    .scalar_subquery()
 )
 
 # note the alias is mandotory otherwise the where is done on the subquery table
@@ -348,4 +428,5 @@ TMonitoringSitesGroups.geom_geojson = column_property(
     .where(
         TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
     )
+    .scalar_subquery()
 )

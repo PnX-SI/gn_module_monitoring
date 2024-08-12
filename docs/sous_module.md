@@ -182,6 +182,7 @@ Pour cela il faut utiliser les variables suivantes :
 * `__MODULE.ID_MODULE`
 * `__MODULE.ID_LIST_OBSERVER`
 * `__MODULE.TAXONOMY_DISPLAY_FIELD_NAME`
+* `__MODULE.CD_NOM`
 
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
