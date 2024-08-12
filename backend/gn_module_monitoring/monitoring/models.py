@@ -389,7 +389,8 @@ TIndividuals.nb_sites = column_property(
     select([func.count(func.distinct(TMonitoringSites.id_base_site))])
     .join_from(
         TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
-    ).join_from(
+    )
+    .join_from(
         TBaseVisits, TMonitoringSites, TMonitoringSites.id_base_site == TBaseVisits.id_base_site
     )
     .where(TObservations.id_individual == TIndividuals.id_individual)
