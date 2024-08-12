@@ -20,5 +20,3 @@ tmp/
 npm-debug.log*
 yarn-error.log*
 .ng_pkg_build/
-
-*.DS_Store

@@ -387,18 +387,17 @@ TMonitoringSitesGroups.nb_visits = column_property(
 
 TIndividuals.nb_sites = column_property(
     select([func.count(func.distinct(TMonitoringSites.id_base_site))])
-    .join_from(
-        TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
-    ).join_from(
-        TBaseVisits, TMonitoringSites, TMonitoringSites.id_base_site == TBaseVisits.id_base_site
+    .where(
+        and_(
+            TObservations.id_individual == TIndividuals.id_individual,
+            TObservations.id_base_visit == TMonitoringVisits.id_base_visit,
+            TBaseVisits.id_base_site == TMonitoringSites.id_base_site,
+        )
     )
-    .where(TObservations.id_individual == TIndividuals.id_individual)
-    .correlate_except(
-        TBaseVisits
-    )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+    .correlate_except(TMonitoringSites)
     .scalar_subquery()
 )
-
+# NOTES: [SUIVI_INDIVIDU] pourquoi c'est nécessaire de le garder ici ?
 TMonitoringSites.nb_individuals = column_property(
     select([func.count(func.distinct(TIndividuals.id_individual))])
     .join_from(
@@ -413,6 +412,27 @@ TMonitoringSites.nb_individuals = column_property(
     )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
     .scalar_subquery()
 )
+# NOTES: [SUIVI_INDIVIDU] ici le id_base_marking_site peut être null si on renseigne un marquage en entrant directement par les inidividus
+# TIndividuals.nb_sites = column_property(
+#     select([func.count(func.distinct(TMonitoringSites.id_base_site))]).where(
+#         and_(
+#             TMarkingEvent.id_individual == TIndividuals.id_individual,
+#             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+#         )
+#     )
+#     .scalar_subquery()
+# )
+# NOTES: [SUIVI_INDIVIDU] ici pareil le id_base_marking_site peut être null si on renseigne un marquage en entrant directement par les inidividus
+# TMonitoringSites.nb_individuals = column_property(
+#     select([func.count(func.distinct(TIndividuals.id_individual))]).where(
+#         and_(
+#             TMarkingEvent.id_base_marking_site == TMonitoringSites.id_base_site,
+#             TMarkingEvent.id_individual == TIndividuals.id_individual,
+#         )
+#     )
+#      .scalar_subquery()
+# )
+
 
 # note the alias is mandotory otherwise the where is done on the subquery table
 # and not the global TMonitoring table
