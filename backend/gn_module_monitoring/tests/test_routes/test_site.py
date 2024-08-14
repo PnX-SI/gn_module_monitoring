@@ -202,6 +202,34 @@ class TestSite:
         assert r.status_code == 200
         assert len(features) == 1
 
+    def test_get_all_site_geometries_filter_type_sites(
+        self, sites_with_data_typeutils, monitorings_users, users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        # types_site = [s.types_site[0].id_nomenclature_type_site for s in sites_with_data_typeutils]
+        types_site = [s for s in sites_with_data_typeutils]
+        id_nomenclature_type_site = (
+            sites_with_data_typeutils[types_site[0]].types_site[0].id_nomenclature_type_site
+        )
+        r = self.client.get(
+            url_for("monitorings.get_all_site_geometries", types_site=id_nomenclature_type_site)
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == 1
+        nom_type_site = list(sites_with_data_typeutils.keys())[0]
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_site_geometries",
+                types_site=nom_type_site,
+            )
+        )
+        json_resp = r.json
+        features = json_resp.get("features")
+        assert r.status_code == 200
+        assert len(features) == 1
+
     # def test_get_module_by_id_base_site(self, sites, monitoring_module, monitorings_users):
 
     #     set_logged_user_cookie(self.client, monitorings_users["admin_user"])
