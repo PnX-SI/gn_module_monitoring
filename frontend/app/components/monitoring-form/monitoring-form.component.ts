@@ -504,6 +504,13 @@ export class MonitoringFormComponent implements OnInit {
     if (event.types_site != null && event.types_site.length != this.idsTypesSite.size) {
       this.updateTypeSiteForm();
     }
+    const change = this.obj.change();
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({ objForm: this.objForm, meta: this.meta });
+    }, 100);
   }
 
   onObjFormValueChangeDynamic(event, typeSite) {
