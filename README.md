@@ -5,8 +5,8 @@
 * [Présentation du module](#présentation)
 * [Installation du module](#installation-du-module)
 * [Installation d'un sous-module](#installation-dun-sous-module)
-* [Configuration des champs spécifiques d'un sous-module](docs/sous_module.md)
-* [Gestion des sites et groupes de site](docs/gestion_sites_groupes_de_site.md)
+* [Champs spécifiques d'un sous-module]([#configuration-des-champs-sp%C3%A9cifiques-dun-sous-module)
+* [Gestion des sites et groupes de site](#gestion-des-sites)
 * [Permissions](#permissions)
 * [Base de données](#base-de-données)
 * [Gestion de la synthèse](docs/synthese.md)
@@ -72,19 +72,19 @@ Le fichier de configuration `monitorings_config.toml.example` peut être modifi�
 - `DESCRIPTION_MODULE` : Description du module Monitoring également présent sur la page d'accueil
 - `CODE_OBSERVERS_LIST` : Code de la liste d'observateurs qui est utilisée par défaut
 
-### Installation d'un sous-module
+## Installation d'un sous-module
 
-#### Récupérer le répertoire de configuration d'un sous-module de suivi
+### Récupérer le répertoire de configuration d'un sous-module de suivi
 
 Par exemple le sous-module `test` présent dans le repertoire `contrib/test` du module Monitoring.
 
-#### Activer le venv de GeoNature
+### Activer le venv de GeoNature
 
 ```sh
 source ~/geonature/backend/venv/bin/activate
 ```
 
-#### Copie du dossier de configuration
+### Copie du dossier de configuration
 
 Si il n'existe pas déjà, créer un dossier pour stocker les configurations des sous-modules dans GeoNature (`geonature/backend/media/monitorings`) :
 
@@ -104,7 +104,7 @@ Exemple pour le module "test" :
 ln -s ~/gn_module_monitoring/contrib/test ~/geonature/backend/media/monitorings/test
 ```
 
-#### Lancer la commande d'installation du sous-module
+### Lancer la commande d'installation du sous-module
 
 ```sh
 geonature monitorings install <module_code>
@@ -134,7 +134,7 @@ Modules installés :
 
 Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le sous-module (voir <https://docs.geonature.fr/admin-manual.html#gestion-des-droits>). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
 
-### Configurer le sous-module
+### Configurer un sous-module
 
 #### Dans le menu de droite de GeoNature, cliquer sur le module "Monitorings"
 
@@ -169,20 +169,20 @@ Le formulaire d'édition du sous-module s'affiche et vous pouvez renseigner les 
 * Options spécifiques du sous-module :
     * Un sous-module peut présenter des options qui lui sont propres et définies dans les paramètres spécifiques du sous-module.
 
-### Configuration des champs spécifiques du sous-module
+## Configuration des champs spécifiques d'un sous-module
 
 Maintenant que le sous-module est installé, vous pouvez configurer ses champs spécifiques pour le faire correspondre à votre protocole de suivi.  
 La documentation détaillée de la configuration des champs additionnels est ici :  [Configuration des champs d'un sous module](docs/sous_module.md)
 
 Des exemples de sous-modules sont disponibles sur le dépôt <https://github.com/PnX-SI/protocoles_suivi/> :
 
-* Protocole de suivi des oedicnèmes,
+* Protocole de suivi des oedicnèmes
 * Protocole de suivi des mâles chanteurs de l'espèce chevêche
-    d'Athena;
+    d'Athena
 * Protocole Suivi Temporel des Oiseaux de Montagne (STOM)
 * Autres...
 
-## Gestionnaire de sites
+## Gestion des sites
 
 Chaque sous-module permet de créer ses propres sites et groupes de sites. Cependant certains sites peuvent faire l'objet de plusieurs protocoles de suivi, c'est pouquoi le module Monitoring offre la possibilité de créer des sites et des groupes de sites globalement dans le **gestionnaire de site** et de les utiliser dans plusieurs sous-modules.
 
@@ -246,3 +246,9 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 Les sites et groupes de sites peuvent être associés à plusieurs protocoles (sous-modules).
 
 ![MCD du schema gn_monitoring](docs/images/2023-10-MCD_schema_monitoring.png)
+
+## Autres
+
+* [Gestion de la synthèse](docs/synthese.md)
+* [Documentation technique](docs/documentation_technique.md)
+* [Liste des commandes](docs/commandes.md)
