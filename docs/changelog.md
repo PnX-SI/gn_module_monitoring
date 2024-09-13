@@ -1,23 +1,49 @@
 # CHANGELOG
 
-## 0.8.0 (unrelease)
+## 0.8.0 (unreleased)
 
-- Création du gestionnaire de site : les sites et les groupes de site peuvent être utilisés dans plusieurs sous-module. Le gestionnaire de site permet de créer / modifier / supprimer des sites et des groupes de site hors d'un sous-module.
-- Possibilité de créer des champs additionnels par type de site via le backoffice GeoNature
+Nécessite GeoNature 2.15.0 (ou plus)
 
-- Suppression des commandes `process_csv` et `process_all` qui sont remplacés par la commande `process_sql`
-- [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes sql suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
+**🚀 Nouveautés**
+
+- Les sites (et groupes de sites) peuvent désormais être utilisés dans plusieurs protocoles (sous-modules) (#117)
+  - Un gestionnaire de sites permet de gérer les sites (et groupes de sites) globalement et non plus uniquement à l'intérieur de chaque sous-module
+  - Chaque site est associé à un ou plusieurs types de sites
+  - Un gestionnaire des types de sites est disponible dans le module Admin de GeoNature
+  - Des champs additionnels peuvent être définis pour chaque type de site pour pouvoir décrire des sites globalement, et pas uniquement par protocole
+  - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
+  - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs id_nomenclature_type_site
+  - Le modèle de données a évolué pour pouvoir associer un groupe de sites à plusieurs sous-modules
+- Ajout de la prise en compte des portées au niveau des permissions (#92)
+- Ajout d'un champ `observers_txt` au niveau de la table des visites (#106)
+- Possibilité de définir plusieurs types de géométrie pour les sites d'un sous-module (#136)
+- Ajout de triggers de répercussion dans la Synthèse des données supprimées dans un sous-module de Monitoring (#286)
+- Ajout de tests unitaires
+- Suppression des commandes `process_csv` et `process_all` qui sont remplacées par la commande `process_sql` (#244)
+- [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes SQL suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
+- Bascule de la table `t_observations` dans le coeur de GeoNature (#271)
+
+**🐛 Corrections**
+
+- Correction d'une erreur silencieuse lors de la synchronisation avec la synthèse (liée à l'absence de la vue de synchro ou d'un champs obligatoire) (#286)
+- Mise à jour de SQLAlchemy version 1.3 à 1.4
 
 **⚠️ Notes de version**
 
-- Si vous installé le module sans être passé par la version 0.7.0 :
-  Après mise à jour du module, utiliser la commande pour générer les permissions disponibles pour les sous-modules déjà installés
+- Si vous installé le module sans être passés par la version 0.7.0, éxecuter le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles (après avoir exécuté la commande `geonature monitorings update_module_available_permissions`).
+- Si vous avez des modules installés, les vues synthèses et exports ne seront pas compatibles et bloqueront la migration. Il faut les supprimer en amont et les recréer après mise à jour en tenant compte des évolutions du modèle de données.
+- Si vous aviez défini la propriété `id_nomenclature_type_site` dans la configuration de vos sous-modules, celle-ci n'existe plus et peut être remplacée par `types_sites`. Exemple :
   ```
-  geonature monitorings update_module_available_permissions
+  "types_site":
+      "default": [
+        {
+          "id_nomenclature_type_site": 686
+        }
+      ],
+      "hidden": true
+    }
   ```
-- mise à jour des fichiers de config comprenant `id_nomenclature_type_site` ??
-
-Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles
+- Si vous le souhaitez, vous pouvez attribuer des permissions à vos utilisateurs au nouveau gestionnaire de sites et limiter les portées des permissions par objets et par sous-modules (https://github.com/PnX-SI/gn_module_monitoring?tab=readme-ov-file#permissions)
 
 ## 0.7.3 (03/05/23)
 
@@ -25,9 +51,7 @@ Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour 
 
 - Correction du selecteur des groupes de sites
 
-  0.7.2 (27-02-23)
-
----
+## 0.7.2 (27-02-23)
 
 **🚀 Nouveautés**
 
@@ -39,9 +63,7 @@ Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour 
 - Erreur lors de l'installation du module (#284)
 - Corrections des permissions (export PDF, groupes de sites)
 
-  0.7.1 (05-12-23)
-
----
+## 0.7.1 (05-12-2023)
 
 **🚀 Nouveautés**
 
@@ -52,9 +74,7 @@ Puis vous pouvez utiliser le script `data\upgrade_modules_permissions.sql` pour 
 
 - Export avec un filtre par jeux de données (#241)
 
-  0.7.0 (2023-08-23)
-
----
+## 0.7.0 (2023-08-23)
 
 Nécessite la version 2.13.0 (ou plus) de GeoNature
 
@@ -73,9 +93,7 @@ Nécessite la version 2.13.0 (ou plus) de GeoNature
   geonature monitorings update_module_available_permissions
   ```
 
-  0.6.0 (2023-05-23)
-
----
+## 0.6.0 (2023-05-23)
 
 Nécessite GeoNature version 2.12.0 (ou plus)
 
@@ -111,9 +129,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
         geonature monitorings install <module_code>
         ```
 
-  0.5.0 (2023-03-29)
-
----
+## 0.5.0 (2023-03-29)
 
 Nécessite GeoNature version 2.12.0 (ou plus)
 
@@ -145,7 +161,7 @@ Nécessite GeoNature version 2.12.0 (ou plus)
   },
 ```
 
-# 0.4.1 (2023-02-05)
+## 0.4.1 (2023-02-05)
 
 **🚀 Nouveautés**
 
@@ -172,7 +188,7 @@ concernés (dans leur fichier `module.json`). Exemple :
 ],
 ```
 
-# 0.4.0 (2022-12-21)
+## 0.4.0 (2022-12-21)
 
 Nécessite la version 2.11.0 (ou plus) de GeoNature.
 
@@ -223,7 +239,7 @@ geonature db stamp 362cf9d504ec                   # monitorings 0.3.0
 geonature db upgrade monitorings@head
 ```
 
-# 0.3.0 (2022-11-02)
+## 0.3.0 (2022-11-02)
 
 Nécessite la version 2.10.0 (ou plus) de GeoNature.
 
@@ -264,7 +280,7 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature.
   (#170)
 - Suppression de l'alias `@librairies` (#178)
 
-  # 0.2.10 (2022-03-02)
+## 0.2.10 (2022-03-02)
 
 Compatible avec GeoNature version 2.9.2 maximum.
 
@@ -275,7 +291,7 @@ Compatible avec GeoNature version 2.9.2 maximum.
 - Prise en compte du changement de l'api pour les jdd pour le choix
   des jdd de l'export
 
-  # 0.2.9 (2022-01-13)
+## 0.2.9 (2022-01-13)
 
 Compatibilité avec GeoNature version 2.9.0 et plus.
 
@@ -286,7 +302,7 @@ Compatibilité avec GeoNature version 2.9.0 et plus.
 - Reprise du composant de la liste déroulante de sélection des jeux de
   données, suite au passage à `ng-select2` dans GeoNature 2.9.0
 
-  # 0.2.8 (2021-12-10)
+## 0.2.8 (2021-12-10)
 
 **🐛 Corrections**
 
@@ -300,7 +316,7 @@ Compatibilité avec GeoNature version 2.9.0 et plus.
 - Les modules POPAmphibien et POPReptile ont été déplacés dans le
   dépot <https://github.com/PnCevennes/protocoles_suivi>
 
-  # 0.2.7 (2021-10-26)
+## 0.2.7 (2021-10-26)
 
 **⚠️ Notes de version**
 
@@ -357,7 +373,7 @@ cd path_to_geonature/frontend
 npm install external_modules/monitorings/frontend --no-save
 ```
 
-# 0.2.6 (2021-07-23)
+## 0.2.6 (2021-07-23)
 
 Compatible avec GeoNature à partir de sa version 2.6.2 (dont GeoNature
 2.8).
@@ -401,13 +417,13 @@ export FLASK_APP=geonature
 geonature monitorings process_img
 ```
 
-# 0.2.5 (2021-07-12)
+## 0.2.5 (2021-07-12)
 
 **🐛 Corrections**
 
 Problème de route frontend (#100)
 
-# 0.2.4 (2021-06-15)
+## 0.2.4 (2021-06-15)
 
 **🐛 Corrections**
 
@@ -416,7 +432,7 @@ Problème de route frontend (#100)
 
 Version minimale de GeoNature nécessaire : 2.6.2
 
-# 0.2.3 (2021-04-01)
+## 0.2.3 (2021-04-01)
 
 Version minimale de GeoNature nécessaire : 2.5.5
 
@@ -431,7 +447,7 @@ Si vous mettez à jour le module :
 - Suivez la procédure classique de mise à jour du module
   (`docs/MAJ.rst`)
 
-  # 0.2.2 (2021-03-22)
+## 0.2.2 (2021-03-22)
 
 - Version minimale de GeoNature nécessaire : 2.5.5
 
@@ -461,7 +477,7 @@ npm uninstall test
 npm ci /home/`whoami`/gn_module_monitoring/frontend/ --no-save
 ```
 
-# 0.2.1 (2021-01-14)
+## 0.2.1 (2021-01-14)
 
 - Version minimale de GeoNature nécessaire : 2.5.5
 
@@ -511,7 +527,7 @@ Si vous mettez à jour le module :
   ces données sont désormais gérées automatiquement depuis la
   configuration.
 
-  # 0.2.0 (2020-10-23)
+## 0.2.0 (2020-10-23)
 
 Nécessite la version 2.5.2 de GeoNature minimum.
 
@@ -589,7 +605,7 @@ Si vous mettez à jour le module depuis la version 0.1.0 :
 - Suivez la procédure classique de mise à jour du module
   (`docs/MAJ.rst`)
 
-  # 0.1.0 (2020-06-30)
+## 0.1.0 (2020-06-30)
 
 Première version fonctionelle du module Monitoring de GeoNature.
 Nécessite la version 2.4.1 de GeoNature minimum.
