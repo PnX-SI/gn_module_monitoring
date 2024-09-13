@@ -5,7 +5,7 @@
 * [Présentation du module](#présentation)
 * [Installation du module](#installation-du-module)
 * [Installation d'un sous-module](#installation-dun-sous-module)
-* [Champs spécifiques d'un sous-module]([#configuration-des-champs-sp%C3%A9cifiques-dun-sous-module)
+* [Champs spécifiques d'un sous-module](#configuration-des-champs-sp%C3%A9cifiques-dun-sous-module)
 * [Gestion des sites et groupes de site](#gestion-des-sites)
 * [Permissions](#permissions)
 * [Base de données](#base-de-données)
