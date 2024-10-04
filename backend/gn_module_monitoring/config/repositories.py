@@ -104,7 +104,9 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
         # Mise a jour des configurations de façon récursive
-        dict_deep_update(specific_config_object["specific"], db_config_object["specific"])
+        dict_deep_update(
+            specific_config_object.get("specific", {}), db_config_object.get("specific", {})
+        )
 
     elif object_type == "module":
         db_config_object = json_config_from_db(module_code)

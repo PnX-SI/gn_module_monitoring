@@ -49,7 +49,8 @@
       "type_util": "user",
       "multiple": true,
       "hidden": false,
-      "required": true
+      "required": true,
+      "designStyle": "bootstrap"
     },
     "observers_txt": {
       "type_widget": "observers-text",
