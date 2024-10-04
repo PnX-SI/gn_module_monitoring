@@ -122,6 +122,13 @@ class SitesQuery(GnMonitoringGenericFilter):
         if "modules" in params:
             query = query.filter(cls.modules.any(id_module=params["modules"]))
             params.pop("modules")
+        if "types_site_label" in params:
+            value = params["types_site_label"]
+            join_types_site = aliased(Models.BibTypeSite)
+            join_nomenclature_type_site = aliased(TNomenclatures)
+            query = query.join(join_types_site, cls.types_site)
+            query = query.join(join_nomenclature_type_site, join_types_site.nomenclature)
+            query = query.filter(join_nomenclature_type_site.label_default.ilike(f"%{value}%"))
         if "types_site" in params:
             value = params["types_site"]
             if not isinstance(value, list):
@@ -131,7 +138,6 @@ class SitesQuery(GnMonitoringGenericFilter):
             )
 
         query = super().filter_by_params(query, params)
-
         return query
 
     @classmethod

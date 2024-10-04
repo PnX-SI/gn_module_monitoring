@@ -164,7 +164,14 @@ def get_all_site_geometries(object_type):
     types_site = []
     if "types_site" in params:
         types_site = request.args.getlist("types_site")
-        params["types_site"] = types_site
+        if not types_site[0].isdigit():
+            # HACK gestionnaire des sites
+            # Quand filtre sur type de site envoie une chaine de caractère
+            params["types_site_label"] = types_site[0]
+            params.pop("types_site")
+            types_site = None
+        else:
+            params["types_site"] = types_site
 
     query = select(TMonitoringSites)
     query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
@@ -181,7 +188,6 @@ def get_all_site_geometries(object_type):
             query=query_allowed, id_types_site=types_site, params=params
         )
     subquery = query_allowed.subquery()
-
     result = geojson_query(subquery)
 
     return jsonify(result)
