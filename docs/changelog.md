@@ -2,11 +2,24 @@
 
 ## 0.8.0 (unrelease)
 
-- Création du gestionnaire de site : les sites et les groupes de site peuvent être utilisés dans plusieurs sous-module. Le gestionnaire de site permet de créer / modifier / supprimer des sites et des groupes de site hors d'un sous-module.
-- Possibilité de créer des champs additionnels par type de site via le backoffice GeoNature
+**🚀 Nouveautés**
 
+- Modification du modèle de données de façon à permettre à un site d'avoir plusieurs types (#117)
+- Création gestionnaire des types de sites, permettant de créer des champs additionnels par type de site via l'admin GeoNature 
+- Création d'un gestionnaire des groupes de sites / sites transmodule
+- Application des règles de portées de la donnée dans les permissions (CRUVED)
+- Création d'un champ observer_txt au niveau de la visite
+- Plusieurs types de géométrie possibles pour un site (#136)
+- Ajout de tests unitaires
 - Suppression des commandes `process_csv` et `process_all` qui sont remplacés par la commande `process_sql`
 - [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes sql suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
+
+**🐛 Corrections**
+
+- Mise à jour de la synthèse suite à une suppression de données (#286)
+- Problème de migration lors de l'installation du module (#284)
+- Mise à jour de SQLAlchemy version 1.3 à 1.4
+
 
 **⚠️ Notes de version**
 
