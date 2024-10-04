@@ -15,7 +15,6 @@
       "attribut_label": "ID",
       "hidden": true
     },
-
     "module_code":  {
       "type_widget": "text",
       "attribut_label": "Code",
@@ -69,7 +68,8 @@
       "application": "GeoNature",
       "required": true,
       "type_util": "observer_list",
-      "definition": "Liste des observateurs. À gérer dans UsersHub."
+      "definition": "Liste des observateurs. À gérer dans UsersHub.",
+      "designStyle": "bootstrap"
     },
 
     "id_list_taxonomy": {
@@ -83,7 +83,8 @@
       "required": true,
       "type_util": "taxonomy_list",
       "data_path": "data",
-      "definition": "Liste des taxons. À gérer dans TaxHub."
+      "definition": "Liste des taxons. À gérer dans TaxHub.",
+      "designStyle": "bootstrap"
     },
 
     "b_synthese": {
@@ -112,7 +113,8 @@
           "value": "lb_nom"
         }
       ],
-      "required": true
+      "required": true,
+      "designStyle": "bootstrap"
     },
 
     "active_frontend": {
@@ -120,6 +122,22 @@
       "attribut_label": "Afficher dans le menu ?",
       "definition": "Afficher le module dans le menu de GeoNature. (Recharger la page pour voir les modifications)."
     },
+
+    "types_site": {
+      "type_widget": "datalist",
+      "attribut_label": "Types de sites",
+      "type_util": "types_site",
+      "keyValue": "id_nomenclature_type_site",
+      "keyLabel": "label",
+      "multiple": true,
+      "api" : "__MONITORINGS_PATH/sites/types",
+      "application": "GeoNature",
+      "required": true,
+      "data_path": "items",
+      "definition": "Permet de paramétrer la compatibilité de ce module avec les types de sites",
+      "designStyle": "bootstrap"
+    },
+    
     "medias": {
       "type_widget": "medias",
       "attribut_label": "Médias",

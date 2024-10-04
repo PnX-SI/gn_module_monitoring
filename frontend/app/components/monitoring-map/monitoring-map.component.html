@@ -1,22 +1,22 @@
 <div id="geometry" class="monitoring-map-container">
-  <pnx-map [height]="heightMap" [ngClass]="{ 'hide-draw-form': !(bEdit && obj && obj.config['geometry_type']) }">
-    
+  <pnx-map
+    [height]="heightMap"
+    [ngClass]="{ 'hide-draw-form': !(bEdit && obj && obj.config['geometry_type']) }"
+  >
     <pnx-draw-form
-      [parentFormControl]="
-        objForm && objForm.controls && objForm.controls['geometry']
-      "
+      [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
       [geometryType]="obj && obj.config['geometry_type']"
       [bZoomOnPoint]="false"
       [bEdit]="bEdit"
+      [geomFromProtocol]="true"
     ></pnx-draw-form>
 
-    <pnx-geojson
+    <!-- <pnx-geojson
       *ngIf="sites && sites['features']"
       [geojson]="sites"
       [zoomOnLayer]="true"
       [zoomOnFirstTime]="true"
       [onEachFeature]="onEachFeature"
-
     ></pnx-geojson>
     <pnx-geojson
       *ngIf="publicDisplaySitesGroup && sitesGroup && sitesGroup['features']"
@@ -24,6 +24,6 @@
       [zoomOnLayer]="true"
       [zoomOnFirstTime]="true"
       [onEachFeature]="onEachFeature"
-    ></pnx-geojson>
+    ></pnx-geojson> -->
   </pnx-map>
 </div>

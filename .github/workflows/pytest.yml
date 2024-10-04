@@ -7,12 +7,15 @@ on:
       - hotfixes
       - develop
       - workshop
+      - dev-suivi-eolien
   pull_request:
     branches:
       - master
       - hotfixes
       - develop
       - workshop
+      - workshop
+      - dev-suivi-eolien
 
 jobs:
   build:
@@ -23,10 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Debian 10"
-            python-version: "3.7"
-            postgres-version: 11
-            postgis-version: 2.5
           - name: "Debian 11"
             python-version: "3.9"
             postgres-version: 13
@@ -91,6 +90,10 @@ jobs:
           -e ..[tests] \
           -r requirements-dev.txt
       working-directory: ./dependencies/GeoNature/backend
+    - name: Install monitoring module
+      run: |
+        python -m pip install -e .
+      working-directory: .
     - name: Install database
       run: |
         geonature db upgrade geonature@head -x local-srid=2154

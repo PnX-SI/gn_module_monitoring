@@ -1,10 +1,11 @@
 """Rename GNM_ to MONITORINGS_
 
 Revision ID: 3ffeea74a9dd
-Revises: fc90d31c677f
+Revises: a5498a5f6022
 Create Date: 2023-10-02 12:00:30.382163
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 

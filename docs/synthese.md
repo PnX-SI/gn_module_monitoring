@@ -7,7 +7,7 @@ La vue pour la synthèse
 * Copier le fichier `data/synthese_svo.sql` dans
     `<repertoire_sous_module>/synthese.sql`.
     * Ce script SQL sera exécuté automatiquement à l\'installation du
-        module (utiliser la commande `geonature monitorings process_csv` pour le jouer
+        module (utiliser la commande `geonature monitorings process_sql` pour le jouer
         à la demande).
     * Cette vue peut être personalisée pour chaque module, on peut
         notamment :
@@ -39,12 +39,12 @@ observation.
         de créer le lien dans la synthèse vers la module monitoring qui
         a généré la ligne de la synthèse)
 
-## Mettre à jour les vues pour la synthèse
+## Mettre à jour les vues pour la synthèse et des exports
 
-Tous les fichiers de vue pour la synthèse peuvent être re-exécutés avec la commande :
+Tous les fichiers de vue pour la synthèse et les exports peuvent être re-exécutés avec la commande :
 
-- `geonature monitorings process_csv` (tous les modules)
-- `geonature monitorings process_csv <module_code>` (un seul module)
+- `geonature monitorings process_sql` (tous les modules)
+- `geonature monitorings process_sql <module_code>` (un seul module)
 
 ## Mettre à jour la synthèse après une intégration massive de données
 

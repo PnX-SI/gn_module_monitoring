@@ -6,38 +6,37 @@
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
-  "geometry_type": "Point",
+  "geometry_type": ["Point", "LineString", "Polygon"],
   "display_properties": [
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_nomenclature_type_site",
     "id_inventor",
     "first_use_date",
     "last_visit",
     "nb_visits",
     "altitude_min",
-    "altitude_max"
+    "altitude_max",
+    "types_site"
   ],
   "display_list": [
     "base_site_name",
     "base_site_code",
-    "id_nomenclature_type_site",
     "last_visit",
-    "nb_visits"
+    "id_inventor",
+    "nb_visits",
+    "types_site"
   ],
   "sorts": [
-    {"prop": "last_visit", "dir": "desc"}
+    {
+      "prop": "last_visit",
+      "dir": "desc"
+    }
   ],
   "generic": {
     "id_base_site": {
       "type_widget": "text",
       "attribut_label": "Id site",
-      "hidden": true
-    },
-    "id_module": {
-      "type_widget": "text",
-      "attribut_label": "ID Module",
       "hidden": true
     },
     "base_site_code": {
@@ -53,32 +52,21 @@
     "base_site_description": {
       "type_widget": "textarea",
       "attribut_label": "Description"
-    },    
-    "id_nomenclature_type_site": {
-      "type_widget": "text",
-      "attribut_label": "Type site",
-      "type_util": "nomenclature",
-      "value": {
-        "code_nomenclature_type": "TYPE_SITE" 
-      },
-      "required": true
     },
     "id_inventor": {
-      "type_widget": "datalist",
-      "attribut_label": "Descripteur",
-      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-      "application": "GeoNature",
-      "keyValue": "id_role",
-      "keyLabel": "nom_complet",
+      "type_widget": "observers",
+      "attribut_label": "Observateur",
       "type_util": "user",
-      "required": true
-    },    
+      "code_list": "CODE_OBSERVERS_LIST",
+      "required": true,
+      "multi_select": false
+    },
     "id_digitiser": {
       "type_widget": "text",
-      "attribut_label": "Numérisateur",
+      "attribut_label": "Digitiser",
+      "type_util": "user",
       "required": true,
-      "hidden": true,
-      "type_util": "user"
+      "hidden": true
     },
     "first_use_date": {
       "type_widget": "date",
@@ -103,10 +91,28 @@
     "altitude_min": {
       "type_widget": "integer",
       "attribut_label": "Altitude (min)"
-      },
-      "altitude_max": {
+    },
+    "altitude_max": {
       "type_widget": "integer",
       "attribut_label": "Altitude (max)"
-      }
+    },
+    "types_site": {
+      "type_widget": "datalist",
+      "attribut_label": "Type(s) de site",
+      "type_util": "types_site",
+      "keyValue": "id_nomenclature_type_site",
+      "keyLabel": "label",
+      "multiple": true,
+      "api": "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
+      "application": "GeoNature",
+      "required": true,
+      "nullDefault": true,
+      "definition": "Permet de n'avoir que les types de site lié au module",
+      "designStyle": "bootstrap"
+    },
+    "id_sites_group": {
+      "hidden": true,
+      "required": false
+    }
   }
 }

@@ -2,18 +2,17 @@
   [options]="leafletDrawOptions"
   [zoomLevel]="1"
   (layerDrawed)="bindGeojsonForm($event)"
-  [geojson]="geojson ? geojson.geometry : null"
+  [geojson]="geoJsonService.currentLayer"
   [bZoomOnPoint]="bZoomOnPoint"
   [zoomLevelOnPoint]="zoomLevelOnPoint"
   [bEnable]="bEdit"
 >
-<pnx-gps (markerChanged)="bindGeojsonForm($event)"> </pnx-gps>
+  <pnx-gps (markerChanged)="bindGeojsonForm($event)"> </pnx-gps>
 
-<pnx-leaflet-filelayer
-  [editMode]="true"
-  (onGeomChange)="bindGeojsonForm($event)"
-  [style]="{ color: 'green', opacity:0.1 }"
->
-</pnx-leaflet-filelayer>
-
+  <pnx-leaflet-filelayer
+    [editMode]="true"
+    (onGeomChange)="bindGeojsonForm($event)"
+    [style]="{ color: 'green', opacity: 0.1 }"
+  >
+  </pnx-leaflet-filelayer>
 </pnx-leaflet-draw>

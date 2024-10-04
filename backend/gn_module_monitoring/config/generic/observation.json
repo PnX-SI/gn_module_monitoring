@@ -17,6 +17,13 @@
       "attribut_label": "Id visite",
       "hidden": true
     },
+    "id_digitiser": {
+      "type_widget": "text",
+      "attribut_label": "Numérisateur",
+      "required": true,
+      "hidden": true,
+      "type_util": "user"
+    },
     "cd_nom": {
       "type_widget": "taxonomy",
       "attribut_label": "Espèce",

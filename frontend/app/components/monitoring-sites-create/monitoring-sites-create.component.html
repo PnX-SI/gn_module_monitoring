@@ -1,0 +1,7 @@
+<div>
+  <span class="obj-title">{{ siteService.objectObs.addObjLabel }}</span>
+</div>
+<div>
+  <pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
+    [(bEdit)]="bEdit" [addChildren]=false></pnx-monitoring-form>
+</div>
