@@ -1,6 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { MonitoringDatatableComponent } from './monitoring-datatable.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('MonitoringDatatableComponent', () => {
   let component: MonitoringDatatableComponent;

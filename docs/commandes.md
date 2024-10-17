@@ -5,7 +5,7 @@
 geonature monitorings install <mon_chemin_absolu_vers_mon_module> <mon_module_code>
 ```
 
-# Mettre à jour la nommenclature
+# Mettre à jour les nomenclatures
 
 Ajoute ou met à jour des nomenclatures en base de données à partir du
 fichier `nomenclature.json` de la config du module (voir le fichier
@@ -35,7 +35,7 @@ données associées.
 geonature monitorings remove <mon_module_code>
 ```
 
-# Mettre à jour la synthese
+# Mettre à jour la synthèse
 
 Cette commande lit la vue de synchronisation liée au module et
 synchronise les données dans la synthèse (insertion et mise à jour

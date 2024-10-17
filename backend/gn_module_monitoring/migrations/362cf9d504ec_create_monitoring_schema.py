@@ -5,6 +5,7 @@ Revises:
 Create Date: 2021-03-29 18:38:24.512562
 
 """
+
 import importlib
 
 from alembic import op
@@ -33,15 +34,39 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table("t_module_complements", monitorings_schema)
-    op.drop_table("t_observation_complements", monitorings_schema)
-    op.drop_table("t_observation_details", monitorings_schema)
-    op.drop_table("t_observations", monitorings_schema)
-    op.drop_table("t_site_complements", monitorings_schema)
-    op.drop_table("t_sites_groups", monitorings_schema)
-    op.drop_table("t_visit_complements", monitorings_schema)
+    op.drop_table("t_module_complements", schema=monitorings_schema)
+    op.drop_table("t_observation_complements", schema=monitorings_schema)
+    op.drop_table("t_observation_details", schema=monitorings_schema)
+    op.drop_table("t_site_complements", schema=monitorings_schema)
+    op.drop_table("t_sites_groups", schema=monitorings_schema)
+    op.drop_table("t_visit_complements", schema=monitorings_schema)
 
     # Remove all GNM related objects
+
+    op.execute(
+        """
+        DELETE FROM
+            gn_permissions.t_permissions p
+        USING gn_permissions.t_objects o
+            WHERE
+                p.id_object = o.id_object
+                AND o.code_object like 'GNM_%'
+            ;
+        """
+    )
+
+    op.execute(
+        """
+        DELETE FROM
+            gn_permissions.t_permissions_available p
+        USING gn_permissions.t_objects o
+            WHERE
+                p.id_object = o.id_object
+                AND o.code_object like 'GNM_%'
+            ;
+        """
+    )
+
     statement = sa.delete(TObjects).where(TObjects.code_object.like("GNM_%"))
     op.execute(statement)
 
@@ -49,9 +74,7 @@ def downgrade():
     statement = sa.delete(BibTablesLocation).where(
         and_(
             BibTablesLocation.schema_name == monitorings_schema,
-            BibTablesLocation.table_name.in_(
-                ("t_module_complements", "t_observations", "t_sites_groups")
-            ),
+            BibTablesLocation.table_name.in_(("t_module_complements", "t_sites_groups")),
         )
     )
     op.execute(statement)

@@ -1,51 +1,47 @@
-import os
-from pydoc import cli
 import click
 
 from pathlib import Path
 from flask.cli import with_appcontext
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, select
 
-from geonature.utils.env import DB, BACKEND_DIR
+from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
 from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
 
+from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules.repositories import get_simple_module
 
-from ..monitoring.models import TMonitoringModules
-from ..config.repositories import get_config
-from ..config.utils import json_from_file, monitoring_module_config_path
-from ..modules.repositories import get_module, get_simple_module
-
-from .utils import (
-    process_export_csv,
+from gn_module_monitoring.command.utils import (
     process_available_permissions,
     remove_monitoring_module,
     add_nomenclature,
     available_modules,
     installed_modules,
+    process_sql_files,
 )
 
 
-@click.command("process_all")
+@click.command("process_sql")
 @click.argument("module_code", type=str, required=False, default="")
 @with_appcontext
-def cmd_process_all(module_code):
+def cmd_process_sql(module_code):
     """
     Met à jour les paramètres de configuration pour un module
+        Fichiers sql synthese et export
     """
-    # process export csv
-    process_export_csv(module_code)
+    if module_code:
+        modules = [module_code]
+    else:
+        modules = [module["module_code"] for module in installed_modules()]
 
-
-@click.command("process_export_csv")
-@click.argument("module_code", type=str, required=False, default="")
-@with_appcontext
-def cmd_process_export_csv(module_code):
-    """
-    Met à jour les fichiers pour les exports pdf
-    """
-    process_export_csv(module_code)
+    for module in modules:
+        # process Synthese
+        process_sql_files(dir=None, module_code=module, depth=1)
+        # process Exports
+        process_sql_files(dir="exports/csv", module_code=module, depth=None, allowed_files=None)
 
 
 @click.command("install")
@@ -98,8 +94,10 @@ def cmd_install_monitoring_module(module_code):
     except Exception:
         pass
 
-    # process export csv
-    process_export_csv(module_code)
+    # process Synthese
+    process_sql_files(dir=None, module_code=module_code, depth=1)
+    # process Exports
+    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     config = get_config(module_code, force=True)
 
@@ -141,23 +139,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     process_available_permissions(module_code, session=DB.session)
     DB.session.commit()
 
-    #  run specific sql
-    if (module_config_dir_path / "synthese.sql").exists:
-        click.secho("Execution du script synthese.sql")
-        sql_script = module_config_dir_path / "synthese.sql"
-        try:
-            DB.engine.execute(
-                text(
-                    open(sql_script, "r")
-                    .read()
-                    .replace(":'module_code'", "'{}'".format(module_code))
-                    .replace(":module_code", "{}".format(module_code))
-                ).execution_options(autocommit=True)
-            )
-        except Exception as e:
-            print(e)
-            click.secho("Erreur dans le script synthese.sql", fg="red")
-
     # insert nomenclature
     add_nomenclature(module_code)
 
@@ -195,14 +176,13 @@ def cmd_process_available_permission_module(module_code):
         module_code ([string]): code du sous module
 
     """
-
     if module_code:
-        process_available_permissions(module_code, session=DB.session)
-        DB.session.commit()
-        return
+        modules = [module_code]
+    else:
+        modules = [module["module_code"] for module in installed_modules()]
 
-    for module in installed_modules():
-        process_available_permissions(module["module_code"], session=DB.session)
+    for module in modules:
+        process_available_permissions(module, session=DB.session)
     DB.session.commit()
 
 
@@ -238,7 +218,9 @@ def synchronize_synthese(module_code, offset):
     Synchronise les données d'un module dans la synthese
     """
     click.secho(f"Start synchronize data for module {module_code} ...", fg="green")
-    module = TModules.query.filter_by(module_code=module_code).one()
+    module = DB.session.execute(
+        select(TModules).where(TModules.module_code == module_code)
+    ).scalar_one()
     table_name = "v_synthese_{}".format(module_code)
     import_from_table(
         "gn_monitoring",
@@ -251,11 +233,10 @@ def synchronize_synthese(module_code, offset):
 
 
 commands = [
-    cmd_process_export_csv,
     cmd_install_monitoring_module,
     cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
-    cmd_process_all,
+    cmd_process_sql,
     synchronize_synthese,
 ]

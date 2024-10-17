@@ -1,6 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ModalMsgComponent } from './modal-msg.component';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('ModalMsgComponent', () => {
   let component: ModalMsgComponent;

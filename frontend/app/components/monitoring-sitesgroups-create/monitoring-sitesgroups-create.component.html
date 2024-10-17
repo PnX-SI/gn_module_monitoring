@@ -1,0 +1,8 @@
+<!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
+<div>
+  <span class="obj-title">{{ sitesGroupService.objectObs.addObjLabel }}</span>
+</div>
+<div>
+<pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
+  [(bEdit)]="bEdit"></pnx-monitoring-form>
+</div>
