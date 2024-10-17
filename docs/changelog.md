@@ -34,7 +34,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
 - Si vous avez des modules installés, les vues synthèses et exports ne seront pas compatibles et bloqueront la migration. Il faut les supprimer en amont et les recréer après mise à jour en tenant compte des évolutions du modèle de données.
 - Si vous aviez défini la propriété `id_nomenclature_type_site` dans la configuration de vos sous-modules, celle-ci n'existe plus et peut être remplacée par `types_sites`. Exemple :
   ```
-  "types_site":
+  "types_site": {
       "default": [
         {
           "id_nomenclature_type_site": 686
