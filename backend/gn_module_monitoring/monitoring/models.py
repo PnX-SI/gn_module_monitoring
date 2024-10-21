@@ -9,7 +9,7 @@ from flask import g
 from uuid import uuid4
 
 from sqlalchemy import join, select, func, and_
-from sqlalchemy.orm import column_property, aliased, object_session
+from sqlalchemy.orm import column_property, aliased
 
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -306,17 +306,19 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         )
         # Filtre sur le contexte du module
         # Si dans un sous module, on ne dénombre les visites de ce module
-        if not g.current_module.module_code == "MONITORINGS":
-            query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return object_session(self).scalar(query)
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
 
     @nb_visits.expression
     def nb_visits(cls):
         query = select(func.count(TBaseVisits.id_base_site)).where(
             TBaseVisits.id_base_site == cls.id_base_site
         )
-        if not g.current_module.module_code == "MONITORINGS":
-            query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
         return query.as_scalar()
 
     @hybrid_property
@@ -414,9 +416,10 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         )
         # Filtre sur le contexte du module
         # Si dans un sous module, on ne dénombre que les visites de ce module
-        if not g.current_module.module_code == "MONITORINGS":
-            query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return object_session(self).scalar(query)
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
 
     @nb_visits.expression
     def nb_visits(cls):
@@ -424,8 +427,9 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
             TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
             TMonitoringSites.id_sites_group == cls.id_sites_group,
         )
-        if not g.current_module.module_code == "MONITORINGS":
-            query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
         return query.as_scalar()
 
     @hybrid_property
