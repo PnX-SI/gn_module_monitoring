@@ -116,25 +116,25 @@ export class MonitoringSitesgroupsDetailComponent
           this._Activatedroute.params.pipe(
             map((params) => {
               this.checkEditParam = params['edit'];
-
+              this.siteGroupId = params['id'];
               this.obj = new MonitoringObject(
                 'generic',
                 'sites_group',
-                params['id'],
+                this.siteGroupId,
                 this._monitoringObjServiceMonitoring
               );
-              return params['id'] as number;
+              return this.siteGroupId as number;
             }),
             mergeMap((id: number) => {
               return forkJoin({
-                sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
+                sitesGroup: this._sitesGroupService.getById(this.siteGroupId).catch((err) => {
                   if (err.status == 404) {
                     this.router.navigate(['/not-found'], { skipLocationChange: true });
                     return of(null);
                   }
                 }),
                 sites: this._sitesGroupService.getSitesChild(1, this.limit, {
-                  id_sites_group: id,
+                  id_sites_group: this.siteGroupId,
                 }),
               }).pipe(
                 map((data) => {
@@ -209,8 +209,14 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   getSitesFromSiteGroupId(page, params) {
+    const queryParams = {
+      ...params,
+      ...{
+        id_sites_group: this.siteGroupId,
+      },
+    };
     this._sitesGroupService
-      .getSitesChild(page, LIMIT, params)
+      .getSitesChild(page, LIMIT, queryParams)
       .subscribe((data: IPaginated<ISite>) => {
         let siteList = this._siteService.formatLabelTypesSite(data.items);
         this.rows = siteList;
@@ -221,7 +227,7 @@ export class MonitoringSitesgroupsDetailComponent
         this.dataTableObj.site.page.limit = data.limit;
         this.dataTableObj.site.page.page = data.page - 1;
       });
-    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
+    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), queryParams);
   }
 
   seeDetails($event) {
