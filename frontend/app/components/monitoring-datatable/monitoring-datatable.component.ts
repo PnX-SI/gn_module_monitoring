@@ -9,10 +9,14 @@ import {
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
+import { ListService } from '../../services/list.service';
 import { Subject } from 'rxjs';
 import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
+import { CommonService } from '@geonature_common/service/common.service';
+import { ObjectService } from '../../services/object.service';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { Utils } from '../../utils/utils';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -24,13 +28,15 @@ export class MonitoringDatatableComponent implements OnInit {
   @Input() columns;
 
   @Input() sorts;
-
   @Input() obj;
   @Input() child0;
   @Input() frontendModuleMonitoringUrl;
 
-  @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
+
+  @Input() filters: Object;
+  @Output() onFilter = new EventEmitter<Object>();
+  @Output() onDeleteRow = new EventEmitter<Object>();
 
   @Output() bEditChanged = new EventEmitter<boolean>();
 
@@ -41,23 +47,55 @@ export class MonitoringDatatableComponent implements OnInit {
 
   row_save;
   selected = [];
-  filters = {};
   customColumnComparator;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
   @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
 
-  constructor(private _monitoring: MonitoringObjectService) {}
+  rowSelected;
+  bDeleteModal: boolean = false;
+  bDeleteSpinner: boolean = false;
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  canCreateChild: boolean = false;
+  canDeleteObj: boolean = false;
+
+  constructor(
+    private _monitoring: MonitoringObjectService,
+    private _commonService: CommonService,
+    private _objectService: ObjectService,
+    private _listService: ListService
+  ) {}
 
   ngOnInit() {
     this.initDatatable();
+    this.initPermission();
+  }
+
+  initPermission() {
+    // TODO: Attention ici l'ajout avec l'icon ne se fait que sur un enfant (si plusieurs enfants au même niveau , le premier sera pris pour le moment)
+    const childrenType = this.child0.config.children_types[0];
+    this.canCreateChild = !!childrenType && this.currentUser?.moduleCruved[childrenType]['C'];
+    this.canDeleteObj = !['site', 'sites_group'].includes(this.child0.objectType);
   }
 
   initDatatable() {
     this.filters = this.child0.configParam('filters');
+
+    if (this._listService.arrayTableFilters$.getValue() == null) {
+      this._listService.arrayTableFilters = [];
+    }
+    this._listService.arrayTableFilters[this.child0.objectType] = Utils.copy(this.filters);
+
+    // Default value
+    if (this._listService.listType$.getValue() == this.child0.objectType) {
+      this._listService.tableFilters = Utils.copy(this.filters);
+    }
+
+    // Subscribe to filters event
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
-      this.filter();
+      this.filter(false);
+      this._listService.tableFilters = Utils.copy(this.filters);
     });
 
     this.customColumnComparator = this.customColumnComparator_();
@@ -76,7 +114,6 @@ export class MonitoringDatatableComponent implements OnInit {
 
   filter(bInitFilter = false) {
     // filter all
-
     let bChange = false;
     const temp = this.row_save.filter((row, index) => {
       let bCondVisible = true;
@@ -91,24 +128,40 @@ export class MonitoringDatatableComponent implements OnInit {
           bCondVisible = bCondVisible && (String(row[key]) || '').toLowerCase().includes(v);
         }
       }
+      bChange = bChange || bCondVisible;
 
-      if (!this.rowStatus) {
-        return bCondVisible;
-      }
-      bChange = bChange || bCondVisible !== this.rowStatus[index].visible;
-      this.rowStatus[index]['visible'] = bCondVisible;
-      this.rowStatus[index]['selected'] = this.rowStatus[index]['selected'] && bCondVisible;
       return bCondVisible;
     });
 
-    if (bChange || bInitFilter) {
-      this.rowStatusChange.emit(this.rowStatus);
-    }
-    // update the rows
+    this.rowStatusChange.emit({});
+
+    // Emmet les filtrers et le nombre de données répondant aux critères dans la liste
+    this.onFilter.emit({ filters: this.filters, nb_row: temp.length });
+
     this.rows = temp;
     // Whenever the filter changes, always go back to the first page
     this.table.offset = 0;
-    this.setSelected();
+    this.selected = [];
+  }
+
+  setSelected(id) {
+    const status_selected = id;
+
+    if (!status_selected) {
+      return;
+    }
+    const index_row_selected = this.table._internalRows.findIndex((row) => row.id === id);
+    if (index_row_selected === -1) {
+      return;
+    }
+
+    this.rows.forEach((row) => {
+      const bCond = row.id === id;
+      row['_internal_status_visible'] = bCond && !row['_internal_status_visible'];
+    });
+
+    this.selected = [this.table._internalRows[index_row_selected]];
+    this.table.offset = Math.floor(index_row_selected / this.table._limit);
   }
 
   onRowClick(event) {
@@ -116,41 +169,8 @@ export class MonitoringDatatableComponent implements OnInit {
       return;
     }
     const id = event.row && event.row.id;
-
-    if (!this.rowStatus) {
-      return;
-    }
-
-    this.rowStatus.forEach((status) => {
-      const bCond = status.id === id;
-      status['selected'] = bCond && !status['selected'];
-    });
-
-    this.setSelected();
-    this.rowStatusChange.emit(this.rowStatus);
-  }
-
-  setSelected() {
-    // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
-
-    if (!this.rowStatus) {
-      return;
-    }
-
-    const status_selected = this.rowStatus.find((status) => status.selected);
-    if (!status_selected) {
-      return;
-    }
-
-    const index_row_selected = this.table._internalRows.findIndex(
-      (row) => row.id === status_selected.id
-    );
-    if (index_row_selected === -1) {
-      return;
-    }
-
-    this.selected = [this.table._internalRows[index_row_selected]];
-    this.table.offset = Math.floor(index_row_selected / this.table._limit);
+    this.setSelected(event.row.id);
+    this.rowStatusChange.emit(event.row);
   }
 
   ngOnDestroy() {
@@ -169,9 +189,6 @@ export class MonitoringDatatableComponent implements OnInit {
       const cur = chng.currentValue;
       const pre = chng.currentValue;
       switch (propName) {
-        case 'rowStatus':
-          this.setSelected();
-          break;
         case 'child0':
           this.customColumnComparator = this.customColumnComparator_();
           break;
@@ -233,5 +250,30 @@ export class MonitoringDatatableComponent implements OnInit {
       }
       return out;
     };
+  }
+
+  msgToaster(action) {
+    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
+    return `${action}  effectuée`.trim();
+  }
+
+  onDelete(row) {
+    this._monitoring
+      .dataMonitoringObjectService()
+      .deleteObject(this.obj.moduleCode, this.child0.objectType, row.id)
+      .subscribe(() => {
+        this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+
+        this.onDeleteRow.emit({
+          rowSelected: row,
+          objectType: this.child0.objectType,
+        });
+        this.bDeleteModal = false;
+      });
+  }
+
+  alertMessage(row) {
+    this.rowSelected = row;
+    this.bDeleteModal = true;
   }
 }

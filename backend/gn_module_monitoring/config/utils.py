@@ -1,15 +1,19 @@
 import os, datetime, time
 import importlib
-from pathlib import Path
 import json
+from pathlib import Path
 
-from sqlalchemy import and_
+from sqlalchemy import and_, select
+from sqlalchemy.orm.exc import NoResultFound
 
-from geonature.core.gn_commons.models import BibTablesLocation, TModules
-from geonature.utils.errors import GeoNatureError
 from geonature.utils.env import DB
+from geonature.utils.errors import GeoNatureError
 from geonature.utils.config import config as gn_config
-from ..monitoring.models import TMonitoringModules
+from geonature.core.gn_commons.models import BibTablesLocation, TModules
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -21,7 +25,9 @@ SITES_GROUP_CONFIG = {
     "keyLabel": "sites_group_name",
     "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name",
     "application": "GeoNature",
+    "designStyle": "bootstrap",
 }
+
 
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
@@ -35,21 +41,16 @@ def get_monitoring_module(module_code):
     if module_code == "generic":
         return None
 
-    res = (
-        DB.session.query(TMonitoringModules)
-        .filter(TMonitoringModules.module_code == module_code)
-        .all()
-    )
-
-    return res[0] if len(res) else None
+    return DB.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+    ).scalar_one_or_none()
 
 
 def get_monitorings_path():
-    return (
-        DB.session.query(TModules.module_path)
-        .filter(TModules.module_code == "MONITORINGS")
-        .one()[0]
-    )
+    module = DB.session.execute(
+        select(TModules.module_path).where(TModules.module_code == "MONITORINGS")
+    ).scalar_one()
+    return module
 
 
 def get_base_last_modif(module):
@@ -88,16 +89,14 @@ def get_id_table_location(object_type):
     id_table_location = None
 
     try:
-        id_table_location = (
-            DB.session.query(BibTablesLocation.id_table_location)
-            .filter(
+        id_table_location = DB.session.execute(
+            select(BibTablesLocation.id_table_location).where(
                 and_(
                     BibTablesLocation.schema_name == schema_name,
                     BibTablesLocation.table_name == table_name,
                 )
             )
-            .one()
-        )[0]
+        ).scalar_one()
     except Exception as e:
         print(schema_name, table_name, e)
         pass
@@ -146,6 +145,42 @@ def json_config_from_file(module_code, type_config):
 
     file_path = monitoring_module_config_path(module_code) / f"{type_config}.json"
     return json_from_file(file_path, {})
+
+
+def json_config_from_db(module_code):
+    site_type_config = {"types_site": {}, "specific": {}}
+    if module_code == "generic":
+        # Si generic récupération de tous les types de sites
+        types = query_all_types_site_from_module_id(0)
+    else:
+        try:
+            module = get_module("module_code", module_code)
+        except NoResultFound:
+            return site_type_config
+        types = query_all_types_site_from_module_id(module.id_module)
+
+    for t in types:
+        fields = []
+
+        # Configuration des champs
+        if "specific" in (t.config or {}):
+            site_type_config["specific"].update(t.config["specific"])
+            fields = [k for k in t.config["specific"]]
+
+        # Liste des champs à afficher
+        display_properties = list(fields)
+        if "display_properties" in (t.config or {}):
+            display_properties = [
+                key for key in t.config.get("display_properties") if key in fields
+            ]
+            display_properties + [key for key in fields if not key in display_properties]
+
+        site_type_config["types_site"][t.id_nomenclature_type_site] = {
+            "display_properties": display_properties,
+            "name": t.nomenclature.label_default,
+        }
+
+    return site_type_config
 
 
 def config_from_files(config_type, module_code):

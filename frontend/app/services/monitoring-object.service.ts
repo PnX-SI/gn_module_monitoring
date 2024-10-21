@@ -67,12 +67,12 @@ export class MonitoringObjectService {
         }
       }
     }
-
-    for (const parentType of obj.parentTypes()) {
-      obj.getParent(parentType, 1).subscribe(() => {
-        this.setParentCache(obj, objData, parentType);
-      });
-    }
+    //  A voir si necéssaire pb dans le cas des groupes de site du gestionnaire de site
+    // for (const parentType of obj.parentTypes()) {
+    //   obj.getParent(parentType, 1).subscribe(() => {
+    //     this.setParentCache(obj, objData, parentType);
+    //   });
+    // }
   }
 
   setParentCache(obj: MonitoringObject, objData, parentType) {
@@ -167,7 +167,7 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem, moduleCode) {
-    return this._configService.config()[moduleCode].display_field_names[elem.type_util];
+    return (this._configService.config()[moduleCode].display_field_names || [])[elem.type_util];
   }
 
   toForm(elem, val): Observable<any> {
@@ -188,7 +188,24 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        x = !(x instanceof Array) ? [x] : x;
+        const codeListObservers = this._configService.codeListObservers();
+        x == null
+          ? (x = [])
+          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
+              mergeMap((users) => {
+                let currentUser;
+                if (Array.isArray(users)) {
+                  for (const user of users) {
+                    if (user.id_role == val) {
+                      currentUser = user;
+                    }
+                  }
+                } else {
+                  return of(null);
+                }
+                return of([currentUser]);
+              })
+            ));
         break;
       }
       case 'taxonomy': {
@@ -216,13 +233,17 @@ export class MonitoringObjectService {
 
   fromForm(elem, val) {
     let x = val;
+    if (x == undefined) {
+      return x;
+    }
     switch (elem.type_widget) {
       case 'date': {
         x = x && x.year && x.month && x.day ? `${x.year}-${x.month}-${x.day}` : null;
         break;
       }
       case 'observers': {
-        x = elem.max_length === 1 && x instanceof Array && x.length === 1 ? x[0] : x;
+        //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
+        x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
         break;
       }
       case 'taxonomy': {
@@ -264,6 +285,12 @@ export class MonitoringObjectService {
   }
 
   navigate(routeType, moduleCode, objectType, id, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
     this._router.navigate(
       [
         this._configService.frontendModuleMonitoringUrl(),
@@ -271,6 +298,30 @@ export class MonitoringObjectService {
         moduleCode,
         objectType,
         id,
+        { edit: editParams },
+      ].filter((s) => !!s),
+      {
+        queryParams,
+      }
+    );
+  }
+
+  navigateGeneric(routeType, moduleCode, objectType, id, action, queryParams = {}) {
+    let editParams = '';
+    if ('edit' in queryParams && queryParams.edit == true) {
+      editParams = 'true';
+      delete queryParams.edit;
+    }
+
+    this._router.navigate(
+      [
+        this._configService.frontendModuleMonitoringUrl(),
+        routeType,
+        moduleCode,
+        objectType,
+        action,
+        id,
+        { edit: editParams },
       ].filter((s) => !!s),
       {
         queryParams,

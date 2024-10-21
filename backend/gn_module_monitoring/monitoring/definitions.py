@@ -1,4 +1,4 @@
-from .models import (
+from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringSites,
     TMonitoringVisits,
@@ -6,11 +6,10 @@ from .models import (
     TMonitoringObservationDetails,
     TMonitoringSitesGroups,
 )
-from .objects import MonitoringModule, MonitoringSite
-
-from .base import monitoring_definitions
-from .repositories import MonitoringObject
-from .geom import MonitoringObjectGeom
+from gn_module_monitoring.monitoring.objects import MonitoringModule, MonitoringSite
+from gn_module_monitoring.monitoring.base import monitoring_definitions
+from gn_module_monitoring.monitoring.repositories import MonitoringObject
+from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
 
 """
