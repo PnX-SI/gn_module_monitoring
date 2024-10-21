@@ -78,6 +78,7 @@ def get_id_table_location(object_type):
         "site": "t_base_sites",
         "visit": "t_base_visits",
         "observation": "t_observations",
+        "observation_detail": "t_observation_details",
     }
 
     schema_name = "gn_monitoring"
