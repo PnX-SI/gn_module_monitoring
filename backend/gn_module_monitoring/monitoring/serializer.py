@@ -114,7 +114,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_readable_list_object(self, relation_name, children_type):
         childs_model = monitoring_definitions.MonitoringModel(object_type=children_type)
 
-        if getattr(childs_model, "has_instance_permission"):
+        if getattr(childs_model, "has_instance_permission", None):
             scope = get_scopes_by_action(
                 id_role=g.current_user.id_role,
                 module_code=self._module_code,
