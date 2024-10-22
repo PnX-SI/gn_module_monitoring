@@ -14,7 +14,11 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringSitesGroups
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringSites,
+    TMonitoringSitesGroups,
+    TMonitoringModules,
+)
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsDetailSchema
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
@@ -53,7 +57,15 @@ def get_sites_groups(object_type: str):
     query = select(TMonitoringSitesGroups)
     query = filter_params(TMonitoringSitesGroups, query=query, params=params)
 
-    query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
+    # PATCH order by modules
+    if sort_label == "modules":
+        query = query.join(TMonitoringSitesGroups.modules)
+        module_order = TMonitoringModules.module_label
+        if sort_dir == "desc":
+            module_order = module_order.desc()
+        query = query.order_by(module_order)
+    else:
+        query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
 
     query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     return paginate_scope(
