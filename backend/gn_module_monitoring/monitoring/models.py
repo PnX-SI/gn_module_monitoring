@@ -230,11 +230,13 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         # Filtre sur le contexte du module
         # Si dans un sous module, on ne peut voir que les
         #  visites de ce module
-        if (
-            not g.current_module.module_code == "MONITORINGS"
-            and not self.id_module == g.current_module.id_module
-        ):
-            return False
+
+        if getattr(g, "current_module", None):
+            if (
+                not g.current_module.module_code == "MONITORINGS"
+                and not self.id_module == g.current_module.id_module
+            ):
+                return False
 
         # Filtre sur les permissions
         if scope == 0:
@@ -334,6 +336,15 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         return actors_organism_list
 
     def has_instance_permission(self, scope):
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne peut voir que les
+        #  site du type de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS" and (
+                not (set(g.current_module.types_site) & set(self.types_site))
+            ):
+                return False
+
         if scope == 0:
             return False
         elif scope in (1, 2):
