@@ -61,8 +61,8 @@ export class GeoJSONService {
   getSitesGroupsGeometriesWithSites(
     sitesGroupOnEachFeature: Function,
     sitesOnEachFeature: Function,
-    paramsSite = {},
     paramsSitesGroup = {},
+    paramsSite = {},
     sitesGroupstyle?,
     sitesStyle?
   ) {

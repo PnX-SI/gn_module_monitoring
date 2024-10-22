@@ -177,7 +177,7 @@ export class MonitoringObjectComponent implements OnInit {
       pre_filters['site']['id_base_site'] = this.obj.id;
     } else if (this.obj['siteId'] !== undefined) {
       // affichage du site parent
-      pre_filters['id_base_site'] = this.obj['siteId'];
+      pre_filters['site']['id_base_site'] = this.obj['siteId'];
     } else if (queryParams['id_base_site'] !== undefined) {
       // récupération du site parent via l'url
       pre_filters['site']['id_base_site'] = queryParams['id_base_site'];

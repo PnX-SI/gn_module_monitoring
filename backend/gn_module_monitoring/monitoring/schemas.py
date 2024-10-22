@@ -88,6 +88,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     id_digitiser = fields.Method("get_id_digitiser")
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
+    nb_visits = fields.Integer(dump_only=True)
 
     def get_id_digitiser(self, obj):
         return obj.id_digitiser
@@ -142,6 +143,8 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     id_inventor = fields.Method("get_id_inventor")
     inventor = fields.Method("get_inventor_name")
     medias = MA.Nested(MediaSchema, many=True)
+    nb_visits = fields.Integer(dump_only=True)
+    last_visit = fields.DateTime(dump_only=True)
 
     def serialize_geojson(self, obj):
         if obj.geom is not None:
