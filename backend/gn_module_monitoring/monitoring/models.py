@@ -79,7 +79,7 @@ cor_sites_group_module = DB.Table(
 
 
 @serializable
-class TMonitoringObservationDetails(DB.Model):
+class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
@@ -95,6 +95,15 @@ class TMonitoringObservationDetails(DB.Model):
         foreign_keys=[TMedias.uuid_attached_row],
         overlaps="medias,medias",
     )
+
+    def has_instance_permission(self, scope):
+        # Récupération de la permission des observations
+        if self.id_observation:
+            return DB.session.get(
+                TMonitoringObservations, self.id_observation
+            ).has_instance_permission(scope)
+        else:
+            return True
 
 
 @serializable

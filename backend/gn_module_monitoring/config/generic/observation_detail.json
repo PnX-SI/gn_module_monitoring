@@ -23,7 +23,7 @@
     "medias": {
       "type_widget": "medias",
       "attribut_label": "Médias",
-      "schema_dot_table": "gn_monitoring.t_observations_details"
+      "schema_dot_table": "gn_monitoring.t_observation_details"
     }
   }
 }

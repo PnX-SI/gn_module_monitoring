@@ -191,3 +191,5 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
         model = TMonitoringObservationDetails
         include_fk = True
         load_relationships = True
+
+    medias = MA.Nested(MediaSchema, many=True)
