@@ -144,6 +144,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     inventor = fields.Method("get_inventor_name")
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
+    last_visit = fields.DateTime(dump_only=True)
 
     def serialize_geojson(self, obj):
         if obj.geom is not None:

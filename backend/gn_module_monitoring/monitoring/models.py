@@ -302,6 +302,28 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     @hybrid_property
+    def last_visit(self):
+        query = select(func.max(TBaseVisits.visit_date_min)).where(
+            TBaseVisits.id_base_site == self.id_base_site
+        )
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne dénombre les visites de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
+
+    @last_visit.expression
+    def last_visit(cls):
+        query = select(func.max(TBaseVisits.visit_date_min)).where(
+            TBaseVisits.id_base_site == cls.id_base_site
+        )
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return query.as_scalar()
+
+    @hybrid_property
     def nb_visits(self):
         query = select(func.count(TBaseVisits.id_base_site)).where(
             TBaseVisits.id_base_site == self.id_base_site
