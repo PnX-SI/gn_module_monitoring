@@ -177,11 +177,13 @@ def filter_according_to_column_type_for_site(query, params):
 
 def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
     if sort_label == "types_site":
+        query = query.join(TMonitoringSites.types_site).join(BibTypeSite.nomenclature)
         if sort_dir == "asc":
             query = query.order_by(TNomenclatures.label_fr.asc())
         else:
             query = query.order_by(TNomenclatures.label_fr.desc())
     elif sort_label == "id_inventor":
+        query = query.join(TMonitoringSites.inventor)
         if sort_dir == "asc":
             query = query.order_by(User.nom_complet.asc())
         else:

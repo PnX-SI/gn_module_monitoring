@@ -265,8 +265,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   getVisits(page: number, filters: JsonData) {
+    const queryParams = { ...filters, ...{ id_base_site: this.site.id_base_site } };
     this._visits_service
-      .get(page, this.limit, filters)
+      .get(page, this.limit, queryParams)
       .subscribe((visits: IPaginated<IVisit>) => this.setVisits(visits));
   }
 
