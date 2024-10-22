@@ -98,9 +98,12 @@ class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
 
     def has_instance_permission(self, scope):
         # Récupération de la permission des observations
-        return DB.session.get(
-            TMonitoringObservations, self.id_observation_detail
-        ).has_instance_permission(scope)
+        if self.id_observation:
+            return DB.session.get(
+                TMonitoringObservations, self.id_observation
+            ).has_instance_permission(scope)
+        else:
+            return True
 
 
 @serializable
