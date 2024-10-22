@@ -37,7 +37,6 @@ export class MonitoringSitesgroupsDetailComponent
   implements OnInit
 {
   siteGroupId: number;
-  sites: ISite[];
   sitesGroup: ISitesGroup;
   colsname: {};
   page: IPage;
@@ -117,6 +116,7 @@ export class MonitoringSitesgroupsDetailComponent
             map((params) => {
               this.checkEditParam = params['edit'];
               this.siteGroupId = params['id'];
+              this.baseFilters = { id_sites_group: this.siteGroupId };
               this.obj = new MonitoringObject(
                 'generic',
                 'sites_group',
@@ -127,61 +127,45 @@ export class MonitoringSitesgroupsDetailComponent
             }),
             mergeMap((id: number) => {
               return forkJoin({
-                sitesGroup: this._sitesGroupService.getById(this.siteGroupId).catch((err) => {
+                sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
                   if (err.status == 404) {
                     this.router.navigate(['/not-found'], { skipLocationChange: true });
                     return of(null);
                   }
                 }),
-                sites: this._sitesGroupService.getSitesChild(1, this.limit, {
-                  id_sites_group: this.siteGroupId,
-                }),
-              }).pipe(
-                map((data) => {
-                  return data;
-                })
-              );
-            }),
-            tap((data) => {
-              data.sitesGroup.is_geom_from_child
-                ? this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                    id_sites_group: data.sitesGroup.id_sites_group,
-                  })
-                : this._geojsonService.setGeomSiteGroupFromExistingObject(data.sitesGroup.geometry);
-            }),
-            mergeMap((data) => {
-              return forkJoin({
+                sites: this._sitesGroupService.getSitesChild(1, this.limit, this.baseFilters),
                 objObsSite: this._siteService.initConfig(),
                 objObsSiteGp: this._sitesGroupService.initConfig(),
                 obj: this.obj.get(0),
               }).pipe(
-                map((objObs) => {
-                  return { data, objectObs: objObs };
+                map((data) => {
+                  return data;
                 })
               );
             })
           )
         )
       )
-      .subscribe(({ data, objectObs }) => {
+      .subscribe((data) => {
         this._objService.changeSelectedObj(data.sitesGroup, true);
         this._objService.changeSelectedParentObj(data.sitesGroup, true);
         this.sitesGroup = data.sitesGroup;
-        this.sites = data.sites.items;
+        const sites = data.sites;
+
         this.page = {
-          count: data.sites.count,
-          page: data.sites.page,
-          limit: data.sites.limit,
+          count: sites.count,
+          page: sites.page,
+          limit: sites.limit,
         };
 
-        this.baseFilters = { id_sites_group: this.sitesGroup.id_sites_group };
-        this.colsname = objectObs.objObsSite.dataTable.colNameObj;
-        this.objParent = objectObs.objObsSiteGp;
+        this.colsname = data.objObsSite.dataTable.colNameObj;
+        this.objParent = data.objObsSiteGp;
 
-        data.sites['objConfig'] = objectObs.objObsSite;
-        data.sitesGroup['objConfig'] = objectObs.objObsSiteGp;
+        sites['objConfig'] = data.objObsSite;
+        this.sitesGroup['objConfig'] = data.objObsSiteGp;
+
         this.updateBreadCrumb(data.sitesGroup);
-        this.setDataTableObj(data);
+        this.setDataTableObj({ sites: sites, sitesGroup: this.sitesGroup });
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.sitesGroup,
@@ -208,15 +192,20 @@ export class MonitoringSitesgroupsDetailComponent
     };
   }
 
-  getSitesFromSiteGroupId(page, params) {
-    const queryParams = {
-      ...params,
-      ...{
-        id_sites_group: this.siteGroupId,
-      },
+  onEachFeatureGroupSite() {
+    return (feature, layer) => {
+      const popup = this._popup.setSiteGroupPopup('generic', feature, {
+        parents_path: ['module', 'sites_group'],
+      });
+      layer.bindPopup(popup);
     };
+  }
+
+  getSitesFromSiteGroupId(page, params) {
+    const sitesParams = { ...params, ...this.baseFilters };
+    // Tableau
     this._sitesGroupService
-      .getSitesChild(page, LIMIT, queryParams)
+      .getSitesChild(page, LIMIT, sitesParams)
       .subscribe((data: IPaginated<ISite>) => {
         let siteList = this._siteService.formatLabelTypesSite(data.items);
         this.rows = siteList;
@@ -227,7 +216,14 @@ export class MonitoringSitesgroupsDetailComponent
         this.dataTableObj.site.page.limit = data.limit;
         this.dataTableObj.site.page.page = data.page - 1;
       });
-    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), queryParams);
+
+    // Données carto
+    this._geojsonService.getSitesGroupsGeometriesWithSites(
+      this.onEachFeatureGroupSite(),
+      this.onEachFeatureSite(),
+      sitesParams,
+      this.baseFilters
+    );
   }
 
   seeDetails($event) {
@@ -328,6 +324,7 @@ export class MonitoringSitesgroupsDetailComponent
 
       this.dataTableObj = objTemp as IDataTableObj;
     }
+    this.getSitesFromSiteGroupId(this.page.page, {});
   }
 
   onAddChildren(event) {
