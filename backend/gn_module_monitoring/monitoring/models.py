@@ -9,10 +9,8 @@ from flask import g
 from uuid import uuid4
 
 from sqlalchemy import join, select, func, and_
-from sqlalchemy.orm import (
-    column_property,
-    aliased,
-)
+from sqlalchemy.orm import column_property, aliased
+
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 from utils_flask_sqla.serializers import serializable
@@ -229,6 +227,18 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         return actors_organism_list
 
     def has_instance_permission(self, scope):
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne peut voir que les
+        #  visites de ce module
+
+        if getattr(g, "current_module", None):
+            if (
+                not g.current_module.module_code == "MONITORINGS"
+                and not self.id_module == g.current_module.id_module
+            ):
+                return False
+
+        # Filtre sur les permissions
         if scope == 0:
             return False
         elif scope in (1, 2):
@@ -288,14 +298,52 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         .scalar_subquery()
     )
 
-    nb_visits = column_property(
-        select(func.count(TBaseVisits.id_base_site))
-        .where(TBaseVisits.id_base_site == id_base_site)
-        .scalar_subquery()
-    )
-
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
+
+    @hybrid_property
+    def last_visit(self):
+        query = select(func.max(TBaseVisits.visit_date_min)).where(
+            TBaseVisits.id_base_site == self.id_base_site
+        )
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne dénombre les visites de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
+
+    @last_visit.expression
+    def last_visit(cls):
+        query = select(func.max(TBaseVisits.visit_date_min)).where(
+            TBaseVisits.id_base_site == cls.id_base_site
+        )
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return query.as_scalar()
+
+    @hybrid_property
+    def nb_visits(self):
+        query = select(func.count(TBaseVisits.id_base_site)).where(
+            TBaseVisits.id_base_site == self.id_base_site
+        )
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne dénombre les visites de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
+
+    @nb_visits.expression
+    def nb_visits(cls):
+        query = select(func.count(TBaseVisits.id_base_site)).where(
+            TBaseVisits.id_base_site == cls.id_base_site
+        )
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return query.as_scalar()
 
     @hybrid_property
     def organism_actors(self):
@@ -310,6 +358,15 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         return actors_organism_list
 
     def has_instance_permission(self, scope):
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne peut voir que les
+        #  site du type de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS" and (
+                not (set(g.current_module.types_site) & set(self.types_site))
+            ):
+                return False
+
         if scope == 0:
             return False
         elif scope in (1, 2):
@@ -375,14 +432,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
 
     altitude_min = DB.Column(DB.Integer)
     altitude_max = DB.Column(DB.Integer)
-    nb_visits = column_property(
-        select(func.count(TMonitoringVisits.id_base_site))
-        .where(
-            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
-            TMonitoringSites.id_sites_group == id_sites_group,
-        )
-        .scalar_subquery()
-    )
 
     geom_geojson = column_property(
         select(func.st_asgeojson(func.st_convexHull(func.st_collect(TMonitoringSites.geom))))
@@ -391,6 +440,30 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         )
         .scalar_subquery()
     )
+
+    @hybrid_property
+    def nb_visits(self):
+        query = select(func.count(TMonitoringVisits.id_base_site)).where(
+            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+            TMonitoringSites.id_sites_group == self.id_sites_group,
+        )
+        # Filtre sur le contexte du module
+        # Si dans un sous module, on ne dénombre que les visites de ce module
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return DB.session.scalar(query)
+
+    @nb_visits.expression
+    def nb_visits(cls):
+        query = select(func.count(TMonitoringVisits.id_base_site)).where(
+            TMonitoringVisits.id_base_site == TMonitoringSites.id_base_site,
+            TMonitoringSites.id_sites_group == cls.id_sites_group,
+        )
+        if getattr(g, "current_module", None):
+            if not g.current_module.module_code == "MONITORINGS":
+                query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
+        return query.as_scalar()
 
     @hybrid_property
     def organism_actors(self):
