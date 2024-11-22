@@ -156,11 +156,13 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
                 return True
             if scope == 2 and g.current_user.id_organisme in self.organism_actors:
                 return True
+            # Récupération de la permission des visites
+            if self.id_base_visit:
+                return DB.session.get(
+                    TMonitoringVisits, self.id_base_visit
+                ).has_instance_permission(scope, True)
         elif scope == 3:
             return True
-
-
-# TBaseVisits.dataset = DB.relationship(TDatasets)
 
 
 @serializable
