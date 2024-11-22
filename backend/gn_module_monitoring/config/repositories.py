@@ -200,6 +200,10 @@ def get_config(module_code=None, force=False):
             config["custom"]["__MODULE.TYPES_SITE"] = [
                 type_site.as_dict() for type_site in module.types_site
             ]
+            config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
+                {"id_nomenclature_type_site": t.id_nomenclature_type_site}
+                for t in module.types_site
+            ]
             config["default_display_field_names"].update(config.get("display_field_names", {}))
             config["display_field_names"] = config["default_display_field_names"]
 
