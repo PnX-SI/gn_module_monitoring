@@ -355,47 +355,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   addSpecificConfig() {
-    // const schemaSpecificType = Object.assign({},...this.types_site)
-    let schemaSpecificType = {};
-    let schemaTypeMerged = {};
-    let keyHtmlToPop = '';
-    for (let type_site of this.types_site) {
-      if ('specific' in (type_site['config'] || {})) {
-        for (const prop in type_site['config']['specific']) {
-          if (
-            'type_widget' in type_site['config']['specific'][prop] &&
-            type_site['config']['specific'][prop]['type_widget'] == 'html'
-          ) {
-            keyHtmlToPop = prop;
-          }
-        }
-        const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
-        Object.assign(schemaSpecificType, specificObjWithoutHtml);
-        Object.assign(schemaTypeMerged, type_site['config']);
-      }
-    }
-
-    const fieldNames = this._configJsonService.fieldNames(
-      'generic',
-      'site',
-      'display_properties',
-      schemaTypeMerged
-    );
-    const fieldNamesList = this._configJsonService.fieldNames(
-      'generic',
-      'site',
-      'display_list',
-      schemaTypeMerged
-    );
-    const fieldLabels = this._configJsonService.fieldLabels(schemaSpecificType);
-    const fieldDefinitions = this._configJsonService.fieldDefinitions(schemaSpecificType);
     this.objParent['template_specific'] = {};
-    this.objParent['template_specific']['fieldNames'] = fieldNames;
-    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
-    this.objParent['template_specific']['schema'] = schemaSpecificType;
-    this.objParent['template_specific']['fieldLabels'] = fieldLabels;
-    this.objParent['template_specific']['fieldDefinitions'] = fieldDefinitions;
-    this.objParent['template_specific']['fieldNamesList'] = fieldNamesList;
+    this.objParent['template_specific'] = this._monitoringObjServiceMonitoring
+      .configService()
+      .addSpecificConfig(this.types_site);
   }
 
   initValueToSend() {

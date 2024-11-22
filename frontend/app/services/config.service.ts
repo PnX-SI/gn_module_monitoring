@@ -236,10 +236,11 @@ export class ConfigService {
 
   addSpecificConfig(types_site) {
     let schemaSpecificType = {};
-    let schemaTypeMerged = {};
     let keyHtmlToPop = '';
+
     for (let type_site of types_site) {
       if (type_site['config'] && 'specific' in type_site['config']) {
+        // Exclusion des propriétés de type html (TODO hidden ??)
         for (const prop in type_site['config']['specific']) {
           if (
             'type_widget' in type_site['config']['specific'][prop] &&
@@ -249,25 +250,23 @@ export class ConfigService {
           }
         }
         const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
-        Object.assign(schemaSpecificType, specificObjWithoutHtml);
-        Object.assign(schemaTypeMerged, type_site['config']);
+
+        schemaSpecificType = Object.assign(schemaSpecificType, specificObjWithoutHtml);
       }
     }
 
-    const fieldNames = schemaTypeMerged['display_properties'];
-    const fieldNamesList = schemaTypeMerged['display_list'];
+    const fieldNames = Object.keys(schemaSpecificType);
+    const fieldNamesList = Object.keys(schemaSpecificType);
     const fieldLabels = this.fieldLabels(schemaSpecificType);
     const fieldDefinitions = this.fieldDefinitions(schemaSpecificType);
-    const obj = {};
-    obj['template_specific'] = {};
-    obj['template_specific']['fieldNames'] = fieldNames;
-    obj['template_specific']['fieldNamesList'] = fieldNamesList;
-    obj['template_specific']['schema'] = schemaSpecificType;
-    obj['template_specific']['fieldLabels'] = fieldLabels;
-    obj['template_specific']['fieldDefinitions'] = fieldDefinitions;
-    obj['template_specific']['fieldNamesList'] = fieldNamesList;
-
-    return obj['template_specific'];
+    const template_specific = {
+      fieldNames: fieldNames,
+      fieldNamesList: fieldNamesList,
+      schema: schemaSpecificType,
+      fieldLabels: fieldLabels,
+      fieldDefinitions: fieldDefinitions,
+    };
+    return template_specific;
   }
 
   fieldLabels(schema) {
