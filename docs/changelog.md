@@ -14,6 +14,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
   - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
   - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs id_nomenclature_type_site
   - Le modèle de données a évolué pour pouvoir associer un groupe de sites à plusieurs sous-modules
+  - On distingue les permissions des utilisateurs dans chaque sous-module (protocole) sur chaque type d'objets (groupes de sites, sites et visites) et leurs permissions globales sur ces objets au niveau de tout le module. Pour qu'un utilisateur puisse consulter, ajouter ou modifier des groupes de sites ou des sites depuis le gestionnaire de sites, il faut lui ajouter des permissions globales sur ces objets.
 - Ajout de la prise en compte des portées au niveau des permissions (#92)
 - Ajout d'un champ `observers_txt` au niveau de la table des visites (#106)
 - Possibilité de définir plusieurs types de géométrie pour les sites d'un sous-module (#136)
