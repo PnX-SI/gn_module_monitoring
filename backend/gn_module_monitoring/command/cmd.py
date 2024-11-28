@@ -59,7 +59,6 @@ def cmd_install_monitoring_module(module_code):
                 où se situe les fichiers de configuration du module
         - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
     """
-
     # module_config_dir_path = Path(module_config_dir_path)
     # module_code = module_code or module_config_dir_path.name
 
@@ -137,18 +136,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(module)
     DB.session.commit()
     
-    # Ajout du sous-module dans bib_destinations
-    click.secho("ajout du sous-module dans bib_destinations")
-    destination = insert_bib_destinations(module_data)
-    
-    
-    # Ajout dans bib_fields
-    if destination != None:
-        click.secho("ajout du sous-module dans bib_fields")
-        insert_bib_field(module_data["module_code"], destination.id_destination)
-        
-
-
     # Ajouter les permissions disponibles
     process_available_permissions(module_code, session=DB.session)
     DB.session.commit()
@@ -176,6 +163,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     # TODO ++++ create specific tables
     click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
+    # TODO ++++ faire l'insert dans les tables bib_ apres avoir inseré les nomenclatures
 
 
 @click.command("update_module_available_permissions")
