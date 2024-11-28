@@ -156,7 +156,7 @@ def get_site_by_id(scope, id, object_type):
 
 
 @blueprint.route("/sites/geometries", methods=["GET"], defaults={"object_type": "site"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
+@check_cruved_scope("R")
 def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
     # params = request.args.to_dict(flat=True)
@@ -173,8 +173,15 @@ def get_all_site_geometries(object_type):
         else:
             params["types_site"] = types_site
 
+    if g.current_module:
+        module_code = g.current_module.module_code
+    else:
+        module_code = MODULE_CODE
+
     query = select(TMonitoringSites)
-    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
+    query_allowed = TMonitoringSites.filter_by_readable(
+        query=query, module_code=module_code, object_code=object_code
+    )
     query_allowed = query_allowed.with_only_columns(
         TMonitoringSites.id_base_site,
         TMonitoringSites.base_site_name,

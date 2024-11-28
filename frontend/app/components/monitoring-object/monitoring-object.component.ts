@@ -162,8 +162,10 @@ export class MonitoringObjectComponent implements OnInit {
   initPreFilters() {
     // modules
     const queryParams = this._route.snapshot.queryParams || {};
-
     let pre_filters = this._listService.preFilters;
+    pre_filters['site']['module_context'] = this.obj.moduleCode;
+    pre_filters['sites_group']['module_context'] = this.obj.moduleCode;
+
     pre_filters['site']['types_site'] = Object.keys(
       this._configService.config()[this.obj.moduleCode]['module']['types_site']
     );
