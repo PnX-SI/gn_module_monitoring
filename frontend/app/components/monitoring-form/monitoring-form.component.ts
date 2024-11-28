@@ -116,6 +116,9 @@ export class MonitoringFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Initialisation des variables
+    this.initializeVariables(this.obj);
+
     // Initialisation des permissions de l'utilisateur courant
     this.initPermission();
 
@@ -124,9 +127,6 @@ export class MonitoringFormComponent implements OnInit {
       .init(this.obj.moduleCode)
       .pipe(
         tap(() => {
-          // Initialisation des variables
-          this.initializeVariables(this.obj);
-
           // Initialisation des configurations
           //  Selon si l'objet est ou non de type site
           if (this.isSiteObject) {
@@ -611,8 +611,10 @@ export class MonitoringFormComponent implements OnInit {
       this.canDelete = this.obj.cruved['D'];
     }
 
+    // Si objet de type module ou création d'un nouvel objet
+    //    => récupération des droits au niveau de la config globale et pas de l'objet
     this.canUpdate =
-      this.obj.objectType == 'module'
+      this.obj.objectType == 'module' || !this.isEditObject
         ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
         : this.obj.cruved['U'];
   }
@@ -648,7 +650,8 @@ export class MonitoringFormComponent implements OnInit {
    */
   initializeVariables(obj: MonitoringObject) {
     this.isSiteObject = obj.objectType === 'site';
-    this.isEditObject = obj.id !== undefined && obj.id !== null;
+    // Objet en édition ou création
+    this.isEditObject = this.obj.id ? true : false;
     this.hasDynamicGroups = this.isSiteObject && obj.properties['types_site'].length > 0;
 
     this.geomCalculated = this.obj.properties.hasOwnProperty('is_geom_from_child')
