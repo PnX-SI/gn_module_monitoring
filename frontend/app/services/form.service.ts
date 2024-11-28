@@ -100,7 +100,7 @@ export class FormService {
     for (const attribut_name of Object.keys(schema)) {
       const elem = schema[attribut_name];
       // NOTES: [dev-suivi-eol] ici le formValues possédant uniquement des propriétés sans type_widget ne surcouchent pas les champs specific au type de site
-      if (!elem.type_widget) {
+      if (!(elem || [])['type_widget']) {
         continue;
       }
       observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
