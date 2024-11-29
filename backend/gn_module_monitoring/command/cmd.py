@@ -21,8 +21,7 @@ from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
     process_sql_files,
-    insert_bib_destinations,
-    insert_bib_field
+    add_module_import_bib,
 )
 
 
@@ -143,6 +142,9 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     # insert nomenclature
     add_nomenclature(module_code)
 
+    # Ajouter les destinations disponibles
+    add_module_import_bib(module_data)
+
     source_data = {
         "name_source": "MONITORING_{}".format(module_code.upper()),
         "desc_source": "Données issues du module de suivi générique (sous-module: {})".format(
@@ -163,7 +165,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     # TODO ++++ create specific tables
     click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
-    # TODO ++++ faire l'insert dans les tables bib_ apres avoir inseré les nomenclatures
 
 
 @click.command("update_module_available_permissions")
