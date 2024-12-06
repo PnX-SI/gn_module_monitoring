@@ -160,7 +160,7 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
             if self.id_base_visit:
                 return DB.session.get(
                     TMonitoringVisits, self.id_base_visit
-                ).has_instance_permission(scope, True)
+                ).has_instance_permission(scope)
         elif scope == 3:
             return True
 
