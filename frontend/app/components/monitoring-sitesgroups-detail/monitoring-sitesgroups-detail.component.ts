@@ -166,6 +166,7 @@ export class MonitoringSitesgroupsDetailComponent
 
         this.updateBreadCrumb(data.sitesGroup);
         this.setDataTableObj({ sites: sites, sitesGroup: this.sitesGroup });
+
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.sitesGroup,
@@ -175,6 +176,13 @@ export class MonitoringSitesgroupsDetailComponent
 
           this.bEdit = true;
         }
+
+        this._formService.changeFormMapObj({
+          frmGp: this.form,
+          bEdit: this.bEdit,
+          obj: this.obj,
+        });
+        this.obj.bIsInitialized = true;
       });
   }
   ngOnDestroy() {

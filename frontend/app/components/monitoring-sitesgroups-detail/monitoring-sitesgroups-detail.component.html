@@ -13,7 +13,8 @@
   [permission]="currentPermission"
 >
 </pnx-monitoring-properties-g>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)" *ngIf="bEdit" [(bEdit)]="bEdit"
+<pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)"
+  *ngIf="bEdit && obj?.bIsInitialized" [(bEdit)]="bEdit"
   [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
 </pnx-monitoring-form>
 <pnx-monitoring-datatable-g
