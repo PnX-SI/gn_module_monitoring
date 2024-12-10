@@ -3,6 +3,8 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@
 import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
+import { CruvedStoreService } from '@geonature_common/service/cruved-store.service';
+import { ModuleService } from '@geonature/services/module.service';
 
 import { Utils } from '../../utils/utils';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
@@ -41,20 +43,39 @@ export class MonitoringListComponent implements OnInit {
   childrenColumns;
 
   queyParamsNewObject = {};
+  importQueryParams = {}
 
   // medias;
   canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
+  public userCruved: any;
+  public canImport: boolean = false;
+
   constructor(
     private _configService: ConfigService,
-    private _listService: ListService
-  ) {}
+    private _listService: ListService,
+    public _cruvedStore: CruvedStoreService,
+    private _moduleService: ModuleService,
+  ) { }
 
   ngOnInit() {
     // Permet d'éviter une double initialisation du composant
     // this._configService.init(this.obj.moduleCode).subscribe(() => {
     //   this.initDataTable();
     // });
+
+    // get user cruved
+    const currentModule = this._moduleService.currentModule;
+    this.userCruved = currentModule.module_objects.MONITORINGS_SITES.cruved;
+    let cruvedImport: any = {};
+    if (this._cruvedStore.cruved.IMPORT) {
+      cruvedImport = this._cruvedStore.cruved.IMPORT.module_objects.IMPORT.cruved;
+    }
+    const canCreateImport = cruvedImport.C > 0;
+    const canCreateMonitoring = this.userCruved.C > 0;
+
+    this.canImport = canCreateImport && canCreateMonitoring;
   }
 
   initDataTable() {
@@ -124,6 +145,29 @@ export class MonitoringListComponent implements OnInit {
     const nb = this.childrenDataTable[chidrenType]['rows'].length;
 
     return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
+  }
+
+  getImportQueryParams() {
+    if ("observation" in this.obj.children) {
+      return {
+        id_module: this.obj.properties['id_module'],
+        id_base_site: this.obj.properties['id_base_site'], // todo: is it useful ?
+        id_dataset: this.obj.properties['id_dataset'], // todo: is it useful ?
+        id_base_visit: this.obj.properties['id_base_visit']
+      }
+    }
+    if ("visit" in this.obj.children) {
+      return {
+        id_module: this.obj.parents['module'].properties['id_module'],
+        id_base_site: this.obj.properties['id_base_site'] 
+      }
+    }
+    if ("site" in this.obj.children) {
+      return {
+        id_module: this.obj.properties['id_module'],
+      }
+    }
+    return {}
   }
 
   ngOnChanges(changes: SimpleChanges) {
