@@ -149,14 +149,13 @@ export class MonitoringListComponent implements OnInit {
   getImportQueryParams() {
     if ('observation' in this.obj.children) {
       return {
-        id_base_site: this.obj.properties['id_base_site'], // todo: is it useful ?
-        id_dataset: this.obj.properties['id_dataset'], // todo: is it useful ?
-        id_base_visit: this.obj.properties['id_base_visit'],
+        uuid_base_site: this.obj.properties['uuid_base_site'], // todo: is it useful ?
+        uuid_base_visit: this.obj.properties['uuid_base_visit'],
       };
     }
     if ('visit' in this.obj.children) {
       return {
-        id_base_site: this.obj.properties['id_base_site'],
+        uuid_base_site: this.obj.properties['uuid_base_site'],
       };
     }
     if ('site' in this.obj.children) {
