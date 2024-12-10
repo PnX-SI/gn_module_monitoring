@@ -43,15 +43,28 @@
                 <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
                 {{ child0.template['label_art_undef_new'] || '' }}
               </button>
+
+              <button
+                mat-raised-button
+                id="import-btn"
+                *ngIf="this.canImport"
+                color="primary"
+                class="btn-action uppercase float-right"
+                [routerLink]="['/import']"
+                [queryParams]="this.getImportQueryParams()"
+              >
+                Importer
+                <mat-icon>file_upload</mat-icon>
+              </button>
             </div>
           </div>
           <div class="mt-2">
             <pnx-monitoring-datatable
               *ngIf="childrenDataTable && childrenDataTable[child0.objectType]"
-              (bEditChanged)="onbEditChanged($event)" 
+              (bEditChanged)="onbEditChanged($event)"
               [rows]="childrenDataTable[child0.objectType]['rows']"
-              [columns]="childrenDataTable[child0.objectType]['columns']" 
-              [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl" 
+              [columns]="childrenDataTable[child0.objectType]['columns']"
+              [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
               (rowStatusChange)="onSelectedChildren(child0.objectType, $event)"
               (onFilter)="onFilterChange(child0.objectType, $event)"
               (onDeleteRow)="onDeleteRowChange($event)"
