@@ -32,7 +32,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
 **⚠️ Notes de version**
 
 - Si vous installez le module sans être passés par la version 0.7.0, éxecuter le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles (après avoir exécuté la commande `geonature monitorings update_module_available_permissions`).
-- Si vous avez des modules installés, les éventuelles vues `synthese.sql` et `export_csv.sql` de vos sous-modules ne seront plus compatibles et bloqueront la migration. Il faut les supprimer avant la mise à jour et les recréer après mise à jour en répercutant es évolutions du modèle de données (#117)
+- Si vous avez des modules installés, les éventuelles vues `synthese.sql` et `export_csv.sql` de vos sous-modules ne seront plus compatibles et bloqueront la migration. Il faut les supprimer avant la mise à jour et les recréer après mise à jour en répercutant les évolutions du modèle de données (#117)
 - Si vous aviez défini la propriété `id_nomenclature_type_site` dans la configuration de vos sous-modules, celle-ci n'existe plus et peut être remplacée par `types_sites`. Exemple :
   ```
   "types_site": {
