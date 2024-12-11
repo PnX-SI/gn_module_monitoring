@@ -232,7 +232,7 @@ Les permissions des sous-modules peuvent être limitées avec une notion de port
 
 - Groupes de sites : la portée s'appuie sur son id_digitizer (et son organisme si la portée est de niveau 2)
 - Site : id_digitizer ou id_inventor du site
-- Visite : id_digitiser ou observers de la visite
+- Visite : id_digitizer ou observers de la visite
 - Observation : id_digitizer de l'observation ou permission de la visite
 - Observation détail : héritée de permission de l'observation
 
