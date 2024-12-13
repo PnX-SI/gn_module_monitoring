@@ -51,7 +51,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() rowStatusChange = new EventEmitter<Object>();
   @Output() addVisitFromTable = new EventEmitter<Object>();
   @Output() saveOptionChildren = new EventEmitter<SelectObject>();
-  @Output() bEditChanged = new EventEmitter<boolean>();
+  @Output() bEditChange = new EventEmitter<boolean>();
   @Input() currentUser;
   @Input() permission: TPermission;
 

@@ -111,7 +111,7 @@ export class MonitoringListComponent implements OnInit {
       this._listService.arrayTableFilters$.getValue()[activetab['objectType']];
   }
 
-  onbEditChanged(event) {
+  onbEditChange(event) {
     this.bEditChange.emit(event);
   }
 

@@ -31,8 +31,11 @@ export class FormService {
   objecType: string;
 
   frmrGrp: FormGroup = this._formBuilder.group({});
-  private formMap = new BehaviorSubject<IFormMap>({ frmGp: this.frmrGrp, bEdit: false, obj: {} });
+  private formMap = new BehaviorSubject<IFormMap>({ frmGp: this.frmrGrp, obj: {} });
   currentFormMap = this.formMap.asObservable();
+
+  private currentEdit = new BehaviorSubject<boolean>(false);
+  currentEditMode = this.currentEdit.asObservable();
 
   constructor(
     private _objService: MonitoringObjectService,
@@ -75,6 +78,10 @@ export class FormService {
 
   changeFormMapObj(formMapObj: IFormMap) {
     this.formMap.next(formMapObj);
+  }
+
+  changeCurrentEditMode(editMode: boolean) {
+    this.currentEdit.next(editMode);
   }
 
   formValues(obj, schemaUpdate = {}): Observable<any> {
