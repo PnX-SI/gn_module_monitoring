@@ -45,6 +45,31 @@ Nécessite GeoNature 2.15.0 (ou plus)
     }
   ```
 - Si vous le souhaitez, vous pouvez attribuer des permissions à vos utilisateurs au nouveau gestionnaire de sites et limiter les portées des permissions par objets et par sous-modules (https://github.com/PnX-SI/gn_module_monitoring?tab=readme-ov-file#permissions)
+- Les données supprimées depuis le module ne l'étaient pas dans la synthèse. Vérifiez qu'il n'y a aucune donnée orpheline dans la synthèse.
+
+```sql
+WITH monitoring_uuid AS (
+	SELECT ms.uuid_base_site  AS unique_id_sinp
+	FROM gn_monitoring.t_base_sites ms
+	UNION
+	SELECT mo.uuid_observation AS unique_id_sinp
+	FROM gn_monitoring.t_observations mo
+	UNION
+	SELECT MOD.uuid_observation_detail  AS unique_id_sinp
+	FROM gn_monitoring.t_observation_details mod 
+), monitoring_module AS (
+	SELECT id_module 
+	FROM gn_commons.t_modules tm 
+	WHERE TYPE = 'monitoring_module'
+) 
+SELECT * 
+FROM  gn_synthese.synthese s  
+JOIN  monitoring_module m 
+ON s.id_module = m.id_module
+LEFT JOIN monitoring_uuid mu
+ON s.unique_id_sinp = mu.unique_id_sinp
+WHERE mu.unique_id_sinp IS NULL;
+```
 
 ## 0.7.3 (2023-05-03)
 
