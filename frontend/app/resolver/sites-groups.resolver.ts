@@ -10,15 +10,17 @@ import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
 import { DataMonitoringObjectService } from '../services/data-monitoring-object.service';
+
 const LIMIT = 10;
 
 @Injectable({ providedIn: 'root' })
-export class SitesGroupsReslver
+export class SitesGroupsResolver
   implements
     Resolve<{
       sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
       sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
       route: string;
+      moduleCode: string | null;
     }>
 {
   currentPermission: TPermission;
@@ -38,7 +40,12 @@ export class SitesGroupsReslver
     sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
     sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
     route: string;
+    moduleCode: string | null;
   }> {
+    const moduleCode = route.params.moduleCode || 'generic';
+    this.service.setModuleCode(`${moduleCode}`);
+    this.serviceSite.setModuleCode(`${moduleCode}`);
+
     const $getPermissionMonitoring = this._dataMonitoringObjectService.getCruvedMonitoring();
     const $permissionUserObject = this._permissionService.currentPermissionObj;
     const $configSitesGroups = this.service.initConfig();
@@ -65,7 +72,6 @@ export class SitesGroupsReslver
               configs[1].moduleCode,
               configs[1].objectType
             );
-
             const sortSiteGroupInit =
               'sorts' in configSchemaSiteGroup
                 ? {
@@ -81,7 +87,6 @@ export class SitesGroupsReslver
             const $getSiteGroups = this.currentPermission.MONITORINGS_GRP_SITES.canRead
               ? this.service.get(1, LIMIT, sortSiteGroupInit)
               : of({ items: [], count: 0, limit: 0, page: 1 });
-            // const $getSiteGroups = this.service.get(1, LIMIT, sortSiteGroupInit)
             const $getSites = this.currentPermission.MONITORINGS_SITES.canRead
               ? this.serviceSite.get(1, LIMIT, sortSiteInit)
               : of({ items: [], count: 0, limit: 0, page: 1 });
@@ -93,6 +98,7 @@ export class SitesGroupsReslver
                   sites: { data: sites, objConfig: configs[1] },
                   route: route['_urlSegment'].segments[3].path,
                   permission: this.currentPermission,
+                  moduleCode,
                 };
               })
             );

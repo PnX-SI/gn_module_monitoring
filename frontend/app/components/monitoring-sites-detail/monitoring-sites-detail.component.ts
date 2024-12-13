@@ -75,7 +75,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   currentUser: User;
   currentPermission: TPermission;
 
-  obj: MonitoringObject;
+  obj;
+
+  moduleCode: string;
 
   constructor(
     private _auth: AuthService,
@@ -101,6 +103,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   ngOnInit() {
+    this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
+    this.siteService.setModuleCode(this.moduleCode);
+    this._visits_service.setModuleCode(this.moduleCode);
+
     this.currentUser = this._auth.getCurrentUser();
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
@@ -108,7 +114,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
 
-    this._configService.init().subscribe(() => {
+    this._configService.init(this.moduleCode).subscribe(() => {
       this.initSiteVisit();
     });
   }
@@ -134,7 +140,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
               this.parentsPath =
                 this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
               this.obj = new MonitoringObject(
-                'generic',
+                this.moduleCode,
                 'site',
                 params['id'],
                 this._monitoringObjServiceMonitoring
@@ -215,6 +221,15 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         )
       )
       .subscribe((data) => {
+        this.obj.initTemplate();
+        this.obj.bIsInitialized = true;
+        if (this.moduleCode !== 'generic') {
+          this._formService.changeFormMapObj({
+            frmGp: null,
+            bEdit: false,
+            obj: this.obj,
+          });
+        }
         this._objService.changeSelectedObj(data.site, true);
         this.site = data.site;
         this.types_site = data.site['types_site'];
@@ -259,7 +274,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   onEachFeatureSite() {
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup('generic', feature, {});
+      const popup = this._popup.setSitePopup(this.moduleCode, feature, {});
       layer.bindPopup(popup);
     };
   }
@@ -289,12 +304,16 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   getModules() {
-    this.siteService.getSiteModules(this.site.id_base_site).subscribe(
-      (data: Module[]) =>
-        (this.modules = data.map((item) => {
-          return { id: item.module_code, label: item.module_label };
-        }))
-    );
+    if (this.moduleCode === 'generic') {
+      this.siteService.getSiteModules(this.site.id_base_site).subscribe(
+        (data: Module[]) =>
+          (this.modules = data.map((item) => {
+            return { id: item.module_code, label: item.module_label };
+          }))
+      );
+    } else {
+      this.addNewVisit({ id: this.moduleCode, label: '' });
+    }
   }
 
   addNewVisit($event: SelectObject) {
@@ -376,13 +395,13 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     }
 
     const fieldNames = this._configJsonService.fieldNames(
-      'generic',
+      this.moduleCode,
       'site',
       'display_properties',
       schemaTypeMerged
     );
     const fieldNamesList = this._configJsonService.fieldNames(
-      'generic',
+      this.moduleCode,
       'site',
       'display_list',
       schemaTypeMerged
@@ -439,11 +458,32 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.breadCrumbChild['url'] = [
       this.breadCrumbElementBase.url,
       this.breadCrumbParent.id?.toString(),
-      'object/generic/site',
+      `object/${this.moduleCode}/site`,
       this.breadCrumbChild.id?.toString(),
     ].join('/');
 
-    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbParent, this.breadCrumbChild];
+    this.breadCrumbElementBase = {
+      ...this.breadCrumbElementBase,
+      url: `object/${this.moduleCode}/site`,
+    };
+
+    const breadcrumb: IBreadCrumb[] = [];
+
+    if (this.moduleCode !== 'generic') {
+      const module = this._configService.config()[this.moduleCode].module;
+      breadcrumb.push({
+        description: module.module_label,
+        label: '',
+        url: `object/${module.module_code}/site`,
+      });
+    }
+
+    this.breadCrumbList = [
+      ...breadcrumb,
+      this.breadCrumbElementBase,
+      this.breadCrumbParent,
+      this.breadCrumbChild,
+    ];
     this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
@@ -453,11 +493,28 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.breadCrumbChild.label = 'Site';
     this.breadCrumbChild['id'] = sites.id_base_site;
     this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
-    this.breadCrumbChild['url'] = ['object/generic/site', this.breadCrumbChild.id?.toString()].join(
-      '/'
-    );
+    this.breadCrumbChild['url'] = [
+      `object/${this.moduleCode}/site`,
+      this.breadCrumbChild.id?.toString(),
+    ].join('/');
 
-    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbChild];
+    this.breadCrumbElementBase = {
+      ...this.breadCrumbElementBase,
+      url: `object/${this.moduleCode}/site`,
+    };
+
+    const breadcrumb: IBreadCrumb[] = [];
+
+    if (this.moduleCode !== 'generic') {
+      const module = this._configService.config()[this.moduleCode].module;
+      breadcrumb.push({
+        description: module.module_label,
+        label: '',
+        url: `object/${module.module_code}/site`,
+      });
+    }
+
+    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase, this.breadCrumbChild];
     this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 

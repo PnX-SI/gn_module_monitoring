@@ -67,6 +67,8 @@ export class MonitoringSitesgroupsDetailComponent
 
   obj: MonitoringObject;
 
+  moduleCode: string;
+
   constructor(
     private _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
@@ -89,11 +91,12 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
+    this.moduleCode = this._Activatedroute.snapshot.data.detailSitesGroups.moduleCode;
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
     this._objService.changeObjectType(this._siteService.objectObs);
-    this._configService.init().subscribe(() => {
+    this._configService.init(this.moduleCode).subscribe(() => {
       this.initSite();
     });
   }
@@ -118,7 +121,7 @@ export class MonitoringSitesgroupsDetailComponent
               this.siteGroupId = params['id'];
               this.baseFilters = { id_sites_group: this.siteGroupId };
               this.obj = new MonitoringObject(
-                'generic',
+                this.moduleCode,
                 'sites_group',
                 this.siteGroupId,
                 this._monitoringObjServiceMonitoring
@@ -126,6 +129,9 @@ export class MonitoringSitesgroupsDetailComponent
               return this.siteGroupId as number;
             }),
             mergeMap((id: number) => {
+              this._siteService.setModuleCode(`${this.moduleCode}`);
+              this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+
               return forkJoin({
                 sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
                   if (err.status == 404) {
@@ -139,6 +145,15 @@ export class MonitoringSitesgroupsDetailComponent
                 obj: this.obj.get(0),
               }).pipe(
                 map((data) => {
+                  this.obj.initTemplate();
+                  this.obj.bIsInitialized = true;
+                  if (this.moduleCode !== 'generic') {
+                    this._formService.changeFormMapObj({
+                      frmGp: null,
+                      bEdit: false,
+                      obj: this.obj,
+                    });
+                  }
                   return data;
                 })
               );
@@ -164,7 +179,7 @@ export class MonitoringSitesgroupsDetailComponent
         sites['objConfig'] = data.objObsSite;
         this.sitesGroup['objConfig'] = data.objObsSiteGp;
 
-        this.updateBreadCrumb(data.sitesGroup);
+        this.moduleCode === 'generic' && this.updateBreadCrumb(data.sitesGroup);
         this.setDataTableObj({ sites: sites, sitesGroup: this.sitesGroup });
         if (this.checkEditParam) {
           this._formService.changeDataSub(
@@ -185,7 +200,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   onEachFeatureSite() {
     return (feature, layer) => {
-      const popup = this._popup.setSitePopup('generic', feature, {
+      const popup = this._popup.setSitePopup(this.moduleCode, feature, {
         parents_path: ['module', 'sites_group'],
       });
       layer.bindPopup(popup);
@@ -194,7 +209,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   onEachFeatureGroupSite() {
     return (feature, layer) => {
-      const popup = this._popup.setSiteGroupPopup('generic', feature, {
+      const popup = this._popup.setSiteGroupPopup(this.moduleCode, feature, {
         parents_path: ['module', 'sites_group'],
       });
       layer.bindPopup(popup);
@@ -229,7 +244,7 @@ export class MonitoringSitesgroupsDetailComponent
   seeDetails($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
       queryParams: { parents_path: ['module', 'sites_group'] },
     });
   }
@@ -237,7 +252,7 @@ export class MonitoringSitesgroupsDetailComponent
   editChild($event) {
     this._objService.changeSelectedParentObj($event);
     this._objService.changeObjectTypeParent(this._siteService.objectObs);
-    this.router.navigate([`/monitorings/object/generic/site/${$event.id_base_site}`], {
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
       queryParams: { parents_path: ['module', 'sites_group'] },
     });
   }
@@ -249,7 +264,7 @@ export class MonitoringSitesgroupsDetailComponent
     };
 
     queryParams['id_sites_group'] = this.obj.id;
-    this.router.navigate(['/monitorings/object/generic/', type, 'create'], {
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
   }
@@ -296,7 +311,7 @@ export class MonitoringSitesgroupsDetailComponent
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
       let config = this._configJsonService.configModuleObject(
-        data[dataType].objConfig.moduleCode,
+        this.moduleCode,
         data[dataType].objConfig.objectType
       );
       data[dataType].objConfig['config'] = config;
