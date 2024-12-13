@@ -81,19 +81,25 @@ export class BreadcrumbsComponent implements OnInit {
   onClick(elem) {
     this.bEditChange.emit(false);
     setTimeout(() => {
+      console.log(this.obj, elem);
       if (elem) {
         if (this.obj == undefined) {
           const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');
           this._router.navigateByUrl(url);
         } else {
+          const path = [
+            'monitorings',
+            'object',
+            elem.module_code,
+            elem.object_type === "module" ? "sites_group" : elem.object_type,
+          ];
+
+          if (!(elem.object_type === "module")) {
+            path.push(elem.id);
+          }
+
           this._router.navigate(
-            [
-              this._configService.frontendModuleMonitoringUrl(),
-              'object',
-              elem.module_code,
-              elem.object_type,
-              elem.id,
-            ],
+            path,
             {
               queryParams: elem.params,
             }
