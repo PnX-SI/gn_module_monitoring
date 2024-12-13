@@ -137,12 +137,11 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.activetabIndex = tab.index;
     // Réinitialisation des données selectés
     this.activetabType = this.dataTableArray[tab.index].objectType;
-    this.dataTableObj[this.activetabType].rows.length > 0
-      ? (this.columns = this._dataTableService.colsTable(
-          this.dataTableObj[this.activetabType].columns,
-          this.dataTableObj[this.activetabType].rows[0]
-        ))
-      : null;
+    this.columns =
+      this.dataTableObj[this.activetabType].rows.length > 0
+        ? this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns)
+        : null;
+
     this.rows = this.dataTableObj[this.activetabType].rows;
     this.page = this.dataTableObj[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
@@ -326,9 +325,9 @@ export class MonitoringDatatableGComponent implements OnInit {
 
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
       const dataTable = this.dataTableObj[this.activetabType];
-      if (dataTable.rows.length > 0) {
-        this.columns = this._dataTableService.colsTable(dataTable.columns, dataTable.rows[0]);
-      }
+      this.columns =
+        dataTable.rows.length > 0 ? this._dataTableService.colsTable(dataTable.columns) : null;
+
       this.rows = dataTable.rows;
       this.page = dataTable.page;
       this.initPermissionAction();
@@ -339,6 +338,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     if (this.rows && this.rows.length > 0) {
       this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
       const dataTable = this.dataTableObj[this.activetabType];
+
       this.rows = dataTable.rows;
       this.page = dataTable.page;
       this.initPermissionAction();

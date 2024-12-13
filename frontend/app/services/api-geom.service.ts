@@ -25,6 +25,7 @@ import { Module } from '../interfaces/module';
 export class ApiService<T = IObject> implements IService<T> {
   public objectObs: IobjObs<T>;
   public endPoint: endPoints;
+
   constructor(
     protected _cacheService: CacheService,
     protected _configJsonService: ConfigJsonService
@@ -49,6 +50,10 @@ export class ApiService<T = IObject> implements IService<T> {
           this.objectObs.objectType,
           'display_list'
         );
+
+        if(!fieldNamesList) {
+          return null;
+        }
 
         const labelList = this._configJsonService.configModuleObjectParam(
           this.objectObs.moduleCode,
@@ -77,15 +82,25 @@ export class ApiService<T = IObject> implements IService<T> {
       })
     );
   }
+
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
-    return this._cacheService.request<Observable<IPaginated<T>>>('get', this.objectObs.endPoint, {
-      queryParams: { page, limit, ...params },
-    });
+    const module = !(this.objectObs.moduleCode === 'generic')
+      ? 'refacto/' + this.objectObs.moduleCode + '/'
+      : '';
+
+    return this._cacheService.request<Observable<IPaginated<T>>>(
+      'get',
+      `${module}${this.objectObs.endPoint}`,
+      {
+        queryParams: { page, limit, ...params },
+      }
+    );
   }
 
   getById(id: number): Observable<T> {
     return this._cacheService.request<Observable<T>>('get', `${this.objectObs.endPoint}/${id}`);
   }
+
   patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
     return this._cacheService.request('patch', `${this.objectObs.endPoint}/${id}`, {
       postData: updatedData as {},
@@ -101,7 +116,12 @@ export class ApiService<T = IObject> implements IService<T> {
   delete(id: number): Observable<T> {
     return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`);
   }
+
+  setModuleCode(moduleCode: string) {
+    this.objectObs.moduleCode = moduleCode;
+  }
 }
+
 @Injectable()
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
   constructor(
@@ -117,10 +137,14 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     const clean_params = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== '' && v !== null)
     );
+    
+    const endPoint = !(this.objectObs.moduleCode === 'generic')
+      ? `refacto/${this.objectObs.moduleCode}/${this.endPoint}/geometries`
+      : `${this.endPoint}/geometries`;
 
     return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
       'get',
-      `${this.endPoint}/geometries`,
+      endPoint,
       {
         queryParams: { ...clean_params },
       }
@@ -137,6 +161,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
     super(_cacheService, _configJsonService);
   }
+
   init(): void {
     const endPoint = endPoints.sites_groups;
     const objectObs: IobjObs<ISitesGroup> = {
@@ -171,9 +196,16 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
     limit: number = 10,
     params: JsonData = {}
   ): Observable<IPaginated<ISite>> {
-    return this._cacheService.request<Observable<IPaginated<ISite>>>('get', `sites`, {
-      queryParams: { page, limit, ...params },
-    });
+    const module = !(this.objectObs.moduleCode === 'generic')
+      ? 'refacto/' + this.objectObs.moduleCode + '/'
+      : '';
+    return this._cacheService.request<Observable<IPaginated<ISite>>>(
+      'get',
+      `${module}${endPoints.sites}`,
+      {
+        queryParams: { page, limit, ...params },
+      }
+    );
   }
 }
 

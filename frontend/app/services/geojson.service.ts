@@ -50,6 +50,11 @@ export class GeoJSONService {
     private _formService: FormService
   ) {}
 
+  setModuleCode(moduleCode: string) {
+    this._sites_group_service.setModuleCode(moduleCode)
+    this._sites_service.setModuleCode(moduleCode)
+  }
+
   removeAllLayers() {
     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
     this.removeFeatureGroup(this.sitesFeatureGroup);
