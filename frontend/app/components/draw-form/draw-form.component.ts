@@ -52,6 +52,7 @@ export class DrawFormComponent implements OnInit {
       return;
     }
     this.displayed = true;
+    this.initDrawConfig();
     if (this.geometryType.includes('Point')) {
       this.leafletDrawOptions.draw.marker = {
         icon: new CustomMarkerIcon(),
@@ -95,6 +96,17 @@ export class DrawFormComponent implements OnInit {
       //   }
       // );
     }
+  }
+
+  initDrawConfig() {
+    this.leafletDrawOptions.draw = {
+      polyline: false,
+      circle: false,
+      circlemarker: false,
+      rectangle: false,
+      marker: false,
+      polygon: false,
+    };
   }
 
   setGeojson(geometry) {
