@@ -70,6 +70,7 @@ jobs:
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "uuid-ossp";'
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "pg_trgm";'
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "unaccent";'
+        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "ltree";'
       env:
         PGPASSWORD: geonatpasswd
     - uses: actions/checkout@v2
