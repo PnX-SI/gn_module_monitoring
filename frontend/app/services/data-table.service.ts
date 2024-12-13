@@ -38,15 +38,13 @@ export class DataTableService {
   //   this.dataCols.next(allColumn)
   // }
 
-  colsTable(colName: {}, dataTable): IColumn[] {
+  colsTable(colName: {}): IColumn[] {
     const arr = Object.keys(colName);
-    const allColumn: IColumn[] = arr
-      .filter((item) => Object.keys(dataTable).includes(item))
-      .map((elm) => ({
-        name: colName[elm],
-        prop: elm,
-        description: elm,
-      }));
+    const allColumn: IColumn[] = arr.map((elm) => ({
+      name: colName[elm],
+      prop: elm,
+      description: elm,
+    }));
     return allColumn;
   }
 

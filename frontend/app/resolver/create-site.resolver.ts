@@ -1,24 +1,14 @@
 import { Injectable } from '@angular/core';
-import { SitesGroupService } from '../services/api-geom.service';
-import { Observable, of } from 'rxjs';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { ISitesGroup } from '../interfaces/geom';
+import { Resolve, ActivatedRouteSnapshot } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
-export class CreateSiteResolver implements Resolve<ISitesGroup | null> {
-  constructor(public service: SitesGroupService) {}
+export class CreateSiteResolver implements Resolve<{ moduleCode: string; id_sites_group: string }> {
+  constructor() {}
 
-  resolve(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<ISitesGroup | null> {
-    const siteGroupId = parseInt(route.paramMap.get('id'));
-    let $getSiteGroups: Observable<ISitesGroup | null>;
-    isNaN(siteGroupId)
-      ? ($getSiteGroups = of(null))
-      : ($getSiteGroups = this.service.getById(siteGroupId).pipe((result) => {
-          return result;
-        }));
-    return $getSiteGroups;
+  resolve(route: ActivatedRouteSnapshot): { moduleCode: string; id_sites_group: string } {
+    return {
+      moduleCode: route.parent.params.moduleCode ?? route.parent.parent.params.moduleCode,
+      id_sites_group: route.queryParams.id_sites_group,
+    };
   }
 }
