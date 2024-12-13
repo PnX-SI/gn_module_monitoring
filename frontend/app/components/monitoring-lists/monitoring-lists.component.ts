@@ -43,7 +43,7 @@ export class MonitoringListComponent implements OnInit {
   childrenColumns;
 
   queyParamsNewObject = {};
-  importQueryParams = {}
+  importQueryParams = {};
 
   // medias;
   canCreateChild: { [key: string]: boolean } = {};
@@ -56,8 +56,8 @@ export class MonitoringListComponent implements OnInit {
     private _configService: ConfigService,
     private _listService: ListService,
     public _cruvedStore: CruvedStoreService,
-    private _moduleService: ModuleService,
-  ) { }
+    private _moduleService: ModuleService
+  ) {}
 
   ngOnInit() {
     // Permet d'éviter une double initialisation du composant
@@ -148,26 +148,26 @@ export class MonitoringListComponent implements OnInit {
   }
 
   getImportQueryParams() {
-    if ("observation" in this.obj.children) {
+    if ('observation' in this.obj.children) {
       return {
         id_module: this.obj.properties['id_module'],
         id_base_site: this.obj.properties['id_base_site'], // todo: is it useful ?
         id_dataset: this.obj.properties['id_dataset'], // todo: is it useful ?
-        id_base_visit: this.obj.properties['id_base_visit']
-      }
+        id_base_visit: this.obj.properties['id_base_visit'],
+      };
     }
-    if ("visit" in this.obj.children) {
+    if ('visit' in this.obj.children) {
       return {
         id_module: this.obj.parents['module'].properties['id_module'],
-        id_base_site: this.obj.properties['id_base_site'] 
-      }
+        id_base_site: this.obj.properties['id_base_site'],
+      };
     }
-    if ("site" in this.obj.children) {
+    if ('site' in this.obj.children) {
       return {
         id_module: this.obj.properties['id_module'],
-      }
+      };
     }
-    return {}
+    return {};
   }
 
   ngOnChanges(changes: SimpleChanges) {
