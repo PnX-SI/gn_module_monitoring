@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.0.0 (2024-13-12)
+## 1.0.0 (unreleased)
 
 Nécessite GeoNature 2.15.0 (ou plus)
 
