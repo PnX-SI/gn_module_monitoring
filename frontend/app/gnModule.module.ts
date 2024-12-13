@@ -56,59 +56,43 @@ import { BtnSelectComponent } from './components/btn-select/btn-select.component
 import { MonitoringSitesDetailComponent } from './components/monitoring-sites-detail/monitoring-sites-detail.component';
 import { OptionListButtonComponent } from './components/option-list-btn/option-list-btn.component';
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
-import { SitesGroupsReslver } from './resolver/sites-groups.resolver';
+import { SitesGroupsResolver } from './resolver/sites-groups.resolver';
 import { CreateSiteResolver } from './resolver/create-site.resolver';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { ObjectsPermissionMonitorings } from './enum/objectPermission';
 
 import { Popup } from './utils/popup';
 import { ListService } from './services/list.service';
+import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolver';
+import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
+import { DetailSitesResolver } from './resolver/detail-sites-resolver';
+import { MapListResolver } from './resolver/map-list-resolver';
 
 // my module routing
 const routes: Routes = [
   /** modules  */
   { path: '', component: ModulesComponent },
   {
-    path: 'object/generic/site',
+    path: 'object/:moduleCode/sites_group',
     component: MonitoringMapListComponent,
+    resolve: {
+      data: MapListResolver,
+    },
     children: [
       {
         path: '',
         component: MonitoringSitesGroupsComponent,
         resolve: {
-          data: SitesGroupsReslver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesCreateComponent,
-        resolve: {
-          data: CreateSiteResolver,
-        },
-      },
-      {
-        path: ':id',
-        component: MonitoringSitesDetailComponent,
-      },
-    ],
-  },
-
-  {
-    path: 'object/generic/sites_group',
-    component: MonitoringMapListComponent,
-    children: [
-      {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsReslver,
+          data: SitesGroupsResolver,
         },
         runGuardsAndResolvers: 'always',
       },
       {
         path: 'create',
         component: MonitoringSitesGroupsCreateComponent,
+        resolve: {
+          createSitesGroups: CreateSitesGroupsResolver,
+        },
       },
       {
         path: ':id',
@@ -116,33 +100,63 @@ const routes: Routes = [
           {
             path: '',
             component: MonitoringSitesgroupsDetailComponent,
+            resolve: {
+              detailSitesGroups: DetailSitesGroupsResolver,
+            },
           },
           {
             path: 'create',
             component: MonitoringSitesCreateComponent,
             resolve: {
-              data: CreateSiteResolver,
+              createSite: CreateSiteResolver,
             },
           },
           {
             path: 'site/:id',
             component: MonitoringSitesDetailComponent,
+            resolve: {
+              detailSites: DetailSitesResolver,
+            },
           },
         ],
       },
     ],
   },
-  /** module  */
-  { path: 'module/:moduleCode', component: MonitoringObjectComponent },
-  /** create module */
-  { path: 'module', component: MonitoringObjectComponent },
-
-  /** object */
+  {
+    path: 'object/:moduleCode/site',
+    component: MonitoringMapListComponent,
+    resolve: {
+      data: MapListResolver,
+    },
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsResolver,
+        },
+        runGuardsAndResolvers: 'always',
+      },
+      {
+        path: 'create',
+        component: MonitoringSitesCreateComponent,
+        resolve: {
+          createSite: CreateSiteResolver,
+        },
+      },
+      {
+        path: ':id',
+        component: MonitoringSitesDetailComponent,
+        resolve: {
+          detailSites: DetailSitesResolver,
+        },
+      },
+    ],
+  },
   {
     path: 'object/:moduleCode/:objectType/:id',
     component: MonitoringObjectComponent,
   },
-  /** create object */
   {
     path: 'create_object/:moduleCode/:objectType',
     component: MonitoringObjectComponent,
@@ -209,8 +223,9 @@ const routes: Routes = [
     ObjectService,
     ApiGeomService,
     VisitsService,
-    SitesGroupsReslver,
+    SitesGroupsResolver,
     CreateSiteResolver,
+    CreateSitesGroupsResolver,
     PermissionService,
     Popup,
   ],
