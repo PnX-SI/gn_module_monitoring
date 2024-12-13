@@ -11,11 +11,13 @@
   [newParentType]="objParent"
   [selectedObjRaw]="sitesGroup"
   [permission]="currentPermission"
+  (bEditChange)="onbEditChange($event)" 
 >
 </pnx-monitoring-properties-g>
 <pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)"
   *ngIf="bEdit && obj?.bIsInitialized" [(bEdit)]="bEdit"
-  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
+  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser"
+  (bEditChange)="onbEditChange($event)" >
 </pnx-monitoring-form>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"

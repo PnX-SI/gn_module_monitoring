@@ -243,7 +243,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         } else {
           this.updateBreadCrumb(data.site, data.parentObjSelected);
         }
-
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.objSelected,
@@ -252,6 +251,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           );
 
           this.bEdit = true;
+          this._formService.changeCurrentEditMode(this.bEdit);
         }
       });
     this.isInitialValues = true;
@@ -431,6 +431,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.initSiteVisit();
   }
 
+  onbEditChange(event) {
+    this._formService.changeFormMapObj({
+      frmGp: this.form,
+      obj: this.obj,
+    });
+    this._formService.changeCurrentEditMode(this.bEdit);
+  }
+
   setDataTableObj(data) {
     const objTemp = {};
     for (const dataType in data) {
@@ -469,6 +477,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   ngOnDestroy() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+    this._formService.changeCurrentEditMode(false);
+    this._formService.changeFormMapObj({
+      frmGp: null,
+      obj: {},
+    });
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }

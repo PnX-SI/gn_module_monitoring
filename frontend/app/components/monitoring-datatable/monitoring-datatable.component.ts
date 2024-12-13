@@ -38,7 +38,7 @@ export class MonitoringDatatableComponent implements OnInit {
   @Output() onFilter = new EventEmitter<Object>();
   @Output() onDeleteRow = new EventEmitter<Object>();
 
-  @Output() bEditChanged = new EventEmitter<boolean>();
+  @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
 
