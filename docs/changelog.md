@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.8.0 (unreleased)
+## 1.0.0 (unreleased)
 
 Nécessite GeoNature 2.15.0 (ou plus)
 
@@ -14,6 +14,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
   - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
   - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs id_nomenclature_type_site
   - Le modèle de données a évolué pour pouvoir associer un groupe de sites à plusieurs sous-modules
+  - On distingue les permissions des utilisateurs dans chaque sous-module (protocole) sur chaque type d'objets (groupes de sites, sites et visites) et leurs permissions globales sur ces objets au niveau de tout le module. Pour qu'un utilisateur puisse consulter, ajouter ou modifier des groupes de sites ou des sites depuis le gestionnaire de sites, il faut lui ajouter des permissions globales sur ces objets.
 - Ajout de la prise en compte des portées au niveau des permissions (#92)
 - Ajout d'un champ `observers_txt` au niveau de la table des visites (#106)
 - Possibilité de définir plusieurs types de géométrie pour les sites d'un sous-module (#136)
@@ -31,7 +32,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
 **⚠️ Notes de version**
 
 - Si vous installez le module sans être passés par la version 0.7.0, éxecuter le script `data\upgrade_modules_permissions.sql` pour transférer les permissions et supprimer les permissions disponibles (après avoir exécuté la commande `geonature monitorings update_module_available_permissions`).
-- Si vous avez des modules installés, les éventuelles vues synthèses et exports ne seront plus compatibles et bloqueront la migration. Il faut les supprimer en amont et les recréer après mise à jour en tenant compte des évolutions du modèle de données.
+- Si vous avez des modules installés, les éventuelles vues `synthese.sql` et `export_csv.sql` de vos sous-modules ne seront plus compatibles et bloqueront la migration. Il faut les supprimer avant la mise à jour et les recréer après mise à jour en répercutant les évolutions du modèle de données (#117)
 - Si vous aviez défini la propriété `id_nomenclature_type_site` dans la configuration de vos sous-modules, celle-ci n'existe plus et peut être remplacée par `types_sites`. Exemple :
   ```
   "types_site": {
@@ -44,6 +45,31 @@ Nécessite GeoNature 2.15.0 (ou plus)
     }
   ```
 - Si vous le souhaitez, vous pouvez attribuer des permissions à vos utilisateurs au nouveau gestionnaire de sites et limiter les portées des permissions par objets et par sous-modules (https://github.com/PnX-SI/gn_module_monitoring?tab=readme-ov-file#permissions)
+- Les données supprimées depuis le module ne l'étaient pas dans la synthèse. Vérifiez qu'il n'y a aucune donnée orpheline dans la synthèse, pour les supprimer ensuite si vous le souhaitez.
+
+```sql
+WITH monitoring_uuid AS (
+	SELECT ms.uuid_base_site  AS unique_id_sinp
+	FROM gn_monitoring.t_base_sites ms
+	UNION
+	SELECT mo.uuid_observation AS unique_id_sinp
+	FROM gn_monitoring.t_observations mo
+	UNION
+	SELECT MOD.uuid_observation_detail  AS unique_id_sinp
+	FROM gn_monitoring.t_observation_details mod 
+), monitoring_module AS (
+	SELECT id_module 
+	FROM gn_commons.t_modules tm 
+	WHERE TYPE = 'monitoring_module'
+) 
+SELECT * 
+FROM  gn_synthese.synthese s  
+JOIN  monitoring_module m 
+ON s.id_module = m.id_module
+LEFT JOIN monitoring_uuid mu
+ON s.unique_id_sinp = mu.unique_id_sinp
+WHERE mu.unique_id_sinp IS NULL;
+```
 
 ## 0.7.3 (2023-05-03)
 
