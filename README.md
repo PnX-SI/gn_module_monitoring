@@ -230,10 +230,11 @@ Les permissions des sous-modules sont définies au niveau de chaque sous-module 
 
 Les permissions des sous-modules peuvent être limitées avec une notion de portée : 'Mes données' ou 'Les données de mon organisme' : 
 
-- Pour les groupes de sites, la portée s'appuie sur son id_digitizer (et son organisme si la portée est de niveau 2)
+- Groupes de sites : la portée s'appuie sur son id_digitizer (et son organisme si la portée est de niveau 2)
 - Site : id_digitizer ou id_inventor du site
-- Visite : id_digitiser ou observers de la visite
-- Observation : id_digitizer de l'observation
+- Visite : id_digitizer ou observers de la visite
+- Observation : id_digitizer de l'observation ou permission de la visite
+- Observation détail : héritée de permission de l'observation
 
 Si vous modifiez la configuration d'un sous-module en y ajoutant des objets (ajout du niveau groupe de sites par exemple), il est possible de mettre à jour les permissions disponibles pour ce sous-module en utilisant la commande `update_module_available_permissions`.
 
@@ -245,7 +246,7 @@ Des fonctions SQL ainsi qu'une vue définie pour chaque protocole permettent d'a
 
 Les sites et groupes de sites peuvent être associés à plusieurs protocoles (sous-modules).
 
-![MCD du schema gn_monitoring](docs/images/2023-10-MCD_schema_monitoring.png)
+![MCD du schema gn_monitoring](docs/images/2024-11-MCD_schema_monitoring.png)
 
 ## Autres
 
