@@ -3,19 +3,14 @@ name: pytest
 on:
   push:
     branches:
-      - master
+      - main
       - hotfixes
-      - develop
-      - workshop
-      - dev-suivi-eolien
+      - develop 
   pull_request:
     branches:
-      - master
+      - main
       - hotfixes
-      - develop
-      - workshop
-      - workshop
-      - dev-suivi-eolien
+      - develop 
 
 jobs:
   build:
