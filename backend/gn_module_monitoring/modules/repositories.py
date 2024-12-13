@@ -4,14 +4,15 @@
     get_modules
 """
 
+from sqlalchemy import select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
-
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_synthese.models import TSources
-from ..monitoring.models import TMonitoringModules
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
 def get_simple_module(field_name, value):
@@ -47,17 +48,23 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
     :rtype : dict
 
     """
-
     if not hasattr(moduleCls, field_name):
         raise GeoNatureError(
             "get_module : TMonitoringModules ne possède pas de champs {}".format(field_name)
         )
 
+    if value == "generic":
+        return None
+
     try:
-        module = DB.session.query(moduleCls).filter(getattr(moduleCls, field_name) == value).one()
+        module = DB.session.execute(
+            select(moduleCls).where(getattr(moduleCls, field_name) == value)
+        ).scalar_one()
 
         return module
 
+    except NoResultFound as e:
+        raise e
     except MultipleResultsFound:
         raise GeoNatureError(
             "get_module : multiple results found for field_name {} and value {}".format(
@@ -81,7 +88,9 @@ def get_modules(session=None):
     if not session:
         session = DB.session
     try:
-        res = session.query(TMonitoringModules).order_by(TMonitoringModules.module_label).all()
+        res = session.scalars(
+            select(TMonitoringModules).order_by(TMonitoringModules.module_label)
+        ).all()
 
         return res
 
@@ -92,7 +101,9 @@ def get_modules(session=None):
 
 def get_source_by_code(value):
     try:
-        source = DB.session.query(TSources).filter(TSources.name_source == value).one()
+        source = DB.session.execute(
+            select(TSources).where(TSources.name_source == value)
+        ).scalar_one()
 
         return source
 

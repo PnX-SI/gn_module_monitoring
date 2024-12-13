@@ -5,6 +5,8 @@ import { ConfigService } from '../../services/config.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 
 import { Utils } from '../../utils/utils';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { ListService } from '../../services/list.service';
 
 @Component({
   selector: 'pnx-monitoring-lists',
@@ -18,9 +20,17 @@ export class MonitoringListComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
+  @Output() filtersChange: EventEmitter<Object> = new EventEmitter<Object>();
 
-  activetab: string;
+  @Input() forceReload;
+  @Output() forceReloadChange = new EventEmitter<boolean>();
 
+  @Input() selectedObject;
+  @Output() selectedObjectChange: EventEmitter<string> = new EventEmitter<string>();
+
+  @Output() onDeleteRow: EventEmitter<Object> = new EventEmitter<Object>();
+
+  nbVisibleRows: Record<string, number> = {};
   frontendModuleMonitoringUrl;
   backendUrl: string;
 
@@ -33,16 +43,18 @@ export class MonitoringListComponent implements OnInit {
   queyParamsNewObject = {};
 
   // medias;
-
-  @Input() objectsStatus: Object;
-  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
-
-  constructor(private _configService: ConfigService) {}
+  canCreateChild: { [key: string]: boolean } = {};
+  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  constructor(
+    private _configService: ConfigService,
+    private _listService: ListService
+  ) {}
 
   ngOnInit() {
-    this._configService.init(this.obj.moduleCode).subscribe(() => {
-      this.initDataTable();
-    });
+    // Permet d'éviter une double initialisation du composant
+    // this._configService.init(this.obj.moduleCode).subscribe(() => {
+    //   this.initDataTable();
+    // });
   }
 
   initDataTable() {
@@ -58,52 +70,59 @@ export class MonitoringListComponent implements OnInit {
     this.backendUrl = this._configService.backendUrl();
 
     this.children0Array = this.obj.children0Array();
-    this.activetab = this.children0Array[0] && this.children0Array[0].objectType;
+
     // datatable
     this.childrenDataTable = this.obj.childrenColumnsAndRows('display_list');
 
+    // Initialisation nombre d'élément affiché dans la liste
+    Object.keys(this.childrenDataTable).forEach((chidrenType) => {
+      this.nbVisibleRows[chidrenType] = this.childrenDataTable[chidrenType].rows.length;
+    });
+    this.initPermission();
     // this.medias = this.obj.children['media'] && this.obj.children['media'].map(e => e.properties);
   }
 
+  initPermission() {
+    for (const child of this.children0Array) {
+      const childType = child['objectType'];
+      this.canCreateChild[childType] = this.currentUser?.moduleCruved[childType].C > 0;
+    }
+  }
+
   onSelectedChildren(typeObject, event) {
-    this.objectsStatus[typeObject] = event;
-    let status_type = Utils.copy(this.objectsStatus);
-    status_type['type'] = typeObject;
-    this.objectsStatusChange.emit(status_type);
+    this.selectedObject = event;
+    this.selectedObjectChange.emit(event);
+  }
+
+  onFilterChange(type, event) {
+    const nb_row = event['nb_row'];
+    this.nbVisibleRows[type] = nb_row;
+  }
+
+  onDeleteRowChange(event) {
+    this.onDeleteRow.emit(event);
   }
 
   changeActiveTab(typeObject, tab) {
-    this.activetab = typeObject;
+    const activetab = this.children0Array[typeObject['index']];
     // Réinitialisation des données selectés
-    this.objectsStatusChange.emit(this.reInitStatut());
+    this._listService.listType = activetab['objectType'];
+    this._listService.tableFilters =
+      this._listService.arrayTableFilters$.getValue()[activetab['objectType']];
   }
 
-  reInitStatut() {
-    let status_type = Utils.copy(this.objectsStatus);
-    for (let typeObject in status_type) {
-      if (Array.isArray(status_type[typeObject])) {
-        for (let i in status_type[typeObject]) {
-          try {
-            status_type[typeObject][i]['selected'] = false;
-          } catch (error) {
-            console.error(error.message, status_type[typeObject][i]);
-          }
-        }
-      }
-    }
-    return status_type;
-  }
-  onbEditChanged(event) {
+  onbEditChange(event) {
     this.bEditChange.emit(event);
   }
 
   displayNumber(chidrenType) {
-    if (!this.objectsStatus[chidrenType]) {
+    if (!this.childrenDataTable[chidrenType]) {
       return '';
     }
-    const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible);
-    const nbSelected = visibles.length;
-    const nb = this.obj.children[chidrenType].length;
+
+    const nbSelected = this.nbVisibleRows[chidrenType];
+    const nb = this.childrenDataTable[chidrenType]['rows'].length;
+
     return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
   }
 
@@ -115,6 +134,13 @@ export class MonitoringListComponent implements OnInit {
       switch (propName) {
         case 'obj':
           this.initDataTable();
+          break;
+        case 'forceReload':
+          if (cur == true) {
+            this.initDataTable();
+            this.forceReload = false;
+            this.forceReloadChange.emit(false);
+          }
           break;
       }
     }

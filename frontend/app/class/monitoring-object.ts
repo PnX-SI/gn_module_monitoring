@@ -1,10 +1,8 @@
-import { Observable, of, forkJoin } from 'rxjs';
-import { mergeMap, concatMap } from 'rxjs/operators';
-
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { Utils } from '../utils/utils';
-
 import { MonitoringObjectBase } from './monitoring-object-base';
+import { Observable, of, forkJoin } from 'rxjs';
+import { mergeMap, concatMap } from 'rxjs/operators';
 
 export class MonitoringObject extends MonitoringObjectBase {
   myClass = MonitoringObject;
@@ -71,27 +69,15 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   /** Methodes get post patch delete */
-
   get(depth): Observable<any> {
-    let bFromCache = false;
-    return of(true).pipe(
-      mergeMap(() => {
-        const postData = this._objService.getFromCache(this);
-        if (postData) {
-          bFromCache = true;
-          return of(postData);
-        }
-        return this._objService
-          .dataMonitoringObjectService()
-          .getObject(this.moduleCode, this.objectType, this.id, depth);
-      }),
-      mergeMap((postData) => {
-        if (!bFromCache) {
-          this._objService.setCache(this, postData);
-        }
-        return this.init(postData);
-      })
-    );
+    return this._objService
+      .dataMonitoringObjectService()
+      .getObject(this.moduleCode, this.objectType, this.id, depth)
+      .pipe(
+        mergeMap((postData) => {
+          return this.init(postData);
+        })
+      );
   }
 
   post(formValue): Observable<any> {
@@ -159,7 +145,7 @@ export class MonitoringObject extends MonitoringObjectBase {
 
     let parentOut = null;
 
-    if (!parentType || !this.parentId(parentType)) {
+    if (parentType != 'module' && !this.parentId(parentType)) {
       return of(null);
     }
 
@@ -192,34 +178,6 @@ export class MonitoringObject extends MonitoringObjectBase {
     );
   }
 
-  /** Formulaires  */
-
-  /** formValues: obj -> from */
-
-  formValues(): Observable<any> {
-    const properties = Utils.copy(this.properties);
-    const observables = {};
-    const schema = this.schema();
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      if (!elem.type_widget) {
-        continue;
-      }
-      observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
-    }
-
-    return forkJoin(observables).pipe(
-      concatMap((formValues_in) => {
-        const formValues = Utils.copy(formValues_in);
-        // geometry
-        if (this.config['geometry_type']) {
-          formValues['geometry'] = this.geometry; // copy???
-        }
-        return of(formValues);
-      })
-    );
-  }
-
   /** postData: obj -> from */
 
   postData(formValue) {
@@ -232,11 +190,31 @@ export class MonitoringObject extends MonitoringObjectBase {
       }
       propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
     }
+    // On récupère les champs spécifiques qui ne sont ni dans la config spécifique, générique ou des types de sites sélectionnés
+    // Permet de garder les propriétés du site sur un autre protocole qui appelle ce site avec d'autres types de sites associés
+    if ('additional_data_keys' in formValue && formValue['additional_data_keys'].length > 0) {
+      for (const key of formValue['additional_data_keys']) {
+        propertiesData[key] = formValue[key];
+      }
+    }
 
-    const postData = {
+    let postData = {};
+    postData = {
       properties: propertiesData,
       // id_parent: this.parentId
     };
+    // if (Object.keys(dataComplement).length == 0) {
+    //   postData = {
+    //     properties: propertiesData,
+    //     // id_parent: this.parentId
+    //   };
+    // } else {
+    //   postData = {
+    //     properties: propertiesData,
+    //     dataComplement: dataComplement,
+    //     // id_parent: this.parentId
+    //   };
+    // }
 
     if (this.config['geometry_type']) {
       postData['geometry'] = formValue['geometry'];
@@ -291,6 +269,7 @@ export class MonitoringObject extends MonitoringObjectBase {
           (fieldName) => child.resolvedProperties[fieldName]
         );
         row['id'] = child.id;
+        row['cruved'] = child.cruved;
         return row;
       });
     }

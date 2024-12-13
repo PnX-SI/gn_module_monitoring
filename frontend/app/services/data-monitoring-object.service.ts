@@ -18,12 +18,19 @@ export class DataMonitoringObjectService {
     private _config: ConfigService
   ) {}
 
+  /**
+   * Renvoie la liste des cruved object liés à Monitorings et de l'utilisateur connecté
+   */
+  getCruvedMonitoring() {
+    return this._cacheService.request('get', `cruved_object`);
+  }
+
   /** Modules */
 
   /**
    * Renvoie la liste des modules
    */
-  getModules() {
+  getModules(): Array<any> {
     return this._cacheService.request('get', `modules`);
   }
 
@@ -102,8 +109,9 @@ export class DataMonitoringObjectService {
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
    */
-  deleteObject(moduleCode, objectType, id) {
+  deleteObject(moduleCode, objectType, id): Observable<any> {
     const url = this.urlMonitoring('object', moduleCode, objectType, id);
+
     return this._cacheService.request('delete', url);
   }
 

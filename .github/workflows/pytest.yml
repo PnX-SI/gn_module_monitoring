@@ -7,12 +7,15 @@ on:
       - hotfixes
       - develop
       - workshop
+      - dev-suivi-eolien
   pull_request:
     branches:
       - master
       - hotfixes
       - develop
       - workshop
+      - workshop
+      - dev-suivi-eolien
 
 jobs:
   build:
@@ -23,10 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Debian 10"
-            python-version: "3.7"
-            postgres-version: 11
-            postgis-version: 2.5
           - name: "Debian 11"
             python-version: "3.9"
             postgres-version: 13
@@ -71,6 +70,7 @@ jobs:
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "uuid-ossp";'
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "pg_trgm";'
         psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "unaccent";'
+        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "ltree";'
       env:
         PGPASSWORD: geonatpasswd
     - uses: actions/checkout@v2
@@ -91,18 +91,23 @@ jobs:
           -e ..[tests] \
           -r requirements-dev.txt
       working-directory: ./dependencies/GeoNature/backend
+    - name: Install monitoring module
+      run: |
+        python -m pip install -e .
+      working-directory: .
     - name: Install database
       run: |
-        geonature db upgrade geonature@head -x local-srid=2154
-        geonature db autoupgrade -x local-srid=2154
-        geonature taxref import-v15 --skip-bdc-statuts
-        geonature db upgrade geonature-samples@head
-        geonature db upgrade nomenclatures_taxonomie_data@head
-        geonature db upgrade ref_geo_fr_departments@head
-        geonature db upgrade ref_geo_fr_municipalities@head
-        geonature db upgrade ref_geo_inpn_grids_10@head
+        dependencies/GeoNature/install/03b_populate_db.sh
       env:
         GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
+        srid_local: 2154
+        install_bdc_statuts: false
+        taxref_region: fr
+        add_sample_data: true
+        install_sig_layers: true
+        install_grid_layer_5: false
+        install_grid_layer_10: false
+        install_ref_sensitivity: false
     - name: Install monitoring module database
       run: |
         geonature upgrade-modules-db MONITORINGS
