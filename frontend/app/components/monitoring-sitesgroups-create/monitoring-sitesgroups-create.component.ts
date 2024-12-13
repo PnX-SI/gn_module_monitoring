@@ -70,14 +70,19 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
         this.obj.initTemplate();
         this._formService.changeFormMapObj({
           frmGp: this.objForm,
-          bEdit: true,
           obj: this.obj,
         });
+        this._formService.changeCurrentEditMode(this.bEdit);
         this.obj.bIsInitialized = true;
       });
   }
 
   ngOnDestroy() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+    this._formService.changeCurrentEditMode(false);
+    this._formService.changeFormMapObj({
+      frmGp: null,
+      obj: {},
+    });
   }
 }

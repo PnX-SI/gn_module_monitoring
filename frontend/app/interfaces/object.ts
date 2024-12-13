@@ -35,4 +35,4 @@ export type IBreadCrumb = {
   params?: JsonData;
 };
 
-export type IFormMap = { frmGp: FormGroup; bEdit: boolean; obj: any };
+export type IFormMap = { frmGp: FormGroup; obj: any };

@@ -177,18 +177,32 @@ export class MonitoringSitesgroupsDetailComponent
           this.bEdit = true;
         }
 
+        this.obj.bIsInitialized = true;
         this._formService.changeFormMapObj({
           frmGp: this.form,
-          bEdit: this.bEdit,
           obj: this.obj,
         });
-        this.obj.bIsInitialized = true;
+        this._formService.changeCurrentEditMode(this.bEdit);
       });
   }
+
   ngOnDestroy() {
     this._geojsonService.removeAllFeatureGroup();
     this.destroyed$.next(true);
     this.destroyed$.complete();
+    this._formService.changeCurrentEditMode(false);
+    this._formService.changeFormMapObj({
+      frmGp: null,
+      obj: {},
+    });
+  }
+
+  onbEditChange(event) {
+    this._formService.changeFormMapObj({
+      frmGp: this.form,
+      obj: this.obj,
+    });
+    this._formService.changeCurrentEditMode(this.bEdit);
   }
 
   onEachFeatureSite() {

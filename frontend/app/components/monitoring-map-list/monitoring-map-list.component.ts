@@ -43,8 +43,11 @@ export class MonitoringMapListComponent {
       .pipe(distinctUntilChanged((prev, curr) => prev.obj === curr.obj))
       .subscribe((formMapObj) => {
         this.obj = formMapObj.obj;
-        this.bEdit = formMapObj.bEdit;
         this.objForm = formMapObj.frmGp;
       });
+
+    this._formService.currentEditMode.subscribe((editMode) => {
+      this.bEdit = editMode;
+    });
   }
 }
