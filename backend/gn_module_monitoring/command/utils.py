@@ -1,5 +1,6 @@
 import os
-import click
+import subprocess
+import json
 from pathlib import Path
 
 from flask import current_app
@@ -20,11 +21,15 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.imports.models import BibFields
 from geonature.core.imports.models import Destination
 from geonature.core.imports.models import Entity
+from geonature.core.imports.models import EntityField
+from geonature.core.imports.models import BibThemes
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
+    get_dir_path,
+    map_field_type,
     SUB_MODULE_CONFIG_DIR,
 )
 
@@ -68,11 +73,11 @@ ACTION_LABEL = {
     "E": "Exporter les",
 }
 
-TABLE_NAME = {
-    "visit": "t_base_visits",
-    "site": "t_base_sites",
-    "observation": "t_observations",
+TABLE_NAME_SUBMODULDE = {
     "sites_group": "t_sites_groups",
+    "site": "t_base_skites",
+    "visit": "t_base_visits",
+    "observation": "t_observations",
 }
 
 def process_sql_files(
@@ -233,6 +238,8 @@ def remove_monitoring_module(module_code):
 
         stmt = delete(Destination).where(Destination.code == module_code)
         DB.session.execute(stmt)
+        
+        delete_migration_file(module_code)
 
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
@@ -398,7 +405,7 @@ def available_modules():
 
 def extract_keys(test_dict, keys=[]):
     """
-    FOnction permettant d'extraire de façon récursive les clés d'un dictionnaire
+    Fonction permettant d'extraire de façon récursive les clés d'un dictionnaire.
     """
     for key, val in test_dict.items():
         keys.append(key)
@@ -406,21 +413,64 @@ def extract_keys(test_dict, keys=[]):
             extract_keys(val, keys)
     return keys
 
-
-def add_module_import_bib(module_data):
+def get_entities_module(module_code):
     """
-    Ajoute un module dans les destinations, bib_fields et bib_entities.
-    Comprend une logique d'insertion/mise à jour pour éviter les doublons.
+    Extrait les entités à partir du fichier de configuration pour un module donné.
+    """
+    module_path = monitoring_module_config_path(module_code)
+
+    if not (module_path / "config.json").is_file():
+        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
+
+    data_config = json_from_file(module_path / "config.json")
+    tree = data_config.get("tree", {}).get("module", {})
+    keys = extract_keys(tree)
+    unique_keys = list(dict.fromkeys(keys))
+
+    return unique_keys
+
+def get_entity_parent(tree, entity_code):
+    """
+    Trouve le parent d'une entité dans la structure de l'arbre.
+    """
+    def find_parent(node, target, parent=None):
+        if target in node:
+            return parent
+        for key, value in node.items():
+            if isinstance(value, dict):
+                found = find_parent(value, target, key)
+                if found:
+                    return found
+        return None
+
+    parent_entity = find_parent(tree, entity_code)
+    return parent_entity
+
+def process_module_import(module_data):
+    """
+    Pipeline complet pour insérer un module et ses données dans la base.
     """
     try:
         destination = insert_or_update_destination(module_data)
+        id_destination = destination.id_destination
+        module_code = module_data["module_code"]
 
-        insert_or_update_fields_and_entities(module_data["module_code"], destination.id_destination)
+        entities = get_entities_module(module_code)
+        protocol_data, entity_column_map = build_protocol_json(entities, module_code, id_destination)
+
+        sql = create_import_table(module_code,protocol_data)
+        
+        create_import_table_migration(module_code, sql)
+        
+        field_ids = insert_unique_fields(protocol_data)
+        
+        insert_entities(protocol_data, id_destination, entity_column_map, label_entity=destination.label)
+
+        insert_entity_field_relations(protocol_data, id_destination, entity_column_map)
+
     except Exception as e:
         print(f"Erreur lors du traitement du module {module_data['module_code']}: {str(e)}")
         raise
-
-
 
 
 def insert_or_update_destination(module_data):
@@ -452,84 +502,100 @@ def insert_or_update_destination(module_data):
     return destination
 
 
-def insert_or_update_fields_and_entities(module_code, id_destination):
+def build_protocol_json(entities, module_code, id_destination):
     """
-    Ajoute ou met à jour les champs (fields) et entités (entities) pour un module donné.
+    Construit les données du protocole à partir des fichiers JSON spécifiques et génériques.
     """
-    entities = get_entities_module(module_code)
+    protocol_data = {}
+    entity_column_map = {}
     module_config_dir_path = monitoring_module_config_path(module_code)
 
-    label_entity = json_from_file(module_config_dir_path / "site.json")
-    if not label_entity:
-        raise Exception(f"Le fichier site.json est absent pour {module_code}")
+    module_config_path = module_config_dir_path / "config.json"
+    if not module_config_path.is_file():
+        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
+
+    module_config = json_from_file(module_config_path)
+    tree = module_config.get("tree", {}).get("module", {})
 
     for entity_code in entities:
         file_path = module_config_dir_path / f"{entity_code}.json"
         if not file_path.is_file():
             raise Exception(f"Le fichier {entity_code}.json est manquant")
 
-        data = json_from_file(file_path)
-        if not data:
+        specific_data = json_from_file(file_path)
+        if not specific_data:
             raise Exception(f"Le fichier {entity_code}.json est vide")
 
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         generic_data_path = os.path.join(project_root, "config", "generic", f"{entity_code}.json")
         generic_data = json_from_file(generic_data_path, result_default={})
-
         if not generic_data:
             raise Exception(f"Le fichier generic/{entity_code}.json est vide")
 
-        # Préparer les champs (fields)
-        fields = prepare_fields(data, generic_data, entity_code, id_destination)
+        parent_entity = get_entity_parent(tree, entity_code)
+        uuid_column = generic_data.get( "id_field_name")
 
-        # Insérer ou mettre à jour les champs dans bib_fields
-        insert_or_update_fields(fields)
+        entity_column_map[entity_code] = {
+            "uuid_column": uuid_column,
+            "parent_entity": parent_entity
+        }
 
-        # Insérer ou mettre à jour les entités dans bib_entities
-        insert_or_update_entity(entity_code, label_entity, id_destination, fields)
+        protocol_data[entity_code] = prepare_fields(specific_data, generic_data, entity_code, id_destination)
+
+    return protocol_data, entity_column_map
 
 
 def prepare_fields(specific_data, generic_data, entity_code, id_destination):
     """
     Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
+    Gère également un champ additionnel consolidé (`additional_data`).
     """
     fields = []
     specific_fields = specific_data.get("specific", {})
     generic_fields = generic_data.get("generic", {})
 
-    uuid_field_name = generic_data.get("uuid_field_name")
-    if not uuid_field_name:
-        raise Exception(f"`uuid_field_name` est absent dans {entity_code}.json")
+    mandatory_conditions = []
+    optional_conditions = []
 
-    uuid_field = {
-        "name_field": f"{entity_code}_{uuid_field_name}",
-        "fr_label": uuid_field_name,
-        "eng_label": None,
-        "type_field": "uuid",
-        "mandatory": False,
-        "autogenerated": True,
-        "display": True,
-        "mnemonique": None,
-        "source_field": None,
-        "dest_field": uuid_field_name,
-        "multi": False,
-        "id_destination": id_destination,
-        "mandatory_conditions": None,
-        "optional_conditions": None,
-    }
-    fields.append(uuid_field)
 
-    # Champs communs
-    common_fields = set(generic_fields.keys()).intersection(specific_fields.keys())
-    for field_name in common_fields:
-        field_data = {**generic_fields[field_name], **specific_fields[field_name]}
+    for field_name, generic_field_data in generic_fields.items():
+
+        if field_name in specific_fields:
+            field_data = {**generic_field_data, **specific_fields[field_name]}
+        else:
+            field_data = generic_field_data
+
         fields.append(create_bib_field(field_data, entity_code, field_name, id_destination))
 
-    # Champs additionnels spécifiques
     additional_fields = set(specific_fields.keys()).difference(generic_fields.keys())
     for field_name in additional_fields:
         field_data = specific_fields[field_name]
+
         fields.append(create_bib_field(field_data, entity_code, field_name, id_destination))
+
+        if field_data.get("required", False): 
+            mandatory_conditions.append(f"{entity_code[0]}__{field_name}")
+        else: 
+            optional_conditions.append(f"{entity_code[0]}__{field_name}")
+
+    if additional_fields:
+        additional_field_data = {
+            "name_field": f"{entity_code[0]}__additional_data",
+            "fr_label": "Champs additionnels",
+            "eng_label": "",
+            "type_field": "jsonb",
+            "mandatory": True if mandatory_conditions else False,
+            "autogenerated": False,
+            "display": True,
+            "mnemonique": None,
+            "source_field": "src_additional_data",
+            "dest_field": "additional_data",
+            "multi": True,
+            "id_destination": id_destination,
+            "mandatory_conditions": mandatory_conditions if mandatory_conditions else None,
+            "optional_conditions": optional_conditions if optional_conditions else None,
+        }
+        fields.append(additional_field_data)
 
     return fields
 
@@ -538,16 +604,23 @@ def create_bib_field(field_data, entity_code, field_name, id_destination):
     """
     Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
     """
+    if "code_nomenclature_type" in field_data:
+        mnemonique = field_data["code_nomenclature_type"]
+    elif "value" in field_data and isinstance(field_data["value"], dict) and "code_nomenclature_type" in field_data["value"]:
+        mnemonique = field_data["value"]["code_nomenclature_type"]
+    else:
+        mnemonique = None
+            
     return {
-        "name_field": f"{entity_code}_{field_name}",
+        "name_field": f"{entity_code[0]}__{field_name}",
         "fr_label": field_data.get("attribut_label", ""),
         "eng_label": None,
-        "type_field": field_data.get("type_widget", ""),
+        "type_field": field_data.get("type_widget", None), #json.dumps(field_data) si on veut avoir toutes les données
         "mandatory": field_data.get("required", False),
         "autogenerated": False,
         "display": not field_data.get("hidden", False),
-        "mnemonique": None,
-        "source_field": None,
+        "mnemonique": mnemonique,
+        "source_field": "src_"f"{field_name}",
         "dest_field": field_name,
         "multi": False,
         "id_destination": id_destination,
@@ -556,11 +629,21 @@ def create_bib_field(field_data, entity_code, field_name, id_destination):
     }
 
 
-def insert_or_update_fields(fields):
+def insert_unique_fields(protocol_data):
     """
-    Insère ou met à jour les champs dans bib_fields.
+    Insère ou met à jour les champs uniques dans `BibFields`.
     """
-    for field in fields:
+    all_fields = []
+    additional_fields = []
+
+    for entity_fields in protocol_data.values():
+        for field in entity_fields:
+            if field["dest_field"].endswith("additional_data"):
+                additional_fields.append(field)
+            else:
+                all_fields.append(field)
+
+    def upsert_field(field):
         stmt = pg_insert(BibFields).values(**field).on_conflict_do_update(
             index_elements=["name_field", "id_destination"],
             set_={
@@ -578,59 +661,306 @@ def insert_or_update_fields(fields):
                 "optional_conditions": field.get("optional_conditions"),
             },
         )
-
         DB.session.execute(stmt)
 
+    for field in all_fields + additional_fields:
+        upsert_field(field)
+
     DB.session.commit()
 
 
-def insert_or_update_entity(entity_code, label_entity, id_destination, fields):
+def insert_entities(unique_fields, id_destination, entity_column_map, label_entity=None):
     """
-    Insère ou met à jour une entité dans bib_entities.
+    Insère ou met à jour les entités dans bib_entities en respectant la hiérarchie du tree.
+    Si 'label_entity' est fourni, il contient les labels des entités.
     """
+    inserted_entities = {}
+    order = 1
+    for entity_code, fields in unique_fields.items():
 
-    uuid_field = next((f for f in fields if f["type_field"] == "uuid"), None)
-    if not uuid_field:
-        raise Exception(f"Champ UUID non trouvé pour l'entité {entity_code}")
+        entity_config = entity_column_map.get(entity_code)
+        if not entity_config:
+            raise Exception(f"Aucune configuration trouvée pour l'entité {entity_code}")
 
-    existing_uuid_field = (
-        DB.session.query(BibFields)
-        .filter_by(name_field=uuid_field["name_field"], id_destination=id_destination)
-        .one_or_none()
-    )
-    if not existing_uuid_field:
-        raise Exception(
-            f"Le champ UUID '{uuid_field['name_field']}' n'a pas été inséré pour l'entité {entity_code}"
+        uuid_column = entity_config["uuid_column"]
+        parent_entity = entity_config["parent_entity"]
+
+        uuid_field = next((f for f in fields if f["dest_field"] == uuid_column), None)
+        if not uuid_field:
+            raise Exception(f"Champ UUID '{uuid_column}' non trouvé pour l'entité {entity_code}")
+
+        id_field = (
+            DB.session.query(BibFields.id_field)
+            .filter_by(name_field=uuid_field["name_field"], id_destination=id_destination)
+            .scalar()
         )
+        if not id_field:
+            raise Exception(f"Champ UUID introuvable pour l'entité {entity_code} avec '{uuid_field['name_field']}'")
 
-    table_name = TABLE_NAME.get(entity_code)
-    entity_data = {
-        "id_destination": id_destination,
-        "code": entity_code,
-        "label": label_entity.get("label", entity_code),
-        "validity_column": f"{entity_code.lower()}_valid",
-        "destination_table_schema": "gn_monitoring",
-        "destination_table_name": table_name,
-        "id_unique_column": existing_uuid_field.id_field,
+        entity_label = label_entity.get(entity_code, entity_code) if label_entity else entity_code
+
+        id_parent = None
+        if parent_entity:
+            id_parent = inserted_entities.get(parent_entity)
+            if not id_parent:
+                raise Exception(f"L'entité parente '{parent_entity}' n'a pas été insérée pour '{entity_code}'")
+
+        entity_data = {
+            "id_destination": id_destination,
+            "code": entity_code,
+            "label": entity_label,
+            "order": order,
+            "validity_column": f"{entity_code.lower()}_valid",
+            "destination_table_schema": "gn_monitoring",
+            "destination_table_name": TABLE_NAME_SUBMODULDE.get(entity_code),
+            "id_unique_column": id_field,
+            "id_parent": id_parent,
+        }
+
+        order += 1
+        stmt = pg_insert(Entity).values(**entity_data).on_conflict_do_nothing()
+        result = DB.session.execute(stmt)
+
+        inserted_entity_id = result.inserted_primary_key[0] if result.inserted_primary_key else None
+        if not inserted_entity_id:
+            inserted_entity_id = (
+                DB.session.query(Entity.id_entity)
+                .filter_by(code=entity_code, id_destination=id_destination)
+                .scalar()
+            )
+        inserted_entities[entity_code] = inserted_entity_id
+
+    DB.session.commit()
+
+
+
+def insert_entity_field_relations(protocol_data, id_destination, entity_column_map):
+    """
+    Insère les relations dans cor_entity_field pour les entités et leurs champs,
+    ainsi que les relations parent-enfant selon `entity_column_map`.
+    """
+    themes = DB.session.query(BibThemes.id_theme, BibThemes.name_theme).filter(BibThemes.name_theme.in_(["general_info", "additional_data"])).all()
+    bib_themes = {theme.name_theme: theme.id_theme for theme in themes}
+    
+    entity_ids = {
+        entity_code: DB.session.query(Entity.id_entity)
+        .filter_by(code=entity_code, id_destination=id_destination)
+        .scalar()
+        for entity_code in protocol_data.keys()
     }
 
-    stmt = pg_insert(Entity).values(**entity_data).on_conflict_do_nothing()
+    for entity_code, fields in protocol_data.items():
+        entity_id = entity_ids.get(entity_code)
+        if not entity_id:
+            raise Exception(f"Entité introuvable pour {entity_code}")
 
-    DB.session.execute(stmt)
+        order = 1
+        for field in fields:
+            id_field = (
+                DB.session.query(BibFields.id_field)
+                .filter_by(name_field=field["name_field"], id_destination=id_destination)
+                .scalar()
+            )
+            if not id_field:
+                raise Exception(f"Champ introuvable pour {field['name_field']}")
+
+            existing_relation = (
+                DB.session.query(EntityField)
+                .filter_by(id_entity=entity_id, id_field=id_field)
+                .one_or_none()
+            )
+            if not existing_relation:
+                if field["name_field"].endswith("additional_data"):
+                    bib_theme = bib_themes["additional_data"]
+                    comment = "Attributs additionnels"
+                else:
+                    bib_theme = bib_themes["general_info"]
+                    comment = None
+                    
+                relation_data = {
+                    "id_entity": entity_id,
+                    "id_field": id_field,
+                    "desc_field": "",
+                    "id_theme": bib_theme,
+                    "order_field": order,
+                    "comment": comment,
+                }
+                new_relation = EntityField()
+                new_relation.from_dict(relation_data)
+                DB.session.add(new_relation)
+                order += 1
+
+        parent_entity_code = entity_column_map.get(entity_code, {}).get("parent_entity")
+        if parent_entity_code:
+            parent_uuid_column = entity_column_map[parent_entity_code]["uuid_column"]
+            parent_id_field = (
+                DB.session.query(BibFields.id_field)
+                .filter_by(name_field=f"{parent_entity_code[0]}__{parent_uuid_column}", id_destination=id_destination)
+                .scalar()
+            )
+
+            if not parent_id_field:
+                raise Exception(f"Champ UUID introuvable pour le parent {parent_entity_code}")
+
+            parent_id = (
+                DB.session.query(Entity.id_entity)
+                .filter_by(code=parent_entity_code, id_unique_column=parent_id_field, id_destination=id_destination)
+                .scalar()
+            )
+
+            if not parent_id:
+                raise Exception(f"Parent introuvable pour {entity_code} (parent : {parent_entity_code})")
+
+            existing_parent_relation = (
+                DB.session.query(EntityField)
+                .filter_by(id_entity=parent_id, id_field=entity_id)
+                .one_or_none()
+            )
+            if not existing_parent_relation:
+                bib_theme = bib_themes["general_info"]
+                parent_relation_data = {
+                    "id_entity": entity_id,
+                    "id_field": parent_id_field,
+                    "desc_field": f"Relation vers {entity_code}",
+                    "id_theme": bib_theme,
+                    "order_field": 0,
+                    "comment": f"Relation parent -> enfant ({parent_entity_code} -> {entity_code})",
+                }
+                new_relation = EntityField()
+                new_relation.from_dict(parent_relation_data)
+                DB.session.add(new_relation)
+
     DB.session.commit()
+    
+def create_import_table(module_code :str, protocol_data):
+    """
+    Génère une requête SQL pour créer une table d'importation dynamique en fonction du module et des protocol_data.
+    """
+    table_name = f"t_import_{module_code.lower()}"
+    
+    base_columns = [
+        "id_import INTEGER NOT NULL REFERENCES t_imports ON UPDATE CASCADE ON DELETE CASCADE",
+        "line_no INTEGER NOT NULL"
+    ]
+    
+    entity_columns = [
+        f"{entity_code}_valid BOOLEAN DEFAULT FALSE" for entity_code in protocol_data.keys()
+    ]
+    
+    field_columns = []
+    for entity_code, fields in protocol_data.items():
+        for field in fields:
+            source_field = field.get("source_field")
+            dest_field = field.get("dest_field")
+            field_type = map_field_type(field.get("type_field", "text"))
+
+     
+            if source_field:
+                source_column_definition = f"{source_field} TEXT"
+                if field.get("mandatory", False):
+                    source_column_definition += " NOT NULL"
+                field_columns.append(source_column_definition)
+                
+            if dest_field:
+                dest_column_definition = f"{dest_field} {field_type}"
+                if field.get("mandatory", False):
+                    dest_column_definition += " NOT NULL"
+                field_columns.append(dest_column_definition)
+    
+    all_columns = base_columns + entity_columns + field_columns
+
+    create_table_query = """
+        CREATE OR REPLACE TABLE {0} (
+            {1},
+            PRIMARY KEY (id_import, line_no)
+        );
+        ALTER TABLE {0} OWNER TO geonatadmin;
+        """.format(
+            table_name, 
+            ',\n        '.join(all_columns)
+        )
+
+    create_indexes = []
+    for field in field_columns:
+        if "geom" in field:  
+            index_name = f"idx_{table_name}_{field.split()[0]}"
+            create_indexes.append(
+                f"CREATE INDEX {index_name} ON {table_name} USING GIST ({field.split()[0]});"
+            )
+    
+    return create_table_query + "\n" + "\n".join(create_indexes)
 
 
+def create_import_table_migration(module_code:str, sql):
+    """
+    Génère une migration pour créer une table d'importation dynamique en fonction du module.
+    """
+    # Créer une nouvelle migration
+    try :
+        subprocess.run(["geonature", "db", "revision", "-m", f"Create t_import_{module_code} table", "--head", "monitorings@head"], check=True)
 
-def get_entities_module(module_code):
+        migrations_dir = get_dir_path("migrations")
+        migration_files = [f for f in os.listdir(migrations_dir) if os.path.isfile(os.path.join(migrations_dir, f))]
+        migration_files = sorted(migration_files, key=lambda x: os.path.getctime(os.path.join(migrations_dir, x)), reverse=True)
+        latest_migration_file = os.path.join(migrations_dir, migration_files[0])
+        
+        with open(latest_migration_file, 'r') as f:
+            lines = f.readlines()
+        
+        with open(latest_migration_file, 'w') as f:
+            in_upgrade = False
+            in_downgrade = False
+            for line in lines:
+                if line.strip().startswith("def upgrade"):
+                    in_upgrade = True
+                if line.strip().startswith("def downgrade"):
+                    in_downgrade = True
+                if in_upgrade and line.strip() == "":
+                    in_upgrade = False
+                    continue
+                if in_downgrade and line.strip() == "":
+                    in_downgrade = False
+                    continue
+                
+                if not in_upgrade and not in_downgrade:
+                    f.write(line)
+        
+        with open(latest_migration_file, 'a') as f:
+            f.write(f"""
+def upgrade():
+    op.execute(\"\"\"
+    {sql}
+    \"\"\")
 
-    module_path = monitoring_module_config_path(module_code)
+def downgrade():
+    op.execute(\"\"\"
+    DROP TABLE IF EXISTS t_import_{module_code};
+    \"\"\")
+""")
+        
+        # subprocess.run(["geonature", "db", "upgrade", "monitorings@head"], check=True)
+    except Exception as e:
+        raise Exception("Erreur lors de la création de la migration pour la table d'importation") from e
+    
+    
 
-    if not (module_path / "config.json").is_file():
-        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
+def delete_migration_file(module_code: str):
+    """
+    Supprime le fichier de migration qui se termine par 'create_t_import_{module_code}_table'.
+    """
+    migrations_dir = get_dir_path("migrations")
+    target_suffix = f"create_t_import_{module_code}_table.py"
 
-    data_config = json_from_file(module_path / "config.json")
-    tree = data_config.get("tree", {}).get("module", {})
-    keys = extract_keys(tree)
-    unique_keys = list(dict.fromkeys(keys))
+    for filename in os.listdir(migrations_dir):
+        if filename.endswith(target_suffix):
+            file_path = os.path.join(migrations_dir, filename)
+            
+            revision_id = filename.split("_")[0]
+            
+            # subprocess.run(["geonature", "db", "downgrade", f"monitorings@{revision_id}"], check=True)
+            
+            os.remove(file_path)
+            print(f"Fichier de migration {file_path} supprimé.")
+            return
 
-    return unique_keys
+    print(f"Aucun fichier de migration trouvé pour {target_suffix}.")
