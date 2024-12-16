@@ -28,6 +28,16 @@ SITES_GROUP_CONFIG = {
     "designStyle": "bootstrap",
 }
 
+MAPPING_TYPE = {
+    "text": "VARCHAR",
+    "uuid": "UUID",
+    "integer": "INTEGER",
+    "boolean": "BOOLEAN",
+    "jsonb": "JSONB",
+    "date": "DATE",
+    "datetime": "TIMESTAMP",
+}
+
 
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
@@ -347,3 +357,20 @@ def config_from_files_customized(type_config, module_code):
     config_type = config_from_files(type_config, module_code)
     custom = config_from_files("custom", module_code)
     return customize_config(config_type, custom)
+
+
+def get_dir_path(path:str):
+    """
+    Retourne le chemin complet du répertoire
+    """
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.join(project_root, path)
+
+
+def map_field_type(type_field):
+    """
+    Mappe les types de données spécifiques à leur équivalent SQL.
+    """
+    if type_field is None:
+        return "TEXT"
+    return MAPPING_TYPE.get(type_field.lower(), "TEXT")
