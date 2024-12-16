@@ -21,7 +21,7 @@ from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
     process_sql_files,
-    add_module_import_bib,
+    process_module_import,
 )
 
 
@@ -143,7 +143,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     add_nomenclature(module_code)
 
     # Ajouter les destinations disponibles
-    add_module_import_bib(module_data)
+    process_module_import(module_data)
 
     source_data = {
         "name_source": "MONITORING_{}".format(module_code.upper()),

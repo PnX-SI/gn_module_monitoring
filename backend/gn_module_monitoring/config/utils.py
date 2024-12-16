@@ -361,6 +361,14 @@ def config_from_files_customized(type_config, module_code):
     return customize_config(config_type, custom)
 
 
+def get_dir_path(path:str):
+    """
+    Retourne le chemin complet du répertoire
+    """
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.join(project_root, path)
+
+
 def map_field_type(type_field):
     """
     Mappe les types de données spécifiques à leur équivalent SQL.
