@@ -90,7 +90,7 @@ SELECT
 		--id_nomenclature_diffusion_level, -- NIV_PRECIS
 		--id_nomenclature_life_stage, -- STADE_VIE
 		--id_nomenclature_sex, -- SEXE
- 		ref_nomenclatures.get_id_nomenclature('IND', 'OBJ_DENBR') AS id_nomenclature_obj_count,
+ 		ref_nomenclatures.get_id_nomenclature('OBJ_DENBR', 'IND') AS id_nomenclature_obj_count,
  		ref_nomenclatures.get_id_nomenclature('TYP_DENBR', 'Es') AS id_nomenclature_type_count,
  		-- id_nomenclature_sensitivity, --SENSIBILITE
  		ref_nomenclatures.get_id_nomenclature('STATUT_OBS', 'Pr') AS id_nomenclature_observation_status, 
