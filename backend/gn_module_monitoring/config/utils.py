@@ -17,6 +17,8 @@ from gn_module_monitoring.utils.routes import query_all_types_site_from_module_i
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
+DATABASE_URI = gn_config["SQLALCHEMY_DATABASE_URI"]
+
 SITES_GROUP_CONFIG = {
     "type_widget": "datalist",
     "attribut_label": "Groupe de sites",
@@ -357,14 +359,6 @@ def config_from_files_customized(type_config, module_code):
     config_type = config_from_files(type_config, module_code)
     custom = config_from_files("custom", module_code)
     return customize_config(config_type, custom)
-
-
-def get_dir_path(path:str):
-    """
-    Retourne le chemin complet du répertoire
-    """
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    return os.path.join(project_root, path)
 
 
 def map_field_type(type_field):
