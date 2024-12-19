@@ -522,7 +522,7 @@ def upsert_bib_destination(module_data: dict) -> Destination:
         DB.session.commit()
         return existing_destination
 
-    module_monitoring_code = DB.session.query(TModules).filter_by(module_code="MONITORINGS").one()
+    module_monitoring_code = DB.session.query(TModules).filter_by(module_code=module_data["module_code"]).one()
     destination_data = {
         "id_module": module_monitoring_code.id_module,
         "code": module_data["module_code"],
