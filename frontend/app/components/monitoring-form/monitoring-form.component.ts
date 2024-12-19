@@ -355,6 +355,7 @@ export class MonitoringFormComponent implements OnInit {
       this.obj.monitoringObjectService()
     );
     this.obj.init({});
+    this.obj = this.setQueryParams(this.obj);
 
     this.obj.properties[this.obj.configParam('id_field_Name')] = null;
 
