@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.0.1 (unrelease)
+
+
+**🐛 Corrections**
+
+- Correction de dysfonctionnement de l'enchainement des saisies (#396, #401)
+
+
 ## 1.0.0 (2024-12-13)
 
 Nécessite GeoNature 2.15.0 (ou plus)
