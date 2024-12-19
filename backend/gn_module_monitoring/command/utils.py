@@ -28,9 +28,9 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
-    get_dir_path,
     map_field_type,
     SUB_MODULE_CONFIG_DIR,
+    DATABASE_URI
 )
 
 from gn_module_monitoring.config.repositories import get_config
@@ -75,9 +75,30 @@ ACTION_LABEL = {
 
 TABLE_NAME_SUBMODULDE = {
     "sites_group": "t_sites_groups",
-    "site": "t_base_skites",
+    "site": "t_base_sites",
     "visit": "t_base_visits",
     "observation": "t_observations",
+}
+
+TYPE_WIDGET = {
+    "select": "varchar",
+    "checkbox": "varchar[]",
+    "radio": "varchar",
+    "html": "text",
+    "bool_checkbox": "boolean",
+    "number": "integer",
+    "multiselect": "varchar[]",
+    "observers": "integer[]", 
+    "media": "varchar",
+    "date": "date",
+    "nomenclature": "integer",
+    "datalist": "integer",
+    "text": "varchar",
+    "textarea": "text", 
+    "integer": "integer",
+    "jsonb": "jsonb",
+    "time": "varchar",
+    "taxonomy": "integer",
 }
 
 def process_sql_files(
@@ -239,8 +260,6 @@ def remove_monitoring_module(module_code):
         stmt = delete(Destination).where(Destination.code == module_code)
         DB.session.execute(stmt)
         
-        delete_migration_file(module_code)
-
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
         DB.session.commit()
@@ -413,9 +432,15 @@ def extract_keys(test_dict, keys=[]):
             extract_keys(val, keys)
     return keys
 
-def get_entities_module(module_code):
+def get_entities_protocol(module_code: str) -> list:
     """
     Extrait les entités à partir du fichier de configuration pour un module donné.
+    
+    Args:
+        module_code (str): Code du module.
+    
+    Returns:
+        list: Liste des entités du module.
     """
     module_path = monitoring_module_config_path(module_code)
 
@@ -448,21 +473,24 @@ def get_entity_parent(tree, entity_code):
 
 def process_module_import(module_data):
     """
-    Pipeline complet pour insérer un module et ses données dans la base.
+    Pipeline complet pour insérer un protocole et ses données dans la base.
+    
+    Args:
+        module_data (dict): Données de la table gn_commons.t_modules du module à importer.
     """
     try:
-        destination = insert_or_update_destination(module_data)
+        destination = upsert_bib_destination(module_data)
         id_destination = destination.id_destination
         module_code = module_data["module_code"]
 
-        entities = get_entities_module(module_code)
+        entities = get_entities_protocol(module_code)
         protocol_data, entity_column_map = build_protocol_json(entities, module_code, id_destination)
 
         sql = create_import_table(module_code,protocol_data)
         
-        create_import_table_migration(module_code, sql)
+        create_import_table_protocol(module_code,sql)
         
-        field_ids = insert_unique_fields(protocol_data)
+        insert_unique_fields(protocol_data)
         
         insert_entities(protocol_data, id_destination, entity_column_map, label_entity=destination.label)
 
@@ -473,9 +501,15 @@ def process_module_import(module_data):
         raise
 
 
-def insert_or_update_destination(module_data):
+def upsert_bib_destination(module_data: dict) -> Destination:
     """
     Ajoute ou met à jour une destination dans bib_destinations.
+    
+    Args:
+        module_data (dict): Données de la table gn_commons.t_modules du module à importer.
+    
+    Returns:
+        Destination: L'objet Destination inséré ou mis à jour.
     """
     existing_destination = (
         DB.session.query(Destination).filter_by(code=module_data["module_code"]).one_or_none()
@@ -502,9 +536,17 @@ def insert_or_update_destination(module_data):
     return destination
 
 
-def build_protocol_json(entities, module_code, id_destination):
+def build_protocol_json(entities: list, module_code: str, id_destination: int):
     """
     Construit les données du protocole à partir des fichiers JSON spécifiques et génériques.
+    
+    Args:
+        entities (list): Liste des entités du module.
+        module_code (str): Code du module.
+        id_destination (int): ID de la destination dans bib_destinations.
+    
+    Returns:
+        Données du protocole et mapping des colonnes des entités.
     """
     protocol_data = {}
     entity_column_map = {}
@@ -565,13 +607,13 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
         else:
             field_data = generic_field_data
 
-        fields.append(create_bib_field(field_data, entity_code, field_name, id_destination))
+        fields.append(create_bib_field(field_data, entity_code, field_name, id_destination, json.dumps(field_data)))
 
     additional_fields = set(specific_fields.keys()).difference(generic_fields.keys())
     for field_name in additional_fields:
         field_data = specific_fields[field_name]
 
-        fields.append(create_bib_field(field_data, entity_code, field_name, id_destination))
+        fields.append(create_bib_field(field_data, entity_code, field_name, id_destination, json.dumps(field_data)))
 
         if field_data.get("required", False): 
             mandatory_conditions.append(f"{entity_code[0]}__{field_name}")
@@ -579,55 +621,115 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
             optional_conditions.append(f"{entity_code[0]}__{field_name}")
 
     if additional_fields:
-        additional_field_data = {
-            "name_field": f"{entity_code[0]}__additional_data",
-            "fr_label": "Champs additionnels",
-            "eng_label": "",
-            "type_field": "jsonb",
-            "mandatory": True if mandatory_conditions else False,
-            "autogenerated": False,
-            "display": True,
-            "mnemonique": None,
-            "source_field": "src_additional_data",
-            "dest_field": "additional_data",
-            "multi": True,
-            "id_destination": id_destination,
-            "mandatory_conditions": mandatory_conditions if mandatory_conditions else None,
-            "optional_conditions": optional_conditions if optional_conditions else None,
-        }
-        fields.append(additional_field_data)
+        fields.append(create_bib_field(
+            {
+                "attribut_label": "Champs additionnels",
+                "type_widget": "jsonb",
+                "required": bool(mandatory_conditions),
+                "hidden": False,
+            },
+            entity_code=entity_code,
+            field_name="additional_data",
+            id_destination=id_destination,
+            type_field=json.dumps({}),
+            is_additional=True,
+            multi=True,
+            mandatory=mandatory_conditions,
+            optional=optional_conditions
+        ))
+
 
     return fields
 
+def determine_field_type(field_data):
+    """
+    Détermine le type de colonne PostgreSQL en fonction du type_widget, type_util et paramètres multiples.
+    
+    Args:
+        field_data (dict): Données du champ
+    
+    Returns:
+        str: Type de colonne PostgreSQL
+    """
+    type_widget = field_data.get('type_widget', 'text')
+    type_util = field_data.get('type_util')
+    multiple = field_data.get('multiple', field_data.get('multi_select', False))
 
-def create_bib_field(field_data, entity_code, field_name, id_destination):
+    type_mapping = {
+        'textarea': 'text',
+        'time': 'varchar',
+        'date': 'varchar',
+        'html': 'varchar',
+        'radio': 'varchar',
+        'select': 'varchar',
+        'medias': 'varchar',
+    }
+
+    int_type_utils = ['user', 'taxonomy', 'nomenclature', 'types_site', 'module', 'dataset']
+
+    if type_widget in ['observers', 'datalist']:
+        return 'INTEGER[]' if multiple else 'INTEGER'
+
+    if type_util in int_type_utils:
+        return 'INTEGER'
+
+    if type_widget in ['checkbox', 'multiselect']:
+        return 'VARCHAR[]'
+
+    if type_widget in type_mapping:
+        return type_mapping[type_widget].upper()
+
+    if type_widget == 'number':
+        return 'INTEGER'
+
+    if type_widget == 'bool_checkbox':
+        return 'BOOLEAN'
+
+    return 'VARCHAR'
+
+def create_bib_field(
+    field_data, 
+    entity_code, 
+    field_name, 
+    id_destination: int, 
+    type_field=None,
+    is_additional=False, 
+    mnemonique=None, 
+    multi=None, 
+    mandatory=None, 
+    optional=None
+):
     """
     Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
     """
-    if "code_nomenclature_type" in field_data:
-        mnemonique = field_data["code_nomenclature_type"]
-    elif "value" in field_data and isinstance(field_data["value"], dict) and "code_nomenclature_type" in field_data["value"]:
-        mnemonique = field_data["value"]["code_nomenclature_type"]
-    else:
-        mnemonique = None
-            
+    if mnemonique is None:
+        if "code_nomenclature_type" in field_data:
+            mnemonique = field_data["code_nomenclature_type"]
+        elif "value" in field_data and isinstance(field_data["value"], dict) and "code_nomenclature_type" in field_data["value"]:
+            mnemonique = field_data["value"]["code_nomenclature_type"]
+
+    required_value = field_data.get("required", False)
+    hidden_value = field_data.get("hidden", False)
+
+    determined_type_field = determine_field_type(field_data)
+
     return {
         "name_field": f"{entity_code[0]}__{field_name}",
         "fr_label": field_data.get("attribut_label", ""),
         "eng_label": None,
-        "type_field": field_data.get("type_widget", None), #json.dumps(field_data) si on veut avoir toutes les données
-        "mandatory": field_data.get("required", False),
+        "type_field": determined_type_field,
+        "mandatory": True if isinstance(required_value, str) else bool(required_value),
         "autogenerated": False,
-        "display": not field_data.get("hidden", False),
+        "display": not (True if isinstance(hidden_value, str) else bool(hidden_value)),
         "mnemonique": mnemonique,
-        "source_field": "src_"f"{field_name}",
+        "source_field": f"src_{field_name}",
         "dest_field": field_name,
-        "multi": False,
+        "multi": multi if multi is not None else False,
         "id_destination": id_destination,
-        "mandatory_conditions": None,
-        "optional_conditions": None,
+        "mandatory_conditions": field_data.get("mandatory_conditions", []),
+        "optional_conditions": field_data.get("optional_conditions", []),
+        "type_field_params": field_data.get("type_field_params", {}),
     }
-
 
 def insert_unique_fields(protocol_data):
     """
@@ -697,8 +799,6 @@ def insert_entities(unique_fields, id_destination, entity_column_map, label_enti
         if not id_field:
             raise Exception(f"Champ UUID introuvable pour l'entité {entity_code} avec '{uuid_field['name_field']}'")
 
-        entity_label = label_entity.get(entity_code, entity_code) if label_entity else entity_code
-
         id_parent = None
         if parent_entity:
             id_parent = inserted_entities.get(parent_entity)
@@ -708,7 +808,7 @@ def insert_entities(unique_fields, id_destination, entity_column_map, label_enti
         entity_data = {
             "id_destination": id_destination,
             "code": entity_code,
-            "label": entity_label,
+            "label": label_entity,
             "order": order,
             "validity_column": f"{entity_code.lower()}_valid",
             "destination_table_schema": "gn_monitoring",
@@ -731,7 +831,6 @@ def insert_entities(unique_fields, id_destination, entity_column_map, label_enti
         inserted_entities[entity_code] = inserted_entity_id
 
     DB.session.commit()
-
 
 
 def insert_entity_field_relations(protocol_data, id_destination, entity_column_map):
@@ -770,21 +869,20 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_column_m
                 .one_or_none()
             )
             if not existing_relation:
-                if field["name_field"].endswith("additional_data"):
-                    bib_theme = bib_themes["additional_data"]
-                    comment = "Attributs additionnels"
-                else:
-                    bib_theme = bib_themes["general_info"]
-                    comment = None
-                    
-                relation_data = {
-                    "id_entity": entity_id,
-                    "id_field": id_field,
-                    "desc_field": "",
-                    "id_theme": bib_theme,
-                    "order_field": order,
-                    "comment": comment,
-                }
+                bib_theme = (
+                    bib_themes["additional_data"] 
+                    if field["name_field"].endswith("additional_data") 
+                    else bib_themes["general_info"]
+                )
+                
+                relation_data = create_relation_dict(
+                    id_entity=entity_id, 
+                    id_field=id_field, 
+                    bib_theme=bib_theme,
+                    order_field=order,
+                    relation_type="additional_data" if field["name_field"].endswith("additional_data") else "field"
+                )
+                
                 new_relation = EntityField()
                 new_relation.from_dict(relation_data)
                 DB.session.add(new_relation)
@@ -816,30 +914,66 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_column_m
                 .filter_by(id_entity=parent_id, id_field=entity_id)
                 .one_or_none()
             )
-            if not existing_parent_relation:
-                bib_theme = bib_themes["general_info"]
-                parent_relation_data = {
-                    "id_entity": entity_id,
-                    "id_field": parent_id_field,
-                    "desc_field": f"Relation vers {entity_code}",
-                    "id_theme": bib_theme,
-                    "order_field": 0,
-                    "comment": f"Relation parent -> enfant ({parent_entity_code} -> {entity_code})",
-                }
-                new_relation = EntityField()
-                new_relation.from_dict(parent_relation_data)
-                DB.session.add(new_relation)
+            if parent_entity_code:
+                parent_relation_data = create_relation_dict(
+                    id_entity=entity_id,
+                    id_field=parent_id_field,
+                    bib_theme=bib_themes["general_info"],
+                    relation_type="parent_child",
+                    comment=f"{parent_entity_code} -> {entity_code}"
+                )
+                
+                new_parent_relation = EntityField()
+                new_parent_relation.from_dict(parent_relation_data)
+                DB.session.add(new_parent_relation)
 
-    DB.session.commit()
+                DB.session.commit()
     
-def create_import_table(module_code :str, protocol_data):
+def create_relation_dict(
+    id_entity, 
+    id_field, 
+    bib_theme, 
+    order_field=1, 
+    desc_field="", 
+    comment=None,
+    relation_type="field"
+):
+    """
+    Crée un dictionnaire de relation standardisé.
+    
+    Returns:
+        dict: Dictionnaire de configuration de relation
+    """
+    relation_dict = {
+        "id_entity": id_entity,
+        "id_field": id_field,
+        "desc_field": desc_field,
+        "id_theme": bib_theme,
+        "order_field": order_field,
+        "comment": comment,
+    }
+    
+    if relation_type == "additional_data":
+        relation_dict.update({
+            "comment": "Attributs additionnels"
+        })
+    elif relation_type == "parent_child":
+        relation_dict.update({
+            "desc_field": f"Relation vers {comment}",
+            "order_field": 0,
+            "comment": f"Relation parent -> enfant ({comment})"
+        })
+    
+    return relation_dict
+
+def create_import_table(module_code: str, protocol_data) -> str:
     """
     Génère une requête SQL pour créer une table d'importation dynamique en fonction du module et des protocol_data.
     """
-    table_name = f"t_import_{module_code.lower()}"
+    table_name = f"gn_imports.t_import_{module_code.lower()}"
     
     base_columns = [
-        "id_import INTEGER NOT NULL REFERENCES t_imports ON UPDATE CASCADE ON DELETE CASCADE",
+        "id_import INTEGER NOT NULL REFERENCES gn_imports.t_imports ON UPDATE CASCADE ON DELETE CASCADE",
         "line_no INTEGER NOT NULL"
     ]
     
@@ -848,36 +982,39 @@ def create_import_table(module_code :str, protocol_data):
     ]
     
     field_columns = []
+    added_columns = set()
+
     for entity_code, fields in protocol_data.items():
         for field in fields:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")
             field_type = map_field_type(field.get("type_field", "text"))
 
-     
-            if source_field:
+            if source_field and source_field not in added_columns:
                 source_column_definition = f"{source_field} TEXT"
                 if field.get("mandatory", False):
                     source_column_definition += " NOT NULL"
                 field_columns.append(source_column_definition)
+                added_columns.add(source_field)
                 
-            if dest_field:
+            if dest_field and dest_field not in added_columns:
                 dest_column_definition = f"{dest_field} {field_type}"
                 if field.get("mandatory", False):
                     dest_column_definition += " NOT NULL"
                 field_columns.append(dest_column_definition)
+                added_columns.add(dest_field)
     
     all_columns = base_columns + entity_columns + field_columns
 
     create_table_query = """
-        CREATE OR REPLACE TABLE {0} (
+        CREATE TABLE IF NOT EXISTS {0} (
             {1},
             PRIMARY KEY (id_import, line_no)
         );
         ALTER TABLE {0} OWNER TO geonatadmin;
         """.format(
             table_name, 
-            ',\n        '.join(all_columns)
+            ',\n            '.join(all_columns)
         )
 
     create_indexes = []
@@ -890,77 +1027,32 @@ def create_import_table(module_code :str, protocol_data):
     
     return create_table_query + "\n" + "\n".join(create_indexes)
 
-
-def create_import_table_migration(module_code:str, sql):
+def check_import_table_exist(module_code: str) -> bool:
     """
-    Génère une migration pour créer une table d'importation dynamique en fonction du module.
+    Vérifie si la table d'importation existe pour le module donné.
     """
-    # Créer une nouvelle migration
-    try :
-        subprocess.run(["geonature", "db", "revision", "-m", f"Create t_import_{module_code} table", "--head", "monitorings@head"], check=True)
-
-        migrations_dir = get_dir_path("migrations")
-        migration_files = [f for f in os.listdir(migrations_dir) if os.path.isfile(os.path.join(migrations_dir, f))]
-        migration_files = sorted(migration_files, key=lambda x: os.path.getctime(os.path.join(migrations_dir, x)), reverse=True)
-        latest_migration_file = os.path.join(migrations_dir, migration_files[0])
-        
-        with open(latest_migration_file, 'r') as f:
-            lines = f.readlines()
-        
-        with open(latest_migration_file, 'w') as f:
-            in_upgrade = False
-            in_downgrade = False
-            for line in lines:
-                if line.strip().startswith("def upgrade"):
-                    in_upgrade = True
-                if line.strip().startswith("def downgrade"):
-                    in_downgrade = True
-                if in_upgrade and line.strip() == "":
-                    in_upgrade = False
-                    continue
-                if in_downgrade and line.strip() == "":
-                    in_downgrade = False
-                    continue
-                
-                if not in_upgrade and not in_downgrade:
-                    f.write(line)
-        
-        with open(latest_migration_file, 'a') as f:
-            f.write(f"""
-def upgrade():
-    op.execute(\"\"\"
-    {sql}
-    \"\"\")
-
-def downgrade():
-    op.execute(\"\"\"
-    DROP TABLE IF EXISTS t_import_{module_code};
-    \"\"\")
-""")
-        
-        # subprocess.run(["geonature", "db", "upgrade", "monitorings@head"], check=True)
+    table_name = f"t_import_{module_code.lower()}"
+    query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'gn_imports' AND table_name = '{table_name}');"
+    try:
+        result = DB.session.execute(query).scalar()
+        return result
     except Exception as e:
-        raise Exception("Erreur lors de la création de la migration pour la table d'importation") from e
-    
-    
+        print(f"Erreur lors de la vérification de l'existence de la table : {str(e)}")
+        return False
 
-def delete_migration_file(module_code: str):
+def create_import_table_protocol(module_code: str, sql: str):
     """
-    Supprime le fichier de migration qui se termine par 'create_t_import_{module_code}_table'.
+    Crée la table d'importation pour le protocole donné.
     """
-    migrations_dir = get_dir_path("migrations")
-    target_suffix = f"create_t_import_{module_code}_table.py"
-
-    for filename in os.listdir(migrations_dir):
-        if filename.endswith(target_suffix):
-            file_path = os.path.join(migrations_dir, filename)
-            
-            revision_id = filename.split("_")[0]
-            
-            # subprocess.run(["geonature", "db", "downgrade", f"monitorings@{revision_id}"], check=True)
-            
-            os.remove(file_path)
-            print(f"Fichier de migration {file_path} supprimé.")
+    try:
+        exist = check_import_table_exist(module_code)
+        if exist:
+            print(f"La table d'importation pour le module {module_code} existe déjà")
             return
-
-    print(f"Aucun fichier de migration trouvé pour {target_suffix}.")
+        
+        subprocess.run(["psql", DATABASE_URI, "-c", sql], check=True)
+        print(f"Table d'importation créée pour le module {module_code}")
+        
+    except Exception as e:
+        raise Exception(f"Erreur lors de la création de la table d'importation pour le module {module_code} : {str(e)}")
+    
