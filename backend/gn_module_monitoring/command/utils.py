@@ -734,7 +734,7 @@ def create_bib_field(
 def insert_unique_fields(protocol_data):
     """
     Insère ou met à jour les champs uniques dans `BibFields`.
-g    """
+    """
     all_fields = []
     additional_fields = []
 
