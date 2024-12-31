@@ -1,6 +1,3 @@
-from geonature.utils.errors import GeoNatureError
-from geonature.utils.env import DB
-
 from gn_module_monitoring.monitoring.repositories import MonitoringObject
 from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
