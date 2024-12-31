@@ -88,6 +88,7 @@ def get_init_data(module_code):
         out["nomenclature"] = []
         for code_type in data.get("nomenclature"):
             nomenclature_list = get_nomenclature_list(code_type=code_type)
+            # TODO : exception quand pas de valeur
             for nomenclature in nomenclature_list["values"]:
                 nomenclature["code_type"] = code_type
                 out["nomenclature"].append(nomenclature)

@@ -304,6 +304,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     )
 
     geom_geojson = column_property(func.ST_AsGeoJSON(TBaseSites.geom), deferred=True)
+
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     nb_individuals = column_property(
@@ -562,22 +563,27 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
     sites_groups = DB.relationship(TMonitoringSitesGroups, secondary=cor_sites_group_module)
 
-    datasets = DB.relationship(
-        "TDatasets",
-        secondary=cor_module_dataset,
-        join_depth=0,
-        lazy="joined",
-    )
-
     individuals = DB.relationship(
-        "TIndividuals",
+        "TMonitoringIndividuals",
         lazy="select",
         enable_typechecks=False,
         secondary=corIndividualModule,
         primaryjoin=(corIndividualModule.c.id_module == id_module),
         secondaryjoin=(corIndividualModule.c.id_individual == TIndividuals.id_individual),
         foreign_keys=[corIndividualModule.c.id_individual, corIndividualModule.c.id_module],
+        overlaps="modules",
         # viewonly=True,
+    )
+
+    datasets = DB.relationship(
+        "TDatasets",
+        secondary=cor_module_dataset,
+        join_depth=0,
+        overlaps="modules",
+    )
+    types_site = DB.relationship(
+        "BibTypeSite",
+        secondary=cor_module_type,
     )
     data = DB.Column(JSONB)
 
@@ -598,30 +604,34 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     )
 
 
-TIndividuals.nb_sites = column_property(
-    select([func.count(func.distinct(TMonitoringSites.id_base_site))])
-    .where(
-        and_(
-            TObservations.id_individual == TIndividuals.id_individual,
-            TObservations.id_base_visit == TMonitoringVisits.id_base_visit,
-            TBaseVisits.id_base_site == TMonitoringSites.id_base_site,
+@serializable
+class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
+    pass
+
+
+@serializable
+class TMonitoringIndividuals(TIndividuals, PermissionModel, MonitoringQuery):
+
+    nb_sites = column_property(
+        select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+        .join_from(
+            TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
+        .join_from(
+            TBaseVisits,
+            TMonitoringSites,
+            TMonitoringSites.id_base_site == TBaseVisits.id_base_site,
+        )
+        .where(TObservations.id_individual == TIndividuals.id_individual)
+        .correlate_except(
+            TBaseVisits
+        )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
+        .scalar_subquery()
     )
-    .correlate_except(TMonitoringSites)
-    .scalar_subquery()
-)
-# NOTES: [SUIVI_INDIVIDU] pourquoi c'est nécessaire de le garder ici ?
-TMonitoringSites.nb_individuals = column_property(
-    select([func.count(func.distinct(TIndividuals.id_individual))])
-    .join_from(
-        TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
+
+    # Redéfinition de la relation marking pour utiliser la classe TMonitoringMarkingEvent
+    #   qui hérite de PermissionModel pour le CRUVED
+    markings = DB.relationship(
+        TMonitoringMarkingEvent,
+        primaryjoin=(TIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
     )
-    .join_from(
-        TObservations, TIndividuals, TObservations.id_individual == TIndividuals.id_individual
-    )
-    .where(TBaseVisits.id_base_site == TMonitoringSites.id_base_site)
-    .correlate_except(
-        TBaseVisits
-    )  # Correlate permet d'éviter une répétition de la condition WHERE  dans la sous requête
-    .scalar_subquery()
-)
