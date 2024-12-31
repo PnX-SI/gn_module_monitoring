@@ -12,6 +12,7 @@ from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.core.gn_monitoring.models import (
     TIndividuals,
 )
+from geonature.core.gn_monitoring.schema import TMarkingEventSchema
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.routes.data_utils import id_field_name_dict
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
@@ -24,6 +25,7 @@ from gn_module_monitoring.monitoring.schemas import (
     MonitoringVisitsSchema,
     MonitoringObservationsSchema,
     MonitoringObservationsDetailsSchema,
+    MonitoringIndividualsSchema,
 )
 
 MonitoringSerializer_dict = {
@@ -33,6 +35,8 @@ MonitoringSerializer_dict = {
     "sites_group": MonitoringSitesGroupsSchema,
     "observation": MonitoringObservationsSchema,
     "observation_detail": MonitoringObservationsDetailsSchema,
+    "individual": MonitoringIndividualsSchema,
+    "marking": TMarkingEventSchema,
 }
 
 
@@ -111,6 +115,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 not is_in_model
                 and prop not in self.config_schema("generic").keys()
                 and prop != "id_module"
+                and prop != "data"
             ):
                 properties["data"][prop] = properties.pop(prop)
 
@@ -231,8 +236,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 for k in display_properties
                 if k in module_config[self._object_type]["specific"].keys()
             ]
-
-            display_generic.append("data")
+            if hasattr(self._model, "data"):
+                display_generic.append("data")
             display_generic.append(self.config_param("id_field_name"))
 
             # Sérialisation de l'objet
