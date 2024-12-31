@@ -1,4 +1,4 @@
-"""add individual permissions
+"""[individuals] add individual permissions
 
 Revision ID: 461b82ee737a
 Revises: 2894b3c03c66
