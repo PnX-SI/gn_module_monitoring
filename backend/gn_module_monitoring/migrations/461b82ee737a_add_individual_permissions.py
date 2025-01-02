@@ -1,7 +1,7 @@
 """[individuals] add individual permissions
 
 Revision ID: 461b82ee737a
-Revises: 2894b3c03c66
+Revises: 398f94b364f7
 Create Date: 2023-11-21 14:14:48.084725
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "461b82ee737a"
-down_revision = "2894b3c03c66"
+down_revision = "398f94b364f7"
 branch_labels = None
 depends_on = None
 
