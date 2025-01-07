@@ -311,24 +311,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         return monitoring_object_dict
 
     def preprocess_data(self, data):
-
-        # Query TIndividuals to get the cd_nom
-        if (
-            self._object_type == "observation"
-            and data["cd_nom"] is None
-            and data["id_individual"] is not None
-            or (
-                self._object_type == "observation"
-                and self._id is not None
-                and data["id_individual"] is not None
-            )
-        ):
-            individual = TIndividuals.query.get(data["id_individual"])
-            if individual is None:
-                raise ValueError("TIndividuals with provided id_individual not found")
-            else:
-                data["cd_nom"] = individual.cd_nom
-        return data
+        pass
 
     def populate(self, post_data):
         # pour la partie sur les relationships mettre le from_dict dans utils_flask_sqla ???
