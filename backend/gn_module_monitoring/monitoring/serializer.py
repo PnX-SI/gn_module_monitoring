@@ -207,6 +207,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 return None
 
             self._model = Model()
+
         # Liste des propriétés de l'objet qui doivent être récupérées
         display_properties = []
         # Liste des propriétés spécifique de l'objet qui doivent être récupérées
