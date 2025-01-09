@@ -132,7 +132,6 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
             "application": "GeoNature",
             "required": True,
             "nullDefault": True,
-            "designStyle": "bootstrap",
             "definition": "Permet de n'avoir que les types de site lié au module",
         }
         specific_config_object["specific"]["id_sites_group"] = {"required": False, "hidden": False}
