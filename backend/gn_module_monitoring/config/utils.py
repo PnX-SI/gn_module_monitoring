@@ -254,7 +254,21 @@ def process_schema(object_type, config):
                 generic[key] = copy_dict(specific[key])
             else:
                 generic[key].update(copy_dict(specific[key]))
+            generic[key].update(process_display_element(generic[key]))
+
             del specific[key]
+        else:
+            specific[key].update(process_display_element(specific[key]))
+
+
+def process_display_element(element):
+    # Ajout propriétés essentielles en fonction du type de widget
+    if not "type_widget" in element:
+        return element
+
+    if element["type_widget"] == "datalist":
+        element["designStyle"] = "bootstrap"
+    return element
 
 
 def process_config_display(object_type, config):
