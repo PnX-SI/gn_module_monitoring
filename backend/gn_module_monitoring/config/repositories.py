@@ -103,6 +103,14 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
 
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
+        specific_site = specific_config_object.get("specific", {}).keys()
+
+        # Exclusion des propriétés des types de site définies dans site.json
+        for id, type_site in db_config_object.get("types_site", {}).items():
+            db_config_object["types_site"][id]["display_properties"] = [
+                d for d in type_site.get("display_properties", []) if d not in specific_site
+            ]
+
         # Mise a jour des configurations de façon récursive
         dict_deep_update(
             specific_config_object.get("specific", {}), db_config_object.get("specific", {})
