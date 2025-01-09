@@ -26,3 +26,16 @@ def dict_deep_update(dct, merge_dct):
             dict_deep_update(dct[k], merge_dct[k])
         else:
             dct[k] = merge_dct[k]
+
+
+def extract_keys(test_dict, keys=None):
+    """
+    Fonction permettant d'extraire de façon récursive les clés d'un dictionnaire
+    """
+    if not keys:
+        keys = []
+    for key, val in test_dict.items():
+        keys.append(key)
+        if isinstance(val, dict):
+            extract_keys(val, keys)
+    return keys
