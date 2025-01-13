@@ -6,7 +6,7 @@
 **🐛 Corrections**
 
 - Correction de dysfonctionnement de l'enchainement des saisies (#396, #401)
-
+- Correction de la requête de synthèse du module contrib (#350)
 
 ## 1.0.0 (2024-12-13)
 
