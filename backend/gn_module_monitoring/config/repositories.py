@@ -33,18 +33,10 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
         # initial tree
         tree = config["tree"]
 
-    if "module" in config["tree"]:
-        is_sites_group_child = "sites_group" in list(dict.fromkeys(config["tree"]["module"]))
-
     for object_type in tree:
         # config object
         if not object_type in config:
-            if object_type == "site":
-                config[object_type] = config_object_from_files(
-                    module_code, object_type, is_sites_group_child
-                )
-            else:
-                config[object_type] = config_object_from_files(module_code, object_type)
+            config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
         children_types = tree[object_type] and list(tree[object_type].keys()) or []
@@ -89,7 +81,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
             get_config_objects(module_code, config, tree[object_type], object_type)
 
 
-def config_object_from_files(module_code, object_type, custom=None, is_sites_group_child=False):
+def config_object_from_files(module_code, object_type, custom=None):
     """
     recupere la configuration d'un object de type <object_type> pour le module <module_code>
     """
