@@ -99,14 +99,7 @@ export class DrawFormComponent implements OnInit {
   }
 
   initDrawConfig() {
-    this.leafletDrawOptions.draw = {
-      polyline: false,
-      circle: false,
-      circlemarker: false,
-      rectangle: false,
-      marker: false,
-      polygon: false,
-    };
+    this.leafletDrawOptions = leafletDrawOptions;
   }
 
   setGeojson(geometry) {

@@ -122,10 +122,7 @@ export class MonitoringMapComponent implements OnInit {
     this._geojsonService.removeAllLayers();
     let displayObject;
     // Choix des objets a afficher
-    if (this.bEdit && !this.obj.id) {
-      // Si création d'un nouvel objet on n'affiche rien
-      displayObject = undefined;
-    } else if (this.bEdit && this.obj.id) {
+    if (this.bEdit && this.obj.id) {
       // Si modification affichage de l'objet en cours
       displayObject = this.obj.objectType;
     } else if (this.obj.objectType == 'module') {
