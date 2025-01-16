@@ -20,7 +20,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
   - Un gestionnaire des types de sites est disponible dans le module "Admin" de GeoNature
   - Des champs additionnels peuvent être définis pour chaque type de site pour pouvoir décrire des sites globalement, et pas uniquement par protocole
   - Chaque sous-module est associé à un ou plusieurs type de site pour définir les sites qui seront proposés dans le sous-module
-  - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs id_nomenclature_type_site
+  - Le modèle de données a évolué pour pouvoir associer un site à plusieurs types et un sous-module à plusieurs types de sites (suppression du champs `id_nomenclature_type_site`)
   - Le modèle de données a évolué pour pouvoir associer un groupe de sites à plusieurs sous-modules
   - On distingue les permissions des utilisateurs dans chaque sous-module (protocole) sur chaque type d'objets (groupes de sites, sites et visites) et leurs permissions globales sur ces objets au niveau de tout le module. Pour qu'un utilisateur puisse consulter, ajouter ou modifier des groupes de sites ou des sites depuis le gestionnaire de sites, il faut lui ajouter des permissions globales sur ces objets.
 - Ajout de la prise en compte des portées au niveau des permissions (#92)
@@ -30,7 +30,7 @@ Nécessite GeoNature 2.15.0 (ou plus)
 - Ajout de tests unitaires
 - Suppression des commandes `process_csv` et `process_all` qui sont remplacées par la commande `process_sql` (#244)
 - [process_sql] Ajout d'un controle de conformité des fichiers qui ne peuvent pas contenir les commandes SQL suivantes : INSERT, DELETE, UPDATE, EXECUTE, TRUNCATE, ALTER, GRANT, COPY, PERFORM, CASCADE
-- Bascule de la table `t_observations` dans le coeur de GeoNature (#271)
+- Bascule de la table `t_observations` dans le cœur de GeoNature (#271)
 
 **🐛 Corrections**
 
