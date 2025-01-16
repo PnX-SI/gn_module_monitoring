@@ -94,14 +94,9 @@ export class MonitoringObjectComponent implements OnInit {
         mergeMap(() => {
           return this.initConfig(); // initialisation de la config
         }),
-
         mergeMap(() => {
           this.initCurrentUser();
           return this.initData(); // recupérations des données Nomenclature, Taxonomie, Utilisateur.. et mise en cache
-        }),
-
-        mergeMap(() => {
-          return this.getDataObject(); // récupération des données de l'object selon le type (module, site, etc..)
         }),
         mergeMap(() => {
           return this.getParents(); // récupération des données de l'object selon le type (module, site, etc..)
@@ -292,7 +287,7 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.properties[key] = strToInt;
       }
     }
-    return this.obj.getParents(1);
+    return this.obj.getParents(0);
   }
 
   onObjChanged(obj: MonitoringObject) {
