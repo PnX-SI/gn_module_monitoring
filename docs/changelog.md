@@ -4,8 +4,9 @@
 
 **🐛 Corrections**
 
+- Réduction du nombre d'appels des objets pour améliorer les performances de chargement des pages (#404, par @amandine-sahl)
 - Correction de dysfonctionnement de l'enchainement des saisies (#396, #401, par @unjambonakap, @gildeluermoz, @amandine-sahl)
-- Correction de la requête de synthèse du sous-module contrib/test (#350)
+- Correction de la requête de synthèse du sous-module contrib/test (#350, par @amandine-sahl)
 
 ## 1.0.0 (2024-12-13)
 
