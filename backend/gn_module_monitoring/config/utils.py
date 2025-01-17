@@ -14,6 +14,8 @@ from geonature.core.gn_commons.models import BibTablesLocation, TModules
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
+from gn_module_monitoring.utils.utils import extract_keys
+
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -25,7 +27,6 @@ SITES_GROUP_CONFIG = {
     "keyLabel": "sites_group_name",
     "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name",
     "application": "GeoNature",
-    "designStyle": "bootstrap",
 }
 
 
@@ -233,20 +234,19 @@ def process_schema(object_type, config):
         config[object_type]["specific"] = {}
     specific = config[object_type]["specific"]
 
+    # Cas particulier de sites_group
+    #  Controle ajouté automatiquement pour les sites quand les groupes de sites sont définis
+    # définition spécifique du datalist récupérée depuis la constante SITES_GROUP_CONFIG
+    if object_type == "site" and "sites_group" in extract_keys(config["tree"]):
+        if not "id_sites_group" in generic.keys():
+            generic.update({"id_sites_group": SITES_GROUP_CONFIG.copy()})
+
     # generic redef in specific
     #  cas ou un element de generic est redefini dans specific
     keys_s = list(specific.keys())
     keys_g = list(generic.keys())
-    for key_s in keys_s:
-        # Cas particulier de sites_group
-        # définition spécifique du datalist
-        #    récupérée depuis la constante SITES_GROUP_CONFIG
-        if key_s == "id_sites_group":
-            generic[key_s] = SITES_GROUP_CONFIG.copy()
-            keys_g.append("id_sites_group")
-        if key_s in keys_g:
-            key = key_s
-
+    for key in keys_s:
+        if key in keys_g:
             type_widget_s = specific[key].get("type_widget")
             type_widget_g = generic[key].get("type_widget")
 
@@ -254,7 +254,21 @@ def process_schema(object_type, config):
                 generic[key] = copy_dict(specific[key])
             else:
                 generic[key].update(copy_dict(specific[key]))
+            generic[key].update(process_display_element(generic[key]))
+
             del specific[key]
+        else:
+            specific[key].update(process_display_element(specific[key]))
+
+
+def process_display_element(element):
+    # Ajout propriétés essentielles en fonction du type de widget
+    if not "type_widget" in element:
+        return element
+
+    if element["type_widget"] == "datalist":
+        element["designStyle"] = "bootstrap"
+    return element
 
 
 def process_config_display(object_type, config):
