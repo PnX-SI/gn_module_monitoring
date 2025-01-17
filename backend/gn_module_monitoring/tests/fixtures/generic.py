@@ -40,6 +40,8 @@ def monitorings_users(app):
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
+        "MONITORINGS_INDIVIDUALS",
+        "MONITORINGS_MARKINGS",
         "ALL",
     ]
 
