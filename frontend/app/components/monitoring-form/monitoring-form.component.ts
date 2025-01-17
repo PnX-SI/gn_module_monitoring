@@ -116,6 +116,9 @@ export class MonitoringFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Initialisation de la variable bChainInput à false
+    this._configService.setFrontendParams('bChainInput', this.bChainInput);
+
     // Initialisation des variables
     this.initializeVariables(this.obj);
 
@@ -355,6 +358,7 @@ export class MonitoringFormComponent implements OnInit {
       this.obj.monitoringObjectService()
     );
     this.obj.init({});
+    this.obj = this.setQueryParams(this.obj);
 
     this.obj.properties[this.obj.configParam('id_field_Name')] = null;
 
@@ -365,7 +369,7 @@ export class MonitoringFormComponent implements OnInit {
       this.obj.properties[key] = keep[key];
     }
 
-    this.objChanged.emit(this.obj);
+    // this.objChanged.emit(this.obj);
     this.objForm.patchValue({ geometry: null });
     this.initForm();
     // });
@@ -447,7 +451,7 @@ export class MonitoringFormComponent implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
-      this.objChanged.emit(this.obj);
+      // this.objChanged.emit(this.obj);
 
       /** si c'est un module : reset de la config */
       if (this.obj.objectType === 'module') {
