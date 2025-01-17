@@ -81,6 +81,8 @@ def monitorings_users(users):
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
+        "MONITORINGS_INDIVIDUALS",
+        "MONITORINGS_MARKINGS",
         "ALL",
     ]
 
