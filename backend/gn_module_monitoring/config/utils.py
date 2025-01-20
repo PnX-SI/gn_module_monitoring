@@ -17,8 +17,6 @@ from gn_module_monitoring.utils.routes import query_all_types_site_from_module_i
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
-DATABASE_URI = gn_config["SQLALCHEMY_DATABASE_URI"]
-
 SITES_GROUP_CONFIG = {
     "type_widget": "datalist",
     "attribut_label": "Groupe de sites",
@@ -368,3 +366,81 @@ def map_field_type(type_field):
     if type_field is None:
         return "TEXT"
     return MAPPING_TYPE.get(type_field.lower(), "TEXT")
+
+
+def validate_json_file(file_path: Path, valid_type_widgets=None) -> list:
+    """Valide un fichier JSON individuel"""
+    file_errors = []
+
+    if not file_path.exists():
+        file_errors.append(f"Fichier manquant: {file_path}")
+        return file_errors
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        if not content.strip():
+            file_errors.append(f"Fichier vide: {file_path}")
+            return file_errors
+
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            lines = content.split("\n")
+            line_no = e.lineno - 1
+
+            context_start = max(0, line_no - 2)
+            context_end = min(len(lines), line_no + 3)
+            context_lines = lines[context_start:context_end]
+
+            error_msg = f"Erreur de syntaxe JSON dans {file_path}:\n"
+            error_msg += f"- Message: {str(e)}\n"
+            error_msg += f"- Position: ligne {e.lineno}, colonne {e.colno}\n"
+            error_msg += "- Contexte:\n"
+
+            for i, line in enumerate(context_lines, start=context_start + 1):
+                marker = "→ " if i == e.lineno else "  "
+                error_msg += f"{marker}{i}: {line}\n"
+                if i == e.lineno:
+                    error_msg += "    " + " " * (e.colno - 1) + "^\n"
+
+            file_errors.append(error_msg)
+            return file_errors
+
+        # Validate the JSON structure
+        if not isinstance(data, dict):
+            file_errors.append(f"Le fichier {file_path} doit contenir un objet JSON")
+            return file_errors
+
+        # Validate the JSON content
+        if "specific" in data:
+            for field_name, field_data in data["specific"].items():
+                if not isinstance(field_data, dict):
+                    file_errors.append(
+                        f"Dans {file_path}, le champ {field_name} doit être un objet"
+                    )
+                    continue
+
+                if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
+                    file_errors.append(
+                        f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
+                    )
+
+                if (
+                    "type_widget" in field_data
+                    and field_data["type_widget"] not in valid_type_widgets
+                ):
+                    file_errors.append(
+                        f"Dans {file_path}, le champ {field_name}: type_widget n'est pas valide"
+                    )
+
+                if "type_util" in field_data and not isinstance(field_data["type_util"], str):
+                    file_errors.append(
+                        f"Dans {file_path}, le champ {field_name}: type_util doit être une chaîne"
+                    )
+
+    except Exception as e:
+        file_errors.append(f"Erreur lors de la lecture de {file_path}: {str(e)}")
+
+    return file_errors

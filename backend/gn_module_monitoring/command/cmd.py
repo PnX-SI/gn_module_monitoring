@@ -22,6 +22,7 @@ from gn_module_monitoring.command.utils import (
     installed_modules,
     process_sql_files,
     process_module_import,
+    validate_json_file_protocol,
 )
 
 
@@ -81,6 +82,14 @@ def cmd_install_monitoring_module(module_code):
             )
         return
 
+    success, errors = validate_json_file_protocol(module_code)
+    if not success:
+        click.echo("Erreurs détectées dans les fichiers de configuration:")
+        for error in errors:
+            click.echo(f"- {error}")
+        click.echo("Installation annulée")
+        return
+
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
@@ -134,7 +143,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     module.from_dict(module_data)
     DB.session.add(module)
     DB.session.commit()
-    
+
     # Ajouter les permissions disponibles
     process_available_permissions(module_code, session=DB.session)
     DB.session.commit()

@@ -6,6 +6,21 @@ from sqlalchemy import and_, text, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+import sqlalchemy as sa
+
+from sqlalchemy import (
+    MetaData,
+    Table,
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Date,
+    ARRAY,
+    Text,
+    JSON,
+    ForeignKey,
+)
 
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import (
@@ -16,15 +31,22 @@ from geonature.core.gn_permissions.models import (
 )
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_monitoring.models import BibTypeSite
-from geonature.core.imports.models import BibFields, Destination, Entity, EntityField, BibThemes
+from geonature.core.imports.models import (
+    BibFields,
+    Destination,
+    Entity,
+    EntityField,
+    BibThemes,
+    TImports,
+)
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+
 
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
-    map_field_type,
+    validate_json_file,
     SUB_MODULE_CONFIG_DIR,
-    DATABASE_URI
 )
 
 from gn_module_monitoring.config.repositories import get_config
@@ -72,6 +94,7 @@ TABLE_NAME_SUBMODULDE = {
     "site": "t_base_sites",
     "visit": "t_base_visits",
     "observation": "t_observations",
+    "observation_detail": "t_observations_details",
 }
 
 TYPE_WIDGET = {
@@ -82,18 +105,21 @@ TYPE_WIDGET = {
     "bool_checkbox": "boolean",
     "number": "integer",
     "multiselect": "varchar[]",
-    "observers": "integer[]", 
+    "observers": "integer[]",
     "media": "varchar",
+    "medias": "varchar[]",
     "date": "date",
     "nomenclature": "integer",
     "datalist": "integer",
     "text": "varchar",
-    "textarea": "text", 
+    "textarea": "text",
     "integer": "integer",
     "jsonb": "jsonb",
     "time": "varchar",
     "taxonomy": "integer",
+    "site": "integer",
 }
+
 
 def process_sql_files(
     dir=None, module_code=None, depth=1, allowed_files=["export.sql", "synthese.sql"]
@@ -248,8 +274,8 @@ def remove_monitoring_module(module_code):
         # suppression des permissions disponibles pour ce module
         # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
-
         DB.session.execute(stmt)
+
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
         DB.session.commit()
@@ -422,13 +448,14 @@ def extract_keys(test_dict, keys=[]):
             extract_keys(val, keys)
     return keys
 
+
 def get_entities_protocol(module_code: str) -> list:
     """
     Extrait les entités à partir du fichier de configuration pour un module donné.
-    
+
     Args:
         module_code (str): Code du module.
-    
+
     Returns:
         list: Liste des entités du module.
     """
@@ -444,10 +471,12 @@ def get_entities_protocol(module_code: str) -> list:
 
     return unique_keys
 
+
 def get_entity_parent(tree, entity_code):
     """
     Trouve le parent d'une entité dans la structure de l'arbre.
     """
+
     def find_parent(node, target, parent=None):
         if target in node:
             return parent
@@ -461,52 +490,95 @@ def get_entity_parent(tree, entity_code):
     parent_entity = find_parent(tree, entity_code)
     return parent_entity
 
+
 def process_module_import(module_data):
     """
     Pipeline complet pour insérer un protocole et ses données dans la base.
-    
+
     Args:
         module_data (dict): Données de la table gn_commons.t_modules du module à importer.
     """
     try:
-        destination = upsert_bib_destination(module_data)
-        id_destination = destination.id_destination
-        module_code = module_data["module_code"]
-        
-        protocol_data, entity_hierarchy_map = get_protocol_data(module_code, id_destination)
-        create_sql_import_table_protocol(module_code,protocol_data)
+        with DB.session.begin_nested():
+            destination = upsert_bib_destination(module_data)
+            id_destination = destination.id_destination
+            module_code = module_data["module_code"]
 
-        insert_unique_fields(protocol_data)
-        
-        insert_entities(protocol_data, id_destination, entity_hierarchy_map, label_entity=destination.label)
-        
-        insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map)
+            protocol_data, entity_hierarchy_map = get_protocol_data(module_code, id_destination)
+
+            insert_bib_field(protocol_data)
+
+            insert_entities(
+                protocol_data, id_destination, entity_hierarchy_map, label_entity=destination.label
+            )
+
+            insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map)
+
+            create_sql_import_table_protocol(module_code, protocol_data)
+            DB.session.commit()
     except Exception as e:
+        DB.session.rollback()
         print(f"Erreur lors du traitement du module {module_data['module_code']}: {str(e)}")
         raise
+
+
+def validate_json_file_protocol(module_code: str):
+    errors = []
+    module_config_dir = Path(monitoring_module_config_path(module_code))
+    config_path = module_config_dir / "config.json"
+    valid_type_widgets = set(TYPE_WIDGET.keys())
+    errors.extend(validate_json_file(config_path, valid_type_widgets))
+
+    try:
+        entities = get_entities_protocol(module_code)
+        for entity_code in entities:
+            if not entity_code == "sites_group":
+                # Valid specific file
+                specific_path = module_config_dir / f"{entity_code}.json"
+                errors.extend(validate_json_file(specific_path, valid_type_widgets))
+
+                # Valid generic file
+                project_root = Path(__file__).parent.parent
+                generic_path = project_root / "config" / "generic" / f"{entity_code}.json"
+                errors.extend(validate_json_file(generic_path, valid_type_widgets))
+    except Exception as e:
+        errors.append(f"Erreur lors de la lecture des entités: {str(e)}")
+
+    return len(errors) == 0, errors
 
 
 def upsert_bib_destination(module_data: dict) -> Destination:
     """
     Ajoute ou met à jour une destination dans bib_destinations.
-    
+
     Args:
         module_data (dict): Données de la table gn_commons.t_modules du module à importer.
-    
-    Returns:
-        Destination: L'objet Destination inséré ou mis à jour.
-    """
-    existing_destination = (
-        DB.session.execute(select(Destination).filter_by(code=module_data["module_code"])).scalar_one_or_none()
-    )
 
-    if existing_destination:
-        existing_destination.label = module_data["module_label"]
-        existing_destination.table_name = f"t_import_{module_data['module_code'].lower()}"
-        DB.session.commit()
+    Returns:
+        Destination: L'objet Destination inséré ou mis à jour (SQLAlchemy model)
+    """
+    exists = DB.session.execute(
+        sa.exists().where(Destination.code == module_data["module_code"]).select()
+    ).scalar()
+
+    if exists:
+        existing_destination = DB.session.execute(
+            select(Destination).filter_by(code=module_data["module_code"])
+        ).scalar_one()
+
+        data = {
+            "label": module_data["module_label"],
+            "table_name": f"t_import_{module_data['module_code'].lower()}",
+            "module_code": module_data["module_code"],
+        }
+        for key, value in data.items():
+            setattr(existing_destination, key, value)
+        DB.session.flush()
         return existing_destination
 
-    module_monitoring_code = DB.session.execute(select(TModules).filter_by(module_code=module_data["module_code"])).scalar_one()
+    module_monitoring_code = DB.session.execute(
+        select(TModules).filter_by(module_code=module_data["module_code"])
+    ).scalar_one()
     destination_data = {
         "id_module": module_monitoring_code.id_module,
         "code": module_data["module_code"],
@@ -515,19 +587,19 @@ def upsert_bib_destination(module_data: dict) -> Destination:
     }
     destination = Destination(**destination_data)
     DB.session.add(destination)
-    DB.session.commit()
+    DB.session.flush()
     return destination
 
 
 def get_protocol_data(module_code: str, id_destination: int):
     """
     Construit les données du protocole à partir des fichiers JSON spécifiques et génériques.
-    
+
     Args:
         entities (list): Liste des entités du module.
         module_code (str): Code du module.
         id_destination (int): ID de la destination dans bib_destinations.
-    
+
     Returns:
         Données du protocole et mapping des colonnes des entités.
     """
@@ -537,28 +609,47 @@ def get_protocol_data(module_code: str, id_destination: int):
     entities = get_entities_protocol(module_code)
 
     module_config_path = module_config_dir_path / "config.json"
-
     module_config = json_from_file(module_config_path)
     tree = module_config.get("tree", {}).get("module", {})
 
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
     for entity_code in entities:
         file_path = module_config_dir_path / f"{entity_code}.json"
-
         specific_data = json_from_file(file_path)
 
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         generic_data_path = os.path.join(project_root, "config", "generic", f"{entity_code}.json")
         generic_data = json_from_file(generic_data_path, result_default={})
 
         parent_entity = get_entity_parent(tree, entity_code)
-        uuid_column = generic_data.get( "id_field_name")
+        uuid_column = generic_data.get("id_field_name")
 
         entity_hierarchy_map[entity_code] = {
             "uuid_column": uuid_column,
-            "parent_entity": parent_entity
+            "parent_entity": parent_entity,
         }
 
-        protocol_data[entity_code] = prepare_fields(specific_data, generic_data, entity_code, id_destination)
+        protocol_data[entity_code] = prepare_fields(
+            specific_data, generic_data, entity_code, id_destination
+        )
+
+    # Add observation_detail if exists the file exists
+    if "observation" in entities:
+        observation_detail_specific_path = module_config_dir_path / "observation_detail.json"
+        observation_detail_generic_path = os.path.join(
+            project_root, "config", "generic", "observation_detail.json"
+        )
+
+        if observation_detail_specific_path.exists():
+            specific_data = json_from_file(observation_detail_specific_path)
+            generic_data = json_from_file(observation_detail_generic_path, result_default={})
+            protocol_data["observation_detail"] = prepare_fields(
+                specific_data, generic_data, "observation_detail", id_destination
+            )
+            entity_hierarchy_map["observation_detail"] = {
+                "uuid_column": generic_data.get("id_field_name"),
+                "parent_entity": "observation",
+            }
 
     return protocol_data, entity_hierarchy_map
 
@@ -568,14 +659,11 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
     Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
     Organise les données sous deux clés : 'generic' et 'specific'.
     """
-    entity_fields = {
-            "generic": [],
-            "specific": []
-    }
+    entity_fields = {"generic": [], "specific": []}
 
     generic_fields = generic_data.get("generic", {})
     for field_name, generic_field_data in generic_fields.items():
-        
+
         if field_name in specific_data.get("specific", {}):
             field_data = {**generic_field_data, **specific_data["specific"][field_name]}
             entity_fields["specific"].append(
@@ -587,7 +675,9 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
                 get_bib_field(field_data, entity_code, field_name, id_destination)
             )
 
-    additional_fields = set(specific_data.get("specific", {}).keys()).difference(generic_fields.keys())
+    additional_fields = set(specific_data.get("specific", {}).keys()).difference(
+        generic_fields.keys()
+    )
     for field_name in additional_fields:
         field_data = specific_data["specific"][field_name]
         entity_fields["specific"].append(
@@ -597,51 +687,64 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
     return entity_fields
 
 
-def determine_field_type(field_data):
+def determine_field_type(field_data: dict) -> str:
     """
-    Détermine le type de colonne PostgreSQL en fonction du type_widget, type_util et paramètres multiples.
-    
-    Args:
-        field_data (dict): Données du champ
-    
-    Returns:
-        str: Type de colonne PostgreSQL
+    Détermine le type SQL du champ en fonction du widget et du type utilitaire.
+
+    Parameters
+    ----------
+    field_data : dict
+        Dictionnaire contenant la configuration du champ avec les clés:
+        - type_widget: str, optionnel
+            Type de widget (défaut: 'text')
+        - type_util: str, optionnel
+            Type utilitaire pour traitement spécial
+        - multiple: bool, optionnel
+            Si le champ permet plusieurs valeurs (défaut: False)
+        - multi_select: bool, optionnel
+            Drapeau alternatif pour valeurs multiples (défaut: False)
+
+    Returns
+    -------
+    str
+        Type SQL du champ en majuscules ('VARCHAR', 'INTEGER', etc.)
     """
-    type_widget = field_data.get('type_widget', 'text')
-    type_util = field_data.get('type_util')
-    multiple = field_data.get('multiple', field_data.get('multi_select', False))
+    type_widget = field_data.get("type_widget", "text")
+    type_util = field_data.get("type_util")
+    multiple = field_data.get("multiple", field_data.get("multi_select", False))
 
     type_mapping = {
-        'textarea': 'text',
-        'time': 'varchar',
-        'date': 'varchar',
-        'html': 'varchar',
-        'radio': 'varchar',
-        'select': 'varchar',
-        'medias': 'varchar',
+        "textarea": "text",
+        "time": "varchar",
+        "date": "varchar",
+        "html": "varchar",
+        "radio": "varchar",
+        "select": "varchar",
+        "medias": "varchar",
     }
 
-    int_type_utils = ['user', 'taxonomy', 'nomenclature', 'types_site', 'module', 'dataset']
+    int_type_utils = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
 
-    if type_widget in ['observers', 'datalist']:
-        return 'INTEGER[]' if multiple else 'INTEGER'
+    if type_widget in ["observers", "datalist"]:
+        return "INTEGER[]" if multiple else "INTEGER"
 
     if type_util in int_type_utils:
-        return 'INTEGER'
+        return "INTEGER"
 
-    if type_widget in ['checkbox', 'multiselect']:
-        return 'VARCHAR[]'
+    if type_widget in ["checkbox", "multiselect"]:
+        return "VARCHAR[]"
 
     if type_widget in type_mapping:
         return type_mapping[type_widget].upper()
 
-    if type_widget == 'number':
-        return 'INTEGER'
+    if type_widget == "number":
+        return "INTEGER"
 
-    if type_widget == 'bool_checkbox':
-        return 'BOOLEAN'
+    if type_widget == "bool_checkbox":
+        return "BOOLEAN"
 
-    return 'VARCHAR'
+    return "VARCHAR"
+
 
 def get_bib_field(field_data, entity_code, field_name, id_destination: int):
     """
@@ -649,7 +752,11 @@ def get_bib_field(field_data, entity_code, field_name, id_destination: int):
     """
     if "code_nomenclature_type" in field_data:
         mnemonique = field_data["code_nomenclature_type"]
-    elif "value" in field_data and isinstance(field_data["value"], dict) and "code_nomenclature_type" in field_data["value"]:
+    elif (
+        "value" in field_data
+        and isinstance(field_data["value"], dict)
+        and "code_nomenclature_type" in field_data["value"]
+    ):
         mnemonique = field_data["value"]["code_nomenclature_type"]
     else:
         mnemonique = None
@@ -658,12 +765,14 @@ def get_bib_field(field_data, entity_code, field_name, id_destination: int):
     hidden_value = field_data.get("hidden", False)
 
     determined_type_field = determine_field_type(field_data)
-    
+
     if entity_code == "sites_group":
         name_field = f"g__{field_name}"
+    elif entity_code == "observation_detail":
+        name_field = f"d__{field_name}"
     else:
         name_field = f"{entity_code[0]}__{field_name}"
-        
+
     return {
         "name_field": name_field,
         "fr_label": field_data.get("attribut_label", ""),
@@ -682,7 +791,8 @@ def get_bib_field(field_data, entity_code, field_name, id_destination: int):
         "type_field_params": None,
     }
 
-def insert_unique_fields(protocol_data):
+
+def insert_bib_field(protocol_data):
     """
     Insère ou met à jour les champs uniques dans `bib_fields`.
     """
@@ -693,29 +803,31 @@ def insert_unique_fields(protocol_data):
             all_fields.extend(entity_fields[field_type])
 
     def upsert_field(field):
-        stmt = pg_insert(BibFields).values(**field).on_conflict_do_update(
-            index_elements=["name_field", "id_destination"],
-            set_={
-                "fr_label": field.get("fr_label"),
-                "eng_label": field.get("eng_label"),
-                "type_field": field.get("type_field"),
-                "mandatory": field.get("mandatory"),
-                "autogenerated": field.get("autogenerated"),
-                "display": field.get("display"),
-                "mnemonique": field.get("mnemonique"),
-                "source_field": field.get("source_field"),
-                "dest_field": field.get("dest_field"),
-                "multi": field.get("multi"),
-                "mandatory_conditions": field.get("mandatory_conditions", []),
-                "optional_conditions": field.get("optional_conditions", []),
-            },
+        stmt = (
+            pg_insert(BibFields)
+            .values(**field)
+            .on_conflict_do_update(
+                index_elements=["name_field", "id_destination"],
+                set_={
+                    "fr_label": field.get("fr_label"),
+                    "eng_label": field.get("eng_label"),
+                    "type_field": field.get("type_field"),
+                    "mandatory": field.get("mandatory"),
+                    "autogenerated": field.get("autogenerated"),
+                    "display": field.get("display"),
+                    "mnemonique": field.get("mnemonique"),
+                    "source_field": field.get("source_field"),
+                    "dest_field": field.get("dest_field"),
+                    "multi": field.get("multi"),
+                    "mandatory_conditions": field.get("mandatory_conditions", []),
+                    "optional_conditions": field.get("optional_conditions", []),
+                },
+            )
         )
         DB.session.execute(stmt)
 
-    for field in all_fields:    
+    for field in all_fields:
         upsert_field(field)
-
-    DB.session.commit()
 
 
 def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_entity=None):
@@ -732,8 +844,13 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         parent_entity = entity_config["parent_entity"]
 
         uuid_field = next(
-            (f for field_type in ["generic", "specific"] for f in fields[field_type] if f["dest_field"] == uuid_column),
-            None
+            (
+                f
+                for field_type in ["generic", "specific"]
+                for f in fields[field_type]
+                if f["dest_field"] == uuid_column
+            ),
+            None,
         )
 
         id_field = (
@@ -746,10 +863,13 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         if parent_entity:
             id_parent = inserted_entities.get(parent_entity)
 
+        if entity_code == "observation_detail":
+            entity_code_obs_detail = "obs_detail"
+
         entity_data = {
             "id_destination": id_destination,
-            "code": entity_code,
-            "label": label_entity,
+            "code": entity_code_obs_detail if entity_code == "observation_detail" else entity_code,
+            "label": label_entity[:64] if label_entity else None,
             "order": order,
             "validity_column": f"{entity_code.lower()}_valid",
             "destination_table_schema": "gn_monitoring",
@@ -759,37 +879,45 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         }
 
         order += 1
-        result = DB.session.execute(pg_insert(Entity).values(**entity_data).on_conflict_do_nothing())
+        result = DB.session.execute(
+            pg_insert(Entity).values(**entity_data).on_conflict_do_nothing()
+        )
 
-        inserted_entity_id = result.inserted_primary_key[0] if result.inserted_primary_key else None
+        inserted_entity_id = (
+            result.inserted_primary_key[0] if result.inserted_primary_key else None
+        )
         if not inserted_entity_id:
-            inserted_entity_id = (
-                DB.session.execute(select(Entity.id_entity)
-                .filter_by(code=entity_code, id_destination=id_destination)
-                ).scalar()
-            )
+            inserted_entity_id = DB.session.execute(
+                select(Entity.id_entity).filter_by(code=entity_code, id_destination=id_destination)
+            ).scalar()
         inserted_entities[entity_code] = inserted_entity_id
 
-    DB.session.commit()
+        DB.session.flush()
 
 
 def get_themes_dict():
     """Récupère les thèmes depuis bib_themes"""
     themes = DB.session.execute(
-        select(BibThemes.id_theme, BibThemes.name_theme)
-        .filter(BibThemes.name_theme.in_(["general_info", "additional_data"]))
+        select(BibThemes.id_theme, BibThemes.name_theme).filter(
+            BibThemes.name_theme.in_(["general_info", "additional_data"])
+        )
     ).all()
     return {theme.name_theme: theme.id_theme for theme in themes}
 
+
 def get_entity_ids_dict(protocol_data, id_destination):
     """Récupère les IDs des entités depuis bib_entities"""
+    entity_code_map = {"observation_detail": "obs_detail"}
+
     return {
         entity_code: DB.session.execute(
-            select(Entity.id_entity)
-            .filter_by(code=entity_code, id_destination=id_destination)
+            select(Entity.id_entity).filter_by(
+                code=entity_code_map.get(entity_code, entity_code), id_destination=id_destination
+            )
         ).scalar()
         for entity_code in protocol_data.keys()
     }
+
 
 def insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map):
     """Insère les relations entre les entités et les champs dans cor_entity_field"""
@@ -807,7 +935,7 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_hierarch
                     field_name=field["name_field"],
                     id_destination=id_destination,
                     bib_themes=bib_themes,
-                    order=order
+                    order=order,
                 ):
                     order += 1
 
@@ -819,97 +947,119 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_hierarch
                 field_name=f"{parent_code[0]}__{parent_uuid}",
                 id_destination=id_destination,
                 bib_themes=bib_themes,
-                is_parent_link=True
+                is_parent_link=True,
             )
 
-    DB.session.commit()
 
-def get_cor_entity_field(entity_id, field_name, id_destination, bib_themes, order=None, is_parent_link=False):
+def get_cor_entity_field(
+    entity_id, field_name, id_destination, bib_themes, order=None, is_parent_link=False
+):
     """Crée une relation entre une entité et un champ dans cor_entity_field"""
     id_field = DB.session.execute(
-        select(BibFields.id_field)
-        .filter_by(name_field=field_name, id_destination=id_destination)
+        select(BibFields.id_field).filter_by(name_field=field_name, id_destination=id_destination)
     ).scalar_one()
-    
+
     if DB.session.execute(
-        select(EntityField)
-        .filter_by(id_entity=entity_id, id_field=id_field)
-    ).one_or_none():
+        sa.exists()
+        .where(EntityField.id_entity == entity_id, EntityField.id_field == id_field)
+        .select()
+    ).scalar():
         return False
 
-    relation = EntityField()
-    relation.from_dict({
+    data = {
         "id_entity": entity_id,
         "id_field": id_field,
         "id_theme": bib_themes["general_info"],
         "order_field": 0 if is_parent_link else (order or 1),
         "desc_field": "",
-        "comment": None
-    })
-    DB.session.add(relation)
+        "comment": None,
+    }
+
+    stmt = (
+        pg_insert(EntityField)
+        .values(**data)
+        .on_conflict_do_update(
+            index_elements=["id_entity", "id_field"],
+            set_={
+                "order_field": data["order_field"],
+                "desc_field": data["desc_field"],
+                "comment": data["comment"],
+            },
+        )
+    )
+
+    DB.session.execute(stmt)
+    DB.session.flush()
     return True
 
-def get_sql_import_table(module_code: str, protocol_data) -> str:
-    """
-    Génère une requête SQL pour créer une table d'importation dynamique en fonction du module et des protocol_data.
-    """
-    table_name = f"gn_imports.t_import_{module_code.lower()}"
-    
-    base_columns = [
-        "id_import INTEGER NOT NULL REFERENCES gn_imports.t_imports ON UPDATE CASCADE ON DELETE CASCADE",
-        "line_no INTEGER NOT NULL"
-    ]
-    
-    entity_columns = [
-        f"{entity_code}_valid BOOLEAN DEFAULT FALSE" for entity_code in protocol_data.keys()
-    ]
-    
-    field_columns = []
-    added_columns = set()
 
+def map_field_type_sqlalchemy(type_widget: str):
+    """Map widget types to SQLAlchemy column types"""
+    type_mapping = {
+        "varchar": String,
+        "varchar[]": ARRAY(String),
+        "text": Text,
+        "boolean": Boolean,
+        "integer": Integer,
+        "integer[]": ARRAY(Integer),
+        "date": Date,
+        "jsonb": JSON,
+    }
+    return type_mapping.get(type_widget, String)
+
+
+def get_import_table_metadata(module_code: str, protocol_data) -> Table:
+    """Generate import table using SQLAlchemy metadata"""
+    metadata = MetaData()
+
+    columns = [
+        Column(
+            "id_import",
+            Integer,
+            ForeignKey(TImports.id_import, onupdate="CASCADE", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        Column("line_no", Integer, nullable=False),
+    ]
+
+    columns.extend(
+        [
+            Column(f"{entity_code}_valid", Boolean, default=False)
+            for entity_code in protocol_data.keys()
+        ]
+    )
+
+    added_columns = set()
     for entity_code, entity_fields in protocol_data.items():
         all_fields = entity_fields["generic"] + entity_fields["specific"]
         for field in all_fields:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")
-            field_type = map_field_type(field.get("type_field", "text"))
+            field_type = map_field_type_sqlalchemy(field.get("type_field", "text"))
 
             if source_field and source_field not in added_columns:
-                source_column_definition = f"{source_field} TEXT"
-                if field.get("mandatory", False):
-                    source_column_definition += " NOT NULL"
-                field_columns.append(source_column_definition)
+                columns.append(
+                    Column(source_field, String, nullable=not field.get("mandatory", False))
+                )
                 added_columns.add(source_field)
-            
+
             if dest_field and dest_field not in added_columns:
-                dest_column_definition = f"{dest_field} {field_type}"
-                if field.get("mandatory", False):
-                    dest_column_definition += " NOT NULL"
-                field_columns.append(dest_column_definition)
+                columns.append(
+                    Column(dest_field, field_type, nullable=not field.get("mandatory", False))
+                )
                 added_columns.add(dest_field)
 
-    all_columns = base_columns + entity_columns + field_columns
+    table_name = f"t_import_{module_code.lower()}"
+    schema = "gn_imports"
 
-    create_table_query = """
-        CREATE TABLE IF NOT EXISTS {0} (
-            {1},
-            PRIMARY KEY (id_import, line_no)
-        );
-        ALTER TABLE {0} OWNER TO geonatadmin;
-        """.format(
-            table_name, 
-            ',\n            '.join(all_columns)
-        )
+    return Table(table_name, metadata, *columns, schema=schema)
 
-    create_indexes = []
-    for field in field_columns:
-        if "geom" in field:
-            index_name = f"idx_{table_name}_{field.split()[0]}"
-            create_indexes.append(
-                f"CREATE INDEX {index_name} ON {table_name} USING GIST ({field.split()[0]});"
-            )
-    
-    return create_table_query + "\n" + "\n".join(create_indexes)
+
+def create_sql_import_table_protocol(module_code: str, protocol_data):
+    """Create import table using SQLAlchemy metadata"""
+    table = get_import_table_metadata(module_code, protocol_data)
+    table.metadata.create_all(DB.engine)
+    print(f"La table transitoire d'importation pour {module_code} a été créée.")
 
 
 def check_rows_exist_in_import_table(module_code: str) -> bool:
@@ -922,14 +1072,3 @@ def check_rows_exist_in_import_table(module_code: str) -> bool:
     except Exception as e:
         print(f"Erreur lors de la vérification de l'existence de la table : {str(e)}")
         return False
-
-def create_sql_import_table_protocol(module_code: str, protocol_data):
-    """
-    Crée la table d'importation pour le protocole donné.
-    """
-    sql = get_sql_import_table(module_code,protocol_data)
-
-    DB.engine.execute(sql)
-    DB.session.commit()
-    print(f"Table d'importation créée pour le module {module_code}")
-    
