@@ -72,10 +72,7 @@ export class MonitoringListComponent implements OnInit {
     if (this._cruvedStore.cruved.IMPORT) {
       cruvedImport = this._cruvedStore.cruved.IMPORT.module_objects.IMPORT.cruved;
     }
-    const canCreateImport = cruvedImport.C > 0;
-    const canCreateMonitoring = this.userCruved.C > 0;
-
-    this.canImport = canCreateImport && canCreateMonitoring;
+    this.canImport = cruvedImport.C > 0 && this.userCruved.C > 0;
   }
 
   initDataTable() {
