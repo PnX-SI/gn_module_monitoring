@@ -49,7 +49,6 @@ export class MonitoringListComponent implements OnInit {
   canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
-  public userCruved: any;
   public canImport: boolean = false;
 
   constructor(
@@ -67,12 +66,13 @@ export class MonitoringListComponent implements OnInit {
 
     // get user cruved
     const currentModule = this._moduleService.currentModule;
-    this.userCruved = currentModule.module_objects.MONITORINGS_SITES.cruved;
+    const userCruved = currentModule.module_objects.MONITORINGS_SITES.cruved;
+
     let cruvedImport: any = {};
     if (this._cruvedStore.cruved.IMPORT) {
       cruvedImport = this._cruvedStore.cruved.IMPORT.module_objects.IMPORT.cruved;
     }
-    this.canImport = cruvedImport.C > 0 && this.userCruved.C > 0;
+    this.canImport = cruvedImport.C > 0 && userCruved.C > 0;
   }
 
   initDataTable() {
