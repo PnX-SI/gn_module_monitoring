@@ -66,13 +66,18 @@ export class MonitoringListComponent implements OnInit {
 
     // get user cruved
     const currentModule = this._moduleService.currentModule;
-    const userCruved = currentModule.module_objects.MONITORINGS_SITES.cruved;
+    const userCruved =
+      this._cruvedStore.cruved[this.obj.moduleCode].module_objects.MONITORINGS_SITES.cruved;
 
     let cruvedImport: any = {};
     if (this._cruvedStore.cruved.IMPORT) {
       cruvedImport = this._cruvedStore.cruved.IMPORT.module_objects.IMPORT.cruved;
     }
     this.canImport = cruvedImport.C > 0 && userCruved.C > 0;
+  }
+
+  get importRoute(): string {
+    return `/import/${this.obj.moduleCode}/process/upload`;
   }
 
   initDataTable() {
@@ -147,7 +152,6 @@ export class MonitoringListComponent implements OnInit {
   getImportQueryParams() {
     if ('observation' in this.obj.children) {
       return {
-        id_module: this.obj.properties['id_module'],
         id_base_site: this.obj.properties['id_base_site'], // todo: is it useful ?
         id_dataset: this.obj.properties['id_dataset'], // todo: is it useful ?
         id_base_visit: this.obj.properties['id_base_visit'],
@@ -155,14 +159,11 @@ export class MonitoringListComponent implements OnInit {
     }
     if ('visit' in this.obj.children) {
       return {
-        id_module: this.obj.parents['module'].properties['id_module'],
         id_base_site: this.obj.properties['id_base_site'],
       };
     }
     if ('site' in this.obj.children) {
-      return {
-        id_module: this.obj.properties['id_module'],
-      };
+      return {};
     }
     return {};
   }
