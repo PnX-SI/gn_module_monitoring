@@ -23,6 +23,8 @@ from gn_module_monitoring.command.utils import (
     process_sql_files,
     process_module_import,
     validate_json_file_protocol,
+    process_update_module_import,
+    update_protocol,
 )
 
 
@@ -90,29 +92,42 @@ def cmd_install_monitoring_module(module_code):
         click.echo("Installation annulée")
         return
 
-    click.secho(f"Installation du sous-module monitoring {module_code}")
-
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
-
-    try:
-        module = get_simple_module("module_code", module_code)
-        # test si le module existe
-        if module:
-            click.secho(f"Le module {module_code} existe déjà", fg="red")
-            return
-    except Exception:
-        pass
-
-    # process Synthese
-    process_sql_files(dir=None, module_code=module_code, depth=1)
-    # process Exports
-    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     config = get_config(module_code, force=True)
 
     if not config:
         click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
+
+    try:
+        module = get_simple_module("module_code", module_code)
+        # Vérifier si le module existe
+        if module:
+            # Effectuer une mise à jour
+            try:
+                click.secho(f"Mise à jour du module {module_code}")
+                state = process_update_module_import(config, module_code)
+
+                if state:
+                    click.secho(f"Module {module_code} mis à jour", fg="green")
+                else:
+                    click.secho(f"Erreur lors de la mise à jour du module {module_code}", fg="red")
+            except Exception as e:
+                click.secho(
+                    f"Erreur lors de la mise à jour du module {module_code}: {str(e)}", fg="red"
+                )
+                return
+            return
+    except Exception:
+        pass
+
+    click.secho(f"Installation du sous-module monitoring {module_code}")
+
+    # process Synthese
+    process_sql_files(dir=None, module_code=module_code, depth=1)
+    # process Exports
+    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     module_desc = config["module"].get("module_desc")
     module_label = config["module"].get("module_label")

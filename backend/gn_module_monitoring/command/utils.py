@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import and_, text, delete, select
+from sqlalchemy import and_, text, delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -275,7 +275,8 @@ def remove_monitoring_module(module_code):
         # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
         DB.session.execute(stmt)
-
+        stmt = delete(Destination).where(Destination.id_module == module.id_module)
+        DB.session.execute(stmt)
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
         DB.session.commit()
@@ -859,16 +860,15 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
             .scalar()
         )
 
-        id_parent = None
-        if parent_entity:
-            id_parent = inserted_entities.get(parent_entity)
+        id_parent = inserted_entities.get(parent_entity) if parent_entity else None
 
-        if entity_code == "observation_detail":
-            entity_code_obs_detail = "obs_detail"
+        entity_code_obs_detail = (
+            "obs_detail" if entity_code == "observation_detail" else entity_code
+        )
 
         entity_data = {
             "id_destination": id_destination,
-            "code": entity_code_obs_detail if entity_code == "observation_detail" else entity_code,
+            "code": entity_code_obs_detail,
             "label": label_entity[:64] if label_entity else None,
             "order": order,
             "validity_column": f"{entity_code.lower()}_valid",
@@ -879,17 +879,31 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         }
 
         order += 1
-        result = DB.session.execute(
-            pg_insert(Entity).values(**entity_data).on_conflict_do_nothing()
-        )
 
-        inserted_entity_id = (
-            result.inserted_primary_key[0] if result.inserted_primary_key else None
-        )
-        if not inserted_entity_id:
-            inserted_entity_id = DB.session.execute(
-                select(Entity.id_entity).filter_by(code=entity_code, id_destination=id_destination)
-            ).scalar()
+        existing_entity = DB.session.execute(
+            select(Entity.id_entity).filter_by(code=entity_code, id_destination=id_destination)
+        ).scalar()
+
+        if existing_entity:
+            DB.session.execute(
+                update(Entity).where(Entity.id_entity == existing_entity).values(**entity_data)
+            )
+            inserted_entity_id = existing_entity
+        else:
+            result = DB.session.execute(pg_insert(Entity).values(**entity_data))
+            DB.session.flush()
+
+            inserted_entity_id = (
+                result.inserted_primary_key[0] if result.inserted_primary_key else None
+            )
+
+            if not inserted_entity_id:
+                inserted_entity_id = DB.session.execute(
+                    select(Entity.id_entity).filter_by(
+                        code=entity_code, id_destination=id_destination
+                    )
+                ).scalar()
+
         inserted_entities[entity_code] = inserted_entity_id
 
         DB.session.flush()
@@ -1071,4 +1085,235 @@ def check_rows_exist_in_import_table(module_code: str) -> bool:
         return result is not None
     except Exception as e:
         print(f"Erreur lors de la vérification de l'existence de la table : {str(e)}")
+        return False
+
+
+def ask_confirmation():
+    prompt = (
+        "\nVeuillez confirmer que vous souhaitez effectuer avec ces modifications ? [yes/no]: "
+    )
+
+    response = input(prompt).strip().lower()
+
+    while response not in ["yes", "y", "no", "n"]:
+        print("Réponse invalide. Veuillez répondre par 'yes' ou 'no'.")
+        response = input(prompt).strip().lower()
+
+    return response in ["yes", "y"]
+
+
+def compare_protocol_fields(existing_fields, new_fields):
+    """
+    Compare les champs existants avec les nouveaux champs pour identifier les différences.
+
+    Args:
+        existing_fields: Liste des champs existants en base
+        new_fields: Liste des nouveaux champs depuis les fichiers JSON
+
+    Returns:
+        - Liste des champs à ajouter
+        - Liste des champs à mettre à jour
+        - Liste des champs à supprimer
+    """
+    existing_by_name = {f["name_field"]: f for f in existing_fields}
+    new_by_name = {f["name_field"]: f for f in new_fields}
+
+    to_add = []
+    to_update = []
+    to_delete = []
+
+    # Identifier les champs à ajouter et mettre à jour
+    for name, new_field in new_by_name.items():
+        if name not in existing_by_name:
+            to_add.append(new_field)
+        else:
+            existing = existing_by_name[name]
+            if has_field_changes(existing, new_field):
+                to_update.append(new_field)
+
+    # Identifier les champs à supprimer
+    for name in existing_by_name:
+        if name not in new_by_name:
+            to_delete.append(existing_by_name[name])
+
+    return to_add, to_update, to_delete
+
+
+def has_field_changes(existing, new) -> bool:
+    """
+    Vérifie si un champ a été modifié en comparant les attributs pertinents.
+    """
+    relevant_attrs = [
+        "fr_label",
+        "eng_label",
+        "type_field",
+        "mandatory",
+        "display",
+        "mnemonique",
+        "source_field",
+        "dest_field",
+    ]
+
+    return any(existing.get(attr) != new.get(attr) for attr in relevant_attrs)
+
+
+def get_existing_protocol_state(module_code: str, id_destination: int):
+    """
+    Récupère l'état actuel du protocole en base de données.
+    """
+    fields_query = select(BibFields).filter_by(id_destination=id_destination)
+    existing_fields = DB.session.execute(fields_query).scalars().all()
+
+    entities_query = select(Entity).filter_by(id_destination=id_destination)
+    existing_entities = DB.session.execute(entities_query).scalars().all()
+
+    return {
+        "fields": [field.__dict__ for field in existing_fields],
+        "entities": [entity.__dict__ for entity in existing_entities],
+    }
+
+
+def process_update_module_import(module_data, module_code: str):
+    """
+    Pipeline complet pour insérer ou mettre à jour un protocole dans la base.
+    """
+    try:
+        is_valid, messages = validate_protocol_changes(module_code)
+
+        if not is_valid:
+            print("Erreurs détectées lors de la validation du protocole:")
+            for msg in messages:
+                print(f"- {msg}")
+            return False
+
+        if messages:
+            print("\n⚠️ Avertissements concernant les modifications du protocole:")
+            for msg in messages:
+                print(f"- {msg}")
+
+        if not ask_confirmation():
+            print("Mise à jour annulée.")
+            return False
+        else:
+            return update_protocol(module_data, module_code)
+
+    except Exception as e:
+        print(f"Erreur lors du traitement du module {module_code}: {str(e)}")
+        return False
+
+
+def validate_protocol_changes(module_code: str):
+    """
+    Valide les changements dans les fichiers de configuration du protocole.
+
+    Args:
+        module_code: Code du module à valider
+
+    Returns:
+        - Booléen indiquant si la validation a réussi
+        - Liste des messages d'erreur ou d'avertissement
+    """
+    try:
+        is_valid, errors = validate_json_file_protocol(module_code)
+        if not is_valid:
+            return False, errors
+
+        destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
+
+        if check_rows_exist_in_import_table(module_code):
+            return False, [
+                "La table d'importation contient des données. Impossible de mettre à jour le protocole."
+            ]
+
+        existing_data = get_existing_protocol_state(module_code, destination.id_destination)
+        protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
+
+        all_new_fields = []
+        for entity_fields in protocol_data.values():
+            for field_type in ["generic", "specific"]:
+                all_new_fields.extend(entity_fields[field_type])
+
+        fields_to_add, fields_to_update, fields_to_delete = compare_protocol_fields(
+            existing_data["fields"], all_new_fields
+        )
+
+        warnings = []
+        if fields_to_delete:
+            warnings.append(
+                "ATTENTION: Des champs vont être supprimés. "
+                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_delete)}"
+            )
+
+        if fields_to_update:
+            warnings.append(
+                "ATTENTION: Des champs vont être modifiés. "
+                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_update)}"
+            )
+
+        if fields_to_add:
+            warnings.append(
+                "INFO: De nouveaux champs vont être ajoutés. "
+                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_add)}"
+            )
+
+        return True, warnings
+
+    except Exception as e:
+        return False, [f"Erreur lors de la validation du protocole: {str(e)}"]
+
+
+def update_protocol(module_data, module_code):
+    """
+    Met à jour un protocole existant en appliquant les modifications validées.
+
+    Args:
+        module_code: Code du module à mettre à jour
+
+    Returns:
+        - Booléen indiquant si la mise à jour a réussi
+        - Liste des messages de différences appliquées
+    """
+    try:
+        DB.session.rollback()
+        module_label = module_data["module"].get("module_label")
+        # Récupérer la destination
+        destination = DB.session.execute(
+            select(Destination).filter_by(code=module_code)
+        ).scalar_one()
+
+        # Générer le nouvel état du protocole
+        protocol_data, entity_hierarchy_map = get_protocol_data(
+            module_code, destination.id_destination
+        )
+
+        with DB.session.begin_nested():
+            # Mettre à jour les champs
+            insert_bib_field(protocol_data)
+
+            # Mettre à jour les entités
+            insert_entities(
+                protocol_data,
+                destination.id_destination,
+                entity_hierarchy_map,
+                label_entity=module_label,
+            )
+
+            # Mettre à jour les relations entité-champ
+            insert_entity_field_relations(
+                protocol_data, destination.id_destination, entity_hierarchy_map
+            )
+
+            # Supprimer l'ancienne table d'importation
+            table_name = f"t_import_{module_code.lower()}"
+            DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
+
+            # Recréer la table d'importation avec les nouveaux champs
+            create_sql_import_table_protocol(module_code, protocol_data)
+
+        DB.session.commit()
+        return True
+
+    except Exception as e:
+        DB.session.rollback()
+        print(f"Erreur lors de la mise à jour du protocole {module_code}: {str(e)}")
         return False
