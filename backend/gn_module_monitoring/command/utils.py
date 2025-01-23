@@ -1220,7 +1220,7 @@ def validate_protocol_changes(module_code: str):
         if check_rows_exist_in_import_table(module_code):
             return False, [
                 "La table d'importation contient des données. Impossible de mettre à jour le protocole."
-            ]
+            ], []
 
         existing_data = get_existing_protocol_state(destination.id_destination)
         protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
