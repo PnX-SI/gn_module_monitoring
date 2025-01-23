@@ -4,7 +4,6 @@ import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { CruvedStoreService } from '@geonature_common/service/cruved-store.service';
-import { ModuleService } from '@geonature/services/module.service';
 
 import { Utils } from '../../utils/utils';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
@@ -54,8 +53,7 @@ export class MonitoringListComponent implements OnInit {
   constructor(
     private _configService: ConfigService,
     private _listService: ListService,
-    public _cruvedStore: CruvedStoreService,
-    private _moduleService: ModuleService
+    public _cruvedStore: CruvedStoreService
   ) {}
 
   ngOnInit() {
@@ -65,7 +63,6 @@ export class MonitoringListComponent implements OnInit {
     // });
 
     // get user cruved
-    const currentModule = this._moduleService.currentModule;
     const userCruved =
       this._cruvedStore.cruved[this.obj.moduleCode].module_objects.MONITORINGS_SITES.cruved;
 
