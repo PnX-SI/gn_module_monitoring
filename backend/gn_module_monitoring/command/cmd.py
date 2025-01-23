@@ -107,15 +107,16 @@ def cmd_install_monitoring_module(module_code):
             try:
                 click.secho(f"Mise à jour du module {module_code}")
                 state = process_update_module_import(config, module_code)
-
+                if state is None:
+                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+                    return
                 if state:
                     click.secho(f"Module {module_code} mis à jour", fg="green")
                 else:
-                    click.secho(f"Erreur lors de la mise à jour du module {module_code}", fg="red")
-            except Exception as e:
-                click.secho(
-                    f"Erreur lors de la mise à jour du module {module_code}: {str(e)}", fg="red"
-                )
+                    click.secho(
+                        f"La mise à jour du module {module_code} a était annulée", fg="red"
+                    )
+            except Exception:
                 return
             return
     except Exception:

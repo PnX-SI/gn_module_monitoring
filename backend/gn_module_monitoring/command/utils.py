@@ -1176,7 +1176,10 @@ def process_update_module_import(module_data, module_code: str):
     Pipeline complet pour insérer ou mettre à jour un protocole dans la base.
     """
     try:
-        is_valid, messages = validate_protocol_changes(module_code)
+        is_valid, messages, fields_to_delete = validate_protocol_changes(module_code)
+
+        if is_valid is None:
+            return None
 
         if not is_valid:
             print("Erreurs détectées lors de la validation du protocole:")
@@ -1190,10 +1193,9 @@ def process_update_module_import(module_data, module_code: str):
                 print(f"- {msg}")
 
         if not ask_confirmation():
-            print("Mise à jour annulée.")
             return False
         else:
-            return update_protocol(module_data, module_code)
+            return update_protocol(module_data, module_code, fields_to_delete)
 
     except Exception as e:
         print(f"Erreur lors du traitement du module {module_code}: {str(e)}")
@@ -1236,33 +1238,39 @@ def validate_protocol_changes(module_code: str):
         if fields_to_delete:
             warnings.append(
                 "ATTENTION: Des champs vont être supprimés. "
-                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_delete)}"
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_delete)}"
             )
 
         if fields_to_update:
             warnings.append(
                 "ATTENTION: Des champs vont être modifiés. "
-                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_update)}"
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_update)}"
             )
 
         if fields_to_add:
             warnings.append(
                 "INFO: De nouveaux champs vont être ajoutés. "
-                f"Champs concernés: {', '.join(f['name_field'] for f in fields_to_add)}"
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
             )
 
-        return True, warnings
+        if not fields_to_add and not fields_to_update and not fields_to_delete:
+            warnings.append("Aucun changement détecté dans le protocole.")
+            return None, warnings, []
+
+        return True, warnings, fields_to_delete
 
     except Exception as e:
-        return False, [f"Erreur lors de la validation du protocole: {str(e)}"]
+        return False, [f"Erreur lors de la validation du protocole: {str(e)}"], []
 
 
-def update_protocol(module_data, module_code):
+def update_protocol(module_data, module_code, fields_to_delete):
     """
     Met à jour un protocole existant en appliquant les modifications validées.
 
     Args:
+        module_data: Données de la table gn_commons.t_modules du module à mettre à jour
         module_code: Code du module à mettre à jour
+        fields_to_delete: Liste des champs à supprimer
 
     Returns:
         - Booléen indiquant si la mise à jour a réussi
@@ -1294,6 +1302,8 @@ def update_protocol(module_data, module_code):
             insert_entity_field_relations(
                 protocol_data, destination.id_destination, entity_hierarchy_map
             )
+            if fields_to_delete:
+                delete_bib_fields(fields_to_delete)
 
             table_name = f"t_import_{module_code.lower()}"
             DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
@@ -1306,3 +1316,12 @@ def update_protocol(module_data, module_code):
     except Exception:
         DB.session.rollback()
         return False
+
+
+def delete_bib_fields(fields):
+    """
+    Supprime les champs de la table bib_fields.
+    """
+    field_ids = [f["id_field"] for f in fields]
+    DB.session.execute(delete(BibFields).where(BibFields.id_field.in_(field_ids)))
+    DB.session.flush()
