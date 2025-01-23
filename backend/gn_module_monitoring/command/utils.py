@@ -567,7 +567,7 @@ def upsert_bib_destination(module_data: dict) -> Destination:
 
         data = {
             "label": module_data["module_label"],
-            "table_name": f"t_import_{module_data['module_code'].lower()}",
+            "table_name": f"t_imports_{module_data['module_code'].lower()}",
             "module_code": module_data["module_code"],
         }
         for key, value in data.items():
@@ -582,7 +582,7 @@ def upsert_bib_destination(module_data: dict) -> Destination:
         "id_module": module_monitoring_code.id_module,
         "code": module_data["module_code"],
         "label": module_data["module_label"],
-        "table_name": f"t_import_{module_data['module_code'].lower()}",
+        "table_name": f"t_imports_{module_data['module_code'].lower()}",
     }
     destination = Destination(**destination_data)
     DB.session.add(destination)
@@ -1020,7 +1020,7 @@ def map_field_type_sqlalchemy(type_widget: str):
     return type_mapping.get(type_widget, String)
 
 
-def get_import_table_metadata(module_code: str, protocol_data) -> Table:
+def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
     """Generate import table using SQLAlchemy metadata"""
     metadata = MetaData()
 
@@ -1061,7 +1061,7 @@ def get_import_table_metadata(module_code: str, protocol_data) -> Table:
                 )
                 added_columns.add(dest_field)
 
-    table_name = f"t_import_{module_code.lower()}"
+    table_name = f"t_imports_{module_code.lower()}"
     schema = "gn_imports"
 
     return Table(table_name, metadata, *columns, schema=schema)
@@ -1069,14 +1069,14 @@ def get_import_table_metadata(module_code: str, protocol_data) -> Table:
 
 def create_sql_import_table_protocol(module_code: str, protocol_data):
     """Create import table using SQLAlchemy metadata"""
-    table = get_import_table_metadata(module_code, protocol_data)
+    table = get_imports_table_metadata(module_code, protocol_data)
     table.metadata.create_all(DB.engine)
     print(f"La table transitoire d'importation pour {module_code} a été créée.")
 
 
 def check_rows_exist_in_import_table(module_code: str) -> bool:
     """Vérifie si la table d'importation contient des données."""
-    table_name = f"t_import_{module_code.lower()}"
+    table_name = f"t_imports_{module_code.lower()}"
     query = f"SELECT * FROM gn_imports.{table_name} LIMIT 1;"
     try:
         result = DB.session.execute(query).fetchone()
@@ -1305,7 +1305,7 @@ def update_protocol(module_data, module_code, fields_to_delete):
             if fields_to_delete:
                 delete_bib_fields(fields_to_delete)
 
-            table_name = f"t_import_{module_code.lower()}"
+            table_name = f"t_imports_{module_code.lower()}"
             DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
 
             create_sql_import_table_protocol(module_code, protocol_data)
