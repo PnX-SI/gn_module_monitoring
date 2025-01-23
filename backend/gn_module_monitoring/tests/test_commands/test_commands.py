@@ -5,6 +5,7 @@ from flask import url_for, current_app
 from sqlalchemy import select
 
 from geonature.utils.env import DB
+from geonature.core.imports.models import BibFields, Destination
 
 from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.command.cmd import (
@@ -13,6 +14,8 @@ from gn_module_monitoring.command.cmd import (
     cmd_process_available_permission_module,
     cmd_add_module_nomenclature_cli,
 )
+from gn_module_monitoring.command.utils import get_protocol_data
+
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
@@ -101,3 +104,42 @@ class TestCommands:
         assert "nomenclature type TEST_METEO - Météo - already exist" in result.output
         assert "nomenclature METEO_M - Mauvais temps - updated" in result.output
         assert 'probleme de type avec mnemonique="TEST_UNKWONW_TYPE"' in result.output
+
+    def test_cmd_add_module_protocol_fields(self, install_module_test):
+
+        destination = DB.session.execute(
+            select(Destination).where(Destination.code == "test")
+        ).scalar_one()
+
+        assert destination.code == "test"
+        assert destination.label == "Test"
+
+        protocol_data, entity_hierarchy_map = get_protocol_data("test", destination.id_destination)
+        fields_data = []
+        entities = []
+
+        for entity_code, entity_fields in protocol_data.items():
+            entities.append(entity_code)
+            all_fields = entity_fields.get("generic", []) + entity_fields.get("specific", [])
+            for field in all_fields:
+                fields_data.append((field["name_field"], field["fr_label"]))
+
+        fields = DB.session.execute(
+            select(BibFields.name_field, BibFields.fr_label).where(
+                BibFields.id_destination == destination.id_destination
+            )
+        ).fetchall()
+
+        sorted_fields_data = sorted(fields_data)
+        sorted_fields = sorted(fields)
+
+        assert set(fields_data) == set(
+            fields
+        ), f"Expected fields {sorted_fields_data} but got {sorted_fields}"
+        assert "observation" in entities
+        assert "visit" in entities
+
+        query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'gn_imports' AND table_name = '{destination.table_name}');"
+        result = DB.session.execute(query).scalar_one()
+
+        assert result == True
