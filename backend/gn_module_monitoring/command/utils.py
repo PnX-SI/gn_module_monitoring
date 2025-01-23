@@ -275,8 +275,6 @@ def remove_monitoring_module(module_code):
         # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
         DB.session.execute(stmt)
-        stmt = delete(Destination).where(Destination.id_module == module.id_module)
-        DB.session.execute(stmt)
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
         DB.session.commit()
@@ -1157,7 +1155,7 @@ def has_field_changes(existing, new) -> bool:
     return any(existing.get(attr) != new.get(attr) for attr in relevant_attrs)
 
 
-def get_existing_protocol_state(module_code: str, id_destination: int):
+def get_existing_protocol_state(id_destination: int):
     """
     Récupère l'état actuel du protocole en base de données.
     """
@@ -1187,7 +1185,7 @@ def process_update_module_import(module_data, module_code: str):
             return False
 
         if messages:
-            print("\n⚠️ Avertissements concernant les modifications du protocole:")
+            print("\n Avertissements concernant les modifications du protocole:")
             for msg in messages:
                 print(f"- {msg}")
 
@@ -1214,9 +1212,6 @@ def validate_protocol_changes(module_code: str):
         - Liste des messages d'erreur ou d'avertissement
     """
     try:
-        is_valid, errors = validate_json_file_protocol(module_code)
-        if not is_valid:
-            return False, errors
 
         destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
 
@@ -1225,7 +1220,7 @@ def validate_protocol_changes(module_code: str):
                 "La table d'importation contient des données. Impossible de mettre à jour le protocole."
             ]
 
-        existing_data = get_existing_protocol_state(module_code, destination.id_destination)
+        existing_data = get_existing_protocol_state(destination.id_destination)
         protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
 
         all_new_fields = []
@@ -1276,21 +1271,19 @@ def update_protocol(module_data, module_code):
     try:
         DB.session.rollback()
         module_label = module_data["module"].get("module_label")
-        # Récupérer la destination
+
         destination = DB.session.execute(
             select(Destination).filter_by(code=module_code)
         ).scalar_one()
 
-        # Générer le nouvel état du protocole
         protocol_data, entity_hierarchy_map = get_protocol_data(
             module_code, destination.id_destination
         )
 
         with DB.session.begin_nested():
-            # Mettre à jour les champs
+
             insert_bib_field(protocol_data)
 
-            # Mettre à jour les entités
             insert_entities(
                 protocol_data,
                 destination.id_destination,
@@ -1298,22 +1291,18 @@ def update_protocol(module_data, module_code):
                 label_entity=module_label,
             )
 
-            # Mettre à jour les relations entité-champ
             insert_entity_field_relations(
                 protocol_data, destination.id_destination, entity_hierarchy_map
             )
 
-            # Supprimer l'ancienne table d'importation
             table_name = f"t_import_{module_code.lower()}"
             DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
 
-            # Recréer la table d'importation avec les nouveaux champs
             create_sql_import_table_protocol(module_code, protocol_data)
 
         DB.session.commit()
         return True
 
-    except Exception as e:
+    except Exception:
         DB.session.rollback()
-        print(f"Erreur lors de la mise à jour du protocole {module_code}: {str(e)}")
         return False

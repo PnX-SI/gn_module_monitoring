@@ -24,7 +24,6 @@ from gn_module_monitoring.command.utils import (
     process_module_import,
     validate_json_file_protocol,
     process_update_module_import,
-    update_protocol,
 )
 
 
