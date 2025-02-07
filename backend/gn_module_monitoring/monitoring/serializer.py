@@ -114,18 +114,20 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
     def get_readable_list_object(self, relation_name, children_type):
         childs_model = monitoring_definitions.MonitoringModel(object_type=children_type)
 
-        if getattr(childs_model, "has_instance_permission", None):
-            scope = get_scopes_by_action(
-                id_role=g.current_user.id_role,
-                module_code=self._module_code,
-                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                    children_type
-                ],
-            )["R"]
+        scope = get_scopes_by_action(
+            id_role=g.current_user.id_role,
+            module_code=self._module_code,
+            object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                children_type
+            ],
+        )["R"]
+        if getattr(childs_model, "has_instance_permission", None) or scope < 3:
             childs_model = [
                 m for m in getattr(self._model, relation_name) if m.has_instance_permission(scope)
             ]
             return childs_model
+        elif scope == 0:
+            return []
         else:
             childs_model = getattr(self._model, relation_name)
             return childs_model
@@ -145,6 +147,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             if not hasattr(self._model, relation_name):
                 continue
 
+            scope = get_scopes_by_action(
+                id_role=g.current_user.id_role,
+                module_code=self._module_code,
+                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
+                    children_type
+                ],
+            )
             children_of_type = []
 
             childs_object_readable = self.get_readable_list_object(
@@ -154,7 +163,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 child = monitoring_definitions.monitoring_object_instance(
                     self._module_code, children_type, config=self._config, model=child_model
                 )
-                children_of_type.append(child.serialize(depth, is_child=True))
+                children_of_type.append(child.serialize(depth, is_child=True, scope=scope))
 
             children[children_type] = children_of_type
 
@@ -186,7 +195,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         data = ["data"] if hasattr(self._model, "data") else []
         return generic + data
 
-    def serialize(self, depth=1, is_child=False):
+    def serialize(self, depth=1, is_child=False, scope=None):
         # TODO faire avec un as_dict propre (avec props et relationships)
         if depth is None:
             depth = 1
@@ -269,13 +278,22 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         properties["id_parent"] = to_int(self.id_parent())
 
+        if scope:
+            if 1 in (scope["C"], scope["R"], scope["U"], scope["D"]):
+                cruved = self.get_cruved_by_object()
+            elif 2 in (scope["C"], scope["R"], scope["U"], scope["D"]):
+                cruved = self.get_cruved_by_object()
+            else:
+                cruved = scope
+        else:
+            cruved = self.get_cruved_by_object()
         monitoring_object_dict = {
             "properties": properties,
             "object_type": self._object_type,
             "module_code": self._module_code,
             "site_id": self.get_site_id(),
             "id": self._id,
-            "cruved": self.get_cruved_by_object(),
+            "cruved": cruved,
         }
 
         if children:
