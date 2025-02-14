@@ -249,5 +249,4 @@ def get_objet_with_permission_boolean(
         else:
             object_out["cruved"] = object.has_permission(cruved_object=cruved_object)
         objects_out.append(object_out)
-
     return objects_out
