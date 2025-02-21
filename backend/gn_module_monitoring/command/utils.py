@@ -275,6 +275,8 @@ def remove_monitoring_module(module_code):
         # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
         DB.session.execute(stmt)
+        stmt = delete(Destination).where(Destination.id_module == module.id_module)
+        DB.session.execute(stmt)
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
         DB.session.commit()
@@ -1173,10 +1175,12 @@ def get_existing_protocol_state(id_destination: int):
 
 def process_update_module_import(module_data, module_code: str):
     """
-    Pipeline complet pour insérer ou mettre à jour un protocole dans la base.
+    Gère la mise à jour complète d'un module, y compris le libellé uniquement.
     """
     try:
-        is_valid, messages, fields_to_delete = validate_protocol_changes(module_code)
+        is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
+            module_code, module_data
+        )
 
         if is_valid is None:
             return None
@@ -1188,39 +1192,66 @@ def process_update_module_import(module_data, module_code: str):
             return False
 
         if messages:
-            print("\n Avertissements concernant les modifications du protocole:")
+            print("\nAvertissements concernant les modifications du protocole:")
             for msg in messages:
                 print(f"- {msg}")
 
         if not ask_confirmation():
             return False
         else:
-            return update_protocol(module_data, module_code, fields_to_delete)
+            return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
 
     except Exception as e:
         print(f"Erreur lors du traitement du module {module_code}: {str(e)}")
         return False
 
 
-def validate_protocol_changes(module_code: str):
+def get_module_update_label(module_data, destination_id: int) -> bool:
+    """
+    Vérifie si le label de l'entité principale doit être mis à jour.
+
+    Args:
+        module_data: Données du module.
+        destination_id: ID de la destination associée.
+
+    Returns:
+        True si une mise à jour du label est nécessaire, False sinon.
+    """
+    new_label = module_data["module"].get("module_label")
+
+    entity = DB.session.execute(select(Entity).filter_by(id_destination=destination_id)).scalar()
+
+    if entity and entity.label != new_label:
+        return True
+
+    return False
+
+
+def validate_protocol_changes(module_code: str, module_data):
     """
     Valide les changements dans les fichiers de configuration du protocole.
 
     Args:
-        module_code: Code du module à valider
+        module_code: Code du module à valider.
 
     Returns:
-        - Booléen indiquant si la validation a réussi
-        - Liste des messages d'erreur ou d'avertissement
+        - Booléen indiquant si la validation a réussi.
+        - Liste des messages d'erreur ou d'avertissement.
+        - Champs à supprimer.
+        - Booléen indiquant si seule la mise à jour du label est nécessaire.
     """
     try:
-
         destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
 
         if check_rows_exist_in_import_table(module_code):
-            return False, [
-                "La table d'importation contient des données. Impossible de mettre à jour le protocole."
-            ], []
+            return (
+                False,
+                [
+                    "La table d'importation contient des données. Impossible de mettre à jour le protocole."
+                ],
+                [],
+                False,
+            )
 
         existing_data = get_existing_protocol_state(destination.id_destination)
         protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
@@ -1234,7 +1265,14 @@ def validate_protocol_changes(module_code: str):
             existing_data["fields"], all_new_fields
         )
 
+        module_label = get_module_update_label(module_data, destination.id_destination)
+
         warnings = []
+        if module_label:
+            warnings.append(
+                f"INFO: Le libellé du module va être modifié. {destination.label} -> {module_data['module'].get('module_label')}"
+            )
+
         if fields_to_delete:
             warnings.append(
                 "ATTENTION: Des champs vont être supprimés. "
@@ -1253,28 +1291,36 @@ def validate_protocol_changes(module_code: str):
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
             )
 
-        if not fields_to_add and not fields_to_update and not fields_to_delete:
-            warnings.append("Aucun changement détecté dans le protocole.")
-            return None, warnings, []
+        if not fields_to_add and not fields_to_update and not fields_to_delete and module_label:
+            return True, warnings, [], True
 
-        return True, warnings, fields_to_delete
+        if (
+            not fields_to_add
+            and not fields_to_update
+            and not fields_to_delete
+            and not module_label
+        ):
+            warnings.append("Aucun changement détecté dans le protocole.")
+            return None, warnings, [], False
+
+        return True, warnings, fields_to_delete, False
 
     except Exception as e:
-        return False, [f"Erreur lors de la validation du protocole: {str(e)}"], []
+        return False, [f"Erreur lors de la validation du protocole: {str(e)}"], [], False
 
 
-def update_protocol(module_data, module_code, fields_to_delete):
+def update_protocol(module_data, module_code, fields_to_delete, update_label_only=False):
     """
-    Met à jour un protocole existant en appliquant les modifications validées.
+    Met à jour un protocole existant ou uniquement le libellé de l'entité dans `bib_entities`.
 
     Args:
-        module_data: Données de la table gn_commons.t_modules du module à mettre à jour
-        module_code: Code du module à mettre à jour
-        fields_to_delete: Liste des champs à supprimer
+        module_data: Données du module à mettre à jour.
+        module_code: Code du module.
+        fields_to_delete: Liste des champs à supprimer.
+        update_label_only: Si vrai, met à jour uniquement le label de l'entité.
 
     Returns:
-        - Booléen indiquant si la mise à jour a réussi
-        - Liste des messages de différences appliquées
+        Booléen indiquant si la mise à jour a réussi.
     """
     try:
         DB.session.rollback()
@@ -1283,6 +1329,11 @@ def update_protocol(module_data, module_code, fields_to_delete):
         destination = DB.session.execute(
             select(Destination).filter_by(code=module_code)
         ).scalar_one()
+
+        if update_label_only:
+            update_entity_label(destination.id_destination, module_label)
+            DB.session.commit()
+            return True
 
         protocol_data, entity_hierarchy_map = get_protocol_data(
             module_code, destination.id_destination
@@ -1302,6 +1353,7 @@ def update_protocol(module_data, module_code, fields_to_delete):
             insert_entity_field_relations(
                 protocol_data, destination.id_destination, entity_hierarchy_map
             )
+
             if fields_to_delete:
                 delete_bib_fields(fields_to_delete)
 
@@ -1313,8 +1365,9 @@ def update_protocol(module_data, module_code, fields_to_delete):
         DB.session.commit()
         return True
 
-    except Exception:
+    except Exception as e:
         DB.session.rollback()
+        print(f"Erreur lors de la mise à jour du protocole : {str(e)}")
         return False
 
 
@@ -1324,4 +1377,24 @@ def delete_bib_fields(fields):
     """
     field_ids = [f["id_field"] for f in fields]
     DB.session.execute(delete(BibFields).where(BibFields.id_field.in_(field_ids)))
+    DB.session.flush()
+
+
+def update_entity_label(destination_id: int, new_label: str):
+    """
+    Met à jour tous les libellés des entités associées à une même destination dans la table `Entity`.
+
+    Args:
+        destination_id: ID de la destination associée.
+        new_label: Nouveau libellé à appliquer à toutes les entités.
+    """
+    entities = (
+        DB.session.execute(select(Entity).filter_by(id_destination=destination_id)).scalars().all()
+    )
+    for entity in entities:
+        if entity.label != new_label:
+            entity.label = new_label
+            DB.session.add(entity)
+
+    print(f"Libellé de l'entité mis à jour : {entity.label} -> {new_label}")
     DB.session.flush()
