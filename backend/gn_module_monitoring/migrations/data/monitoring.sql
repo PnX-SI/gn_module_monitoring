@@ -84,22 +84,7 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
             ON UPDATE CASCADE ON DELETE CASCADE
     );
 
-
-    CREATE TABLE IF NOT EXISTS gn_monitoring.t_observations (
-        id_observation SERIAL NOT NULL,
-        id_base_visit INTEGER NOT NULL,
-        cd_nom INTEGER NOT NULL,
-        comments TEXT,
-        uuid_observation UUID DEFAULT uuid_generate_v4() NOT NULL,
-
-
-        CONSTRAINT pk_t_observations PRIMARY KEY (id_observation),
-        CONSTRAINT fk_t_observations_id_base_visit FOREIGN KEY (id_base_visit)
-            REFERENCES gn_monitoring.t_base_visits (id_base_visit) MATCH SIMPLE
-            ON UPDATE CASCADE ON DELETE CASCADE
-    );
-
-
+ 
     -- champs en complément de t_observation: relation 1-1
 
     CREATE TABLE IF NOT EXISTS gn_monitoring.t_observation_complements (
@@ -133,7 +118,6 @@ CREATE TABLE IF NOT EXISTS gn_monitoring.t_module_complements (
     INSERT INTO gn_commons.bib_tables_location(table_desc, schema_name, table_name, pk_field, uuid_field_name)
     VALUES
     ('Table centralisant les modules faisant l''objet de protocole de suivis', 'gn_monitoring', 't_module_complements', 'id_module', 'uuid_module_complement'),
-    ('Table centralisant les observations réalisées lors d''une visite sur un site', 'gn_monitoring', 't_observations', 'id_observation', 'uuid_observation'),
     ('Table centralisant les sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_base_sites', 'id_base_site', 'uuid_base_site'),
     ('Table centralisant les groupes de sites faisant l''objet de protocole de suivis', 'gn_monitoring', 't_sites_groups', 'id_sites_group', 'uuid_sites_group'),
     ('Table centralisant les visites réalisées sur un site', 'gn_monitoring', 't_base_visits', 'id_base_visit', 'uuid_base_visit')

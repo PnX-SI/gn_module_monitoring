@@ -22,9 +22,7 @@
     "nb_observations"
   ],
 
-  "sorts": [
-    {"prop": "visit_date_min", "dir": "desc"}
-  ],
+  "sorts": [{ "prop": "visit_date_min", "dir": "desc" }],
   "generic": {
     "id_base_visit": {
       "type_widget": "text",
@@ -50,9 +48,16 @@
       "keyLabel": "nom_complet",
       "type_util": "user",
       "multiple": true,
-      "required": true
+      "hidden": false,
+      "required": true,
+      "designStyle": "bootstrap"
     },
-
+    "observers_txt": {
+      "type_widget": "observers-text",
+      "attribut_label": "Observateur(s) (extérieur)",
+      "required": false,
+      "hidden": true
+    },
     "id_digitiser": {
       "type_widget": "text",
       "attribut_label": "Digitiser",

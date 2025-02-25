@@ -1,22 +1,33 @@
 import os
+
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import and_, text
+from sqlalchemy import and_, text, delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from geonature.utils.env import DB, BACKEND_DIR
-from geonature.core.gn_permissions.models import PermObject, PermissionAvailable, PermAction
+from geonature.utils.env import DB
+from geonature.core.gn_permissions.models import (
+    PermObject,
+    PermissionAvailable,
+    PermAction,
+    cor_object_module,
+)
 from geonature.core.gn_commons.models import TModules
-
+from geonature.core.gn_monitoring.models import BibTypeSite
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
-from ..config.utils import json_from_file, monitoring_module_config_path, SUB_MODULE_CONFIG_DIR
+from gn_module_monitoring.config.utils import (
+    json_from_file,
+    monitoring_module_config_path,
+    SUB_MODULE_CONFIG_DIR,
+)
 
-from ..config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config
 
-from ..modules.repositories import get_module, get_source_by_code, get_modules
+from gn_module_monitoring.modules.repositories import get_module, get_source_by_code, get_modules
 
 
 """
@@ -25,6 +36,19 @@ utils.py
 fonctions pour les commandes du module monitoring
 """
 
+
+FORBIDDEN_SQL_INSTRUCTION = [
+    "INSERT ",
+    "DELETE ",
+    "UPDATE ",
+    "EXECUTE ",
+    "TRUNCATE ",
+    "ALTER ",
+    "GRANT ",
+    "COPY ",
+    "PERFORM ",
+    "CASCADE",
+]
 
 PERMISSION_LABEL = {
     "MONITORINGS_MODULES": {"label": "modules", "actions": ["R", "U", "E"]},
@@ -42,48 +66,63 @@ ACTION_LABEL = {
 }
 
 
-def process_for_all_module(process_func):
-    """
-    boucle sur les répertoire des module
-        et exécute la fonction <process_func> pour chacun
-        (sauf generic)
-    """
-    for module in get_modules():
-        process_func(module.module_code)
-    return
-
-
-def process_export_csv(module_code=None):
-    """
-    fonction qui va chercher les fichier sql de exports/csv et qui les joue
-    """
-
-    if not module_code:
-        """
-        pour tous les modules
-        """
-        return process_for_all_module(process_export_csv)
-
-    export_csv_dir = Path(monitoring_module_config_path(module_code)) / "exports/csv"
-
-    if not export_csv_dir.is_dir():
+def process_sql_files(
+    dir=None, module_code=None, depth=1, allowed_files=["export.sql", "synthese.sql"]
+):
+    sql_dir = Path(monitoring_module_config_path(module_code))
+    if dir:
+        sql_dir = sql_dir / "exports/csv"
+    if not sql_dir.is_dir():
         return
 
-    for root, dirs, files in os.walk(export_csv_dir, followlinks=True):
+    if not allowed_files:
+        allowed_files = []
+    count_depth = 0
+    for root, dirs, files in os.walk(sql_dir, followlinks=True):
+        count_depth = count_depth + 1
         for f in files:
             if not f.endswith(".sql"):
                 continue
-
+            if not f in allowed_files and allowed_files:
+                continue
+            # Vérification commandes non autorisée
             try:
-                DB.engine.execute(
-                    text(open(Path(root) / f, "r").read())
-                    .execution_options(autocommit=True)
-                    .bindparams(module_code=module_code)
-                )
-                print("{} - export csv file : {}".format(module_code, f))
-
+                execute_sql_file(root, f, module_code, FORBIDDEN_SQL_INSTRUCTION)
+                print("{} - exécution du fichier : {}".format(module_code, f))
             except Exception as e:
-                print("{} - export csv erreur dans le script {} : {}".format(module_code, f, e))
+                print(e)
+
+        # Limite profondeur de la recherche dans les répertoires
+        if depth:
+            if count_depth >= depth:
+                break
+
+
+def execute_sql_file(dir, file, module_code, forbidden_instruction=[]):
+    """
+    Execution d'un fichier sql dans la base de donnée
+    dir : nom du répertoire
+    file : nom du fichier à éxécuter
+    module_code : code du module
+    forbidden_instruction : liste d'instructions sql qui sont proscrites du fichier.
+
+    """
+    sql_content = Path(Path(dir) / file).read_text()
+    for sql_cmd in forbidden_instruction:
+        if sql_cmd.lower() in sql_content.lower():
+            raise Exception(
+                "erreur dans le script {} instruction sql non autorisée {}".format(
+                    module_code, file, sql_cmd
+                )
+            )
+
+    try:
+        DB.engine.execute(
+            text(sql_content),
+            module_code=module_code,
+        )
+    except Exception as e:
+        raise Exception("{} - erreur dans le script {} : {}".format(module_code, file, e))
 
 
 def process_available_permissions(module_code, session):
@@ -119,43 +158,50 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
         print(f"L'object {perm_object_code} n'est pas traité")
 
     try:
-        module = session.query(TModules).filter_by(module_code=module_code).one()
+        module = session.scalars(select(TModules).where(TModules.module_code == module_code)).one()
     except NoResultFound:
         print(f"Le module {module_code} n'est pas présent")
         return
 
     try:
-        perm_object = session.query(PermObject).filter_by(code_object=perm_object_code).one()
+        perm_object = session.execute(
+            select(PermObject).where(PermObject.code_object == perm_object_code)
+        ).scalar_one_or_none()
     except NoResultFound:
         print(f"L'object de permission {perm_object_code} n'est pas présent")
         return
 
-    txt_cor_object_module = f"""
-        INSERT INTO gn_permissions.cor_object_module(
-            id_module,
-            id_object
-        )
-        VALUES({module.id_module}, {perm_object.id_object})
-        ON CONFLICT DO NOTHING
-    """
-    session.execute(txt_cor_object_module)
+    stmt = (
+        pg_insert(cor_object_module)
+        .values(id_module=module.id_module, id_object=perm_object.id_object)
+        .on_conflict_do_nothing()
+    )
+    session.execute(stmt)
+    session.commit()
 
     # Création d'une permission disponible pour chaque action
     object_actions = PERMISSION_LABEL.get(perm_object_code)["actions"]
     for action in object_actions:
-        permaction = session.query(PermAction).filter_by(code_action=action).one()
+        permaction = session.execute(
+            select(PermAction).where(PermAction.code_action == action)
+        ).scalar_one()
         try:
-            perm = (
-                session.query(PermissionAvailable)
-                .filter_by(module=module, object=perm_object, action=permaction)
-                .one()
-            )
+            perm = session.execute(
+                select(PermissionAvailable).where(
+                    PermissionAvailable.module == module,
+                    PermissionAvailable.object == perm_object,
+                    PermissionAvailable.action == permaction,
+                )
+            ).scalar_one()
         except NoResultFound:
+            label = f"{ACTION_LABEL[action]} {object_label}"
+            if action == "E" and perm_object.code_object == "MONITORINGS_MODULES":
+                label = "Export les données du module"
             perm = PermissionAvailable(
                 module=module,
                 object=perm_object,
                 action=permaction,
-                label=f"{ACTION_LABEL[action]} {object_label}",
+                label=label,
                 scope_filter=True,
             )
             session.add(perm)
@@ -171,13 +217,14 @@ def remove_monitoring_module(module_code):
     # remove module in db
     try:
         # suppression des permissions disponibles pour ce module
-        txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
-        DB.engine.execution_options(autocommit=True).execute(txt)
+        # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
+        stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
 
-        # HACK pour le moment suppresion avec un sql direct
-        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
-        txt = f"""DELETE FROM gn_commons.t_modules WHERE id_module ={module.id_module}"""
-        DB.engine.execution_options(autocommit=True).execute(txt)
+        DB.session.execute(stmt)
+
+        stmt = delete(TModules).where(TModules.id_module == module.id_module)
+        DB.session.execute(stmt)
+        DB.session.commit()
     except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
         return
@@ -212,19 +259,20 @@ def add_nomenclature(module_code):
         return
 
     for data in nomenclature.get("types", []):
-        nomenclature_type = None
-        try:
-            nomenclature_type = (
-                DB.session.query(BibNomenclaturesTypes)
-                .filter(data.get("mnemonique") == BibNomenclaturesTypes.mnemonique)
-                .one()
+        nomenclature_type = DB.session.execute(
+            select(BibNomenclaturesTypes).where(
+                data.get("mnemonique") == BibNomenclaturesTypes.mnemonique
             )
-
-        except Exception:
-            pass
+        ).scalar_one_or_none()
 
         if nomenclature_type:
-            print("no insert type", nomenclature_type)
+            action = "already exist"
+            print(
+                "nomenclature type {} - {} - {}".format(
+                    nomenclature_type.mnemonique, nomenclature_type.label_default, action
+                )
+            )
+
             continue
 
         data["label_fr"] = data.get("label_fr") or data["label_default"]
@@ -235,66 +283,77 @@ def add_nomenclature(module_code):
         nomenclature_type = BibNomenclaturesTypes(**data)
         DB.session.add(nomenclature_type)
         DB.session.commit()
+        action = "added"
+        print(
+            "nomenclature type {} - {} - {}".format(
+                nomenclature_type.mnemonique, nomenclature_type.label_default, action
+            )
+        )
 
     for data in nomenclature["nomenclatures"]:
-        nomenclature = None
-        try:
-            nomenclature = (
-                DB.session.query(TNomenclatures)
-                .join(
-                    BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type
-                )
-                .filter(
-                    and_(
-                        data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
-                        data.get("type") == BibNomenclaturesTypes.mnemonique,
-                    )
-                )
-                .one()
+        insert_update_nomenclature(data)
+
+
+def insert_update_nomenclature(data):
+
+    # Get Id type
+    id_type = DB.session.execute(
+        select(BibNomenclaturesTypes.id_type).where(
+            BibNomenclaturesTypes.mnemonique == data["type"]
+        )
+    ).scalar_one_or_none()
+
+    if not id_type:
+        print(
+            'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
+                data["type"], data
             )
+        )
+        return
 
-        except Exception as e:
-            pass
-
-        if nomenclature:
-            # TODO make update
-            print(
-                "nomenclature {} - {} already exist".format(
-                    nomenclature.cd_nomenclature, nomenclature.label_default
-                )
+    # Get nomenclature if exist
+    action = "updated"
+    nomenclature = DB.session.execute(
+        select(TNomenclatures)
+        .join(BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type)
+        .where(
+            and_(
+                data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
+                data.get("type") == BibNomenclaturesTypes.mnemonique,
             )
-            continue
+        )
+    ).scalar_one_or_none()
 
-        id_type = None
+    # If not create new one
+    if not nomenclature:
+        nomenclature = TNomenclatures()
+        action = "added"
 
-        try:
-            id_type = (
-                DB.session.query(BibNomenclaturesTypes.id_type)
-                .filter(BibNomenclaturesTypes.mnemonique == data["type"])
-                .one()
-            )[0]
-        except Exception:
-            pass
+    data["label_fr"] = data.get("label_fr") or data["label_default"]
+    data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
+    data["source"] = data.get("source") or "monitoring"
+    data["statut"] = data.get("statut") or "Validation en cours"
+    data["active"] = True
+    data["id_type"] = id_type
 
-        if not id_type:
-            print(
-                'probleme de type avec mnemonique="{}" pour la nomenclature {}'.format(
-                    data["type"], data
-                )
-            )
-            continue
+    for key, value in data.items():
+        if hasattr(nomenclature, key):
+            setattr(nomenclature, key, value)
 
-        data["label_fr"] = data.get("label_fr") or data["label_default"]
-        data["definition_fr"] = data.get("definition_fr") or data["definition_default"]
-        data["source"] = data.get("source") or "monitoring"
-        data["statut"] = data.get("statut") or "Validation en cours"
-        data["active"] = True
-        data["id_type"] = id_type
-        data.pop("type")
+    DB.session.add(nomenclature)
+    DB.session.commit()
+    if data["type"] == "TYPE_SITE":
+        existing_bib_type_site = DB.session.get(BibTypeSite, nomenclature.id_nomenclature)
+        if not existing_bib_type_site:
+            bib_type_site = BibTypeSite(id_nomenclature_type_site=nomenclature.id_nomenclature)
+            DB.session.add(bib_type_site)
+            DB.session.commit()
 
-        nomenclature = TNomenclatures(**data)
-        DB.session.add(nomenclature)
-        DB.session.commit()
+    print(
+        "nomenclature {} - {} - {}".format(
+            nomenclature.cd_nomenclature, nomenclature.label_default, action
+        )
+    )
 
 
 def installed_modules(session=None):

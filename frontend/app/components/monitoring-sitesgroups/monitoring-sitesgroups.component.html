@@ -1,0 +1,28 @@
+<!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
+<div>
+  <pnx-monitoring-datatable-g
+    [dataTableArray]="dataTableArray"
+    [dataTableObj]="dataTableObj"
+    [rows]="siteResolvedProperties"
+    [colsname]="colsname"
+    (onSort)="setSort($event)"
+    [page]="page"
+    (onFilter)="setFilter($event)"
+    (onSetPage)="setPage($event)"
+    [obj]="sitesGroups"
+    (onDetailsRow)="seeDetails($event)"
+    (onEditEvent)="editChild($event)"
+    (onDeleteEvent)="onDelete($event)" 
+    (tabChanged)="updateActiveTab($event)"
+    [activetabIndex]="activetabIndex"
+    (addVisitFromTable)="addChildrenVisit($event)"
+    (saveOptionChildren)="onSaveAddChildren($event)"
+    [bDeleteModalEmitter]="bDeleteModalEmitter"
+    (rowStatusChange)="onSelectedOnDataTable($event)"
+    (onAddChildren)="navigateToAddChildren($event)"
+    (onAddObj)="navigateToAddObj($event)"
+    [permission]="currentPermission"
+    [currentUser]="currentUser"
+    parentPath="sites_group"
+  ></pnx-monitoring-datatable-g>
+</div>

@@ -1,9 +1,7 @@
-from flask import request
-
 from utils_flask_sqla.response import json_resp
 
-from ..blueprint import blueprint
-from ..config.repositories import get_config, get_config_frontend
+from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.config.repositories import get_config
 
 
 @blueprint.route("/config/<string:module_code>", methods=["GET"])
@@ -13,5 +11,5 @@ def get_config_api(module_code):
     """
     route qui renvoie la config pour un module donné
     """
-
-    return get_config_frontend(module_code, force=True)
+    config = get_config(module_code, force=True)
+    return dict(config)

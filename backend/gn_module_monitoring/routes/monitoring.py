@@ -3,48 +3,55 @@
         site, visit, observation, ...
 """
 
-
-from pathlib import Path
-from werkzeug.exceptions import NotFound
-from flask import request, send_from_directory, url_for, g, current_app
 import datetime as dt
 
+from werkzeug.exceptions import Forbidden
+
+from flask import request, url_for, g, current_app
+
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp, to_json_resp
-from utils_flask_sqla_geo.generic import GenericTableGeo
-from utils_flask_sqla.generic import serializeQuery
+from utils_flask_sqla.response import to_csv_resp
+from utils_flask_sqla_geo.generic import GenericQueryGeo
 
-
-from ..blueprint import blueprint
-
+from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects, Permission
+from geonature.core.gn_permissions.models import TObjects
 
 from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
+from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions
-from ..modules.repositories import get_module
-from ..utils.utils import to_int
-from ..config.repositories import get_config
+from gn_module_monitoring.monitoring.definitions import monitoring_definitions
+from gn_module_monitoring.modules.repositories import get_module
+from gn_module_monitoring.utils.utils import to_int
+from gn_module_monitoring.config.repositories import get_config
 
 
-@blueprint.url_value_preprocessor
-def set_current_module(endpoint, values):
-    # recherche du sous-module courrant
-    requested_module_code = values.get("module_code") or MODULE_CODE
-    current_module = (
-        TModules.query.options(joinedload(TModules.objects))
-        .filter_by(module_code=requested_module_code)
-        .first_or_404(f"No module with code {requested_module_code} {endpoint}")
+@blueprint.before_request
+def set_current_module():
+    values = {**request.view_args, **request.args} if request.view_args else {**request.args}
+
+    # recherche du sous-module courant
+    requested_module_code = (
+        values.get("module_code") or values.get("module_context") or MODULE_CODE
+    )
+    if requested_module_code == "generic":
+        requested_module_code = "MONITORINGS"
+
+    current_module = DB.first_or_404(
+        statement=select(TModules)
+        .options(joinedload(TModules.objects))
+        .where(TModules.module_code == requested_module_code),
+        description=f"No module with code {requested_module_code} ",
     )
     g.current_module = current_module
 
-    # recherche de l'object de permission courrant
+    # recherche de l'object de permission courant
     object_type = values.get("object_type")
 
     if object_type:
@@ -56,12 +63,12 @@ def set_current_module(endpoint, values):
             return
 
         # Test si l'object de permission existe
-        requested_permission_object = TObjects.query.filter_by(
-            code_object=requested_permission_object_code
-        ).first_or_404(
-            f"No permission object with code {requested_permission_object_code} {endpoint}"
+        requested_permission_object = DB.first_or_404(
+            statement=select(TObjects).where(
+                TObjects.code_object == requested_permission_object_code
+            ),
+            description=f"No permission object with code {requested_permission_object_code} ",
         )
-
         # si l'object de permission est associé au module => il devient l'objet courant
         # - sinon se sera 'ALL' par defaut
         for module_perm_object in current_module.objects:
@@ -71,17 +78,15 @@ def set_current_module(endpoint, values):
 
 
 @blueprint.route("/object/<string:module_code>/<string:object_type>/<int:id>", methods=["GET"])
-@blueprint.route(
-    "/object/<string:module_code>/<string:object_type>", defaults={"id": None}, methods=["GET"]
-)
+@blueprint.route("/object/<string:module_code>/<string:object_type>", methods=["GET"])
 @blueprint.route(
     "/object/module",
-    defaults={"module_code": None, "object_type": "module", "id": None},
     methods=["GET"],
 )
 @check_cruved_scope("R")
 @json_resp
-def get_monitoring_object_api(module_code, object_type, id):
+@permissions.check_cruved_scope("R", get_scope=True)
+def get_monitoring_object_api(scope, module_code=None, object_type="module", id=None):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -98,20 +103,27 @@ def get_monitoring_object_api(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    get_config(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
 
+    config = get_config(module_code, force=True)
+
+    monitoring_obj = monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config, id=id
+    )
+    if id != None:
+        object = monitoring_obj.get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
+
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
-            depth=depth
-        )
+        monitoring_obj.get(depth=depth)
         # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
 
 
-def create_or_update_object_api(module_code, object_type, id):
+def create_or_update_object_api(module_code, object_type, id=None):
     """
     route pour la création ou la modification d'un objet
     si id est renseigné, c'est une création (PATCH)
@@ -130,14 +142,51 @@ def create_or_update_object_api(module_code, object_type, id):
 
     # recupération des données post
     post_data = dict(request.get_json())
-    module = get_module("module_code", module_code)
 
-    # on rajoute id_module s'il n'est pas renseigné par défaut ??
-    post_data["properties"]["id_module"] = module.id_module
+    # on rajoute id_module s'il n'est pas renseigné par défaut
+    post_data["properties"].setdefault("id_module", None)
+    if not post_data["properties"]["id_module"]:
+        if module_code != "generic":
+            post_data["properties"]["id_module"] = get_module("module_code", module_code).id_module
+        else:
+            post_data["properties"]["id_module"] = "generic"
+
+    config = get_config(module_code, force=True)
+    return (
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
+        .create_or_update(post_data)
+        .serialize(depth)
+    )
+
+
+def get_serialized_object(module_code, object_type, id):
+    """
+    renvoie un object, à partir de type de l'object et de son id
+
+    :param module_code: reference le module concerne
+    :param object_type: le type d'object (site, visit, obervation)
+    :param id : l'identifiant de l'object (de id_base_site pour site)
+    :type module_code: str
+    :type object_type: str
+    :type id: int
+
+    :return: renvoie l'object requis
+    :rtype: dict
+    """
+
+    # field_name = param.get('field_name')
+    # value = module_code if object_type == 'module'
+    config = get_config(module_code, force=True)
+
+    depth = to_int(request.args.get("depth", 1))
 
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
-        .create_or_update(post_data)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        ).get(depth=depth)
+        # .get(value=value, field_name = field_name)
         .serialize(depth)
     )
 
@@ -151,8 +200,19 @@ def create_or_update_object_api(module_code, object_type, id):
 )
 @check_cruved_scope("U")
 @json_resp
-def update_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+@permissions.check_cruved_scope("U", get_scope=True)
+def update_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
+    if id != None:
+
+        config = get_config(module_code, force=True)
+        object = monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        ).get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
+
+    post_data = dict(request.get_json())
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -168,7 +228,8 @@ def update_object_api(module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+    post_data = dict(request.get_json())
+    # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -181,10 +242,27 @@ def create_object_api(module_code, object_type, id):
 )
 @check_cruved_scope("D")
 @json_resp
-def delete_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
+@permissions.check_cruved_scope("D", get_scope=True)
+def delete_object_api(scope, module_code, object_type, id):
+    depth = to_int(request.args.get("depth", 1))
 
-    return monitoring_definitions.monitoring_object_instance(module_code, object_type, id).delete()
+    # ??? PLUS VALABLE
+    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
+    # if object_type in ("site", "sites_group"):
+    #     raise Exception(
+    #         f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
+    #     )
+
+    config = get_config(module_code=module_code, force=True)
+    monitoring_obj = monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config, id=id
+    )
+    if id != None:
+        object = monitoring_obj.get(depth=depth)
+        if not object._model.has_instance_permission(scope=scope):
+            raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
+
+    return monitoring_obj.delete()
 
 
 # breadcrumbs
@@ -200,11 +278,13 @@ def delete_object_api(module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp
 def breadcrumbs_object_api(module_code, object_type, id):
-    get_config(module_code, force=True)
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
+    config = get_config(module_code=module_code, force=True)
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
         .get()
         .breadcrumbs(query_params)
     )
@@ -215,11 +295,11 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
-    get_config(module_code, force=True)
+    config = get_config(module_code, force=True)
 
-    return monitoring_definitions.monitoring_object_instance(module_code, object_type).get_list(
-        request.args
-    )
+    return monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, config=config
+    ).get_list(request.args)
 
 
 # mise à jour de la synthèse
@@ -227,10 +307,10 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
-    get_config(module_code, force=True)
+    config = get_config(module_code, force=True)
 
     return (
-        monitoring_definitions.monitoring_object_instance(module_code, "module")
+        monitoring_definitions.monitoring_object_instance(module_code, "module", config=config)
         .get()
         .process_synthese(process_module=True)
     )
@@ -253,25 +333,35 @@ def export_all_observations(module_code, method):
     :returns: Array of dict
     """
     id_dataset = request.args.get("id_dataset", None, int)
+    try:
+        export = GenericQueryGeo(
+            DB=DB,
+            tableName=f"v_export_{module_code.lower()}_{method}",
+            schemaName="gn_monitoring",
+            filters=[],
+            limit=50000,
+            offset=0,
+            geometry_field=None,
+            srid=None,
+        )
+    except KeyError:
+        return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
-    view = GenericTableGeo(
-        tableName=f"v_export_{module_code.lower()}_{method}",
-        schemaName="gn_monitoring",
-        engine=DB.engine,
-    )
-    columns = view.tableDef.columns
-    q = DB.session.query(*columns)
-    # Filter with dataset if is set
-    if hasattr(columns, "id_dataset") and id_dataset:
-        q = q.filter(columns.id_dataset == id_dataset)
-    data = q.all()
+    model = export.get_model()
+    columns = export.view.tableDef.columns
+    schema = export.get_marshmallow_schema()
 
+    q = select(model)
+    #  Filter with dataset if is set
+    if hasattr(model, "id_dataset") and id_dataset:
+        q = q.where(getattr(model, "id_dataset") == id_dataset)
+
+    data = DB.session.scalars(q).all()
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
-
     return to_csv_resp(
         filename,
-        data=serializeQuery(data, q.column_descriptions),
+        data=schema().dump(data, many=True),
         separator=";",
         columns=[
             db_col.key for db_col in columns if db_col.key != "geom"
@@ -289,8 +379,11 @@ def post_export_pdf(module_code, object_type, id):
     """
 
     depth = to_int(request.args.get("depth", 0))
+    config = get_config(module_code, force=True)
     monitoring_object = (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id)
+        monitoring_definitions.monitoring_object_instance(
+            module_code, object_type, config=config, id=id
+        )
         .get()
         .serialize(depth)
     )

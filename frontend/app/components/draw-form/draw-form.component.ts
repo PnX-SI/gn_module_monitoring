@@ -1,8 +1,10 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-
+import { FormControl } from '@angular/forms';
+import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
+import { FormService } from '../../services/form.service';
+import { GeoJSONService } from '../../services/geojson.service';
 
 @Component({
   selector: 'pnx-draw-form',
@@ -30,7 +32,12 @@ export class DrawFormComponent implements OnInit {
 
   @Input() bEdit;
 
-  constructor() {}
+  @Input() geomFromProtocol: boolean = true;
+
+  constructor(
+    private _formService: FormService,
+    public geoJsonService: GeoJSONService
+  ) {}
 
   ngOnInit() {
     // choix du type de geometrie
@@ -44,33 +51,34 @@ export class DrawFormComponent implements OnInit {
       this.displayed = false;
       return;
     }
-
     this.displayed = true;
-    switch (this.geometryType) {
-      case 'Point': {
-        this.leafletDrawOptions.draw.marker = {
-          icon: new CustomMarkerIcon(),
-        };
-        break;
-      }
-      case 'Polygon': {
-        this.leafletDrawOptions.draw.polygon = {
-          allowIntersection: false, // Restricts shapes to simple polygons
-          drawError: {
-            color: '#e1e100', // Color the shape will turn when intersects
-            message: 'Intersection forbidden !', // Message that will show when intersect
-          },
-        };
-        break;
-      }
-      case 'LineString': {
-        this.leafletDrawOptions.draw.polyline = true;
-        break;
-      }
-      default: {
-        this.leafletDrawOptions.draw.marker = true;
-        break;
-      }
+    this.initDrawConfig();
+    if (this.geometryType.includes('Point')) {
+      this.leafletDrawOptions.draw.marker = {
+        icon: new CustomMarkerIcon(),
+      };
+    }
+    if (this.geometryType.includes('Polygon')) {
+      this.leafletDrawOptions.draw.polygon = {
+        allowIntersection: false, // Restricts shapes to simple polygons
+        drawError: {
+          color: '#e1e100', // Color the shape will turn when intersects
+          message: 'Intersection forbidden !', // Message that will show when intersect
+        },
+      };
+    }
+    if (this.geometryType.includes('LineString')) {
+      this.leafletDrawOptions.draw.polyline = true;
+    }
+    // default if not specified
+    if (
+      !this.geometryType.includes('Point') &&
+      !this.geometryType.includes('LineString') &&
+      !this.geometryType.includes('Polygon')
+    ) {
+      this.leafletDrawOptions.draw.marker = {
+        icon: new CustomMarkerIcon(),
+      };
     }
 
     this.leafletDrawOptions = { ...this.leafletDrawOptions };
@@ -82,12 +90,16 @@ export class DrawFormComponent implements OnInit {
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
       // suivi formControl => composant
-      this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
-        (geometry) => {
-          this.setGeojson(geometry);
-        }
-      );
+      // this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
+      //   (geometry) => {
+      //     this.setGeojson(geometry);
+      //   }
+      // );
     }
+  }
+
+  initDrawConfig() {
+    this.leafletDrawOptions = leafletDrawOptions;
   }
 
   setGeojson(geometry) {
@@ -98,16 +110,33 @@ export class DrawFormComponent implements OnInit {
 
   // suivi composant => formControl
   bindGeojsonForm(geojson) {
-    this.geojson = geojson;
-    this.parentFormControl.setValue(geojson.geometry);
+    if (!this.parentFormControl) {
+      this._formService.currentFormMap.subscribe((dataForm) => {
+        if ('geometry' in dataForm.frmGp.controls) {
+          this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl;
+          // this.parentFormControl.setValue(geojson.geometry);
+          this.manageGeometryChange(geojson.geometry);
+        }
+      });
+    } else {
+      this.manageGeometryChange(geojson.geometry);
+      // this.parentFormControl.setValue(geojson.geometry);
+    }
+  }
+
+  manageGeometryChange(geometry) {
+    if (!isEqual(geometry, this.parentFormControl.value)) {
+      this.parentFormControl.setValue(geometry);
+    }
   }
 
   ngOnChanges(changes) {
     if (changes.parentFormControl && changes.parentFormControl.currentValue) {
       this.initForm();
     }
-    if (changes.geometryType && changes.geometryType.currentValue) {
-      this.initForm();
-    }
+    // if (changes.geometryType && changes.geometryType.currentValue) {
+    //   console.log("ICI changement draw form parentFormControl et geometryType")
+    //   this.initForm();
+    // }
   }
 }

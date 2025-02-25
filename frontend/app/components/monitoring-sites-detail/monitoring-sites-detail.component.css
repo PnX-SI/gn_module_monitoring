@@ -1,0 +1,9 @@
+.obj-title {
+  font-size: 1.75rem;
+  padding: 5px 15px;
+}
+
+:host ::ng-deep .obj-description {
+  font-size: 2rem;
+  font-weight: bold;
+}

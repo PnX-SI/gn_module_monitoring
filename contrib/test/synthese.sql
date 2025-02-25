@@ -13,14 +13,10 @@
 --  - choisir les valeurs de champs de nomenclatures qui seront propres au modules
 
 
--- ce fichier contient une variable :module_code (ou :'module_code')
+-- ce fichier contient une variable :module_code  
 -- utiliser psql avec l'option -v module_code=<module_code
-
--- ne pas remplacer cette variable, elle est indispensable pour les scripts d'installations
--- le module pouvant être installé avec un code différent de l'original
-
-DROP VIEW IF EXISTS gn_monitoring.v_synthese_:module_code;
-CREATE VIEW gn_monitoring.v_synthese_:module_code AS
+ 
+CREATE OR REPLACE VIEW gn_monitoring.v_synthese_test AS
 
 WITH source AS (
 
@@ -29,7 +25,7 @@ WITH source AS (
         id_source
 
     FROM gn_synthese.t_sources
-	WHERE name_source = CONCAT('MONITORING_', UPPER(:'module_code'))
+	WHERE name_source = CONCAT('MONITORING_', UPPER(:module_code))
 	LIMIT 1
 
 ), sites AS (
@@ -94,7 +90,7 @@ SELECT
 		--id_nomenclature_diffusion_level, -- NIV_PRECIS
 		--id_nomenclature_life_stage, -- STADE_VIE
 		--id_nomenclature_sex, -- SEXE
- 		ref_nomenclatures.get_id_nomenclature('IND', 'OBJ_DENBR') AS id_nomenclature_obj_count,
+ 		ref_nomenclatures.get_id_nomenclature('OBJ_DENBR', 'IND') AS id_nomenclature_obj_count,
  		ref_nomenclatures.get_id_nomenclature('TYP_DENBR', 'Es') AS id_nomenclature_type_count,
  		-- id_nomenclature_sensitivity, --SENSIBILITE
  		ref_nomenclatures.get_id_nomenclature('STATUT_OBS', 'Pr') AS id_nomenclature_observation_status, 
@@ -152,8 +148,6 @@ SELECT
     
  	LEFT JOIN LATERAL ref_geo.fct_get_altitude_intersection(s.geom_local) alt (altitude_min, altitude_max)
         ON TRUE
-    WHERE m.module_code = :'module_code'
+    WHERE m.module_code = :module_code
     ;
-
-
-SELECT * FROM gn_monitoring.v_synthese_:module_code
+ 

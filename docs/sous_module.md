@@ -36,6 +36,31 @@ title: 'Création d''un sous-module'
 * `nomenclature.json` (pour l'ajout de nomenclatures spécifiques au sous-module)
 * `synthese.sql` (vue pour la synchronisation avec la synthèse) voir
 
+S'ajoute à ces fichiers,  des fichiers de config de `types de site` que l'on devra associer aux sous modules installés.
+
+Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux imags ci dessous) . 
+
+<details><summary> Images représentant l'interface administrateur au niveau du menu "Types de site"</summary>
+
+![Menu dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel.png)
+
+
+![Config dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel_config.png)
+
+</details>
+
+Ces types de site , une fois créés pourront être associés au sous module dans la configuration du module.
+
+<details open><summary> Image représentant la configuration du module avec l'association aux types de sites</summary>
+
+![Association des types de site au sous module](docs/../images/type_site_module_config_front.png)
+
+</details>
+
+
+
+
+
 ## Les exports
 
 * `exports`
@@ -182,6 +207,8 @@ Pour cela il faut utiliser les variables suivantes :
 * `__MODULE.ID_MODULE`
 * `__MODULE.ID_LIST_OBSERVER`
 * `__MODULE.TAXONOMY_DISPLAY_FIELD_NAME`
+* `__MODULE.TYPES_SITE`
+* `__MODULE.IDS_TYPES_SITE`
 
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
@@ -254,16 +281,23 @@ nommée `specific` dans les fichiers `site.json`, `visit.json` ou
 }
 ```
 
-* **utilisateur** : choix de plusieurs noms d'utilisateurs dans une
-    liste
+* **utilisateur** : Il est possible de choisir des observateurs de deux manières différentes. Soit les observateurs sont issus d'une liste d'observateurs (voir `observers` ci dessous) soit on choisit de renseigner textuellement une liste d'observateurs (avec le champ `observers_txt` )
 ```json
 "observers": {
     "attribut_label": "Observateurs",
     "type_widget": "observers",
     "type_util": "user",
     "code_list": "__MODULE.ID_LIST_OBSERVER",
+    "hidden": false,
+    "required": true
+},
+"observers_txt": {
+      "hidden": true,
+      "required": false
 },
 ```
+
+Par défaut c'est la liste d'observateurs lié au sous module qui est choisi. Si l'on veut plutôt renseigner des observateurs textuellement il suffit d'inverser les champs `hidden` et `required` entre `observers` et `observers_txt`.
 
 Il est important d'ajouter `"type_util": "user"`.
 

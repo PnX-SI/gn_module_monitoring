@@ -1,0 +1,106 @@
+{
+    "cruved": {
+      "C": 1,
+      "U": 1,
+      "D": 3
+    },
+    "sorts": [
+      {
+        "prop": "base_site_name",
+        "dir": "asc"
+      }
+    ],
+    "filters": {},
+    "label": "Gite",
+    "label_list": "Gites",
+    "genre": "M",
+    "geometry_type": "Point",
+    "display_properties": [
+      "base_site_name",
+      "base_site_code",
+      "roost_type",
+      "nb_visits",
+      "threat",
+      "recommandation",
+      "opening",
+      "owner_name",
+      "owner_adress",
+      "owner_tel",
+      "owner_mail",
+      "medias"
+    ],
+    "display_list": [
+      "base_site_name",
+      "roost_type",
+      "nb_visits",
+      "owner_name"
+    ],
+    "specific": {
+      "roost_type": {
+        "type_widget": "select",
+        "required": true,
+        "attribut_label": "Type de gite",
+        "values": [
+          "barrage", 
+          "bâtiment", 
+          "cave", 
+          "Ebouli", 
+          "église", 
+          "façade", 
+          "four", 
+          "garage", 
+          "Gîte artificiel", 
+          "grange", 
+          "grenier", 
+          "grotte", 
+          "maison", 
+          "mine", 
+          "mur", 
+          "panneau", 
+          "plancher", 
+          "pont", 
+          "ruine", 
+          "toit", 
+          "toit et volet", 
+          "transformateur", 
+          "tunnel", 
+          "volet",
+          "Autre"
+          ]
+      },
+      "place_name": {
+        "type_widget": "text",
+        "attribut_label": "Lieux-dit"
+      },
+      "owner_name": {
+        "type_widget": "text",
+        "attribut_label": "Nom propriétaire"
+      },
+      "owner_adress": {
+        "type_widget": "text",
+        "attribut_label": "Adresse propriétaire"
+      },
+      "owner_tel": {
+        "type_widget": "text",
+        "attribut_label": "Tel propriétaire"
+      },
+      "owner_mail": {
+        "type_widget": "text",
+        "attribut_label": "Email propriétaire"
+      },
+      "opening": {
+        "type_widget": "textarea",
+        "attribut_label": "Ouverture"
+      },
+      "threat": {
+        "type_widget": "textarea",
+        "attribut_label": "Menace(s)",
+        "rows": 3
+      },
+      "recommandation": {
+        "type_widget": "textarea",
+        "attribut_label": "Mesure(s) préconisé(s)",
+        "rows": 3
+      }
+    }
+  }

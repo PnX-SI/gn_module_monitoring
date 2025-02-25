@@ -1,0 +1,52 @@
+<div>
+  <span class="obj-title"
+    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ siteService.objectObs.label }}:</span
+  >
+  <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
+</div>
+<pnx-monitoring-form [obj]="obj" [objForm]="form"
+  (objChanged)="onObjChanged($event)"
+  *ngIf="bEdit"
+  [(bEdit)]="bEdit"
+  [apiService]="siteService"
+  [isExtraForm]="true"
+  [currentUser]="currentUser"
+  (bEditChange)="onbEditChange($event)" 
+> 
+</pnx-monitoring-form>
+<pnx-monitoring-properties-g
+  *ngIf="!bEdit"
+  [(bEdit)]="bEdit"
+  [newParentType]="objParent"
+  [selectedObj]="objResolvedProperties"
+  [selectedObjRaw]="objSelected"
+  [permission]="currentPermission"
+  (bEditChange)="onbEditChange($event)" 
+></pnx-monitoring-properties-g>
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
+  [dataTableArray]="dataTableArray"
+  [dataTableObj]="dataTableObj"
+  [rows]="rows"
+  [colsname]="colsname"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [obj]="visits"
+  (onDetailsRow)="seeDetails($event)"
+  (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
+  [permission]="currentPermission"
+  parentPath="site"
+>
+  <option-list-btn
+    add-button
+    placeholder="Sélectionner le protocole"
+    label="Ajouter une visite"
+    [optionList]="modules"
+    (onDeployed)="getModules()"
+    (onSaved)="addNewVisit($event)"
+  ></option-list-btn
+></pnx-monitoring-datatable-g>
