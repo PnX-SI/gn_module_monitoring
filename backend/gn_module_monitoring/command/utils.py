@@ -727,24 +727,24 @@ def determine_field_type(field_data: dict) -> str:
     int_type_utils = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
 
     if type_widget in ["observers", "datalist"]:
-        return "INTEGER[]" if multiple else "INTEGER"
+        return "integer[]" if multiple else "integer"
 
     if type_util in int_type_utils:
-        return "INTEGER"
+        return "integer"
 
     if type_widget in ["checkbox", "multiselect"]:
-        return "VARCHAR[]"
+        return "varchar[]"
 
     if type_widget in type_mapping:
         return type_mapping[type_widget].upper()
 
     if type_widget == "number":
-        return "INTEGER"
+        return "integer"
 
     if type_widget == "bool_checkbox":
-        return "BOOLEAN"
+        return "boolean"
 
-    return "VARCHAR"
+    return "varchar"
 
 
 def get_bib_field(field_data, entity_code, field_name, id_destination: int):
@@ -881,7 +881,9 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         order += 1
 
         existing_entity = DB.session.execute(
-            select(Entity.id_entity).filter_by(code=entity_code, id_destination=id_destination)
+            select(Entity.id_entity).filter_by(
+                code=entity_code_obs_detail, id_destination=id_destination
+            )
         ).scalar()
 
         if existing_entity:
@@ -900,12 +902,11 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
             if not inserted_entity_id:
                 inserted_entity_id = DB.session.execute(
                     select(Entity.id_entity).filter_by(
-                        code=entity_code, id_destination=id_destination
+                        code=entity_code_obs_detail, id_destination=id_destination
                     )
                 ).scalar()
 
         inserted_entities[entity_code] = inserted_entity_id
-
         DB.session.flush()
 
 
@@ -1019,7 +1020,7 @@ def map_field_type_sqlalchemy(type_widget: str):
         "date": Date,
         "jsonb": JSON,
     }
-    return type_mapping.get(type_widget, String)
+    return type_mapping.get(type_widget.lower(), String)
 
 
 def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
@@ -1122,7 +1123,6 @@ def compare_protocol_fields(existing_fields, new_fields):
     to_update = []
     to_delete = []
 
-    # Identifier les champs à ajouter et mettre à jour
     for name, new_field in new_by_name.items():
         if name not in existing_by_name:
             to_add.append(new_field)
@@ -1131,7 +1131,6 @@ def compare_protocol_fields(existing_fields, new_fields):
             if has_field_changes(existing, new_field):
                 to_update.append(new_field)
 
-    # Identifier les champs à supprimer
     for name in existing_by_name:
         if name not in new_by_name:
             to_delete.append(existing_by_name[name])
@@ -1157,7 +1156,7 @@ def has_field_changes(existing, new) -> bool:
     return any(existing.get(attr) != new.get(attr) for attr in relevant_attrs)
 
 
-def get_existing_protocol_state(id_destination: int):
+def get_existing_protocol_state(id_destination: int, module_data):
     """
     Récupère l'état actuel du protocole en base de données.
     """
@@ -1167,15 +1166,19 @@ def get_existing_protocol_state(id_destination: int):
     entities_query = select(Entity).filter_by(id_destination=id_destination)
     existing_entities = DB.session.execute(entities_query).scalars().all()
 
+    entity = DB.session.execute(select(Entity).filter_by(id_destination=id_destination)).scalar()
+    new_label = module_data["module"].get("module_label")
+
     return {
         "fields": [field.__dict__ for field in existing_fields],
         "entities": [entity.__dict__ for entity in existing_entities],
+        "label": True if entity and entity.label != new_label else False,
     }
 
 
 def process_update_module_import(module_data, module_code: str):
     """
-    Gère la mise à jour complète d'un module, y compris le libellé uniquement.
+    Gère la mise à jour complète d'un module.
     """
     try:
         is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
@@ -1206,27 +1209,6 @@ def process_update_module_import(module_data, module_code: str):
         return False
 
 
-def get_module_update_label(module_data, destination_id: int) -> bool:
-    """
-    Vérifie si le label de l'entité principale doit être mis à jour.
-
-    Args:
-        module_data: Données du module.
-        destination_id: ID de la destination associée.
-
-    Returns:
-        True si une mise à jour du label est nécessaire, False sinon.
-    """
-    new_label = module_data["module"].get("module_label")
-
-    entity = DB.session.execute(select(Entity).filter_by(id_destination=destination_id)).scalar()
-
-    if entity and entity.label != new_label:
-        return True
-
-    return False
-
-
 def validate_protocol_changes(module_code: str, module_data):
     """
     Valide les changements dans les fichiers de configuration du protocole.
@@ -1253,7 +1235,7 @@ def validate_protocol_changes(module_code: str, module_data):
                 False,
             )
 
-        existing_data = get_existing_protocol_state(destination.id_destination)
+        existing_data = get_existing_protocol_state(destination.id_destination, module_data)
         protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
 
         all_new_fields = []
@@ -1265,10 +1247,8 @@ def validate_protocol_changes(module_code: str, module_data):
             existing_data["fields"], all_new_fields
         )
 
-        module_label = get_module_update_label(module_data, destination.id_destination)
-
         warnings = []
-        if module_label:
+        if existing_data["label"]:
             warnings.append(
                 f"INFO: Le libellé du module va être modifié. {destination.label} -> {module_data['module'].get('module_label')}"
             )
@@ -1291,14 +1271,19 @@ def validate_protocol_changes(module_code: str, module_data):
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
             )
 
-        if not fields_to_add and not fields_to_update and not fields_to_delete and module_label:
+        if (
+            not fields_to_add
+            and not fields_to_update
+            and not fields_to_delete
+            and existing_data["label"]
+        ):
             return True, warnings, [], True
 
         if (
             not fields_to_add
             and not fields_to_update
             and not fields_to_delete
-            and not module_label
+            and not existing_data["label"]
         ):
             warnings.append("Aucun changement détecté dans le protocole.")
             return None, warnings, [], False
