@@ -663,7 +663,11 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
     Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
     Organise les données sous deux clés : 'generic' et 'specific'.
     """
-    entity_fields = {"generic": [], "specific": []}
+    entity_fields = {
+        "generic": [],
+        "specific": [],
+        "label": specific_data.get("label", generic_data.get("label", entity_code)),
+    }
 
     generic_fields = generic_data.get("generic", {})
     for field_name, generic_field_data in generic_fields.items():
@@ -872,7 +876,7 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         entity_data = {
             "id_destination": id_destination,
             "code": entity_code_obs_detail,
-            "label": label_entity[:64] if label_entity else None,
+            "label": fields["label"][:64] if fields["label"] else entity_code,
             "order": order,
             "validity_column": f"{entity_code.lower()}_valid",
             "destination_table_schema": "gn_monitoring",
