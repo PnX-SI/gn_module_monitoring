@@ -278,6 +278,10 @@ def remove_monitoring_module(module_code):
 
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
+
+        stmt = delete(Destination).where(Destination.id_module == module.id_module)
+        DB.session.execute(stmt)
+
         DB.session.commit()
     except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
