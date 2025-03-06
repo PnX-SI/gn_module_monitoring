@@ -57,6 +57,19 @@
                 {{ 'Monitoring.List.Add' | translate }}
                 {{ child0.template['label_art_undef_new'] || '' }}
               </button>
+
+              <button
+                mat-raised-button
+                id="import-btn"
+                *ngIf="this.canImport"
+                color="primary"
+                class="btn-action uppercase float-right"
+                [routerLink]="[importRoute]"
+                [queryParams]="this.getImportQueryParams()"
+              >
+                Importer
+                <mat-icon>file_upload</mat-icon>
+              </button>
             </div>
           </div>
           <div class="mt-2">
