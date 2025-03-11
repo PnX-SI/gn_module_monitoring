@@ -674,11 +674,11 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
         "label": specific_data.get("label", generic_data.get("label", entity_code)),
     }
 
-    unwanted_fields = ['id_module']
+    ignored_fields = ["id_module"]
 
     generic_fields = generic_data.get("generic", {})
     for field_name, generic_field_data in generic_fields.items():
-        if field_name in unwanted_fields:
+        if field_name in ignored_fields:
             continue
         if field_name in specific_data.get("specific", {}):
             field_data = {**generic_field_data, **specific_data["specific"][field_name]}
@@ -695,7 +695,7 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
         generic_fields.keys()
     )
     for field_name in additional_fields:
-        if field_name in unwanted_fields:
+        if field_name in ignored_fields:
             continue
         field_data = specific_data["specific"][field_name]
         entity_fields["specific"].append(
