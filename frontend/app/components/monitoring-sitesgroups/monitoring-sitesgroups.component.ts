@@ -120,6 +120,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       this.currentRoute = data.route;
       this.moduleCode = data.moduleCode;
+      this.geojsonService.setModuleCode(`${this.moduleCode}`);
       this.currentUser = this._auth.getCurrentUser();
       this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
 

@@ -104,8 +104,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
-    this.siteService.setModuleCode(this.moduleCode);
-    this._visits_service.setModuleCode(this.moduleCode);
+    this.siteService.setModuleCode(`${this.moduleCode}`);
+    this._visits_service.setModuleCode(`${this.moduleCode}`);
 
     this.currentUser = this._auth.getCurrentUser();
     this.funcInitValues = this.initValueToSend.bind(this);

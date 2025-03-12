@@ -137,10 +137,14 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     const clean_params = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== '' && v !== null)
     );
+    
+    const endPoint = !(this.objectObs.moduleCode === 'generic')
+      ? `refacto/${this.objectObs.moduleCode}/${this.endPoint}/geometries`
+      : `${this.endPoint}/geometries`;
 
     return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
       'get',
-      `${this.endPoint}/geometries`,
+      endPoint,
       {
         queryParams: { ...clean_params },
       }
