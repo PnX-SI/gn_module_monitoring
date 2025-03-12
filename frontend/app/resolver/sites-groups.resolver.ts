@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SitesGroupService, SitesService } from '../services/api-geom.service';
 import { Observable, forkJoin, of } from 'rxjs';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot,Router } from '@angular/router';
 import { ISite, ISitesGroup } from '../interfaces/geom';
 import { IPaginated } from '../interfaces/page';
 import { IobjObs } from '../interfaces/objObs';
@@ -30,7 +30,8 @@ export class SitesGroupsResolver
     public serviceSite: SitesService,
     public _configJsonService: ConfigJsonService,
     public _permissionService: PermissionService,
-    private _dataMonitoringObjectService: DataMonitoringObjectService
+    private _dataMonitoringObjectService: DataMonitoringObjectService,
+    private router: Router
   ) {}
 
   resolve(
@@ -50,46 +51,50 @@ export class SitesGroupsResolver
     const $permissionUserObject = this._permissionService.currentPermissionObj;
     const $configSitesGroups = this.service.initConfig();
     const $configSites = this.serviceSite.initConfig();
-
     const resolvedData = $getPermissionMonitoring.pipe(
       map((listObjectCruved: Object) => {
         this._permissionService.setPermissionMonitorings(listObjectCruved);
       }),
       concatMap(() =>
         $permissionUserObject.pipe(
-          map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
+          map((permissionObject: TPermission) => (this.currentPermission = permissionObject)),
         )
       ),
       concatMap(() =>
         forkJoin([$configSitesGroups, $configSites]).pipe(
           map((configs) => {
-            const configSchemaSiteGroup = this._configJsonService.configModuleObject(
+            if (!configs[0] && state.url.includes("/monitorings/object/") && state.url.includes("sites_group") ) {
+              this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
+            }
+            
+            const configSchemaSiteGroup = configs[0] ? this._configJsonService.configModuleObject(
               configs[0].moduleCode,
               configs[0].objectType
-            );
+            ) : null;
 
-            const configSchemaSite = this._configJsonService.configModuleObject(
+            const configSchemaSite = configs[1] ? this._configJsonService.configModuleObject(
               configs[1].moduleCode,
               configs[1].objectType
-            );
-            const sortSiteGroupInit =
+            ) : null;
+
+            const sortSiteGroupInit = configSchemaSiteGroup ?
               'sorts' in configSchemaSiteGroup
                 ? {
                     sort_dir: configSchemaSiteGroup.sorts[0].dir,
                     sort: configSchemaSiteGroup.sorts[0].prop,
                   }
-                : {};
-            const sortSiteInit =
+                : {} : null;
+            const sortSiteInit = configSchemaSite ?
               'sorts' in configSchemaSite
                 ? { sort_dir: configSchemaSite.sorts[0].dir, sort: configSchemaSite.sorts[0].prop }
-                : {};
+                : {} : null;
 
-            const $getSiteGroups = this.currentPermission.MONITORINGS_GRP_SITES.canRead
+            const $getSiteGroups = sortSiteGroupInit ? this.currentPermission.MONITORINGS_GRP_SITES.canRead
               ? this.service.get(1, LIMIT, sortSiteGroupInit)
-              : of({ items: [], count: 0, limit: 0, page: 1 });
-            const $getSites = this.currentPermission.MONITORINGS_SITES.canRead
+              : of({ items: [], count: 0, limit: 0, page: 1 }) : of(null);
+            const $getSites = sortSiteInit ? this.currentPermission.MONITORINGS_SITES.canRead
               ? this.serviceSite.get(1, LIMIT, sortSiteInit)
-              : of({ items: [], count: 0, limit: 0, page: 1 });
+              : of({ items: [], count: 0, limit: 0, page: 1 }) : of(null);
 
             return forkJoin([$getSiteGroups, $getSites]).pipe(
               map(([siteGroups, sites]) => {

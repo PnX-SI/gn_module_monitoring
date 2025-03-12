@@ -81,6 +81,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   bEdit: false;
 
+  shouldHandleGroupSites = true;
+
   constructor(
     private _auth: AuthService,
     private _sites_group_service: SitesGroupService,
@@ -109,26 +111,33 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   initSiteGroup() {
-    this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
-    this._objService.changeObjectType(this._sites_group_service.objectObs);
-
     this._Activatedroute.data.subscribe(({ data }) => {
+      this.shouldHandleGroupSites = Boolean((this._sites_group_service.objectObs as any).config);
+      const objectObs = this.shouldHandleGroupSites ? this._sites_group_service.objectObs : this._sitesService.objectObs;
+  
+      this._objService.changeObjectTypeParent(objectObs);
+      this._objService.changeObjectType(objectObs);
+
+      this.currentRoute = data.route;
       this.moduleCode = data.moduleCode;
       this.currentUser = this._auth.getCurrentUser();
       this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
 
       this.currentPermission = data.permission;
+      
+      const currentData =  this.shouldHandleGroupSites ? data.sitesGroups.data : data.sites.data;
+      const currentObjConfig =  this.shouldHandleGroupSites ? data.sitesGroups.objConfig : data.sites.objConfig;
+
       this.page = {
-        count: data.sitesGroups.data.count,
-        limit: data.sitesGroups.data.limit,
-        page: data.sitesGroups.data.page - 1,
+        count: currentData.count,
+        limit: currentData.limit,
+        page: currentData.page - 1,
       };
-      this.sitesGroups = data.sitesGroups.data.items;
+      this.sitesGroups = currentData.items;
       // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
-      this.colsname = data.sitesGroups.objConfig.dataTable.colNameObj;
-      this.currentRoute = data.route;
+      this.colsname = currentObjConfig.dataTable.colNameObj;
       if (data.route == 'site') {
-        this.activetabIndex = 1;
+        this.activetabIndex = this.shouldHandleGroupSites ? 1 : 0;
         this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
         this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
       } else {
@@ -155,7 +164,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           .init(this.moduleCode)
           .pipe(
             mergeMap(() => {
-              return this.obj.get(1);
+              return this.obj.get(0);
             })
           )
           .subscribe(() => {
@@ -266,7 +275,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
-    if (this.activetabIndex == 1) {
+    if (this.shouldHandleGroupSites && this.activetabIndex == 1 || !this.shouldHandleGroupSites) {
       this._objService.changeObjectTypeParent(this._sitesService.objectObs);
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
@@ -387,6 +396,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   setDataTableObj(data) {
     const objTemp = {};
     for (const dataType in data) {
+      if (!data[dataType].objConfig) {
+        continue;
+      }
       let objType = data[dataType].objConfig.objectType;
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
@@ -399,6 +411,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
 
     for (const dataType in data) {
+      if (!data[dataType].objConfig) {
+        continue;
+      }
       let objType = data[dataType].objConfig.objectType;
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       if (objType == 'site') {

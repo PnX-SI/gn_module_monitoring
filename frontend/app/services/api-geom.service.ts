@@ -51,6 +51,10 @@ export class ApiService<T = IObject> implements IService<T> {
           'display_list'
         );
 
+        if(!fieldNamesList) {
+          return null;
+        }
+
         const labelList = this._configJsonService.configModuleObjectParam(
           this.objectObs.moduleCode,
           this.objectObs.objectType,
