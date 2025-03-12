@@ -18,6 +18,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringObservations,
     TMonitoringObservationDetails,
+    TMonitoringIndividuals,
 )
 
 
@@ -196,3 +197,10 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
         load_relationships = True
 
     medias = MA.Nested(MediaSchema, many=True)
+
+
+class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
+    class Meta:
+        model = TMonitoringIndividuals
+        include_fk = True
+        load_relationships = True
