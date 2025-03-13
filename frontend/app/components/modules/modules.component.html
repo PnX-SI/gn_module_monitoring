@@ -42,7 +42,7 @@
             style="min-width: 250px; max-width: 250px"
             *ngFor="let module of modules"
           >
-            <a [routerLink]="['object', module.module_code, 'module', module.id_module]">
+            <a [routerLink]="['object', module.module_code, 'sites_group']">
               <div class="card module-card" title="code&nbsp;: {{ module.module_code }}">
                 <img
                   class="card-img-top"

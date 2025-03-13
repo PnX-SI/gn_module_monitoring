@@ -13,6 +13,8 @@ import { GeoJSONService } from '../../services/geojson.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
+import { IBreadCrumb } from '../../interfaces/object';
+import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'monitoring-sitesgroups-create',
@@ -28,6 +30,12 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   obj: MonitoringObject;
   bEdit: boolean = true;
 
+  breadCrumbList: IBreadCrumb[] = [];
+  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
+  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
+
+  moduleCode: string;
+
   constructor(
     private _auth: AuthService,
     private _formService: FormService,
@@ -41,6 +49,8 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.moduleCode = this._route.snapshot.data.createSitesGroups.moduleCode;
+
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
 
@@ -50,7 +60,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     }
 
     this.obj = new MonitoringObject(
-      'generic',
+      this.moduleCode,
       'sites_group',
       null,
       this._monitoringObjServiceMonitoring
@@ -60,7 +70,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     this._route.paramMap
       .pipe(
         mergeMap(() => {
-          return this._configService.init();
+          return this._configService.init(this.moduleCode);
         }),
         mergeMap(() => {
           return this.obj.get(0);
@@ -73,8 +83,31 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
           bEdit: true,
           obj: this.obj,
         });
+        this.updateBreadCrumb();
         this.obj.bIsInitialized = true;
       });
+  }
+
+  updateBreadCrumb() {
+    const breadcrumb: IBreadCrumb[] = [];
+
+    if (this.moduleCode !== 'generic') {
+      const module = this._configService.config()[this.moduleCode].module;
+      breadcrumb.push({
+        description: module.module_label,
+        label: '',
+        url: `object/${module.module_code}/sites_group`,
+      });
+    }
+
+    this.breadCrumbElementBase = {
+      ...this.breadCrumbElementBase,
+      url: `object/${this.moduleCode}/site`,
+    };
+
+    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase];
+
+    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   ngOnDestroy() {

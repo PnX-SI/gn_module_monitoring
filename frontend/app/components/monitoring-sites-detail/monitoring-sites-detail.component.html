@@ -13,14 +13,13 @@
   [currentUser]="currentUser"
 > 
 </pnx-monitoring-form>
-<pnx-monitoring-properties-g
-  *ngIf="!bEdit"
-  [(bEdit)]="bEdit"
-  [newParentType]="objParent"
-  [selectedObj]="objResolvedProperties"
-  [selectedObjRaw]="objSelected"
-  [permission]="currentPermission"
-></pnx-monitoring-properties-g>
+<pnx-monitoring-properties
+    *ngIf="obj && !bEdit && obj.bIsInitialized"
+    id="nav-properties"
+    [obj]="obj"
+    [(bEdit)]="bEdit"
+    [currentUser]="currentUser">
+</pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
   [dataTableArray]="dataTableArray"
@@ -46,5 +45,5 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-  ></option-list-btn
-></pnx-monitoring-datatable-g>
+  ></option-list-btn>
+</pnx-monitoring-datatable-g>

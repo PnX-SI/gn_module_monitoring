@@ -5,15 +5,15 @@ import { Observable, of } from 'rxjs';
 import { mergeMap, concatMap, tap } from 'rxjs/operators';
 
 import { endPoints } from '../../enum/endpoints';
-import { ISite, ISiteType } from '../../interfaces/geom';
-import { IobjObs, ObjDataType, SiteSiteGroup } from '../../interfaces/objObs';
+import { ISite, ISitesGroup, ISiteType } from '../../interfaces/geom';
+import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { SitesGroupService, SitesService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { IPaginated } from '../../interfaces/page';
 import { IBreadCrumb } from '../../interfaces/object';
-import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
+import { breadCrumbBase } from '../../class/breadCrumb';
 import { GeoJSONService } from '../../services/geojson.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 
@@ -40,12 +40,14 @@ export class MonitoringSitesCreateComponent implements OnInit {
   urlRelative: string;
 
   breadCrumbList: IBreadCrumb[] = [];
-  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
-  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
+  breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSites.value;
 
   obj: MonitoringObject;
   bEdit: boolean = true;
   currentUser: User;
+  moduleCode: string;
+  sitesGroup: ISitesGroup;
+
   constructor(
     private _auth: AuthService,
     private _formService: FormService,
@@ -60,15 +62,21 @@ export class MonitoringSitesCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const idSitesGroup = this._route.snapshot.data.createSite.id_sites_group;
+    this.moduleCode = this._route.snapshot.data.createSite.moduleCode;
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
-
     const elements = document.getElementsByClassName('monitoring-map-container');
     if (elements.length >= 1) {
       elements[0].remove();
     }
 
-    this.obj = new MonitoringObject('generic', 'site', null, this._monitoringObjServiceMonitoring);
+    this.obj = new MonitoringObject(
+      this.moduleCode,
+      'site',
+      null,
+      this._monitoringObjServiceMonitoring
+    );
     this.currentUser = this._auth.getCurrentUser();
 
     this._route.paramMap
@@ -78,15 +86,20 @@ export class MonitoringSitesCreateComponent implements OnInit {
         }),
         mergeMap(() => {
           return this.obj.get(0);
+        }),
+        mergeMap(() => {
+          return this._sitesGroupService.getById(idSitesGroup);
         })
       )
-      .subscribe((params) => {
+      .subscribe((sitesGroup) => {
+        this.sitesGroup = sitesGroup;
         this.obj.initTemplate();
         this._formService.changeFormMapObj({
           frmGp: this.objForm,
           bEdit: true,
           obj: this.obj,
         });
+        this.updateBreadCrumb();
         this.obj.bIsInitialized = true;
       });
   }
@@ -96,7 +109,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   }
 
   initConfig(): Observable<any> {
-    return this._configService.init().pipe(
+    return this._configService.init(this.moduleCode).pipe(
       concatMap(() => {
         if (this.obj.objectType == 'site' && this.obj.id != null) {
           return this._monitoringObjServiceMonitoring
@@ -119,18 +132,32 @@ export class MonitoringSitesCreateComponent implements OnInit {
     );
   }
 
-  updateBreadCrumb(sitesGroup) {
-    this.breadCrumbElemnt.description = sitesGroup.sites_group_name;
-    this.breadCrumbElemnt.label = 'Groupe de site';
-    this.breadCrumbElemnt['id'] = sitesGroup.id_sites_group;
-    this.breadCrumbElemnt['objectType'] =
-      this._sitesGroupService.objectObs.objectType || 'sites_group';
-    this.breadCrumbElemnt['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbElemnt.id?.toString(),
-    ].join('/');
+  updateBreadCrumb() {
+    const breadcrumb: IBreadCrumb[] = [];
 
-    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbElemnt];
+    if (this.moduleCode !== 'generic') {
+      const module = this._configService.config()[this.moduleCode].module;
+      breadcrumb.push({
+        description: module.module_label,
+        label: '',
+        url: `object/${module.module_code}/sites_group`,
+      });
+      if (this.sitesGroup) {
+        breadcrumb.push({
+          description: `Groupe de site : ${this.sitesGroup.sites_group_name}`,
+          label: '',
+          url: `object/${module.module_code}/sites_group/${this.sitesGroup.id_sites_group}`,
+        });
+      }
+    }
+
+    this.breadCrumbElementBase = {
+      ...this.breadCrumbElementBase,
+      url: `object/${this.moduleCode}/site`,
+    };
+
+    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase];
+
     this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
