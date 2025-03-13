@@ -1,4 +1,11 @@
 <div id="geometry" class="monitoring-map-container">
+
+  <div *ngIf="!(obj && obj.bIsInitialized)" class="spinner-overlay">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p>Chargement des géométries...</p>
+    </div>
+  </div>
   <pnx-map
     [height]="heightMap"
     [ngClass]="{ 'hide-draw-form': !(bEdit && obj && obj.config['geometry_type']) }"
