@@ -88,7 +88,7 @@ export class BreadcrumbsComponent implements OnInit {
         } else {
           this._router.navigate(
             [
-              this._configService.frontendModuleMonitoringUrl(),
+              'monitorings',
               'object',
               elem.module_code,
               elem.object_type,
