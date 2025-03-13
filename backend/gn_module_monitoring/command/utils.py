@@ -623,6 +623,8 @@ def get_protocol_data(module_code: str, id_destination: int):
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+    entity_confs = {}
+    # Ensure all confs are loaded in a dict
     for entity_code in entities:
         file_path = module_config_dir_path / f"{entity_code}.json"
         specific_data = json_from_file(file_path)
@@ -630,16 +632,26 @@ def get_protocol_data(module_code: str, id_destination: int):
         generic_data_path = os.path.join(project_root, "config", "generic", f"{entity_code}.json")
         generic_data = json_from_file(generic_data_path, result_default={})
 
-        parent_entity = get_entity_parent(tree, entity_code)
-        uuid_column = generic_data.get("id_field_name")
-
-        entity_hierarchy_map[entity_code] = {
-            "uuid_column": uuid_column,
-            "parent_entity": parent_entity,
+        entity_confs[entity_code] = {
+            "specific_data": generic_data,
+            "generic_data": generic_data,
         }
 
+    # Now we can iterate safetly over confs
+    for entity_code in entity_confs:
+        entity_conf = entity_confs[entity_code]
+        parent_entity = get_entity_parent(tree, entity_code)
+        specific_data = entity_conf["specific_data"]
+        generic_data = entity_conf["generic_data"]
+        id_field_name = generic_data.get("id_field_name")
+
+        entity_hierarchy_map[entity_code] = {
+            "id_field_name": id_field_name,
+            "parent_entity": parent_entity,
+        }
+        parent_data = entity_confs.get(parent_entity, None)
         protocol_data[entity_code] = prepare_fields(
-            specific_data, generic_data, entity_code, id_destination
+            specific_data, generic_data, entity_code, id_destination, parent_data
         )
 
     # Add observation_detail if exists the file exists
@@ -652,18 +664,19 @@ def get_protocol_data(module_code: str, id_destination: int):
         if observation_detail_specific_path.exists():
             specific_data = json_from_file(observation_detail_specific_path)
             generic_data = json_from_file(observation_detail_generic_path, result_default={})
-            protocol_data["observation_detail"] = prepare_fields(
-                specific_data, generic_data, "observation_detail", id_destination
-            )
             entity_hierarchy_map["observation_detail"] = {
-                "uuid_column": generic_data.get("id_field_name"),
+                "id_field_name": generic_data.get("id_field_name"),
                 "parent_entity": "observation",
             }
+            parent_data = entity_confs.get("observation", None)
+            protocol_data["observation_detail"] = prepare_fields(
+                specific_data, generic_data, "observation_detail", id_destination, parent_data
+            )
 
     return protocol_data, entity_hierarchy_map
 
 
-def prepare_fields(specific_data, generic_data, entity_code, id_destination):
+def prepare_fields(specific_data, generic_data, entity_code, id_destination, parent_data):
     """
     Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
     Organise les données sous deux clés : 'generic' et 'specific'.
@@ -683,12 +696,16 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
         if field_name in specific_data.get("specific", {}):
             field_data = {**generic_field_data, **specific_data["specific"][field_name]}
             entity_fields["specific"].append(
-                get_bib_field(field_data, entity_code, field_name, id_destination)
+                get_bib_field(
+                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
+                )
             )
         else:
             field_data = generic_field_data
             entity_fields["generic"].append(
-                get_bib_field(field_data, entity_code, field_name, id_destination)
+                get_bib_field(
+                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
+                )
             )
 
     additional_fields = set(specific_data.get("specific", {}).keys()).difference(
@@ -699,7 +716,9 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination):
             continue
         field_data = specific_data["specific"][field_name]
         entity_fields["specific"].append(
-            get_bib_field(field_data, entity_code, field_name, id_destination)
+            get_bib_field(
+                field_data, entity_code, field_name, id_destination, generic_data, parent_data
+            )
         )
 
     return entity_fields
@@ -764,7 +783,9 @@ def determine_field_type(field_data: dict) -> str:
     return "varchar"
 
 
-def get_bib_field(field_data, entity_code, field_name, id_destination: int):
+def get_bib_field(
+    field_data, entity_code, field_name, id_destination: int, generic_data, parent_data
+):
     """
     Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
     """
@@ -783,12 +804,16 @@ def get_bib_field(field_data, entity_code, field_name, id_destination: int):
 
     determined_type_field = determine_field_type(field_data)
 
-    if entity_code == "sites_group":
-        name_field = f"g__{field_name}"
-    elif entity_code == "observation_detail":
-        name_field = f"d__{field_name}"
-    else:
-        name_field = f"{entity_code[0]}__{field_name}"
+    name_field = field_name
+    parent_id_field_name = parent_data.get("id_field_name") if parent_data else None
+
+    if name_field not in [generic_data.get("id_field_name"), parent_id_field_name]:
+        if entity_code == "sites_group":
+            name_field = f"g__{field_name}"
+        elif entity_code == "observation_detail":
+            name_field = f"d__{field_name}"
+        else:
+            name_field = f"{entity_code[0]}__{field_name}"
 
     type_field_params = {
         k: v
@@ -806,8 +831,8 @@ def get_bib_field(field_data, entity_code, field_name, id_destination: int):
         "autogenerated": False,
         "display": True,
         "mnemonique": mnemonique,
-        "source_field": f"src_{field_name}",
-        "dest_field": field_name,
+        "source_field": f"src_{name_field}",
+        "dest_field": name_field,
         "multi": False,
         "id_destination": id_destination,
         "mandatory_conditions": None,
@@ -866,32 +891,32 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
     """
     Insère ou met à jour les entités dans bib_entities en respectant la hiérarchie du tree.
     """
-    inserted_entities = {}
+    inserted_entity_ids = {}
     order = 1
 
     for entity_code, fields in unique_fields.items():
         entity_config = entity_hierarchy_map.get(entity_code)
 
-        uuid_column = entity_config["uuid_column"]
+        id_field_name = entity_config["id_field_name"]
         parent_entity = entity_config["parent_entity"]
 
-        uuid_field = next(
+        """ id_field_conf = next(
             (
                 f
                 for field_type in ["generic", "specific"]
                 for f in fields[field_type]
-                if f["dest_field"] == uuid_column
+                if f["dest_field"] == id_field_name
             ),
             None,
-        )
+        ) """
 
         id_field = (
             DB.session.query(BibFields.id_field)
-            .filter_by(name_field=uuid_field["name_field"], id_destination=id_destination)
+            .filter_by(name_field=id_field_name, id_destination=id_destination)
             .scalar()
         )
 
-        id_parent = inserted_entities.get(parent_entity) if parent_entity else None
+        id_parent = inserted_entity_ids.get(parent_entity) if parent_entity else None
 
         entity_code_obs_detail = (
             "obs_detail" if entity_code == "observation_detail" else entity_code
@@ -937,7 +962,7 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
                     )
                 ).scalar()
 
-        inserted_entities[entity_code] = inserted_entity_id
+        inserted_entity_ids[entity_code] = inserted_entity_id
         DB.session.flush()
 
 
@@ -987,10 +1012,9 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_hierarch
 
         parent_code = entity_hierarchy_map[entity_code]["parent_entity"]
         if parent_code:
-            parent_uuid = entity_hierarchy_map[parent_code]["uuid_column"]
             get_cor_entity_field(
                 entity_id=entity_id,
-                field_name=f"{parent_code[0]}__{parent_uuid}",
+                field_name=entity_hierarchy_map[parent_code]["id_field_name"],
                 id_destination=id_destination,
                 bib_themes=bib_themes,
                 is_parent_link=True,
@@ -1091,7 +1115,9 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
 
             if dest_field and dest_field not in added_columns:
                 columns.append(
-                    Column(dest_field, field_type, nullable=not field.get("mandatory", False))
+                    Column(
+                        dest_field, field_type, nullable=True
+                    )  # Must be nullable because dest_field values are computed after the row is created
                 )
                 added_columns.add(dest_field)
 
