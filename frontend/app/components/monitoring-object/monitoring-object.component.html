@@ -14,6 +14,14 @@
     </div>
 
     <div id="monitoring-elem-container" class="cadre scroll">
+
+      <div *ngIf="!(obj && obj.bIsInitialized)" class="spinner-overlay">
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <p>Chargement des données...</p>
+        </div>
+      </div>
+
       <pnx-monitoring-breadcrumbs *ngIf="obj && obj.bIsInitialized" [obj]="obj"
         [(bEdit)]="bEdit"></pnx-monitoring-breadcrumbs>
 
