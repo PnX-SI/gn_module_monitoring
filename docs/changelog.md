@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.0.2 (unrelease)
+
+**🐛 Corrections**
+
+- Optimisation récupération du cruved pour lors de la sérialisation des enfants lorsque l'utilsateur à une portée de 3 (#412)
+- Correction des filtres des propriétés spécifiques de type nomenclature multiple (#412)
+- Correction de la génération de la configuration d'un module,  fix : #399, #403 (#405) 
+
 ## 1.0.1 (2025-01-17)
 
 **🐛 Corrections**
