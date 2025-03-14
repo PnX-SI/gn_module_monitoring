@@ -26,7 +26,7 @@ from gn_module_monitoring.config.utils import (
 )
 
 from gn_module_monitoring.config.repositories import get_config
-
+from gn_module_monitoring.utils.utils import extract_keys
 from gn_module_monitoring.modules.repositories import get_module, get_source_by_code, get_modules
 
 
@@ -382,14 +382,3 @@ def available_modules():
             available_modules_.append({**module, "module_code": d})
         break
     return available_modules_
-
-
-def extract_keys(test_dict, keys=[]):
-    """
-    FOnction permettant d'extraire de façon récursive les clés d'un dictionnaire
-    """
-    for key, val in test_dict.items():
-        keys.append(key)
-        if isinstance(val, dict):
-            extract_keys(val, keys)
-    return keys

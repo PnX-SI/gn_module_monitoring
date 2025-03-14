@@ -1,5 +1,5 @@
 """
-    module de gestion de la configuarion des protocoles de suivi
+module de gestion de la configuarion des protocoles de suivi
 """
 
 import os
@@ -33,18 +33,10 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
         # initial tree
         tree = config["tree"]
 
-    if "module" in config["tree"]:
-        is_sites_group_child = "sites_group" in list(dict.fromkeys(config["tree"]["module"]))
-
     for object_type in tree:
         # config object
         if not object_type in config:
-            if object_type == "site":
-                config[object_type] = config_object_from_files(
-                    module_code, object_type, is_sites_group_child
-                )
-            else:
-                config[object_type] = config_object_from_files(module_code, object_type)
+            config[object_type] = config_object_from_files(module_code, object_type)
 
         # tree
         children_types = tree[object_type] and list(tree[object_type].keys()) or []
@@ -89,7 +81,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
             get_config_objects(module_code, config, tree[object_type], object_type)
 
 
-def config_object_from_files(module_code, object_type, custom=None, is_sites_group_child=False):
+def config_object_from_files(module_code, object_type, custom=None):
     """
     recupere la configuration d'un object de type <object_type> pour le module <module_code>
     """
@@ -103,6 +95,14 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
 
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
+        specific_site = specific_config_object.get("specific", {}).keys()
+
+        # Exclusion des propriétés des types de site définies dans site.json
+        for id, type_site in db_config_object.get("types_site", {}).items():
+            db_config_object["types_site"][id]["display_properties"] = [
+                d for d in type_site.get("display_properties", []) if d not in specific_site
+            ]
+
         # Mise a jour des configurations de façon récursive
         dict_deep_update(
             specific_config_object.get("specific", {}), db_config_object.get("specific", {})
@@ -124,7 +124,6 @@ def config_object_from_files(module_code, object_type, custom=None, is_sites_gro
             "application": "GeoNature",
             "required": True,
             "nullDefault": True,
-            "designStyle": "bootstrap",
             "definition": "Permet de n'avoir que les types de site lié au module",
         }
         specific_config_object["specific"]["id_sites_group"] = {"required": False, "hidden": False}

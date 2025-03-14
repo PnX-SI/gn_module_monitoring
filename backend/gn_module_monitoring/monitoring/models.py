@@ -1,5 +1,5 @@
 """
-    Modèles SQLAlchemy pour les modules de suivi
+Modèles SQLAlchemy pour les modules de suivi
 """
 
 import geoalchemy2

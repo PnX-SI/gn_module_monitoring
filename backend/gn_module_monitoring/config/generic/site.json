@@ -109,10 +109,6 @@
       "nullDefault": true,
       "definition": "Permet de n'avoir que les types de site lié au module",
       "designStyle": "bootstrap"
-    },
-    "id_sites_group": {
-      "hidden": true,
-      "required": false
     }
   }
 }
