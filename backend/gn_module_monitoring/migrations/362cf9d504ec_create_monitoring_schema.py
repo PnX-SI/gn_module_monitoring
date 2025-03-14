@@ -1,7 +1,7 @@
 """create_monitoring_schema
 
 Revision ID: 362cf9d504ec
-Revises: 
+Revises:
 Create Date: 2021-03-29 18:38:24.512562
 
 """
