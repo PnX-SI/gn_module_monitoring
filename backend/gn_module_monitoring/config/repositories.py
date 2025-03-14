@@ -1,5 +1,5 @@
 """
-    module de gestion de la configuarion des protocoles de suivi
+module de gestion de la configuarion des protocoles de suivi
 """
 
 import os

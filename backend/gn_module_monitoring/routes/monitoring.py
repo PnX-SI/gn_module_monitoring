@@ -1,6 +1,6 @@
 """
-    module definissant les routes d'accès de modification des objects
-        site, visit, observation, ...
+module definissant les routes d'accès de modification des objects
+    site, visit, observation, ...
 """
 
 import datetime as dt

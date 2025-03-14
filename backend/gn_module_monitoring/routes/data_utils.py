@@ -1,10 +1,10 @@
 """
-    Routes pour récupérer des paramètre
-        d'utilisateurs
-        de nomenclature
-        de taxonomie
+Routes pour récupérer des paramètre
+    d'utilisateurs
+    de nomenclature
+    de taxonomie
 
-        TODO cache
+    TODO cache
 """
 
 from flask import request
