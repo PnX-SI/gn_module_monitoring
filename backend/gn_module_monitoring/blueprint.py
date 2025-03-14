@@ -1,6 +1,6 @@
 """
-    blueprint
-    charge les routes présentes dans le dossier route
+blueprint
+charge les routes présentes dans le dossier route
 """
 
 from flask import Blueprint, current_app

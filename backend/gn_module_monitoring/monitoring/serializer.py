@@ -1,5 +1,5 @@
 """
-    serialiser
+serialiser
 """
 
 from flask import current_app, g
