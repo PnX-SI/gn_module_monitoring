@@ -1,5 +1,6 @@
 from flask import g
 
+import json
 from copy import copy
 
 from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true, select
@@ -172,13 +173,17 @@ class SitesQuery(GnMonitoringGenericFilter):
                 type = "text"
                 if "type_util" in specific_properties[param]:
                     type = specific_properties[param]["type_util"]
-                multiple = "false"
+                multiple = False
                 if "multiple" in specific_properties[param]:
-                    multiple = specific_properties[param]["multiple"]
+                    multiple_value = specific_properties[param]["multiple"]
+                    if isinstance(multiple_value, bool):
+                        multiple = multiple_value
+                    else:
+                        multiple = json.loads(multiple_value)
 
                 if type in ("nomenclature", "taxonomy", "user", "area"):
                     join_table, join_column, filter_column = cls.get_relationship_clause(type)
-                    if multiple == "true":
+                    if multiple:
                         # Si la propriété est de type multiple
                         # Alors jointure sur chaque element de data->'params'
                         # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
