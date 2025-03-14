@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.0.2 (unrelease)
+## 1.0.2 (2025-03-14)
 
 **🐛 Corrections**
 - Optimisation de la récupération du CRUVED lors de la sérialisation des enfants lorsque l'utilisateur a une portée de 3 (#412)
