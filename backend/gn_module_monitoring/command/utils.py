@@ -633,7 +633,7 @@ def get_protocol_data(module_code: str, id_destination: int):
         generic_data = json_from_file(generic_data_path, result_default={})
 
         entity_confs[entity_code] = {
-            "specific_data": generic_data,
+            "specific_data": specific_data,
             "generic_data": generic_data,
         }
 

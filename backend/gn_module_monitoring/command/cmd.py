@@ -2,12 +2,13 @@ import click
 
 from pathlib import Path
 from flask.cli import with_appcontext
-from sqlalchemy.sql import text, select
+from sqlalchemy.sql import text, select, exists
 
 from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
 from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
+from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import monitoring_module_config_path
@@ -101,8 +102,11 @@ def cmd_install_monitoring_module(module_code):
 
     try:
         module = get_simple_module("module_code", module_code)
+        destination_exists = DB.session.scalar(
+            exists(Destination).where(Destination.code == module_code).select()
+        )
         # Vérifier si le module existe
-        if module:
+        if module and destination_exists:
             # Effectuer une mise à jour
             try:
                 click.secho(f"Mise à jour du module {module_code}")
@@ -154,10 +158,13 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     }
 
     click.secho("ajout du module {} en base".format(module_code))
-    module = TMonitoringModules()
-    module.from_dict(module_data)
-    DB.session.add(module)
-    DB.session.commit()
+    if not DB.session.scalar(
+        exists(TMonitoringModules).where(TMonitoringModules.module_code == module_code).select()
+    ):
+        module = TMonitoringModules()
+        module.from_dict(module_data)
+        DB.session.add(module)
+        DB.session.commit()
 
     # Ajouter les permissions disponibles
     process_available_permissions(module_code, session=DB.session)
