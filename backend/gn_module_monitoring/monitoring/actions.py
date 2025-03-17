@@ -1,12 +1,21 @@
+from math import ceil
+from geonature.core.imports.checks.dataframe.cast import check_types
+from geonature.core.imports.checks.dataframe.core import check_datasets, check_required_values
+from geonature.core.imports.checks.dataframe.geometry import check_geometry
+from geonature.core.imports.checks.sql.extra import check_entity_data_consistency
 import sqlalchemy as sa
+from sqlalchemy import select
 
 from geonature.core.imports.actions import ImportActions
-from geonature.core.imports.models import TImports
+from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
+from geonature.core.imports.models import BibFields, Entity, EntityField, TImports
+from geonature.core.imports.utils import get_mapping_data, load_transient_data_in_dataframe, update_transient_data_from_dataframe
 
 from geonature.utils.env import db
 from geonature.utils.sentry import start_sentry_child
 
 from bokeh.embed.standalone import StandaloneEmbedJson
+from flask import current_app
 
 import typing
 
@@ -16,11 +25,17 @@ class ImportStatisticsLabels(typing.TypedDict):
     value: str
 
 
+def get_entities() -> typing.Tuple[Entity, Entity, Entity]:
+    entity_site = Entity.query.filter_by(code="site").one()
+    entity_visit = Entity.query.filter_by(code="visit").one()
+    entity_observation = Entity.query.filter_by(code="observation").one()
+    return entity_site, entity_visit, entity_observation
+
 class MonitoringImportActions(ImportActions):
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
         return []
-    
+
     # Some field params appears to be dynamic
     # They must be handled on the fly
     # Ex. process
@@ -57,7 +72,20 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def check_transient_data(task, logger, imprt: TImports) -> None:
-        raise NotImplementedError
+        task.update_state(state="PROGRESS", meta={"progress": 0})
+        init_rows_validity(imprt)
+        task.update_state(state="PROGRESS", meta={"progress": 0.05})
+        check_orphan_rows(imprt)
+        task.update_state(state="PROGRESS", meta={"progress": 0.1})
+
+        # We first check site and visit consistency in order to avoid checking
+        # incoherent data
+        MonitoringImportActions.check_parents_consistency(imprt)
+
+        # We run dataframes checks before SQL checks in order to avoid
+        # check_types overriding generated values during SQL checks.
+        MonitoringImportActions.check_site_dataframe(imprt)
+
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
@@ -74,3 +102,120 @@ class MonitoringImportActions(ImportActions):
     @staticmethod
     def compute_bounding_box(imprt: TImports) -> None:
         pass
+
+    # Following methods not present in ImportActions
+
+    @staticmethod
+    def check_parents_consistency(imprt):
+        entity_site, entity_visit, _ = get_entities()
+
+        _, selected_site_fields, _ = get_mapping_data(imprt, entity_site)
+        print("selected_site_fields", selected_site_fields)
+
+        if "id_base_site" in selected_site_fields:
+            check_entity_data_consistency(
+                imprt,
+                entity_site,
+                selected_site_fields,
+                selected_site_fields["id_base_site"],
+            )
+        if "uuid_base_site" in selected_site_fields:
+            check_entity_data_consistency(
+                imprt,
+                entity_site,
+                selected_site_fields,
+                selected_site_fields["uuid_base_site"],
+            )
+        
+        _, selected_visit_fields, _ = get_mapping_data(imprt, entity_visit)
+        print("selected_visit_fields", selected_visit_fields)
+
+        if "id_base_visit" in selected_visit_fields:
+            check_entity_data_consistency(
+                imprt,
+                entity_visit,
+                selected_visit_fields,
+                selected_visit_fields["id_base_visit"],
+            )
+        if "uuid_base_visit" in selected_visit_fields:
+            check_entity_data_consistency(
+                imprt,
+                entity_visit,
+                selected_visit_fields,
+                selected_visit_fields["uuid_base_visit"],
+            )
+    
+    
+    @staticmethod
+    def dataframe_checks(imprt, df, entity, fields, selected_fields):
+        updated_cols = set({})
+        updated_cols |= check_types(
+            imprt, entity, df, fields
+        )  # FIXME do not check site and visit uuid twice
+
+        updated_cols |= check_required_values(imprt, entity, df, fields)
+
+        return updated_cols
+    
+
+    @staticmethod
+    def check_site_dataframe(imprt):
+        """
+        Check the site data before importing.
+
+        List of checks and data operations (in order of execution):
+        - check datasets
+        - check types
+        - check required values
+        - convert geom columns
+        - check geography
+        - generate altitudes if requested
+        - check altitudes
+        - check dates
+        - check depths
+        - check if given geometries are valid (see ST_VALID in PostGIS)
+        - if requested, check if given geometry is outside the restricted area
+
+        Parameters
+        ----------
+        imprt : TImports
+            The import to check.
+
+        """
+
+        entity_site, entity_visit, _ = get_entities()
+
+        fields, selected_fields, source_cols = get_mapping_data(imprt, entity_site)
+
+        # Save column names where the data was changed in the dataframe
+        updated_cols = set()
+
+        ### Dataframe checks
+        df = load_transient_data_in_dataframe(imprt, entity_site, source_cols)
+
+        updated_cols |= MonitoringImportActions.dataframe_checks(
+            imprt, df, entity_site, fields, selected_fields
+        )
+        # Disabled because there is no unique_dataset_id in protocoles
+        updated_cols |= check_datasets(
+            imprt,
+            entity_visit,
+            df,
+            uuid_field=fields["unique_dataset_id"],
+            id_field=fields["id_dataset"],
+            module_code="OCCHAB",
+        )
+
+        updated_cols |= check_geometry(
+            imprt,
+            entity_site,
+            df,
+            file_srid=imprt.srid,
+            geom_4326_field=fields["geom_4326"],
+            geom_local_field=fields["geom_local"],
+            wkt_field=fields["WKT"],
+            latitude_field=fields["latitude"],
+            longitude_field=fields["longitude"],
+        )
+
+        update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
