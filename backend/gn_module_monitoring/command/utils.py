@@ -5,7 +5,7 @@ from flask import current_app
 from sqlalchemy import and_, text, delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
 import sqlalchemy as sa
 
 from sqlalchemy import (
@@ -18,8 +18,8 @@ from sqlalchemy import (
     Date,
     ARRAY,
     Text,
-    JSON,
     ForeignKey,
+    PrimaryKeyConstraint,
 )
 
 from geonature.utils.env import DB
@@ -1158,7 +1158,7 @@ def map_field_type_sqlalchemy(type_widget: str):
         "integer": Integer,
         "integer[]": ARRAY(Integer),
         "date": Date,
-        "jsonb": JSON,
+        "jsonb": JSONB,
     }
     return type_mapping.get(type_widget.lower(), String)
 
@@ -1166,7 +1166,7 @@ def map_field_type_sqlalchemy(type_widget: str):
 def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
     """Generate import table using SQLAlchemy metadata"""
     metadata = MetaData()
-
+    table_name = f"t_imports_{module_code.lower()}"
     columns = [
         Column(
             "id_import",
@@ -1175,6 +1175,7 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
             nullable=False,
         ),
         Column("line_no", Integer, nullable=False),
+        PrimaryKeyConstraint("id_import", "line_no", name=f"pk_{table_name}"),
     ]
 
     columns.extend(
@@ -1190,11 +1191,16 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
         for field in all_fields:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")
-            field_type = map_field_type_sqlalchemy(field.get("type_column", "text"))
+            type_column = field.get("type_column", "text").lower()
+            field_type = map_field_type_sqlalchemy(type_column)
 
             if source_field and source_field not in added_columns:
                 columns.append(
-                    Column(source_field, String, nullable=not field.get("mandatory", False))
+                    Column(
+                        source_field,
+                        JSONB if type_column in ["varchar[]", "integer[]", "jsonb"] else String,
+                        nullable=True,  # Must be nullable because we perform partial inserts
+                    )
                 )
                 added_columns.add(source_field)
 
@@ -1206,7 +1212,6 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
                 )
                 added_columns.add(dest_field)
 
-    table_name = f"t_imports_{module_code.lower()}"
     schema = "gn_imports"
 
     return Table(table_name, metadata, *columns, schema=schema)
