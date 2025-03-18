@@ -9,7 +9,11 @@ from sqlalchemy import select
 from geonature.core.imports.actions import ImportActions
 from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
 from geonature.core.imports.models import BibFields, Entity, EntityField, TImports
-from geonature.core.imports.utils import get_mapping_data, load_transient_data_in_dataframe, update_transient_data_from_dataframe
+from geonature.core.imports.utils import (
+    get_mapping_data,
+    load_transient_data_in_dataframe,
+    update_transient_data_from_dataframe,
+)
 
 from geonature.utils.env import db
 from geonature.utils.sentry import start_sentry_child
@@ -25,11 +29,14 @@ class ImportStatisticsLabels(typing.TypedDict):
     value: str
 
 
-def get_entities() -> typing.Tuple[Entity, Entity, Entity]:
+def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
     entity_site = Entity.query.filter_by(code="site").one()
     entity_visit = Entity.query.filter_by(code="visit").one()
-    entity_observation = Entity.query.filter_by(code="observation").one()
+    entity_observation = Entity.query.filter_by(
+        code="observation", id_destination=imprt.destination.id_destination
+    ).one()
     return entity_site, entity_visit, entity_observation
+
 
 class MonitoringImportActions(ImportActions):
     @staticmethod
@@ -72,6 +79,10 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def check_transient_data(task, logger, imprt: TImports) -> None:
+        from gn_module_monitoring.config.repositories import get_config
+
+        config = get_config(imprt.destination.code)
+
         task.update_state(state="PROGRESS", meta={"progress": 0})
         init_rows_validity(imprt)
         task.update_state(state="PROGRESS", meta={"progress": 0.05})
@@ -84,8 +95,8 @@ class MonitoringImportActions(ImportActions):
 
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
-        MonitoringImportActions.check_site_dataframe(imprt)
-
+        MonitoringImportActions.check_site_dataframe(imprt, config)
+        MonitoringImportActions.check_visit_dataframe(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
@@ -107,7 +118,7 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def check_parents_consistency(imprt):
-        entity_site, entity_visit, _ = get_entities()
+        entity_site, entity_visit, _ = get_entities(imprt)
 
         _, selected_site_fields, _ = get_mapping_data(imprt, entity_site)
         print("selected_site_fields", selected_site_fields)
@@ -126,7 +137,7 @@ class MonitoringImportActions(ImportActions):
                 selected_site_fields,
                 selected_site_fields["uuid_base_site"],
             )
-        
+
         _, selected_visit_fields, _ = get_mapping_data(imprt, entity_visit)
         print("selected_visit_fields", selected_visit_fields)
 
@@ -144,10 +155,9 @@ class MonitoringImportActions(ImportActions):
                 selected_visit_fields,
                 selected_visit_fields["uuid_base_visit"],
             )
-    
-    
+
     @staticmethod
-    def dataframe_checks(imprt, df, entity, fields, selected_fields):
+    def dataframe_checks(imprt, df, entity, fields):
         updated_cols = set({})
         updated_cols |= check_types(
             imprt, entity, df, fields
@@ -156,25 +166,18 @@ class MonitoringImportActions(ImportActions):
         updated_cols |= check_required_values(imprt, entity, df, fields)
 
         return updated_cols
-    
 
     @staticmethod
-    def check_site_dataframe(imprt):
+    def check_site_dataframe(imprt: TImports, config):
         """
         Check the site data before importing.
 
         List of checks and data operations (in order of execution):
-        - check datasets
         - check types
         - check required values
         - convert geom columns
         - check geography
-        - generate altitudes if requested
-        - check altitudes
-        - check dates
-        - check depths
         - check if given geometries are valid (see ST_VALID in PostGIS)
-        - if requested, check if given geometry is outside the restricted area
 
         Parameters
         ----------
@@ -183,9 +186,9 @@ class MonitoringImportActions(ImportActions):
 
         """
 
-        entity_site, entity_visit, _ = get_entities()
+        entity_site, _, _ = get_entities(imprt)
 
-        fields, selected_fields, source_cols = get_mapping_data(imprt, entity_site)
+        fields, _, source_cols = get_mapping_data(imprt, entity_site)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
@@ -193,29 +196,58 @@ class MonitoringImportActions(ImportActions):
         ### Dataframe checks
         df = load_transient_data_in_dataframe(imprt, entity_site, source_cols)
 
-        updated_cols |= MonitoringImportActions.dataframe_checks(
-            imprt, df, entity_site, fields, selected_fields
-        )
-        # Disabled because there is no unique_dataset_id in protocoles
+        updated_cols |= MonitoringImportActions.dataframe_checks(imprt, df, entity_site, fields)
+
+        geom_field_name = config.get("site", {}).get("geom_field_name")
+        if geom_field_name:
+            updated_cols |= check_geometry(
+                imprt,
+                entity_site,
+                df,
+                file_srid=imprt.srid,
+                geom_4326_field=fields[f"s__{geom_field_name}_4326"],
+                geom_local_field=fields[f"s__{geom_field_name}_local"],
+                wkt_field=fields[f"s__{geom_field_name}"],
+            )
+
+        update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
+
+    @staticmethod
+    def check_visit_dataframe(imprt: TImports):
+        """
+        Check the visit data before importing.
+
+        List of checks and data operations (in order of execution):
+        - check datasets
+        - check types
+        - check required values
+
+        Parameters
+        ----------
+        imprt : TImports
+            The import to check.
+
+        """
+
+        _, entity_visit, _ = get_entities(imprt)
+
+        fields, _, source_cols = get_mapping_data(imprt, entity_visit)
+
+        # Save column names where the data was changed in the dataframe
+        updated_cols = set()
+
+        ### Dataframe checks
+        df = load_transient_data_in_dataframe(imprt, entity_visit, source_cols)
+
+        updated_cols |= MonitoringImportActions.dataframe_checks(imprt, df, entity_visit, fields)
+
         updated_cols |= check_datasets(
             imprt,
             entity_visit,
             df,
             uuid_field=fields["unique_dataset_id"],
             id_field=fields["id_dataset"],
-            module_code="OCCHAB",
+            module_code=imprt.destination.module.module_code,  # Or use MONITORINGS ?
         )
 
-        updated_cols |= check_geometry(
-            imprt,
-            entity_site,
-            df,
-            file_srid=imprt.srid,
-            geom_4326_field=fields["geom_4326"],
-            geom_local_field=fields["geom_local"],
-            wkt_field=fields["WKT"],
-            latitude_field=fields["latitude"],
-            longitude_field=fields["longitude"],
-        )
-
-        update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
+        update_transient_data_from_dataframe(imprt, entity_visit, updated_cols, df)
