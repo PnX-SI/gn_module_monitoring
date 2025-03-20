@@ -2,7 +2,7 @@ import pytest
 
 from flask import url_for, current_app
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from geonature.utils.env import DB
 from geonature.core.imports.models import BibFields, Destination
@@ -121,7 +121,7 @@ class TestCommands:
         assert destination.code == "test"
         assert destination.label == "Test"
 
-        protocol_data, entity_hierarchy_map = get_protocol_data("test", destination.id_destination)
+        protocol_data, _ = get_protocol_data("test", destination.id_destination)
         fields_data = []
         entities = []
 
@@ -147,7 +147,7 @@ class TestCommands:
         assert "visit" in entities
 
         query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'gn_imports' AND table_name = '{destination.table_name}');"
-        result = DB.session.execute(query).scalar_one()
+        result = DB.session.execute(text(query)).scalar_one()
 
         assert result == True
 
