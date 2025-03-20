@@ -377,70 +377,66 @@ def validate_json_file(file_path: Path, valid_type_widgets=None) -> list:
         return file_errors
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        content = open(file_path, "r", encoding="utf-8").read()
+    except Exception as error:
+        file_errors.append(f"Erreur lors de la lecture de {file_path}: {str(error)}")
+        return file_errors
 
-        if not content.strip():
-            file_errors.append(f"Fichier vide: {file_path}")
-            return file_errors
+    if not content.strip():
+        file_errors.append(f"Fichier vide: {file_path}")
+        return file_errors
 
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError as e:
-            lines = content.split("\n")
-            line_no = e.lineno - 1
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError as error:
+        lines = content.split("\n")
+        line_no = error.lineno - 1
 
-            context_start = max(0, line_no - 2)
-            context_end = min(len(lines), line_no + 3)
-            context_lines = lines[context_start:context_end]
+        context_start = max(0, line_no - 2)
+        context_end = min(len(lines), line_no + 3)
+        context_lines = lines[context_start:context_end]
 
-            error_msg = f"Erreur de syntaxe JSON dans {file_path}:\n"
-            error_msg += f"- Message: {str(e)}\n"
-            error_msg += f"- Position: ligne {e.lineno}, colonne {e.colno}\n"
-            error_msg += "- Contexte:\n"
+        error_msg += f"""
+        Erreur de syntaxe JSON dans {file_path}:
+        - Message: {str(error)}
+        - Position: ligne {error.lineno}, colonne {error.colno}
+        - Contexte:\n
+        """
 
-            for i, line in enumerate(context_lines, start=context_start + 1):
-                marker = "→ " if i == e.lineno else "  "
-                error_msg += f"{marker}{i}: {line}\n"
-                if i == e.lineno:
-                    error_msg += "    " + " " * (e.colno - 1) + "^\n"
+        for i, line in enumerate(context_lines, start=context_start + 1):
+            marker = "→ " if i == error.lineno else "  "
+            error_msg += f"{marker}{i}: {line}\n"
+            if i == error.lineno:
+                error_msg += "    " + " " * (error.colno - 1) + "^\n"
 
-            file_errors.append(error_msg)
-            return file_errors
+        file_errors.append(error_msg)
+        return file_errors
 
-        # Validate the JSON structure
-        if not isinstance(data, dict):
-            file_errors.append(f"Le fichier {file_path} doit contenir un objet JSON")
-            return file_errors
+    # Validate the JSON structure
+    if not isinstance(data, dict):
+        file_errors.append(f"Le fichier {file_path} doit contenir un objet JSON")
+        return file_errors
 
-        # Validate the JSON content
-        if "specific" in data:
-            for field_name, field_data in data["specific"].items():
-                if not isinstance(field_data, dict):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name} doit être un objet"
-                    )
-                    continue
+    # Validate the JSON content
+    if "specific" in data:
+        for field_name, field_data in data["specific"].items():
+            if not isinstance(field_data, dict):
+                file_errors.append(f"Dans {file_path}, le champ {field_name} doit être un objet")
+                continue
 
-                if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
-                    )
+            if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
+                file_errors.append(
+                    f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
+                )
 
-                if (
-                    "type_widget" in field_data
-                    and field_data["type_widget"] not in valid_type_widgets
-                ):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_widget n'est pas valide"
-                    )
+            if "type_widget" in field_data and field_data["type_widget"] not in valid_type_widgets:
+                file_errors.append(
+                    f"Dans {file_path}, le champ {field_name}: type_widget n'est pas valide"
+                )
 
-                if "type_util" in field_data and not isinstance(field_data["type_util"], str):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_util doit être une chaîne"
-                    )
-
-    except Exception as e:
-        file_errors.append(f"Erreur lors de la lecture de {file_path}: {str(e)}")
+            if "type_util" in field_data and not isinstance(field_data["type_util"], str):
+                file_errors.append(
+                    f"Dans {file_path}, le champ {field_name}: type_util doit être une chaîne"
+                )
 
     return file_errors
