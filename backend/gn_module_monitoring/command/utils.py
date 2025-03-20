@@ -1178,12 +1178,10 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
         PrimaryKeyConstraint("id_import", "line_no", name=f"pk_{table_name}"),
     ]
 
-    columns.extend(
-        [
-            Column(f"{entity_code}_valid", Boolean, default=False)
-            for entity_code in protocol_data.keys()
-        ]
-    )
+    for entity_code in protocol_data.keys():
+        columns.append(Column(f"{entity_code}_valid", Boolean, default=False))
+        if entity_code != "observation":
+            columns.append(Column(f"{entity_code}_line_no", Integer))
 
     added_columns = set()
     for entity_code, entity_fields in protocol_data.items():
