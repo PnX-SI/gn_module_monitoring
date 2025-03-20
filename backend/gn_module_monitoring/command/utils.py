@@ -1024,7 +1024,7 @@ def insert_bib_field(protocol_data: dict) -> None:
         values = {**field}
         values.pop("type_column", None)
         if values.get("type_field_params", None) is None:
-            values.pop("type_field_params")
+            values.pop("type_field_params", None)
         set_ = {
             "fr_label": field.get("fr_label"),
             "eng_label": field.get("eng_label"),
@@ -1121,9 +1121,10 @@ def insert_entities(
             )
             inserted_entity_id = existing_entity
         else:
-            inserted_entity_id = DB.session.execute(
-                sa.insert(Entity).values(**entity_data).returning(Entity.id_entity)
+            result = DB.session.execute(
+                pg_insert(Entity).values(**entity_data).returning(Entity.id_entity)
             )
+            inserted_entity_id = result.scalar()
 
         inserted_entity_ids[entity_code] = inserted_entity_id
 
