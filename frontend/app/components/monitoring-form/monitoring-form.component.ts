@@ -500,7 +500,12 @@ export class MonitoringFormComponent implements OnInit {
       setTimeout(() => {
         this.navigateToParent();
       }, 100);
-    });
+    },   
+    (_) => {
+      this.bDeleteSpinner = false;
+      this.bDeleteModal = false;
+    }
+  );
   }
 
   onObjFormValueChange(event) {
