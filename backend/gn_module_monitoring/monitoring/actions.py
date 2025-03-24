@@ -29,6 +29,14 @@ class ImportStatisticsLabels(typing.TypedDict):
     key: str
     value: str
 
+# TODO factorize with same function in command/utils.py
+def get_field_name(entity_code, field_name):
+    if entity_code == "sites_group":
+        return f"g__{field_name}"
+    elif entity_code == "observation_detail":
+        return f"d__{field_name}"
+    return f"{entity_code[0]}__{field_name}"
+
 
 def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
     entity_site = Entity.query.filter_by(code="site").one()
@@ -52,7 +60,7 @@ def generate_id(imprt: TImports, entity: Entity) -> None:
         entity
     """
     # Generate an id for the first occurence of each UUID
-    field_name = f"s__uuid_base_{entity.code}"
+    field_name = get_field_name(entity.code, f"uuid_base_{entity.code}")
     transient_table = imprt.destination.get_transient_table()
     uuid_valid_cte = (
         sa.select(
@@ -100,7 +108,7 @@ def set_parent_id_from_line_no(imprt: TImports, entity: Entity) -> None:
             transient_parent.c.id_import == imprt.id_import,
             transient_parent.c.line_no == transient_entity.c[f"{parent_code}_line_no"],
         )
-        .values({f"id_{parent_code}": transient_parent.c[f"id_{parent_code}"]})
+        .values({f"id_base_{parent_code}": transient_parent.c[f"id_base_{parent_code}"]})
     )
 
 
@@ -276,6 +284,7 @@ class MonitoringImportActions(ImportActions):
                         insert_fields |= {field}
             if entity.code == "site":
                 insert_fields |= {fields["s__geom_4326"], fields["s__geom_local"]}
+                insert_fields -= {fields["s__types_site"]}
             elif entity.code == "visit":
                 insert_fields |= {fields["id_dataset"]}
                 # These fields are associated with habitat as necessary to find the corresponding station,
