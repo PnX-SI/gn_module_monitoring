@@ -275,7 +275,7 @@ class MonitoringImportActions(ImportActions):
                     ):
                         insert_fields |= {field}
             if entity.code == "site":
-                insert_fields |= {fields["s__geom"], fields["s__geom_local"]}
+                insert_fields |= {fields["s__geom_4326"], fields["s__geom_local"]}
             elif entity.code == "visit":
                 insert_fields |= {fields["id_dataset"]}
                 # These fields are associated with habitat as necessary to find the corresponding station,
@@ -342,36 +342,36 @@ class MonitoringImportActions(ImportActions):
 
         _, selected_site_fields, _ = get_mapping_data(imprt, entity_site)
 
-        if "id_base_site" in selected_site_fields:
+        if "s__id_base_site" in selected_site_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_site,
                 selected_site_fields,
-                selected_site_fields["id_base_site"],
+                selected_site_fields["s__id_base_site"],
             )
-        if "uuid_base_site" in selected_site_fields:
+        if "s__uuid_base_site" in selected_site_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_site,
                 selected_site_fields,
-                selected_site_fields["uuid_base_site"],
+                selected_site_fields["s__uuid_base_site"],
             )
 
         _, selected_visit_fields, _ = get_mapping_data(imprt, entity_visit)
 
-        if "id_base_visit" in selected_visit_fields:
+        if "v__id_base_visit" in selected_visit_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_visit,
                 selected_visit_fields,
-                selected_visit_fields["id_base_visit"],
+                selected_visit_fields["v__id_base_visit"],
             )
-        if "uuid_base_visit" in selected_visit_fields:
+        if "v__uuid_base_visit" in selected_visit_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_visit,
                 selected_visit_fields,
-                selected_visit_fields["uuid_base_visit"],
+                selected_visit_fields["v__uuid_base_visit"],
             )
 
     @staticmethod
