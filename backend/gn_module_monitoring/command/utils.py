@@ -5,7 +5,7 @@ from flask import current_app
 from sqlalchemy import and_, text, delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB, UUID
 import sqlalchemy as sa
 
 from sqlalchemy import (
@@ -835,7 +835,7 @@ def determine_field_type(field_data: dict) -> str:
     type_mapping = {
         "textarea": "text",
         "time": "varchar",
-        "date": "varchar",
+        "date": "date",
         "html": "varchar",
         "radio": "varchar",
         "select": "varchar",
@@ -849,6 +849,8 @@ def determine_field_type(field_data: dict) -> str:
 
     if type_util in int_type_utils:
         return "integer"
+    elif type_util in ["date", "uuid"]:
+        return type_util
 
     if type_widget in ["checkbox", "multiselect"]:
         return "varchar[]"
@@ -1159,6 +1161,7 @@ def map_field_type_sqlalchemy(type_widget: str):
         "integer[]": ARRAY(Integer),
         "date": Date,
         "jsonb": JSONB,
+        "uuid": UUID,
     }
     return type_mapping.get(type_widget.lower(), String)
 
