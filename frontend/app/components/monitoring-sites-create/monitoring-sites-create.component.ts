@@ -87,12 +87,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
         mergeMap(() => {
           return this.obj.get(0);
         }),
-        mergeMap(() => {
-          return this._sitesGroupService.getById(idSitesGroup);
-        })
       )
-      .subscribe((sitesGroup) => {
-        this.sitesGroup = sitesGroup;
+      .subscribe(() => {
         this.obj.initTemplate();
         this._formService.changeFormMapObj({
           frmGp: this.objForm,
