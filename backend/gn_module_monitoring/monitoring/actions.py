@@ -1,10 +1,16 @@
 from math import ceil
 import re
+from geonature.core.gn_monitoring.models import cor_site_type
 from geonature.core.imports.checks.dataframe.cast import check_types
 from geonature.core.imports.checks.dataframe.core import check_datasets, check_required_values
 from geonature.core.imports.checks.dataframe.geometry import check_geometry
 from geonature.core.imports.checks.sql.extra import check_entity_data_consistency
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringObservations,
+    TMonitoringSites,
+    TMonitoringVisits,
+)
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
 
@@ -28,6 +34,7 @@ import typing
 class ImportStatisticsLabels(typing.TypedDict):
     key: str
     value: str
+
 
 # TODO factorize with same function in command/utils.py
 def get_field_name(entity_code, field_name):
@@ -127,6 +134,17 @@ def check_entity_sql(imprt, entity: Entity):
             parent_fields.get(f"s__uuid_base_{parent_code}"),
         ],
     )
+
+
+def get_model_complements(entity: Entity):
+    if entity.code == "site":
+        return TMonitoringSites
+    elif entity.code == "visit":
+        return TMonitoringVisits
+    elif entity.code == "observation":
+        return TMonitoringObservations
+
+    return None
 
 
 """ def check_visit_sql(imprt):
@@ -266,7 +284,7 @@ class MonitoringImportActions(ImportActions):
                 for ef in entity.fields
                 if ef.field.dest_field != None
             }
-            insert_fields = set()
+            entity_fields = set()
             # insert_fields = {fields["id_station"]}
             for field_name, mapping in imprt.fieldmapping.items():
                 if field_name not in fields:  # not a destination field
@@ -275,18 +293,19 @@ class MonitoringImportActions(ImportActions):
                 column_src = mapping.get("column_src", None)
                 if field.multi:
                     if not set(column_src).isdisjoint(imprt.columns):
-                        insert_fields |= {field}
+                        entity_fields |= {field}
                 else:
                     if (
                         column_src in imprt.columns
                         or mapping.get("default_value", None) is not None
                     ):
-                        insert_fields |= {field}
+                        entity_fields |= {field}
+
             if entity.code == "site":
-                insert_fields |= {fields["s__geom_4326"], fields["s__geom_local"]}
-                insert_fields -= {fields["s__types_site"]}
+                entity_fields |= {fields["s__geom_4326"], fields["s__geom_local"]}
+                entity_fields -= {fields["s__types_site"]}
             elif entity.code == "visit":
-                insert_fields |= {fields["id_dataset"]}
+                entity_fields |= {fields["id_dataset"]}
                 # These fields are associated with habitat as necessary to find the corresponding station,
                 # but they are not inserted in habitat destination so we need to manually remove them.
                 # insert_fields -= {fields["unique_id_sinp_station"], fields["id_station_source"]}
@@ -294,40 +313,107 @@ class MonitoringImportActions(ImportActions):
                 # if not selected_fields.get("unique_id_sinp_generate", False):
                 #    # even if not selected, add uuid column to force insert of NULL values instead of default generation of uuid
                 #    insert_fields |= {fields["unique_id_sinp_habitat"]}
-            names = ["id_import"] + [
-                get_dest_col_name(field.dest_field) for field in insert_fields
-            ]
-            select_stmt = (
-                sa.select(
-                    sa.literal(imprt.id_import).label("id_import"),
-                    *[
-                        transient_table.c[field.dest_field].label(
-                            get_dest_col_name(field.dest_field)
-                        )
-                        for field in insert_fields
-                    ],
-                )
+
+            core_fields = []
+            core_dest_col_names = ["id_import"]
+            complement_fields = []
+            destination_table: sa.Table = entity.get_destination_table()
+            destination_col_names = [col.name for col in destination_table.columns]
+            for field in entity_fields:
+                col_name = get_dest_col_name(field.dest_field)
+                if col_name in destination_col_names and col_name not in core_dest_col_names:
+                    core_fields.append(field)
+                    core_dest_col_names.append(col_name)
+                else:
+                    complement_fields.append(field)
+
+            core_select_cols = [sa.literal(imprt.id_import).label("id_import")]
+            core_select_cols.extend(
+                transient_table.c[field.dest_field].label(get_dest_col_name(field.dest_field))
+                for field in core_fields
+            )
+
+            if entity.code == "site":
+                pass
+            elif entity.code == "visit":
+                core_select_cols.append(sa.literal(imprt.destination.id_module).label("id_module"))
+                core_dest_col_names.append("id_module")
+
+            core_select_stmt = (
+                sa.select(*core_select_cols)
                 .where(transient_table.c.id_import == imprt.id_import)
                 .where(transient_table.c[entity.validity_column] == True)
                 # .where(transient_table.c.id_station.is_not(None))
             )
-            destination_table = entity.get_destination_table()
-            print(destination_table)
-            print(destination_table.columns)
+
+            id_col_name = f"id_base_{entity.code}"
+            json_args = []
+            for field in complement_fields:
+                json_args.extend(
+                    [get_dest_col_name(field.dest_field), transient_table.c[field.dest_field]]
+                )
+
+            complement_select_stmt = None
+            model_complements = get_model_complements(entity)
+            if model_complements is not None and entity.code != "observation":
+                complement_select_stmt = (
+                    sa.select(
+                        transient_table.c[id_col_name],
+                        sa.func.json_build_object(*json_args).label("data"),
+                    )
+                    .where(transient_table.c.id_import == imprt.id_import)
+                    .where(transient_table.c[entity.validity_column] == True)
+                )
+
+            types_site_select_stmt = None
+            if entity.code == "site":
+                types_site_select_stmt = (
+                    sa.select(
+                        transient_table.c["id_base_site"],
+                        sa.func.unnest(transient_table.c["s__types_site"]).label("id_type_site"),
+                    )
+                    .where(transient_table.c.id_import == imprt.id_import)
+                    .where(transient_table.c[entity.validity_column] == True)
+                )
+
             batch_size = current_app.config["IMPORT"]["INSERT_BATCH_SIZE"]
             batch_count = ceil(imprt.source_count / batch_size)
             row_count = 0
             for batch in range(batch_count):
                 min_line_no = batch * batch_size
                 max_line_no = (batch + 1) * batch_size
-                insert_stmt = sa.insert(destination_table).from_select(
-                    names=names,
-                    select=select_stmt.filter(
-                        transient_table.c["line_no"] >= min_line_no,
-                        transient_table.c["line_no"] < max_line_no,
-                    ),
-                )
-                row_count += db.session.execute(insert_stmt).rowcount
+                # TODO !!! make it works with observation
+                if entity.code != "observation":
+                    core_insert_stmt = sa.insert(destination_table).from_select(
+                        names=core_dest_col_names,
+                        select=core_select_stmt.filter(
+                            transient_table.c["line_no"] >= min_line_no,
+                            transient_table.c["line_no"] < max_line_no,
+                        ),
+                    )
+                    row_count += db.session.execute(core_insert_stmt).rowcount
+                if complement_select_stmt is not None:
+                    db.session.execute(
+                        sa.insert(model_complements).from_select(
+                            names=[id_col_name, "data"],
+                            select=complement_select_stmt.filter(
+                                transient_table.c["line_no"] >= min_line_no,
+                                transient_table.c["line_no"] < max_line_no,
+                            ),
+                        )
+                    )
+
+                if types_site_select_stmt is not None:
+                    db.session.execute(
+                        sa.insert(cor_site_type).from_select(
+                            ["id_base_site", "id_type_site"],
+                            types_site_select_stmt.filter(
+                                transient_table.c["line_no"] >= min_line_no,
+                                transient_table.c["line_no"] < max_line_no,
+                            ),
+                        )
+                    )
+
                 yield (batch + 1) / batch_count
             imprt.statistics.update({f"{entity.code}_count": row_count})
 
