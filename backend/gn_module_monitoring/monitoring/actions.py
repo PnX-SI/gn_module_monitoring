@@ -9,7 +9,10 @@ from geonature.core.gn_monitoring.models import (
 from geonature.core.imports.checks.dataframe.cast import check_types
 from geonature.core.imports.checks.dataframe.core import check_datasets, check_required_values
 from geonature.core.imports.checks.dataframe.geometry import check_geometry
-from geonature.core.imports.checks.sql.extra import check_entity_data_consistency
+from geonature.core.imports.checks.sql.extra import (
+    check_entity_data_consistency,
+    disable_duplicated_rows,
+)
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 from gn_module_monitoring.monitoring.models import (
     TMonitoringObservations,
@@ -125,20 +128,34 @@ def set_parent_id_from_line_no(imprt: TImports, entity: Entity) -> None:
 
 
 def check_entity_sql(imprt, entity: Entity):
-    _, parent_fields, _ = get_mapping_data(imprt, entity.parent)
     _, entity_fields, _ = get_mapping_data(imprt, entity)
-    parent_code = entity.parent.code
-    set_parent_line_no(
-        imprt,
-        parent_entity=entity.parent,
-        child_entity=entity,
-        id_parent=f"id_base_{parent_code}",
-        parent_line_no=f"{parent_code}_line_no",
-        fields=[
-            entity_fields.get(f"id_base_{parent_code}"),
-            parent_fields.get(f"s__uuid_base_{parent_code}"),
-        ],
-    )
+
+    for field_name in [
+        f"id_base_{entity.code}",
+        get_field_name(entity.code, f"uuid_base_{entity.code}"),
+    ]:
+        if field_name in entity_fields:
+            disable_duplicated_rows(
+                imprt,
+                entity,
+                entity_fields,
+                entity_fields[field_name],
+            )
+
+    if entity.parent is not None:
+        parent_code = entity.parent.code
+        _, parent_fields, _ = get_mapping_data(imprt, entity.parent)
+        set_parent_line_no(
+            imprt,
+            parent_entity=entity.parent,
+            child_entity=entity,
+            id_parent=f"id_base_{parent_code}",
+            parent_line_no=f"{parent_code}_line_no",
+            fields=[
+                entity_fields.get(f"id_base_{parent_code}"),
+                parent_fields.get(get_field_name(parent_code, f"uuid_base_{parent_code}")),
+            ],
+        )
 
 
 def get_entity_model(entity: Entity):
@@ -260,8 +277,9 @@ class MonitoringImportActions(ImportActions):
         MonitoringImportActions.check_visit_dataframe(imprt)
         MonitoringImportActions.check_observation_dataframe(imprt)
 
-        _, entity_visit, entity_observation = get_entities(imprt)
+        entity_site, entity_visit, entity_observation = get_entities(imprt)
 
+        check_entity_sql(imprt, entity_site)
         check_entity_sql(imprt, entity_visit)
         check_entity_sql(imprt, entity_observation)
 
