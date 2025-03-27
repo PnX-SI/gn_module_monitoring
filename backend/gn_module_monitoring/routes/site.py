@@ -190,10 +190,13 @@ def get_all_site_geometries(object_type):
     ).distinct()
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
-    if types_site:
-        query_allowed = TMonitoringSites.filter_by_specific(
-            query=query_allowed, id_types_site=types_site, params=params
-        )
+    config = get_config(module_code)
+
+    query_allowed = TMonitoringSites.filter_by_specific(
+        query=query_allowed,
+        params=params,
+        specific_properties=config.get("site", {}).get("specific", {}),
+    )
     subquery = query_allowed.subquery()
     result = geojson_query(subquery)
 
