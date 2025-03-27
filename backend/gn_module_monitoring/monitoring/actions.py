@@ -75,7 +75,7 @@ def generate_id(imprt: TImports, entity: Entity) -> None:
         entity
     """
     # Generate an id for the first occurence of each UUID
-    field_name = get_field_name(entity.code, f"uuid_base_{entity.code}")
+    field_name = f"uuid_base_{entity.code}"
     transient_table = imprt.destination.get_transient_table()
     uuid_valid_cte = (
         sa.select(
@@ -132,7 +132,7 @@ def check_entity_sql(imprt, entity: Entity):
 
     for field_name in [
         f"id_base_{entity.code}",
-        get_field_name(entity.code, f"uuid_base_{entity.code}"),
+        f"uuid_base_{entity.code}",
     ]:
         if field_name in entity_fields:
             disable_duplicated_rows(
@@ -153,7 +153,7 @@ def check_entity_sql(imprt, entity: Entity):
             parent_line_no=f"{parent_code}_line_no",
             fields=[
                 entity_fields.get(f"id_base_{parent_code}"),
-                parent_fields.get(get_field_name(parent_code, f"uuid_base_{parent_code}")),
+                parent_fields.get(f"uuid_base_{parent_code}"),
             ],
         )
 
@@ -321,6 +321,7 @@ class MonitoringImportActions(ImportActions):
             }
             entity_fields = set()
             # insert_fields = {fields["id_station"]}
+            # TODO add id field
             for field_name, mapping in imprt.fieldmapping.items():
                 if field_name not in fields:  # not a destination field
                     continue
@@ -531,36 +532,36 @@ class MonitoringImportActions(ImportActions):
 
         _, selected_site_fields, _ = get_mapping_data(imprt, entity_site)
 
-        if "s__id_base_site" in selected_site_fields:
+        if "id_base_site" in selected_site_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_site,
                 selected_site_fields,
-                selected_site_fields["s__id_base_site"],
+                selected_site_fields["id_base_site"],
             )
-        if "s__uuid_base_site" in selected_site_fields:
+        if "uuid_base_site" in selected_site_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_site,
                 selected_site_fields,
-                selected_site_fields["s__uuid_base_site"],
+                selected_site_fields["uuid_base_site"],
             )
 
         _, selected_visit_fields, _ = get_mapping_data(imprt, entity_visit)
 
-        if "v__id_base_visit" in selected_visit_fields:
+        if "id_base_visit" in selected_visit_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_visit,
                 selected_visit_fields,
-                selected_visit_fields["v__id_base_visit"],
+                selected_visit_fields["id_base_visit"],
             )
-        if "v__uuid_base_visit" in selected_visit_fields:
+        if "uuid_base_visit" in selected_visit_fields:
             check_entity_data_consistency(
                 imprt,
                 entity_visit,
                 selected_visit_fields,
-                selected_visit_fields["v__uuid_base_visit"],
+                selected_visit_fields["uuid_base_visit"],
             )
 
     @staticmethod
