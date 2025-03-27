@@ -11,6 +11,7 @@ from werkzeug.datastructures import MultiDict
 from sqlalchemy.orm import aliased
 
 from pypnusershub.db.models import User
+from ref_geo.models import LAreas
 from apptax.taxonomie.models import Taxref
 
 from geonature.utils.env import db
@@ -145,29 +146,22 @@ class SitesQuery(GnMonitoringGenericFilter):
     def filter_by_specific(
         cls,
         query: Select,
-        id_types_site: [] = None,
         params: MultiDict = None,
+        specific_properties: dict = None,
         **kwargs,
     ):
-        if not id_types_site:
-            id_types_site = []
+        """
+        Permet d'ajouter des filtres à la requête des sites
+        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
 
-        # Get specific
-        specific_config_models = (
-            db.session.scalars(
-                select(Models.BibTypeSite).where(
-                    Models.BibTypeSite.id_nomenclature_type_site.in_(id_types_site)
-                )
-            )
-            .unique()
-            .all()
-        )
+        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
+            et de construire une requête sql en fonction de ces infos
 
-        specific_properties = {}
-        for s in specific_config_models:
-            if "specific" in (getattr(s, "config") or {}):
-                specific_properties.update(s.config["specific"])
-
+        :param query: requête sql initiale
+        :param params: liste des paramètres que l'on souhaite filtrer
+        :param specific_properties: Configuration des propriétés spécifiques des sites
+        :return: requête sql amendée de filtre
+        """
         for param, value in params.items():
             if param in specific_properties:
                 type = "text"
@@ -206,7 +200,7 @@ class SitesQuery(GnMonitoringGenericFilter):
                             subquery_select.c.id == join_column,
                         )
                     else:
-                        # Sinon type simple, jointure sur la valeur de data->'params'
+                        # Sinon type non multiple, jointure sur la valeur de data->'params'
                         query = query.join(
                             join_table, cls.data[param].astext.cast(db.Integer) == join_column
                         )
@@ -239,7 +233,9 @@ class SitesQuery(GnMonitoringGenericFilter):
             join_column = join_table.id_role
             filter_column = join_table.nom_complet
         elif type == "area":
-            pass
+            join_table = aliased(LAreas)
+            join_column = join_table.id_area
+            filter_column = join_table.area_name
         elif type == "habitat":
             pass
 
