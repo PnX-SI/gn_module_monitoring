@@ -44,6 +44,61 @@ class TestSite:
 
         assert any([schema.dump(site) in sites_response for site in sites.values()])
 
+    def test_get_sites_order_by(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        ids_sites = [s.id_base_site for k, s in sites.items()]
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="desc"))
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["id_base_site"] == max(ids_sites)
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="asc"))
+        assert r.json["items"][0]["id_base_site"] == min(ids_sites)
+
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="desc"))
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["inventor"] == [monitorings_users["user"].nom_complet]
+
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="asc"))
+
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["inventor"] == [monitorings_users["admin_user"].nom_complet]
+
+    def test_get_sites_order_by_unknown_field(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        r = self.client.get(
+            url_for("monitorings.get_sites", sort="unknown_field", sort_dir="desc")
+        )
+        assert r.json["count"] >= len(sites)
+
+        r = self.client.get(
+            url_for("monitorings.get_sites", sort="id_base_site", sort_dir="unknown_sort")
+        )
+        assert r.json["count"] >= len(sites)
+
+    def test_get_sites_filters(self, sites, visits, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        r = self.client.get(url_for("monitorings.get_sites", last_visit="2025"))
+        assert r.json["count"] >= len(sites)
+
+        r = self.client.get(url_for("monitorings.get_sites", last_visit="2026"))
+        assert r.json["count"] == 0
+
+        r = self.client.get(url_for("monitorings.get_sites", id_inventor="user"))
+        nb_results = r.json["count"]
+        assert r.json["count"] >= 3
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                id_inventor="user",
+                sort="id_inventor",
+                sort_dir="desc",
+            )
+        )
+        assert nb_results == r.json["count"]
+        assert r.json["count"] == len(sites)
+
     def test_get_sites_limit(self, sites, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         limit = 2
@@ -59,7 +114,7 @@ class TestSite:
 
         r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
 
-        assert len(r.json["items"]) == 1
+        assert len(r.json["items"]) == 2
         assert r.json["items"][0]["base_site_name"] == base_site_name
 
     def test_get_sites_id_base_site(self, sites, monitorings_users):
@@ -138,7 +193,7 @@ class TestSite:
         monitorings_users,
     ):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
-
+        nb_site_with_user_user = 3
         # Test with user's id
         r = self.client.get(
             url_for(
@@ -149,19 +204,20 @@ class TestSite:
         json_resp = r.json
         features = json_resp.get("features")
         assert r.status_code == 200
-        assert len(features) == len(sites)
+        assert len(features) == nb_site_with_user_user
 
         # Test with user's name
+        # Utilisation de l'utilisateur admin car plus discrimant lors d'une recherche ilike
         r = self.client.get(
             url_for(
                 "monitorings.get_all_site_geometries",
-                id_inventor=monitorings_users["user"].nom_role,
+                id_inventor=monitorings_users["admin_user"].nom_role,
             )
         )
         json_resp = r.json
         features = json_resp.get("features")
         assert r.status_code == 200
-        assert len(features) == len(sites)
+        assert len(features) == len(sites) - nb_site_with_user_user
 
     def test_get_all_site_geometries_filter_utils(
         self, sites_with_data_typeutils, monitorings_users, users
