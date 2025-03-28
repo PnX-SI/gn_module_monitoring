@@ -55,6 +55,7 @@ def paginate_scope(
     datas_allowed = pagination_schema().dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
+
     cruved_item_dict = get_objet_with_permission_boolean(result, object_code=object_code)
     for cruved_item in cruved_item_dict:
         for i, data in enumerate(datas_allowed["items"]):
@@ -85,6 +86,7 @@ def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
         if sort_dir == "desc":
             order_by = order_by.desc()
         return query.order_by(order_by)
+    return query
 
 
 def geojson_query(subquery) -> bytes:
@@ -177,13 +179,13 @@ def filter_according_to_column_type_for_site(query, params):
 
 def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
     if sort_label == "types_site":
-        query = query.join(TMonitoringSites.types_site).join(BibTypeSite.nomenclature)
+        query = query.outerjoin(TMonitoringSites.types_site).join(BibTypeSite.nomenclature)
         if sort_dir == "asc":
             query = query.order_by(TNomenclatures.label_fr.asc())
         else:
             query = query.order_by(TNomenclatures.label_fr.desc())
     elif sort_label == "id_inventor":
-        query = query.join(TMonitoringSites.inventor)
+        query = query.outerjoin(TMonitoringSites.inventor)
         if sort_dir == "asc":
             query = query.order_by(User.nom_complet.asc())
         else:
