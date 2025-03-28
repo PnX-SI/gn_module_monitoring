@@ -6,7 +6,7 @@ from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
 from sqlalchemy import cast, func, text, select, and_
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import load_only, aliased
 from sqlalchemy.sql.expression import Select
 
 from geonature.utils.env import DB
@@ -167,10 +167,12 @@ def filter_according_to_column_type_for_site(query, params):
         )
     elif "id_inventor" in params:
         params_inventor = params.pop("id_inventor")
+
+        aliased_User = aliased(User)
         query = query.join(
-            User,
-            User.id_role == TMonitoringSites.id_inventor,
-        ).where(User.nom_complet.ilike(f"%{params_inventor}%"))
+            aliased_User,
+            aliased_User.id_role == TMonitoringSites.id_inventor,
+        ).where(aliased_User.nom_complet.ilike(f"%{params_inventor}%"))
     if len(params) != 0:
         query = filter_params(TMonitoringSites, query=query, params=params)
 
