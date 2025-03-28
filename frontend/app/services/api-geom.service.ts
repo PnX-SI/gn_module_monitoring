@@ -236,24 +236,8 @@ export class SitesService extends ApiGeomService<ISite> {
 
   getSiteModules(idSite: number): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${idSite}/modules`);
-  }
-
-  format_label_types_site(sites: ISite[]) {
-    const rows_sites_table: ISiteField[] = [];
-    for (const site of sites) {
-      let list_label_types_site: string[] = [];
-      const { types_site, ...rest_of_site } = site;
-      for (const type_site of types_site) {
-        if ('label' in type_site && typeof type_site['label'] == 'string') {
-          list_label_types_site.push(type_site['label']);
-        }
-      }
-      // Object.assign(rest_of_site,{types_site:list_label_types_site})
-      rows_sites_table.push({ ...rest_of_site, types_site: list_label_types_site });
-    }
-    return rows_sites_table;
-  }
-
+  } 
+  
   formatLabelTypesSite(sites: ISite[]) {
     const rowSitesTable: ISiteField[] = [];
     const varToFormat = 'types_site';
@@ -272,23 +256,13 @@ export class SitesService extends ApiGeomService<ISite> {
   }
 
   formatLabelObservers(sites: ISiteField[]) {
-    const rowSitesTable: ISiteField[] = [];
-    const varToFormat = 'id_inventor';
-    const varToStore = 'inventor';
-    for (const site of sites) {
-      let listFieldToUse: string[] = [];
-      if (site[varToStore]) {
-        const { [varToStore]: _, ...rest_of_site } = site;
-        for (const item of _) {
-          listFieldToUse.push(item);
-        }
-        rowSitesTable.push({
-          ...rest_of_site,
-          [varToStore]: site[varToStore],
-          [varToFormat]: listFieldToUse,
-        });
+    const rowSitesTable: ISiteField[] = []; 
+    for (const site of sites) { 
+      if (site['id_inventor']) {
+        site['id_inventor'] = site['inventor'];
       }
-    }
+      rowSitesTable.push(site);
+    } 
     return rowSitesTable;
   }
 }
