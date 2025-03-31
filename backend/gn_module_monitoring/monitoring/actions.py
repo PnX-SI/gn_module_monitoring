@@ -274,12 +274,6 @@ class MonitoringImportActions(ImportActions):
         check_entity_sql(imprt, entity_visit)
         check_entity_sql(imprt, entity_observation)
 
-        # Maybe better here than in import_data_to_destination ?
-        generate_id(imprt, entity_site)
-        generate_id(imprt, entity_visit)
-        set_parent_id_from_line_no(imprt, entity_visit)
-        set_parent_id_from_line_no(imprt, entity_observation)
-
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
         transient_table = imprt.destination.get_transient_table()
@@ -300,15 +294,17 @@ class MonitoringImportActions(ImportActions):
         def get_dest_col_name(input: str) -> str:
             return re.sub(r"^.*?__", "", input)
 
+        entity_site, entity_visit, entity_observation = get_entities(imprt)
+
+        # Maybe better here than in import_data_to_destination ?
+        generate_id(imprt, entity_site)
+        generate_id(imprt, entity_visit)
+
+        set_parent_id_from_line_no(imprt, entity_visit)
+        set_parent_id_from_line_no(imprt, entity_observation)
+
         for entity in entities.values():
             print(f"--------- {entity.code}")
-            # MV in check_transient_data()
-            """ if entity.code in ["site", "visit"]:
-                # !!! Almost same comment as OcchabImportActions.import_data_to_destination
-                generate_id(imprt, entity)
-
-            if entity.code in ["visit", "observation"]:
-                set_parent_id_from_line_no(imprt, entity) """
 
             fields = {
                 ef.field.name_field: ef.field
