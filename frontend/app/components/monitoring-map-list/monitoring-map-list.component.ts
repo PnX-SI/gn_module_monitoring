@@ -51,7 +51,6 @@ export class MonitoringMapListComponent {
       if (route instanceof NavigationStart) {
         this._formService.changeFormMapObj({
           frmGp: null,
-          bEdit: false,
           obj: null,
         });
       }
