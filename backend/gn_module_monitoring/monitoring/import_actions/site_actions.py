@@ -129,11 +129,3 @@ class SiteImportActions:
                 entity_site_fields,
                 entity_site_fields.get(SiteImportActions.UUID_FIELD),
             )
-
-    @staticmethod
-    def compute_bounding_box(imprt: TImports):
-        return compute_bounding_box(
-            imprt=imprt,
-            geom_entity_code="site",
-            geom_4326_field_name="s__geom",
-        )
