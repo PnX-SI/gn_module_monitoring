@@ -113,8 +113,8 @@ class TestSite:
         base_site_name = site.base_site_name
 
         r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
-
-        assert len(r.json["items"]) == 2
+        print(r.json)
+        assert len(r.json["items"]) == 1
         assert r.json["items"][0]["base_site_name"] == base_site_name
 
     def test_get_sites_id_base_site(self, sites, monitorings_users):

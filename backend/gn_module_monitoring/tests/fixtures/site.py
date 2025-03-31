@@ -22,7 +22,7 @@ def sites(monitorings_users, types_site, site_group_with_sites):
         sites[key] = TMonitoringSites(
             id_inventor=user.id_role,
             id_digitiser=user.id_role,
-            base_site_name=f"Site{i}",
+            base_site_name=f"Site{i}user",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
             geom=geom_4326,
@@ -35,7 +35,7 @@ def sites(monitorings_users, types_site, site_group_with_sites):
         sites["admin_user_" + key] = TMonitoringSites(
             id_inventor=user.id_role,
             id_digitiser=user.id_role,
-            base_site_name=f"Site{i}",
+            base_site_name=f"Site{i} admin_user",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
             geom=geom_4326,
