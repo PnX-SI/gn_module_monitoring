@@ -175,7 +175,7 @@ def get_entity_model_complements(entity: Entity):
     entity_site, entity_visit, _ = get_entities(imprt)
     _, site_fields, _ = get_mapping_data(imprt, entity_site)
     _, visit_fields, _ = get_mapping_data(imprt, entity_visit)
-    
+
     set_parent_line_no(
         imprt,
         parent_entity=entity_site,
@@ -193,7 +193,7 @@ def check_observation_sql(imprt):
     _, entity_visit, entity_observation = get_entities(imprt)
     _, visit_fields, _ = get_mapping_data(imprt, entity_visit)
     _, observation_fields, _ = get_mapping_data(imprt, entity_observation)
-    
+
     set_parent_line_no(
         imprt,
         parent_entity=entity_visit,
@@ -429,7 +429,7 @@ class MonitoringImportActions(ImportActions):
                         compile_kwargs={"literal_binds": True}
                     )
                     sql_query_obs = f"""
-                    INSERT INTO {destination_table.fullname} ({' ,'.join(core_dest_col_names)}) {compiled_select_core} 
+                    INSERT INTO {destination_table.fullname} ({' ,'.join(core_dest_col_names)}) {compiled_select_core}
                     RETURNING id_observation
                     """
                     result = db.session.execute(sa.text(sql_query_obs))
