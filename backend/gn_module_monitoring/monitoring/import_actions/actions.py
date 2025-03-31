@@ -9,6 +9,13 @@ from geonature.core.gn_monitoring.models import (
 from geonature.core.imports.checks.dataframe.cast import check_types
 from geonature.core.imports.checks.dataframe.core import check_datasets, check_required_values
 from geonature.core.imports.checks.dataframe.geometry import check_geometry
+
+
+from geonature.core.imports.checks.sql import (
+    check_duplicate_uuid,
+    check_existing_uuid,
+    set_id_parent_from_destination,
+)
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
@@ -39,6 +46,14 @@ from flask import current_app
 import typing
 
 
+from gn_module_monitoring.monitoring.import_actions.site_actions import SiteImportActions
+
+from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+from gn_module_monitoring.monitoring.import_actions.observation_actions import (
+    ObservationImportActions,
+)
+
+
 class ImportStatisticsLabels(typing.TypedDict):
     key: str
     value: str
@@ -51,102 +66,6 @@ def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
         code="observation", id_destination=imprt.destination.id_destination
     ).one()
     return entity_site, entity_visit, entity_observation
-
-
-# TODO ? Use explicit params instead of doing string interpolations.
-def generate_id(imprt: TImports, entity: Entity) -> None:
-    """
-    Generate the id for each new valid entity
-
-    Parameters
-    ----------
-    imprt : TImports
-        _description_
-    entity : Entity
-        entity
-    """
-    # Generate an id for the first occurence of each UUID
-    field_name = f"uuid_base_{entity.code}"
-    transient_table = imprt.destination.get_transient_table()
-    uuid_valid_cte = (
-        sa.select(
-            sa.distinct(transient_table.c[field_name]).label(field_name),
-            sa.func.min(transient_table.c.line_no).label("line_no"),
-        )
-        .where(transient_table.c.id_import == imprt.id_import)
-        .where(transient_table.c[entity.validity_column].is_(True))
-        .group_by(transient_table.c[field_name])
-        .cte("uuid_valid_cte")
-    )
-
-    db.session.execute(
-        sa.update(transient_table)
-        .where(transient_table.c.line_no == uuid_valid_cte.c.line_no)
-        .values(
-            {
-                f"id_base_{entity.code}": sa.func.nextval(
-                    f"gn_monitoring.t_base_{entity.code}s_id_base_{entity.code}_seq"
-                )
-            }
-        )
-    )
-
-
-def set_parent_id_from_line_no(imprt: TImports, entity: Entity) -> None:
-    """
-    Set the parent id of each entity in the transient table using the line_no of the corresponding parent.
-
-    Parameters
-    ----------
-    imprt : TImports
-        The import object containing the destination.
-    entity : Entity
-        entity
-    """
-    transient_entity = imprt.destination.get_transient_table()
-    transient_parent = aliased(transient_entity)
-    parent_code = entity.parent.code
-    db.session.execute(
-        sa.update(transient_entity)
-        .where(
-            transient_entity.c.id_import == imprt.id_import,
-            transient_entity.c[entity.validity_column].is_(True),
-            transient_parent.c.id_import == imprt.id_import,
-            transient_parent.c.line_no == transient_entity.c[f"{parent_code}_line_no"],
-        )
-        .values({f"id_base_{parent_code}": transient_parent.c[f"id_base_{parent_code}"]})
-    )
-
-
-def check_entity_sql(imprt, entity: Entity):
-    _, entity_fields, _ = get_mapping_data(imprt, entity)
-
-    for field_name in [
-        f"id_base_{entity.code}",
-        f"uuid_base_{entity.code}",
-    ]:
-        if field_name in entity_fields:
-            disable_duplicated_rows(
-                imprt,
-                entity,
-                entity_fields,
-                entity_fields[field_name],
-            )
-
-    if entity.parent is not None:
-        parent_code = entity.parent.code
-        _, parent_fields, _ = get_mapping_data(imprt, entity.parent)
-        set_parent_line_no(
-            imprt,
-            parent_entity=entity.parent,
-            child_entity=entity,
-            id_parent=f"id_base_{parent_code}",
-            parent_line_no=f"{parent_code}_line_no",
-            fields=[
-                entity_fields.get(f"id_base_{parent_code}"),
-                parent_fields.get(f"uuid_base_{parent_code}"),
-            ],
-        )
 
 
 def get_entity_model(entity: Entity):
@@ -171,43 +90,8 @@ def get_entity_model_complements(entity: Entity):
     return None
 
 
-""" def check_visit_sql(imprt):
-    entity_site, entity_visit, _ = get_entities(imprt)
-    _, site_fields, _ = get_mapping_data(imprt, entity_site)
-    _, visit_fields, _ = get_mapping_data(imprt, entity_visit)
-
-    set_parent_line_no(
-        imprt,
-        parent_entity=entity_site,
-        child_entity=entity_visit,
-        id_parent="id_base_site",
-        parent_line_no="site_line_no",
-        fields=[
-            visit_fields.get("id_base_site"),
-            site_fields.get("s__uuid_base_site"),
-        ],
-    )
-
-
-def check_observation_sql(imprt):
-    _, entity_visit, entity_observation = get_entities(imprt)
-    _, visit_fields, _ = get_mapping_data(imprt, entity_visit)
-    _, observation_fields, _ = get_mapping_data(imprt, entity_observation)
-
-    set_parent_line_no(
-        imprt,
-        parent_entity=entity_visit,
-        child_entity=entity_observation,
-        id_parent="id_base_visit",
-        parent_line_no="visit_line_no",
-        fields=[
-            observation_fields.get("id_base_visit"),
-            visit_fields.get("v__uuid_base_visit"),
-        ],
-    ) """
-
-
 class MonitoringImportActions(ImportActions):
+
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
         return []
@@ -260,19 +144,18 @@ class MonitoringImportActions(ImportActions):
 
         # We first check site and visit consistency in order to avoid checking
         # incoherent data
-        MonitoringImportActions.check_parents_consistency(imprt)
+        SiteImportActions.check_entity_data_consistency(imprt)
+        VisitImportActions.check_entity_data_consistency(imprt)
 
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
-        MonitoringImportActions.check_site_dataframe(imprt, config)
-        MonitoringImportActions.check_visit_dataframe(imprt)
-        MonitoringImportActions.check_observation_dataframe(imprt)
+        SiteImportActions.check_dataframe(imprt, config)
+        VisitImportActions.check_dataframe(imprt)
+        ObservationImportActions.check_dataframe(imprt)
 
-        entity_site, entity_visit, entity_observation = get_entities(imprt)
-
-        check_entity_sql(imprt, entity_site)
-        check_entity_sql(imprt, entity_visit)
-        check_entity_sql(imprt, entity_observation)
+        SiteImportActions.check_sql(imprt)
+        VisitImportActions.check_sql(imprt)
+        ObservationImportActions.check_sql(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
@@ -294,14 +177,11 @@ class MonitoringImportActions(ImportActions):
         def get_dest_col_name(input: str) -> str:
             return re.sub(r"^.*?__", "", input)
 
-        entity_site, entity_visit, entity_observation = get_entities(imprt)
+        SiteImportActions.generate_id(imprt)
+        VisitImportActions.generate_id(imprt)
 
-        # Maybe better here than in import_data_to_destination ?
-        generate_id(imprt, entity_site)
-        generate_id(imprt, entity_visit)
-
-        set_parent_id_from_line_no(imprt, entity_visit)
-        set_parent_id_from_line_no(imprt, entity_observation)
+        VisitImportActions.set_parent_id_from_line_no(imprt)
+        ObservationImportActions.set_parent_id_from_line_no(imprt)
 
         for entity in entities.values():
             print(f"--------- {entity.code}")
@@ -518,173 +398,5 @@ class MonitoringImportActions(ImportActions):
         return None
 
     @staticmethod
-    def compute_bounding_box(imprt: TImports) -> None:
-        pass
-
-    # Following methods not present in ImportActions
-
-    @staticmethod
-    def check_parents_consistency(imprt):
-        entity_site, entity_visit, _ = get_entities(imprt)
-
-        _, selected_site_fields, _ = get_mapping_data(imprt, entity_site)
-
-        if "id_base_site" in selected_site_fields:
-            check_entity_data_consistency(
-                imprt,
-                entity_site,
-                selected_site_fields,
-                selected_site_fields["id_base_site"],
-            )
-        if "uuid_base_site" in selected_site_fields:
-            check_entity_data_consistency(
-                imprt,
-                entity_site,
-                selected_site_fields,
-                selected_site_fields["uuid_base_site"],
-            )
-
-        _, selected_visit_fields, _ = get_mapping_data(imprt, entity_visit)
-
-        if "id_base_visit" in selected_visit_fields:
-            check_entity_data_consistency(
-                imprt,
-                entity_visit,
-                selected_visit_fields,
-                selected_visit_fields["id_base_visit"],
-            )
-        if "uuid_base_visit" in selected_visit_fields:
-            check_entity_data_consistency(
-                imprt,
-                entity_visit,
-                selected_visit_fields,
-                selected_visit_fields["uuid_base_visit"],
-            )
-
-    @staticmethod
-    def dataframe_checks(imprt, df, entity, fields):
-        updated_cols = set({})
-        updated_cols |= check_types(
-            imprt, entity, df, fields
-        )  # FIXME do not check site and visit uuid twice
-
-        updated_cols |= check_required_values(imprt, entity, df, fields)
-
-        return updated_cols
-
-    @staticmethod
-    def check_site_dataframe(imprt: TImports, config):
-        """
-        Check the site data before importing.
-
-        List of checks and data operations (in order of execution):
-        - check types
-        - check required values
-        - convert geom columns
-        - check geography
-        - check if given geometries are valid (see ST_VALID in PostGIS)
-
-        Parameters
-        ----------
-        imprt : TImports
-            The import to check.
-
-        """
-
-        entity_site, _, _ = get_entities(imprt)
-
-        fields, _, source_cols = get_mapping_data(imprt, entity_site)
-
-        # Save column names where the data was changed in the dataframe
-        updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_site, source_cols)
-
-        updated_cols |= MonitoringImportActions.dataframe_checks(imprt, df, entity_site, fields)
-
-        geom_field_name = config.get("site", {}).get("geom_field_name")
-        if geom_field_name:
-            updated_cols |= check_geometry(
-                imprt,
-                entity_site,
-                df,
-                file_srid=imprt.srid,
-                geom_4326_field=fields[f"s__{geom_field_name}_4326"],
-                geom_local_field=fields[f"s__{geom_field_name}_local"],
-                wkt_field=fields[f"s__{geom_field_name}"],
-            )
-
-        update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
-
-    @staticmethod
-    def check_visit_dataframe(imprt: TImports):
-        """
-        Check the visit data before importing.
-
-        List of checks and data operations (in order of execution):
-        - check datasets
-        - check types
-        - check required values
-
-        Parameters
-        ----------
-        imprt : TImports
-            The import to check.
-
-        """
-
-        _, entity_visit, _ = get_entities(imprt)
-
-        fields, _, source_cols = get_mapping_data(imprt, entity_visit)
-
-        # Save column names where the data was changed in the dataframe
-        updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_visit, source_cols)
-
-        updated_cols |= MonitoringImportActions.dataframe_checks(imprt, df, entity_visit, fields)
-
-        updated_cols |= check_datasets(
-            imprt,
-            entity_visit,
-            df,
-            uuid_field=fields["unique_dataset_id"],
-            id_field=fields["id_dataset"],
-            module_code=imprt.destination.module.module_code,  # Or use MONITORINGS ?
-        )
-
-        update_transient_data_from_dataframe(imprt, entity_visit, updated_cols, df)
-
-    @staticmethod
-    def check_observation_dataframe(imprt: TImports):
-        """
-        Check the observation data before importing.
-
-        List of checks and data operations (in order of execution):
-        - check types
-        - check required values
-
-        Parameters
-        ----------
-        imprt : TImports
-            The import to check.
-
-        """
-
-        _, _, entity_observation = get_entities(imprt)
-
-        fields, _, source_cols = get_mapping_data(imprt, entity_observation)
-
-        # Save column names where the data was changed in the dataframe
-        updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_observation, source_cols)
-
-        updated_cols |= MonitoringImportActions.dataframe_checks(
-            imprt, df, entity_observation, fields
-        )
-
-        update_transient_data_from_dataframe(imprt, entity_observation, updated_cols, df)
+    def compute_bounding_box(imprt: TImports):
+        return SiteImportActions.compute_bounding_box(imprt)

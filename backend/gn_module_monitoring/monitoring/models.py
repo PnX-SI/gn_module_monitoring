@@ -1,5 +1,5 @@
 """
-    Modèles SQLAlchemy pour les modules de suivi
+Modèles SQLAlchemy pour les modules de suivi
 """
 
 import geoalchemy2
@@ -501,7 +501,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         "polymorphic_identity": "monitoring_module",
     }
     # Hack to avoid circular import
-    from gn_module_monitoring.monitoring.actions import MonitoringImportActions
+    from gn_module_monitoring.monitoring.import_actions.actions import MonitoringImportActions
 
     __import_actions__ = MonitoringImportActions
 
