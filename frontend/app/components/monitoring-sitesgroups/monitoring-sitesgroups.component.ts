@@ -174,7 +174,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
             this.obj.bIsInitialized = true;
             this._formService.changeFormMapObj({
               frmGp: this.objForm,
-              bEdit: false,
               obj: this.obj,
             });
           });

@@ -226,7 +226,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         if (this.moduleCode !== 'generic') {
           this._formService.changeFormMapObj({
             frmGp: null,
-            bEdit: false,
             obj: this.obj,
           });
         }
