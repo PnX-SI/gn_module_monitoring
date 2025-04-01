@@ -3,6 +3,9 @@ from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
 from geonature.core.imports.models import Entity, TImports
 
+from geonature.core.gn_monitoring.models import TObservations
+from geonature.utils.env import db
+import sqlalchemy as sa
 
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
@@ -135,3 +138,16 @@ class ObservationImportActions:
         EntityImportActionsUtils.set_parent_id_from_line_no(
             imprt, EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
         )
+
+    @staticmethod
+    def compute_taxa_statistics(imprt: TImports):
+        # TODO: Improve this
+        return {
+            "taxa_count": (
+                db.session.scalar(
+                    sa.select(sa.func.count(sa.distinct(TObservations.cd_nom))).where(
+                        TObservations.id_import == imprt.id_import
+                    )
+                )
+            ),
+        }

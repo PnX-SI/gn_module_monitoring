@@ -14,7 +14,7 @@ from gn_module_monitoring.monitoring.models import (
 )
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
-from geonature.core.imports.actions import ImportActions
+from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
 from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
 from geonature.core.imports.models import Entity, TImports
 
@@ -33,11 +33,6 @@ from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitIm
 from gn_module_monitoring.monitoring.import_actions.observation_actions import (
     ObservationImportActions,
 )
-
-
-class ImportStatisticsLabels(typing.TypedDict):
-    key: str
-    value: str
 
 
 def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
@@ -75,7 +70,12 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
-        return []
+        return [
+            {"key": "site_count", "value": "Nombre de sites importés"},
+            {"key": "visit_count", "value": "Nombre de visites importées"},
+            {"key": "observation_count", "value": "Nombre d'observations importées"},
+            {"key": "taxa_count", "value": "Nombre de taxons importés"},
+        ]
 
     # Some field params appears to be dynamic
     # They must be handled on the fly
@@ -331,6 +331,16 @@ class MonitoringImportActions(ImportActions):
 
                 yield (batch + 1) / batch_count
             imprt.statistics.update({f"{entity.code}_count": row_count})
+
+        imprt.statistics.update(ObservationImportActions.compute_taxa_statistics(imprt))
+
+        # filter empty statistics
+        statistics_0_keys = []
+        for key, value in imprt.statistics.items():
+            if value == 0:
+                statistics_0_keys.append(key)
+        for key in statistics_0_keys:
+            imprt.statistics.pop(key)
 
     @staticmethod
     def report_plot(imprt: TImports) -> StandaloneEmbedJson:

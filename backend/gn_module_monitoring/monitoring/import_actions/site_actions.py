@@ -93,7 +93,6 @@ class SiteImportActions:
             geom_field_name__local = f"s__{geom_field_name}_local"
             geom_field_name__4326 = f"s__{geom_field_name}_4326"
             geom_field_name__wkt = f"s__{geom_field_name}"
-            print(str(updated_cols))
             updated_cols |= check_geometry(
                 imprt,
                 entity_site,
@@ -103,7 +102,6 @@ class SiteImportActions:
                 geom_local_field=fields[geom_field_name__local],
                 wkt_field=fields[geom_field_name__wkt],
             )
-            print(str(updated_cols))
 
         update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
 
