@@ -236,8 +236,8 @@ export class SitesService extends ApiGeomService<ISite> {
 
   getSiteModules(idSite: number): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${idSite}/modules`);
-  } 
-  
+  }
+
   formatLabelTypesSite(sites: ISite[]) {
     const rowSitesTable: ISiteField[] = [];
     const varToFormat = 'types_site';
@@ -256,13 +256,13 @@ export class SitesService extends ApiGeomService<ISite> {
   }
 
   formatLabelObservers(sites: ISiteField[]) {
-    const rowSitesTable: ISiteField[] = []; 
-    for (const site of sites) { 
+    const rowSitesTable: ISiteField[] = [];
+    for (const site of sites) {
       if (site['id_inventor']) {
         site['id_inventor'] = site['inventor'];
       }
       rowSitesTable.push(site);
-    } 
+    }
     return rowSitesTable;
   }
 }
