@@ -340,4 +340,4 @@ class MonitoringImportActions(ImportActions):
     def compute_bounding_box(imprt: TImports):
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem
-        pass
+        return SiteImportActions.compute_bounding_box(imprt)

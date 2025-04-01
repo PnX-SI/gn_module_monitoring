@@ -93,6 +93,7 @@ class SiteImportActions:
             geom_field_name__local = f"s__{geom_field_name}_local"
             geom_field_name__4326 = f"s__{geom_field_name}_4326"
             geom_field_name__wkt = f"s__{geom_field_name}"
+            print(str(updated_cols))
             updated_cols |= check_geometry(
                 imprt,
                 entity_site,
@@ -102,6 +103,7 @@ class SiteImportActions:
                 geom_local_field=fields[geom_field_name__local],
                 wkt_field=fields[geom_field_name__wkt],
             )
+            print(str(updated_cols))
 
         update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
 
@@ -134,3 +136,15 @@ class SiteImportActions:
                 entity_site_fields,
                 entity_site_fields.get(SiteImportActions.UUID_FIELD),
             )
+
+    @staticmethod
+    def compute_bounding_box(imprt: TImports):
+        # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
+        # It  might be the problem
+        return compute_bounding_box(
+            imprt=imprt,
+            geom_entity_code=SiteImportActions.ENTITY_CODE,
+            geom_4326_field_name__transient="s__geom",
+            geom_4326_field_name__destination="geom",
+            child_entity_code="observation",
+        )
