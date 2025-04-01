@@ -247,32 +247,87 @@ class MonitoringImportActions(ImportActions):
                     transient_table.c["line_no"] < max_line_no,
                 )
 
-                core_insert_stmt = sa.insert(destination_model).from_select(
-                    names=core_dest_col_names,
-                    select=core_select,
-                )
-                row_count += db.session.execute(core_insert_stmt).rowcount
-                if complement_select_stmt is not None:
-                    db.session.execute(
-                        sa.insert(model_complements).from_select(
-                            names=[id_col_name, "data"],
-                            select=complement_select_stmt.filter(
-                                transient_table.c["line_no"] >= min_line_no,
-                                transient_table.c["line_no"] < max_line_no,
-                            ),
-                        )
+                if entity.code == "observation":
+                    compiled_select_core = core_select.compile(
+                        compile_kwargs={"literal_binds": True}
                     )
+                    sql_query_obs = f"""
+                    INSERT INTO {destination_table.fullname} ({' ,'.join(core_dest_col_names)}) {compiled_select_core}
+                    RETURNING id_observation
+                    """
+                    result = db.session.execute(sa.text(sql_query_obs))
+                    created_ids = result.scalars().all()
+                    row_count += result.rowcount
 
-                if types_site_select_stmt is not None:
-                    db.session.execute(
-                        sa.insert(cor_site_type).from_select(
-                            ["id_base_site", "id_type_site"],
-                            types_site_select_stmt.filter(
+                    if complement_select_stmt is not None:
+                        # CTE pour récupérer les observations insérées, avec un row_number basé sur id_observation
+                        obs_ordered_cte = (
+                            sa.select(
+                                destination_table.c.id_observation,
+                                sa.func.row_number()
+                                .over(order_by=destination_table.c.id_observation)
+                                .label("row_num"),
+                            )
+                            .where(destination_table.c.id_observation.in_(created_ids))
+                            .cte("obs_ordered")
+                        )
+
+                        # CTE pour le complement_select_stmt, en ajoutant un row_number basé sur line_no
+                        comp_cte = (
+                            complement_select_stmt.add_columns(
+                                sa.func.row_number()
+                                .over(order_by=transient_table.c.line_no)
+                                .label("row_num")
+                            )
+                            .filter(
                                 transient_table.c["line_no"] >= min_line_no,
                                 transient_table.c["line_no"] < max_line_no,
-                            ),
+                            )
+                            .cte("comp_cte")
                         )
+
+                        # On effectue la jointure sur row_num pour associer chaque observation à la ligne complémentaire correspondante
+                        final_select = sa.select(
+                            obs_ordered_cte.c.id_observation, comp_cte.c.data
+                        ).select_from(
+                            obs_ordered_cte.join(
+                                comp_cte, obs_ordered_cte.c.row_num == comp_cte.c.row_num
+                            )
+                        )
+
+                        # Insertion dans model_complements via from_select
+                        final_insert = sa.insert(model_complements).from_select(
+                            ["id_observation", "data"], final_select
+                        )
+
+                        db.session.execute(final_insert)
+                else:
+                    core_insert_stmt = sa.insert(destination_model).from_select(
+                        names=core_dest_col_names,
+                        select=core_select,
                     )
+                    row_count += db.session.execute(core_insert_stmt).rowcount
+                    if complement_select_stmt is not None:
+                        db.session.execute(
+                            sa.insert(model_complements).from_select(
+                                names=[id_col_name, "data"],
+                                select=complement_select_stmt.filter(
+                                    transient_table.c["line_no"] >= min_line_no,
+                                    transient_table.c["line_no"] < max_line_no,
+                                ),
+                            )
+                        )
+
+                    if types_site_select_stmt is not None:
+                        db.session.execute(
+                            sa.insert(cor_site_type).from_select(
+                                ["id_base_site", "id_type_site"],
+                                types_site_select_stmt.filter(
+                                    transient_table.c["line_no"] >= min_line_no,
+                                    transient_table.c["line_no"] < max_line_no,
+                                ),
+                            )
+                        )
 
                 yield (batch + 1) / batch_count
             imprt.statistics.update({f"{entity.code}_count": row_count})
