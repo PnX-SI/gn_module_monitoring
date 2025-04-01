@@ -333,10 +333,6 @@ class MonitoringImportActions(ImportActions):
             imprt.statistics.update({f"{entity.code}_count": row_count})
 
     @staticmethod
-    def remove_data_from_destination(imprt: TImports) -> None:
-        pass
-
-    @staticmethod
     def report_plot(imprt: TImports) -> StandaloneEmbedJson:
         return None
 
