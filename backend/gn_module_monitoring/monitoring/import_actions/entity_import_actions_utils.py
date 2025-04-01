@@ -1,7 +1,7 @@
 from geonature.core.imports.models import Entity, TImports
 from geonature.core.imports.checks.dataframe.cast import check_types
 from geonature.core.imports.checks.dataframe.core import check_required_values
-
+import re
 from geonature.utils.env import db
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
@@ -19,6 +19,10 @@ from geonature.core.imports.checks.sql.extra import (
 
 
 class EntityImportActionsUtils:
+    @staticmethod
+    def get_destination_column_name(transient_table_column_name: str) -> str:
+        return re.sub(r"^.*?__", "", transient_table_column_name)
+
     @staticmethod
     def get_entity(imprt: TImports, entity_code: str) -> Entity:
         return Entity.query.filter_by(

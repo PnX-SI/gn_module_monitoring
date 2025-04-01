@@ -27,6 +27,7 @@ class SiteImportActions:
     TABLE_NAME = "t_base_sites"
     ID_FIELD = "id_base_site"
     UUID_FIELD = "uuid_base_site"
+    GEOMETRY_FIELD = "s__geom"
 
     @staticmethod
     def check_sql(imprt: TImports):
@@ -137,12 +138,18 @@ class SiteImportActions:
 
     @staticmethod
     def compute_bounding_box(imprt: TImports):
+        from gn_module_monitoring.monitoring.import_actions.observation_actions import (
+            ObservationImportActions,
+        )
+
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem
         return compute_bounding_box(
             imprt=imprt,
             geom_entity_code=SiteImportActions.ENTITY_CODE,
-            geom_4326_field_name__transient="s__geom",
-            geom_4326_field_name__destination="geom",
-            child_entity_code="observation",
+            geom_4326_field_name__transient=SiteImportActions.GEOMETRY_FIELD,
+            geom_4326_field_name__destination=EntityImportActionsUtils.get_destination_column_name(
+                SiteImportActions.GEOMETRY_FIELD
+            ),
+            child_entity_code=ObservationImportActions.ENTITY_CODE,
         )

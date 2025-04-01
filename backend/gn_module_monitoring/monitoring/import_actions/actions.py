@@ -1,5 +1,5 @@
 from math import ceil
-import re
+
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
@@ -155,9 +155,6 @@ class MonitoringImportActions(ImportActions):
             )
         }
 
-        def get_dest_col_name(input: str) -> str:
-            return re.sub(r"^.*?__", "", input)
-
         SiteImportActions.generate_id(imprt)
         VisitImportActions.generate_id(imprt)
         ObservationImportActions.generate_id(imprt)
@@ -177,7 +174,7 @@ class MonitoringImportActions(ImportActions):
             destination_table = destination_model.__table__
             destination_col_names = list(destination_table.columns.keys())
             for field in entity_fields:
-                col_name = get_dest_col_name(field.dest_field)
+                col_name = EntityImportActionsUtils.get_destination_column_name(field.dest_field)
                 if col_name in destination_col_names and col_name not in core_dest_col_names:
                     core_fields.append(field)
                     core_dest_col_names.append(col_name)
@@ -186,7 +183,9 @@ class MonitoringImportActions(ImportActions):
 
             core_select_cols = [sa.literal(imprt.id_import).label("id_import")]
             core_select_cols.extend(
-                transient_table.c[field.dest_field].label(get_dest_col_name(field.dest_field))
+                transient_table.c[field.dest_field].label(
+                    EntityImportActionsUtils.get_destination_column_name(field.dest_field)
+                )
                 for field in core_fields
             )
 
@@ -207,7 +206,10 @@ class MonitoringImportActions(ImportActions):
             json_args = []
             for field in complement_fields:
                 json_args.extend(
-                    [get_dest_col_name(field.dest_field), transient_table.c[field.dest_field]]
+                    [
+                        EntityImportActionsUtils.get_destination_column_name(field.dest_field),
+                        transient_table.c[field.dest_field],
+                    ]
                 )
 
             complement_select_stmt = None
