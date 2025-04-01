@@ -23,7 +23,9 @@ from geonature.core.imports.utils import (
 
 class ObservationImportActions:
     ENTITY_CODE = "observation"
-    UUID_FIELD = "uuid_base_observation"
+    TABLE_NAME = "t_observations"
+    ID_FIELD = "id_observation"
+    UUID_FIELD = "uuid_observation"
     PARENT_ID_FIELD = "id_base_visit"
     PARENT_UUID_FIELD = "uuid_base_visit"
     PARENT_LINE_NO = "visit_line_no"
@@ -121,7 +123,11 @@ class ObservationImportActions:
     @staticmethod
     def generate_id(imprt: TImports):
         EntityImportActionsUtils.generate_id(
-            imprt, EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
+            imprt,
+            EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE),
+            ObservationImportActions.TABLE_NAME,
+            ObservationImportActions.UUID_FIELD,
+            ObservationImportActions.ID_FIELD,
         )
 
     @staticmethod

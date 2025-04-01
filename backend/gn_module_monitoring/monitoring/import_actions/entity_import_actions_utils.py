@@ -39,7 +39,9 @@ class EntityImportActionsUtils:
     # TODO ? Use explicit params instead of doing string interpolations.
 
     @staticmethod
-    def generate_id(imprt: TImports, entity: Entity) -> None:
+    def generate_id(
+        imprt: TImports, entity: Entity, table_name: str, uuid_field_name: str, id_field_name: str
+    ) -> None:
         """
         Generate the id for each new valid entity
 
@@ -51,16 +53,16 @@ class EntityImportActionsUtils:
             entity
         """
         # Generate an id for the first occurence of each UUID
-        field_name = f"uuid_base_{entity.code}"
+
         transient_table = imprt.destination.get_transient_table()
         uuid_valid_cte = (
             sa.select(
-                sa.distinct(transient_table.c[field_name]).label(field_name),
+                sa.distinct(transient_table.c[uuid_field_name]).label(uuid_field_name),
                 sa.func.min(transient_table.c.line_no).label("line_no"),
             )
             .where(transient_table.c.id_import == imprt.id_import)
             .where(transient_table.c[entity.validity_column].is_(True))
-            .group_by(transient_table.c[field_name])
+            .group_by(transient_table.c[uuid_field_name])
             .cte("uuid_valid_cte")
         )
 
@@ -69,8 +71,8 @@ class EntityImportActionsUtils:
             .where(transient_table.c.line_no == uuid_valid_cte.c.line_no)
             .values(
                 {
-                    f"id_base_{entity.code}": sa.func.nextval(
-                        f"gn_monitoring.t_base_{entity.code}s_id_base_{entity.code}_seq"
+                    f"{id_field_name}": sa.func.nextval(
+                        f"gn_monitoring.{table_name}_{id_field_name}_seq"
                     )
                 }
             )
@@ -139,3 +141,5 @@ class EntityImportActionsUtils:
             entity_fields |= {
                 fields["id_base_visit"],
             }
+
+        return entity_fields

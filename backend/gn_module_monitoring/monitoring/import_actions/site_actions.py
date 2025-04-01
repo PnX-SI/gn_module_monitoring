@@ -24,6 +24,7 @@ from geonature.core.imports.checks.dataframe.geometry import check_geometry
 
 class SiteImportActions:
     ENTITY_CODE = "site"
+    TABLE_NAME = "t_base_sites"
     ID_FIELD = "id_base_site"
     UUID_FIELD = "uuid_base_site"
 
@@ -107,7 +108,11 @@ class SiteImportActions:
     @staticmethod
     def generate_id(imprt: TImports):
         EntityImportActionsUtils.generate_id(
-            imprt, EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+            imprt,
+            EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE),
+            SiteImportActions.TABLE_NAME,
+            SiteImportActions.UUID_FIELD,
+            SiteImportActions.ID_FIELD,
         )
 
     @staticmethod

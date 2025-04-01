@@ -24,6 +24,7 @@ from geonature.core.imports.checks.dataframe.core import check_datasets, check_r
 
 class VisitImportActions:
     ENTITY_CODE = "visit"
+    TABLE_NAME = "t_base_visits"
     ID_FIELD = "id_base_visit"
     UUID_FIELD = "uuid_base_visit"
     PARENT_ID_FIELD = "id_base_site"
@@ -125,7 +126,11 @@ class VisitImportActions:
     @staticmethod
     def generate_id(imprt: TImports):
         EntityImportActionsUtils.generate_id(
-            imprt, EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+            imprt,
+            EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE),
+            VisitImportActions.TABLE_NAME,
+            VisitImportActions.UUID_FIELD,
+            VisitImportActions.ID_FIELD,
         )
 
     @staticmethod
