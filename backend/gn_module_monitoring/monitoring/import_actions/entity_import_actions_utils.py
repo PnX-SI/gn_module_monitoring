@@ -124,7 +124,7 @@ class EntityImportActionsUtils:
                 if not set(column_src).isdisjoint(imprt.columns):
                     entity_fields |= {field}
             else:
-                if column_src in imprt.columns or mapping.get("default_value", None) is not None:
+                if column_src in imprt.columns or mapping.get("constant_value", None) is not None:
                     entity_fields |= {field}
 
         if entity.code == "site":
