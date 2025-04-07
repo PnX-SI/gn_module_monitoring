@@ -75,7 +75,6 @@ FORBIDDEN_SQL_INSTRUCTION = [
 ]
 
 PERMISSION_LABEL = {
-    "ALL": {"label": "données", "actions": ["C", "R", "U", "D"]},
     "MONITORINGS_MODULES": {"label": "modules", "actions": ["R", "U", "E"]},
     "MONITORINGS_GRP_SITES": {"label": "groupes de sites", "actions": ["C", "R", "U", "D"]},
     "MONITORINGS_SITES": {"label": "sites", "actions": ["C", "R", "U", "D"]},
@@ -205,10 +204,6 @@ def process_available_permissions(module_code, session):
         insert_module_available_permissions(
             module_code, permission_level[permission_object_code], session=session
         )
-
-    # Hack : The user needs this permission to be able to select the protocol in the destinations list.
-    print(f"Création des permissions pour {module_code} : ALL")
-    insert_module_available_permissions(module_code, "ALL", session=session)
 
 
 def insert_module_available_permissions(module_code, perm_object_code, session):
