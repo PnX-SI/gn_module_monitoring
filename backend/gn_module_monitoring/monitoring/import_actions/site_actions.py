@@ -8,9 +8,10 @@ from geonature.core.imports.checks.sql.extra import (
 )
 
 from geonature.core.imports.checks.sql import (
+    check_altitudes,
     check_duplicate_uuid,
     check_existing_uuid,
-    set_id_parent_from_destination,
+    convert_geom_columns,
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
@@ -28,6 +29,10 @@ class SiteImportActions:
     ID_FIELD = "id_base_site"
     UUID_FIELD = "uuid_base_site"
     GEOMETRY_FIELD = "s__geom"
+    GEOMETRY_4326_FIELD = "s__geom_4326"
+    GEOMETRY_LOCAL_FIELD = "s__geom_local"
+    ALTITUDE_MIN_FIELD = "s__altitude_min"
+    ALTITUDE_MAX_FIELD = "s__altitude_max"
 
     @staticmethod
     def check_sql(imprt: TImports):
@@ -57,6 +62,10 @@ class SiteImportActions:
             check_duplicate_uuid(
                 imprt, entity_site, entity_site_fields.get(SiteImportActions.UUID_FIELD)
             )
+
+        SiteImportActions.check_and_compute_geometries(imprt)
+
+        SiteImportActions.check_altitudes(imprt)
 
     @staticmethod
     def check_dataframe(imprt: TImports, config):
@@ -152,4 +161,28 @@ class SiteImportActions:
                 SiteImportActions.GEOMETRY_FIELD
             ),
             child_entity_code=ObservationImportActions.ENTITY_CODE,
+        )
+
+    @staticmethod
+    def check_and_compute_geometries(imprt: TImports):
+        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        fields, _, _ = get_mapping_data(imprt, entity_site)
+
+        convert_geom_columns(
+            imprt,
+            entity_site,
+            geom_4326_field=fields[SiteImportActions.GEOMETRY_4326_FIELD],
+            geom_local_field=fields[SiteImportActions.GEOMETRY_LOCAL_FIELD],
+        )
+
+    @staticmethod
+    def check_altitudes(imprt: TImports):
+        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        fields, _, _ = get_mapping_data(imprt, entity_site)
+
+        check_altitudes(
+            imprt,
+            entity_site,
+            fields[SiteImportActions.ALTITUDE_MIN_FIELD],
+            fields[SiteImportActions.ALTITUDE_MAX_FIELD],
         )
