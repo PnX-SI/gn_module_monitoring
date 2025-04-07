@@ -61,7 +61,7 @@
           <div class="mt-2">
             <pnx-monitoring-datatable
               *ngIf="childrenDataTable && childrenDataTable[child0.objectType]"
-              (bEditChange)="onbEditChange($event)" 
+              (bEditChange)="onbEditChange($event)"
               [rows]="childrenDataTable[child0.objectType]['rows']"
               [columns]="childrenDataTable[child0.objectType]['columns']"
               [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
