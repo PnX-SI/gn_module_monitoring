@@ -41,7 +41,7 @@
   ],
   "generic": {
     "id_base_site": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "Id site",
       "hidden": true
     },
@@ -84,13 +84,15 @@
       "type_util": "date"
     },
     "nb_visits": {
+      "type_widget": "number",
       "attribut_label": "Nb. visites"
     },
     "nb_individuals": {
       "attribut_label": "Nb. individus"
     },
     "uuid_base_site": {
-      "attribut_label": "uuid"
+      "attribut_label": "uuid",
+      "type_util": "uuid"
     },
     "medias": {
       "type_widget": "medias",
@@ -98,11 +100,11 @@
       "schema_dot_table": "gn_monitoring.t_base_sites"
     },
     "altitude_min": {
-      "type_widget": "integer",
+      "type_widget": "number",
       "attribut_label": "Altitude (min)"
     },
     "altitude_max": {
-      "type_widget": "integer",
+      "type_widget": "number",
       "attribut_label": "Altitude (max)"
     },
     "types_site": {

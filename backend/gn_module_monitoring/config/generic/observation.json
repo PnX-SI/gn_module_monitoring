@@ -11,12 +11,12 @@
   "uuid_field_name": "uuid_observation",
   "generic": {
     "id_observation": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "Id observation",
       "hidden": true
     },
     "id_base_visit": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "Id visite",
       "hidden": true
     },
@@ -44,7 +44,8 @@
       "attribut_label": "Commentaires"
     },
     "uuid_observation": {
-      "attribut_label": "uuid"
+      "attribut_label": "uuid",
+      "type_util": "uuid"
     },
     "medias": {
       "type_widget": "medias",
