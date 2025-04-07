@@ -119,6 +119,7 @@ class VisitImportActions:
             uuid_field=fields["unique_dataset_id"],
             id_field=fields["id_dataset"],
             module_code=imprt.destination.module.module_code,
+            object_code="MONITORINGS_VISITES",
         )
 
         update_transient_data_from_dataframe(imprt, entity_visit, updated_cols, df)
