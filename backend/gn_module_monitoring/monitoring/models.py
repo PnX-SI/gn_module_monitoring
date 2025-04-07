@@ -500,6 +500,10 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     __mapper_args__ = {
         "polymorphic_identity": "monitoring_module",
     }
+    # Hack to avoid circular import
+    from gn_module_monitoring.monitoring.import_actions.actions import MonitoringImportActions
+
+    __import_actions__ = MonitoringImportActions
 
     id_module = DB.Column(
         DB.ForeignKey("gn_commons.t_modules.id_module"),

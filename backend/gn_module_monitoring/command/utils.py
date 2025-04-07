@@ -1,12 +1,27 @@
 import os
-
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import and_, text, delete, select
+from sqlalchemy import and_, text, delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB, UUID
+from geoalchemy2 import Geometry
+import sqlalchemy as sa
+
+from sqlalchemy import (
+    MetaData,
+    Table,
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Date,
+    ARRAY,
+    Text,
+    ForeignKey,
+    PrimaryKeyConstraint,
+)
 
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import (
@@ -17,11 +32,21 @@ from geonature.core.gn_permissions.models import (
 )
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_monitoring.models import BibTypeSite
+from geonature.core.imports.models import (
+    BibFields,
+    Destination,
+    Entity,
+    EntityField,
+    BibThemes,
+    TImports,
+)
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
+
 
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
+    validate_json_file,
     SUB_MODULE_CONFIG_DIR,
 )
 
@@ -63,6 +88,37 @@ ACTION_LABEL = {
     "U": "Modifier les",
     "D": "Supprimer des",
     "E": "Exporter les",
+}
+
+TABLE_NAME_SUBMODULDE = {
+    "sites_group": "t_sites_groups",
+    "site": "t_base_sites",
+    "visit": "t_base_visits",
+    "observation": "t_observations",
+    "observation_detail": "t_observations_details",
+}
+
+TYPE_WIDGET = {
+    "select": "varchar",
+    "checkbox": "varchar[]",
+    "radio": "varchar",
+    "html": "text",
+    "bool_checkbox": "boolean",
+    "number": "integer",
+    "multiselect": "varchar[]",
+    "observers": "integer[]",
+    "media": "varchar",
+    "medias": "varchar[]",
+    "date": "date",
+    "nomenclature": "integer",
+    "datalist": "integer",
+    "text": "varchar",
+    "textarea": "text",
+    "integer": "integer",
+    "jsonb": "jsonb",
+    "time": "varchar",
+    "taxonomy": "integer",
+    "site": "integer",
 }
 
 
@@ -219,11 +275,14 @@ def remove_monitoring_module(module_code):
         # suppression des permissions disponibles pour ce module
         # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
         stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
-
         DB.session.execute(stmt)
 
         stmt = delete(TModules).where(TModules.id_module == module.id_module)
         DB.session.execute(stmt)
+
+        stmt = delete(Destination).where(Destination.id_module == module.id_module)
+        DB.session.execute(stmt)
+
         DB.session.commit()
     except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
@@ -382,3 +441,1173 @@ def available_modules():
             available_modules_.append({**module, "module_code": d})
         break
     return available_modules_
+
+
+def extract_keys(test_dict, keys=[]):
+    """
+    Fonction permettant d'extraire de façon récursive les clés d'un dictionnaire.
+    """
+    for key, val in test_dict.items():
+        keys.append(key)
+        if isinstance(val, dict):
+            extract_keys(val, keys)
+    return keys
+
+
+def get_entities_protocol(module_code: str) -> list:
+    """
+    Extrait les entités à partir du fichier de configuration pour un module donné.
+
+    Args:
+        module_code (str): Code du module.
+
+    Returns:
+        list: Liste des entités du module.
+    """
+    module_path = monitoring_module_config_path(module_code)
+
+    if not (module_path / "config.json").is_file():
+        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
+
+    data_config = json_from_file(module_path / "config.json")
+    tree = data_config.get("tree", {}).get("module", {})
+    keys = extract_keys(tree)
+    unique_keys = list(dict.fromkeys(keys))
+
+    return unique_keys
+
+
+def get_entity_parent(tree, entity_code):
+    """
+    Trouve le parent d'une entité dans la structure de l'arbre.
+    """
+
+    def find_parent(node, target, parent=None):
+        if target in node:
+            return parent
+        for key, value in node.items():
+            if isinstance(value, dict):
+                found = find_parent(value, target, key)
+                if found:
+                    return found
+        return None
+
+    parent_entity = find_parent(tree, entity_code)
+    return parent_entity
+
+
+def process_module_import(module_data):
+    """
+    Pipeline complet pour insérer un protocole et ses données dans la base.
+
+    Parameters
+    ----------
+    module_data : dict
+        Données de la table gn_commons.t_modules du module à importer.
+
+    """
+    try:
+        with DB.session.begin_nested():
+            destination = upsert_bib_destination(module_data)
+            id_destination = destination.id_destination
+            module_code = module_data["module_code"]
+
+            protocol_data, entity_hierarchy_map = get_protocol_data(module_code, id_destination)
+
+            insert_bib_field(protocol_data)
+
+            insert_entities(
+                protocol_data, id_destination, entity_hierarchy_map, label_entity=destination.label
+            )
+
+            insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map)
+
+            create_sql_import_table_protocol(module_code, protocol_data)
+            DB.session.commit()
+    except Exception as e:
+        DB.session.rollback()
+        print(f"Erreur lors du traitement du module {module_data['module_code']}: {str(e)}")
+        raise
+
+
+def validate_json_file_protocol(module_code: str):
+    errors = []
+    module_config_dir = Path(monitoring_module_config_path(module_code))
+    config_path = module_config_dir / "config.json"
+    valid_type_widgets = set(TYPE_WIDGET.keys())
+    errors.extend(validate_json_file(config_path, valid_type_widgets))
+
+    try:
+        entities = get_entities_protocol(module_code)
+        for entity_code in entities:
+            if not entity_code == "sites_group":
+                # Valid specific file
+                specific_path = module_config_dir / f"{entity_code}.json"
+                errors.extend(validate_json_file(specific_path, valid_type_widgets))
+
+                # Valid generic file
+                project_root = Path(__file__).parent.parent
+                generic_path = project_root / "config" / "generic" / f"{entity_code}.json"
+                errors.extend(validate_json_file(generic_path, valid_type_widgets))
+    except Exception as e:
+        errors.append(f"Erreur lors de la lecture des entités: {str(e)}")
+
+    return len(errors) == 0, errors
+
+
+def upsert_bib_destination(module_data: dict) -> Destination:
+    """
+    Ajoute ou met à jour une destination dans bib_destinations.
+
+    Parameters
+    ----------
+    module_data : dict
+        Données de la table gn_commons.t_modules du module à importer.
+
+    Returns
+    -------
+    Destination
+        L'objet Destination inséré ou mis à jour (SQLAlchemy model)
+    """
+    exists = DB.session.execute(
+        sa.exists().where(Destination.code == module_data["module_code"]).select()
+    ).scalar()
+
+    if exists:
+        existing_destination = DB.session.execute(
+            select(Destination).filter_by(code=module_data["module_code"])
+        ).scalar_one()
+
+        data = {
+            "label": module_data["module_label"],
+            "table_name": f"t_imports_{module_data['module_code'].lower()}",
+            "module_code": module_data["module_code"],
+        }
+        for key, value in data.items():
+            setattr(existing_destination, key, value)
+        DB.session.flush()
+        return existing_destination
+
+    module_monitoring_code = DB.session.execute(
+        select(TModules).filter_by(module_code=module_data["module_code"])
+    ).scalar_one()
+    destination_data = {
+        "id_module": module_monitoring_code.id_module,
+        "code": module_data["module_code"],
+        "label": module_data["module_label"],
+        "table_name": f"t_imports_{module_data['module_code'].lower()}",
+    }
+    destination = Destination(**destination_data)
+    DB.session.add(destination)
+    DB.session.flush()
+    return destination
+
+
+def get_protocol_data(module_code: str, id_destination: int):
+    """
+    Construit les données du protocole à partir des fichiers JSON spécifiques et génériques.
+
+    Parameters
+    ----------
+    entities : list
+        Liste des entités du module.
+    module_code : str
+        Code du module.
+    id_destination : int
+        ID de la destination dans bib_destinations.
+
+    Returns
+    -------
+    tuple
+        Données du protocole et mapping des colonnes des entités.
+    """
+    protocol_data = {}
+    entity_hierarchy_map = {}
+    module_config_dir_path = monitoring_module_config_path(module_code)
+    entities = get_entities_protocol(module_code)
+
+    module_config_path = module_config_dir_path / "config.json"
+    module_config = json_from_file(module_config_path)
+    tree = module_config.get("tree", {}).get("module", {})
+
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    entity_confs = {}
+    # Ensure all confs are loaded in a dict
+    for entity_code in entities:
+        file_path = module_config_dir_path / f"{entity_code}.json"
+        specific_data = json_from_file(file_path)
+
+        generic_data_path = os.path.join(project_root, "config", "generic", f"{entity_code}.json")
+        generic_data = json_from_file(generic_data_path, result_default={})
+
+        entity_confs[entity_code] = {
+            "specific_data": specific_data,
+            "generic_data": generic_data,
+        }
+
+    # Now we can iterate safetly over confs
+    for entity_code in entity_confs:
+        entity_conf = entity_confs[entity_code]
+        parent_entity = get_entity_parent(tree, entity_code)
+        specific_data = entity_conf["specific_data"]
+        generic_data = entity_conf["generic_data"]
+        id_field_name = generic_data.get("id_field_name")
+
+        entity_hierarchy_map[entity_code] = {
+            "id_field_name": id_field_name,
+            "parent_entity": parent_entity,
+        }
+        parent_data = entity_confs.get(parent_entity, None)
+        protocol_data[entity_code] = prepare_fields(
+            specific_data, generic_data, entity_code, id_destination, parent_data
+        )
+
+    entities_with_geom = ["site"]
+    if "sites_group" in entities:
+        entities_with_geom.append("sites_group")
+
+    for entity_code in entities_with_geom:
+        entity_conf = entity_confs[entity_code]
+        generic_data = entity_conf.get("generic_data")
+        specific_data = entity_conf.get("specific_data")
+        geom_field_name = specific_data.get("geom_field_name", generic_data.get("geom_field_name"))
+        if geom_field_name is not None:
+            name_field = get_field_name(entity_code, geom_field_name)
+            protocol_data[entity_code]["generic"].extend(
+                [
+                    {
+                        "name_field": name_field,
+                        "fr_label": "Géometrie (WKT)",
+                        "type_field": "textarea",
+                        "type_column": "text",
+                        "mandatory": True,
+                        "autogenerated": False,
+                        "display": True,
+                        "source_field": f"src_{name_field}",
+                        "multi": False,
+                        "id_destination": id_destination,
+                    },
+                    {
+                        "name_field": f"{name_field}_4326",
+                        "fr_label": "Géométrie (SRID 4326)",
+                        "type_field": "textarea",
+                        "type_column": "geometry_4326",
+                        "mandatory": False,
+                        "autogenerated": False,
+                        "display": False,
+                        "dest_field": name_field,
+                        "multi": False,
+                        "id_destination": id_destination,
+                    },
+                    {
+                        "name_field": f"{name_field}_local",
+                        "fr_label": "Géométrie (SRID local)",
+                        "type_field": "textarea",
+                        "type_column": "geometry_local",
+                        "mandatory": False,
+                        "autogenerated": False,
+                        "display": False,
+                        "dest_field": f"{name_field}_local",
+                        "multi": False,
+                        "id_destination": id_destination,
+                    },
+                ]
+            )
+
+    for name in ["site", "visit", "observation"]:
+        if name not in entities:
+            continue
+        suffix = name if name == "observation" else f"base_{name}"
+        protocol_data[name]["generic"].extend(
+            [
+                {
+                    "name_field": f"id_{suffix}",
+                    "fr_label": f"ID {suffix}",
+                    "type_field": "text",
+                    "type_column": "integer",
+                    "mandatory": False,
+                    "autogenerated": True,
+                    "display": False,
+                    "source_field": f"src_id_{suffix}",
+                    "dest_field": f"id_{suffix}",
+                    "multi": False,
+                    "id_destination": id_destination,
+                },
+                {
+                    "name_field": f"uuid_{suffix}",
+                    "fr_label": f"UUID {suffix}",
+                    "type_field": "text",
+                    "type_column": "uuid",
+                    "mandatory": name != "observation",
+                    "autogenerated": False,
+                    "display": True,
+                    "source_field": f"src_uuid_{suffix}",
+                    "dest_field": f"uuid_{suffix}",
+                    "multi": False,
+                    "id_destination": id_destination,
+                },
+            ]
+        )
+
+    protocol_data["visit"]["generic"].extend(
+        [
+            {
+                "name_field": "id_dataset",
+                "fr_label": "Identifiant JDD",
+                "type_field": "textarea",
+                "type_column": "integer",
+                "mandatory": False,
+                "autogenerated": False,
+                "display": False,
+                "dest_field": "id_dataset",
+                "multi": False,
+                "id_destination": id_destination,
+            },
+            {
+                "name_field": "unique_dataset_id",
+                "fr_label": "Identifiant JDD (UUID)",
+                "type_field": "dataset",
+                "type_column": "varchar",
+                "mandatory": True,
+                "autogenerated": False,
+                "display": True,
+                "source_field": "src_unique_dataset_id",
+                "multi": False,
+                "id_destination": id_destination,
+                "type_field_params": {"bind_value": "unique_dataset_id"},
+            },
+        ]
+    )
+
+    # Add observation_detail if exists the file exists
+    if "observation" in entities:
+        observation_detail_specific_path = module_config_dir_path / "observation_detail.json"
+        observation_detail_generic_path = os.path.join(
+            project_root, "config", "generic", "observation_detail.json"
+        )
+
+        if observation_detail_specific_path.exists():
+            specific_data = json_from_file(observation_detail_specific_path)
+            generic_data = json_from_file(observation_detail_generic_path, result_default={})
+            entity_hierarchy_map["observation_detail"] = {
+                "id_field_name": generic_data.get("id_field_name"),
+                "parent_entity": "observation",
+            }
+            parent_data = entity_confs.get("observation", None)
+            protocol_data["observation_detail"] = prepare_fields(
+                specific_data, generic_data, "observation_detail", id_destination, parent_data
+            )
+
+    return protocol_data, entity_hierarchy_map
+
+
+def prepare_fields(specific_data, generic_data, entity_code, id_destination, parent_data):
+    """
+    Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
+    Organise les données sous deux clés : 'generic' et 'specific'.
+    """
+    entity_fields = {
+        "generic": [],
+        "specific": [],
+        "label": specific_data.get("label", generic_data.get("label", entity_code)),
+    }
+
+    ignored_fields = [
+        "id_module",
+        "id_dataset",
+        "id_base_site",
+        "id_base_visit",
+        "uuid_base_site",
+        "uuid_base_visit",
+        "id_observation",
+        "uuid_observation",
+    ]
+
+    generic_fields = generic_data.get("generic", {})
+    for field_name, generic_field_data in generic_fields.items():
+        if field_name in ignored_fields:
+            continue
+        if field_name in specific_data.get("specific", {}):
+            field_data = {**generic_field_data, **specific_data["specific"][field_name]}
+            entity_fields["specific"].append(
+                get_bib_field(
+                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
+                )
+            )
+        else:
+            field_data = generic_field_data
+            entity_fields["generic"].append(
+                get_bib_field(
+                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
+                )
+            )
+
+    additional_fields = set(specific_data.get("specific", {}).keys()).difference(
+        generic_fields.keys()
+    )
+    for field_name in additional_fields:
+        if field_name in ignored_fields:
+            continue
+        field_data = specific_data["specific"][field_name]
+        entity_fields["specific"].append(
+            get_bib_field(
+                field_data, entity_code, field_name, id_destination, generic_data, parent_data
+            )
+        )
+
+    return entity_fields
+
+
+def determine_field_type(field_data: dict) -> str:
+    """
+    Détermine le type SQL du champ en fonction du widget et du type utilitaire.
+
+    Parameters
+    ----------
+    field_data : dict
+        Dictionnaire contenant la configuration du champ avec les clés:
+        - type_widget: str, optionnel
+            Type de widget (défaut: 'text')
+        - type_util: str, optionnel
+            Type utilitaire pour traitement spécial
+        - multiple: bool, optionnel
+            Si le champ permet plusieurs valeurs (défaut: False)
+        - multi_select: bool, optionnel
+            Drapeau alternatif pour valeurs multiples (défaut: False)
+
+    Returns
+    -------
+    str
+        Type SQL du champ en majuscules ('VARCHAR', 'INTEGER', etc.)
+    """
+    type_widget = field_data.get("type_widget", "text")
+    type_util = field_data.get("type_util")
+    multiple = field_data.get("multiple", field_data.get("multi_select", False))
+
+    type_mapping = {
+        "textarea": "text",
+        "time": "varchar",
+        "date": "date",
+        "html": "varchar",
+        "radio": "varchar",
+        "select": "varchar",
+        "medias": "varchar",
+    }
+
+    int_type_utils = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
+
+    if type_widget in ["observers", "datalist"]:
+        return "integer[]" if multiple else "integer"
+
+    if type_util in int_type_utils:
+        return "integer"
+    elif type_util in ["date", "uuid"]:
+        return type_util
+
+    if type_widget in ["checkbox", "multiselect"]:
+        return "varchar[]"
+
+    if type_widget in type_mapping:
+        return type_mapping[type_widget].upper()
+
+    if type_widget == "number":
+        return "integer"
+
+    if type_widget == "bool_checkbox":
+        return "boolean"
+
+    return "varchar"
+
+
+def get_field_name(entity_code, field_name):
+    if entity_code == "sites_group":
+        return f"g__{field_name}"
+    elif entity_code == "observation_detail":
+        return f"d__{field_name}"
+    return f"{entity_code[0]}__{field_name}"
+
+
+def get_bib_field(
+    field_data, entity_code, field_name, id_destination: int, generic_data, parent_data
+):
+    """
+    Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
+    """
+    if "code_nomenclature_type" in field_data:
+        mnemonique = field_data["code_nomenclature_type"]
+    elif (
+        "value" in field_data
+        and isinstance(field_data["value"], dict)
+        and "code_nomenclature_type" in field_data["value"]
+    ):
+        mnemonique = field_data["value"]["code_nomenclature_type"]
+    else:
+        mnemonique = None
+
+    required_value = field_data.get("required", False)
+
+    determined_type_field = determine_field_type(field_data)
+
+    name_field = field_name
+    parent_id_field_name = parent_data.get("id_field_name") if parent_data else None
+
+    if name_field not in [generic_data.get("id_field_name"), parent_id_field_name]:
+        name_field = get_field_name(entity_code, field_name)
+
+    type_field_params = {
+        k: v
+        for k, v in field_data.items()
+        if k not in ["required", "hidden", "type_widget", "attribut_label"]
+    }
+
+    return {
+        "name_field": name_field,
+        "fr_label": field_data.get("attribut_label", ""),
+        "eng_label": None,
+        "type_field": field_data.get("type_widget", None),
+        "type_column": determined_type_field,
+        "mandatory": True if isinstance(required_value, str) else bool(required_value),
+        "autogenerated": False,
+        "display": True,
+        "mnemonique": mnemonique,
+        "source_field": f"src_{name_field}",
+        "dest_field": name_field,
+        "multi": False,
+        "id_destination": id_destination,
+        "mandatory_conditions": None,
+        "optional_conditions": None,
+        "type_field_params": type_field_params if type_field_params else None,
+    }
+
+
+def insert_bib_field(protocol_data):
+    """
+    Insère ou met à jour les champs uniques dans `bib_fields`.
+    """
+    all_fields = []
+
+    for entity_fields in protocol_data.values():
+        for field_type in ["generic", "specific"]:
+            all_fields.extend(entity_fields[field_type])
+
+    def upsert_field(field):
+        values = {**field}
+        values.pop("type_column", None)
+        if values.get("type_field_params", None) is None:
+            values.pop("type_field_params", None)
+        set_ = {
+            "fr_label": field.get("fr_label"),
+            "eng_label": field.get("eng_label"),
+            "type_field": field.get("type_field"),
+            "type_field_params": field.get("type_field_params", None),
+            "mandatory": field.get("mandatory"),
+            "autogenerated": field.get("autogenerated"),
+            "display": field.get("display"),
+            "mnemonique": field.get("mnemonique"),
+            "source_field": field.get("source_field"),
+            "dest_field": field.get("dest_field"),
+            "multi": field.get("multi"),
+            "mandatory_conditions": field.get("mandatory_conditions", None),
+            "optional_conditions": field.get("optional_conditions", None),
+        }
+        if set_["type_field_params"] is None:
+            del set_["type_field_params"]
+        stmt = (
+            pg_insert(BibFields)
+            .values(**values)
+            .on_conflict_do_update(
+                index_elements=["name_field", "id_destination"],
+                set_=set_,
+            )
+        )
+        DB.session.execute(stmt)
+
+    for field in all_fields:
+        upsert_field(field)
+
+
+def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_entity=None):
+    """
+    Insère ou met à jour les entités dans bib_entities en respectant la hiérarchie du tree.
+    """
+    inserted_entity_ids = {}
+    order = 1
+
+    for entity_code, fields in unique_fields.items():
+        entity_config = entity_hierarchy_map.get(entity_code)
+
+        id_field_name = entity_config["id_field_name"]
+        parent_entity = entity_config["parent_entity"]
+
+        """ id_field_conf = next(
+            (
+                f
+                for field_type in ["generic", "specific"]
+                for f in fields[field_type]
+                if f["dest_field"] == id_field_name
+            ),
+            None,
+        ) """
+
+        id_field = (
+            DB.session.query(BibFields.id_field)
+            .filter_by(name_field=id_field_name, id_destination=id_destination)
+            .scalar()
+        )
+
+        id_parent = inserted_entity_ids.get(parent_entity) if parent_entity else None
+
+        entity_code_obs_detail = (
+            "obs_detail" if entity_code == "observation_detail" else entity_code
+        )
+        mapping_entity_object_code = {
+            "site": "MONITORINGS_SITES",
+            "visit": "MONITORINGS_VISITES",
+            "observation": "MONITORINGS_OBSERVATIONS",
+        }
+        id_object = DB.session.scalar(
+            select(PermObject.id_object).filter_by(
+                code_object=mapping_entity_object_code[entity_code]
+            )
+        )
+        entity_data = {
+            "id_destination": id_destination,
+            "code": entity_code_obs_detail,
+            "label": fields["label"][:64] if fields["label"] else entity_code,
+            "order": order,
+            "validity_column": f"{entity_code.lower()}_valid",
+            "destination_table_schema": "gn_monitoring",
+            "destination_table_name": TABLE_NAME_SUBMODULDE.get(entity_code),
+            "id_unique_column": id_field,
+            "id_parent": id_parent,
+            "id_object": id_object,
+        }
+
+        order += 1
+
+        existing_entity = DB.session.execute(
+            select(Entity.id_entity).filter_by(
+                code=entity_code_obs_detail, id_destination=id_destination
+            )
+        ).scalar()
+
+        if existing_entity:
+            DB.session.execute(
+                update(Entity).where(Entity.id_entity == existing_entity).values(**entity_data)
+            )
+            inserted_entity_id = existing_entity
+        else:
+            result = DB.session.execute(pg_insert(Entity).values(**entity_data))
+            DB.session.flush()
+
+            inserted_entity_id = (
+                result.inserted_primary_key[0] if result.inserted_primary_key else None
+            )
+
+            if not inserted_entity_id:
+                inserted_entity_id = DB.session.execute(
+                    select(Entity.id_entity).filter_by(
+                        code=entity_code_obs_detail, id_destination=id_destination
+                    )
+                ).scalar()
+
+        inserted_entity_ids[entity_code] = inserted_entity_id
+        DB.session.flush()
+
+
+def get_themes_dict():
+    """Récupère les thèmes depuis bib_themes"""
+    themes = DB.session.execute(
+        select(BibThemes.id_theme, BibThemes.name_theme).filter(
+            BibThemes.name_theme.in_(["general_info", "additional_data"])
+        )
+    ).all()
+    return {theme.name_theme: theme.id_theme for theme in themes}
+
+
+def get_entity_ids_dict(protocol_data, id_destination):
+    """Récupère les IDs des entités depuis bib_entities"""
+    entity_code_map = {"observation_detail": "obs_detail"}
+
+    return {
+        entity_code: DB.session.execute(
+            select(Entity.id_entity).filter_by(
+                code=entity_code_map.get(entity_code, entity_code), id_destination=id_destination
+            )
+        ).scalar()
+        for entity_code in protocol_data.keys()
+    }
+
+
+def insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map):
+    """Insère les relations entre les entités et les champs dans cor_entity_field"""
+    bib_themes = get_themes_dict()
+    entity_ids = get_entity_ids_dict(protocol_data, id_destination)
+
+    for entity_code, fields in protocol_data.items():
+        entity_id = entity_ids.get(entity_code)
+
+        order = 1
+        for field_type in ["generic", "specific"]:
+            for field in fields[field_type]:
+                if get_cor_entity_field(
+                    entity_id=entity_id,
+                    field_name=field["name_field"],
+                    id_destination=id_destination,
+                    bib_themes=bib_themes,
+                    order=order,
+                ):
+                    order += 1
+
+        parent_code = entity_hierarchy_map[entity_code]["parent_entity"]
+        if parent_code:
+            get_cor_entity_field(
+                entity_id=entity_id,
+                field_name=entity_hierarchy_map[parent_code]["id_field_name"],
+                id_destination=id_destination,
+                bib_themes=bib_themes,
+                is_parent_link=True,
+            )
+            get_cor_entity_field(
+                entity_id=entity_id,
+                field_name=f"uuid_base_{parent_code}",
+                id_destination=id_destination,
+                bib_themes=bib_themes,
+                is_parent_link=True,
+            )
+
+
+def get_cor_entity_field(
+    entity_id, field_name, id_destination, bib_themes, order=None, is_parent_link=False
+):
+    """Crée une relation entre une entité et un champ dans cor_entity_field"""
+    id_field = DB.session.execute(
+        select(BibFields.id_field).filter_by(name_field=field_name, id_destination=id_destination)
+    ).scalar_one()
+
+    if DB.session.execute(
+        sa.exists()
+        .where(EntityField.id_entity == entity_id, EntityField.id_field == id_field)
+        .select()
+    ).scalar():
+        return False
+
+    data = {
+        "id_entity": entity_id,
+        "id_field": id_field,
+        "id_theme": bib_themes["general_info"],
+        "order_field": 0 if is_parent_link else (order or 1),
+        "desc_field": "",
+        "comment": None,
+    }
+
+    stmt = (
+        pg_insert(EntityField)
+        .values(**data)
+        .on_conflict_do_update(
+            index_elements=["id_entity", "id_field"],
+            set_={
+                "order_field": data["order_field"],
+                "desc_field": data["desc_field"],
+                "comment": data["comment"],
+            },
+        )
+    )
+
+    DB.session.execute(stmt)
+    DB.session.flush()
+    return True
+
+
+def map_field_type_sqlalchemy(type_widget: str):
+    """Map widget types to SQLAlchemy column types"""
+    srid_site = DB.session.scalar(
+        sa.select(sa.func.Find_SRID("gn_monitoring", "t_base_sites", "geom_local"))
+    )
+    type_mapping = {
+        "varchar": String,
+        "varchar[]": ARRAY(String),
+        "text": Text,
+        "boolean": Boolean,
+        "integer": Integer,
+        "integer[]": ARRAY(Integer),
+        "date": Date,
+        "jsonb": JSONB,
+        "uuid": UUID,
+        "geometry_4326": Geometry("GEOMETRY", 4326),
+        "geometry_local": Geometry("GEOMETRY", srid_site),
+    }
+    return type_mapping.get(type_widget.lower(), String)
+
+
+def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
+    """Generate import table using SQLAlchemy metadata"""
+    metadata = MetaData()
+    table_name = f"t_imports_{module_code.lower()}"
+    columns = [
+        Column(
+            "id_import",
+            Integer,
+            ForeignKey(TImports.id_import, onupdate="CASCADE", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        Column("line_no", Integer, nullable=False),
+        PrimaryKeyConstraint("id_import", "line_no", name=f"pk_{table_name}"),
+    ]
+
+    for entity_code in protocol_data.keys():
+        columns.append(Column(f"{entity_code}_valid", Boolean, default=False))
+        if entity_code != "observation":
+            columns.append(Column(f"{entity_code}_line_no", Integer))
+
+    added_columns = set()
+    for entity_code, entity_fields in protocol_data.items():
+        all_fields = entity_fields["generic"] + entity_fields["specific"]
+        for field in all_fields:
+            source_field = field.get("source_field")
+            dest_field = field.get("dest_field")
+            type_column = field.get("type_column", "text").lower()
+            field_type = map_field_type_sqlalchemy(type_column)
+
+            if source_field and source_field not in added_columns:
+                columns.append(
+                    Column(
+                        source_field,
+                        JSONB if type_column in ["varchar[]", "integer[]", "jsonb"] else String,
+                        nullable=True,  # Must be nullable because we perform partial inserts
+                    )
+                )
+                added_columns.add(source_field)
+
+            if dest_field and dest_field not in added_columns:
+                columns.append(
+                    Column(
+                        dest_field, field_type, nullable=True
+                    )  # Must be nullable because dest_field values are computed after the row is created
+                )
+                added_columns.add(dest_field)
+
+    schema = "gn_imports"
+
+    return Table(table_name, metadata, *columns, schema=schema)
+
+
+def create_sql_import_table_protocol(module_code: str, protocol_data):
+    """Create import table using SQLAlchemy metadata"""
+    table = get_imports_table_metadata(module_code, protocol_data)
+    table.metadata.create_all(DB.engine)
+    print(f"La table transitoire d'importation pour {module_code} a été créée.")
+
+
+def check_rows_exist_in_import_table(module_code: str) -> bool:
+    """Vérifie si la table d'importation contient des données."""
+    table_name = f"t_imports_{module_code.lower()}"
+    query = f"SELECT * FROM gn_imports.{table_name} LIMIT 1;"
+    try:
+        result = DB.session.execute(query).fetchone()
+        return result is not None
+    except Exception as e:
+        print(f"Erreur lors de la vérification de l'existence de la table : {str(e)}")
+        return False
+
+
+def ask_confirmation():
+    prompt = (
+        "\nVeuillez confirmer que vous souhaitez effectuer avec ces modifications ? [yes/no]: "
+    )
+
+    response = input(prompt).strip().lower()
+
+    while response not in ["yes", "y", "no", "n"]:
+        print("Réponse invalide. Veuillez répondre par 'yes' ou 'no'.")
+        response = input(prompt).strip().lower()
+
+    return response in ["yes", "y"]
+
+
+def compare_protocol_fields(existing_fields, new_fields):
+    """
+    Compare les champs existants avec les nouveaux champs pour identifier les différences.
+
+    Args:
+        existing_fields: Liste des champs existants en base
+        new_fields: Liste des nouveaux champs depuis les fichiers JSON
+
+    Returns:
+        - Liste des champs à ajouter
+        - Liste des champs à mettre à jour
+        - Liste des champs à supprimer
+    """
+    existing_by_name = {f["name_field"]: f for f in existing_fields}
+    new_by_name = {f["name_field"]: f for f in new_fields}
+
+    to_add = []
+    to_update = []
+    to_delete = []
+
+    for name, new_field in new_by_name.items():
+        if name not in existing_by_name:
+            to_add.append(new_field)
+        else:
+            existing = existing_by_name[name]
+            if has_field_changes(existing, new_field):
+                to_update.append(new_field)
+
+    for name in existing_by_name:
+        if name not in new_by_name:
+            to_delete.append(existing_by_name[name])
+
+    return to_add, to_update, to_delete
+
+
+def has_field_changes(existing, new) -> bool:
+    """
+    Vérifie si un champ a été modifié en comparant les attributs pertinents.
+    """
+    relevant_attrs = [
+        "fr_label",
+        "eng_label",
+        "type_field",
+        "mandatory",
+        "autogenerated",
+        "display",
+        "mnemonique",
+        "source_field",
+        "dest_field",
+        "multi",
+        "mandatory_conditions",
+        "optional_conditions",
+        "type_field_params",
+    ]
+
+    return any(existing.get(attr) != new.get(attr) for attr in relevant_attrs)
+
+
+def get_existing_protocol_state(id_destination: int, module_data):
+    """
+    Récupère l'état actuel du protocole en base de données.
+    """
+    fields_query = select(BibFields).filter_by(id_destination=id_destination)
+    existing_fields = DB.session.execute(fields_query).scalars().all()
+
+    entities_query = select(Entity).filter_by(id_destination=id_destination)
+    existing_entities = DB.session.execute(entities_query).scalars().all()
+
+    entity = DB.session.execute(select(Entity).filter_by(id_destination=id_destination)).scalar()
+    new_label = module_data["module"].get("module_label")
+
+    return {
+        "fields": [field.__dict__ for field in existing_fields],
+        "entities": [entity.__dict__ for entity in existing_entities],
+        "label": True if entity and entity.label != new_label else False,
+    }
+
+
+def process_update_module_import(module_data, module_code: str):
+    """
+    Gère la mise à jour complète d'un module.
+    """
+    try:
+        is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
+            module_code, module_data
+        )
+
+        if is_valid is None:
+            return None
+
+        if not is_valid:
+            print("Erreurs détectées lors de la validation du protocole:")
+            for msg in messages:
+                print(f"- {msg}")
+            return False
+
+        if messages:
+            print("\nAvertissements concernant les modifications du protocole:")
+            for msg in messages:
+                print(f"- {msg}")
+
+        if not ask_confirmation():
+            return False
+        else:
+            return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
+
+    except Exception as e:
+        print(f"Erreur lors du traitement du module {module_code}: {str(e)}")
+        return False
+
+
+def validate_protocol_changes(module_code: str, module_data):
+    """
+    Valide les changements dans les fichiers de configuration du protocole.
+
+    Args:
+        module_code: Code du module à valider.
+
+    Returns:
+        - Booléen indiquant si la validation a réussi.
+        - Liste des messages d'erreur ou d'avertissement.
+        - Champs à supprimer.
+        - Booléen indiquant si seule la mise à jour du label est nécessaire.
+    """
+    try:
+        destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
+
+        if check_rows_exist_in_import_table(module_code):
+            return (
+                False,
+                [
+                    "La table d'importation contient des données. Impossible de mettre à jour le protocole."
+                ],
+                [],
+                False,
+            )
+
+        existing_data = get_existing_protocol_state(destination.id_destination, module_data)
+        protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
+
+        all_new_fields = []
+        for entity_fields in protocol_data.values():
+            for field_type in ["generic", "specific"]:
+                all_new_fields.extend(entity_fields[field_type])
+
+        fields_to_add, fields_to_update, fields_to_delete = compare_protocol_fields(
+            existing_data["fields"], all_new_fields
+        )
+
+        warnings = []
+        if existing_data["label"]:
+            warnings.append(
+                f"INFO: Le libellé du module va être modifié. {destination.label} -> {module_data['module'].get('module_label')}"
+            )
+
+        if fields_to_delete:
+            warnings.append(
+                "ATTENTION: Des champs vont être supprimés. "
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_delete)}"
+            )
+
+        if fields_to_update:
+            warnings.append(
+                "ATTENTION: Des champs vont être modifiés. "
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_update)}"
+            )
+
+        if fields_to_add:
+            warnings.append(
+                "INFO: De nouveaux champs vont être ajoutés. "
+                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
+            )
+
+        if (
+            not fields_to_add
+            and not fields_to_update
+            and not fields_to_delete
+            and existing_data["label"]
+        ):
+            return True, warnings, [], True
+
+        if (
+            not fields_to_add
+            and not fields_to_update
+            and not fields_to_delete
+            and not existing_data["label"]
+        ):
+            warnings.append("Aucun changement détecté dans le protocole.")
+            return None, warnings, [], False
+
+        return True, warnings, fields_to_delete, False
+
+    except Exception as e:
+        return False, [f"Erreur lors de la validation du protocole: {str(e)}"], [], False
+
+
+def update_protocol(module_data, module_code, fields_to_delete, update_label_only=False):
+    """
+    Met à jour un protocole existant ou uniquement le libellé de l'entité dans `bib_entities`.
+
+    Args:
+        module_data: Données du module à mettre à jour.
+        module_code: Code du module.
+        fields_to_delete: Liste des champs à supprimer.
+        update_label_only: Si vrai, met à jour uniquement le label de l'entité.
+
+    Returns:
+        Booléen indiquant si la mise à jour a réussi.
+    """
+    try:
+        DB.session.rollback()
+        module_label = module_data["module"].get("module_label")
+
+        destination = DB.session.execute(
+            select(Destination).filter_by(code=module_code)
+        ).scalar_one()
+
+        if update_label_only:
+            update_entity_label(destination.id_destination, module_label)
+            DB.session.commit()
+            return True
+
+        protocol_data, entity_hierarchy_map = get_protocol_data(
+            module_code, destination.id_destination
+        )
+
+        with DB.session.begin_nested():
+
+            insert_bib_field(protocol_data)
+
+            insert_entities(
+                protocol_data,
+                destination.id_destination,
+                entity_hierarchy_map,
+                label_entity=module_label,
+            )
+
+            insert_entity_field_relations(
+                protocol_data, destination.id_destination, entity_hierarchy_map
+            )
+
+            if fields_to_delete:
+                delete_bib_fields(fields_to_delete)
+
+            table_name = f"t_imports_{module_code.lower()}"
+            DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
+
+            create_sql_import_table_protocol(module_code, protocol_data)
+
+        DB.session.commit()
+        return True
+
+    except Exception as e:
+        DB.session.rollback()
+        print(f"Erreur lors de la mise à jour du protocole : {str(e)}")
+        return False
+
+
+def delete_bib_fields(fields):
+    """
+    Supprime les champs de la table bib_fields.
+    """
+    field_ids = [f["id_field"] for f in fields]
+    DB.session.execute(delete(BibFields).where(BibFields.id_field.in_(field_ids)))
+    DB.session.flush()
+
+
+def update_entity_label(destination_id: int, new_label: str):
+    """
+    Met à jour tous les libellés des entités associées à une même destination dans la table `Entity`.
+
+    Args:
+        destination_id: ID de la destination associée.
+        new_label: Nouveau libellé à appliquer à toutes les entités.
+    """
+    entities = (
+        DB.session.execute(select(Entity).filter_by(id_destination=destination_id)).scalars().all()
+    )
+    for entity in entities:
+        if entity.label != new_label:
+            entity.label = new_label
+            DB.session.add(entity)
+
+    print(f"Libellé de l'entité mis à jour : {entity.label} -> {new_label}")
+    DB.session.flush()
