@@ -7,6 +7,7 @@ from geonature.core.imports.checks.sql.extra import (
 )
 
 from geonature.core.imports.checks.sql import (
+    check_dates,
     check_duplicate_uuid,
     check_existing_uuid,
     set_id_parent_from_destination,
@@ -30,6 +31,9 @@ class VisitImportActions:
     PARENT_ID_FIELD = "id_base_site"
     PARENT_UUID_FIELD = "uuid_base_site"
     PARENT_LINE_NO = "site_line_no"
+
+    DATE_MIN_FIELD = "v__visit_date_min"
+    DATE_MAX_FIELD = "v__visit_date_max"
 
     @staticmethod
     def check_sql(imprt):
@@ -82,6 +86,8 @@ class VisitImportActions:
                 entity_visit_fields.get(VisitImportActions.PARENT_UUID_FIELD),
             ],
         )
+
+        VisitImportActions.check_dates(imprt)
 
     @staticmethod
     def check_dataframe(imprt: TImports):
@@ -160,3 +166,14 @@ class VisitImportActions:
                 entity_visit_fields,
                 entity_visit_fields.get(VisitImportActions.UUID_FIELD),
             )
+
+    @staticmethod
+    def check_dates(imprt: TImports):
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        fields, _, _ = get_mapping_data(imprt, entity_visit)
+        check_dates(
+            imprt,
+            entity_visit,
+            fields[VisitImportActions.DATE_MIN_FIELD],
+            fields[VisitImportActions.DATE_MAX_FIELD],
+        )
