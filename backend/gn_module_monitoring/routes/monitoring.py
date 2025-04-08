@@ -34,7 +34,6 @@ from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringSites
 
 
-
 @blueprint.before_request
 def set_current_module():
     values = {**request.view_args, **request.args} if request.view_args else {**request.args}
@@ -247,21 +246,24 @@ def create_object_api(module_code, object_type, id):
 @json_resp
 @permissions.check_cruved_scope("D", get_scope=True)
 def delete_object_api(scope, module_code, object_type, id):
-    if object_type == 'site':
-        visit_count = func.count().label('nb_visites')
+    if object_type == "site":
+        visit_count = func.count().label("nb_visites")
 
         query = (
             DB.session.query(TModules.module_label, visit_count)
             .join(TMonitoringVisits, TModules.id_module == TMonitoringVisits.id_module)
-            .join(TMonitoringSites, TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site)
+            .join(
+                TMonitoringSites, TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site
+            )
             .filter(TMonitoringSites.id_base_site == id)
             .group_by(TModules.module_label)
         )
 
-
         resultats = query.all()
         if len(resultats) > 0:
-            raise Forbidden(f"cannot delete {object_type} :{id} . Because {object_type} has children ")
+            raise Forbidden(
+                f"cannot delete {object_type} :{id} . Because {object_type} has children "
+            )
 
     depth = to_int(request.args.get("depth", 1))
 
@@ -280,7 +282,6 @@ def delete_object_api(scope, module_code, object_type, id):
         object = monitoring_obj.get(depth=depth)
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot delete {object_type} {object._id}")
-
 
     return monitoring_obj.delete()
 
