@@ -100,15 +100,16 @@ class GnMonitoringGenericFilter:
         **kwargs,
     ):
         """
-        Permet d'ajouter des filtres à la requête des sites
-        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
+        Permet d'ajouter les filtres définis dans `params` à la requête SQLA `query`. Les filtres ciblent les propriétés
+        spécifiques enregistrées dans le champ JSON `data` du modèle. Les définitions de ces propriétés sont attendues dans
+        `specific_properties` telles que présentes dans les configs.
 
         le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
             et de construire une requête sql en fonction de ces infos
 
         :param query: requête sql initiale
         :param params: liste des paramètres que l'on souhaite filtrer
-        :param specific_properties: Configuration des propriétés spécifiques des sites
+        :param specific_properties: Configuration des propriétés spécifiques
         :return: requête sql amendée de filtre
         """
         for param, value in params.items():
