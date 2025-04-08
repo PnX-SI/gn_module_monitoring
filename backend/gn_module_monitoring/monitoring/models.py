@@ -279,6 +279,21 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
 
     data = DB.Column(JSONB)
 
+    modules = DB.relationship(
+        "TMonitoringModules",
+        uselist=True,  # pourquoi pas par defaut ?
+        secondaryjoin=lambda: TMonitoringModules.id_module == cor_module_type.c.id_module,
+        primaryjoin=(id_base_site == cor_site_type.c.id_base_site),
+        secondary=join(
+            cor_site_type,
+            cor_module_type,
+            cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
+        ),
+        foreign_keys=[cor_site_type.c.id_base_site, cor_module_type.c.id_module],
+        lazy="select",
+        viewonly=True,
+    )
+
     visits = DB.relationship(
         TMonitoringVisits,
         lazy="select",

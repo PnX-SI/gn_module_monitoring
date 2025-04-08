@@ -75,6 +75,12 @@ def install_module_test(types_site, users):
                 code_action="CRUVD",
             )
 
+    # This is required because the first call to get_config during the install command cannot get the site types
+    # (because the module does not exist yet in the DB) but this incomplete config is still registered with the cache.
+    from gn_module_monitoring.config.repositories import get_config
+
+    get_config("test", force=True)
+
 
 @pytest.fixture
 def monitoring_module(types_site, users):

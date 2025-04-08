@@ -1,0 +1,15 @@
+{
+  "specific": {
+    "group_specific": {
+      "type_widget": "text",
+      "attribut_label": "Attribut spécifique des groupes"
+    },
+    "group_specific_meteo": {
+      "type_widget": "nomenclature",
+      "attribut_label": "test météo",
+      "code_nomenclature_type": "TEST_METEO",
+      "type_util": "nomenclature",
+      "required": false
+    }
+  }
+}
