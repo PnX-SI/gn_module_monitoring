@@ -97,7 +97,6 @@ class GnMonitoringGenericFilter:
         query: Select,
         params: MultiDict = None,
         specific_properties: dict = None,
-        **kwargs,
     ):
         """
         Permet d'ajouter les filtres définis dans `params` à la requête SQLA `query`. Les filtres ciblent les propriétés
