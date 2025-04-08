@@ -125,7 +125,7 @@ class GnMonitoringGenericFilter:
                         multiple = json.loads(multiple_value)
 
                 if type in ("nomenclature", "taxonomy", "user", "area"):
-                    join_table, join_column, filter_column = cls.get_relationship_clause(type)
+                    join_table, join_column, filter_column = cls._get_relationship_clause(type)
                     if multiple:
                         # Si la propriété est de type multiple
                         # Alors jointure sur chaque element de data->'params'
@@ -161,11 +161,8 @@ class GnMonitoringGenericFilter:
 
         return query
 
-    @classmethod
-    def get_relationship_clause(
-        cls,
-        type,
-    ):
+    @staticmethod
+    def _get_relationship_clause(type):
         join_table = None  # alias de la table de jointure
         join_column = None  # nom de la colonne permettant la jointure entre data et la table
         filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
