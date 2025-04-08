@@ -92,6 +92,76 @@ class GnMonitoringGenericFilter:
         )
 
     @classmethod
+    def filter_by_specific(
+        cls,
+        query: Select,
+        params: MultiDict = None,
+        specific_properties: dict = None,
+        **kwargs,
+    ):
+        """
+        Permet d'ajouter des filtres à la requête des sites
+        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
+
+        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
+            et de construire une requête sql en fonction de ces infos
+
+        :param query: requête sql initiale
+        :param params: liste des paramètres que l'on souhaite filtrer
+        :param specific_properties: Configuration des propriétés spécifiques des sites
+        :return: requête sql amendée de filtre
+        """
+        for param, value in params.items():
+            if param in specific_properties:
+                type = "text"
+                if "type_util" in specific_properties[param]:
+                    type = specific_properties[param]["type_util"]
+                multiple = False
+                if "multiple" in specific_properties[param]:
+                    multiple_value = specific_properties[param]["multiple"]
+                    if isinstance(multiple_value, bool):
+                        multiple = multiple_value
+                    else:
+                        multiple = json.loads(multiple_value)
+
+                if type in ("nomenclature", "taxonomy", "user", "area"):
+                    join_table, join_column, filter_column = cls.get_relationship_clause(type)
+                    if multiple:
+                        # Si la propriété est de type multiple
+                        # Alors jointure sur chaque element de data->'params'
+                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
+                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
+                        #       soient de nouveau dans la clause from
+                        subquery_select = (
+                            select(
+                                [
+                                    func.jsonb_array_elements_text(cls.data[param])
+                                    .cast(db.Integer)
+                                    .label("id")
+                                ]
+                            )
+                            .correlate_except()
+                            .lateral()
+                        )
+                        query = query.join(subquery_select, cls.data[param] != None)
+                        query = query.join(
+                            join_table,
+                            subquery_select.c.id == join_column,
+                        )
+                    else:
+                        # Sinon type non multiple, jointure sur la valeur de data->'params'
+                        query = query.join(
+                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
+                        )
+                    # Filtre sur la valeur de la table de jointure
+                    query = query.where(filter_column.ilike(f"{value}%"))
+                else:
+                    # Sinon filtre texte simple
+                    query = query.where(cls.data[param].astext.ilike(f"{value}%"))
+
+        return query
+
+    @classmethod
     def get_relationship_clause(
         cls,
         type,
@@ -169,76 +239,6 @@ class SitesQuery(GnMonitoringGenericFilter):
             query = query.filter(join_nomenclature_type_site.label_default.ilike(f"%{value}%"))
 
         query = super().filter_by_params(query, params)
-        return query
-
-    @classmethod
-    def filter_by_specific(
-        cls,
-        query: Select,
-        params: MultiDict = None,
-        specific_properties: dict = None,
-        **kwargs,
-    ):
-        """
-        Permet d'ajouter des filtres à la requête des sites
-        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
-
-        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
-            et de construire une requête sql en fonction de ces infos
-
-        :param query: requête sql initiale
-        :param params: liste des paramètres que l'on souhaite filtrer
-        :param specific_properties: Configuration des propriétés spécifiques des sites
-        :return: requête sql amendée de filtre
-        """
-        for param, value in params.items():
-            if param in specific_properties:
-                type = "text"
-                if "type_util" in specific_properties[param]:
-                    type = specific_properties[param]["type_util"]
-                multiple = False
-                if "multiple" in specific_properties[param]:
-                    multiple_value = specific_properties[param]["multiple"]
-                    if isinstance(multiple_value, bool):
-                        multiple = multiple_value
-                    else:
-                        multiple = json.loads(multiple_value)
-
-                if type in ("nomenclature", "taxonomy", "user", "area"):
-                    join_table, join_column, filter_column = cls.get_relationship_clause(type)
-                    if multiple:
-                        # Si la propriété est de type multiple
-                        # Alors jointure sur chaque element de data->'params'
-                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
-                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
-                        #       soient de nouveau dans la clause from
-                        subquery_select = (
-                            select(
-                                [
-                                    func.jsonb_array_elements_text(cls.data[param])
-                                    .cast(db.Integer)
-                                    .label("id")
-                                ]
-                            )
-                            .correlate_except()
-                            .lateral()
-                        )
-                        query = query.join(subquery_select, cls.data[param] != None)
-                        query = query.join(
-                            join_table,
-                            subquery_select.c.id == join_column,
-                        )
-                    else:
-                        # Sinon type non multiple, jointure sur la valeur de data->'params'
-                        query = query.join(
-                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
-                        )
-                    # Filtre sur la valeur de la table de jointure
-                    query = query.where(filter_column.ilike(f"{value}%"))
-                else:
-                    # Sinon filtre texte simple
-                    query = query.where(cls.data[param].astext.ilike(f"{value}%"))
-
         return query
 
 
