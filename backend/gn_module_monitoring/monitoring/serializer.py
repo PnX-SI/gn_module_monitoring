@@ -276,14 +276,16 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
                 # on passe d'une list d'objet à une liste d'id
                 # si type_util est defini pour ce champs
                 # si on a bien affaire à une liste de modèles sqla
-                properties[key] = [
-                    (
-                        getattr(v, id_field_name_dict[type_util])
-                        if (isinstance(v, DB.Model) and type_util)
-                        else v.as_dict() if (isinstance(v, DB.Model) and not type_util) else v
-                    )
-                    for v in value
-                ]
+                new_values = []
+                for v in value:
+                    if isinstance(v, DB.Model):
+                        if type_util:
+                            new_values.append(getattr(v, id_field_name_dict[type_util]))
+                        else:
+                            new_values.append(v.as_dict())
+                    else:
+                        new_values.append(v)
+                properties[key] = new_values
 
         properties["id_parent"] = to_int(self.id_parent())
 
