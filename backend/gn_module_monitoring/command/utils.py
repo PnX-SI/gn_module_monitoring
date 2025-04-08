@@ -472,9 +472,9 @@ def get_entities_protocol(module_code: str) -> list:
     data_config = json_from_file(module_path / "config.json")
     tree = data_config.get("tree", {}).get("module", {})
     keys = extract_keys(tree)
-    unique_keys = list(dict.fromkeys(keys))
-
-    return unique_keys
+    unique_keys = set(dict.fromkeys(keys))
+    unique_keys -= {"sites_group"}  # sites_group are not available for import at the moment.
+    return list(unique_keys)
 
 
 def get_entity_parent(tree, entity_code):
