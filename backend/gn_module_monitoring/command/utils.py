@@ -814,14 +814,18 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
     }
 
     ignored_fields = [
-        "id_module",
-        "id_dataset",
-        "id_base_site",
-        "id_base_visit",
-        "uuid_base_site",
-        "uuid_base_visit",
-        "id_observation",
-        "uuid_observation",
+        "id_module",  # handled manually
+        "id_dataset",  # handled manually
+        "id_base_site",  # generated
+        "id_base_visit",  # generated
+        "uuid_base_site",  # handled manually
+        "uuid_base_visit",  # handled manually
+        "id_observation",  # generated
+        "uuid_observation",  # handled manually
+        "last_visit",  # dynamic
+        "nb_visits",  # dynamic
+        "medias",  # not importable
+        "nb_observations",  # dynamic
     ]
 
     generic_fields = generic_data.get("generic", {})
