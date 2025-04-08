@@ -19,6 +19,8 @@ from pypnusershub.db.models import (
     UserApplicationRight,
 )
 
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+
 
 @pytest.fixture(scope="session")
 def create_user():
@@ -32,7 +34,9 @@ def create_user():
         app = db.session.execute(
             select(Application).where(Application.code_application == "GN")
         ).scalar_one()
-        profil = db.session.execute(select(Profil).where(Profil.nom_profil == "Lecteur")).scalar_one()
+        profil = db.session.execute(
+            select(Profil).where(Profil.nom_profil == "Lecteur")
+        ).scalar_one()
 
         if not modules:
             modules = db.session.scalars(select(TModules)).all()
@@ -109,3 +113,21 @@ def monitorings_users(app, create_user):
     for username, *args in users_to_create:
         users[username] = create_user(username, *args)
     return users
+
+
+@pytest.fixture()
+def create_test_module_user(install_module_test, create_user):
+    """user with right to read MONITORINGS_SITES of the test module because she is the digitiser of the sites"""
+
+    def _create_test_module_user():
+        module = db.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+        ).scalar()
+        return create_user("test_module_user", scope=1, modules=[module])
+
+    return _create_test_module_user
+
+
+@pytest.fixture()
+def test_module_user(create_test_module_user):
+    return create_test_module_user()
