@@ -1,9 +1,21 @@
+from datetime import date
+
 import pytest
 from flask import url_for
+from geoalchemy2.shape import from_shape
+from shapely.geometry import Point
+from sqlalchemy import select
+
+from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnusershub.tests.utils import set_logged_user_cookie
 
-from gn_module_monitoring.monitoring.models import TMonitoringSites
+from geonature.utils.env import db
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringSites,
+    TMonitoringVisits,
+    TMonitoringModules,
+)
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -446,3 +458,241 @@ class TestSite:
         with pytest.raises(Exception) as e:
             db.get_or_404(TMonitoringSites, id_base_site)
         assert "404 Not Found" in str(e.value)
+
+
+@pytest.fixture()
+def add_site(test_module_user, types_site, site_group_with_sites):
+
+    def _add_site(**kwargs):
+        _add_site.counter += 1
+        i = _add_site.counter
+        user = test_module_user
+        geom_4326 = from_shape(Point(43, 24), srid=4326)
+        args = {
+            "id_inventor": user.id_role,
+            "id_digitiser": user.id_role,
+            "base_site_name": f"Site{i}",
+            "base_site_description": f"Description{i}",
+            "base_site_code": f"Code{i}",
+            "geom": geom_4326,
+            "types_site": list(types_site.values()),
+            "id_sites_group": site_group_with_sites.id_sites_group,
+        }
+        args.update(**kwargs)
+        site = TMonitoringSites(**args)
+        with db.session.begin_nested():
+            db.session.add(site)
+        return site
+
+    _add_site.counter = 0
+
+    return _add_site
+
+
+@pytest.mark.usefixtures("client_class", "temporary_transaction")
+class TestSiteWithModule:
+
+    def test_get_module_sites(
+        self,
+        install_module_test,
+        test_module_user,
+        types_site,
+        add_site,
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        sites = []
+        for type in types_site.values():
+            sites.append(
+                add_site(
+                    types_site=[type],
+                    data={
+                        "profondeur_grotte": 42.8,
+                        "owner_name": "Robert",
+                        "meteo": 2,
+                    },
+                )
+            )
+        add_site(types_site=[], base_site_name="no-type")
+
+        response = self.client.get(url_for("monitorings.get_sites", module_code="test"))
+
+        assert response.status_code == 200
+        assert (
+            response.json["count"] == 2
+        )  # Les 2 sites avec des types de site qui matchent le module test
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+        sites_repr_ids = [s["id_base_site"] for s in sites_response]
+        for site in sites:
+            assert site.id_base_site in sites_repr_ids
+
+        site_repr = sites_response[0]
+
+        # Attribut spécifique du site est présent
+        assert site_repr.get("profondeur_grotte") == 42.8
+
+        # Attribut spécifique du type de site est présent
+        assert site_repr.get("owner_name") == "Robert"
+
+        # ID retourné pour attribut spécifique du site
+        assert site_repr.get("meteo") == 2
+
+    def test_get_module_sites_with_filter_on_generic_attribute(
+        self, install_module_test, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        filter_params = {"base_site_name": "gr"}
+        add_site(base_site_name="Grotte")  # Sera retourné avec le filtre
+        add_site(
+            base_site_name="Grange", types_site=[]
+        )  # Non lié au module, ne devrait pas être retourné
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+        site_repr = sites_response[0]
+        assert site_repr["base_site_name"] == "Grotte"
+
+    def test_get_module_sites_with_filter_on_site_specific_attribute(
+        self, install_module_test, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        filter_params = {"profondeur_grotte": "48"}
+        site_1 = add_site(data={"profondeur_grotte": 48.7})  # Sera retourné avec le filtre
+        site_2 = add_site(data={"profondeur_grotte": 480})  # Sera retourné avec le filtre
+        add_site(
+            data={"profondeur_grotte": 48}, types_site=[]
+        )  # Non lié au module, ne devrait pas être retourné
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site_1.id_base_site in sites_ids
+        assert site_2.id_base_site in sites_ids
+
+    def test_get_module_sites_with_filter_on_site_type_specific_attribute(
+        self, install_module_test, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        filter_params = {"place_name": "to"}
+        site_1 = add_site(data={"place_name": "Toulouse"})  # Sera retourné avec le filtre
+        add_site(data={"place_name": "Marseille"})  # Pas de correspondance
+        add_site(
+            data={"place_name": "Toulon"}, types_site=[]
+        )  # Non lié au module, ne devrait pas être retourné
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site_1.id_base_site in sites_ids
+
+    def test_get_module_sites_with_filter_on_site_specific_nomenclature_attribute(
+        self, install_module_test, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        beau = self._get_meteo_value("Beau")
+        mauvais = self._get_meteo_value("Mauvais")
+        filter_params = {"meteo": "mauv"}
+        site = add_site(data={"meteo": mauvais.id_nomenclature})  # match
+        add_site(data={"meteo": beau.id_nomenclature})  # no match
+        add_site()  # empty "meteo" => no match
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site.id_base_site in sites_ids
+
+    def test_get_module_sites_with_filter_on_site_type_specific_nomenclature_attribute(
+        self, install_module_test, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        beau = self._get_meteo_value("Beau")
+        mauvais = self._get_meteo_value("Mauvais")
+        filter_params = {"meteo_gite": "mauv"}
+        site = add_site(data={"meteo_gite": mauvais.id_nomenclature})  # match
+        add_site(data={"meteo_gite": beau.id_nomenclature})  # no match
+        add_site()  # empty "meteo" => no match
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site.id_base_site in sites_ids
+
+    def test_get_module_sites_with_filter_on_site_nb_visits(
+        self, install_module_test, test_module_user, add_site, datasets
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        filter_params = {"nb_visits": 2}
+        dataset = datasets["own_dataset"]
+        site1 = add_site()  # 1 visit : no match
+        self.add_visit(site1, dataset)
+        site2 = add_site()  # 2 visits : match
+        for _ in range(2):
+            self.add_visit(site2, dataset)
+        site3 = add_site()  # 2 visits : match
+        for _ in range(2):
+            self.add_visit(site3, dataset)
+        site4 = add_site()  # 3 visits : no match
+        for _ in range(3):
+            self.add_visit(site4, dataset)
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+        sites_repr_ids = [s["id_base_site"] for s in sites_response]
+        assert site2.id_base_site in sites_repr_ids
+        assert site3.id_base_site in sites_repr_ids
+
+    @staticmethod
+    def add_visit(site, dataset):
+        module = db.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+        ).scalar()
+        args = {
+            "id_base_site": site.id_base_site,
+            "id_module": module.id_module,
+            "visit_date_min": date.today(),
+            "visit_date_max": date.today(),
+            "id_dataset": dataset.id_dataset,
+        }
+        visit = TMonitoringVisits(**args)
+        with db.session.begin_nested():
+            db.session.add(visit)
+        return visit
+
+    @staticmethod
+    def _get_meteo_value(mnemonique):
+        return db.session.execute(
+            select(TNomenclatures)
+            .join(BibNomenclaturesTypes)
+            .where(BibNomenclaturesTypes.mnemonique == "TEST_METEO")
+            .where(TNomenclatures.mnemonique == mnemonique)
+        ).scalar()

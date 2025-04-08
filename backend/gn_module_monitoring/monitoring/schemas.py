@@ -1,7 +1,9 @@
 import json
 import geojson
 
+from flask import g
 from marshmallow import Schema, fields, validate, post_dump
+import marshmallow
 
 from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
@@ -30,6 +32,48 @@ def paginate_schema(schema):
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
+
+
+def add_specific_attributes(schema, object_type, module_code):
+    """Crée une classe Schema dynamiquement pour ajouter les propriétés spécifiques du type d'objet
+    à la classe 'schema' passée en argument."""
+
+    # FIXME: déplacer ces imports hors de la fonction mais il faut résoudre un pb de circular import
+    from gn_module_monitoring.config.repositories import get_config
+    from gn_module_monitoring.monitoring.definitions import (
+        MonitoringModels_dict,
+        MonitoringObjects_dict,
+    )
+    from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
+
+    config = get_config(module_code, force=True)
+
+    specific_properties = config[object_type]["specific"]
+
+    def create_getter(key):
+        return lambda obj: (obj.data or {}).get(key)
+
+    attrs = {}
+    for k, v in specific_properties.items():
+        attrs[k] = marshmallow.fields.Function(create_getter(k))
+
+    monitoring_object_class = MonitoringObjects_dict[object_type]
+    model_class = MonitoringModels_dict[object_type]
+    parameters = {
+        "model": model_class,
+        "exclude": ["data"],
+    }
+    if issubclass(monitoring_object_class, MonitoringObjectGeom):
+        parameters["exclude"].extend(["geom_geojson", "geom"])
+    Meta = type("Meta", (), parameters)
+
+    attrs.update({"Meta": Meta})
+    schema_with_specifics = type(
+        f"{object_type.capitalize()}SchemaWithSpecifics",
+        (schema,),
+        attrs,
+    )
+    return schema_with_specifics
 
 
 class ObserverSchema(MA.SQLAlchemyAutoSchema):
