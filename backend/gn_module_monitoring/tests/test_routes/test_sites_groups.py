@@ -1,6 +1,7 @@
 import pytest
 
 from flask import url_for
+from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from sqlalchemy import select
 
@@ -8,7 +9,7 @@ from geonature.utils.env import db
 
 from pypnusershub.tests.utils import set_logged_user_cookie
 
-from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
+from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.tests.fixtures.generic import *
 
@@ -89,3 +90,131 @@ class TestSitesGroups:
             if obj["properties"]["sites_group_name"] == site_group_with_sites.sites_group_name
         ][0]["id_sites_group"]
         assert id_ == site_group_with_sites.id_sites_group
+
+
+@pytest.fixture()
+def add_group(install_module_test, test_module_user):
+
+    def _add_group(**kwargs):
+        _add_group.counter += 1
+        i = _add_group.counter
+        user = test_module_user
+        module = db.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+        ).scalar()
+
+        args = {
+            "id_digitiser": user.id_role,
+            "sites_group_name": f"SitesGroupName{i}",
+            "sites_group_description": f"SitesGroupDescription{i}",
+            "sites_group_code": f"SitesGroupCode{i}",
+        }
+        args.update(**kwargs)
+        site = TMonitoringSitesGroups(**args)
+        site.modules.append(module)
+        with db.session.begin_nested():
+            db.session.add(site)
+        return site
+
+    _add_group.counter = 0
+
+    return _add_group
+
+
+@pytest.mark.usefixtures("client_class", "temporary_transaction")
+class TestSitesGroupsWithModule:
+
+    def test_get_module_groups(self, install_module_test, test_module_user, add_group):
+        set_logged_user_cookie(self.client, test_module_user)
+        meteo = self._get_meteo_value("Beau")
+        groups = []
+        for _ in range(3):
+            groups.append(
+                add_group(
+                    data={
+                        "group_specific": "specific text for group",
+                        "group_specific_meteo": meteo.id_nomenclature,
+                    }
+                )
+            )
+
+        response = self.client.get(url_for("monitorings.get_sites_groups", module_code="test"))
+
+        assert response.status_code == 200
+        groups_repr = response.json["items"]
+        assert len(groups_repr) == 3
+        groups_repr_ids = [g["id_sites_group"] for g in groups_repr]
+        for expected_group in groups:
+            assert expected_group.id_sites_group in groups_repr_ids
+
+        group_repr = groups_repr[0]
+        # Attribut spécifique du groupe est présent
+        assert group_repr.get("group_specific") == "specific text for group"
+        # ID retourné pour attribut spécifique du groupe
+        assert group_repr.get("group_specific_meteo") == meteo.id_nomenclature
+
+    def test_get_module_groups_with_filter_on_generic_attribute(
+        self, install_module_test, test_module_user, add_group
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        group = add_group(sites_group_name="Grottes")
+        add_group(sites_group_name="Arbres")
+        filter_params = {"sites_group_name": "gr"}
+
+        response = self.client.get(
+            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        groups_response = response.json["items"]
+        assert len(groups_response) == 1
+        group_repr = groups_response[0]
+        assert group_repr["id_sites_group"] == group.id_sites_group
+
+    def test_get_module_groups_with_filter_on_group_specific_attribute(
+        self, install_module_test, test_module_user, add_group
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        filter_params = {"group_specific": "foo"}
+        group = add_group(data={"group_specific": "foo"})  # Sera retourné avec le filtre
+        add_group(data={"group_specific": "bar"})  # Non retourné avec le filtre
+
+        response = self.client.get(
+            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        groups_response = response.json["items"]
+        assert len(groups_response) == 1
+        groups_ids = [s["id_sites_group"] for s in groups_response]
+        assert group.id_sites_group in groups_ids
+
+    def test_get_module_groups_with_filter_on_group_specific_nomenclature_attribute(
+        self, install_module_test, test_module_user, add_group
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        beau = self._get_meteo_value("Beau")
+        mauvais = self._get_meteo_value("Mauvais")
+        filter_params = {"group_specific_meteo": "mauv"}
+        group = add_group(data={"group_specific_meteo": mauvais.id_nomenclature})  # match
+        add_group(data={"group_specific_meteo": beau.id_nomenclature})  # no match
+        add_group()  # empty "meteo" => no match
+
+        response = self.client.get(
+            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        groups_response = response.json["items"]
+        assert len(groups_response) == 1
+        groups_ids = [s["id_sites_group"] for s in groups_response]
+        assert group.id_sites_group in groups_ids
+
+    @staticmethod
+    def _get_meteo_value(mnemonique):
+        return db.session.execute(
+            select(TNomenclatures)
+            .join(BibNomenclaturesTypes)
+            .where(BibNomenclaturesTypes.mnemonique == "TEST_METEO")
+            .where(TNomenclatures.mnemonique == mnemonique)
+        ).scalar()

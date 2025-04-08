@@ -169,7 +169,12 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
         else:
             query = query.order_by(User.nom_complet.desc())
     else:
-        query = sort(TMonitoringSites, query=query, sort=sort_label, sort_dir=sort_dir)
+        query = sort(
+            TMonitoringSites,
+            query=query,
+            sort=sort_label,
+            sort_dir=sort_dir,
+        )
     return query
 
 
