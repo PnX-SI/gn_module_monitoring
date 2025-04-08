@@ -91,6 +91,35 @@ class GnMonitoringGenericFilter:
             scope=cls._get_read_scope(module_code=module_code, object_code=object_code, user=user),
         )
 
+    @classmethod
+    def get_relationship_clause(
+        cls,
+        type,
+    ):
+        join_table = None  # alias de la table de jointure
+        join_column = None  # nom de la colonne permettant la jointure entre data et la table
+        filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
+        if type == "nomenclature":
+            join_table = aliased(TNomenclatures)
+            join_column = join_table.id_nomenclature
+            filter_column = join_table.label_default
+        elif type == "taxonomy":
+            join_table = aliased(Taxref)
+            join_column = join_table.cd_nom
+            filter_column = join_table.nom_vern_or_lb_nom
+        elif type == "user":
+            join_table = aliased(User)
+            join_column = join_table.id_role
+            filter_column = join_table.nom_complet
+        elif type == "area":
+            join_table = aliased(LAreas)
+            join_column = join_table.id_area
+            filter_column = join_table.area_name
+        elif type == "habitat":
+            pass
+
+        return join_table, join_column, filter_column
+
 
 class SitesQuery(GnMonitoringGenericFilter):
     @classmethod
@@ -211,35 +240,6 @@ class SitesQuery(GnMonitoringGenericFilter):
                     query = query.where(cls.data[param].astext.ilike(f"{value}%"))
 
         return query
-
-    @classmethod
-    def get_relationship_clause(
-        cls,
-        type,
-    ):
-        join_table = None  # alias de la table de jointure
-        join_column = None  # nom de la colonne permettant la jointure entre data et la table
-        filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
-        if type == "nomenclature":
-            join_table = aliased(TNomenclatures)
-            join_column = join_table.id_nomenclature
-            filter_column = join_table.label_default
-        elif type == "taxonomy":
-            join_table = aliased(Taxref)
-            join_column = join_table.cd_nom
-            filter_column = join_table.nom_vern_or_lb_nom
-        elif type == "user":
-            join_table = aliased(User)
-            join_column = join_table.id_role
-            filter_column = join_table.nom_complet
-        elif type == "area":
-            join_table = aliased(LAreas)
-            join_column = join_table.id_area
-            filter_column = join_table.area_name
-        elif type == "habitat":
-            pass
-
-        return join_table, join_column, filter_column
 
 
 class SitesGroupsQuery(GnMonitoringGenericFilter):
