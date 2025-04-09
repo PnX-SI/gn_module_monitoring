@@ -27,6 +27,7 @@ class SiteImportActions:
     ENTITY_CODE = "site"
     TABLE_NAME = "t_base_sites"
     ID_FIELD = "id_base_site"
+    LINE_NO = "site_line_no"
     UUID_FIELD = "uuid_base_site"
     GEOMETRY_FIELD = "s__geom"
     GEOMETRY_4326_FIELD = "s__geom_4326"
