@@ -47,7 +47,7 @@ def get_config_sites_groups(id=None, module_code="generic", object_type="sites_g
 
 
 @blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
+@check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
 def get_sites_groups(object_type: str):
     object_code = "MONITORINGS_GRP_SITES"
     params = MultiDict(request.args)
