@@ -14,7 +14,9 @@ from geonature.core.imports.checks.sql.extra import (
 
 from geonature.core.imports.checks.sql import (
     check_duplicate_uuid,
+    check_erroneous_parent_entities,
     check_existing_uuid,
+    check_no_parent_entity,
     set_id_parent_from_destination,
 )
 from geonature.core.imports.utils import (
@@ -89,6 +91,8 @@ class ObservationImportActions:
             ],
         )
 
+        ObservationImportActions.check_parent_validity(imprt)
+
     @staticmethod
     def check_dataframe(imprt: TImports):
         """
@@ -151,3 +155,29 @@ class ObservationImportActions:
                 )
             ),
         }
+
+    @staticmethod
+    def check_parent_validity(imprt: TImports):
+        from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+            VisitImportActions,
+        )
+
+        entity_observation = EntityImportActionsUtils.get_entity(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+
+        check_no_parent_entity(
+            imprt,
+            parent_entity=entity_visit,
+            child_entity=entity_observation,
+            id_parent=VisitImportActions.ID_FIELD,
+            parent_line_no=VisitImportActions.LINE_NO,
+        )
+
+        check_erroneous_parent_entities(
+            imprt,
+            parent_entity=entity_visit,
+            child_entity=entity_observation,
+            parent_line_no=VisitImportActions.LINE_NO,
+        )

@@ -7,8 +7,11 @@ from geonature.core.imports.checks.sql.extra import (
 )
 
 from geonature.core.imports.checks.sql import (
+    check_dates,
     check_duplicate_uuid,
+    check_erroneous_parent_entities,
     check_existing_uuid,
+    check_no_parent_entity,
     set_id_parent_from_destination,
 )
 from geonature.core.imports.utils import (
@@ -26,13 +29,17 @@ class VisitImportActions:
     ENTITY_CODE = "visit"
     TABLE_NAME = "t_base_visits"
     ID_FIELD = "id_base_visit"
+    LINE_NO = "visit_line_no"
     UUID_FIELD = "uuid_base_visit"
-    PARENT_ID_FIELD = "id_base_site"
-    PARENT_UUID_FIELD = "uuid_base_site"
-    PARENT_LINE_NO = "site_line_no"
+    DATE_MIN_FIELD = "v__visit_date_min"
+    DATE_MAX_FIELD = "v__visit_date_max"
 
     @staticmethod
     def check_sql(imprt):
+        from gn_module_monitoring.monitoring.import_actions.site_actions import (
+            SiteImportActions,
+        )
+
         entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
         fields, entity_visit_fields, _ = get_mapping_data(imprt, entity_visit)
 
@@ -65,10 +72,10 @@ class VisitImportActions:
             imprt,
             parent_entity=entity_visit.parent,
             child_entity=entity_visit,
-            id_parent=VisitImportActions.PARENT_UUID_FIELD,
-            parent_line_no=VisitImportActions.PARENT_LINE_NO,
+            id_parent=SiteImportActions.UUID_FIELD,
+            parent_line_no=SiteImportActions.LINE_NO,
             fields=[
-                entity_visit_fields.get(VisitImportActions.PARENT_UUID_FIELD),
+                entity_visit_fields.get(SiteImportActions.UUID_FIELD),
             ],
         )
 
@@ -77,11 +84,15 @@ class VisitImportActions:
             imprt,
             parent_entity=entity_visit.parent,
             child_entity=entity_visit,
-            id_field=fields.get(VisitImportActions.PARENT_ID_FIELD),
+            id_field=fields.get(SiteImportActions.ID_FIELD),
             fields=[
-                entity_visit_fields.get(VisitImportActions.PARENT_UUID_FIELD),
+                entity_visit_fields.get(SiteImportActions.UUID_FIELD),
             ],
         )
+
+        VisitImportActions.check_dates(imprt)
+
+        VisitImportActions.check_parent_validity(imprt)
 
     @staticmethod
     def check_dataframe(imprt: TImports):
@@ -160,3 +171,38 @@ class VisitImportActions:
                 entity_visit_fields,
                 entity_visit_fields.get(VisitImportActions.UUID_FIELD),
             )
+
+    @staticmethod
+    def check_dates(imprt: TImports):
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        fields, _, _ = get_mapping_data(imprt, entity_visit)
+        check_dates(
+            imprt,
+            entity_visit,
+            fields[VisitImportActions.DATE_MIN_FIELD],
+            fields[VisitImportActions.DATE_MAX_FIELD],
+        )
+
+    @staticmethod
+    def check_parent_validity(imprt: TImports):
+        from gn_module_monitoring.monitoring.import_actions.site_actions import (
+            SiteImportActions,
+        )
+
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+
+        check_no_parent_entity(
+            imprt,
+            parent_entity=entity_site,
+            child_entity=entity_visit,
+            id_parent=SiteImportActions.ID_FIELD,
+            parent_line_no=SiteImportActions.LINE_NO,
+        )
+
+        check_erroneous_parent_entities(
+            imprt,
+            parent_entity=entity_site,
+            child_entity=entity_visit,
+            parent_line_no=SiteImportActions.LINE_NO,
+        )
