@@ -20,7 +20,6 @@ from gn_module_monitoring.command.cmd import (
     cmd_install_monitoring_module,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.tests.fixtures.generic import monitorings_users
 from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 
