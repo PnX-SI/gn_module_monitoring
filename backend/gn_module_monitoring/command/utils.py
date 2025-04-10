@@ -92,7 +92,7 @@ ACTION_LABEL = {
     "E": "Exporter les",
 }
 
-TABLE_NAME_SUBMODULDE = {
+TABLE_NAME_SUBMODULE = {
     "sites_group": "t_sites_groups",
     "site": "t_base_sites",
     "visit": "t_base_visits",
@@ -475,9 +475,12 @@ def get_entities_protocol(module_code: str) -> list:
     data_config = json_from_file(module_path / "config.json")
     tree = data_config.get("tree", {}).get("module", {})
     keys = extract_keys(tree)
-    unique_keys = set(dict.fromkeys(keys))
-    unique_keys -= {"sites_group"}  # sites_group are not available for import at the moment.
-    return list(unique_keys)
+    unique_keys = list(dict.fromkeys(keys))
+    if "sites_group" in unique_keys:
+        unique_keys.remove(
+            "sites_group"
+        )  # sites_group are not available for import at the moment.
+    return unique_keys
 
 
 def get_entity_parent(tree, entity_code):
@@ -520,7 +523,7 @@ def process_module_import(module_data):
             insert_bib_field(protocol_data)
 
             insert_entities(
-                protocol_data, id_destination, entity_hierarchy_map, label_entity=destination.label
+                protocol_data, id_destination, entity_hierarchy_map, module_code=module_code
             )
 
             insert_entity_field_relations(protocol_data, id_destination, entity_hierarchy_map)
@@ -1034,33 +1037,23 @@ def insert_bib_field(protocol_data):
         upsert_field(field)
 
 
-def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_entity=None):
+def insert_entities(unique_fields, id_destination, entity_hierarchy_map, module_code):
     """
     Insère ou met à jour les entités dans bib_entities en respectant la hiérarchie du tree.
     """
     inserted_entity_ids = {}
     order = 1
 
-    for entity_code, fields in unique_fields.items():
+    for entity_code in get_entities_protocol(module_code):
+        entity_data = unique_fields[entity_code]
         entity_config = entity_hierarchy_map.get(entity_code)
-
         id_field_name = entity_config["id_field_name"]
         parent_entity = entity_config["parent_entity"]
 
-        """ id_field_conf = next(
-            (
-                f
-                for field_type in ["generic", "specific"]
-                for f in fields[field_type]
-                if f["dest_field"] == id_field_name
-            ),
-            None,
-        ) """
-
-        id_field = (
-            DB.session.query(BibFields.id_field)
-            .filter_by(name_field=id_field_name, id_destination=id_destination)
-            .scalar()
+        id_field = DB.session.scalar(
+            sa.select(BibFields.id_field).filter_by(
+                name_field=id_field_name, id_destination=id_destination
+            )
         )
 
         id_parent = inserted_entity_ids.get(parent_entity) if parent_entity else None
@@ -1081,11 +1074,11 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
         entity_data = {
             "id_destination": id_destination,
             "code": entity_code_obs_detail,
-            "label": fields["label"][:64] if fields["label"] else entity_code,
+            "label": entity_data["label"][:64] if entity_data["label"] else entity_code,
             "order": order,
             "validity_column": f"{entity_code.lower()}_valid",
             "destination_table_schema": "gn_monitoring",
-            "destination_table_name": TABLE_NAME_SUBMODULDE.get(entity_code),
+            "destination_table_name": TABLE_NAME_SUBMODULE.get(entity_code),
             "id_unique_column": id_field,
             "id_parent": id_parent,
             "id_object": id_object,
@@ -1098,6 +1091,11 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
                 code=entity_code_obs_detail, id_destination=id_destination
             )
         ).scalar()
+        existing_entity = DB.session.scalar(
+            sa.exists(Entity)
+            .where(Entity.code == entity_code_obs_detail, Entity.id_destination == id_destination)
+            .select()
+        )
 
         if existing_entity:
             DB.session.execute(
@@ -1113,11 +1111,11 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, label_e
             )
 
             if not inserted_entity_id:
-                inserted_entity_id = DB.session.execute(
+                inserted_entity_id = DB.session.scalar(
                     select(Entity.id_entity).filter_by(
                         code=entity_code_obs_detail, id_destination=id_destination
                     )
-                ).scalar()
+                )
 
         inserted_entity_ids[entity_code] = inserted_entity_id
         DB.session.flush()
@@ -1567,7 +1565,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
                 protocol_data,
                 destination.id_destination,
                 entity_hierarchy_map,
-                label_entity=module_label,
+                module_code=module_code,
             )
 
             insert_entity_field_relations(
