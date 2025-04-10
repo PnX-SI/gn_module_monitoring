@@ -6,6 +6,7 @@ from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
     generate_entity_id,
+    generate_missing_uuid,
 )
 
 from geonature.core.imports.checks.sql import (
@@ -39,32 +40,39 @@ class SiteImportActions:
 
     @staticmethod
     def check_sql(imprt: TImports):
-        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
-        _, entity_site_fields, _ = get_mapping_data(imprt, entity_site)
+        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
         # Check existing uuid
-        if SiteImportActions.UUID_FIELD in entity_site_fields:
+        if SiteImportActions.UUID_FIELD in fieldmapped_fields:
             check_existing_uuid(
                 imprt,
-                entity_site,
-                entity_site_fields.get(SiteImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields.get(SiteImportActions.UUID_FIELD),
                 skip=True,  # TODO config
             )
 
         # Disable duplicated definition row
-        if SiteImportActions.UUID_FIELD in entity_site_fields:
+        if SiteImportActions.UUID_FIELD in fieldmapped_fields:
             disable_duplicated_rows(
                 imprt,
-                entity_site,
-                entity_site_fields,
-                entity_site_fields.get(SiteImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(SiteImportActions.UUID_FIELD),
             )
 
         # Check duplicate uuid
-        if SiteImportActions.UUID_FIELD in entity_site_fields:
+        if SiteImportActions.UUID_FIELD in fieldmapped_fields:
             check_duplicate_uuid(
-                imprt, entity_site, entity_site_fields.get(SiteImportActions.UUID_FIELD)
+                imprt, entity, fieldmapped_fields.get(SiteImportActions.UUID_FIELD)
             )
+
+        generate_missing_uuid(
+            imprt,
+            entity,
+            entity_fields.get(SiteImportActions.UUID_FIELD),
+            whereclause=None,
+        )
 
         SiteImportActions.check_and_compute_geometries(imprt)
 
@@ -89,17 +97,17 @@ class SiteImportActions:
 
         """
 
-        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
 
-        fields, _, source_cols = get_mapping_data(imprt, entity_site)
+        entity_fields, _, source_cols = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
 
         ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_site, source_cols)
+        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
 
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity_site, fields)
+        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
         geom_field_name = config.get(SiteImportActions.ENTITY_CODE, {}).get("geom_field_name")
         if geom_field_name:
@@ -108,22 +116,22 @@ class SiteImportActions:
             geom_field_name__wkt = f"s__{geom_field_name}"
             updated_cols |= check_geometry(
                 imprt,
-                entity_site,
+                entity,
                 df,
                 file_srid=imprt.srid,
-                geom_4326_field=fields[geom_field_name__4326],
-                geom_local_field=fields[geom_field_name__local],
-                wkt_field=fields[geom_field_name__wkt],
+                geom_4326_field=entity_fields[geom_field_name__4326],
+                geom_local_field=entity_fields[geom_field_name__local],
+                wkt_field=entity_fields[geom_field_name__wkt],
             )
 
-        update_transient_data_from_dataframe(imprt, entity_site, updated_cols, df)
+        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
 
     @staticmethod
     def generate_id(imprt: TImports):
-        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
         generate_entity_id(
             imprt,
-            entity_site,
+            entity,
             "gn_monitoring",
             "t_base_sites",
             "uuid_base_site",
@@ -132,22 +140,22 @@ class SiteImportActions:
 
     @staticmethod
     def check_entity_data_consistency(imprt: TImports):
-        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
-        _, entity_site_fields, _ = get_mapping_data(imprt, entity_site)
+        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
-        if SiteImportActions.ID_FIELD in entity_site_fields:
+        if SiteImportActions.ID_FIELD in fieldmapped_fields:
             check_entity_data_consistency(
                 imprt,
-                entity_site,
-                entity_site_fields,
-                entity_site_fields.get(SiteImportActions.ID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(SiteImportActions.ID_FIELD),
             )
-        if SiteImportActions.UUID_FIELD in entity_site_fields:
+        if SiteImportActions.UUID_FIELD in fieldmapped_fields:
             check_entity_data_consistency(
                 imprt,
-                entity_site,
-                entity_site_fields,
-                entity_site_fields.get(SiteImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(SiteImportActions.UUID_FIELD),
             )
 
     @staticmethod

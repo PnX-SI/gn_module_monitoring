@@ -11,6 +11,7 @@ from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
     generate_entity_id,
+    generate_missing_uuid,
     set_parent_id_from_line_no,
 )
 
@@ -39,57 +40,63 @@ class ObservationImportActions:
 
     @staticmethod
     def check_sql(imprt):
-        entity_observation = EntityImportActionsUtils.get_entity(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
-        fields, entity_observation_fields, _ = get_mapping_data(imprt, entity_observation)
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
+        entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
         # Check existing uuid
-        if ObservationImportActions.UUID_FIELD in entity_observation_fields:
+        if ObservationImportActions.UUID_FIELD in fieldmapped_fields:
             check_existing_uuid(
                 imprt,
-                entity_observation,
-                entity_observation_fields.get(ObservationImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields.get(ObservationImportActions.UUID_FIELD),
                 skip=True,  # TODO config
             )
 
         # Disable duplicated definition row
-        if ObservationImportActions.UUID_FIELD in entity_observation_fields:
+        if ObservationImportActions.UUID_FIELD in fieldmapped_fields:
             disable_duplicated_rows(
                 imprt,
-                entity_observation,
-                entity_observation_fields,
-                entity_observation_fields.ge(ObservationImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.ge(ObservationImportActions.UUID_FIELD),
             )
 
         # Check duplicate uuid
-        if ObservationImportActions.UUID_FIELD in entity_observation_fields:
+        if ObservationImportActions.UUID_FIELD in fieldmapped_fields:
             check_duplicate_uuid(
                 imprt,
-                entity_observation,
-                entity_observation_fields.get(ObservationImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields.get(ObservationImportActions.UUID_FIELD),
             )
+
+        generate_missing_uuid(
+            imprt,
+            entity,
+            entity_fields.get(ObservationImportActions.UUID_FIELD),
+            whereclause=None,
+        )
+
         # Wire parent child
-        if entity_observation.parent is not None:
+        if entity.parent is not None:
             set_parent_line_no(
                 imprt,
-                parent_entity=entity_observation.parent,
-                child_entity=entity_observation,
+                parent_entity=entity.parent,
+                child_entity=entity,
                 id_parent=ObservationImportActions.PARENT_UUID_FIELD,
                 parent_line_no=ObservationImportActions.PARENT_LINE_NO,
                 fields=[
-                    entity_observation_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
+                    fieldmapped_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
                 ],
             )
 
         ## process parent uuid and id
         set_id_parent_from_destination(
             imprt,
-            parent_entity=entity_observation.parent,
-            child_entity=entity_observation,
-            id_field=fields.get(ObservationImportActions.PARENT_ID_FIELD),
+            parent_entity=entity.parent,
+            child_entity=entity,
+            id_field=entity_fields.get(ObservationImportActions.PARENT_ID_FIELD),
             fields=[
-                entity_observation_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
+                fieldmapped_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
             ],
         )
 
@@ -111,32 +118,26 @@ class ObservationImportActions:
 
         """
 
-        entity_observation = EntityImportActionsUtils.get_entity(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
 
-        fields, _, source_cols = get_mapping_data(imprt, entity_observation)
+        fields, _, source_cols = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
 
         ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_observation, source_cols)
+        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
 
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(
-            imprt, df, entity_observation, fields
-        )
+        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, fields)
 
-        update_transient_data_from_dataframe(imprt, entity_observation, updated_cols, df)
+        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
 
     @staticmethod
     def generate_id(imprt: TImports):
-        entity_observation = EntityImportActionsUtils.get_entity(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
         generate_entity_id(
             imprt,
-            entity_observation,
+            entity,
             "gn_monitoring",
             "t_observations",
             "uuid_observation",
@@ -149,12 +150,10 @@ class ObservationImportActions:
             VisitImportActions,
         )
 
-        entity_observation = EntityImportActionsUtils.get_entity(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
         set_parent_id_from_line_no(
             imprt,
-            entity=entity_observation,
+            entity=entity,
             parent_line_no_field_name=VisitImportActions.LINE_NO,
             parent_id_field_name=VisitImportActions.ID_FIELD,
         )

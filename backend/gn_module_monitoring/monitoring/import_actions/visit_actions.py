@@ -5,6 +5,7 @@ from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
     generate_entity_id,
+    generate_missing_uuid,
     set_parent_id_from_line_no,
 )
 
@@ -46,53 +47,60 @@ class VisitImportActions:
             SiteImportActions,
         )
 
-        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
-        fields, entity_visit_fields, _ = get_mapping_data(imprt, entity_visit)
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
         # Check existing uuid
-        if VisitImportActions.UUID_FIELD in entity_visit_fields:
+        if VisitImportActions.UUID_FIELD in fieldmapped_fields:
             check_existing_uuid(
                 imprt,
-                entity_visit,
-                entity_visit_fields.get(VisitImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields.get(VisitImportActions.UUID_FIELD),
                 skip=True,  # TODO config
             )
 
         # Disable duplicated definition row
-        if VisitImportActions.UUID_FIELD in entity_visit_fields:
+        if VisitImportActions.UUID_FIELD in fieldmapped_fields:
             disable_duplicated_rows(
                 imprt,
-                entity_visit,
-                entity_visit_fields,
-                entity_visit_fields.get(VisitImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(VisitImportActions.UUID_FIELD),
             )
 
         # Check duplicate uuid
-        if VisitImportActions.UUID_FIELD in entity_visit_fields:
+        if VisitImportActions.UUID_FIELD in fieldmapped_fields:
             check_duplicate_uuid(
-                imprt, entity_visit, entity_visit_fields.get(VisitImportActions.UUID_FIELD)
+                imprt, entity, fieldmapped_fields.get(VisitImportActions.UUID_FIELD)
             )
+
+        generate_missing_uuid(
+            imprt,
+            entity,
+            entity_fields.get(VisitImportActions.UUID_FIELD),
+            whereclause=None,
+        )
 
         # Wire parent child
         set_parent_line_no(
             imprt,
-            parent_entity=entity_visit.parent,
-            child_entity=entity_visit,
+            parent_entity=entity.parent,
+            child_entity=entity,
             id_parent=SiteImportActions.UUID_FIELD,
             parent_line_no=SiteImportActions.LINE_NO,
             fields=[
-                entity_visit_fields.get(SiteImportActions.UUID_FIELD),
+                entity_fields.get(SiteImportActions.UUID_FIELD),
             ],
         )
 
         ## process parent uuid and id
         set_id_parent_from_destination(
             imprt,
-            parent_entity=entity_visit.parent,
-            child_entity=entity_visit,
-            id_field=fields.get(SiteImportActions.ID_FIELD),
+            parent_entity=entity.parent,
+            child_entity=entity,
+            id_field=entity_fields.get(SiteImportActions.ID_FIELD),
             fields=[
-                entity_visit_fields.get(SiteImportActions.UUID_FIELD),
+                entity_fields.get(SiteImportActions.UUID_FIELD),
             ],
         )
 
@@ -117,36 +125,38 @@ class VisitImportActions:
 
         """
 
-        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
 
-        fields, _, source_cols = get_mapping_data(imprt, entity_visit)
+        entity_fields, _, source_cols = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
 
         ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity_visit, source_cols)
+        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
 
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity_visit, fields)
+        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
         updated_cols |= check_datasets(
             imprt,
-            entity_visit,
+            entity,
             df,
-            uuid_field=fields["unique_dataset_id"],
-            id_field=fields["id_dataset"],
+            uuid_field=entity_fields["unique_dataset_id"],
+            id_field=entity_fields["id_dataset"],
             module_code=imprt.destination.module.module_code,
             object_code="MONITORINGS_VISITES",
         )
 
-        update_transient_data_from_dataframe(imprt, entity_visit, updated_cols, df)
+        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
+
+    ## UUID visit and site should not be mandatory !
 
     @staticmethod
     def generate_id(imprt: TImports):
-        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
         generate_entity_id(
             imprt,
-            entity_visit,
+            entity,
             "gn_monitoring",
             "t_base_visits",
             "uuid_base_visit",
@@ -159,33 +169,33 @@ class VisitImportActions:
             SiteImportActions,
         )
 
-        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
         set_parent_id_from_line_no(
             imprt,
-            entity=entity_visit,
+            entity=entity,
             parent_line_no_field_name=SiteImportActions.LINE_NO,
             parent_id_field_name=SiteImportActions.ID_FIELD,
         )
 
     @staticmethod
     def check_entity_data_consistency(imprt: TImports):
-        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
 
-        _, entity_visit_fields, _ = get_mapping_data(imprt, entity_visit)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
-        if VisitImportActions.ID_FIELD in entity_visit_fields:
+        if VisitImportActions.ID_FIELD in fieldmapped_fields:
             check_entity_data_consistency(
                 imprt,
-                entity_visit,
-                entity_visit_fields,
-                entity_visit_fields.get(VisitImportActions.ID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(VisitImportActions.ID_FIELD),
             )
-        if VisitImportActions.UUID_FIELD in entity_visit_fields:
+        if VisitImportActions.UUID_FIELD in fieldmapped_fields:
             check_entity_data_consistency(
                 imprt,
-                entity_visit,
-                entity_visit_fields,
-                entity_visit_fields.get(VisitImportActions.UUID_FIELD),
+                entity,
+                fieldmapped_fields,
+                fieldmapped_fields.get(VisitImportActions.UUID_FIELD),
             )
 
     @staticmethod
