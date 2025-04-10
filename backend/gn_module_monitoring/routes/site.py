@@ -126,7 +126,7 @@ def get_sites(object_type):
     query = filter_params(TMonitoringSites, query=query, params=params)
     query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
 
-    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
+    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code, module_code=g.current_module.module_code)
     return paginate_scope(
         query=query_allowed,
         schema=MonitoringSitesSchema,
