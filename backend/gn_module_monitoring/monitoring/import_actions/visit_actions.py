@@ -4,6 +4,8 @@ from geonature.core.imports.checks.sql.parent import set_parent_line_no
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
+    generate_entity_id,
+    set_parent_id_from_line_no,
 )
 
 from geonature.core.imports.checks.sql import (
@@ -33,6 +35,10 @@ class VisitImportActions:
     UUID_FIELD = "uuid_base_visit"
     DATE_MIN_FIELD = "v__visit_date_min"
     DATE_MAX_FIELD = "v__visit_date_max"
+    PARENT_ID_FIELD = "id_base_site"
+    PARENT_UUID_FIELD = "uuid_base_site"
+    PARENT_LINE_NO = "site_line_no"
+    LINE_NO = "visit_line_no"
 
     @staticmethod
     def check_sql(imprt):
@@ -137,18 +143,28 @@ class VisitImportActions:
 
     @staticmethod
     def generate_id(imprt: TImports):
-        EntityImportActionsUtils.generate_id(
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        generate_entity_id(
             imprt,
-            EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE),
-            VisitImportActions.TABLE_NAME,
-            VisitImportActions.UUID_FIELD,
-            VisitImportActions.ID_FIELD,
+            entity_visit,
+            "gn_monitoring",
+            "t_base_sites",
+            "uuid_base_site",
+            "id_base_site",
         )
 
     @staticmethod
     def set_parent_id_from_line_no(imprt: TImports):
-        EntityImportActionsUtils.set_parent_id_from_line_no(
-            imprt, EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        from gn_module_monitoring.monitoring.import_actions.site_actions import (
+            SiteImportActions,
+        )
+
+        entity_visit = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        set_parent_id_from_line_no(
+            imprt,
+            entity=entity_visit,
+            parent_line_no_field_name=SiteImportActions.LINE_NO,
+            parent_id_field_name=SiteImportActions.ID_FIELD,
         )
 
     @staticmethod

@@ -10,6 +10,8 @@ import sqlalchemy as sa
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
+    generate_entity_id,
+    set_parent_id_from_line_no,
 )
 
 from geonature.core.imports.checks.sql import (
@@ -129,18 +131,32 @@ class ObservationImportActions:
 
     @staticmethod
     def generate_id(imprt: TImports):
-        EntityImportActionsUtils.generate_id(
+        entity_observation = EntityImportActionsUtils.get_entity(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+        generate_entity_id(
             imprt,
-            EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE),
-            ObservationImportActions.TABLE_NAME,
-            ObservationImportActions.UUID_FIELD,
-            ObservationImportActions.ID_FIELD,
+            entity_observation,
+            "gn_monitoring",
+            "t_observations",
+            "uuid_observation",
+            "id_observation",
         )
 
     @staticmethod
     def set_parent_id_from_line_no(imprt: TImports):
-        EntityImportActionsUtils.set_parent_id_from_line_no(
-            imprt, EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
+        from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+            VisitImportActions,
+        )
+
+        entity_observation = EntityImportActionsUtils.get_entity(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+        set_parent_id_from_line_no(
+            imprt,
+            entity=entity_observation,
+            parent_line_no_field_name=VisitImportActions.LINE_NO,
+            parent_id_field_name=VisitImportActions.ID_FIELD,
         )
 
     @staticmethod

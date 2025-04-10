@@ -5,6 +5,7 @@ from geonature.core.imports.models import Entity, TImports
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
     disable_duplicated_rows,
+    generate_entity_id,
 )
 
 from geonature.core.imports.checks.sql import (
@@ -34,6 +35,7 @@ class SiteImportActions:
     GEOMETRY_LOCAL_FIELD = "s__geom_local"
     ALTITUDE_MIN_FIELD = "s__altitude_min"
     ALTITUDE_MAX_FIELD = "s__altitude_max"
+    LINE_NO = "site_line_no"
 
     @staticmethod
     def check_sql(imprt: TImports):
@@ -118,12 +120,14 @@ class SiteImportActions:
 
     @staticmethod
     def generate_id(imprt: TImports):
-        EntityImportActionsUtils.generate_id(
+        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        generate_entity_id(
             imprt,
-            EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE),
-            SiteImportActions.TABLE_NAME,
-            SiteImportActions.UUID_FIELD,
-            SiteImportActions.ID_FIELD,
+            entity_site,
+            "gn_monitoring",
+            "t_base_sites",
+            "uuid_base_site",
+            "id_base_site",
         )
 
     @staticmethod
