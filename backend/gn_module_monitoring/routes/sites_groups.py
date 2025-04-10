@@ -69,7 +69,7 @@ def get_sites_groups(object_type: str):
     else:
         query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
 
-    query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
+    query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code, module_code=g.current_module.module_code)
     return paginate_scope(
         query=query_allowed,
         schema=MonitoringSitesGroupsDetailSchema,
