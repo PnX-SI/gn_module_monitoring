@@ -148,9 +148,9 @@ class VisitImportActions:
             imprt,
             entity_visit,
             "gn_monitoring",
-            "t_base_sites",
-            "uuid_base_site",
-            "id_base_site",
+            "t_base_visits",
+            "uuid_base_visit",
+            "id_base_visit",
         )
 
     @staticmethod
