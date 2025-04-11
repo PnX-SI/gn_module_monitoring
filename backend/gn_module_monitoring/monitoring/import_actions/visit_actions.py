@@ -85,7 +85,7 @@ class VisitImportActions:
         set_parent_line_no(
             imprt,
             parent_entity=entity.parent,
-            child_entity=entity,
+            entity=entity,
             id_parent=SiteImportActions.UUID_FIELD,
             parent_line_no=SiteImportActions.LINE_NO,
             fields=[
@@ -97,7 +97,7 @@ class VisitImportActions:
         set_id_parent_from_destination(
             imprt,
             parent_entity=entity.parent,
-            child_entity=entity,
+            entity=entity,
             id_field=entity_fields.get(SiteImportActions.ID_FIELD),
             fields=[
                 entity_fields.get(SiteImportActions.UUID_FIELD),

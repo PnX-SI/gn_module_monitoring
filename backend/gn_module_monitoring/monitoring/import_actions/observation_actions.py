@@ -81,7 +81,7 @@ class ObservationImportActions:
             set_parent_line_no(
                 imprt,
                 parent_entity=entity.parent,
-                child_entity=entity,
+                entity=entity,
                 id_parent=ObservationImportActions.PARENT_UUID_FIELD,
                 parent_line_no=ObservationImportActions.PARENT_LINE_NO,
                 fields=[
@@ -93,7 +93,7 @@ class ObservationImportActions:
         set_id_parent_from_destination(
             imprt,
             parent_entity=entity.parent,
-            child_entity=entity,
+            entity=entity,
             id_field=entity_fields.get(ObservationImportActions.PARENT_ID_FIELD),
             fields=[
                 fieldmapped_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
