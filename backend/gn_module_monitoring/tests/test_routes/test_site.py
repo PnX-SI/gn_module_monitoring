@@ -671,6 +671,160 @@ class TestSiteWithModule:
         assert site2.id_base_site in sites_repr_ids
         assert site3.id_base_site in sites_repr_ids
 
+    @pytest.mark.parametrize(
+        "page,dir,expected_names",
+        [
+            (1, "asc", ["abri", "arbre"]),
+            (2, "asc", ["garage", "grange"]),
+            (3, "asc", ["grotte"]),
+            (1, "desc", ["grotte", "grange"]),
+            (2, "desc", ["garage", "arbre"]),
+            (3, "desc", ["abri"]),
+        ],
+    )
+    def test_get_module_sites_ordering_by_generic_property(
+        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(base_site_name="arbre")
+        add_site(base_site_name="grange")
+        add_site(base_site_name="abri")
+        add_site(base_site_name="grotte")
+        add_site(base_site_name="garage")
+
+        response = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                module_code="test",
+                sort="base_site_name",
+                sort_dir=dir,
+                page=page,
+                limit=2,
+            )
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == len(expected_names)
+        for i, name in enumerate(expected_names):
+            assert sites_response[i]["base_site_name"] == name
+
+    @pytest.mark.parametrize(
+        "page,dir,expected_names",
+        [
+            (1, "asc", ["Alain", "Alice"]),
+            (2, "asc", ["Robert", "Roger"]),
+            (3, "asc", ["Sarah"]),
+            (1, "desc", ["Sarah", "Roger"]),
+            (2, "desc", ["Robert", "Alice"]),
+            (3, "desc", ["Alain"]),
+        ],
+    )
+    def test_get_module_sites_ordering_by_text_specific_property(
+        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"contact_name": "Robert"})
+        add_site(data={"contact_name": "Alice"})
+        add_site(data={"contact_name": "Roger"})
+        add_site(data={"contact_name": "Alain"})
+        add_site(data={"contact_name": "Sarah"})
+
+        response = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                module_code="test",
+                sort="contact_name",
+                sort_dir=dir,
+                page=page,
+                limit=2,
+            )
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        names_response = [s["contact_name"] for s in sites_response]
+        assert names_response == expected_names
+
+    @pytest.mark.parametrize(
+        "page,dir,expected_names",
+        [
+            (1, "asc", ["Alain", "Alice"]),
+            (2, "asc", ["Robert", "Roger"]),
+            (3, "asc", ["Sarah"]),
+            (1, "desc", ["Sarah", "Roger"]),
+            (2, "desc", ["Robert", "Alice"]),
+            (3, "desc", ["Alain"]),
+        ],
+    )
+    def test_get_module_sites_ordering_by_text_specific_property(
+        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"contact_name": "Robert"})
+        add_site(data={"contact_name": "Alice"})
+        add_site(data={"contact_name": "Roger"})
+        add_site(data={"contact_name": "Alain"})
+        add_site(data={"contact_name": "Sarah"})
+
+        response = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                module_code="test",
+                sort="contact_name",
+                sort_dir=dir,
+                page=page,
+                limit=2,
+            )
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        names_response = [s["contact_name"] for s in sites_response]
+        assert names_response == expected_names
+
+    @pytest.mark.parametrize(
+        "page,dir,expected_meteo_values",
+        [
+            (1, "asc", ["Beau", "Beau"]),
+            (2, "asc", ["Mauvais", "Nuageux"]),
+            (3, "asc", ["Nuageux"]),
+            (1, "desc", ["Nuageux", "Nuageux"]),
+            (2, "desc", ["Mauvais", "Beau"]),
+            (3, "desc", ["Beau"]),
+        ],
+    )
+    def test_get_module_sites_ordering_by_nomenclature_specific_property(
+        self, install_module_test, test_module_user, add_site, page, dir, expected_meteo_values
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        meteo_map = {
+            "Beau": self._get_meteo_value("Beau"),
+            "Mauvais": self._get_meteo_value("Mauvais"),
+            "Nuageux": self._get_meteo_value("Nuageux"),
+        }
+        add_site(data={"meteo": meteo_map["Nuageux"].id_nomenclature})
+        add_site(data={"meteo": meteo_map["Beau"].id_nomenclature})
+        add_site(data={"meteo": meteo_map["Nuageux"].id_nomenclature})
+        add_site(data={"meteo": meteo_map["Mauvais"].id_nomenclature})
+        add_site(data={"meteo": meteo_map["Beau"].id_nomenclature})
+
+        response = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                module_code="test",
+                sort="meteo",
+                sort_dir=dir,
+                page=page,
+                limit=2,
+            )
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        sites_meteos = [s["meteo"] for s in sites_response]
+        expected_meteo_ids = [
+            self._get_meteo_value(m).id_nomenclature for m in expected_meteo_values
+        ]
+        assert sites_meteos == expected_meteo_ids
+
     @staticmethod
     def add_visit(site, dataset):
         module = db.session.execute(

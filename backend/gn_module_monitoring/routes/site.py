@@ -135,18 +135,22 @@ def get_sites(object_type, module_code=None):
             TMonitoringSites.modules.any(TMonitoringModules.module_code == module_code)
         )
 
+    config = get_config(g.current_module.module_code)
+    specific_properties = config.get("site", {}).get("specific", {})
+
     query = filter_params(TMonitoringSites, query=query, params=params)
-    query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
+    query = sort_according_to_column_type_for_site(
+        query, sort_label, sort_dir, specific_properties
+    )
 
     query_allowed = TMonitoringSites.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
 
-    config = get_config(module_code)
     query_allowed = TMonitoringSites.filter_by_specific(
         query=query_allowed,
         params=params,
-        specific_properties=config.get("site", {}).get("specific", {}),
+        specific_properties=specific_properties,
     )
 
     if module_code:
