@@ -3,14 +3,15 @@ name: pytest
 on:
   push:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
       - develop
+      - feat/import-monitoring
   pull_request:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
