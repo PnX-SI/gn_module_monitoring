@@ -2,6 +2,17 @@ from typing import Tuple
 
 from flask import Response, g
 from flask.json import jsonify
+
+from typing import Tuple, Optional
+from marshmallow import Schema
+from werkzeug.datastructures import MultiDict
+from sqlalchemy import cast, func, text, select, and_, Integer
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.orm import load_only, aliased
+from sqlalchemy.sql.expression import Select
+
+from geonature.utils.env import DB
+from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions.models import PermissionAvailable, PermObject
 from geonature.utils.env import DB
@@ -72,7 +83,9 @@ def filter_params(model, query: Select, params: MultiDict) -> Select:
         raise GeoNatureError("filter_params : La requête n'a pas de méthode filter_by_params")
 
 
-def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
+def sort(
+    model, query: Select, sort: str, sort_dir: str, specific_properties: Optional[dict] = None
+) -> Select:
     if sort_dir not in ["desc", "asc"]:
         return query
 
@@ -84,6 +97,23 @@ def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
         if sort_dir == "desc":
             order_by = order_by.desc()
         return query.order_by(order_by)
+    elif specific_properties and sort in specific_properties:
+        field = specific_properties.get(sort)
+        if field.get("type_util") == "nomenclature":
+            join_table, join_column, filter_column = model._get_relationship_clause(
+                type="nomenclature"
+            )
+            query = query.join(join_table, model.data[sort].astext.cast(Integer) == join_column)
+            order_by = filter_column
+            if sort_dir == "desc":
+                order_by = order_by.desc()
+            return query.order_by(order_by)
+        else:
+            order_by = model.data[sort]
+            if sort_dir == "desc":
+                order_by = order_by.desc()
+            return query.order_by(order_by)
+
     return query
 
 
@@ -155,7 +185,7 @@ def query_all_types_site_from_module_id(id_module: int = None):
     return DB.session.scalars(query).unique().all()
 
 
-def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
+def sort_according_to_column_type_for_site(query, sort_label, sort_dir, specific_properties):
     if sort_label == "types_site":
         query = query.outerjoin(TMonitoringSites.types_site).join(BibTypeSite.nomenclature)
         if sort_dir == "asc":
@@ -174,6 +204,7 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
             query=query,
             sort=sort_label,
             sort_dir=sort_dir,
+            specific_properties=specific_properties,
         )
     return query
 
