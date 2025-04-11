@@ -86,7 +86,6 @@ class VisitImportActions:
             imprt,
             parent_entity=entity.parent,
             entity=entity,
-            id_parent=SiteImportActions.UUID_FIELD,
             parent_line_no=SiteImportActions.LINE_NO,
             fields=[
                 entity_fields.get(SiteImportActions.UUID_FIELD),
@@ -221,7 +220,7 @@ class VisitImportActions:
         check_no_parent_entity(
             imprt,
             parent_entity=entity_site,
-            child_entity=entity_visit,
+            entity=entity_visit,
             id_parent=SiteImportActions.ID_FIELD,
             parent_line_no=SiteImportActions.LINE_NO,
         )
@@ -229,6 +228,6 @@ class VisitImportActions:
         check_erroneous_parent_entities(
             imprt,
             parent_entity=entity_site,
-            child_entity=entity_visit,
+            entity=entity_visit,
             parent_line_no=SiteImportActions.LINE_NO,
         )

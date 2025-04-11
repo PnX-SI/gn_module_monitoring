@@ -58,7 +58,7 @@ class ObservationImportActions:
                 imprt,
                 entity,
                 fieldmapped_fields,
-                fieldmapped_fields.ge(ObservationImportActions.UUID_FIELD),
+                fieldmapped_fields.get(ObservationImportActions.UUID_FIELD),
             )
 
         # Check duplicate uuid
@@ -82,7 +82,6 @@ class ObservationImportActions:
                 imprt,
                 parent_entity=entity.parent,
                 entity=entity,
-                id_parent=ObservationImportActions.PARENT_UUID_FIELD,
                 parent_line_no=ObservationImportActions.PARENT_LINE_NO,
                 fields=[
                     fieldmapped_fields.get(ObservationImportActions.PARENT_UUID_FIELD),
@@ -185,7 +184,7 @@ class ObservationImportActions:
         check_no_parent_entity(
             imprt,
             parent_entity=entity_visit,
-            child_entity=entity_observation,
+            entity=entity_observation,
             id_parent=VisitImportActions.ID_FIELD,
             parent_line_no=VisitImportActions.LINE_NO,
         )
@@ -193,6 +192,6 @@ class ObservationImportActions:
         check_erroneous_parent_entities(
             imprt,
             parent_entity=entity_visit,
-            child_entity=entity_observation,
+            entity=entity_observation,
             parent_line_no=VisitImportActions.LINE_NO,
         )
