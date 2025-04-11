@@ -304,32 +304,36 @@ class MonitoringImportActions(ImportActions):
 
                         db.session.execute(final_insert)
                 else:
-                    core_insert_stmt = sa.insert(destination_model).from_select(
-                        names=core_dest_col_names,
-                        select=core_select,
-                    )
-                    row_count += db.session.execute(core_insert_stmt).rowcount
-                    if complement_select_stmt is not None:
-                        db.session.execute(
-                            sa.insert(model_complements).from_select(
-                                names=[id_col_name, "data"],
-                                select=complement_select_stmt.filter(
-                                    transient_table.c["line_no"] >= min_line_no,
-                                    transient_table.c["line_no"] < max_line_no,
-                                ),
-                            )
+                    try:
+                        core_insert_stmt = sa.insert(destination_model).from_select(
+                            names=core_dest_col_names, select=core_select
                         )
+                        row_count += db.session.execute(core_insert_stmt).rowcount
 
-                    if types_site_select_stmt is not None:
-                        db.session.execute(
-                            sa.insert(cor_site_type).from_select(
-                                ["id_base_site", "id_type_site"],
-                                types_site_select_stmt.filter(
-                                    transient_table.c["line_no"] >= min_line_no,
-                                    transient_table.c["line_no"] < max_line_no,
-                                ),
+                        if complement_select_stmt is not None:
+                            db.session.execute(
+                                sa.insert(model_complements).from_select(
+                                    names=[id_col_name, "data"],
+                                    select=complement_select_stmt.filter(
+                                        transient_table.c["line_no"] >= min_line_no,
+                                        transient_table.c["line_no"] < max_line_no,
+                                    ),
+                                )
                             )
-                        )
+
+                        if types_site_select_stmt is not None:
+                            db.session.execute(
+                                sa.insert(cor_site_type).from_select(
+                                    ["id_base_site", "id_type_site"],
+                                    types_site_select_stmt.filter(
+                                        transient_table.c["line_no"] >= min_line_no,
+                                        transient_table.c["line_no"] < max_line_no,
+                                    ),
+                                )
+                            )
+                    except Exception as e:
+                        print(e)
+                        pass  # entity has no data to import
 
                 yield (batch + 1) / batch_count
             imprt.statistics.update({f"{entity.code}_count": row_count})
