@@ -100,7 +100,10 @@ class TestSite:
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
 
         r = self.client.get(
-            url_for("monitorings.get_sites", types_site=types_site["Test_Grotte"].id_nomenclature_type_site)
+            url_for(
+                "monitorings.get_sites",
+                types_site=types_site["Test_Grotte"].id_nomenclature_type_site,
+            )
         )
         assert r.json["count"] == 2
 

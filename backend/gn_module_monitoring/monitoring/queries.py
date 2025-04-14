@@ -124,7 +124,9 @@ class SitesQuery(GnMonitoringGenericFilter):
             if not isinstance(value, list):
                 value = [value]
             if value[0].isdigit():
-                query = query.filter(cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value)))
+                query = query.filter(
+                    cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
+                )
             else:
                 # HACK gestionnaire des sites
                 # Quand filtre sur type de site envoie une chaine de caractère
