@@ -1,12 +1,9 @@
 import pytest
-
 from flask import url_for
-
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
-from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -98,6 +95,20 @@ class TestSite:
         )
         assert nb_results == r.json["count"]
         assert r.json["count"] == len(sites)
+
+    def test_get_sites_filters_types_site(self, sites, types_site, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        r = self.client.get(
+            url_for("monitorings.get_sites", types_site=types_site["Test_Grotte"].id_nomenclature_type_site)
+        )
+        assert r.json["count"] == 2
+
+        r = self.client.get(url_for("monitorings.get_sites", types_site="Test_Grotte"))
+        assert r.json["count"] == 2
+
+        r = self.client.get(url_for("monitorings.get_sites", types_site_label="Test_Grotte"))
+        assert r.json["count"] == 2
 
     def test_get_sites_limit(self, sites, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])

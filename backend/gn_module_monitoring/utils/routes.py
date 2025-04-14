@@ -1,29 +1,27 @@
+from typing import Tuple
+
 from flask import Response, g
 from flask.json import jsonify
-
-from typing import Tuple
-from marshmallow import Schema
-from werkzeug.datastructures import MultiDict
-from sqlalchemy import cast, func, text, select, and_
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import load_only, aliased
-from sqlalchemy.sql.expression import Select
-
-from geonature.utils.env import DB
-from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
 from geonature.core.gn_monitoring.models import BibTypeSite
+from geonature.core.gn_permissions.models import PermissionAvailable, PermObject
+from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
-
-from pypnusershub.db.models import User
+from marshmallow import Schema
 from pypnnomenclature.models import TNomenclatures
+from pypnusershub.db.models import User
+from sqlalchemy import and_, cast, func, select, text
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.orm import aliased, load_only
+from sqlalchemy.sql.expression import Select
+from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.monitoring.models import (
+    TBaseSites,
+    TModules,
     TMonitoringSites,
     TMonitoringSitesGroups,
-    cor_site_type,
-    TBaseSites,
     cor_module_type,
-    TModules,
+    cor_site_type,
 )
 from gn_module_monitoring.monitoring.schemas import paginate_schema
 
@@ -155,28 +153,6 @@ def query_all_types_site_from_module_id(id_module: int = None):
         )
         query = query.where(cor_module_type.c.id_module == id_module)
     return DB.session.scalars(query).unique().all()
-
-
-def filter_according_to_column_type_for_site(query, params):
-    if "types_site" in params:
-        params_types_site = params.pop("types_site")
-        query = (
-            query.join(TMonitoringSites.types_site)
-            .join(BibTypeSite.nomenclature)
-            .where(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
-        )
-    elif "id_inventor" in params:
-        params_inventor = params.pop("id_inventor")
-
-        aliased_User = aliased(User)
-        query = query.join(
-            aliased_User,
-            aliased_User.id_role == TMonitoringSites.id_inventor,
-        ).where(aliased_User.nom_complet.ilike(f"%{params_inventor}%"))
-    if len(params) != 0:
-        query = filter_params(TMonitoringSites, query=query, params=params)
-
-    return query
 
 
 def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
