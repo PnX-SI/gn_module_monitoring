@@ -92,39 +92,10 @@ class TestSitesGroups:
         assert id_ == site_group_with_sites.id_sites_group
 
 
-@pytest.fixture()
-def add_group(install_module_test, test_module_user):
-
-    def _add_group(**kwargs):
-        _add_group.counter += 1
-        i = _add_group.counter
-        user = test_module_user
-        module = db.session.execute(
-            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
-        ).scalar()
-
-        args = {
-            "id_digitiser": user.id_role,
-            "sites_group_name": f"SitesGroupName{i}",
-            "sites_group_description": f"SitesGroupDescription{i}",
-            "sites_group_code": f"SitesGroupCode{i}",
-        }
-        args.update(**kwargs)
-        site = TMonitoringSitesGroups(**args)
-        site.modules.append(module)
-        with db.session.begin_nested():
-            db.session.add(site)
-        return site
-
-    _add_group.counter = 0
-
-    return _add_group
-
-
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
 class TestSitesGroupsWithModule:
 
-    def test_get_module_groups(self, install_module_test, test_module_user, add_group):
+    def test_get_module_groups(self, test_module_user, add_group):
         set_logged_user_cookie(self.client, test_module_user)
         meteo = self._get_meteo_value("Beau")
         groups = []
@@ -153,9 +124,7 @@ class TestSitesGroupsWithModule:
         # ID retourné pour attribut spécifique du groupe
         assert group_repr.get("group_specific_meteo") == meteo.id_nomenclature
 
-    def test_get_module_groups_with_filter_on_generic_attribute(
-        self, install_module_test, test_module_user, add_group
-    ):
+    def test_get_module_groups_with_filter_on_generic_attribute(self, test_module_user, add_group):
         set_logged_user_cookie(self.client, test_module_user)
         group = add_group(sites_group_name="Grottes")
         add_group(sites_group_name="Arbres")
@@ -172,7 +141,7 @@ class TestSitesGroupsWithModule:
         assert group_repr["id_sites_group"] == group.id_sites_group
 
     def test_get_module_groups_with_filter_on_group_specific_attribute(
-        self, install_module_test, test_module_user, add_group
+        self, test_module_user, add_group
     ):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"group_specific": "foo"}
@@ -190,7 +159,7 @@ class TestSitesGroupsWithModule:
         assert group.id_sites_group in groups_ids
 
     def test_get_module_groups_with_filter_on_group_specific_nomenclature_attribute(
-        self, install_module_test, test_module_user, add_group
+        self, test_module_user, add_group
     ):
         set_logged_user_cookie(self.client, test_module_user)
         beau = self._get_meteo_value("Beau")
@@ -218,3 +187,32 @@ class TestSitesGroupsWithModule:
             .where(BibNomenclaturesTypes.mnemonique == "TEST_METEO")
             .where(TNomenclatures.mnemonique == mnemonique)
         ).scalar()
+
+    @pytest.mark.usefixtures("install_module_test")
+    @pytest.fixture
+    def add_group(self, test_module_user):
+
+        def _add_group(**kwargs):
+            _add_group.counter += 1
+            i = _add_group.counter
+            user = test_module_user
+            module = db.session.execute(
+                select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+            ).scalar()
+
+            args = {
+                "id_digitiser": user.id_role,
+                "sites_group_name": f"SitesGroupName{i}",
+                "sites_group_description": f"SitesGroupDescription{i}",
+                "sites_group_code": f"SitesGroupCode{i}",
+            }
+            args.update(**kwargs)
+            site = TMonitoringSitesGroups(**args)
+            site.modules.append(module)
+            with db.session.begin_nested():
+                db.session.add(site)
+            return site
+
+        _add_group.counter = 0
+
+        return _add_group
