@@ -460,41 +460,40 @@ class TestSite:
         assert "404 Not Found" in str(e.value)
 
 
-@pytest.fixture()
-def add_site(test_module_user, types_site, site_group_with_sites):
+# @pytest.fixture()
+# def add_site(test_module_user, types_site, site_group_with_sites):
+#
+#     def _add_site(**kwargs):
+#         _add_site.counter += 1
+#         i = _add_site.counter
+#         user = test_module_user
+#         geom_4326 = from_shape(Point(43, 24), srid=4326)
+#         args = {
+#             "id_inventor": user.id_role,
+#             "id_digitiser": user.id_role,
+#             "base_site_name": f"Site{i}",
+#             "base_site_description": f"Description{i}",
+#             "base_site_code": f"Code{i}",
+#             "geom": geom_4326,
+#             "types_site": list(types_site.values()),
+#             "id_sites_group": site_group_with_sites.id_sites_group,
+#         }
+#         args.update(**kwargs)
+#         site = TMonitoringSites(**args)
+#         with db.session.begin_nested():
+#             db.session.add(site)
+#         return site
+#
+#     _add_site.counter = 0
+#
+#     return _add_site
 
-    def _add_site(**kwargs):
-        _add_site.counter += 1
-        i = _add_site.counter
-        user = test_module_user
-        geom_4326 = from_shape(Point(43, 24), srid=4326)
-        args = {
-            "id_inventor": user.id_role,
-            "id_digitiser": user.id_role,
-            "base_site_name": f"Site{i}",
-            "base_site_description": f"Description{i}",
-            "base_site_code": f"Code{i}",
-            "geom": geom_4326,
-            "types_site": list(types_site.values()),
-            "id_sites_group": site_group_with_sites.id_sites_group,
-        }
-        args.update(**kwargs)
-        site = TMonitoringSites(**args)
-        with db.session.begin_nested():
-            db.session.add(site)
-        return site
 
-    _add_site.counter = 0
-
-    return _add_site
-
-
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
 class TestSiteWithModule:
 
     def test_get_module_sites(
         self,
-        install_module_test,
         test_module_user,
         types_site,
         add_site,
@@ -537,9 +536,7 @@ class TestSiteWithModule:
         # ID retourné pour attribut spécifique du site
         assert site_repr.get("meteo") == 2
 
-    def test_get_module_sites_with_filter_on_generic_attribute(
-        self, install_module_test, test_module_user, add_site
-    ):
+    def test_get_module_sites_with_filter_on_generic_attribute(self, test_module_user, add_site):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"base_site_name": "gr"}
         add_site(base_site_name="Grotte")  # Sera retourné avec le filtre
@@ -558,7 +555,7 @@ class TestSiteWithModule:
         assert site_repr["base_site_name"] == "Grotte"
 
     def test_get_module_sites_with_filter_on_site_specific_attribute(
-        self, install_module_test, test_module_user, add_site
+        self, test_module_user, add_site
     ):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"profondeur_grotte": "48"}
@@ -580,7 +577,7 @@ class TestSiteWithModule:
         assert site_2.id_base_site in sites_ids
 
     def test_get_module_sites_with_filter_on_site_type_specific_attribute(
-        self, install_module_test, test_module_user, add_site
+        self, test_module_user, add_site
     ):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"place_name": "to"}
@@ -601,7 +598,7 @@ class TestSiteWithModule:
         assert site_1.id_base_site in sites_ids
 
     def test_get_module_sites_with_filter_on_site_specific_nomenclature_attribute(
-        self, install_module_test, test_module_user, add_site
+        self, test_module_user, add_site
     ):
         set_logged_user_cookie(self.client, test_module_user)
         beau = self._get_meteo_value("Beau")
@@ -622,7 +619,7 @@ class TestSiteWithModule:
         assert site.id_base_site in sites_ids
 
     def test_get_module_sites_with_filter_on_site_type_specific_nomenclature_attribute(
-        self, install_module_test, test_module_user, add_site
+        self, test_module_user, add_site
     ):
         set_logged_user_cookie(self.client, test_module_user)
         beau = self._get_meteo_value("Beau")
@@ -643,7 +640,7 @@ class TestSiteWithModule:
         assert site.id_base_site in sites_ids
 
     def test_get_module_sites_with_filter_on_site_nb_visits(
-        self, install_module_test, test_module_user, add_site, datasets
+        self, test_module_user, add_site, datasets
     ):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"nb_visits": 2}
@@ -683,7 +680,7 @@ class TestSiteWithModule:
         ],
     )
     def test_get_module_sites_ordering_by_generic_property(
-        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+        self, test_module_user, add_site, page, dir, expected_names
     ):
         set_logged_user_cookie(self.client, test_module_user)
         add_site(base_site_name="arbre")
@@ -721,7 +718,7 @@ class TestSiteWithModule:
         ],
     )
     def test_get_module_sites_ordering_by_text_specific_property(
-        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+        self, test_module_user, add_site, page, dir, expected_names
     ):
         set_logged_user_cookie(self.client, test_module_user)
         add_site(data={"contact_name": "Robert"})
@@ -757,7 +754,7 @@ class TestSiteWithModule:
         ],
     )
     def test_get_module_sites_ordering_by_text_specific_property(
-        self, install_module_test, test_module_user, add_site, page, dir, expected_names
+        self, test_module_user, add_site, page, dir, expected_names
     ):
         set_logged_user_cookie(self.client, test_module_user)
         add_site(data={"contact_name": "Robert"})
@@ -793,7 +790,7 @@ class TestSiteWithModule:
         ],
     )
     def test_get_module_sites_ordering_by_nomenclature_specific_property(
-        self, install_module_test, test_module_user, add_site, page, dir, expected_meteo_values
+        self, test_module_user, add_site, page, dir, expected_meteo_values
     ):
         set_logged_user_cookie(self.client, test_module_user)
         meteo_map = {
@@ -850,3 +847,31 @@ class TestSiteWithModule:
             .where(BibNomenclaturesTypes.mnemonique == "TEST_METEO")
             .where(TNomenclatures.mnemonique == mnemonique)
         ).scalar()
+
+    @pytest.fixture
+    def add_site(self, test_module_user, types_site, site_group_with_sites):
+
+        def _add_site(**kwargs):
+            _add_site.counter += 1
+            i = _add_site.counter
+            user = test_module_user
+            geom_4326 = from_shape(Point(43, 24), srid=4326)
+            args = {
+                "id_inventor": user.id_role,
+                "id_digitiser": user.id_role,
+                "base_site_name": f"Site{i}",
+                "base_site_description": f"Description{i}",
+                "base_site_code": f"Code{i}",
+                "geom": geom_4326,
+                "types_site": list(types_site.values()),
+                "id_sites_group": site_group_with_sites.id_sites_group,
+            }
+            args.update(**kwargs)
+            site = TMonitoringSites(**args)
+            with db.session.begin_nested():
+                db.session.add(site)
+            return site
+
+        _add_site.counter = 0
+
+        return _add_site
