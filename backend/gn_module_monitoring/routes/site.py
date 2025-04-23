@@ -23,6 +23,8 @@ from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringSites,
+    cor_module_type,
+    cor_site_type,
 )
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 from gn_module_monitoring.routes.monitoring import (
@@ -206,6 +208,7 @@ def get_all_site_geometries(object_type):
 @blueprint.route("/sites/<int:id_base_site>/modules", methods=["GET"])
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
 def get_module_by_id_base_site(id_base_site: int):
+
     modules_object = get_modules()
     modules = get_objet_with_permission_boolean(
         modules_object, object_code="MONITORINGS_VISITES", depth=0
@@ -214,22 +217,21 @@ def get_module_by_id_base_site(id_base_site: int):
 
     query = (
         select(TMonitoringModules)
-        .options(
-            Load(TMonitoringModules).raiseload("*"),
-            joinedload(TMonitoringModules.types_site).options(joinedload(BibTypeSite.sites)),
-        )
-        .where(
+        .options(Load(TMonitoringModules).raiseload("*"))  # bloque le chargement des relations
+        .join(cor_module_type, cor_module_type.c.id_module == TMonitoringModules.id_module)
+        .join(
+            cor_site_type,
             and_(
-                TMonitoringModules.id_module.in_(ids_modules_allowed),
-                TMonitoringModules.types_site.any(
-                    BibTypeSite.sites.any(id_base_site=id_base_site)
-                ),
-            )
+                cor_site_type.c.id_type_site == cor_module_type.c.id_type_site,
+                cor_site_type.c.id_base_site == id_base_site,
+            ),
         )
+        .where(TMonitoringModules.id_module.in_(ids_modules_allowed))
+        .distinct()
     )
-
     schema = ModuleSchema()
-    result = db.session.scalars(query).unique().all()
+    result = db.session.scalars(query).all()
+
     # TODO: Is it usefull to put a limit here? Will there be more than 200 modules?
     # If limit here, implement paginated/infinite scroll on frontend side
     return [schema.dump(res) for res in result]

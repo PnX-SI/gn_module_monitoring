@@ -327,6 +327,47 @@ class TestSite:
         current_modules = {module["id_module"] for module in r.json}
         assert expected_modules.isdisjoint(current_modules)
 
+    def test_get_module_by_id_base_site_permission_filtering(
+        self, sites, modules_with_and_without_permission, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        site = list(sites.values())[0]
+
+        r = self.client.get(
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+        )
+        assert r.status_code == 200, f"Erreur HTTP {r.status_code} : {r.data}"
+        ids = {m["id_module"] for m in r.json}
+        assert modules_with_and_without_permission["with_perm"].id_module in ids
+        assert modules_with_and_without_permission["without_perm"].id_module not in ids
+
+    def test_get_module_by_id_base_site_filtered_by_site_type_and_permissions(
+        self, sites, modules_with_permissions_and_different_types
+    ):
+        admin_user = modules_with_permissions_and_different_types["admin_user"]
+        modules = modules_with_permissions_and_different_types["modules"]
+
+        set_logged_user_cookie(self.client, admin_user)
+
+        for label, module in modules.items():
+            site = sites.get(label)
+            assert site, f"Aucun site trouvé pour le type {label}"
+
+            r = self.client.get(
+                url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+            )
+
+            assert r.status_code == 200, f"Échec HTTP pour site {label}"
+            ids = {m["id_module"] for m in r.json}
+
+            # ✅ Seul le module de ce type doit être présent
+            assert module.id_module in ids, f"{label} doit être présent"
+            for other_label, other_module in modules.items():
+                if other_label != label:
+                    assert (
+                        other_module.id_module not in ids
+                    ), f"{other_label} ne doit pas apparaître pour site {label}"
+
     def test_get_module_sites(self, monitoring_module, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         module_code = "TEST"
