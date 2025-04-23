@@ -214,7 +214,6 @@ def _get_site_geometries(module_code=None):
             params.pop("types_site")
             types_site = None
         else:
-            # FIXME: probably to be removed since the filtering will be done based on the module_code
             params["types_site"] = types_site
 
     if g.current_module:
