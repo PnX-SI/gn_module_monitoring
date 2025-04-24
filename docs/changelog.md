@@ -1,8 +1,24 @@
 # CHANGELOG
 
+## 1.0.3 (unreleased)
+
+**🐛 Corrections**
+
+- Ajout de tests automatisés et de Debian 12 (#423 by @amandine-sahl)
+- Fix tri et filtre sur id_inventor (#423 by @amandine-sahl)
+- Filtrer les routes geométries sur les propriétés spécifiques des modules (#422 by @amandine-sahl)
+- Correction du filtre `nb_site` sur la route géométrie de `sites_group` (#422 by @amandine-sahl)
+- Correction quand paramètre de tri inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
+- Correction de `formatLabelObservers` : retourne valeur même quand null + simplification (by @amandine-sahl)
+
+**🚀 Nouveautés**
+
+- Ajout d'un spinner pendant le chargement des données (#415 by @andriacap)
+
 ## 1.0.2 (2025-03-14)
 
 **🐛 Corrections**
+
 - Optimisation de la récupération du CRUVED lors de la sérialisation des enfants lorsque l'utilisateur a une portée de 3 (#412)
 - Correction des filtres des propriétés spécifiques de type nomenclature multiple (#412)
 - Correction de la génération de la configuration d'un module (#399, #403, #405)
