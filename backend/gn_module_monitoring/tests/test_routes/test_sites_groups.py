@@ -92,6 +92,8 @@ class TestSitesGroups:
         assert id_ == site_group_with_sites.id_sites_group
 
 
+# TODO: ajouter tests sur tri
+# TODO: ajouter tests sur filtre par permissions
 @pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
 class TestSitesGroupsWithModule:
 

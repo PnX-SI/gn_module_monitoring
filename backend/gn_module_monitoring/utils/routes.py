@@ -99,6 +99,7 @@ def sort(
         return query.order_by(order_by)
     elif specific_properties and sort in specific_properties:
         field = specific_properties.get(sort)
+        # TODO: implémenter les autres type_util
         if field.get("type_util") == "nomenclature":
             join_table, join_column, filter_column = model._get_relationship_clause(
                 type="nomenclature"
