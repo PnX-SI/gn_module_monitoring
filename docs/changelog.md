@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.0.3 (unreleased)
+## 1.0.3 (06-05-25)
 
 **🐛 Corrections**
 
@@ -17,7 +17,7 @@
 - Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas une erreur est loguée coté backend mais non transmisse au frontend (#436 - #432)
 - Ajout de tests automatisés avec support de Debian 12 (#423 by @amandine-sahl)
 
- 
+
 ## 1.0.2 (2025-03-14)
 
 **🐛 Corrections**
@@ -90,15 +90,15 @@ WITH monitoring_uuid AS (
 	FROM gn_monitoring.t_observations mo
 	UNION
 	SELECT MOD.uuid_observation_detail  AS unique_id_sinp
-	FROM gn_monitoring.t_observation_details mod 
+	FROM gn_monitoring.t_observation_details mod
 ), monitoring_module AS (
-	SELECT id_module 
-	FROM gn_commons.t_modules tm 
+	SELECT id_module
+	FROM gn_commons.t_modules tm
 	WHERE TYPE = 'monitoring_module'
-) 
-SELECT * 
-FROM  gn_synthese.synthese s  
-JOIN  monitoring_module m 
+)
+SELECT *
+FROM  gn_synthese.synthese s
+JOIN  monitoring_module m
 ON s.id_module = m.id_module
 LEFT JOIN monitoring_uuid mu
 ON s.unique_id_sinp = mu.unique_id_sinp
