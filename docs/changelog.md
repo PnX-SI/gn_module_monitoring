@@ -14,6 +14,8 @@
 - Optimisation de la requête de récupération des modules de `get_module_by_id_base_site` (#433 by @andriacap)
 - Page d'accueil : appel multiple (et croissant) à la route `/module (#425 by @amandine-sahl)
 - Suppression de la fonction `filter_according_to_column_type_for_site (#416 by @mathieu-roudaut-crea)
+- Correction execution script sql avec des commentaires (#436 - #432)
+- Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas log une erreur mais ne retourne pas d'erreur au front (#436 - #432)
 
  
 ## 1.0.2 (2025-03-14)
