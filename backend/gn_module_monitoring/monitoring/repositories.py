@@ -1,6 +1,7 @@
 from flask import current_app
 
 from sqlalchemy import select
+from sqlalchemy.sql import text
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -84,6 +85,31 @@ class MonitoringObject(MonitoringObjectSerializer):
             return
 
         table_name = "v_synthese_{}".format(self._module_code)
+
+        # Test de l'existance de la colonne de synchronisation sur la vue synthese
+        column_exist = DB.engine.execute(
+            text(
+                """
+                SELECT count(*)
+                FROM information_schema.columns
+                WHERE   table_schema=:table_schema
+                    AND table_name=:table_name
+                    AND column_name=:column_name;
+                """
+            ),
+            table_schema="gn_monitoring",
+            table_name=table_name,
+            column_name=self.config_param("id_field_name"),
+        ).fetchone()
+
+        if column_exist[0] == 0:
+            log.error(
+                "Monitoring - Synchronisation synthèse : Column {} does not exist on view {}".format(
+                    self.config_param("id_field_name"), table_name
+                )
+            )
+            return
+
         import_from_table(
             "gn_monitoring",
             table_name,

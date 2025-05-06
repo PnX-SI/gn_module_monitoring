@@ -4,6 +4,8 @@ from flask import jsonify, request, g
 
 from marshmallow import ValidationError
 from sqlalchemy import func, select
+from sqlalchemy.orm import aliased
+
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
@@ -121,20 +123,21 @@ def get_sites_group_geometries(object_type: str):
         query=query, module_code=module_code, object_code=object_code
     )
     query = TMonitoringSitesGroups.filter_by_params(query=query, params=params)
+
+    alias_sites = aliased(TMonitoringSites)
     subquery_not_geom = (
         query.with_only_columns(
             TMonitoringSitesGroups.id_sites_group,
             TMonitoringSitesGroups.sites_group_name,
-            func.st_convexHull(func.st_collect(TMonitoringSites.geom)),
+            func.st_convexHull(func.st_collect(alias_sites.geom)),
         )
         .group_by(TMonitoringSitesGroups.id_sites_group, TMonitoringSitesGroups.sites_group_name)
         .join(
-            TMonitoringSites,
-            TMonitoringSites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
+            alias_sites,
+            alias_sites.id_sites_group == TMonitoringSitesGroups.id_sites_group,
         )
         .where(TMonitoringSitesGroups.geom == None)
     )
-
     subquery_with_geom = (
         query.with_only_columns(
             TMonitoringSitesGroups.id_sites_group,

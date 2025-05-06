@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TPermission } from '../types/permission';
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, BehaviorSubject } from 'rxjs';
 import { ObjectsPermissionMonitorings } from '../enum/objectPermission';
 
 @Injectable()
@@ -22,11 +22,16 @@ export class PermissionService {
 
   constructor() {}
 
-  private permissionObject = new ReplaySubject<TPermission>();
+  private permissionObject = new BehaviorSubject<TPermission>(this.defaultPermission);
+
   currentPermissionObj = this.permissionObject.asObservable();
 
   setPermissionUser(permUser: TPermission) {
     this.permissionObject.next(permUser);
+  }
+
+  getPermissionUser() {
+    return this.permissionObject.getValue();
   }
 
   setPermissionMonitorings(listObjectCruved) {

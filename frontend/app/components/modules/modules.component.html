@@ -25,8 +25,7 @@
           color="primary"
           [ngClass]="{ isDisableBtn: !canAccessSite }"
           [disabled]="!canAccessSite"
-          [routerLink]="'object/generic/sites_group'"
-          *ngIf="currentUser"
+          [routerLink]="'object/generic/sites_group'" 
         >
           Gestionnaire de sites
           <mat-icon> map</mat-icon>

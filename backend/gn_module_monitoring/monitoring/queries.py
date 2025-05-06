@@ -1,23 +1,19 @@
-from flask import g
-
 import json
 from copy import copy
 
-from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true, select
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.types import DateTime
-from sqlalchemy.sql.expression import Select
-from werkzeug.datastructures import MultiDict
-from sqlalchemy.orm import aliased
-
-from pypnusershub.db.models import User
 from apptax.taxonomie.models import Taxref
-
-from geonature.utils.env import db
-
+from flask import g
 from geonature.core.gn_permissions.tools import get_scopes_by_action
-from geonature.core.gn_commons.models import TModules
+from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
+from pypnusershub.db.models import User
+from ref_geo.models import LAreas
+from sqlalchemy import Unicode, and_, false, func, or_, select, true
+from sqlalchemy.orm import aliased, class_mapper
+from sqlalchemy.sql.expression import Select
+from sqlalchemy.types import DateTime
+from werkzeug.datastructures import MultiDict
+
 import gn_module_monitoring.monitoring.models as Models
 
 
@@ -119,10 +115,22 @@ class SitesQuery(GnMonitoringGenericFilter):
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
-
         if "modules" in params:
             query = query.filter(cls.modules.any(id_module=params["modules"]))
             params.pop("modules")
+
+        if "types_site" in params:
+            value = params["types_site"]
+            if not isinstance(value, list):
+                value = [value]
+            if value[0].isdigit():
+                query = query.filter(
+                    cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
+                )
+            else:
+                # HACK gestionnaire des sites
+                # Quand filtre sur type de site envoie une chaine de caractère
+                params["types_site_label"] = value[0]
         if "types_site_label" in params:
             value = params["types_site_label"]
             join_types_site = aliased(Models.BibTypeSite)
@@ -130,13 +138,6 @@ class SitesQuery(GnMonitoringGenericFilter):
             query = query.join(join_types_site, cls.types_site)
             query = query.join(join_nomenclature_type_site, join_types_site.nomenclature)
             query = query.filter(join_nomenclature_type_site.label_default.ilike(f"%{value}%"))
-        if "types_site" in params:
-            value = params["types_site"]
-            if not isinstance(value, list):
-                value = [value]
-            query = query.filter(
-                cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
-            )
 
         query = super().filter_by_params(query, params)
         return query
@@ -145,29 +146,22 @@ class SitesQuery(GnMonitoringGenericFilter):
     def filter_by_specific(
         cls,
         query: Select,
-        id_types_site: [] = None,
         params: MultiDict = None,
+        specific_properties: dict = None,
         **kwargs,
     ):
-        if not id_types_site:
-            id_types_site = []
+        """
+        Permet d'ajouter des filtres à la requête des sites
+        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
 
-        # Get specific
-        specific_config_models = (
-            db.session.scalars(
-                select(Models.BibTypeSite).where(
-                    Models.BibTypeSite.id_nomenclature_type_site.in_(id_types_site)
-                )
-            )
-            .unique()
-            .all()
-        )
+        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
+            et de construire une requête sql en fonction de ces infos
 
-        specific_properties = {}
-        for s in specific_config_models:
-            if "specific" in (getattr(s, "config") or {}):
-                specific_properties.update(s.config["specific"])
-
+        :param query: requête sql initiale
+        :param params: liste des paramètres que l'on souhaite filtrer
+        :param specific_properties: Configuration des propriétés spécifiques des sites
+        :return: requête sql amendée de filtre
+        """
         for param, value in params.items():
             if param in specific_properties:
                 type = "text"
@@ -206,7 +200,7 @@ class SitesQuery(GnMonitoringGenericFilter):
                             subquery_select.c.id == join_column,
                         )
                     else:
-                        # Sinon type simple, jointure sur la valeur de data->'params'
+                        # Sinon type non multiple, jointure sur la valeur de data->'params'
                         query = query.join(
                             join_table, cls.data[param].astext.cast(db.Integer) == join_column
                         )
@@ -239,7 +233,9 @@ class SitesQuery(GnMonitoringGenericFilter):
             join_column = join_table.id_role
             filter_column = join_table.nom_complet
         elif type == "area":
-            pass
+            join_table = aliased(LAreas)
+            join_column = join_table.id_area
+            filter_column = join_table.area_name
         elif type == "habitat":
             pass
 

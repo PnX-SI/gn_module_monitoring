@@ -1,5 +1,5 @@
 <div class="object">
-  <pnx-modal-msg [bDisplayModal]="bLoadingModal">
+  <pnx-modal-msg [bDisplayModal]="!(obj && obj.bIsInitialized)">
     <h2>Chargement en cours</h2>
     <div>
       <span class="center spinner-border" role="status" aria-hidden="true"></span>
@@ -32,7 +32,7 @@
         [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
       <pnx-monitoring-lists [(obj)]="obj" [(bEdit)]="bEdit" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
-        [(selectedObject)] = "selectedObject" 
+        [(selectedObject)] = "selectedObject"
         [(forceReload)] = "forceReload"
         (onDeleteRow) = "onDeleteRowChange($event)"
         [currentUser]="currentUser"></pnx-monitoring-lists>

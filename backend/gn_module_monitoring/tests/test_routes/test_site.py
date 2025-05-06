@@ -1,12 +1,9 @@
 import pytest
-
 from flask import url_for
-
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
-from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -44,6 +41,78 @@ class TestSite:
 
         assert any([schema.dump(site) in sites_response for site in sites.values()])
 
+    def test_get_sites_order_by(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        ids_sites = [s.id_base_site for k, s in sites.items()]
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="desc"))
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["id_base_site"] == max(ids_sites)
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="asc"))
+        assert r.json["items"][0]["id_base_site"] == min(ids_sites)
+
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="desc"))
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["inventor"] == [monitorings_users["user"].nom_complet]
+
+        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="asc"))
+
+        assert r.json["count"] >= len(sites)
+        assert r.json["items"][0]["inventor"] == [monitorings_users["admin_user"].nom_complet]
+
+    def test_get_sites_order_by_unknown_field(self, sites, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        r = self.client.get(
+            url_for("monitorings.get_sites", sort="unknown_field", sort_dir="desc")
+        )
+        assert r.json["count"] >= len(sites)
+
+        r = self.client.get(
+            url_for("monitorings.get_sites", sort="id_base_site", sort_dir="unknown_sort")
+        )
+        assert r.json["count"] >= len(sites)
+
+    def test_get_sites_filters(self, sites, visits, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        r = self.client.get(url_for("monitorings.get_sites", last_visit="2025"))
+        assert r.json["count"] >= len(sites)
+
+        r = self.client.get(url_for("monitorings.get_sites", last_visit="2026"))
+        assert r.json["count"] == 0
+
+        r = self.client.get(url_for("monitorings.get_sites", id_inventor="user"))
+        nb_results = r.json["count"]
+        assert r.json["count"] >= 3
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                id_inventor="user",
+                sort="id_inventor",
+                sort_dir="desc",
+            )
+        )
+        assert nb_results == r.json["count"]
+        assert r.json["count"] == len(sites)
+
+    def test_get_sites_filters_types_site(self, sites, types_site, monitorings_users):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                types_site=types_site["Test_Grotte"].id_nomenclature_type_site,
+            )
+        )
+        assert r.json["count"] == 2
+
+        r = self.client.get(url_for("monitorings.get_sites", types_site="Test_Grotte"))
+        assert r.json["count"] == 2
+
+        r = self.client.get(url_for("monitorings.get_sites", types_site_label="Test_Grotte"))
+        assert r.json["count"] == 2
+
     def test_get_sites_limit(self, sites, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         limit = 2
@@ -58,7 +127,7 @@ class TestSite:
         base_site_name = site.base_site_name
 
         r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
-
+        print(r.json)
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["base_site_name"] == base_site_name
 
@@ -138,7 +207,7 @@ class TestSite:
         monitorings_users,
     ):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
-
+        nb_site_with_user_user = 3
         # Test with user's id
         r = self.client.get(
             url_for(
@@ -149,19 +218,20 @@ class TestSite:
         json_resp = r.json
         features = json_resp.get("features")
         assert r.status_code == 200
-        assert len(features) == len(sites)
+        assert len(features) == nb_site_with_user_user
 
         # Test with user's name
+        # Utilisation de l'utilisateur admin car plus discrimant lors d'une recherche ilike
         r = self.client.get(
             url_for(
                 "monitorings.get_all_site_geometries",
-                id_inventor=monitorings_users["user"].nom_role,
+                id_inventor=monitorings_users["admin_user"].nom_role,
             )
         )
         json_resp = r.json
         features = json_resp.get("features")
         assert r.status_code == 200
-        assert len(features) == len(sites)
+        assert len(features) == len(sites) - nb_site_with_user_user
 
     def test_get_all_site_geometries_filter_utils(
         self, sites_with_data_typeutils, monitorings_users, users
@@ -270,6 +340,47 @@ class TestSite:
         expected_modules = {monitoring_module.id_module}
         current_modules = {module["id_module"] for module in r.json}
         assert expected_modules.isdisjoint(current_modules)
+
+    def test_get_module_by_id_base_site_permission_filtering(
+        self, sites, modules_with_and_without_permission, monitorings_users
+    ):
+        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+        site = list(sites.values())[0]
+
+        r = self.client.get(
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+        )
+        assert r.status_code == 200, f"Erreur HTTP {r.status_code} : {r.data}"
+        ids = {m["id_module"] for m in r.json}
+        assert modules_with_and_without_permission["with_perm"].id_module in ids
+        assert modules_with_and_without_permission["without_perm"].id_module not in ids
+
+    def test_get_module_by_id_base_site_filtered_by_site_type_and_permissions(
+        self, sites, modules_with_permissions_and_different_types
+    ):
+        admin_user = modules_with_permissions_and_different_types["admin_user"]
+        modules = modules_with_permissions_and_different_types["modules"]
+
+        set_logged_user_cookie(self.client, admin_user)
+
+        for label, module in modules.items():
+            site = sites.get(label)
+            assert site, f"Aucun site trouvé pour le type {label}"
+
+            r = self.client.get(
+                url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+            )
+
+            assert r.status_code == 200, f"Échec HTTP pour site {label}"
+            ids = {m["id_module"] for m in r.json}
+
+            # ✅ Seul le module de ce type doit être présent
+            assert module.id_module in ids, f"{label} doit être présent"
+            for other_label, other_module in modules.items():
+                if other_label != label:
+                    assert (
+                        other_module.id_module not in ids
+                    ), f"{other_label} ne doit pas apparaître pour site {label}"
 
     def test_get_module_sites(self, monitoring_module, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
