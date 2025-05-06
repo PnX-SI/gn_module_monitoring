@@ -10,11 +10,12 @@
 - Correction du filtre `nb_site` sur la route géométrie de `sites_group` (#422 by @amandine-sahl)
 - Correction quand paramètre de tri inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
 - Correction de `formatLabelObservers` : retourne valeur même quand null + simplification (by @amandine-sahl)
+- Correction du spinner pendant le chargement des données (#415 by @andriacap, @amandine-sahl)
+- Optimisation de la requête de récupération des modules de `get_module_by_id_base_site` (#433 by @andriacap)
+- Page d'accueil : appel multiple (et croissant) à la route `/module (#425 by @amandine-sahl)
+- Suppression de la fonction `filter_according_to_column_type_for_site (#416 by @mathieu-roudaut-crea)
 
-**🚀 Nouveautés**
-
-- Ajout d'un spinner pendant le chargement des données (#415 by @andriacap)
-
+ 
 ## 1.0.2 (2025-03-14)
 
 **🐛 Corrections**
