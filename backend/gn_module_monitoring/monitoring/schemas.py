@@ -132,7 +132,7 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringSites
-        exclude = ("geom_geojson", "geom")
+        exclude = ("geom_geojson", "geom", "geom_local")
         include_fk = True
         load_relationships = True
 
