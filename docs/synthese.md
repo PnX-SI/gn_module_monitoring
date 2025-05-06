@@ -17,7 +17,13 @@ La vue pour la synthèse
         * donner des valeurs plus spécifique au module pour les champs
             de type nomenclature (la plupart sont en commentaires dans
             la vue)
-        * :warning: Les colonnes `id_observation`, `unique_id_sinp` et `ids_observers` (tableau d'id_role) sont obligatoires pour assurer la synchronisation entre la vue et la synthese
+        * :warning: Les colonnes suivantes sont obligatoires pour assurer la synchronisation entre la vue et la synthese :
+          * `unique_id_sinp`
+          * `ids_observers` tableau d'id_role
+          * `id_base_visit` (si ce niveau est utilisé par le sous-module)
+          * `id_base_site` (si ce niveau est utilisé par le sous-module)
+          * `id_observation` (si ce niveau est utilisé par le sous-module)
+          * `id_sites_group` (si ce niveau est utilisé par le sous-module)
     * À la configuration du sous-module (page du sous-module, cliquer
         sur `éditer le module`), activer la synthèse.
 
