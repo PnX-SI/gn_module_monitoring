@@ -12,6 +12,7 @@ from gn_module_monitoring.command.cmd import (
     cmd_process_sql,
     cmd_process_available_permission_module,
     cmd_add_module_nomenclature_cli,
+    synchronize_synthese,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
@@ -101,3 +102,11 @@ class TestCommands:
         assert "nomenclature type TEST_METEO - Météo - already exist" in result.output
         assert "nomenclature METEO_M - Mauvais temps - updated" in result.output
         assert 'probleme de type avec mnemonique="TEST_UNKWONW_TYPE"' in result.output
+
+    def test_synchronize_synthese(self, install_module_test):
+        # Installation du module
+        # Test de la synchronisation synthese
+        # Permet de tester la bonne execution du fichier synthese.sql
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(synchronize_synthese, ["test"])
+        assert result.exit_code == 0
