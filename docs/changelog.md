@@ -4,19 +4,18 @@
 
 **🐛 Corrections**
 
-- Correction tri et filtre sur id_inventor sur la liste des sites (#423 by @amandine-sahl)
-- Filtrer les routes geométries sur les propriétés spécifiques des modules (#422 by @amandine-sahl)
+- Correction des tris et filtres sur `id_inventor` sur la liste des sites (#423 by @amandine-sahl)
+- Filtrer les routes géométries sur les propriétés spécifiques des modules (#422 by @amandine-sahl)
 - Correction du filtre `nb_site` sur la route géométrie de `sites_group` (#422 by @amandine-sahl)
-- Correction quand paramètre de tri inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
-- Correction de `formatLabelObservers` : retourne valeur même quand null + simplification (by @amandine-sahl)
+- Correction quand le paramètre de tri est inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
+- Correction de `formatLabelObservers` : retourne une valeur même quand null + simplification du code (by @amandine-sahl)
 - Correction du spinner pendant le chargement des données (#415 by @andriacap, @amandine-sahl)
 - Optimisation et amélioration des performances de la requête de récupération des modules de `get_module_by_id_base_site` (#433 by @andriacap)
-- Correction d'appels multiples et croissant à la route `/module depuis la page d'accueil (#425 by @amandine-sahl)
+- Correction d'appels multiples et croissants à la route `/module` depuis la page d'accueil (#425 by @amandine-sahl)
 - Suppression de la fonction `filter_according_to_column_type_for_site` (#416 by @mathieu-roudaut-crea)
-- Correction exécution script sql avec des commentaires (#436 - #432)
-- Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas une erreur est loguée coté backend mais non transmisse au frontend (#436 - #432)
+- Correction de l'exécution des scripts SQL avec des commentaires (#436 - #432)
+- Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas une erreur est loguée coté backend mais non transmise au frontend (#436 - #432)
 - Ajout de tests automatisés avec support de Debian 12 (#423 by @amandine-sahl)
-
 
 ## 1.0.2 (2025-03-14)
 
