@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.monitoring.models import TMonitoringVisits
+from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import MonitoringVisitsSchema
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -20,7 +20,10 @@ from gn_module_monitoring.routes.modules import get_modules
 
 
 @blueprint.route("/visits", methods=["GET"], defaults={"object_type": "visit"})
-def get_visits(object_type):
+@blueprint.route(
+    "/refacto/<string:module_code>/visits", methods=["GET"], defaults={"object_type": "visit"}
+)
+def get_visits(object_type, module_code=None):
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -28,6 +31,7 @@ def get_visits(object_type):
     )
     modules_object = get_modules()
 
+    # FIXME: check permission according to module in param if any
     # Retrieves visits that do not depend on modules
     OBJECT_CODE = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})["visit"]
 
@@ -39,6 +43,10 @@ def get_visits(object_type):
     )
     query = filter_params(TMonitoringVisits, query=query, params=params)
     query = sort(model=TMonitoringVisits, query=query, sort=sort_label, sort_dir=sort_dir)
+    if module_code:
+        query = query.where(
+            TMonitoringVisits.module.has(TMonitoringModules.module_code == module_code)
+        )
     query_allowed = query
     for module in modules:
         if module["id_module"] in ids_modules_allowed:

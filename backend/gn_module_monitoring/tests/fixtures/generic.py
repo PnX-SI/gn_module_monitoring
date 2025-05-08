@@ -19,31 +19,43 @@ from pypnusershub.db.models import (
     UserApplicationRight,
 )
 
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+
 
 @pytest.fixture(scope="session")
-def monitorings_users(app):
-    app = db.session.execute(
-        select(Application).where(Application.code_application == "GN")
-    ).scalar_one()
-    profil = db.session.execute(select(Profil).where(Profil.nom_profil == "Lecteur")).scalar_one()
-
-    modules = db.session.scalars(select(TModules)).all()
-
-    actions = {
-        code: db.session.execute(
-            select(PermAction).where(PermAction.code_action == code)
+def create_user():
+    def _create_user(
+        username,
+        organisme=None,
+        scope=None,
+        sensitivity_filter=False,
+        modules=None,
+    ):
+        app = db.session.execute(
+            select(Application).where(Application.code_application == "GN")
         ).scalar_one()
-        for code in "CRUVED"
-    }
-    type_code_object = [
-        "MONITORINGS_MODULES",
-        "MONITORINGS_GRP_SITES",
-        "MONITORINGS_SITES",
-        "MONITORINGS_VISITES",
-        "ALL",
-    ]
+        profil = db.session.execute(
+            select(Profil).where(Profil.nom_profil == "Lecteur")
+        ).scalar_one()
 
-    def create_user(username, organisme=None, scope=None, sensitivity_filter=False):
+        if not modules:
+            modules = db.session.scalars(select(TModules)).all()
+
+        actions = {
+            code: db.session.execute(
+                select(PermAction).where(PermAction.code_action == code)
+            ).scalar_one()
+            for code in "CRUVED"
+        }
+
+        type_code_object = [
+            "MONITORINGS_MODULES",
+            "MONITORINGS_GRP_SITES",
+            "MONITORINGS_SITES",
+            "MONITORINGS_VISITES",
+            "ALL",
+        ]
+
         # do not commit directly on current transaction, as we want to rollback all changes at the end of tests
         with db.session.begin_nested():
             user = User(
@@ -82,11 +94,14 @@ def monitorings_users(app):
                                 db.session.add(permission)
         return user
 
-    users = {}
+    return _create_user
 
+
+@pytest.fixture(scope="session")
+def monitorings_users(app, create_user):
     organisme = Organisme(nom_organisme="Autre")
     db.session.add(organisme)
-
+    users = {}
     users_to_create = [
         ("noright_user", organisme, 0),
         ("stranger_user", None, 2),
@@ -95,8 +110,24 @@ def monitorings_users(app):
         ("user", organisme, 2),
         ("admin_user", organisme, 3),
     ]
-
     for username, *args in users_to_create:
         users[username] = create_user(username, *args)
-
     return users
+
+
+@pytest.fixture()
+def create_test_module_user(install_module_test, create_user):
+    """user with right to read MONITORINGS_SITES of the test module because she is the digitiser of the sites"""
+
+    def _create_test_module_user():
+        module = db.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+        ).scalar()
+        return create_user("test_module_user", scope=1, modules=[module])
+
+    return _create_test_module_user
+
+
+@pytest.fixture()
+def test_module_user(create_test_module_user):
+    return create_test_module_user()

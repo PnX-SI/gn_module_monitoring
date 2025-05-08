@@ -20,7 +20,6 @@ from gn_module_monitoring.command.cmd import (
     cmd_install_monitoring_module,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.tests.fixtures.generic import monitorings_users
 from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 
@@ -44,6 +43,12 @@ def install_module_test(types_site):
     with db.session.begin_nested():
         module.types_site = list(types_site.values())
         db.session.add(module)
+
+    # This is required because the first call to get_config during the install command cannot get the site types
+    # (because the module does not exist yet in the DB) but this incomplete config is still registered with the cache.
+    from gn_module_monitoring.config.repositories import get_config
+
+    get_config("test", force=True)
 
 
 @pytest.fixture
