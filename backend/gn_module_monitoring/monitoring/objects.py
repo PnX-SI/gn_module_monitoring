@@ -1,5 +1,3 @@
-from geonature.utils.env import DB
-
 from gn_module_monitoring.monitoring.repositories import MonitoringObject
 from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
@@ -53,3 +51,23 @@ class MonitoringSite(MonitoringObjectGeom):
             #         ]
             #         properties["types_site"] = types_site
             # TODO: A enlever une fois qu'on aura enelever le champ "id_nomenclature_type_site" du model et de la bdd
+
+
+class MonitoringIndividual(MonitoringObject):
+    """
+    PATCH
+    pour pouvoir renseigner la table cor_individual_module
+    avec la méthode from_dict
+    """
+
+    def get_value_specific(self, param_name):
+        # DO NOT LOAD data here
+        pass
+
+    def preprocess_data(self, data):
+        module_ids = [module.id_module for module in self._model.modules]
+        id_module = int(data["id_module"])
+        if id_module not in module_ids:
+            module_ids.append(id_module)
+
+        data["modules"] = module_ids
