@@ -623,7 +623,152 @@ C'est valable tant que le `test3` n'a pas été modifé à la main (i. e.
 
 On peut donc modifer par la suite la valeur de test3 à la main.
 
-Comme précemment on peut aussi avoir accès à meta.
+Comme précemment on peut aussi avoir accès à meta. Par exemple, il est possible avec meta de récupérer les données du niveau supérieur. Voici un exemple sur la réutilisation de valeurs au niveau du site pour pré-remplir les champs au niveau de la visite:
+
+Fichier de configuration du niveau site:
+
+```json
+{
+  "genre":"M",
+  "label": "Transect",
+  "label_list": "Transects",
+  "geometry_type": "LineString",
+  "sorts": [
+    {"prop": "base_site_name", "dir": "asc"}
+  ],
+  "display_properties": [
+    "id_sites_group",
+    "base_site_code",
+    "base_site_name",
+    "altitude_min",
+    "altitude_max",
+    "occ_sol",
+    "gestion",
+    "impact"
+ ],
+"display_list": [
+  "base_site_name",
+  "nb_visits"
+],
+"keep": [
+  "id_sites_group",
+  "habitat",
+  "gestion",
+  "impact"
+],
+"specific": {
+  "base_site_code":{
+    "attribut_label": "Code du transect"
+  },
+  "base_site_name":{
+    "attribut_label": "Nom du transect"
+  },
+  "id_sites_group": {
+    "type_widget": "datalist",
+    "attribut_label": "Site CEN du suivi",
+    "type_util": "sites_group",
+    "keyValue": "id_sites_group",
+    "keyLabel": "sites_group_name",
+    "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
+    "application": "GeoNature",
+    "required": true,
+    "hidden": false,
+    "definition": "Liste des sites du CEN afférents au suivi"
+  },
+  "occ_sol": {
+    "attribut_label": "OS",
+    "type_widget": "select",
+    "values": ["Forêts et milieux semi-naturels", "Territoires agricoles", "Territoires artificialisés","Zones humides"],
+    "required": true,
+    "hidden": false
+  },
+  "gestion":{
+    "attribut_label": "Gestion",
+    "type_widget": "select",
+    "values": [
+      "Autre",
+      "Broyage",
+      "Débroussaillage",
+      "Etrépage",
+      "Fauche",
+      "Pas d'intervention",
+      "Pâturage"
+    ],
+    "required": true,
+    "hidden": false
+  }
+}
+```
+Fichier de configuration du niveau visite: 
+```json
+{
+  "description_field_name": "num_passage",
+  "genre":"M",
+  "label": "Passage",
+  "label_list": "Passages",
+  "display_properties": [
+    "num_passage",
+    "observers",
+    "visit_date_min",
+    "occ_sol",
+    "gestion",
+    "comments"
+  ],
+  "display_list": [
+    "num_passage",
+    "visit_date_min",
+    "observers",
+    "occ_sol",
+    "nb_observations"
+  ],
+  "keep": [
+    "occ_sol",
+    "gestion",
+    "id_dataset",
+    "observers"
+  ],
+  "specific": {
+    "num_passage": {
+    "type_widget": "number",
+      "attribut_label": "Numéro de passage",
+      "min" : 1,
+      "max": 4,
+      "required": true
+    }, 
+    "occ_sol": {
+      "attribut_label": "Occupation du sol à grande échelle",
+      "type_widget": "select",
+      "values": ["Forêts et milieux semi-naturels", "Territoires agricoles", "Territoires artificialisés","Zones humides"],
+      "required": true,
+      "hidden": false
+    }, 
+    "gestion":{
+      "attribut_label": "Gestion",
+      "type_widget": "select",
+      "values": [
+        "Autre",
+        "Broyage",
+        "Débroussaillage",
+        "Etrépage",
+        "Fauche",
+        "Pas d'intervention",
+        "Pâturage"
+      ],
+      "required": false,
+      "hidden": false
+    }
+  },
+  "change": [
+      "({objForm, meta}) => {",
+        "const occ_sol = (meta.parents.site.properties.occ_sol);",
+        "const gestion = (meta.parents.site.properties.gestion);",
+        "(objForm.value.occ_sol == (null || undefined)  && meta.parents.site.properties.occ_sol != (null || undefined) ? objForm.patchValue({occ_sol}) : '');",
+        "(objForm.value.gestion == (null || undefined) ? objForm.patchValue({gestion}) : '');",
+    "}",
+    ""
+  ]
+}
+```
 
 # Nomenclature
 
