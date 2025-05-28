@@ -111,7 +111,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   initSiteGroup() {
     this._Activatedroute.data.subscribe(({ data }) => {
-      this.shouldHandleGroupSites = Boolean((this._sites_group_service.objectObs as any).config);
+      this.shouldHandleGroupSites = Boolean((data.sitesGroups.objConfig as any));
       const objectObs = this.shouldHandleGroupSites ? this._sites_group_service.objectObs : this._sitesService.objectObs;
   
       this._objService.changeObjectTypeParent(objectObs);
@@ -127,7 +127,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       
       const currentData =  this.shouldHandleGroupSites ? data.sitesGroups.data : data.sites.data;
       const currentObjConfig =  this.shouldHandleGroupSites ? data.sitesGroups.objConfig : data.sites.objConfig;
-      // 
+      
       this.page = {
         count: currentData.count,
         limit: currentData.limit,
