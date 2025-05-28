@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SitesGroupService, SitesService } from '../services/api-geom.service';
 import { Observable, forkJoin, of } from 'rxjs';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot,Router } from '@angular/router';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { ISite, ISitesGroup } from '../interfaces/geom';
 import { IPaginated } from '../interfaces/page';
 import { IobjObs } from '../interfaces/objObs';
@@ -64,117 +64,146 @@ export class SitesGroupsResolver
       }),
       concatMap(() =>
         $permissionUserObject.pipe(
-          map((permissionObject: TPermission) => (this.currentPermission = permissionObject)),
+          map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
         )
       ),
-      concatMap(() =>  this._configService.init(moduleCode)),
+      concatMap(() => this._configService.init(moduleCode)),
       concatMap(() =>
         forkJoin([$configSitesGroups, $configSites]).pipe(
           map((configs) => {
-            if (!configs[0] && state.url.includes("/monitorings/object/") && state.url.includes("sites_group") ) {
+            if (
+              !configs[0] &&
+              state.url.includes('/monitorings/object/') &&
+              state.url.includes('sites_group')
+            ) {
               this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
             }
-            
-            const configSchemaSiteGroup = configs[0] ? this._configJsonService.configModuleObject(
-              configs[0].moduleCode,
-              configs[0].objectType
-            ) : null;
 
-            const configSchemaSite = configs[1] ? this._configJsonService.configModuleObject(
-              configs[1].moduleCode,
-              configs[1].objectType
-            ) : null;
+            const configSchemaSiteGroup = configs[0]
+              ? this._configJsonService.configModuleObject(
+                  configs[0].moduleCode,
+                  configs[0].objectType
+                )
+              : null;
 
-            const sortSiteGroupInit = configSchemaSiteGroup ?
-              'sorts' in configSchemaSiteGroup
+            const configSchemaSite = configs[1]
+              ? this._configJsonService.configModuleObject(
+                  configs[1].moduleCode,
+                  configs[1].objectType
+                )
+              : null;
+
+            const sortSiteGroupInit = configSchemaSiteGroup
+              ? 'sorts' in configSchemaSiteGroup
                 ? {
                     sort_dir: configSchemaSiteGroup.sorts[0].dir,
                     sort: configSchemaSiteGroup.sorts[0].prop,
                   }
-                : {} : null;
-            const sortSiteInit = configSchemaSite ?
-              'sorts' in configSchemaSite
+                : {}
+              : null;
+            const sortSiteInit = configSchemaSite
+              ? 'sorts' in configSchemaSite
                 ? { sort_dir: configSchemaSite.sorts[0].dir, sort: configSchemaSite.sorts[0].prop }
-                : {} : null;
+                : {}
+              : null;
 
-            const $getSiteGroups = sortSiteGroupInit ? this.currentPermission.MONITORINGS_GRP_SITES.canRead
-              ? this.service.get(1, LIMIT, sortSiteGroupInit)
-              : of({ items: [], count: 0, limit: 0, page: 1 }) : of(null);
-            const $getSites = sortSiteInit ? this.currentPermission.MONITORINGS_SITES.canRead
-              ? this.serviceSite.get(1, LIMIT, sortSiteInit)
-              : of({ items: [], count: 0, limit: 0, page: 1 }) : of(null);
-            
+            const $getSiteGroups = sortSiteGroupInit
+              ? this.currentPermission.MONITORINGS_GRP_SITES.canRead
+                ? this.service.get(1, LIMIT, sortSiteGroupInit)
+                : of({ items: [], count: 0, limit: 0, page: 1 })
+              : of(null);
+            const $getSites = sortSiteInit
+              ? this.currentPermission.MONITORINGS_SITES.canRead
+                ? this.serviceSite.get(1, LIMIT, sortSiteInit)
+                : of({ items: [], count: 0, limit: 0, page: 1 })
+              : of(null);
+
             return forkJoin([$getSiteGroups, $getSites]).pipe(
               mergeMap(([siteGroups, sites]) => {
                 const specificConfigSite = configSchemaSite?.specific;
                 const specificConfigSiteGroup = configSchemaSiteGroup?.specific;
 
-                const siteGroupsProcessing$ = (siteGroups && siteGroups.items && siteGroups.items.length > 0 && specificConfigSiteGroup && Object.keys(specificConfigSiteGroup).length > 0)
-                  ? forkJoin(
-                      siteGroups.items.map(siteGroupItem => {
-                        const propertyObservables = {};
-                        for (const attribut_name of Object.keys(specificConfigSiteGroup)) {
-                          if (siteGroupItem.hasOwnProperty(attribut_name)) {
-                            propertyObservables[attribut_name] = resolveProperty(
-                              this._objService,
-                              this._cacheService,
-                              this._configService,
-                              moduleCode,
-                              specificConfigSiteGroup[attribut_name],
-                              siteGroupItem[attribut_name]
-                            );
-                          }
-                        }
-                        if (Object.keys(propertyObservables).length === 0) {
-                          return of(siteGroupItem);
-                        }
-                        return forkJoin(propertyObservables).pipe(
-                          map(resolvedProperties => {
-                            const updatedSiteGroupItem = { ...siteGroupItem };
-                            for (const attribut_name of Object.keys(resolvedProperties)) {
-                              updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+                const siteGroupsProcessing$ =
+                  siteGroups &&
+                  siteGroups.items &&
+                  siteGroups.items.length > 0 &&
+                  specificConfigSiteGroup &&
+                  Object.keys(specificConfigSiteGroup).length > 0
+                    ? forkJoin(
+                        siteGroups.items.map((siteGroupItem) => {
+                          const propertyObservables = {};
+                          for (const attribut_name of Object.keys(specificConfigSiteGroup)) {
+                            if (siteGroupItem.hasOwnProperty(attribut_name)) {
+                              propertyObservables[attribut_name] = resolveProperty(
+                                this._objService,
+                                this._cacheService,
+                                this._configService,
+                                moduleCode,
+                                specificConfigSiteGroup[attribut_name],
+                                siteGroupItem[attribut_name]
+                              );
                             }
-                            return updatedSiteGroupItem;
-                          })
-                        );
-                      })
-                    ).pipe(map(resolvedSiteGroupItems => ({ ...siteGroups, items: resolvedSiteGroupItems })))
-                  : of(siteGroups);
-                
-                const sitesProcessing$ = (sites && sites.items && sites.items.length > 0 && specificConfigSite && Object.keys(specificConfigSite).length > 0) 
-                  ? forkJoin(
-                    sites.items.map(siteItem => {
-                      const propertyObservables = {};
-                      for (const attribut_name of Object.keys(specificConfigSite)) {
-                    if (siteItem.hasOwnProperty(attribut_name)) {
-                      propertyObservables[attribut_name] = resolveProperty(
-                        this._objService,
-                        this._cacheService,
-                        this._configService,
-                        moduleCode,
-                        specificConfigSite[attribut_name],
-                        siteItem[attribut_name]
-                      );
-                    }
-                  }
+                          }
+                          if (Object.keys(propertyObservables).length === 0) {
+                            return of(siteGroupItem);
+                          }
+                          return forkJoin(propertyObservables).pipe(
+                            map((resolvedProperties) => {
+                              const updatedSiteGroupItem = { ...siteGroupItem };
+                              for (const attribut_name of Object.keys(resolvedProperties)) {
+                                updatedSiteGroupItem[attribut_name] =
+                                  resolvedProperties[attribut_name];
+                              }
+                              return updatedSiteGroupItem;
+                            })
+                          );
+                        })
+                      ).pipe(
+                        map((resolvedSiteGroupItems) => ({
+                          ...siteGroups,
+                          items: resolvedSiteGroupItems,
+                        }))
+                      )
+                    : of(siteGroups);
 
-                  if (Object.keys(propertyObservables).length === 0) {
-                    return of(siteItem);
-                  }
+                const sitesProcessing$ =
+                  sites &&
+                  sites.items &&
+                  sites.items.length > 0 &&
+                  specificConfigSite &&
+                  Object.keys(specificConfigSite).length > 0
+                    ? forkJoin(
+                        sites.items.map((siteItem) => {
+                          const propertyObservables = {};
+                          for (const attribut_name of Object.keys(specificConfigSite)) {
+                            if (siteItem.hasOwnProperty(attribut_name)) {
+                              propertyObservables[attribut_name] = resolveProperty(
+                                this._objService,
+                                this._cacheService,
+                                this._configService,
+                                moduleCode,
+                                specificConfigSite[attribut_name],
+                                siteItem[attribut_name]
+                              );
+                            }
+                          }
 
-                  return forkJoin(propertyObservables).pipe(
-                    map(resolvedProperties => {
-                      const updatedSiteItem = { ...siteItem };
-                      for (const attribut_name of Object.keys(resolvedProperties)) {
-                        updatedSiteItem[attribut_name] = resolvedProperties[attribut_name];
-                      }
-                      return updatedSiteItem;
-                    })
-                  );
-                    })
-                ).pipe(map(resolvedSiteItems => ({ ...sites, items: resolvedSiteItems })))
-                : of(sites);
+                          if (Object.keys(propertyObservables).length === 0) {
+                            return of(siteItem);
+                          }
 
+                          return forkJoin(propertyObservables).pipe(
+                            map((resolvedProperties) => {
+                              const updatedSiteItem = { ...siteItem };
+                              for (const attribut_name of Object.keys(resolvedProperties)) {
+                                updatedSiteItem[attribut_name] = resolvedProperties[attribut_name];
+                              }
+                              return updatedSiteItem;
+                            })
+                          );
+                        })
+                      ).pipe(map((resolvedSiteItems) => ({ ...sites, items: resolvedSiteItems })))
+                    : of(sites);
 
                 return forkJoin([siteGroupsProcessing$, sitesProcessing$]).pipe(
                   map(([processedSiteGroups, processedSites]) => {

@@ -90,19 +90,16 @@ export class BreadcrumbsComponent implements OnInit {
             'monitorings',
             'object',
             elem.module_code,
-            elem.object_type === "module" ? "sites_group" : elem.object_type,
+            elem.object_type === 'module' ? 'sites_group' : elem.object_type,
           ];
 
-          if (!(elem.object_type === "module")) {
+          if (!(elem.object_type === 'module')) {
             path.push(elem.id);
           }
 
-          this._router.navigate(
-            path,
-            {
-              queryParams: elem.params,
-            }
-          );
+          this._router.navigate(path, {
+            queryParams: elem.params,
+          });
         }
       } else {
         this._router.navigate([this._configService.frontendModuleMonitoringUrl()]);
