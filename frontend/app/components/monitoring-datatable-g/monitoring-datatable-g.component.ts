@@ -173,7 +173,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     // const nbSelected = visibles.length;
     const nbSelected = this.dataTableObj[chidrenType].page.count;
     const nb = this.dataTableObj[chidrenType].page.total;
-    return nb == nbSelected ? `(${nb})` : `(${nbSelected}/${nb})`;
+    return (nb == nbSelected) ? `(${nb})` : nb ? `(${nbSelected}/${nb})` : `(${nbSelected})`;
   }
 
   onSortEvent($event) {

@@ -1,4 +1,5 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable, forkJoin, of } from 'rxjs';
+import { concatMap,  mergeMap } from 'rxjs/operators';
 import { JsonData } from '../types/jsondata';
 
 export class Utils {
@@ -121,3 +122,63 @@ export class Utils {
     return filteredObject;
   }
 }
+
+export function resolveProperty(_objService, _cacheService,_configService, moduleCode, elem, val): Observable<any> {
+    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
+      val = Utils.formatDate(val);
+    }
+
+    const fieldName = _objService.configUtils(elem, moduleCode);
+
+    if (val && fieldName && elem.type_widget) {
+      return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
+    }
+    return of(val);
+  }
+
+function getUtil(_cacheService, typeUtil: string, id, fieldName: string, idFieldName: string | null = null) {
+    if (Array.isArray(id)) {
+      return getUtils(typeUtil, id, fieldName, idFieldName);
+    }
+
+    var urlRelative = `util/${typeUtil}/${id}`;
+
+    if (idFieldName) {
+      urlRelative += `?id_field_name=${idFieldName}`;
+    }
+
+    const sCachePaths = `util|${typeUtil}|${id}`;
+    return _cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
+      mergeMap((value) => {
+        let out;
+        if (fieldName === 'all') {
+          out = value;
+        } else if (fieldName.split(',').length >= 2) {
+          for (const fieldNameInter of fieldName.split(',')) {
+            if (value[fieldNameInter]) {
+              out = value[fieldNameInter];
+              break;
+            }
+          }
+        } else {
+          out = value[fieldName];
+        }
+        return of(out);
+      })
+    );
+  }
+
+  function getUtils(typeUtilObject, ids, fieldName, idFieldName) {
+    if (!ids.length) {
+      return of(null);
+    }
+    const observables :any[]= [];
+    for (const id of ids) {
+      observables.push(getUtil(typeUtilObject, id, fieldName, idFieldName));
+    }
+    return forkJoin(observables).pipe(
+      concatMap((res) => {
+        return of(res.join(', '));
+      })
+    );
+  }
