@@ -86,7 +86,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
         }),
         mergeMap(() => {
           return this.obj.get(0);
-        }),
+        })
       )
       .subscribe(() => {
         this.obj.initTemplate();

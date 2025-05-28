@@ -27,11 +27,7 @@ import { resolveProperty } from '../../utils/utils';
 const LIMIT = 10;
 
 import { Observable, ReplaySubject, forkJoin, of } from 'rxjs';
-import {
-  map,
-  mergeMap,
-  takeUntil,
-} from 'rxjs/operators';
+import { map, mergeMap, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'monitoring-sitesgroups',
@@ -111,9 +107,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   initSiteGroup() {
     this._Activatedroute.data.subscribe(({ data }) => {
-      this.shouldHandleGroupSites = Boolean((data.sitesGroups.objConfig as any));
-      const objectObs = this.shouldHandleGroupSites ? this._sites_group_service.objectObs : this._sitesService.objectObs;
-  
+      this.shouldHandleGroupSites = Boolean(data.sitesGroups.objConfig as any);
+      const objectObs = this.shouldHandleGroupSites
+        ? this._sites_group_service.objectObs
+        : this._sitesService.objectObs;
+
       this._objService.changeObjectTypeParent(objectObs);
       this._objService.changeObjectType(objectObs);
 
@@ -124,10 +122,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
 
       this.currentPermission = data.permission;
-      
-      const currentData =  this.shouldHandleGroupSites ? data.sitesGroups.data : data.sites.data;
-      const currentObjConfig =  this.shouldHandleGroupSites ? data.sitesGroups.objConfig : data.sites.objConfig;
-      
+
+      const currentData = this.shouldHandleGroupSites ? data.sitesGroups.data : data.sites.data;
+      const currentObjConfig = this.shouldHandleGroupSites
+        ? data.sitesGroups.objConfig
+        : data.sites.objConfig;
+
       this.page = {
         count: currentData.count,
         limit: currentData.limit,
@@ -220,7 +220,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
             !specificConfig ||
             Object.keys(specificConfig).length === 0
           ) {
-            return of(paginatedSiteGroups); 
+            return of(paginatedSiteGroups);
           }
 
           const siteGroupProcessingObservables = siteGroupsItems.map((siteGroupItem) => {
@@ -231,9 +231,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
                   this._monitoringObjectService,
                   this._cacheService,
                   this._configService,
-                  this.moduleCode, 
-                  specificConfig[attribut_name], 
-                  siteGroupItem[attribut_name] 
+                  this.moduleCode,
+                  specificConfig[attribut_name],
+                  siteGroupItem[attribut_name]
                 );
               }
             }
@@ -254,7 +254,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           });
 
           return forkJoin(siteGroupProcessingObservables).pipe(
-            map((resolvedSiteGroupItems) => ({ ...paginatedSiteGroups, items: resolvedSiteGroupItems }))
+            map((resolvedSiteGroupItems) => ({
+              ...paginatedSiteGroups,
+              items: resolvedSiteGroupItems,
+            }))
           );
         }),
         takeUntil(this.destroyed$)
@@ -269,7 +272,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         this.rows = processedPaginatedData.items;
         this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
         this.dataTableObj.sites_group.rows = processedPaginatedData.items;
-        this.dataTableObj.sites_group.page = { 
+        this.dataTableObj.sites_group.page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
@@ -286,7 +289,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           const sites = paginatedSites.items;
           const specificConfig = this.config?.specific;
 
-          if (!sites || sites.length === 0 || !specificConfig || Object.keys(specificConfig).length === 0) {
+          if (
+            !sites ||
+            sites.length === 0 ||
+            !specificConfig ||
+            Object.keys(specificConfig).length === 0
+          ) {
             return of(paginatedSites);
           }
 
@@ -375,7 +383,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
-    if (this.shouldHandleGroupSites && this.activetabIndex == 1 || !this.shouldHandleGroupSites) {
+    if ((this.shouldHandleGroupSites && this.activetabIndex == 1) || !this.shouldHandleGroupSites) {
       this._objService.changeObjectTypeParent(this._sitesService.objectObs);
     } else {
       this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);

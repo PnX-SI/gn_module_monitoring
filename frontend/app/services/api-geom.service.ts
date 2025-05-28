@@ -51,7 +51,7 @@ export class ApiService<T = IObject> implements IService<T> {
           'display_list'
         );
 
-        if(!fieldNamesList) {
+        if (!fieldNamesList) {
           return null;
         }
 
@@ -137,18 +137,14 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     const clean_params = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== '' && v !== null)
     );
-    
+
     const endPoint = !(this.objectObs.moduleCode === 'generic')
       ? `refacto/${this.objectObs.moduleCode}/${this.endPoint}/geometries`
       : `${this.endPoint}/geometries`;
 
-    return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
-      'get',
-      endPoint,
-      {
-        queryParams: { ...clean_params },
-      }
-    );
+    return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>('get', endPoint, {
+      queryParams: { ...clean_params },
+    });
   }
 
   getConfig(): Observable<T> {
