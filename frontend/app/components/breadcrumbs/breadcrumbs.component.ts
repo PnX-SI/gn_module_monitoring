@@ -81,7 +81,6 @@ export class BreadcrumbsComponent implements OnInit {
   onClick(elem) {
     this.bEditChange.emit(false);
     setTimeout(() => {
-      console.log(this.obj, elem);
       if (elem) {
         if (this.obj == undefined) {
           const url = [this._configService.frontendModuleMonitoringUrl(), elem.url].join('/');

@@ -426,7 +426,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
     this.breadCrumbElementBase = {
       ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/site`,
+      url: `object/${this.moduleCode}/sites_group`,
     };
 
     const breadcrumb: IBreadCrumb[] = [];
