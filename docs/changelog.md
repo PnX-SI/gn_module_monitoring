@@ -35,7 +35,8 @@
 
 ## 1.0.0 (2024-12-13)
 
-Nécessite GeoNature 2.15.0 (ou plus)
+Nécessite GeoNature 2.15.0 (ou plus).
+L'utilisation de la fonction `ST_AsGeoJSON` nécessite PostGIS version 3 minimum.
 
 **🚀 Nouveautés**
 
