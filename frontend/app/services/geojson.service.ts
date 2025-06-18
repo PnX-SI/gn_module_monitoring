@@ -150,9 +150,6 @@ export class GeoJSONService {
   private _handleClustering(layer: L.GeoJSON, fallbackGroup: L.FeatureGroup): void {
     layer.eachLayer((geoLayer) => {
       if (geoLayer instanceof L.Marker || geoLayer instanceof L.CircleMarker) {
-        const feature = (geoLayer as any).feature;
-        const popupContent = feature?.properties?.base_site_name || '';
-        geoLayer.bindPopup(popupContent);
         this.markerClusterGroup.addLayer(geoLayer);
       } else {
         fallbackGroup.addLayer(geoLayer);
