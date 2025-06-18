@@ -185,7 +185,7 @@ export class MonitoringMapComponent implements OnInit {
   getClusterConfig() {
     const moduleConfig = this._configService.config()[this.obj.moduleCode];
     let currentObjectType = this.obj.objectType;
-    
+
     if (currentObjectType === 'module') {
       currentObjectType = this.listService.listType || 'site';
     }

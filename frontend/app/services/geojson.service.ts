@@ -42,7 +42,7 @@ export class GeoJSONService {
   sitesGroupFeatureGroup: L.FeatureGroup;
   sitesFeatureGroup: L.FeatureGroup;
   currentLayer: any = null;
-  markerClusterGroup: L.MarkerClusterGroup; 
+  markerClusterGroup: L.MarkerClusterGroup;
 
   constructor(
     private _sites_group_service: SitesGroupService,
@@ -56,18 +56,18 @@ export class GeoJSONService {
       showCoverageOnHover: true,
       zoomToBoundsOnClick: true,
       maxClusterRadius: (zoom) => {
-        if (zoom >= 15) return 50; 
-        if (zoom >= 12) return 100; 
-        return 200; 
+        if (zoom >= 15) return 50;
+        if (zoom >= 12) return 100;
+        return 200;
       },
       iconCreateFunction: this.clusterCountOverrideFn,
-    }); 
+    });
   }
 
   removeAllLayers() {
     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
     this.removeFeatureGroup(this.sitesFeatureGroup);
-    this.removeClusterGroup(this.markerClusterGroup); 
+    this.removeClusterGroup(this.markerClusterGroup);
   }
 
   /*
@@ -91,10 +91,15 @@ export class GeoJSONService {
       this.sitesGroupFeatureGroup = this.setMapData(
         data['sitesGroup'],
         sitesGroupOnEachFeature,
-        sitesGroupstyle || defaultSiteGroupStyle,
+        sitesGroupstyle || defaultSiteGroupStyle
       );
       this.removeFeatureGroup(this.sitesFeatureGroup);
-      this.sitesFeatureGroup = this.setMapData(data['sites'], sitesOnEachFeature, sitesStyle, enableCluster);
+      this.sitesFeatureGroup = this.setMapData(
+        data['sites'],
+        sitesOnEachFeature,
+        sitesStyle,
+        enableCluster
+      );
     });
   }
 
@@ -113,7 +118,12 @@ export class GeoJSONService {
       });
   }
 
-  getSitesGroupsChildGeometries(onEachFeature: Function, params = {}, style?, enableCluster = false) {
+  getSitesGroupsChildGeometries(
+    onEachFeature: Function,
+    params = {},
+    style?,
+    enableCluster = false
+  ) {
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
       this.removeFeatureGroup(this.sitesFeatureGroup);
       this.sitesFeatureGroup = this.setMapData(data, onEachFeature, style, enableCluster);
@@ -132,10 +142,10 @@ export class GeoJSONService {
   ): L.FeatureGroup | undefined {
     const map = this._mapService.getMap();
     if (!geojson || !geojson['features']) return;
-  
+
     const layer: L.GeoJSON = this._mapService.createGeojson(geojson, false, onEachFeature, style);
     const featureGroup = new L.FeatureGroup();
-  
+
     if (enableCluster) {
       this._handleClustering(layer, featureGroup);
     } else {
@@ -143,7 +153,7 @@ export class GeoJSONService {
       this._addLayerToMap(featureGroup);
       map.fitBounds(featureGroup.getBounds());
     }
-  
+
     return featureGroup;
   }
 
@@ -155,27 +165,26 @@ export class GeoJSONService {
         fallbackGroup.addLayer(geoLayer);
       }
     });
-  
+
     if (this.markerClusterGroup.getLayers().length > 0) {
       this._addLayerToMap(this.markerClusterGroup);
       this._mapService.map.fitBounds(this.markerClusterGroup.getBounds());
     }
-  
+
     if (fallbackGroup.getLayers().length > 0) {
       this._addLayerToMap(fallbackGroup);
     }
   }
-  
+
   private _addToFeatureGroup(layer: L.GeoJSON, featureGroup: L.FeatureGroup): void {
     layer.eachLayer((geoLayer) => {
       featureGroup.addLayer(geoLayer);
     });
   }
-  
+
   private _addLayerToMap(layer: L.LayerGroup): void {
     this._mapService.map.addLayer(layer);
   }
-  
 
   setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {
     for (const layer of featureGroup) {
@@ -203,7 +212,7 @@ export class GeoJSONService {
   removeClusterGroup(feature: L.MarkerClusterGroup) {
     if (feature && this._mapService.map) {
       this._mapService.map.removeLayer(this.markerClusterGroup);
-      this.markerClusterGroup.clearLayers()
+      this.markerClusterGroup.clearLayers();
     }
   }
 
@@ -243,10 +252,10 @@ export class GeoJSONService {
     const layers = this.selectSitesLayer(id, false);
     this.removeFeatureGroup(layers);
   }
-  
+
   selectSitesLayer(id: number, zoom: boolean): L.FeatureGroup | null {
     let foundLayer: L.FeatureGroup | null = null;
-  
+
     const trySelect = (layer: any, getLatLng?: () => L.LatLng) => {
       const feature = layer.feature as GeoJSON.Feature;
       if (feature.properties['id_base_site'] == id) {
@@ -262,11 +271,11 @@ export class GeoJSONService {
         foundLayer = new L.FeatureGroup([layer]);
       }
     };
-  
+
     // Recherche dans sitesFeatureGroup
     this.sitesFeatureGroup?.eachLayer((layer: any) => {
       if (foundLayer) return;
-  
+
       if (layer instanceof L.GeoJSON) {
         layer.eachLayer((sublayer: any) => {
           if (foundLayer) return;
@@ -276,7 +285,7 @@ export class GeoJSONService {
         trySelect(layer);
       }
     });
-  
+
     // Recherche dans le cluster
     if (!foundLayer && this.markerClusterGroup) {
       this.markerClusterGroup.eachLayer((layer: any) => {
@@ -284,7 +293,7 @@ export class GeoJSONService {
         trySelect(layer, () => layer.getLatLng());
       });
     }
-  
+
     return foundLayer;
   }
 
