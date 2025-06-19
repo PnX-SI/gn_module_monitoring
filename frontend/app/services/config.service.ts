@@ -79,6 +79,10 @@ export class ConfigService {
   codeListObservers() {
     return this.appConfig.MONITORINGS.CODE_OBSERVERS_LIST;
   }
+  clusteringConfig() {
+    return this.appConfig.MONITORINGS.ENABLE_CLUSTERING;
+  }
+
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;

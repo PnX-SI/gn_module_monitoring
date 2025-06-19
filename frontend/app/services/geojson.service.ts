@@ -147,43 +147,27 @@ export class GeoJSONService {
     const featureGroup = new L.FeatureGroup();
 
     if (enableCluster) {
-      this._handleClustering(layer, featureGroup);
+      layer.eachLayer((geoLayer) => {
+        if (geoLayer instanceof L.Marker || geoLayer instanceof L.CircleMarker) {
+          this.markerClusterGroup.addLayer(geoLayer);
+          featureGroup.addLayer(geoLayer);
+        } else {
+          featureGroup.addLayer(geoLayer);
+        }
+      });
+
+      this._mapService.map.addLayer(this.markerClusterGroup);
+      if (featureGroup.getLayers().length > 0) {
+        this._mapService.map.addLayer(featureGroup);
+        map.fitBounds(featureGroup.getBounds());
+      }
     } else {
-      this._addToFeatureGroup(layer, featureGroup);
-      this._addLayerToMap(featureGroup);
+      featureGroup.addLayer(layer);
+      this._mapService.map.addLayer(featureGroup);
       map.fitBounds(featureGroup.getBounds());
     }
 
     return featureGroup;
-  }
-
-  private _handleClustering(layer: L.GeoJSON, fallbackGroup: L.FeatureGroup): void {
-    layer.eachLayer((geoLayer) => {
-      if (geoLayer instanceof L.Marker || geoLayer instanceof L.CircleMarker) {
-        this.markerClusterGroup.addLayer(geoLayer);
-      } else {
-        fallbackGroup.addLayer(geoLayer);
-      }
-    });
-
-    if (this.markerClusterGroup.getLayers().length > 0) {
-      this._addLayerToMap(this.markerClusterGroup);
-      this._mapService.map.fitBounds(this.markerClusterGroup.getBounds());
-    }
-
-    if (fallbackGroup.getLayers().length > 0) {
-      this._addLayerToMap(fallbackGroup);
-    }
-  }
-
-  private _addToFeatureGroup(layer: L.GeoJSON, featureGroup: L.FeatureGroup): void {
-    layer.eachLayer((geoLayer) => {
-      featureGroup.addLayer(geoLayer);
-    });
-  }
-
-  private _addLayerToMap(layer: L.LayerGroup): void {
-    this._mapService.map.addLayer(layer);
   }
 
   setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {

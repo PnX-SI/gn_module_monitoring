@@ -189,10 +189,13 @@ export class MonitoringMapComponent implements OnInit {
     if (currentObjectType === 'module') {
       currentObjectType = this.listService.listType || 'site';
     }
-    if (moduleConfig?.module?.clustering && moduleConfig.module.clustering[currentObjectType]) {
-      this.enableCluster = true;
+    if (
+      moduleConfig.module.clustering &&
+      moduleConfig.module.clustering.hasOwnProperty(currentObjectType)
+    ) {
+      this.enableCluster = moduleConfig.module.clustering[currentObjectType];
     } else {
-      this.enableCluster = false;
+      this.enableCluster = this._configService.clusteringConfig();
     }
   }
 
