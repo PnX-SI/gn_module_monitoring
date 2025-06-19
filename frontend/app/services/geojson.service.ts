@@ -150,7 +150,6 @@ export class GeoJSONService {
       layer.eachLayer((geoLayer) => {
         if (geoLayer instanceof L.Marker || geoLayer instanceof L.CircleMarker) {
           this.markerClusterGroup.addLayer(geoLayer);
-          featureGroup.addLayer(geoLayer);
         } else {
           featureGroup.addLayer(geoLayer);
         }
@@ -159,7 +158,12 @@ export class GeoJSONService {
       this._mapService.map.addLayer(this.markerClusterGroup);
       if (featureGroup.getLayers().length > 0) {
         this._mapService.map.addLayer(featureGroup);
+      }
+
+      if (featureGroup.getLayers().length > 0) {
         map.fitBounds(featureGroup.getBounds());
+      } else if (this.markerClusterGroup.getLayers().length > 0) {
+        map.fitBounds(L.featureGroup(this.markerClusterGroup.getLayers()).getBounds());
       }
     } else {
       featureGroup.addLayer(layer);
