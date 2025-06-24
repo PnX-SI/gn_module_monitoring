@@ -1,6 +1,6 @@
- 
+
 CREATE
-OR REPLACE VIEW gn_monitoring.v_export_test_sites AS WITH MOD AS (
+OR REPLACE VIEW gn_monitoring.v_export_test_module_sites AS WITH MOD AS (
     SELECT
         *
     FROM
@@ -21,3 +21,14 @@ FROM
         FROM
             mod
     );
+
+
+CREATE
+OR REPLACE VIEW gn_monitoring.v_export_test_sites AS
+SELECT
+    tbs.base_site_code,
+    st_x(tbs.geom) AS longitude,
+    st_y(tbs.geom) AS latitude
+FROM
+    gn_monitoring.t_base_sites AS tbs
+LIMIT 10
