@@ -8,6 +8,8 @@ from geonature.core.gn_permissions.models import (
     Permission,
 )
 
+from io import StringIO
+import pandas as pd
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.tests.fixtures.generic import *
@@ -44,6 +46,7 @@ def add_user_permission(module_code, user, scope, type_code_object, code_action=
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestModules:
+
     def test_get_fake_export_csv(self, install_module_test, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         # Add user permission for export
@@ -61,7 +64,7 @@ class TestModules:
         )
         assert response.status_code == 404
 
-    def test_get_export_csv(self, install_module_test, monitorings_users):
+    def test_get_export_csv(self, install_module_test, monitorings_users, sites):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
 
         # test unautorized
@@ -83,9 +86,16 @@ class TestModules:
             url_for("monitorings.export_all_observations", module_code="test", method="sites")
         )
 
-        expected_headers_content_type = "text/plain"
-        expected = '"base_site_code";"longitude";"latitude"'
-
         assert response.status_code == 200
+        expected_headers_content_type = "text/plain"
         assert response.headers.get("content-type") == expected_headers_content_type
-        assert expected in response.text
+
+        expected_columns = ["base_site_code", "longitude", "latitude"]
+        csv_content = pd.read_csv(StringIO(response.data.decode("utf-8")), sep=";")
+
+        # test columns
+        columns = list(csv_content.columns)
+        assert columns == expected_columns
+
+        # test data is not empty
+        assert csv_content.empty == False

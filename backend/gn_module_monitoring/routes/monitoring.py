@@ -351,12 +351,12 @@ def export_all_observations(module_code, method):
     columns = export.view.tableDef.columns
     schema = export.get_marshmallow_schema()
 
-    q = select(model)
+    q = select(export.view.tableDef)
     #  Filter with dataset if is set
     if hasattr(model, "id_dataset") and id_dataset:
         q = q.where(getattr(model, "id_dataset") == id_dataset)
 
-    data = DB.session.scalars(q).all()
+    data = DB.session.execute(q).all()
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
     return to_csv_resp(

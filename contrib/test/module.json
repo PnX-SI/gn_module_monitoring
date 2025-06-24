@@ -1,6 +1,13 @@
 {
     "module_label":"Test",
     "module_desc":"Module de test pour le module de suivi générique",
+    "export_csv": [
+      {
+        "label": "Liste des Sites",
+        "type": "csv",
+        "method": "sites"
+      }
+    ],
     "specific": {
         "test": {
             "type_widget": "text",
@@ -25,5 +32,5 @@
       "}",
       ""
       ]
-    }
+}
 
