@@ -7,123 +7,24 @@ on:
     branches:
       - main
       - hotfixes
-      - develop 
+      - develop
   pull_request:
     paths:
       - 'backend/**'
     branches:
       - main
       - hotfixes
-      - develop 
+      - develop
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - debian-version: '11'
-            python-version: '3.9'
-            postgres-version: '13'
-            postgis-version: '3.2'
-          - debian-version: '12'
-            python-version: '3.11'
-            postgres-version: '15'
-            postgis-version: '3.3'
-
-    name: ${{ matrix.name }}
-
-    services:
-      postgres:
-        image: postgis/postgis:${{ matrix.postgres-version }}-${{ matrix.postgis-version }}
-        env:
-          POSTGRES_DB: geonature2db
-          POSTGRES_PASSWORD: geonatpasswd
-          POSTGRES_USER: geonatadmin
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-    - name: Add postgis_raster database extension
-      if: ${{ matrix.postgis-version >= 3 }}
-      run: |
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "postgis_raster";'
-      env:
-        PGPASSWORD: geonatpasswd
-    - name: Add database extensions
-      run: |
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "hstore";'
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "uuid-ossp";'
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "pg_trgm";'
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "unaccent";'
-        psql -h localhost -U geonatadmin -d geonature2db -tc 'CREATE EXTENSION "ltree";'
-      env:
-        PGPASSWORD: geonatpasswd
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install GDAL
-      run: |
-        sudo apt update
-        sudo apt install -y libgdal-dev
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install \
-          -e ..[tests] \
-          -r requirements-dev.txt
-      working-directory: ./dependencies/GeoNature/backend
-    - name: Install monitoring module
-      run: |
-        python -m pip install -e .
-      working-directory: .
-    - name: Install database
-      run: |
-        dependencies/GeoNature/install/03b_populate_db.sh
-      env:
-        GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
-        srid_local: 2154
-        install_bdc_statuts: false
-        taxref_region: fr
-        add_sample_data: true
-        install_sig_layers: true
-        install_grid_layer_5: false
-        install_grid_layer_10: false
-        install_ref_sensitivity: false
-    - name: Install monitoring module database
-      run: |
-        geonature upgrade-modules-db MONITORINGS
-      env:
-        GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
-    - name: Test with pytest
-      run: |
-        pytest -v --cov --cov-report xml
-      env:
-        GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
-    - name: Upload coverage to Codecov
-      if: ${{ matrix.debian-version == '12' }}
-      uses: codecov/codecov-action@v4
-      with:
-        flags: pytest
-        token: ${{ secrets.CODECOV_TOKEN }}
+        geonature_ref: ["develop"] # Mettre version compatible
+    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
+    with:
+      geonature_ref: ${{ matrix.geonature_ref }}
+      upload_coverage: true
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
