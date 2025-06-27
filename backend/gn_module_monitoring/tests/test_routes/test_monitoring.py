@@ -13,35 +13,6 @@ import pandas as pd
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.tests.fixtures.generic import *
-from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-
-def add_user_permission(module_code, user, scope, type_code_object, code_action="CRUVED"):
-    module = db.session.execute(
-        select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
-    ).scalar_one()
-    actions = {
-        code: db.session.execute(
-            select(PermAction).where(PermAction.code_action == code)
-        ).scalar_one()
-        for code in code_action
-    }
-    with db.session.begin_nested():
-        if scope > 0:
-            object_all = db.session.scalars(
-                select(PermObject).where(PermObject.code_object == type_code_object)
-            ).all()
-            for action in actions.values():
-                for obj in object_all + module.objects:
-                    permission = Permission(
-                        role=user,
-                        action=action,
-                        module=module,
-                        object=obj,
-                        scope_value=scope if scope != 3 else None,
-                        sensitivity_filter=None,
-                    )
-                    db.session.add(permission)
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction")
