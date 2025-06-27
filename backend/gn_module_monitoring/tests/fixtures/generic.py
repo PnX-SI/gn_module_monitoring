@@ -9,7 +9,9 @@ from geonature.core.gn_permissions.models import (
     Permission,
 )
 from geonature.core.gn_commons.models import TModules
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
+from geonature.tests.fixtures import users
 from pypnusershub.db.models import User
 from pypnusershub.db.models import (
     User,
@@ -20,21 +22,60 @@ from pypnusershub.db.models import (
 )
 
 
-@pytest.fixture(scope="session")
-def monitorings_users(app):
-    app = db.session.execute(
-        select(Application).where(Application.code_application == "GN")
+def add_user_permission(module_code, user, scope, type_code_object, code_action="CRUVED"):
+    """
+    Add permissions to a user in a module.
+
+    Parameters
+    ----------
+    module_code : str
+        Code of the module to add the permission to.
+    user : User
+        User to add the permission to.
+    scope : int
+        Scope value for the permission.
+    type_code_object : str
+        Type of the object to add the permission to.
+    code_action : str, optional
+        Code of the action to add the permission for. Default is "CRUVED".
+
+    Notes
+    -----
+    The function will add the permission to the specified module and object with the given scope.
+    If the scope is 3, the scope_value will be set to None.
+    """
+    module = db.session.execute(
+        select(TModules).where(TModules.module_code == module_code)
     ).scalar_one()
-    profil = db.session.execute(select(Profil).where(Profil.nom_profil == "Lecteur")).scalar_one()
-
-    modules = db.session.scalars(select(TModules)).all()
-
     actions = {
         code: db.session.execute(
             select(PermAction).where(PermAction.code_action == code)
         ).scalar_one()
-        for code in "CRUVED"
+        for code in code_action
     }
+    with db.session.begin_nested():
+        if scope > 0:
+            object_all = db.session.scalars(
+                select(PermObject).where(PermObject.code_object == type_code_object)
+            ).all()
+            for action in actions.values():
+                for obj in object_all + module.objects:
+                    permission = Permission(
+                        role=user,
+                        action=action,
+                        module=module,
+                        object=obj,
+                        scope_value=scope if scope != 3 else None,
+                        sensitivity_filter=None,
+                    )
+                    db.session.add(permission)
+
+
+@pytest.fixture
+def monitorings_users(users):
+
+    modules = db.session.scalars(select(TModules)).all()
+
     type_code_object = [
         "MONITORINGS_MODULES",
         "MONITORINGS_GRP_SITES",
@@ -43,60 +84,31 @@ def monitorings_users(app):
         "ALL",
     ]
 
-    def create_user(username, organisme=None, scope=None, sensitivity_filter=False):
-        # do not commit directly on current transaction, as we want to rollback all changes at the end of tests
-        with db.session.begin_nested():
-            user = User(
-                groupe=False,
-                active=True,
-                organisme=organisme,
-                identifiant=username,
-                password=username,
-                nom_role=username,
-                prenom_role=username,
-            )
-            db.session.add(user)
-        # user must have been commited for user.id_role to be defined
-        with db.session.begin_nested():
-            # login right
-            right = UserApplicationRight(
-                id_role=user.id_role, id_application=app.id_application, id_profil=profil.id_profil
-            )
-            db.session.add(right)
-            if scope > 0:
-                for co in type_code_object:
-                    object_all = db.session.scalars(
-                        select(PermObject).where(PermObject.code_object == co)
-                    ).all()
-                    for action in actions.values():
-                        for module in modules:
-                            for obj in object_all + module.objects:
-                                permission = Permission(
-                                    role=user,
-                                    action=action,
-                                    module=module,
-                                    object=obj,
-                                    scope_value=scope if scope != 3 else None,
-                                    sensitivity_filter=sensitivity_filter,
-                                )
-                                db.session.add(permission)
+    def add_monitoring_permissions(user, scope=None, sensitivity_filter=False):
+        for code_object in type_code_object:
+            for module in modules:
+                add_user_permission(
+                    module.module_code,
+                    user,
+                    scope=scope,
+                    type_code_object=code_object,
+                    code_action="CRUVD",
+                )
+
         return user
 
-    users = {}
-
-    organisme = Organisme(nom_organisme="Autre")
-    db.session.add(organisme)
+    monitoring_users = {}
 
     users_to_create = [
-        ("noright_user", organisme, 0),
-        ("stranger_user", None, 2),
-        ("associate_user", organisme, 2),
-        ("self_user", organisme, 1),
-        ("user", organisme, 2),
-        ("admin_user", organisme, 3),
+        ("noright_user", 0),
+        ("stranger_user", 2),
+        ("associate_user", 2),
+        ("self_user", 1),
+        ("user", 2),
+        ("admin_user", 3),
     ]
 
     for username, *args in users_to_create:
-        users[username] = create_user(username, *args)
+        monitoring_users[username] = add_monitoring_permissions(users[username], *args)
 
-    return users
+    return monitoring_users

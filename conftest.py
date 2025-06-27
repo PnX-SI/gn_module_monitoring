@@ -1,5 +1,5 @@
 from geonature.tests.fixtures import *
-from geonature.tests.fixtures import _session, app, users
+from geonature.tests.fixtures import _session, app, _app, users
 
 pytest_plugins = [
     "gn_module_monitoring.tests.fixtures.module",
