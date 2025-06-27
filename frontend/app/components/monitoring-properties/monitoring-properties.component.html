@@ -52,6 +52,7 @@
       *ngIf="obj.properties['medias'] && obj.properties['medias'].length"
       label="Médias ({{ (obj.properties['medias'] && obj.properties['medias'].length) || 0 }})"
     >
+
       <ng-container *ngFor="let media of obj.properties['medias']; index as i">
         <div class="medias-tab">
           <div [matTooltip]="ms.toString(media)">
@@ -63,13 +64,10 @@
           </div>
           <p *ngIf="media.description_fr">{{ media.description_fr }}</p>
           <div>
-            <pnx-display-medias
-              [medias]="obj.properties['medias']"
-              [index]="i"
-              display="medium"
-              diaporama="true"
-            >
-            </pnx-display-medias>
+            <pnx-media-item
+                [inputMedia]="media"
+                display="medium"
+            ></pnx-media-item>
           </div>
         </div>
       </ng-container>
@@ -115,7 +113,7 @@
         (click)="processExportPdf(exportPdfConfig)"
         type="button"
         class="mr-2"
-        *ngIf="currentUser?.moduleCruved['module'].E >= 1" 
+        *ngIf="currentUser?.moduleCruved['module'].E >= 1"
       >
         <i class="fa fa-file-pdf-o"></i>&nbsp;
         {{ exportPdfConfig.label }}
