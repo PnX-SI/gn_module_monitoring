@@ -11,7 +11,7 @@ from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.config.repositories import get_config
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestMonitoringObject:
     def test_process_synthese(self, install_module_test):
         """

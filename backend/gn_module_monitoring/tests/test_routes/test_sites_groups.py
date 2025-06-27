@@ -13,7 +13,7 @@ from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestSitesGroups:
     def test_get_sites_group_by_id(self, sites_groups, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])

@@ -7,7 +7,7 @@ from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, Monitorin
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestSite:
     def test_get_type_site_by_id(self, types_site):
         for type_site in types_site.values():
@@ -75,26 +75,38 @@ class TestSite:
 
     def test_get_sites_filters(self, sites, visits, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
         r = self.client.get(url_for("monitorings.get_sites", last_visit="2025"))
         assert r.json["count"] >= len(sites)
 
         r = self.client.get(url_for("monitorings.get_sites", last_visit="2026"))
         assert r.json["count"] == 0
 
-        r = self.client.get(url_for("monitorings.get_sites", id_inventor="user"))
-        nb_results = r.json["count"]
-        assert r.json["count"] >= 3
+        # Test filters with inventor name
+        resp = self.client.get(url_for("monitorings.get_sites", id_inventor="Bob"))
+        nb_results = resp.json["count"]
+        assert nb_results >= 3
 
-        r = self.client.get(
+        # Test filters  with inventor name with order by
+        resp = self.client.get(
             url_for(
                 "monitorings.get_sites",
-                id_inventor="user",
+                id_inventor="Bob",
                 sort="id_inventor",
                 sort_dir="desc",
             )
         )
-        assert nb_results == r.json["count"]
-        assert r.json["count"] == len(sites)
+        assert nb_results == resp.json["count"]
+
+        # Test get all sites with order by
+        resp = self.client.get(
+            url_for(
+                "monitorings.get_sites",
+                sort="id_base_site",
+                sort_dir="desc",
+            )
+        )
+        assert resp.json["count"] == len(sites)
 
     def test_get_sites_filters_types_site(self, sites, types_site, monitorings_users):
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
@@ -127,7 +139,7 @@ class TestSite:
         base_site_name = site.base_site_name
 
         r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
-        print(r.json)
+
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["base_site_name"] == base_site_name
 
@@ -386,8 +398,6 @@ class TestSite:
         set_logged_user_cookie(self.client, monitorings_users["admin_user"])
         module_code = "TEST"
         r = self.client.get(url_for("monitorings.get_module_sites", module_code=module_code))
-        print(url_for("monitorings.get_module_sites", module_code=module_code))
-        print(r.json)
         assert r.json["module_code"] == module_code
 
     def test_get_types_site_by_label(self, types_site, monitorings_users):

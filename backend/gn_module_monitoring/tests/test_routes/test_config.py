@@ -5,7 +5,7 @@ from gn_module_monitoring.tests.fixtures.generic import *
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestRouteConfig:
     def test_get_config(self):
         response = self.client.get(url_for("monitorings.get_config_api"))
