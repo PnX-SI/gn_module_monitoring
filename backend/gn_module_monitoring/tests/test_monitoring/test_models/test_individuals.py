@@ -10,7 +10,6 @@ from gn_module_monitoring.tests.fixtures.individual import *
 from gn_module_monitoring.tests.fixtures.observation import *
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestMonitoringIndividuals:
     def test_model_inheritance(self):
         assert issubclass(TMonitoringIndividuals, TIndividuals)

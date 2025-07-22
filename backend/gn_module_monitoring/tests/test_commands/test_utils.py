@@ -12,7 +12,6 @@ from gn_module_monitoring.command.utils import execute_sql_file, FORBIDDEN_SQL_I
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
-@pytest.mark.usefixtures("client_class")
 class TestCommandsUtils:
     def test_execute_sql_file(self):
         file_dir = Path(__file__).absolute().parent.parent / "fixtures"

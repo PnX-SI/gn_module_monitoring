@@ -6,7 +6,6 @@ from gn_module_monitoring.tests.fixtures.individual import *
 from gn_module_monitoring.tests.fixtures.marking import *
 
 
-@pytest.mark.usefixtures("client_class")
 class TestMonitoringIndividuals:
     def test_monitoring_individuals_schema_serialization(self, individuals):
         # Récupération de l'individu

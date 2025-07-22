@@ -8,7 +8,6 @@ from gn_module_monitoring.monitoring.models import (
 )
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestMonitoringMarkingEvent:
     def test_model_inheritance(self):
         assert issubclass(TMonitoringMarkingEvent, TMarkingEvent)
