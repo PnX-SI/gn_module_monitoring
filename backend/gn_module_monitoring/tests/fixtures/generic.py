@@ -1,5 +1,3 @@
-import pytest
-
 from sqlalchemy import select
 
 from geonature.utils.env import db
@@ -9,17 +7,6 @@ from geonature.core.gn_permissions.models import (
     Permission,
 )
 from geonature.core.gn_commons.models import TModules
-from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-from geonature.tests.fixtures import users
-from pypnusershub.db.models import User
-from pypnusershub.db.models import (
-    User,
-    Organisme,
-    Application,
-    Profils as Profil,
-    UserApplicationRight,
-)
 
 
 def add_user_permission(module_code, user, scope, type_code_object, code_action="CRUVED"):
@@ -69,48 +56,3 @@ def add_user_permission(module_code, user, scope, type_code_object, code_action=
                         sensitivity_filter=None,
                     )
                     db.session.add(permission)
-
-
-@pytest.fixture
-def monitorings_users(users):
-
-    modules = db.session.scalars(select(TModules)).all()
-
-    type_code_object = [
-        "MONITORINGS_MODULES",
-        "MONITORINGS_GRP_SITES",
-        "MONITORINGS_SITES",
-        "MONITORINGS_VISITES",
-        "MONITORINGS_INDIVIDUALS",
-        "MONITORINGS_MARKINGS",
-        "ALL",
-    ]
-
-    def add_monitoring_permissions(user, scope=None, sensitivity_filter=False):
-        for code_object in type_code_object:
-            for module in modules:
-                add_user_permission(
-                    module.module_code,
-                    user,
-                    scope=scope,
-                    type_code_object=code_object,
-                    code_action="CRUVD",
-                )
-
-        return user
-
-    monitoring_users = {}
-
-    users_to_create = [
-        ("noright_user", 0),
-        ("stranger_user", 2),
-        ("associate_user", 2),
-        ("self_user", 1),
-        ("user", 2),
-        ("admin_user", 3),
-    ]
-
-    for username, *args in users_to_create:
-        monitoring_users[username] = add_monitoring_permissions(users[username], *args)
-
-    return monitoring_users

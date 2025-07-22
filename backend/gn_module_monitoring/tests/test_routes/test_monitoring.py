@@ -18,12 +18,12 @@ from gn_module_monitoring.tests.fixtures.generic import *
 @pytest.mark.usefixtures("client_class")
 class TestModules:
 
-    def test_get_fake_export_csv(self, install_module_test, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_fake_export_csv(self, install_module_test, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         # Add user permission for export
         add_user_permission(
             "test",
-            monitorings_users["admin_user"],
+            users["admin_user"],
             scope=3,
             type_code_object="MONITORINGS_MODULES",
             code_action="E",
@@ -35,8 +35,8 @@ class TestModules:
         )
         assert response.status_code == 404
 
-    def test_get_export_csv(self, install_module_test, monitorings_users, sites):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_export_csv(self, install_module_test, users, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
 
         # test unautorized
         response = self.client.get(
@@ -47,7 +47,7 @@ class TestModules:
         # Add user permission for export
         add_user_permission(
             "test",
-            monitorings_users["admin_user"],
+            users["admin_user"],
             scope=3,
             type_code_object="MONITORINGS_MODULES",
             code_action="E",
