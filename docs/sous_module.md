@@ -14,8 +14,9 @@ title: 'Création d''un sous-module'
   - [Définir une nouvelle variable](#définir-une-nouvelle-variable)
   - [Redéfinir une variable existante](#redéfinir-une-variable-existante)
   - [`datalists`](#datalists)
-    - [Les paramètres dynamiques](#les-paramètres-dynamiques)
-    - [La variable `change`](#la-variable-change)
+  - [Les paramètres dynamiques](#les-paramètres-dynamiques)
+    - [Exemples champs des formulaires](#exemples-champs-des-formulaires) 
+    - [Exemples variable `change`](#exemples-variable-change)
 - [Nomenclature](#nomenclature)
 - [Configuration de la carte](#configuration-de-la-carte)
 - [Exports](#exports)
@@ -507,22 +508,21 @@ Les variables accessibles en fonction des différents contextes sont les suivant
 * `value` : la valeur du formulaire. Dans le contexte d'un champ specific
 * `attribut_name` : du composant concerné. Dans le contexte d'un champ specific
 * `objForm` : Formulaire. Dans le contexte de la fonction change
-* `meta` : Dictionnaire de données additionelles, contient les données suivantes. Dans tout les contextes
+* `meta` : Dictionnaire de données additionnelles, contient les données suivantes. Dans tout les contextes
     * `nomenclatures`: liste des nomenclatures utilisées. Dictionnaire avec `id_nomenclature` comme clé.
     * `dataset` : liste des jdds disponibles pour l'utilisateur et le module
-    * `id_role` : identifiant de l'utilisateur courrant
-    * `bChainInput`:  si on enchaine les relevés
+    * `id_role` : identifiant de l'utilisateur courant
+    * `bChainInput`:  si on enchaîne les relevés
     * `parents`: Objets parents. Permet de récupérer les valeurs définies dans le parents. 
  
 
-La chaine de caractère qui décrit la fonction doit être de la forme
+La chaîne de caractère qui décrit la fonction doit être de la forme
 suivante :
 
 ```json
     "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 ```
-
-Le format JSON ne permet pas les sauts de ligne dans les chaines de caractère, et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractères :
+Le format JSON ne permet pas les sauts de ligne dans les chaînes de caractère, et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaîne de caractères :
 
 ```json
     "hidden": [
@@ -609,7 +609,7 @@ Un exemple (`module.json` du module test) :
 }
 ```
 
-Ici on donne à la variable `test3` la valeur `<test>_<test2>`. Le test `!objForm.controls.test3.dirty` permet de ne modifier la variable que si l'utilisateur ne l'a pas modifé manuellement.
+Ici on donne à la variable `test3` la valeur `<test>_<test2>`. Le test `!objForm.controls.test3.dirty` permet de ne modifier la variable que si l'utilisateur ne l'a pas modifié manuellement.
  
 
 **Exemple valeur par défaut en fonction des valeurs du formulaire parent**
