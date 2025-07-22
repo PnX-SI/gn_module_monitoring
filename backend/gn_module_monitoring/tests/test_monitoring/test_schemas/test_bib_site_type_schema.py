@@ -8,7 +8,6 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestBibSiteTypeSchema:
     def test_dump(self, types_site):
         one_type_site = db.session.scalars(select(BibTypeSite).limit(1)).first()

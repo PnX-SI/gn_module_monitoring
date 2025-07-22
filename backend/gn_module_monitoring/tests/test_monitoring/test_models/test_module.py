@@ -7,7 +7,6 @@ from geonature.utils.env import db
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestModule:
     def test_module(self, monitoring_module, types_site):
         types = monitoring_module.types_site

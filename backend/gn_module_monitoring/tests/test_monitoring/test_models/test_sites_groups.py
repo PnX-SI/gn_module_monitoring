@@ -7,7 +7,6 @@ from geonature.utils.env import DB
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestTMonitoringSitesGroups:
     def test_sort_desc(self, sites_groups):
         if len(sites_groups) < 2:
