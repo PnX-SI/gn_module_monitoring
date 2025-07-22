@@ -22,9 +22,9 @@ class TestMonitoringIndividuals:
         assert serialized_data["active"] == individual.active
         assert serialized_data["id_digitiser"] == individual.id_digitiser
 
-    def test_monitoring_individuals_schema_deserialization(self, monitorings_users):
+    def test_monitoring_individuals_schema_deserialization(self, users):
         # Données d'entrée
-        user = monitorings_users["user"]
+        user = users["user"]
         input_data = {
             "individual_name": "Test Individual",
             "cd_nom": 12345,

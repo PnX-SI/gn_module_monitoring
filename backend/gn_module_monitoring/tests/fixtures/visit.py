@@ -27,8 +27,8 @@ def visits(sites, datasets, monitoring_module):
 
 
 @pytest.fixture
-def visit_with_individual(sites, datasets, monitorings_users, monitoring_module):
-    user = monitorings_users["user"]
+def visit_with_individual(sites, datasets, users, monitoring_module):
+    user = users["user"]
     now = datetime.datetime.now()
     dataset = datasets["orphan_dataset"]
     db_visit = TMonitoringVisits(

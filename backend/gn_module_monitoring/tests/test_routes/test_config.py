@@ -12,8 +12,8 @@ class TestRouteConfig:
 
         assert response.json["default_display_field_names"]["area"] == "area_name"
 
-    def test_get_config_module(self, install_module_test, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_config_module(self, install_module_test, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(url_for("monitorings.get_config_api", module_code="test"))
 
         module_type_site = response.json["module"]["types_site"]

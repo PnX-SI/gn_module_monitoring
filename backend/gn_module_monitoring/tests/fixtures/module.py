@@ -20,12 +20,12 @@ from gn_module_monitoring.command.cmd import (
     cmd_install_monitoring_module,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.tests.fixtures.generic import monitorings_users
+from gn_module_monitoring.tests.fixtures.generic import add_user_permission
 from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 
 @pytest.fixture
-def install_module_test(types_site):
+def install_module_test(types_site, users):
     # Copy des fichiers du module de test
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
     path_module_test = path_gn_monitoring / Path("contrib/test")
@@ -45,9 +45,39 @@ def install_module_test(types_site):
         module.types_site = list(types_site.values())
         db.session.add(module)
 
+    # Association des permissions aux différents utilisateurs
+    users_to_create = [
+        ("noright_user", 0),
+        ("stranger_user", 2),
+        ("associate_user", 2),
+        ("self_user", 1),
+        ("user", 2),
+        ("admin_user", 3),
+    ]
+
+    type_code_object = [
+        "MONITORINGS_MODULES",
+        "MONITORINGS_GRP_SITES",
+        "MONITORINGS_SITES",
+        "MONITORINGS_VISITES",
+        "MONITORINGS_INDIVIDUALS",
+        "MONITORINGS_MARKINGS",
+        "ALL",
+    ]
+
+    for username, scope in users_to_create:
+        for code_object in type_code_object:
+            add_user_permission(
+                module.module_code,
+                users[username],
+                scope=scope,
+                type_code_object=code_object,
+                code_action="CRUVD",
+            )
+
 
 @pytest.fixture
-def monitoring_module(types_site, monitorings_users):
+def monitoring_module(types_site, users):
     t_monitoring_module = TMonitoringModules(
         module_code="TEST",
         uuid_module_complement=uuid4(),
@@ -84,7 +114,7 @@ def monitoring_module(types_site, monitorings_users):
             for action in actions.values():
                 for obj in [object_all] + t_monitoring_module.objects:
                     permission = Permission(
-                        role=monitorings_users["admin_user"],
+                        role=users["admin_user"],
                         action=action,
                         module=t_monitoring_module,
                         object=obj,
@@ -114,8 +144,8 @@ def monitoring_module_wo_types_site():
 
 
 @pytest.fixture
-def modules_with_and_without_permission(types_site, monitorings_users):
-    user = monitorings_users["admin_user"]
+def modules_with_and_without_permission(types_site, users):
+    user = users["admin_user"]
 
     module_with_perm = TMonitoringModules(
         module_code="WITH_PERM",
@@ -140,83 +170,48 @@ def modules_with_and_without_permission(types_site, monitorings_users):
     with db.session.begin_nested():
         db.session.add_all([module_with_perm, module_without_perm])
 
-        action_r = db.session.execute(
-            select(PermAction).where(PermAction.code_action == "R")
-        ).scalar_one()
-
-        # PermObjets
-        objects = {
-            code: db.session.execute(
-                select(PermObject).where(PermObject.code_object == code)
-            ).scalar_one()
-            for code in [
-                "MONITORINGS_MODULES",
-                "MONITORINGS_GRP_SITES",
-                "MONITORINGS_SITES",
-                "MONITORINGS_VISITES",
-            ]
-        }
-
-        # Ajout de droits complets sur tous les objets (y compris VISITES)
-        for obj in objects.values():
-            db.session.add(
-                Permission(
-                    role=user,
-                    action=action_r,
-                    module=module_with_perm,
-                    object=obj,
-                    scope_value=None,
-                    sensitivity_filter=None,
-                )
-            )
+    # Ajout de droits complets sur tous les objets (y compris VISITES)
+    for type_code_object in [
+        "MONITORINGS_MODULES",
+        "MONITORINGS_GRP_SITES",
+        "MONITORINGS_SITES",
+        "MONITORINGS_VISITES",
+    ]:
+        add_user_permission(
+            module_with_perm.module_code, user, 3, type_code_object, code_action="R"
+        )
 
         # Ajout de droits limités pour module_without_perm (pas MONITORINGS_VISITES)
-        for code in ["MONITORINGS_MODULES", "MONITORINGS_GRP_SITES", "MONITORINGS_SITES"]:
-            db.session.add(
-                Permission(
-                    role=user,
-                    action=action_r,
-                    module=module_without_perm,
-                    object=objects[code],
-                    scope_value=None,
-                    sensitivity_filter=None,
-                )
-            )
+    for type_code_object in ["MONITORINGS_MODULES", "MONITORINGS_GRP_SITES", "MONITORINGS_SITES"]:
+        add_user_permission(
+            module_without_perm.module_code, user, 3, type_code_object, code_action="R"
+        )
 
     return {"with_perm": module_with_perm, "without_perm": module_without_perm}
 
 
 @pytest.fixture
-def modules_with_permissions_and_different_types(types_site, monitorings_users):
-    admin_user = monitorings_users["admin_user"]
+def modules_with_permissions_and_different_types(types_site, users):
+    admin_user = users["admin_user"]
     modules = {}
 
-    with db.session.begin_nested():
-        action_r = db.session.execute(
-            select(PermAction).where(PermAction.code_action == "R")
-        ).scalar_one()
-        perm_object = db.session.execute(
-            select(PermObject).where(PermObject.code_object == "MONITORINGS_VISITES")
-        ).scalar_one()
+    for label, type_site in types_site.items():
+        module = TMonitoringModules(
+            module_code=f"MOD_{label}",
+            module_label=f"Module {label}",
+            module_path=f"path_{label}",
+            uuid_module_complement=uuid4(),
+            active_frontend=True,
+            active_backend=True,
+            types_site=[type_site],
+        )
 
-        for label, type_site in types_site.items():
-            module = TMonitoringModules(
-                module_code=f"MOD_{label}",
-                module_label=f"Module {label}",
-                module_path=f"path_{label}",
-                uuid_module_complement=uuid4(),
-                active_frontend=True,
-                active_backend=True,
-                types_site=[type_site],
-            )
+        with db.session.begin_nested():
             db.session.add(module)
+        add_user_permission(
+            module.module_code, admin_user, 3, "MONITORINGS_VISITES", code_action="R"
+        )
 
-            # On donne la permission "R"
-            permission = Permission(
-                role=admin_user, action=action_r, module=module, object=perm_object
-            )
-            db.session.add(permission)
-
-            modules[label] = module
+        modules[label] = module
 
     return {"admin_user": admin_user, "modules": modules}
