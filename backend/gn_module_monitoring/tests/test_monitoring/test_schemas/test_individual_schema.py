@@ -6,7 +6,7 @@ from gn_module_monitoring.tests.fixtures.individual import *
 from gn_module_monitoring.tests.fixtures.marking import *
 
 
-@pytest.mark.usefixtures("temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestMonitoringIndividuals:
     def test_monitoring_individuals_schema_serialization(self, individuals):
         # Récupération de l'individu
@@ -23,9 +23,9 @@ class TestMonitoringIndividuals:
         assert serialized_data["active"] == individual.active
         assert serialized_data["id_digitiser"] == individual.id_digitiser
 
-    def test_monitoring_individuals_schema_deserialization(self, users):
+    def test_monitoring_individuals_schema_deserialization(self, monitorings_users):
         # Données d'entrée
-        user = users["user"]
+        user = monitorings_users["user"]
         input_data = {
             "individual_name": "Test Individual",
             "cd_nom": 12345,

@@ -10,19 +10,21 @@ from geonature.core.gn_monitoring.models import corIndividualModule
 from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
 from gn_module_monitoring.tests.fixtures.marking import *
 
-SPECIE = "Athene noctua"
+from geonature.tests.fixtures import users
+
+SPECIES = "Athene noctua"
 
 
 @pytest.fixture
-def individuals(monitorings_users, monitoring_module):
-    user = monitorings_users["user"]
+def individuals(users, monitoring_module):
+    user = users["user"]
     cd_nom = db.session.execute(
         select(Taxref.cd_nom).where(
-            and_(Taxref.lb_nom.ilike(SPECIE), Taxref.cd_nom == Taxref.cd_ref)
+            and_(Taxref.lb_nom.ilike(SPECIES), Taxref.cd_nom == Taxref.cd_ref)
         )
     ).scalar_one_or_none()
     if cd_nom is None:
-        raise ValueError(f"L'espèce '{SPECIE}' n'a pas été trouvée dans la table Taxref.")
+        raise ValueError(f"L'espèce '{SPECIES}' n'a pas été trouvée dans la table Taxref.")
 
     db_individuals = {}
     cor_individual_module = []
