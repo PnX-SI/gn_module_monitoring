@@ -493,24 +493,27 @@ Par exemple :
 },
 ```
 
-### Les paramètres dynamiques
+## Les paramètres dynamiques
 
-Il est possible de définir des paramètre qui peuvent dépendre de
-plusieurs variables. La valeur de ce paramètre est alors une chaîne de
-caractère qui définit une fonction, qui utilise les variables suivantes
+Il est possible de définir des fonctions javascript (sous forme de chaine de caractères) qui peuvent modifier les comportements et valeurs du formulaire. 
 
-**Ce cas n'est pris en compte que pour les composants spécifiques, ou
-pour les composants redéfinis dans `specific`**
+**Ce cas n'est pris en compte que pour les composants spécifiques, ou pour les composants redéfinis dans `specific`**
 
-* `value` : les valeurs du formulaire
-* `attribut_name` : du composant concerné
-* `meta` : un dictionnaire de données additionelles, et fourni au
-    composant dynamicFormGenerator, il peut contenir des données sur
-    * la nomenclature (pour avoir les valeurs des nomenclature à
-        partir des id, ici un dictionnaire avec `id_nomenclature` comme
-        clés.
-    * `bChainInput` si on enchaine les relevés
-    * etc.. à redéfinir selon les besoins
+Il est possible de définir des fonctions à deux niveaux:
+* au niveau de chaque champ du formulaire
+* au niveau global au formulaire (via la fonction change)
+  
+Les variables accessibles en fonction des différents contextes sont les suivantes : 
+* `value` : la valeur du formulaire. Dans le contexte d'un champ specific
+* `attribut_name` : du composant concerné. Dans le contexte d'un champ specific
+* `objForm` : Formulaire. Dans le contexte de la fonction change
+* `meta` : Dictionnaire de données additionelles, contient les données suivantes. Dans tout les contextes
+    * `nomenclatures`: liste des nomenclatures utilisées. Dictionnaire avec `id_nomenclature` comme clé.
+    * `dataset` : liste des jdds disponibles pour l'utilisateur et le module
+    * `id_role` : identifiant de l'utilisateur courrant
+    * `bChainInput`:  si on enchaine les relevés
+    * `parents`: Objets parents. Permet de récupérer les valeurs définies dans le parents. 
+ 
 
 La chaine de caractère qui décrit la fonction doit être de la forme
 suivante :
@@ -519,9 +522,7 @@ suivante :
     "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 ```
 
-Le format JSON ne permet pas les sauts de ligne dans les chaines de
-caractère, et pour avoir plus de lisibilité, quand la fonction est plus
-complexe, on peut aussi utiliser un tableau de chaine de caractères :
+Le format JSON ne permet pas les sauts de ligne dans les chaines de caractère, et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaine de caractères :
 
 ```json
     "hidden": [
@@ -530,16 +531,11 @@ complexe, on peut aussi utiliser un tableau de chaine de caractères :
         "}"
     ]
 ```
+ 
 
-Le lignes seront collées entre elles avec l'ajout de saut de lignes
-(caractère [n]{.title-ref}).
+### Exemples champs des formulaires
 
-Il faut être certain de sa fonction.
-
-Exemples :
-
-* Afficher le composant `test2` et le rendre obligatoire seulement si
-    `test1` a pour valeur `t` :
+* Afficher le composant `test2` et le rendre obligatoire seulement si `test1` a pour valeur `t` :
 
 ```json
 "specific": {
@@ -556,8 +552,7 @@ Exemples :
 }
 ```
 
-* Ajouter un champs pour renseigner la profondeur d'une grotte si le
-    type de site est une grotte
+* Ajouter un champ pour renseigner la profondeur d'une grotte si le type de site est une grotte (cd_nomenclature  '1')
 
 Dans le fichier `site.json`
 
@@ -574,15 +569,13 @@ Dans le fichier `site.json`
 }
 ```
 
-**Le paramêtre ``value`` ne peut pas être dynamique, pour changer la
-valeur des variables en fonction d'autres variables, on peut définir
-``change`` dans la config. Voir ci dessous**
+**Le paramêtre ``value`` ne peut pas être dynamique, pour changer la valeur des variables en fonction d'autres variables, on peut définir ``change`` dans la config. Voir ci dessous**
 
-### La variable `change`
+### Exemples variable `change`
 
-On peut y définir une fonction qui sera appelée chaque fois que le
-formulaire change.
+On peut y définir une fonction qui sera appelée chaque fois que le formulaire change. 
 
+**Exemple utilisation de objForm**
 Un exemple (`module.json` du module test) :
 
 ```json
@@ -616,144 +609,54 @@ Un exemple (`module.json` du module test) :
 }
 ```
 
-Ici on donne à la variable `test3` la valeur `<test>_<test2>`.
+Ici on donne à la variable `test3` la valeur `<test>_<test2>`. Le test `!objForm.controls.test3.dirty` permet de ne modifier la variable que si l'utilisateur ne l'a pas modifé manuellement.
+ 
 
-C'est valable tant que le `test3` n'a pas été modifé à la main (i. e.
-`objForm.controls.test3.dirty` n'est pas vrai).
-
-On peut donc modifer par la suite la valeur de test3 à la main.
-
-Comme précemment on peut aussi avoir accès à meta. Par exemple, il est possible avec meta de récupérer les données du niveau supérieur. Voici un exemple sur la réutilisation de valeurs au niveau du site pour pré-remplir les champs au niveau de la visite:
+**Exemple valeur par défaut en fonction des valeurs du formulaire parent**
+Il est possible avec meta de récupérer les données du niveau supérieur. Voici un exemple sur la réutilisation de valeurs au niveau du site pour pré-remplir les champs au niveau de la visite:
 
 Fichier de configuration du niveau site:
 
 ```json
 {
-  "genre":"M",
-  "label": "Transect",
-  "label_list": "Transects",
-  "geometry_type": "LineString",
-  "sorts": [
-    {"prop": "base_site_name", "dir": "asc"}
-  ],
-  "display_properties": [
-    "id_sites_group",
-    "base_site_code",
-    "base_site_name",
-    "altitude_min",
-    "altitude_max",
-    "occ_sol",
-    "gestion",
-    "impact"
- ],
-"display_list": [
-  "base_site_name",
-  "nb_visits"
-],
-"keep": [
-  "id_sites_group",
-  "habitat",
-  "gestion",
-  "impact"
-],
+ ...
 "specific": {
-  "base_site_code":{
-    "attribut_label": "Code du transect"
-  },
-  "base_site_name":{
-    "attribut_label": "Nom du transect"
-  },
-  "id_sites_group": {
-    "type_widget": "datalist",
-    "attribut_label": "Site CEN du suivi",
-    "type_util": "sites_group",
-    "keyValue": "id_sites_group",
-    "keyLabel": "sites_group_name",
-    "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE",
-    "application": "GeoNature",
-    "required": true,
-    "hidden": false,
-    "definition": "Liste des sites du CEN afférents au suivi"
-  },
+   ...
   "occ_sol": {
     "attribut_label": "OS",
     "type_widget": "select",
-    "values": ["Forêts et milieux semi-naturels", "Territoires agricoles", "Territoires artificialisés","Zones humides"],
+    "values": [...],
     "required": true,
     "hidden": false
   },
   "gestion":{
     "attribut_label": "Gestion",
     "type_widget": "select",
-    "values": [
-      "Autre",
-      "Broyage",
-      "Débroussaillage",
-      "Etrépage",
-      "Fauche",
-      "Pas d'intervention",
-      "Pâturage"
-    ],
+    "values": [...],
     "required": true,
     "hidden": false
   }
 }
 ```
+
 Fichier de configuration du niveau visite: 
+
 ```json
 {
-  "description_field_name": "num_passage",
-  "genre":"M",
-  "label": "Passage",
-  "label_list": "Passages",
-  "display_properties": [
-    "num_passage",
-    "observers",
-    "visit_date_min",
-    "occ_sol",
-    "gestion",
-    "comments"
-  ],
-  "display_list": [
-    "num_passage",
-    "visit_date_min",
-    "observers",
-    "occ_sol",
-    "nb_observations"
-  ],
-  "keep": [
-    "occ_sol",
-    "gestion",
-    "id_dataset",
-    "observers"
-  ],
+  ...
   "specific": {
-    "num_passage": {
-    "type_widget": "number",
-      "attribut_label": "Numéro de passage",
-      "min" : 1,
-      "max": 4,
-      "required": true
-    }, 
+     ...
     "occ_sol": {
       "attribut_label": "Occupation du sol à grande échelle",
       "type_widget": "select",
-      "values": ["Forêts et milieux semi-naturels", "Territoires agricoles", "Territoires artificialisés","Zones humides"],
+      "values": [...],
       "required": true,
       "hidden": false
     }, 
     "gestion":{
       "attribut_label": "Gestion",
       "type_widget": "select",
-      "values": [
-        "Autre",
-        "Broyage",
-        "Débroussaillage",
-        "Etrépage",
-        "Fauche",
-        "Pas d'intervention",
-        "Pâturage"
-      ],
+      "values": [...],
       "required": false,
       "hidden": false
     }
