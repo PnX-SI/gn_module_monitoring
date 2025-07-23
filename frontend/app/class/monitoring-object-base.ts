@@ -56,6 +56,7 @@ export class MonitoringObjectBase {
   }
 
   testPremiereLettreVoyelle(s) {
+    // Test si la première lettre d'une chaine de caractère est une voyelle
     return s && s[0] && 'aeéiouy'.includes(s[0].toLowerCase());
   }
 
@@ -79,14 +80,18 @@ export class MonitoringObjectBase {
     return labelDu;
   }
 
-  labelArtUndef(newObj = false) {
-    const strNew = (newObj && this.configParam('genre') == 'F' ? 'nouvelle ' : 'nouveau ') || '';
+  labelArtUndef() {
+    const object_label = this.configParam('label').toLowerCase();
+    let strNew = 'nouveau';
 
-    return (
-      (this.configParam('genre') == 'F' ? `une ` : `un `) +
-      strNew +
-      this.configParam('label').toLowerCase()
-    );
+    if (this.configParam('genre') == 'F') {
+      strNew = 'nouvelle';
+    } else if (this.testPremiereLettreVoyelle(object_label)) {
+      // Si masculin mais avec comme première lettre une voyelle
+      strNew = 'nouvel';
+    }
+    const article = this.configParam('genre') == 'F' ? 'une' : 'un';
+    return `${article} ${strNew} ${object_label}`;
   }
 
   initTemplate() {
@@ -96,8 +101,7 @@ export class MonitoringObjectBase {
     this.template['idTableLocation'] = this.configParam('id_table_location');
     this.template['label'] = this.configParam('label');
     this.template['label_art_def'] = this.labelArtDef();
-    this.template['label_art_undef'] = this.labelArtUndef();
-    this.template['label_art_undef_new'] = this.labelArtUndef(true);
+    this.template['label_art_undef_new'] = this.labelArtUndef();
     this.template['label_list'] = this.configParam('label_list') || this.configParam('label') + 's';
 
     // this.template["title"] = this.title();
@@ -282,7 +286,7 @@ export class MonitoringObjectBase {
     const text = bEdit
       ? this.id
         ? `Modification ${this.labelDu()} ${description}`
-        : `Création d'${this.labelArtUndef(true)}`
+        : `Création d'${this.labelArtUndef()}`
       : `Détails ${this.labelDu()} ${description}`;
 
     return text.trim();
@@ -299,7 +303,7 @@ export class MonitoringObjectBase {
     const text = bEdit
       ? this.id
         ? `Modification ${this.labelDu()} ${description}`
-        : `Création d'${this.labelArtUndef(true)}`
+        : `Création d'${this.labelArtUndef()}`
       : `Détails ${this.labelDu()} ${description}`;
 
     return text.trim();

@@ -253,7 +253,6 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   msgToaster(action) {
-    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
     return `${action}  effectuée`.trim();
   }
 
