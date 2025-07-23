@@ -203,10 +203,7 @@ class TestCommands:
             insert_bib_field(protocol_data)
 
             insert_entities(
-                protocol_data,
-                destination.id_destination,
-                entity_hierarchy_map,
-                label_entity="Test Modified",
+                protocol_data, destination.id_destination, entity_hierarchy_map, "test"
             )
 
             insert_entity_field_relations(
