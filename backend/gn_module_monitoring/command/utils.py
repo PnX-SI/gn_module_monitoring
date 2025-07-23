@@ -1091,11 +1091,6 @@ def insert_entities(unique_fields, id_destination, entity_hierarchy_map, module_
                 code=entity_code_obs_detail, id_destination=id_destination
             )
         ).scalar()
-        existing_entity = DB.session.scalar(
-            sa.exists(Entity)
-            .where(Entity.code == entity_code_obs_detail, Entity.id_destination == id_destination)
-            .select()
-        )
 
         if existing_entity:
             DB.session.execute(
@@ -1399,13 +1394,14 @@ def get_existing_protocol_state(id_destination: int, module_data):
     entities_query = select(Entity).filter_by(id_destination=id_destination)
     existing_entities = DB.session.execute(entities_query).scalars().all()
 
-    entity = DB.session.execute(select(Entity).filter_by(id_destination=id_destination)).scalar()
+    destination = DB.session.execute(
+        select(Destination).filter_by(id_destination=id_destination)
+    ).scalar()
     new_label = module_data["module"].get("module_label")
-
     return {
         "fields": [field.__dict__ for field in existing_fields],
         "entities": [entity.__dict__ for entity in existing_entities],
-        "label": True if entity and entity.label != new_label else False,
+        "label": True if destination and destination.label != new_label else False,
     }
 
 
@@ -1483,7 +1479,7 @@ def validate_protocol_changes(module_code: str, module_data):
         warnings = []
         if existing_data["label"]:
             warnings.append(
-                f"INFO: Le libellé du module va être modifié. {destination.label} -> {module_data['module'].get('module_label')}"
+                f"INFO: Le libellé du module va être modifié. '{destination.label}' -> '{module_data['module'].get('module_label')}'"
             )
 
         if fields_to_delete:
@@ -1613,6 +1609,6 @@ def update_entity_label(destination_id: int, new_label: str):
         if entity.label != new_label:
             entity.label = new_label
             DB.session.add(entity)
-
-    print(f"Libellé de l'entité mis à jour : {entity.label} -> {new_label}")
+    print(entity.label == new_label)
+    print(f"Libellé de l'entité mis à jour : '{entity.label}' -> '{new_label}'")
     DB.session.flush()
