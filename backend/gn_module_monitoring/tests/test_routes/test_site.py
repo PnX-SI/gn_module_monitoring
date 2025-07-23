@@ -489,7 +489,6 @@ class TestSite:
 #     return _add_site
 
 
-
 # TODO: ajouter tests sur filtre par permissions
 @pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
 class TestSiteWithModule:
