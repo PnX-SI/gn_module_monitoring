@@ -7,8 +7,9 @@
     },
     "label": "Individu",
     "genre": "M",
-    "display_properties": ["uuid_individual", 
-      "individual_name", 
+    "display_properties": [
+      "uuid_individual",
+      "individual_name",
       "active",
       "id_nomenclature_sex",
       "comment",
@@ -74,7 +75,7 @@
       "medias": {
         "type_widget": "medias",
         "attribut_label": "Médias",
-        "schema_dot_table": "gn_monitoring.t_marking_events"
+        "schema_dot_table": "gn_monitoring.t_individuals"
       }
   },
   "change": [
@@ -87,4 +88,3 @@
     ""
   ]
 }
-  
