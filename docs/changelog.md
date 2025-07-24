@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 1.1.0 (unreleased)
+
+Nécessite GeoNature 2.16.0 (ou plus)
+
+**🚀 Nouveautés**
+- Ajout de la gestion des individus pour les protocoles de suivi de type CMR, dans le cadre d'une prestation de la Société Herpétologique de France
+  - Détail de la réalisation : #213. (#259, #402 par @mvergez, @andriacap, @amandine-sahl)
+  - Ajout d'une documentation pour l'ajout des notions d'individus/marquage dans un sous-module et la configuration des marquages (docs/individuals.md)
+  - Les individus/marquages sont des niveaux facultatifs qui peuvent être ajoutés (CMR) ou non en complément des niveaux groupes de sites, sites, visites et observations. Dans le cas où les individus sont activés, l'observation ne se rapporte plus à un taxon mais à un individu.
+  - Le modèle est prévu pour qu'à terme, un même individu puisse être suivi par plusieurs protocoles/sous-modules
+- Activation de la geolocalisation sur les cartes si le paramètre (`GEOLOCATION`) est activé dans la configuration globale de GeoNature (#371 by @pierre56)
+- Complément de documentation sur les variables dynamiques (#439 by @marie-laure-cen, @amandine-sahl)
+
+
+**🐛 Corrections**
+
+- Synchronisation des données avec la synthèse lorsque le nom d'un module n'est pas en minuscule (#449 by @gildeluermoz)
+- Correction de l'export des données quand la première colonne ne contient pas de valeur unique (#446 by @amandine-sahl)
+- Compatibilité GN 2.16 et tests unitaires (#448, #452, #447 by @amandine-sahl)
+- Affichage de "nouvel" ou "nouveau" mon type d'objet en fonction son l'orthographe (#456 by @amandine-sahl).
+- Traduction du texte "Téléchargement" (#458 by @jacquesfize)
+- Erreur lorsqu'aucun item n'est trouvé pour une nomenclature
+
+
 ## 1.0.3 (06-05-25)
 
 **🐛 Corrections**
