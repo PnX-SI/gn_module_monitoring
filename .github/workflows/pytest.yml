@@ -3,14 +3,15 @@ name: pytest
 on:
   push:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
       - develop
+      - feat/import-monitoring
   pull_request:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
@@ -21,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["develop"] # Mettre version compatible
+        geonature_ref: ["feat/import-monitorings"] # Mettre version compatible
     uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
     with:
       geonature_ref: ${{ matrix.geonature_ref }}

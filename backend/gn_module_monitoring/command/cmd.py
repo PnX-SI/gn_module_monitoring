@@ -2,12 +2,13 @@ import click
 
 from pathlib import Path
 from flask.cli import with_appcontext
-from sqlalchemy.sql import text, select
+from sqlalchemy.sql import text, select, exists
 
 from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
 from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
+from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import monitoring_module_config_path
@@ -21,6 +22,9 @@ from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
     process_sql_files,
+    process_module_import,
+    validate_json_file_protocol,
+    process_update_module_import,
 )
 
 
@@ -57,7 +61,6 @@ def cmd_install_monitoring_module(module_code):
                 où se situe les fichiers de configuration du module
         - module_code (str): code du module (par defaut la dernière partie de module_config_dir_path )
     """
-
     # module_config_dir_path = Path(module_config_dir_path)
     # module_code = module_code or module_config_dir_path.name
 
@@ -81,29 +84,54 @@ def cmd_install_monitoring_module(module_code):
             )
         return
 
-    click.secho(f"Installation du sous-module monitoring {module_code}")
+    success, errors = validate_json_file_protocol(module_code)
+    if not success:
+        click.echo("Erreurs détectées dans les fichiers de configuration:")
+        for error in errors:
+            click.echo(f"- {error}")
+        click.echo("Installation annulée")
+        return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
-
-    try:
-        module = get_simple_module("module_code", module_code)
-        # test si le module existe
-        if module:
-            click.secho(f"Le module {module_code} existe déjà", fg="red")
-            return
-    except Exception:
-        pass
-
-    # process Synthese
-    process_sql_files(dir=None, module_code=module_code, depth=1)
-    # process Exports
-    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     config = get_config(module_code, force=True)
 
     if not config:
         click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
+
+    try:
+        module = get_simple_module("module_code", module_code)
+        destination_exists = DB.session.scalar(
+            exists(Destination).where(Destination.code == module_code).select()
+        )
+        # Vérifier si le module existe
+        if module and destination_exists:
+            # Effectuer une mise à jour
+            try:
+                click.secho(f"Mise à jour du module {module_code}")
+                state = process_update_module_import(config, module_code)
+                if state is None:
+                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+                    return
+                if state:
+                    click.secho(f"Module {module_code} mis à jour", fg="green")
+                else:
+                    click.secho(
+                        f"La mise à jour du module {module_code} a était annulée", fg="red"
+                    )
+            except Exception:
+                return
+            return
+    except Exception:
+        pass
+
+    click.secho(f"Installation du sous-module monitoring {module_code}")
+
+    # process Synthese
+    process_sql_files(dir=None, module_code=module_code, depth=1)
+    # process Exports
+    process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
     module_desc = config["module"].get("module_desc")
     module_label = config["module"].get("module_label")
@@ -130,10 +158,13 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     }
 
     click.secho("ajout du module {} en base".format(module_code))
-    module = TMonitoringModules()
-    module.from_dict(module_data)
-    DB.session.add(module)
-    DB.session.commit()
+    if not DB.session.scalar(
+        exists(TMonitoringModules).where(TMonitoringModules.module_code == module_code).select()
+    ):
+        module = TMonitoringModules()
+        module.from_dict(module_data)
+        DB.session.add(module)
+        DB.session.commit()
 
     # Ajouter les permissions disponibles
     process_available_permissions(module_code, session=DB.session)
@@ -141,6 +172,9 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
 
     # insert nomenclature
     add_nomenclature(module_code)
+
+    # Ajouter les destinations disponibles
+    process_module_import(module_data)
 
     source_data = {
         "name_source": "MONITORING_{}".format(module_code.upper()),

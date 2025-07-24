@@ -25,12 +25,12 @@
   "sorts": [{ "prop": "visit_date_min", "dir": "desc" }],
   "generic": {
     "id_base_visit": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "ID",
       "hidden": true
     },
     "id_base_site": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "ID SITE",
       "hidden": true
     },
@@ -80,7 +80,8 @@
       "attribut_label": "Commentaires"
     },
     "uuid_base_visit": {
-      "attribut_label": "uuid"
+      "attribut_label": "uuid",
+      "type_util": "uuid"
     },
     "id_dataset": {
       "type_widget": "dataset",
@@ -91,6 +92,7 @@
       "required": true
     },
     "nb_observations": {
+      "type_widget": "number",
       "attribut_label": "Nombre d'observations"
     },
     "medias": {
