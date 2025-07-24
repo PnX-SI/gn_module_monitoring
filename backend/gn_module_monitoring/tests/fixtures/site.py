@@ -29,6 +29,7 @@ def sites(users, types_site, site_group_with_sites):
             geom=geom_4326,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
+            data={"profondeur_grotte": 42.8, "owner_name": "Robert", "meteo": 2},
         )
 
     for i, key in enumerate(types_site.keys()):

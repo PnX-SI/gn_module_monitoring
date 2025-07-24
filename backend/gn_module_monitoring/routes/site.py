@@ -23,7 +23,11 @@ from gn_module_monitoring.monitoring.models import (
     cor_module_type,
     cor_site_type,
 )
-from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.monitoring.schemas import (
+    BibTypeSiteSchema,
+    MonitoringSitesSchema,
+    add_specific_attributes,
+)
 from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api,
@@ -112,24 +116,51 @@ def get_all_types_site_from_site_id(id_site, object_type):
 
 
 @blueprint.route("/sites", methods=["GET"], defaults={"object_type": "site"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
-def get_sites(object_type):
+@blueprint.route(
+    "/refacto/<string:module_code>/sites", methods=["GET"], defaults={"object_type": "site"}
+)
+@check_cruved_scope("R", object_code="MONITORINGS_SITES")
+def get_sites(object_type, module_code=None):
     object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
-    # TODO: add filter support
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
         params=params, default_sort="id_base_site", default_direction="desc"
     )
 
     query = select(TMonitoringSites)
-    query = filter_params(TMonitoringSites, query=query, params=params)
-    query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
 
-    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
+    if module_code:
+        query = query.where(
+            TMonitoringSites.modules.any(TMonitoringModules.module_code == module_code)
+        )
+
+    config = get_config(g.current_module.module_code)
+    specific_properties = config.get("site", {}).get("specific", {})
+
+    query = filter_params(TMonitoringSites, query=query, params=params)
+    query = sort_according_to_column_type_for_site(
+        query, sort_label, sort_dir, specific_properties
+    )
+
+    query_allowed = TMonitoringSites.filter_by_readable(
+        query=query, object_code=object_code, module_code=g.current_module.module_code
+    )
+
+    query_allowed = TMonitoringSites.filter_by_specific(
+        query=query_allowed,
+        params=params,
+        specific_properties=specific_properties,
+    )
+
+    if module_code:
+        schema = add_specific_attributes(MonitoringSitesSchema, object_type, module_code)
+    else:
+        schema = MonitoringSitesSchema
+
     return paginate_scope(
         query=query_allowed,
-        schema=MonitoringSitesSchema,
+        schema=schema,
         limit=limit,
         page=page,
         object_code=object_code,
@@ -156,6 +187,20 @@ def get_site_by_id(scope, id, object_type):
 @blueprint.route("/sites/geometries", methods=["GET"], defaults={"object_type": "site"})
 @check_cruved_scope("R")
 def get_all_site_geometries(object_type):
+    return _get_site_geometries()
+
+
+@blueprint.route(
+    "/refacto/<string:module_code>/sites/geometries",
+    methods=["GET"],
+    defaults={"object_type": "site"},
+)
+@check_cruved_scope("R")
+def get_module_site_geometries(object_type, module_code):
+    return _get_site_geometries(module_code)
+
+
+def _get_site_geometries(module_code=None):
     object_code = "MONITORINGS_SITES"
     # params = request.args.to_dict(flat=True)
     params = dict(**request.args)
@@ -180,6 +225,10 @@ def get_all_site_geometries(object_type):
     query_allowed = TMonitoringSites.filter_by_readable(
         query=query, module_code=module_code, object_code=object_code
     )
+    if module_code != MODULE_CODE:
+        query_allowed = query_allowed.where(
+            TMonitoringSites.modules.any(TMonitoringModules.module_code == module_code)
+        )
     query_allowed = query_allowed.with_only_columns(
         TMonitoringSites.id_base_site,
         TMonitoringSites.base_site_name,
