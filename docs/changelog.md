@@ -19,6 +19,8 @@ Nécessite GeoNature 2.16.0 (ou plus)
 - Synchronisation des données avec la synthèse lorsque le nom d'un module n'est pas en minuscule (#449 by @gildeluermoz)
 - Correction de l'export des données quand la première colonne ne contient pas de valeur unique (#446 by @amandine-sahl)
 - Compatibilité GN 2.16 et tests unitaires (#448, #452, #447 by @amandine-sahl)
+- Affichage de "nouvel" ou "nouveau" mon type d'objet en fonction son l'orthographe (#456 by @amandine-sahl).
+- Traduction du texte "Téléchargement" (#458 by @jacquesfize)
 - Erreur lorsqu'aucun item n'est trouvé pour une nomenclature
 
 
