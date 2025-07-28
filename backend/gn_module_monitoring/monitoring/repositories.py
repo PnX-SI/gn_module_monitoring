@@ -13,6 +13,9 @@ from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 
 import logging
+from ..utils.utils import to_int
+from .base import monitoring_definitions
+from sqlalchemy.orm import joinedload
 
 log = logging.getLogger(__name__)
 
@@ -84,7 +87,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         if self._object_type == "module" and not process_module:
             return
 
-        table_name = "v_synthese_{}".format(self._module_code)
+        table_name = "v_synthese_{}".format(self._module_code.lower())
 
         # Test de l'existance de la colonne de synchronisation sur la vue synthese
         column_exist = DB.engine.execute(

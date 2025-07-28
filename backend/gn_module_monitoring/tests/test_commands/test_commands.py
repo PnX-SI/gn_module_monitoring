@@ -17,7 +17,6 @@ from gn_module_monitoring.command.cmd import (
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
 class TestCommands:
     def test_install_monitoring_module(self, install_module_test):
         # Installation du module

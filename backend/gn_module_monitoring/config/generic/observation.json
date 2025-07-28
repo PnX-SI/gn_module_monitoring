@@ -4,7 +4,10 @@
   "chained": true,
   "label": "Observation",
   "genre": "F",
-  "display_properties": ["cd_nom", "comments"],
+  "display_properties": [
+    "cd_nom",
+    "comments"
+  ],
   "uuid_field_name": "uuid_observation",
   "generic": {
     "id_observation": {
@@ -23,6 +26,11 @@
       "required": true,
       "hidden": true,
       "type_util": "user"
+    },
+    "id_individual": {
+      "type_widget": "text",
+      "attribut_label": "Id individu",
+      "hidden": true
     },
     "cd_nom": {
       "type_widget": "taxonomy",

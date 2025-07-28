@@ -6,7 +6,6 @@ from geonature.utils.env import db
 from geonature.core.gn_monitoring.models import BibTypeSite
 
 
-@pytest.mark.usefixtures("temporary_transaction")
 class TestBibTypeSite:
     def test_get_bib_type_site(self, types_site):
         type_site = list(types_site.values())[0]

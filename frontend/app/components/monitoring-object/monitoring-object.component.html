@@ -8,9 +8,17 @@
 
   <div class="flex-container" id="object">
     <div id="monitoring-map-container" class="cadre">
-      <pnx-monitoring-map *ngIf="heightMap" [obj]="obj" [bEdit]="bEdit" [objForm]="objForm"
-        [(selectedObject)]="selectedObject"
-        [heightMap]="heightMap"></pnx-monitoring-map>
+      <pnx-monitoring-map
+        *ngIf="heightMap"
+        [obj]="obj"
+        [geolocation]="true"
+        [bEdit]="bEdit"
+        [objForm]="objForm"
+        [(objectsStatus)]="objectsStatus"
+        [sites]="sites"
+        [sitesGroup]="sitesGroup"
+        [heightMap]="heightMap"
+      ></pnx-monitoring-map>
     </div>
 
     <div id="monitoring-elem-container" class="cadre scroll">

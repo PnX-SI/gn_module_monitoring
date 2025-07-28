@@ -1,22 +1,45 @@
 # CHANGELOG
 
+## 1.1.0 (28-07-2025)
+
+Nécessite GeoNature 2.16.0 (ou plus)
+
+**🚀 Nouveautés**
+- Ajout de la gestion des individus pour les protocoles de suivi de type CMR, dans le cadre d'une prestation de la Société Herpétologique de France
+  - Détail de la réalisation : #213. (#259, #402 par @mvergez, @andriacap, @amandine-sahl, @DonovanMaillard )
+  - Ajout d'une documentation pour l'ajout des notions d'individus/marquage dans un sous-module et la configuration des marquages (`docs/individuals.md`)
+  - Les individus/marquages sont des niveaux facultatifs qui peuvent être ajoutés (CMR) ou non en complément des niveaux groupes de sites, sites, visites et observations. Dans le cas où les individus sont activés, l'observation ne se rapporte plus à un taxon mais à un individu.
+  - Le modèle est prévu pour qu'à terme, un même individu puisse être suivi par plusieurs protocoles/sous-modules
+- Activation de la géolocalisation sur les cartes si le paramètre (`GEOLOCATION`) est activé dans la configuration globale de GeoNature (#371 by @pierre56)
+- Complément de documentation sur les variables dynamiques (#439 by @marie-laure-cen, @amandine-sahl)
+
+
+**🐛 Corrections**
+
+- Synchronisation des données avec la synthèse lorsque le nom d'un module n'est pas en minuscule (#449 by @gildeluermoz)
+- Correction de l'export des données quand la première colonne ne contient pas de valeur unique (#446 by @amandine-sahl)
+- Compatibilité GN 2.16 et tests unitaires (#448, #452, #447 by @amandine-sahl)
+- Affichage de "nouvel" ou "nouveau" mon type d'objet en fonction son l'orthographe (#456 by @amandine-sahl).
+- Traduction du texte "Téléchargement" (#458 by @jacquesfize)
+- Erreur lorsqu'aucun item n'est trouvé pour une nomenclature
+
+
 ## 1.0.3 (06-05-25)
 
 **🐛 Corrections**
 
-- Correction tri et filtre sur id_inventor sur la liste des sites (#423 by @amandine-sahl)
-- Filtrer les routes geométries sur les propriétés spécifiques des modules (#422 by @amandine-sahl)
+- Correction des tris et filtres sur `id_inventor` sur la liste des sites (#423 by @amandine-sahl)
+- Filtrer les routes géométries sur les propriétés spécifiques des modules (#422 by @amandine-sahl)
 - Correction du filtre `nb_site` sur la route géométrie de `sites_group` (#422 by @amandine-sahl)
-- Correction quand paramètre de tri inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
-- Correction de `formatLabelObservers` : retourne valeur même quand null + simplification (by @amandine-sahl)
+- Correction quand le paramètre de tri est inexistant dans la fonction sort + filtre des résultats lors du tri sur les observateurs (by @amandine-sahl)
+- Correction de `formatLabelObservers` : retourne une valeur même quand null + simplification du code (by @amandine-sahl)
 - Correction du spinner pendant le chargement des données (#415 by @andriacap, @amandine-sahl)
 - Optimisation et amélioration des performances de la requête de récupération des modules de `get_module_by_id_base_site` (#433 by @andriacap)
-- Correction d'appels multiples et croissant à la route `/module depuis la page d'accueil (#425 by @amandine-sahl)
+- Correction d'appels multiples et croissants à la route `/module` depuis la page d'accueil (#425 by @amandine-sahl)
 - Suppression de la fonction `filter_according_to_column_type_for_site` (#416 by @mathieu-roudaut-crea)
-- Correction exécution script sql avec des commentaires (#436 - #432)
-- Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas une erreur est loguée coté backend mais non transmisse au frontend (#436 - #432)
+- Correction de l'exécution des scripts SQL avec des commentaires (#436 - #432)
+- Synchronisation avec la synthèse : test si la colonne d'identification de l'objet n'existe pas une erreur est loguée coté backend mais non transmise au frontend (#436 - #432)
 - Ajout de tests automatisés avec support de Debian 12 (#423 by @amandine-sahl)
-
 
 ## 1.0.2 (2025-03-14)
 

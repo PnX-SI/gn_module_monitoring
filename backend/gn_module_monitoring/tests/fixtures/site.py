@@ -14,8 +14,9 @@ from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, Monitorin
 
 
 @pytest.fixture()
-def sites(monitorings_users, types_site, site_group_with_sites):
-    user = monitorings_users["user"]
+def sites(users, types_site, site_group_with_sites):
+    user = users["user"]
+    admin_user = users["admin_user"]
     geom_4326 = from_shape(Point(43, 24), srid=4326)
     sites = {}
     for i, key in enumerate(types_site.keys()):
@@ -30,11 +31,10 @@ def sites(monitorings_users, types_site, site_group_with_sites):
             id_sites_group=site_group_with_sites.id_sites_group,
         )
 
-    user = monitorings_users["admin_user"]
     for i, key in enumerate(types_site.keys()):
         sites["admin_user_" + key] = TMonitoringSites(
-            id_inventor=user.id_role,
-            id_digitiser=user.id_role,
+            id_inventor=admin_user.id_role,
+            id_digitiser=admin_user.id_role,
             base_site_name=f"Site{i} admin_user",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
@@ -45,8 +45,8 @@ def sites(monitorings_users, types_site, site_group_with_sites):
 
     # Add a special site that has no type
     sites["no-type"] = TMonitoringSites(
-        id_inventor=monitorings_users["user"].id_role,
-        id_digitiser=monitorings_users["user"].id_role,
+        id_inventor=user.id_role,
+        id_digitiser=user.id_role,
         base_site_name="no-type",
         base_site_description="Description-no-type",
         base_site_code="Code-no-type",

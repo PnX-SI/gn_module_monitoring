@@ -6,7 +6,11 @@
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
-  "geometry_type": ["Point", "LineString", "Polygon"],
+  "geometry_type": [
+    "Point",
+    "LineString",
+    "Polygon"
+  ],
   "display_properties": [
     "base_site_name",
     "base_site_code",
@@ -25,7 +29,8 @@
     "last_visit",
     "id_inventor",
     "nb_visits",
-    "types_site"
+    "types_site",
+    "nb_individuals"
   ],
   "sorts": [
     {
@@ -79,6 +84,9 @@
     },
     "nb_visits": {
       "attribut_label": "Nb. visites"
+    },
+    "nb_individuals": {
+      "attribut_label": "Nb. individus"
     },
     "uuid_base_site": {
       "attribut_label": "uuid"

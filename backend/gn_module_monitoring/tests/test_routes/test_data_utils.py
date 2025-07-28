@@ -2,7 +2,7 @@ import pytest
 from flask import url_for
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestRouteDataUtils:
     def test_get_init_data(self, install_module_test):
         response = self.client.get(

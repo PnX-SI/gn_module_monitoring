@@ -14,8 +14,9 @@ title: 'Création d''un sous-module'
   - [Définir une nouvelle variable](#définir-une-nouvelle-variable)
   - [Redéfinir une variable existante](#redéfinir-une-variable-existante)
   - [`datalists`](#datalists)
-    - [Les paramètres dynamiques](#les-paramètres-dynamiques)
-    - [La variable `change`](#la-variable-change)
+  - [Les paramètres dynamiques](#les-paramètres-dynamiques)
+    - [Exemples champs des formulaires](#exemples-champs-des-formulaires) 
+    - [Exemples variable `change`](#exemples-variable-change)
 - [Nomenclature](#nomenclature)
 - [Configuration de la carte](#configuration-de-la-carte)
 - [Exports](#exports)
@@ -209,6 +210,7 @@ Pour cela il faut utiliser les variables suivantes :
 * `__MODULE.TAXONOMY_DISPLAY_FIELD_NAME`
 * `__MODULE.TYPES_SITE`
 * `__MODULE.IDS_TYPES_SITE`
+* `__MODULE.CD_NOM`
 
 qui peuvent servir dans la définition des formulaires (en particulier
 pour les datalist). Voir ci dessous
@@ -216,7 +218,7 @@ pour les datalist). Voir ci dessous
 #### Liste des widgets disponibles
 
 | Widgets      | Commentaire                                                              |
-|--------------|--------------------------------------------------------------------------|
+| ------------ | ------------------------------------------------------------------------ |
 | text         | Texte sur une seule ligne                                                |
 | textarea     | Texte sur une plusieurs lignes                                           |
 | radio        | Choix multiples uniques                                                  |
@@ -236,9 +238,9 @@ pour les datalist). Voir ci dessous
 #### Listes des paramètres disponibles par type de widgets :
 
 | Widgets                                 | Paramètres             | Commentaire                                                                                                                                       |
-|-----------------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tous                                    | attribut_label         | Label du formulaire                                                                                                                               |
-| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être défini)                                        |
+| Tous                                    | definition             | Ajoute une tooltip avec le contenu de ce paramètre (le paramètre `link_definition` ne doit pas être défini)                                       |
 | Tous                                    | required               | Booléen : permet de rendre obligatoire cet input                                                                                                  |
 | Tous                                    | hidden                 | Booléen : permet de cacher un formulaire                                                                                                          |
 | Tous                                    | link_definition        | Ajoute un lien vers l'addresse pointé par ce paramètre. Le paramètre `definition` doit également être définit                                     |
@@ -252,7 +254,7 @@ pour les datalist). Voir ci dessous
 | nomenclature                            | cd_nomenclatures       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items de nomenclatures que l'on ne veut pas pour ce sous-module)               |
 | nomenclature / dataset                  | multi_select           | Booléan : permet de seléctionner plusieurs items de nomenclatures                                                                                 |
 | dataset                                 | module_code            | Limite aux jeu de données associés à ce module                                                                                                    |
-| html                                    | html                   | Contenu du bloc html                                                                                                |
+| html                                    | html                   | Contenu du bloc html                                                                                                                              |
 
 ## Définir une nouvelle variable
 
@@ -493,35 +495,35 @@ Par exemple :
 },
 ```
 
-### Les paramètres dynamiques
+## Les paramètres dynamiques
 
-Il est possible de définir des paramètre qui peuvent dépendre de
-plusieurs variables. La valeur de ce paramètre est alors une chaîne de
-caractère qui définit une fonction, qui utilise les variables suivantes
+Il est possible de définir des fonctions javascript (sous forme de chaine de caractères) qui peuvent modifier les comportements et valeurs du formulaire. 
 
-**Ce cas n'est pris en compte que pour les composants spécifiques, ou
-pour les composants redéfinis dans `specific`**
+**Ce cas n'est pris en compte que pour les composants spécifiques, ou pour les composants redéfinis dans `specific`**
 
-* `value` : les valeurs du formulaire
-* `attribut_name` : du composant concerné
-* `meta` : un dictionnaire de données additionelles, et fourni au
-    composant dynamicFormGenerator, il peut contenir des données sur
-    * la nomenclature (pour avoir les valeurs des nomenclature à
-        partir des id, ici un dictionnaire avec `id_nomenclature` comme
-        clés.
-    * `bChainInput` si on enchaine les relevés
-    * etc.. à redéfinir selon les besoins
+Il est possible de définir des fonctions à deux niveaux:
+* au niveau de chaque champ du formulaire
+* au niveau global au formulaire (via la fonction change)
+  
+Les variables accessibles en fonction des différents contextes sont les suivantes : 
+* `value` : la valeur du formulaire. Dans le contexte d'un champ specific
+* `attribut_name` : du composant concerné. Dans le contexte d'un champ specific
+* `objForm` : Formulaire. Dans le contexte de la fonction change
+* `meta` : Dictionnaire de données additionnelles, contient les données suivantes. Dans tout les contextes
+    * `nomenclatures`: liste des nomenclatures utilisées. Dictionnaire avec `id_nomenclature` comme clé.
+    * `dataset` : liste des jdds disponibles pour l'utilisateur et le module
+    * `id_role` : identifiant de l'utilisateur courant
+    * `bChainInput`:  si on enchaîne les relevés
+    * `parents`: Objets parents. Permet de récupérer les valeurs définies dans le parents. 
+ 
 
-La chaine de caractère qui décrit la fonction doit être de la forme
+La chaîne de caractère qui décrit la fonction doit être de la forme
 suivante :
 
 ```json
     "hidden": "({value, attribut_name, }) => { return value.id == 't' }"
 ```
-
-Le format JSON ne permet pas les sauts de ligne dans les chaines de
-caractère, et pour avoir plus de lisibilité, quand la fonction est plus
-complexe, on peut aussi utiliser un tableau de chaine de caractères :
+Le format JSON ne permet pas les sauts de ligne dans les chaînes de caractère, et pour avoir plus de lisibilité, quand la fonction est plus complexe, on peut aussi utiliser un tableau de chaîne de caractères :
 
 ```json
     "hidden": [
@@ -530,16 +532,11 @@ complexe, on peut aussi utiliser un tableau de chaine de caractères :
         "}"
     ]
 ```
+ 
 
-Le lignes seront collées entre elles avec l'ajout de saut de lignes
-(caractère [n]{.title-ref}).
+### Exemples champs des formulaires
 
-Il faut être certain de sa fonction.
-
-Exemples :
-
-* Afficher le composant `test2` et le rendre obligatoire seulement si
-    `test1` a pour valeur `t` :
+* Afficher le composant `test2` et le rendre obligatoire seulement si `test1` a pour valeur `t` :
 
 ```json
 "specific": {
@@ -556,8 +553,7 @@ Exemples :
 }
 ```
 
-* Ajouter un champs pour renseigner la profondeur d'une grotte si le
-    type de site est une grotte
+* Ajouter un champ pour renseigner la profondeur d'une grotte si le type de site est une grotte (cd_nomenclature  '1')
 
 Dans le fichier `site.json`
 
@@ -574,15 +570,13 @@ Dans le fichier `site.json`
 }
 ```
 
-**Le paramêtre ``value`` ne peut pas être dynamique, pour changer la
-valeur des variables en fonction d'autres variables, on peut définir
-``change`` dans la config. Voir ci dessous**
+**Le paramêtre ``value`` ne peut pas être dynamique, pour changer la valeur des variables en fonction d'autres variables, on peut définir ``change`` dans la config. Voir ci dessous**
 
-### La variable `change`
+### Exemples variable `change`
 
-On peut y définir une fonction qui sera appelée chaque fois que le
-formulaire change.
+On peut y définir une fonction qui sera appelée chaque fois que le formulaire change. 
 
+**Exemple utilisation de objForm**
 Un exemple (`module.json` du module test) :
 
 ```json
@@ -616,14 +610,69 @@ Un exemple (`module.json` du module test) :
 }
 ```
 
-Ici on donne à la variable `test3` la valeur `<test>_<test2>`.
+Ici on donne à la variable `test3` la valeur `<test>_<test2>`. Le test `!objForm.controls.test3.dirty` permet de ne modifier la variable que si l'utilisateur ne l'a pas modifié manuellement.
+ 
 
-C'est valable tant que le `test3` n'a pas été modifé à la main (i. e.
-`objForm.controls.test3.dirty` n'est pas vrai).
+**Exemple valeur par défaut en fonction des valeurs du formulaire parent**
+Il est possible avec meta de récupérer les données du niveau supérieur. Voici un exemple sur la réutilisation de valeurs au niveau du site pour pré-remplir les champs au niveau de la visite:
 
-On peut donc modifer par la suite la valeur de test3 à la main.
+Fichier de configuration du niveau site:
 
-Comme précemment on peut aussi avoir accès à meta.
+```json
+{
+ ...
+"specific": {
+   ...
+  "occ_sol": {
+    "attribut_label": "OS",
+    "type_widget": "select",
+    "values": [...],
+    "required": true,
+    "hidden": false
+  },
+  "gestion":{
+    "attribut_label": "Gestion",
+    "type_widget": "select",
+    "values": [...],
+    "required": true,
+    "hidden": false
+  }
+}
+```
+
+Fichier de configuration du niveau visite: 
+
+```json
+{
+  ...
+  "specific": {
+     ...
+    "occ_sol": {
+      "attribut_label": "Occupation du sol à grande échelle",
+      "type_widget": "select",
+      "values": [...],
+      "required": true,
+      "hidden": false
+    }, 
+    "gestion":{
+      "attribut_label": "Gestion",
+      "type_widget": "select",
+      "values": [...],
+      "required": false,
+      "hidden": false
+    }
+  },
+  "change": [
+      "({objForm, meta}) => {",
+        "const occ_sol = (meta.parents.site.properties.occ_sol);",
+        "const gestion = (meta.parents.site.properties.gestion);",
+        "(objForm.value.occ_sol == (null || undefined)  && meta.parents.site.properties.occ_sol != (null || undefined) ? objForm.patchValue({occ_sol}) : '');",
+        "(objForm.value.gestion == (null || undefined) ? objForm.patchValue({gestion}) : '');",
+    "}",
+    ""
+  ]
+}
+```
 
 # Nomenclature
 

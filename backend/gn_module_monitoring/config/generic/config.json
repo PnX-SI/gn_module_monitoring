@@ -18,6 +18,7 @@
     "observer_list": "nom_liste",
     "taxonomy": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
     "taxonomy_list": "nom_liste",
+    "cd_nom": "cd_nom",
     "sites_group": "sites_group_name",
     "habitat": "lb_hab_fr",
     "area": "area_name",

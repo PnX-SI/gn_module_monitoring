@@ -13,10 +13,11 @@ from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class")
 class TestSitesGroups:
-    def test_get_sites_group_by_id(self, sites_groups, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+
+    def test_get_sites_group_by_id(self, sites_groups, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         sites_group = list(sites_groups.values())[0]
         id_sites_group = sites_group.id_sites_group
         r = self.client.get(
@@ -26,8 +27,8 @@ class TestSitesGroups:
         assert r.json["id_sites_group"] == id_sites_group
         assert r.json["sites_group_name"] == sites_group.sites_group_name
 
-    def test_get_sites_groups(self, sites_groups, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_sites_groups(self, sites_groups, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(url_for("monitorings.get_sites_groups"))
 
         assert r.json["count"] >= len(sites_groups)
@@ -43,8 +44,8 @@ class TestSitesGroups:
             ]
         )
 
-    def test_get_sites_groups_filter_name(self, sites_groups, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_sites_groups_filter_name(self, sites_groups, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         name, name_not_present = list(sites_groups.keys())
         schema = MonitoringSitesGroupsSchema()
 
@@ -73,8 +74,8 @@ class TestSitesGroups:
         schema = MonitoringSitesGroupsSchema()
         assert [schema.dump(site) for site in groups]
 
-    def test_get_sites_groups_geometries(self, sites, site_group_with_sites, monitorings_users):
-        set_logged_user_cookie(self.client, monitorings_users["admin_user"])
+    def test_get_sites_groups_geometries(self, sites, site_group_with_sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(url_for("monitorings.get_sites_group_geometries"))
 
         json_resp = r.json
