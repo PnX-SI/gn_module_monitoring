@@ -9,13 +9,11 @@ import { concatMap, map, mergeMap } from 'rxjs/operators';
 import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
-import { DataMonitoringObjectService } from '../services/data-monitoring-object.service';
 import { resolveProperty } from '../utils/utils';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
-import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 const LIMIT = 10;
 
@@ -34,13 +32,11 @@ export class SitesGroupsResolver
   module_objects: string[] = [];
 
   constructor(
-    private _auth: AuthService,
     public serviceSitesGroup: SitesGroupService,
     public serviceSite: SitesService,
     public serviceIndividual: IndividualsService,
     public _configJsonService: ConfigJsonService,
     public _permissionService: PermissionService,
-    private _dataMonitoringObjectService: DataMonitoringObjectService,
     private router: Router,
     private _objService: MonitoringObjectService,
     private _cacheService: CacheService,
@@ -62,23 +58,15 @@ export class SitesGroupsResolver
     this.serviceSite.setModuleCode(`${moduleCode}`);
     this.serviceIndividual.setModuleCode(`${moduleCode}`);
 
-    const $getPermissionMonitoring = this._dataMonitoringObjectService.getCruvedMonitoring();
-    const $permissionUserObject = this._permissionService.currentPermissionObj;
     const $configSitesGroups = this.serviceSitesGroup.initConfig();
     const $configSites = this.serviceSite.initConfig();
     const $configIndividuals = this.serviceIndividual.initConfig();
 
+    this._permissionService.setPermissionMonitorings(moduleCode);
+    this.currentPermission = this._permissionService.getPermissionUser();
+
     // $getPermissionMonitoring Retourne les permissions du module monitoring pas des sous_modules !!!
-    const resolvedData = $getPermissionMonitoring.pipe(
-      map((listObjectCruved: Object) => {
-        this._permissionService.setPermissionMonitorings(listObjectCruved);
-      }),
-      concatMap(() =>
-        $permissionUserObject.pipe(
-          map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
-        )
-      ),
-      concatMap(() => this._configService.init(moduleCode)),
+    const resolvedData = this._configService.init(moduleCode).pipe(
       concatMap(() =>
         forkJoin([$configSitesGroups, $configSites, $configIndividuals]).pipe(
           map((configs) => {
