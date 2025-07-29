@@ -250,3 +250,8 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
         load_relationships = True
 
     medias = MA.Nested(MediaSchema, many=True)
+
+    pk = fields.Method("set_pk", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_individual"
