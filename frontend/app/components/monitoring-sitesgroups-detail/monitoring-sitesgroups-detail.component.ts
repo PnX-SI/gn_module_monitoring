@@ -19,7 +19,6 @@ import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
 import { MonitoringObject } from '../../class/monitoring-object';
@@ -81,7 +80,6 @@ export class MonitoringSitesgroupsDetailComponent
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
     private _formService: FormService,
-    private _dataMonitoringObjectService: DataMonitoringObjectService,
     private _permissionService: PermissionService,
     private _popup: Popup,
     private _monitoringObjServiceMonitoring: MonitoringObjectService
@@ -102,63 +100,52 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   initSite() {
-    const $getPermissionMonitoring = this._dataMonitoringObjectService.getCruvedMonitoring();
-    const $permissionUserObject = this._permissionService.currentPermissionObj;
-    $getPermissionMonitoring
-      .pipe(
-        map((listObjectCruved: Object) => {
-          this._permissionService.setPermissionMonitorings(listObjectCruved);
-        }),
-        concatMap(() =>
-          $permissionUserObject.pipe(
-            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
-          )
-        ),
-        concatMap(() =>
-          this._Activatedroute.params.pipe(
-            map((params) => {
-              this.checkEditParam = params['edit'];
-              this.siteGroupId = params['id'];
-              this.baseFilters = { id_sites_group: this.siteGroupId };
-              this.obj = new MonitoringObject(
-                this.moduleCode,
-                'sites_group',
-                this.siteGroupId,
-                this._monitoringObjServiceMonitoring
-              );
-              return this.siteGroupId as number;
-            }),
-            mergeMap((id: number) => {
-              this._siteService.setModuleCode(`${this.moduleCode}`);
-              this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+    this._permissionService.setPermissionMonitorings(this.moduleCode);
+    this.currentPermission = this._permissionService.getPermissionUser();
 
-              return forkJoin({
-                sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
-                  if (err.status == 404) {
-                    this.router.navigate(['/not-found'], { skipLocationChange: true });
-                    return of(null);
-                  }
-                }),
-                sites: this._sitesGroupService.getSitesChild(1, this.limit, this.baseFilters),
-                objObsSite: this._siteService.initConfig(),
-                objObsSiteGp: this._sitesGroupService.initConfig(),
-                obj: this.obj.get(0),
-              }).pipe(
-                map((data) => {
-                  this.obj.initTemplate();
-                  this.obj.bIsInitialized = true;
-                  if (this.moduleCode !== 'generic') {
-                    this._formService.changeFormMapObj({
-                      frmGp: null,
-                      obj: this.obj,
-                    });
-                  }
-                  return data;
-                })
-              );
+    this._Activatedroute.params
+      .pipe(
+        map((params) => {
+          this.checkEditParam = params['edit'];
+          this.siteGroupId = params['id'];
+          this.baseFilters = { id_sites_group: this.siteGroupId };
+          this.obj = new MonitoringObject(
+            this.moduleCode,
+            'sites_group',
+            this.siteGroupId,
+            this._monitoringObjServiceMonitoring
+          );
+          return this.siteGroupId as number;
+        }),
+        mergeMap((id: number) => {
+          this._siteService.setModuleCode(`${this.moduleCode}`);
+          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+
+          return forkJoin({
+            sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
+              if (err.status == 404) {
+                this.router.navigate(['/not-found'], { skipLocationChange: true });
+                return of(null);
+              }
+            }),
+            sites: this._sitesGroupService.getSitesChild(1, this.limit, this.baseFilters),
+            objObsSite: this._siteService.initConfig(),
+            objObsSiteGp: this._sitesGroupService.initConfig(),
+            obj: this.obj.get(0),
+          }).pipe(
+            map((data) => {
+              this.obj.initTemplate();
+              this.obj.bIsInitialized = true;
+              if (this.moduleCode !== 'generic') {
+                this._formService.changeFormMapObj({
+                  frmGp: null,
+                  obj: this.obj,
+                });
+              }
+              return data;
             })
-          )
-        )
+          );
+        })
       )
       .subscribe((data) => {
         this._objService.changeSelectedObj(data.sitesGroup, true);
