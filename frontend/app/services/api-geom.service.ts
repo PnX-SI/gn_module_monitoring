@@ -349,7 +349,7 @@ export class IndividualsService extends ApiService<IIndividual> {
       editObjLabel: 'Editer la individu',
       seeObjLabel: "Consulter l'individu",
       addChildLabel: 'Ajouter un marquage',
-      childType: 'observation',
+      childType: 'marking',
       deleteObjLabel: "Supprimer l'individu",
       routeBase: 'individual',
       id: null,
