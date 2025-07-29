@@ -29,7 +29,7 @@ export class SitesGroupsResolver
     }>
 {
   currentPermission: TPermission;
-  module_objects: string[] = [];
+  module_objects: string[] = ['sites_group', 'site'];
 
   constructor(
     public serviceSitesGroup: SitesGroupService,
@@ -65,7 +65,6 @@ export class SitesGroupsResolver
     this._permissionService.setPermissionMonitorings(moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
-    // $getPermissionMonitoring Retourne les permissions du module monitoring pas des sous_modules !!!
     const resolvedData = this._configService.init(moduleCode).pipe(
       concatMap(() =>
         forkJoin([$configSitesGroups, $configSites, $configIndividuals]).pipe(
@@ -73,8 +72,12 @@ export class SitesGroupsResolver
             // Récupération des permissions du module
             const module_permissions = this._configService.moduleCruved(moduleCode);
 
-            const tree = this._configService.configModuleObject(moduleCode, 'tree');
-            this.module_objects = Object.keys(tree['module']);
+            // Si le module n'est pas le module générique affichage des objets
+            // en fonction de l'objet tree
+            if (moduleCode !== 'generic') {
+              const tree = this._configService.configModuleObject(moduleCode, 'tree');
+              this.module_objects = Object.keys(tree['module']);
+            }
 
             // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
             // redirection vers la page des sites.
