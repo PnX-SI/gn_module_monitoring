@@ -18,6 +18,12 @@ export class PermissionService {
       canUpdate: false,
       canDelete: false,
     },
+    [ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
   };
 
   constructor() {}
@@ -40,24 +46,26 @@ export class PermissionService {
       this.defaultPermission[objKey].canCreate = false;
       this.defaultPermission[objKey].canDelete = false;
       this.defaultPermission[objKey].canUpdate = false;
-      Object.keys(listObjectCruved[objKey]).forEach((action) => {
-        switch (action) {
-          case 'C':
-            this.defaultPermission[objKey].canCreate = listObjectCruved[objKey][action];
-            break;
-          case 'R':
-            this.defaultPermission[objKey].canRead = listObjectCruved[objKey][action];
-            break;
-          case 'U':
-            this.defaultPermission[objKey].canUpdate = listObjectCruved[objKey][action];
-            break;
-          case 'D':
-            this.defaultPermission[objKey].canDelete = listObjectCruved[objKey][action];
-            break;
-          default:
-            break;
-        }
-      });
+      if (objKey in listObjectCruved) {
+        Object.keys(listObjectCruved[objKey]).forEach((action) => {
+          switch (action) {
+            case 'C':
+              this.defaultPermission[objKey].canCreate = listObjectCruved[objKey][action];
+              break;
+            case 'R':
+              this.defaultPermission[objKey].canRead = listObjectCruved[objKey][action];
+              break;
+            case 'U':
+              this.defaultPermission[objKey].canUpdate = listObjectCruved[objKey][action];
+              break;
+            case 'D':
+              this.defaultPermission[objKey].canDelete = listObjectCruved[objKey][action];
+              break;
+            default:
+              break;
+          }
+        });
+      }
     });
     this.setPermissionUser(this.defaultPermission);
   }

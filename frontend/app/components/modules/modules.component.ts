@@ -29,6 +29,12 @@ export class ModulesComponent implements OnInit {
       canUpdate: false,
       canDelete: false,
     },
+    [ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
   };
 
   description: string;
