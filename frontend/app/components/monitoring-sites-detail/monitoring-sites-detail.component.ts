@@ -120,105 +120,93 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   initSiteVisit() {
-    // Get obj data
-    const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
-    const $permissionUserObject = this._permissionService.currentPermissionObj;
-    $getPermissionMonitoring
+    this._permissionService.setPermissionMonitorings(this.moduleCode);
+    this.currentPermission = this._permissionService.getPermissionUser();
+
+    this._Activatedroute.params
       .pipe(
-        map((listObjectCruved: Object) => {
-          this._permissionService.setPermissionMonitorings(listObjectCruved);
+        map((params) => {
+          this.checkEditParam = params['edit'];
+          this.parentsPath =
+            this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
+          this.obj = new MonitoringObject(
+            this.moduleCode,
+            'site',
+            params['id'],
+            this._monitoringObjServiceMonitoring
+          );
+          return params['id'] as number;
         }),
-        concatMap(() =>
-          $permissionUserObject.pipe(
-            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
-          )
-        ),
-        concatMap(() =>
-          this._Activatedroute.params.pipe(
-            map((params) => {
-              this.checkEditParam = params['edit'];
-              this.parentsPath =
-                this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
-              this.obj = new MonitoringObject(
-                this.moduleCode,
-                'site',
-                params['id'],
-                this._monitoringObjServiceMonitoring
-              );
-              return params['id'] as number;
+        tap((id: number) => {
+          this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+            id_base_site: id,
+          });
+        }),
+        mergeMap((id: number) => {
+          return forkJoin({
+            site: this.siteService.getById(id).catch((err) => {
+              if (err.status == 404) {
+                this.router.navigate(['/not-found'], { skipLocationChange: true });
+                return of(null);
+              }
             }),
-            tap((id: number) => {
-              this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                id_base_site: id,
-              });
+            visits: this._visits_service.get(1, this.limit, {
+              id_base_site: id,
             }),
-            mergeMap((id: number) => {
-              return forkJoin({
-                site: this.siteService.getById(id).catch((err) => {
-                  if (err.status == 404) {
-                    this.router.navigate(['/not-found'], { skipLocationChange: true });
-                    return of(null);
-                  }
-                }),
-                visits: this._visits_service.get(1, this.limit, {
-                  id_base_site: id,
-                }),
-              }).pipe(
-                map((data) => {
-                  return data;
-                })
-              );
-            }),
-            exhaustMap((data) => {
-              return forkJoin({
-                objObsSite: this.siteService.initConfig(),
-                objObsVisit: this._visits_service.initConfig(),
-                obj: this.obj.get(0),
-              }).pipe(
-                tap((objConfig) => (this.objParent = objConfig.objObsSite)),
-                map((objConfig) => {
-                  return { data, objConfig: objConfig };
-                })
-              );
-            }),
-            mergeMap(({ data, objConfig }) => {
-              return this._objService.currentObjSelected.pipe(
-                take(1),
-                map((objSelectParent: any) => {
+          }).pipe(
+            map((data) => {
+              return data;
+            })
+          );
+        }),
+        exhaustMap((data) => {
+          return forkJoin({
+            objObsSite: this.siteService.initConfig(),
+            objObsVisit: this._visits_service.initConfig(),
+            obj: this.obj.get(0),
+          }).pipe(
+            tap((objConfig) => (this.objParent = objConfig.objObsSite)),
+            map((objConfig) => {
+              return { data, objConfig: objConfig };
+            })
+          );
+        }),
+        mergeMap(({ data, objConfig }) => {
+          return this._objService.currentObjSelected.pipe(
+            take(1),
+            map((objSelectParent: any) => {
+              return {
+                site: data.site,
+                visits: data.visits,
+                parentObjSelected: objSelectParent,
+                objConfig: objConfig,
+              };
+            })
+          );
+        }),
+        mergeMap((data) => {
+          if (this.parentsPath.includes('sites_group')) {
+            this.siteGroupIdParent = data.site.id_sites_group;
+          }
+          if (!this.siteGroupIdParent) {
+            return of(data);
+          } else {
+            return iif(
+              () => data.parentObjSelected == this.siteGroupIdParent,
+              of(data),
+              this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
+                map((objSelectParent) => {
                   return {
                     site: data.site,
                     visits: data.visits,
                     parentObjSelected: objSelectParent,
-                    objConfig: objConfig,
+                    objConfig: data.objConfig,
                   };
                 })
-              );
-            }),
-            mergeMap((data) => {
-              if (this.parentsPath.includes('sites_group')) {
-                this.siteGroupIdParent = data.site.id_sites_group;
-              }
-              if (!this.siteGroupIdParent) {
-                return of(data);
-              } else {
-                return iif(
-                  () => data.parentObjSelected == this.siteGroupIdParent,
-                  of(data),
-                  this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
-                    map((objSelectParent) => {
-                      return {
-                        site: data.site,
-                        visits: data.visits,
-                        parentObjSelected: objSelectParent,
-                        objConfig: data.objConfig,
-                      };
-                    })
-                  )
-                );
-              }
-            })
-          )
-        )
+              )
+            );
+          }
+        })
       )
       .subscribe((data) => {
         this.obj.initTemplate();

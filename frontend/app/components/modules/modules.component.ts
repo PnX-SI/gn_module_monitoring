@@ -63,22 +63,16 @@ export class ModulesComponent implements OnInit {
     this.description = this._configService.descriptionModule();
     this.titleModule = this._configService.titleModule();
 
+    this._permissionService.setPermissionMonitorings('generic');
+
     // Récupération des permissions et de la liste des modules
-    return this._dataMonitoringObjectService
-      .getCruvedMonitoring()
-      .pipe(
-        map((listObjectCruved: Object) => {
-          this._permissionService.setPermissionMonitorings(listObjectCruved);
-        }),
-        concatMap(() => this._dataMonitoringObjectService.getModules())
-      )
-      .subscribe((modules) => {
-        this.currentPermission = this._permissionService.getPermissionUser();
-        this.canAccessSite =
-          this.currentPermission.MONITORINGS_SITES.canRead ||
-          this.currentPermission.MONITORINGS_GRP_SITES.canRead;
-        this.modules = modules.filter((m) => m.cruved.R >= 1);
-        this.bLoading = false;
-      });
+    return this._dataMonitoringObjectService.getModules().subscribe((modules) => {
+      this.currentPermission = this._permissionService.getPermissionUser();
+      this.canAccessSite =
+        this.currentPermission.MONITORINGS_SITES.canRead ||
+        this.currentPermission.MONITORINGS_GRP_SITES.canRead;
+      this.modules = modules.filter((m) => m.cruved.R >= 1);
+      this.bLoading = false;
+    });
   }
 }

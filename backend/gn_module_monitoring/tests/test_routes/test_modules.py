@@ -15,9 +15,3 @@ class TestModules:
         r = self.client.get(url_for("monitorings.get_modules_api"))
         # TODO test response
         assert r.status_code == 200
-
-    def test_get_cruved_monitorings(self, users):
-        set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_cruved_monitorings"))
-        # TODO test response
-        assert r.status_code == 200
