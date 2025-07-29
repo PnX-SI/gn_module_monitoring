@@ -488,6 +488,15 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+    }
+    if ($event == 'individual') {
+      this.activetabIndex = 1;
+      this.currentRoute = 'individual';
+      this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
+      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
+      this.updateBreadCrumb();
+      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.activetabIndex = 0;
       this.currentRoute = 'sites_group';
