@@ -17,6 +17,7 @@ import { Utils } from '../utils/utils';
 import { CacheService } from './cache.service';
 import { ConfigJsonService } from './config-json.service';
 import { IVisit } from '../interfaces/visit';
+import { IIndividual } from '../interfaces/individual';
 import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
@@ -324,6 +325,42 @@ export class VisitsService extends ApiService<IVisit> {
         fieldNamesList: [],
         fieldDefinitions: {},
         labelList: 'Visites',
+      },
+      dataTable: { colNameObj: {} },
+    };
+    super.init(endPoint, objectObs);
+  }
+}
+
+@Injectable()
+export class IndividualsService extends ApiService<IIndividual> {
+  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
+    super(_cacheService, _configJsonService);
+    this.init();
+  }
+  init(): void {
+    const endPoint = endPoints.visits;
+    const objectObs: IobjObs<IIndividual> = {
+      properties: {},
+      endPoint: endPoints.individuals,
+      objectType: 'individual',
+      label: 'individu',
+      addObjLabel: 'Ajouter un nouvel individu',
+      editObjLabel: 'Editer la individu',
+      seeObjLabel: "Consulter l'individu",
+      addChildLabel: 'Ajouter un marquage',
+      childType: 'observation',
+      deleteObjLabel: "Supprimer l'individu",
+      routeBase: 'individual',
+      id: null,
+      moduleCode: 'generic',
+      schema: {},
+      template: {
+        fieldNames: [],
+        fieldLabels: {},
+        fieldNamesList: [],
+        fieldDefinitions: {},
+        labelList: 'Individus',
       },
       dataTable: { colNameObj: {} },
     };

@@ -49,6 +49,7 @@ import {
   SitesService,
   ApiGeomService,
   VisitsService,
+  IndividualsService,
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
@@ -217,6 +218,7 @@ const routes: Routes = [
     DataTableService,
     SitesGroupService,
     SitesService,
+    IndividualsService,
     GeoJSONService,
     ListService,
     FormService,
