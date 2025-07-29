@@ -15,6 +15,7 @@ import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 const LIMIT = 10;
 
@@ -30,9 +31,11 @@ export class SitesGroupsResolver
     }>
 {
   currentPermission: TPermission;
+  module_objects: string[] = [];
 
   constructor(
-    public service: SitesGroupService,
+    private _auth: AuthService,
+    public serviceSitesGroup: SitesGroupService,
     public serviceSite: SitesService,
     public serviceIndividual: IndividualsService,
     public _configJsonService: ConfigJsonService,
@@ -55,17 +58,17 @@ export class SitesGroupsResolver
     moduleCode: string | null;
   }> {
     const moduleCode = route.params.moduleCode || 'generic';
-    this.service.setModuleCode(`${moduleCode}`);
+    this.serviceSitesGroup.setModuleCode(`${moduleCode}`);
     this.serviceSite.setModuleCode(`${moduleCode}`);
     this.serviceIndividual.setModuleCode(`${moduleCode}`);
 
     const $getPermissionMonitoring = this._dataMonitoringObjectService.getCruvedMonitoring();
     const $permissionUserObject = this._permissionService.currentPermissionObj;
-    const $configSitesGroups = this.service.initConfig();
+    const $configSitesGroups = this.serviceSitesGroup.initConfig();
     const $configSites = this.serviceSite.initConfig();
     const $configIndividuals = this.serviceIndividual.initConfig();
 
-    // TODO utiliser l'objet tree pour déterminer les objets à charger
+    // $getPermissionMonitoring Retourne les permissions du module monitoring pas des sous_modules !!!
     const resolvedData = $getPermissionMonitoring.pipe(
       map((listObjectCruved: Object) => {
         this._permissionService.setPermissionMonitorings(listObjectCruved);
@@ -79,8 +82,11 @@ export class SitesGroupsResolver
       concatMap(() =>
         forkJoin([$configSitesGroups, $configSites, $configIndividuals]).pipe(
           map((configs) => {
+            // Récupération des permissions du module
+            const module_permissions = this._configService.moduleCruved(moduleCode);
+
             const tree = this._configService.configModuleObject(moduleCode, 'tree');
-            const module_objects = Object.keys(tree['module']);
+            this.module_objects = Object.keys(tree['module']);
 
             // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
             // redirection vers la page des sites.
@@ -93,203 +99,50 @@ export class SitesGroupsResolver
               this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
             }
 
-            let configSchemaSiteGroup = null;
-            let $getSiteGroups = of(null);
-            if (module_objects.includes('sites_group') && configs[0]) {
-              configSchemaSiteGroup = this._configJsonService.configModuleObject(
-                configs[0].moduleCode,
-                configs[0].objectType
-              );
-              const sortSiteGroupInit =
-                'sorts' in configSchemaSiteGroup
-                  ? {
-                      sort_dir: configSchemaSiteGroup.sorts[0].dir,
-                      sort: configSchemaSiteGroup.sorts[0].prop,
-                    }
-                  : {};
-              $getSiteGroups = this.currentPermission.MONITORINGS_GRP_SITES.canRead
-                ? this.service.get(1, LIMIT, sortSiteGroupInit)
-                : of({ items: [], count: 0, limit: 0, page: 1 });
-            }
-
-            let configSchemaSite = null;
-            let $getSites = of(null);
-            if (module_objects.includes('site') && configs[1]) {
-              configSchemaSite = this._configJsonService.configModuleObject(
-                configs[1].moduleCode,
-                configs[1].objectType
+            // Initialisation des getters et config de chaque type d'objet
+            const { getter: $getSiteGroups, specificConfig: specificConfigSiteGroup } =
+              this.buildObjectConfig(
+                'sites_group',
+                configs[0],
+                module_permissions['sites_group'].R,
+                this.serviceSitesGroup
               );
 
-              const sortSiteInit =
-                'sorts' in configSchemaSite
-                  ? {
-                      sort_dir: configSchemaSite.sorts[0].dir,
-                      sort: configSchemaSite.sorts[0].prop,
-                    }
-                  : {};
-
-              $getSites = this.currentPermission.MONITORINGS_SITES.canRead
-                ? this.serviceSite.get(1, LIMIT, sortSiteInit)
-                : of({ items: [], count: 0, limit: 0, page: 1 });
-            }
-
-            let configSchemaIndividual = null;
-            let $getIndividuals = of(null);
-            if (module_objects.includes('individual') && configs[2]) {
-              configSchemaIndividual = this._configJsonService.configModuleObject(
-                configs[2].moduleCode,
-                configs[2].objectType
+            const { getter: $getSites, specificConfig: specificConfigSite } =
+              this.buildObjectConfig(
+                'site',
+                configs[1],
+                module_permissions['site'].R,
+                this.serviceSite
               );
 
-              const sortIndividualInit =
-                'sorts' in configSchemaIndividual
-                  ? {
-                      sort_dir: configSchemaIndividual.sorts[0].dir,
-                      sort: configSchemaIndividual.sorts[0].prop,
-                    }
-                  : {};
-
-              // TODO GESTION DES PERMISSIONS
-              $getIndividuals = this.serviceIndividual.get(1, LIMIT, sortIndividualInit);
-              // const $getIndividuals =   sortIndividualInit
-              // ? this.currentPermission.MONITORINGS_INDIVIDUALS.canRead
-              //   ? this.serviceIndividual.get(1, LIMIT, sortIndividualInit)
-              //   : of({ items: [], count: 0, limit: 0, page: 1 })
-              // : of(null);
-            }
+            const { getter: $getIndividuals, specificConfig: specificConfigIndividual } =
+              this.buildObjectConfig(
+                'individual',
+                configs[2],
+                module_permissions['individual'].R,
+                this.serviceIndividual
+              );
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
               mergeMap(([siteGroups, sites, individuals]) => {
-                const specificConfigSite = configSchemaSite?.specific;
-                const specificConfigSiteGroup = configSchemaSiteGroup?.specific;
-                const specificConfigIndividual = configSchemaIndividual?.specific;
+                const siteGroupsProcessing$ = this.buildObjectProcessing(
+                  siteGroups,
+                  specificConfigSiteGroup,
+                  moduleCode
+                );
 
-                const siteGroupsProcessing$ =
-                  siteGroups &&
-                  siteGroups.items &&
-                  siteGroups.items.length > 0 &&
-                  specificConfigSiteGroup &&
-                  Object.keys(specificConfigSiteGroup).length > 0
-                    ? forkJoin(
-                        siteGroups.items.map((siteGroupItem) => {
-                          const propertyObservables = {};
-                          for (const attribut_name of Object.keys(specificConfigSiteGroup)) {
-                            if (siteGroupItem.hasOwnProperty(attribut_name)) {
-                              propertyObservables[attribut_name] = resolveProperty(
-                                this._objService,
-                                this._cacheService,
-                                this._configService,
-                                moduleCode,
-                                specificConfigSiteGroup[attribut_name],
-                                siteGroupItem[attribut_name]
-                              );
-                            }
-                          }
-                          if (Object.keys(propertyObservables).length === 0) {
-                            return of(siteGroupItem);
-                          }
-                          return forkJoin(propertyObservables).pipe(
-                            map((resolvedProperties) => {
-                              const updatedSiteGroupItem = { ...siteGroupItem };
-                              for (const attribut_name of Object.keys(resolvedProperties)) {
-                                updatedSiteGroupItem[attribut_name] =
-                                  resolvedProperties[attribut_name];
-                              }
-                              return updatedSiteGroupItem;
-                            })
-                          );
-                        })
-                      ).pipe(
-                        map((resolvedSiteGroupItems) => ({
-                          ...siteGroups,
-                          items: resolvedSiteGroupItems,
-                        }))
-                      )
-                    : of(siteGroups);
+                const sitesProcessing$ = this.buildObjectProcessing(
+                  sites,
+                  specificConfigSite,
+                  moduleCode
+                );
 
-                const sitesProcessing$ =
-                  sites &&
-                  sites.items &&
-                  sites.items.length > 0 &&
-                  specificConfigSite &&
-                  Object.keys(specificConfigSite).length > 0
-                    ? forkJoin(
-                        sites.items.map((siteItem) => {
-                          const propertyObservables = {};
-                          for (const attribut_name of Object.keys(specificConfigSite)) {
-                            if (siteItem.hasOwnProperty(attribut_name)) {
-                              propertyObservables[attribut_name] = resolveProperty(
-                                this._objService,
-                                this._cacheService,
-                                this._configService,
-                                moduleCode,
-                                specificConfigSite[attribut_name],
-                                siteItem[attribut_name]
-                              );
-                            }
-                          }
-
-                          if (Object.keys(propertyObservables).length === 0) {
-                            return of(siteItem);
-                          }
-
-                          return forkJoin(propertyObservables).pipe(
-                            map((resolvedProperties) => {
-                              const updatedSiteItem = { ...siteItem };
-                              for (const attribut_name of Object.keys(resolvedProperties)) {
-                                updatedSiteItem[attribut_name] = resolvedProperties[attribut_name];
-                              }
-                              return updatedSiteItem;
-                            })
-                          );
-                        })
-                      ).pipe(map((resolvedSiteItems) => ({ ...sites, items: resolvedSiteItems })))
-                    : of(sites);
-
-                const individualProcessing$ =
-                  individuals &&
-                  individuals.items &&
-                  individuals.items.length > 0 &&
-                  specificConfigIndividual &&
-                  Object.keys(specificConfigIndividual).length > 0
-                    ? forkJoin(
-                        individuals.items.map((individualItem) => {
-                          const propertyObservables = {};
-                          for (const attribut_name of Object.keys(specificConfigIndividual)) {
-                            if (individualItem.hasOwnProperty(attribut_name)) {
-                              propertyObservables[attribut_name] = resolveProperty(
-                                this._objService,
-                                this._cacheService,
-                                this._configService,
-                                moduleCode,
-                                specificConfigIndividual[attribut_name],
-                                individualItem[attribut_name]
-                              );
-                            }
-                          }
-
-                          if (Object.keys(propertyObservables).length === 0) {
-                            return of(individualItem);
-                          }
-
-                          return forkJoin(propertyObservables).pipe(
-                            map((resolvedProperties) => {
-                              const updatedIndividualItem = { ...individualItem };
-                              for (const attribut_name of Object.keys(resolvedProperties)) {
-                                updatedIndividualItem[attribut_name] =
-                                  resolvedProperties[attribut_name];
-                              }
-                              return updatedIndividualItem;
-                            })
-                          );
-                        })
-                      ).pipe(
-                        map((resolvedIndividualItems) => ({
-                          ...sites,
-                          items: resolvedIndividualItems,
-                        }))
-                      )
-                    : of(individuals);
+                const individualProcessing$ = this.buildObjectProcessing(
+                  individuals,
+                  specificConfigIndividual,
+                  moduleCode
+                );
 
                 return forkJoin([
                   siteGroupsProcessing$,
@@ -317,5 +170,78 @@ export class SitesGroupsResolver
       )
     );
     return resolvedData;
+  }
+
+  buildObjectConfig(object_type, config, permission, objectService) {
+    let configSchemaObjetType = {
+      sorts: [],
+      specific: {},
+    };
+    let $getObjetTypes = of(null);
+    if (this.module_objects.includes(object_type) && config) {
+      configSchemaObjetType = this._configJsonService.configModuleObject(
+        config.moduleCode,
+        config.objectType
+      );
+      const sortObjetTypeInit =
+        'sorts' in configSchemaObjetType
+          ? {
+              sort_dir: configSchemaObjetType.sorts[0]['dir'],
+              sort: configSchemaObjetType.sorts[0]['prop'],
+            }
+          : {};
+      $getObjetTypes =
+        permission > 0
+          ? objectService.get(1, LIMIT, sortObjetTypeInit)
+          : of({ items: [], count: 0, limit: 0, page: 1 });
+    }
+    return {
+      getter: $getObjetTypes,
+      specificConfig: configSchemaObjetType?.specific,
+    };
+  }
+  buildObjectProcessing(data, specificConfig, moduleCode) {
+    const dataProcessing$ =
+      data &&
+      data.items &&
+      data.items.length > 0 &&
+      specificConfig &&
+      Object.keys(specificConfig).length > 0
+        ? forkJoin(
+            data.items.map((dataItem) => {
+              const propertyObservables = {};
+              for (const attribut_name of Object.keys(specificConfig)) {
+                if (dataItem.hasOwnProperty(attribut_name)) {
+                  propertyObservables[attribut_name] = resolveProperty(
+                    this._objService,
+                    this._cacheService,
+                    this._configService,
+                    moduleCode,
+                    specificConfig[attribut_name],
+                    dataItem[attribut_name]
+                  );
+                }
+              }
+              if (Object.keys(propertyObservables).length === 0) {
+                return of(dataItem);
+              }
+              return forkJoin(propertyObservables).pipe(
+                map((resolvedProperties) => {
+                  const updatedSiteGroupItem = { ...dataItem };
+                  for (const attribut_name of Object.keys(resolvedProperties)) {
+                    updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+                  }
+                  return updatedSiteGroupItem;
+                })
+              );
+            })
+          ).pipe(
+            map((resolvedSiteGroupItems) => ({
+              ...data,
+              items: resolvedSiteGroupItems,
+            }))
+          )
+        : of(data);
+    return dataProcessing$;
   }
 }
