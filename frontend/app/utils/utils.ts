@@ -136,7 +136,6 @@ export function resolveProperty(
   }
 
   const fieldName = _objService.configUtils(elem, moduleCode);
-
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
   }
@@ -151,7 +150,7 @@ function getUtil(
   idFieldName: string | null = null
 ) {
   if (Array.isArray(id)) {
-    return getUtils(typeUtil, id, fieldName, idFieldName);
+    return getUtils(_cacheService, typeUtil, id, fieldName, idFieldName);
   }
 
   var urlRelative = `util/${typeUtil}/${id}`;
@@ -161,6 +160,7 @@ function getUtil(
   }
 
   const sCachePaths = `util|${typeUtil}|${id}`;
+
   return _cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
     mergeMap((value) => {
       let out;
@@ -181,14 +181,16 @@ function getUtil(
   );
 }
 
-function getUtils(typeUtilObject, ids, fieldName, idFieldName) {
+function getUtils(_cacheService, typeUtilObject, ids, fieldName, idFieldName) {
   if (!ids.length) {
     return of(null);
   }
   const observables: any[] = [];
+
   for (const id of ids) {
-    observables.push(getUtil(typeUtilObject, id, fieldName, idFieldName));
+    observables.push(getUtil(_cacheService, typeUtilObject, id, fieldName, idFieldName));
   }
+
   return forkJoin(observables).pipe(
     concatMap((res) => {
       return of(res.join(', '));
