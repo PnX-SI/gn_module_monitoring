@@ -1,6 +1,9 @@
 from flask import g, request
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import Forbidden
+
+from geonature.utils.env import db
 
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
@@ -67,3 +70,18 @@ def get_indivudals(object_type, module_code=None):
         page=page,
         object_code=object_code,
     )
+
+
+@blueprint.route(
+    "/individuals/<int:_id>", methods=["DELETE"], defaults={"object_type": "individual"}
+)
+@check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_INDIVIDUALS")
+def delete_individual(scope, _id: int, object_type: str):
+    individual = db.get_or_404(TMonitoringIndividuals, _id)
+    if not individual.has_instance_permission(scope=scope):
+        raise Forbidden(
+            f"User {g.current_user} cannot delete site group {individual.id_individual}"
+        )
+    db.session.delete(individual)
+    db.session.commit()
+    return {"success": "Item is successfully deleted"}, 200
