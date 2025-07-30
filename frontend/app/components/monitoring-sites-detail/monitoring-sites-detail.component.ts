@@ -108,6 +108,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._visits_service.setModuleCode(`${this.moduleCode}`);
 
     this.currentUser = this._auth.getCurrentUser();
+    // TODO comprendre pourquoi nessaire que dans certains cas
+    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
