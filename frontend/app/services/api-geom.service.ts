@@ -114,8 +114,11 @@ export class ApiService<T = IObject> implements IService<T> {
     });
   }
 
-  delete(id: number): Observable<T> {
-    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`);
+  delete(id: number, params: JsonData = {}): Observable<T> {
+    // module_code
+    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`, {
+      queryParams: params,
+    });
   }
 
   setModuleCode(moduleCode: string) {
@@ -339,7 +342,7 @@ export class IndividualsService extends ApiService<IIndividual> {
     this.init();
   }
   init(): void {
-    const endPoint = endPoints.visits;
+    const endPoint = endPoints.individuals;
     const objectObs: IobjObs<IIndividual> = {
       properties: {},
       endPoint: endPoints.individuals,
