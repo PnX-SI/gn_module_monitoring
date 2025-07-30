@@ -29,7 +29,8 @@ export class SitesGroupsResolver
     }>
 {
   currentPermission: TPermission;
-  module_objects: string[] = ['sites_group', 'site'];
+  // Liste des type d'objets enfants à afficher sur la page
+  listChildObjectType: string[] = ['sites_group', 'site'];
 
   constructor(
     public serviceSitesGroup: SitesGroupService,
@@ -54,6 +55,7 @@ export class SitesGroupsResolver
     moduleCode: string | null;
   }> {
     const moduleCode = route.params.moduleCode || 'generic';
+    this.listChildObjectType = ['sites_group', 'site'];
     this.serviceSitesGroup.setModuleCode(`${moduleCode}`);
     this.serviceSite.setModuleCode(`${moduleCode}`);
     this.serviceIndividual.setModuleCode(`${moduleCode}`);
@@ -76,7 +78,7 @@ export class SitesGroupsResolver
             // en fonction de l'objet tree
             if (moduleCode !== 'generic') {
               const tree = this._configService.configModuleObject(moduleCode, 'tree');
-              this.module_objects = Object.keys(tree['module']);
+              this.listChildObjectType = Object.keys(tree['module']);
             }
 
             // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
@@ -169,7 +171,7 @@ export class SitesGroupsResolver
       specific: {},
     };
     let $getObjetTypes = of(null);
-    if (this.module_objects.includes(object_type) && config) {
+    if (this.listChildObjectType.includes(object_type) && config) {
       configSchemaObjetType = this._configJsonService.configModuleObject(
         config.moduleCode,
         config.objectType

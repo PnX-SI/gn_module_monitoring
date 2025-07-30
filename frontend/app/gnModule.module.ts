@@ -155,6 +155,23 @@ const routes: Routes = [
     ],
   },
   {
+    path: 'object/:moduleCode/individual',
+    component: MonitoringMapListComponent,
+    resolve: {
+      data: MapListResolver,
+    },
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsResolver,
+        },
+        runGuardsAndResolvers: 'always',
+      },
+    ],
+  },
+  {
     path: 'object/:moduleCode/:objectType/:id',
     component: MonitoringObjectComponent,
   },
