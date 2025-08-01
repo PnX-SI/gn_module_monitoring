@@ -20,7 +20,6 @@ export class ConfigService {
   init(moduleCode: string | null = null) {
     // a definir ailleurs
     moduleCode = moduleCode || 'generic';
-
     if (this._config && this._config[moduleCode]) {
       return of(true);
     } else {

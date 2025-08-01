@@ -27,7 +27,6 @@ import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
 
 import { CacheService } from '../../services/cache.service';
-import { resolveProperty } from '../../utils/utils';
 
 const LIMIT = 10;
 
@@ -220,221 +219,54 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  getSitesGroups(page = 1, params = {}) {
-    const specificConfig = this.config?.specific;
-
-    this._sites_group_service
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedSiteGroups: IPaginated<ISitesGroup>) => {
-          const siteGroupsItems = paginatedSiteGroups.items;
-
-          if (
-            !siteGroupsItems ||
-            siteGroupsItems.length === 0 ||
-            !specificConfig ||
-            Object.keys(specificConfig).length === 0
-          ) {
-            return of(paginatedSiteGroups);
-          }
-
-          const siteGroupProcessingObservables = siteGroupsItems.map((siteGroupItem) => {
-            const propertyObservables = {};
-            for (const attribut_name of Object.keys(specificConfig)) {
-              if (siteGroupItem.hasOwnProperty(attribut_name)) {
-                propertyObservables[attribut_name] = resolveProperty(
-                  this._monitoringObjectService,
-                  this._cacheService,
-                  this._configService,
-                  this.moduleCode,
-                  specificConfig[attribut_name],
-                  siteGroupItem[attribut_name]
-                );
-              }
-            }
-
-            if (Object.keys(propertyObservables).length === 0) {
-              return of(siteGroupItem);
-            }
-
-            return forkJoin(propertyObservables).pipe(
-              map((resolvedProperties) => {
-                const updatedSiteGroupItem = { ...siteGroupItem };
-                for (const attribut_name of Object.keys(resolvedProperties)) {
-                  updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
-                }
-                return updatedSiteGroupItem;
-              })
-            );
-          });
-
-          return forkJoin(siteGroupProcessingObservables).pipe(
-            map((resolvedSiteGroupItems) => ({
-              ...paginatedSiteGroups,
-              items: resolvedSiteGroupItems,
-            }))
-          );
-        }),
-        takeUntil(this.destroyed$)
-      )
-      .subscribe((processedPaginatedData: IPaginated<ISitesGroup>) => {
+  updateDataTableContent(page = 1, params = {}, _service) {
+    /**
+     * updateDataTableContent
+     *
+     * Mise à jour du contenu du composant datatable en fonction des paramètres (numéro de page, filtre)
+     *  Récupère les données via _service qui correspond au serviceApi de l'objet (IndividualsService,  SitesGroupService,  SitesService)
+     *  Résou les valeur des propriétés grace à la fonctionbuildObjectResolvePropertyProcessing
+     *  Met à jour le composant datatable
+     *
+     * @param {number} page The page number to fetch.
+     * @param {Object} params The parameters to pass to the service.
+     * @param {_service} _service The service to use to fetch the data.
+     */
+    // Récupération du type d'objet
+    const object_type = _service.objectObs.objectType;
+    // Récupération de la configuration des champs (pour la résolution )
+    const fieldsConfig = this._configService.schema(this.moduleCode, object_type);
+    _service
+      .getResolved(page, LIMIT, params, fieldsConfig)
+      .subscribe((processedPaginatedData: IPaginated<any>) => {
         this.page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
         this.rows = processedPaginatedData.items;
-        this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
-        this.dataTableObj.sites_group.rows = processedPaginatedData.items;
-        this.dataTableObj.sites_group.page = {
+        this.colsname = _service.objectObs.dataTable.colNameObj;
+        this.dataTableObj[object_type].rows = processedPaginatedData.items;
+        this.dataTableObj[object_type].page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
       });
+  }
+
+  getSitesGroups(page = 1, params = {}) {
+    this.updateDataTableContent(page, params, this._sites_group_service);
     this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getIndividuals(page = 1, params = {}) {
-    const specificConfig = this.config?.specific;
-
-    this._individualService
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedIndividual: IPaginated<IIndividual>) => {
-          const individualItems = paginatedIndividual.items;
-
-          if (
-            !individualItems ||
-            individualItems.length === 0 ||
-            !specificConfig ||
-            Object.keys(specificConfig).length === 0
-          ) {
-            return of(paginatedIndividual);
-          }
-
-          const individualProcessingObservables = individualItems.map((individualItem) => {
-            const propertyObservables = {};
-            for (const attribut_name of Object.keys(specificConfig)) {
-              if (individualItem.hasOwnProperty(attribut_name)) {
-                propertyObservables[attribut_name] = resolveProperty(
-                  this._monitoringObjectService,
-                  this._cacheService,
-                  this._configService,
-                  this.moduleCode,
-                  specificConfig[attribut_name],
-                  individualItem[attribut_name]
-                );
-              }
-            }
-
-            if (Object.keys(propertyObservables).length === 0) {
-              return of(individualItem);
-            }
-
-            return forkJoin(propertyObservables).pipe(
-              map((resolvedProperties) => {
-                const updatedIndividualItem = { ...individualItem };
-                for (const attribut_name of Object.keys(resolvedProperties)) {
-                  updatedIndividualItem[attribut_name] = resolvedProperties[attribut_name];
-                }
-                return updatedIndividualItem;
-              })
-            );
-          });
-
-          return forkJoin(individualProcessingObservables).pipe(
-            map((resolvedIndividualItems) => ({
-              ...paginatedIndividual,
-              items: resolvedIndividualItems,
-            }))
-          );
-        }),
-        takeUntil(this.destroyed$)
-      )
-      .subscribe((processedPaginatedData: IPaginated<IIndividual>) => {
-        this.page = {
-          count: processedPaginatedData.count,
-          limit: processedPaginatedData.limit,
-          page: processedPaginatedData.page - 1,
-        };
-        this.rows = processedPaginatedData.items;
-        this.colsname = this._individualService.objectObs.dataTable.colNameObj;
-        this.dataTableObj.individual.rows = processedPaginatedData.items;
-        this.dataTableObj.individual.page = {
-          count: processedPaginatedData.count,
-          limit: processedPaginatedData.limit,
-          page: processedPaginatedData.page - 1,
-        };
-      });
+    this.updateDataTableContent(page, params, this._individualService);
     this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
-    this._sitesService
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedSites: IPaginated<ISite>) => {
-          const sites = paginatedSites.items;
-          const specificConfig = this.config?.specific;
-
-          if (
-            !sites ||
-            sites.length === 0 ||
-            !specificConfig ||
-            Object.keys(specificConfig).length === 0
-          ) {
-            return of(paginatedSites);
-          }
-
-          const siteProcessingObservables = sites.map((siteItem) => {
-            const propertyObservables = {};
-            for (const attribut_name of Object.keys(specificConfig)) {
-              if (siteItem.hasOwnProperty(attribut_name)) {
-                propertyObservables[attribut_name] = resolveProperty(
-                  this._monitoringObjectService,
-                  this._cacheService,
-                  this._configService,
-                  this.moduleCode,
-                  specificConfig[attribut_name],
-                  siteItem[attribut_name]
-                );
-              }
-            }
-
-            if (Object.keys(propertyObservables).length === 0) {
-              return of(siteItem);
-            }
-
-            return forkJoin(propertyObservables).pipe(
-              map((resolvedProperties) => {
-                const updatedSiteItem = { ...siteItem };
-                for (const attribut_name of Object.keys(resolvedProperties)) {
-                  updatedSiteItem[attribut_name] = resolvedProperties[attribut_name];
-                }
-                return updatedSiteItem;
-              })
-            );
-          });
-
-          return forkJoin(siteProcessingObservables).pipe(
-            map((resolvedSiteItems) => ({ ...paginatedSites, items: resolvedSiteItems }))
-          );
-        }),
-        takeUntil(this.destroyed$)
-      )
-      .subscribe((processedPaginatedData: IPaginated<ISite>) => {
-        this.colsname = this._sitesService.objectObs.dataTable.colNameObj;
-        const itemsAfterResolveProperty = processedPaginatedData.items;
-        let siteListAfterTypes = this._sitesService.formatLabelTypesSite(itemsAfterResolveProperty);
-        this.rows = siteListAfterTypes;
-        const siteListAfterObservers = this._sitesService.formatLabelObservers(siteListAfterTypes);
-        this.siteResolvedProperties = siteListAfterObservers;
-        this.dataTableObj.site.rows = siteListAfterObservers as any;
-        this.dataTableObj.site.page.count = processedPaginatedData.count;
-        this.dataTableObj.site.page.limit = processedPaginatedData.limit;
-        this.dataTableObj.site.page.page = processedPaginatedData.page - 1;
-      });
+    this.updateDataTableContent(page, params, this._sitesService);
     this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
@@ -670,11 +502,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       let objType = data[dataType].objConfig.objectType;
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       if (objType == 'site') {
-        let siteList = this._sitesService.formatLabelTypesSite(data[dataType].data.items);
+        let siteList = data[dataType].data.items;
         this.rows = siteList;
-        const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
-        objTemp[objType].rows = siteListResolvedProp;
-        this.siteResolvedProperties = siteListResolvedProp;
+        objTemp[objType].rows = siteList;
+        this.siteResolvedProperties = siteList;
       } else {
         objTemp[objType].rows = data[dataType].data.items;
       }
