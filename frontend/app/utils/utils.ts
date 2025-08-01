@@ -125,19 +125,30 @@ export class Utils {
 
 export function buildObjectResolvePropertyProcessing(
   data,
-  specificConfig,
+  fieldsConfig,
   moduleCode,
   _objService,
-  _cacheService,
-  _configService
-) {
-  const fieldsConfig = _configService.schema(moduleCode, 'site');
+  _cacheService
+): Observable<any> {
+  /**
+   * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+   *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+   *
+   *
+   * @param data - Données à traiter.
+   * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+   * @param moduleCode - Le code de module courrant
+   * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
+   * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
+   * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+   */
+
   const dataProcessing$ =
     data &&
     data.items &&
     data.items.length > 0 &&
-    specificConfig &&
-    Object.keys(specificConfig).length > 0
+    fieldsConfig &&
+    Object.keys(fieldsConfig).length > 0
       ? forkJoin(
           data.items.map((dataItem) => {
             const propertyObservables = {};
@@ -146,7 +157,6 @@ export function buildObjectResolvePropertyProcessing(
                 propertyObservables[attribut_name] = resolveProperty(
                   _objService,
                   _cacheService,
-                  _configService,
                   moduleCode,
                   fieldsConfig[attribut_name],
                   dataItem[attribut_name]
@@ -179,7 +189,6 @@ export function buildObjectResolvePropertyProcessing(
 export function resolveProperty(
   _objService,
   _cacheService,
-  _configService,
   moduleCode,
   elem,
   val
@@ -192,7 +201,6 @@ export function resolveProperty(
       return item.label;
     });
   }
-
   const fieldName = _objService.configUtils(elem, moduleCode);
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);

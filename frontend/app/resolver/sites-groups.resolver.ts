@@ -9,7 +9,7 @@ import { concatMap, map, mergeMap } from 'rxjs/operators';
 import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
-import { resolveProperty, buildObjectResolvePropertyProcessing } from '../utils/utils';
+import { buildObjectResolvePropertyProcessing } from '../utils/utils';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
@@ -93,57 +93,57 @@ export class SitesGroupsResolver
             }
 
             // Initialisation des getters et config de chaque type d'objet
-            const { getter: $getSiteGroups, specificConfig: specificConfigSiteGroup } =
-              this.buildObjectConfig(
-                'sites_group',
-                configs[0],
-                module_permissions['sites_group'].R,
-                this.serviceSitesGroup
-              );
+            const $getSiteGroups = this.buildObjectConfig(
+              'sites_group',
+              configs[0],
+              module_permissions['sites_group'].R,
+              this.serviceSitesGroup
+            );
 
-            const { getter: $getSites, specificConfig: specificConfigSite } =
-              this.buildObjectConfig(
-                'site',
-                configs[1],
-                module_permissions['site'].R,
-                this.serviceSite
-              );
+            const $getSites = this.buildObjectConfig(
+              'site',
+              configs[1],
+              module_permissions['site'].R,
+              this.serviceSite
+            );
 
-            const { getter: $getIndividuals, specificConfig: specificConfigIndividual } =
-              this.buildObjectConfig(
-                'individual',
-                configs[2],
-                module_permissions['individual'].R,
-                this.serviceIndividual
-              );
+            const $getIndividuals = this.buildObjectConfig(
+              'individual',
+              configs[2],
+              module_permissions['individual'].R,
+              this.serviceIndividual
+            );
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
               mergeMap(([siteGroups, sites, individuals]) => {
+                const fieldsConfigSitesGroup = this._configService.schema(
+                  moduleCode,
+                  'sites_group'
+                );
                 const siteGroupsProcessing$ = buildObjectResolvePropertyProcessing(
                   siteGroups,
-                  specificConfigSiteGroup,
+                  fieldsConfigSitesGroup,
                   moduleCode,
                   this._objService,
-                  this._cacheService,
-                  this._configService
+                  this._cacheService
                 );
 
+                const fieldsConfigSite = this._configService.schema(moduleCode, 'site');
                 const sitesProcessing$ = buildObjectResolvePropertyProcessing(
                   sites,
-                  specificConfigSite,
+                  fieldsConfigSite,
                   moduleCode,
                   this._objService,
-                  this._cacheService,
-                  this._configService
+                  this._cacheService
                 );
 
+                const fieldsConfigIndivudual = this._configService.schema(moduleCode, 'individual');
                 const individualProcessing$ = buildObjectResolvePropertyProcessing(
                   individuals,
-                  specificConfigIndividual,
+                  fieldsConfigIndivudual,
                   moduleCode,
                   this._objService,
-                  this._cacheService,
-                  this._configService
+                  this._cacheService
                 );
 
                 return forkJoin([
@@ -197,9 +197,6 @@ export class SitesGroupsResolver
           ? objectService.get(1, LIMIT, sortObjetTypeInit)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
-    return {
-      getter: $getObjetTypes,
-      specificConfig: configSchemaObjetType?.specific,
-    };
+    return $getObjetTypes;
   }
 }

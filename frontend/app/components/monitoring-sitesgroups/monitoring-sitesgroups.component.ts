@@ -27,7 +27,7 @@ import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
 
 import { CacheService } from '../../services/cache.service';
-import { resolveProperty, buildObjectResolvePropertyProcessing } from '../../utils/utils';
+import { buildObjectResolvePropertyProcessing } from '../../utils/utils';
 
 const LIMIT = 10;
 
@@ -220,116 +220,67 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  getSitesGroups(page = 1, params = {}) {
-    const specificConfig = this.config?.specific;
-
-    this._sites_group_service
+  updateDataTableContent(page = 1, params = {}, _service) {
+    /**
+     * updateDataTableContent
+     *
+     * Mise à jour du contenu du composant datatable en fonction des paramètres (numéro de page, filtre)
+     *  Récupère les données via _service qui correspond au serviceApi de l'objet (IndividualsService,  SitesGroupService,  SitesService)
+     *  Résou les valeur des propriétés grace à la fonctionbuildObjectResolvePropertyProcessing
+     *  Met à jour le composant datatable
+     *
+     * @param {number} page The page number to fetch.
+     * @param {Object} params The parameters to pass to the service.
+     * @param {_service} _service The service to use to fetch the data.
+     */
+    // Récupération du type d'objet
+    const object_type = _service.objectObs.objectType;
+    // Récupération de la configuration des champs (pour la résolution )
+    const fieldsConfig = this._configService.schema(this.moduleCode, object_type);
+    _service
       .get(page, LIMIT, params)
       .pipe(
-        mergeMap((paginatedSiteGroups: IPaginated<ISitesGroup>) => {
-          const siteGroupProcessingObservables = buildObjectResolvePropertyProcessing(
-            paginatedSiteGroups,
-            specificConfig,
+        mergeMap((paginatedData: IPaginated<any>) => {
+          const dataProcessingObservables = buildObjectResolvePropertyProcessing(
+            paginatedData,
+            fieldsConfig,
             this.moduleCode,
-            this._objService,
-            this._cacheService,
-            this._configService
+            this._monitoringObjectService,
+            this._cacheService
           );
-          return forkJoin(siteGroupProcessingObservables).pipe(
-            map(([resolvedItems]) => resolvedItems)
-          );
+          return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
         }),
         takeUntil(this.destroyed$)
       )
-      .subscribe((processedPaginatedData: IPaginated<ISitesGroup>) => {
+      .subscribe((processedPaginatedData: IPaginated<any>) => {
         this.page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
         this.rows = processedPaginatedData.items;
-        this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
-        this.dataTableObj.sites_group.rows = processedPaginatedData.items;
-        this.dataTableObj.sites_group.page = {
+        this.colsname = _service.objectObs.dataTable.colNameObj;
+        this.dataTableObj[object_type].rows = processedPaginatedData.items;
+        this.dataTableObj[object_type].page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
       });
+  }
+
+  getSitesGroups(page = 1, params = {}) {
+    this.updateDataTableContent(page, params, this._sites_group_service);
     this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getIndividuals(page = 1, params = {}) {
-    const specificConfig = this.config?.specific;
-
-    this._individualService
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedIndividual: IPaginated<IIndividual>) => {
-          const individualProcessingObservables = buildObjectResolvePropertyProcessing(
-            paginatedIndividual,
-            specificConfig,
-            this.moduleCode,
-            this._objService,
-            this._cacheService,
-            this._configService
-          );
-
-          return forkJoin(individualProcessingObservables).pipe(
-            map(([resolvedItems]) => resolvedItems)
-          );
-        }),
-        takeUntil(this.destroyed$)
-      )
-      .subscribe((processedPaginatedData: IPaginated<IIndividual>) => {
-        this.page = {
-          count: processedPaginatedData.count,
-          limit: processedPaginatedData.limit,
-          page: processedPaginatedData.page - 1,
-        };
-        this.rows = processedPaginatedData.items;
-        this.colsname = this._individualService.objectObs.dataTable.colNameObj;
-        this.dataTableObj.individual.rows = processedPaginatedData.items;
-        this.dataTableObj.individual.page = {
-          count: processedPaginatedData.count,
-          limit: processedPaginatedData.limit,
-          page: processedPaginatedData.page - 1,
-        };
-      });
+    this.updateDataTableContent(page, params, this._individualService);
     this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
-    this._sitesService
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedSites: IPaginated<ISite>) => {
-          const specificConfig = this.config?.specific;
-          const siteProcessingObservables = buildObjectResolvePropertyProcessing(
-            paginatedSites,
-            specificConfig,
-            this.moduleCode,
-            this._monitoringObjectService,
-            this._cacheService,
-            this._configService
-          );
-
-          return forkJoin(siteProcessingObservables).pipe(
-            map(([resolvedSiteItems]) => resolvedSiteItems)
-          );
-        }),
-        takeUntil(this.destroyed$)
-      )
-      .subscribe((processedPaginatedData: IPaginated<ISite>) => {
-        this.colsname = this._sitesService.objectObs.dataTable.colNameObj;
-        const itemsAfterResolveProperty = processedPaginatedData.items;
-        this.rows = itemsAfterResolveProperty;
-        this.siteResolvedProperties = itemsAfterResolveProperty;
-        this.dataTableObj.site.rows = itemsAfterResolveProperty as any;
-        this.dataTableObj.site.page.count = processedPaginatedData.count;
-        this.dataTableObj.site.page.limit = processedPaginatedData.limit;
-        this.dataTableObj.site.page.page = processedPaginatedData.page - 1;
-      });
+    this.updateDataTableContent(page, params, this._sitesService);
     this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
