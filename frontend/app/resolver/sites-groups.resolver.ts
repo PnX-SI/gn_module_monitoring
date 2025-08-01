@@ -9,7 +9,7 @@ import { concatMap, map, mergeMap } from 'rxjs/operators';
 import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
-import { resolveProperty } from '../utils/utils';
+import { resolveProperty, buildObjectResolvePropertyProcessing } from '../utils/utils';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
@@ -119,22 +119,31 @@ export class SitesGroupsResolver
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
               mergeMap(([siteGroups, sites, individuals]) => {
-                const siteGroupsProcessing$ = this.buildObjectProcessing(
+                const siteGroupsProcessing$ = buildObjectResolvePropertyProcessing(
                   siteGroups,
                   specificConfigSiteGroup,
-                  moduleCode
+                  moduleCode,
+                  this._objService,
+                  this._cacheService,
+                  this._configService
                 );
 
-                const sitesProcessing$ = this.buildObjectProcessing(
+                const sitesProcessing$ = buildObjectResolvePropertyProcessing(
                   sites,
                   specificConfigSite,
-                  moduleCode
+                  moduleCode,
+                  this._objService,
+                  this._cacheService,
+                  this._configService
                 );
 
-                const individualProcessing$ = this.buildObjectProcessing(
+                const individualProcessing$ = buildObjectResolvePropertyProcessing(
                   individuals,
                   specificConfigIndividual,
-                  moduleCode
+                  moduleCode,
+                  this._objService,
+                  this._cacheService,
+                  this._configService
                 );
 
                 return forkJoin([
@@ -192,49 +201,5 @@ export class SitesGroupsResolver
       getter: $getObjetTypes,
       specificConfig: configSchemaObjetType?.specific,
     };
-  }
-  buildObjectProcessing(data, specificConfig, moduleCode) {
-    const dataProcessing$ =
-      data &&
-      data.items &&
-      data.items.length > 0 &&
-      specificConfig &&
-      Object.keys(specificConfig).length > 0
-        ? forkJoin(
-            data.items.map((dataItem) => {
-              const propertyObservables = {};
-              for (const attribut_name of Object.keys(specificConfig)) {
-                if (dataItem.hasOwnProperty(attribut_name)) {
-                  propertyObservables[attribut_name] = resolveProperty(
-                    this._objService,
-                    this._cacheService,
-                    this._configService,
-                    moduleCode,
-                    specificConfig[attribut_name],
-                    dataItem[attribut_name]
-                  );
-                }
-              }
-              if (Object.keys(propertyObservables).length === 0) {
-                return of(dataItem);
-              }
-              return forkJoin(propertyObservables).pipe(
-                map((resolvedProperties) => {
-                  const updatedSiteGroupItem = { ...dataItem };
-                  for (const attribut_name of Object.keys(resolvedProperties)) {
-                    updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
-                  }
-                  return updatedSiteGroupItem;
-                })
-              );
-            })
-          ).pipe(
-            map((resolvedSiteGroupItems) => ({
-              ...data,
-              items: resolvedSiteGroupItems,
-            }))
-          )
-        : of(data);
-    return dataProcessing$;
   }
 }

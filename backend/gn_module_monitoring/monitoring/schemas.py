@@ -59,10 +59,7 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     model_class = MonitoringModels_dict[object_type]
-    parameters = {
-        "model": model_class,
-        "exclude": ["data"],
-    }
+    parameters = {"model": model_class, "exclude": ["data"], "include_fk": True}
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson", "geom"])
     Meta = type("Meta", (), parameters)
@@ -186,7 +183,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     types_site = MA.Nested(BibTypeSiteSchema, many=True)
     id_sites_group = fields.Method("get_id_sites_group")
     id_inventor = fields.Method("get_id_inventor")
-    inventor = fields.Method("get_inventor_name")
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
     last_visit = fields.DateTime(dump_only=True)
@@ -203,10 +199,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def get_id_inventor(self, obj):
         return obj.id_inventor
-
-    def get_inventor_name(self, obj):
-        if obj.inventor:
-            return [obj.inventor.nom_complet]
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):

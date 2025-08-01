@@ -231,10 +231,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
-        let siteList = this.siteService.formatLabelTypesSite([this.site]);
+        let siteList = this.site;
         this.objSelected = siteList[0];
-        const siteListResolvedProp = this.siteService.formatLabelObservers(siteList);
-        this.objResolvedProperties = siteListResolvedProp[0];
+        this.objResolvedProperties = siteList[0];
         this.addSpecificConfig();
 
         const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
