@@ -27,7 +27,6 @@ import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
 
 import { CacheService } from '../../services/cache.service';
-import { buildObjectResolvePropertyProcessing } from '../../utils/utils';
 
 const LIMIT = 10;
 
@@ -238,20 +237,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     // Récupération de la configuration des champs (pour la résolution )
     const fieldsConfig = this._configService.schema(this.moduleCode, object_type);
     _service
-      .get(page, LIMIT, params)
-      .pipe(
-        mergeMap((paginatedData: IPaginated<any>) => {
-          const dataProcessingObservables = buildObjectResolvePropertyProcessing(
-            paginatedData,
-            fieldsConfig,
-            this.moduleCode,
-            this._monitoringObjectService,
-            this._cacheService
-          );
-          return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
-        }),
-        takeUntil(this.destroyed$)
-      )
+      .getResolved(page, LIMIT, params, fieldsConfig)
       .subscribe((processedPaginatedData: IPaginated<any>) => {
         this.page = {
           count: processedPaginatedData.count,

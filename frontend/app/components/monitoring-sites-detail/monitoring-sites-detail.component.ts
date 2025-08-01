@@ -2,7 +2,7 @@ import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
-import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
+import { exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ModuleService } from '@geonature/services/module.service';
 
@@ -125,6 +125,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._permissionService.setPermissionMonitorings(this.moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
+    const fieldsConfig = this._configService.schema(this.moduleCode, 'visit');
     this._Activatedroute.params
       .pipe(
         map((params) => {
@@ -152,9 +153,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
                 return of(null);
               }
             }),
-            visits: this._visits_service.get(1, this.limit, {
-              id_base_site: id,
-            }),
+            visits: this._visits_service.getResolved(
+              1,
+              this.limit,
+              {
+                id_base_site: id,
+              },
+              fieldsConfig
+            ),
           }).pipe(
             map((data) => {
               return data;

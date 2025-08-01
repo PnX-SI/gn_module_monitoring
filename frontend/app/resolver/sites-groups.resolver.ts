@@ -9,7 +9,6 @@ import { concatMap, map, mergeMap } from 'rxjs/operators';
 import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
-import { buildObjectResolvePropertyProcessing } from '../utils/utils';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
@@ -97,71 +96,36 @@ export class SitesGroupsResolver
               'sites_group',
               configs[0],
               module_permissions['sites_group'].R,
-              this.serviceSitesGroup
+              this.serviceSitesGroup,
+              moduleCode
             );
 
             const $getSites = this.buildObjectConfig(
               'site',
               configs[1],
               module_permissions['site'].R,
-              this.serviceSite
+              this.serviceSite,
+              moduleCode
             );
 
             const $getIndividuals = this.buildObjectConfig(
               'individual',
               configs[2],
               module_permissions['individual'].R,
-              this.serviceIndividual
+              this.serviceIndividual,
+              moduleCode
             );
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
-              mergeMap(([siteGroups, sites, individuals]) => {
-                const fieldsConfigSitesGroup = this._configService.schema(
+              map(([processedSiteGroups, processedSites, processedIndividuals]) => {
+                return {
+                  sitesGroups: { data: processedSiteGroups, objConfig: configs[0] },
+                  sites: { data: processedSites, objConfig: configs[1] },
+                  individuals: { data: processedIndividuals, objConfig: configs[2] },
+                  route: route['_urlSegment'].segments[3].path,
+                  permission: this.currentPermission,
                   moduleCode,
-                  'sites_group'
-                );
-                const siteGroupsProcessing$ = buildObjectResolvePropertyProcessing(
-                  siteGroups,
-                  fieldsConfigSitesGroup,
-                  moduleCode,
-                  this._objService,
-                  this._cacheService
-                );
-
-                const fieldsConfigSite = this._configService.schema(moduleCode, 'site');
-                const sitesProcessing$ = buildObjectResolvePropertyProcessing(
-                  sites,
-                  fieldsConfigSite,
-                  moduleCode,
-                  this._objService,
-                  this._cacheService
-                );
-
-                const fieldsConfigIndivudual = this._configService.schema(moduleCode, 'individual');
-                const individualProcessing$ = buildObjectResolvePropertyProcessing(
-                  individuals,
-                  fieldsConfigIndivudual,
-                  moduleCode,
-                  this._objService,
-                  this._cacheService
-                );
-
-                return forkJoin([
-                  siteGroupsProcessing$,
-                  sitesProcessing$,
-                  individualProcessing$,
-                ]).pipe(
-                  map(([processedSiteGroups, processedSites, processedIndividuals]) => {
-                    return {
-                      sitesGroups: { data: processedSiteGroups, objConfig: configs[0] },
-                      sites: { data: processedSites, objConfig: configs[1] },
-                      individuals: { data: processedIndividuals, objConfig: configs[2] },
-                      route: route['_urlSegment'].segments[3].path,
-                      permission: this.currentPermission,
-                      moduleCode,
-                    };
-                  })
-                );
+                };
               })
             );
           }),
@@ -174,7 +138,7 @@ export class SitesGroupsResolver
     return resolvedData;
   }
 
-  buildObjectConfig(object_type, config, permission, objectService) {
+  buildObjectConfig(object_type, config, permission, objectService, moduleCode) {
     let configSchemaObjetType = {
       sorts: [],
       specific: {},
@@ -192,9 +156,11 @@ export class SitesGroupsResolver
               sort: configSchemaObjetType.sorts[0]['prop'],
             }
           : {};
+
+      const fieldsConfig = this._configService.schema(moduleCode, object_type);
       $getObjetTypes =
         permission > 0
-          ? objectService.get(1, LIMIT, sortObjetTypeInit)
+          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit, fieldsConfig)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
     return $getObjetTypes;

@@ -23,6 +23,7 @@ import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { CacheService } from '../../services/cache.service';
 
 const LIMIT = 10;
 
@@ -82,7 +83,8 @@ export class MonitoringSitesgroupsDetailComponent
     private _formService: FormService,
     private _permissionService: PermissionService,
     private _popup: Popup,
-    private _monitoringObjServiceMonitoring: MonitoringObjectService
+    private _monitoringObjectService: MonitoringObjectService,
+    private _cacheService: CacheService
   ) {
     super();
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -113,13 +115,22 @@ export class MonitoringSitesgroupsDetailComponent
             this.moduleCode,
             'sites_group',
             this.siteGroupId,
-            this._monitoringObjServiceMonitoring
+            this._monitoringObjectService
           );
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {
           this._siteService.setModuleCode(`${this.moduleCode}`);
           this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+
+          const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+          // Récupération des sites et résolution des propriétés
+          const sitedata$ = this._sitesGroupService.getSitesChildResolved(
+            1,
+            this.limit,
+            this.baseFilters,
+            fieldsConfig
+          );
 
           return forkJoin({
             sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
@@ -128,7 +139,7 @@ export class MonitoringSitesgroupsDetailComponent
                 return of(null);
               }
             }),
-            sites: this._sitesGroupService.getSitesChild(1, this.limit, this.baseFilters),
+            sites: sitedata$,
             objObsSite: this._siteService.initConfig(),
             objObsSiteGp: this._sitesGroupService.initConfig(),
             obj: this.obj.get(0),
@@ -227,10 +238,11 @@ export class MonitoringSitesgroupsDetailComponent
   getSitesFromSiteGroupId(page, params) {
     const sitesParams = { ...params, ...this.baseFilters };
     // Tableau
+    const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
     this._sitesGroupService
-      .getSitesChild(page, LIMIT, sitesParams)
+      .getSitesChildResolved(1, this.limit, this.baseFilters, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
-        let siteList = data.items;
+        const siteList = data.items;
         this.rows = siteList;
         this.siteResolvedProperties = siteList;
         this.dataTableObj.site.rows = this.rows;
@@ -238,7 +250,6 @@ export class MonitoringSitesgroupsDetailComponent
         this.dataTableObj.site.page.limit = data.limit;
         this.dataTableObj.site.page.page = data.page - 1;
       });
-
     // Données carto
     this._geojsonService.getSitesGroupsGeometriesWithSites(
       this.onEachFeatureGroupSite(),
