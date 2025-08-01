@@ -9,7 +9,6 @@ import { concatMap, map, mergeMap } from 'rxjs/operators';
 import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
-import { resolveProperty } from '../utils/utils';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
@@ -93,66 +92,40 @@ export class SitesGroupsResolver
             }
 
             // Initialisation des getters et config de chaque type d'objet
-            const { getter: $getSiteGroups, specificConfig: specificConfigSiteGroup } =
-              this.buildObjectConfig(
-                'sites_group',
-                configs[0],
-                module_permissions['sites_group'].R,
-                this.serviceSitesGroup
-              );
+            const $getSiteGroups = this.buildObjectConfig(
+              'sites_group',
+              configs[0],
+              module_permissions['sites_group'].R,
+              this.serviceSitesGroup,
+              moduleCode
+            );
 
-            const { getter: $getSites, specificConfig: specificConfigSite } =
-              this.buildObjectConfig(
-                'site',
-                configs[1],
-                module_permissions['site'].R,
-                this.serviceSite
-              );
+            const $getSites = this.buildObjectConfig(
+              'site',
+              configs[1],
+              module_permissions['site'].R,
+              this.serviceSite,
+              moduleCode
+            );
 
-            const { getter: $getIndividuals, specificConfig: specificConfigIndividual } =
-              this.buildObjectConfig(
-                'individual',
-                configs[2],
-                module_permissions['individual'].R,
-                this.serviceIndividual
-              );
+            const $getIndividuals = this.buildObjectConfig(
+              'individual',
+              configs[2],
+              module_permissions['individual'].R,
+              this.serviceIndividual,
+              moduleCode
+            );
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
-              mergeMap(([siteGroups, sites, individuals]) => {
-                const siteGroupsProcessing$ = this.buildObjectProcessing(
-                  siteGroups,
-                  specificConfigSiteGroup,
-                  moduleCode
-                );
-
-                const sitesProcessing$ = this.buildObjectProcessing(
-                  sites,
-                  specificConfigSite,
-                  moduleCode
-                );
-
-                const individualProcessing$ = this.buildObjectProcessing(
-                  individuals,
-                  specificConfigIndividual,
-                  moduleCode
-                );
-
-                return forkJoin([
-                  siteGroupsProcessing$,
-                  sitesProcessing$,
-                  individualProcessing$,
-                ]).pipe(
-                  map(([processedSiteGroups, processedSites, processedIndividuals]) => {
-                    return {
-                      sitesGroups: { data: processedSiteGroups, objConfig: configs[0] },
-                      sites: { data: processedSites, objConfig: configs[1] },
-                      individuals: { data: processedIndividuals, objConfig: configs[2] },
-                      route: route['_urlSegment'].segments[3].path,
-                      permission: this.currentPermission,
-                      moduleCode,
-                    };
-                  })
-                );
+              map(([processedSiteGroups, processedSites, processedIndividuals]) => {
+                return {
+                  sitesGroups: { data: processedSiteGroups, objConfig: configs[0] },
+                  sites: { data: processedSites, objConfig: configs[1] },
+                  individuals: { data: processedIndividuals, objConfig: configs[2] },
+                  route: route['_urlSegment'].segments[3].path,
+                  permission: this.currentPermission,
+                  moduleCode,
+                };
               })
             );
           }),
@@ -165,7 +138,7 @@ export class SitesGroupsResolver
     return resolvedData;
   }
 
-  buildObjectConfig(object_type, config, permission, objectService) {
+  buildObjectConfig(object_type, config, permission, objectService, moduleCode) {
     let configSchemaObjetType = {
       sorts: [],
       specific: {},
@@ -183,58 +156,13 @@ export class SitesGroupsResolver
               sort: configSchemaObjetType.sorts[0]['prop'],
             }
           : {};
+
+      const fieldsConfig = this._configService.schema(moduleCode, object_type);
       $getObjetTypes =
         permission > 0
-          ? objectService.get(1, LIMIT, sortObjetTypeInit)
+          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit, fieldsConfig)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
-    return {
-      getter: $getObjetTypes,
-      specificConfig: configSchemaObjetType?.specific,
-    };
-  }
-  buildObjectProcessing(data, specificConfig, moduleCode) {
-    const dataProcessing$ =
-      data &&
-      data.items &&
-      data.items.length > 0 &&
-      specificConfig &&
-      Object.keys(specificConfig).length > 0
-        ? forkJoin(
-            data.items.map((dataItem) => {
-              const propertyObservables = {};
-              for (const attribut_name of Object.keys(specificConfig)) {
-                if (dataItem.hasOwnProperty(attribut_name)) {
-                  propertyObservables[attribut_name] = resolveProperty(
-                    this._objService,
-                    this._cacheService,
-                    this._configService,
-                    moduleCode,
-                    specificConfig[attribut_name],
-                    dataItem[attribut_name]
-                  );
-                }
-              }
-              if (Object.keys(propertyObservables).length === 0) {
-                return of(dataItem);
-              }
-              return forkJoin(propertyObservables).pipe(
-                map((resolvedProperties) => {
-                  const updatedSiteGroupItem = { ...dataItem };
-                  for (const attribut_name of Object.keys(resolvedProperties)) {
-                    updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
-                  }
-                  return updatedSiteGroupItem;
-                })
-              );
-            })
-          ).pipe(
-            map((resolvedSiteGroupItems) => ({
-              ...data,
-              items: resolvedSiteGroupItems,
-            }))
-          )
-        : of(data);
-    return dataProcessing$;
+    return $getObjetTypes;
   }
 }
