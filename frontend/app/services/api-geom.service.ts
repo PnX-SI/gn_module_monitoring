@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of, forkJoin } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
 import { endPoints } from '../enum/endpoints';
 import {
   IGeomObject,
@@ -13,7 +13,7 @@ import {
 import { IobjObs } from '../interfaces/objObs';
 import { IPaginated } from '../interfaces/page';
 import { JsonData } from '../types/jsondata';
-import { Utils } from '../utils/utils';
+import { buildObjectResolvePropertyProcessing, Utils } from '../utils/utils';
 import { CacheService } from './cache.service';
 import { ConfigJsonService } from './config-json.service';
 import { IVisit } from '../interfaces/visit';
@@ -21,6 +21,7 @@ import { IIndividual } from '../interfaces/individual';
 import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
+import { MonitoringObjectService } from './monitoring-object.service';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -29,7 +30,8 @@ export class ApiService<T = IObject> implements IService<T> {
 
   constructor(
     protected _cacheService: CacheService,
-    protected _configJsonService: ConfigJsonService
+    protected _configJsonService: ConfigJsonService,
+    protected _monitoringObjectService: MonitoringObjectService
   ) {}
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
@@ -97,6 +99,38 @@ export class ApiService<T = IObject> implements IService<T> {
       }
     );
   }
+  getResolved(
+    page: number = 1,
+    limit: number = LIMIT,
+    params: JsonData = {},
+    fieldsConfig = {}
+  ): Observable<any> {
+    /**
+     * getResolved
+     *
+     * Renvoie les données paginées d'un type d'objet avec les propriétés résolues.
+     *  La résolution consiste transformer la valeur retournée par l'api par celle d'affichage
+     *  en fonction des types de champs définis dans la configuration.
+     * @param {number} [page=1] The page number to fetch.
+     * @param {number} [limit=10] The number of items to fetch.
+     * @param {Object} [params={}] The parameters to pass to the service.
+     * @param {Object} [fieldsConfig={}] The configuration of fields to resolve.
+     * @returns {Observable<any>}
+     */
+
+    return this.get(page, limit, params).pipe(
+      mergeMap((paginatedData: IPaginated<any>) => {
+        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
+          paginatedData,
+          fieldsConfig,
+          this.objectObs.moduleCode,
+          this._monitoringObjectService,
+          this._cacheService
+        );
+        return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
+      })
+    );
+  }
 
   getById(id: number): Observable<T> {
     return this._cacheService.request<Observable<T>>('get', `${this.objectObs.endPoint}/${id}`);
@@ -130,9 +164,10 @@ export class ApiService<T = IObject> implements IService<T> {
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
   constructor(
     protected _cacheService: CacheService,
-    protected _configJsonService: ConfigJsonService
+    protected _configJsonService: ConfigJsonService,
+    protected _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configJsonService);
+    super(_cacheService, _configJsonService, _monitoringObjectService);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -158,8 +193,12 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
 
 @Injectable()
 export class SitesGroupService extends ApiGeomService<ISitesGroup> {
-  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
-    super(_cacheService, _configJsonService);
+  constructor(
+    _cacheService: CacheService,
+    _configJsonService: ConfigJsonService,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configJsonService, _monitoringObjectService);
   }
 
   init(): void {
@@ -207,12 +246,47 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       }
     );
   }
+
+  getSitesChildResolved(
+    page: number = 1,
+    limit: number = LIMIT,
+    params: JsonData = {},
+    fieldsConfig = {}
+  ): Observable<any> {
+    /**
+     * getSitesChildResolved
+     * Renvoie les sites enfants d'un groupe de site avec les propriétés résolues.
+     *  La résolution consiste transformer la valeur retournée par l'api par celle d'affichage
+     *  en fonction des types de champs définis dans la configuration.
+     * @param {number} [page=1] The page number to fetch.
+     * @param {number} [limit=10] The number of items to fetch.
+     * @param {Object} [params={}] The parameters to pass to the service.
+     * @param {Object} [fieldsConfig={}] The configuration of fields to resolve.
+     * @returns {Observable<any>}
+     */
+    return this.getSitesChild(page, limit, params).pipe(
+      mergeMap((paginatedData: IPaginated<any>) => {
+        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
+          paginatedData,
+          fieldsConfig,
+          this.objectObs.moduleCode,
+          this._monitoringObjectService,
+          this._cacheService
+        );
+        return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
+      })
+    );
+  }
 }
 
 @Injectable()
 export class SitesService extends ApiGeomService<ISite> {
-  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
-    super(_cacheService, _configJsonService);
+  constructor(
+    _cacheService: CacheService,
+    _configJsonService: ConfigJsonService,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configJsonService, _monitoringObjectService);
   }
 
   init(): void {
@@ -269,40 +343,16 @@ export class SitesService extends ApiGeomService<ISite> {
   getSiteModules(idSite: number): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${idSite}/modules`);
   }
-
-  formatLabelTypesSite(sites: ISite[]) {
-    const rowSitesTable: ISiteField[] = [];
-    const varToFormat = 'types_site';
-    const fieldToUse = 'label';
-    for (const site of sites) {
-      let listFieldToUse: string[] = [];
-      const { [varToFormat]: _, ...rest_of_site } = site;
-      for (const item of _) {
-        if (Object.keys(item).includes(fieldToUse) && typeof item[fieldToUse] == 'string') {
-          listFieldToUse.push(item[fieldToUse]);
-        }
-      }
-      rowSitesTable.push({ ...rest_of_site, [varToFormat]: listFieldToUse });
-    }
-    return rowSitesTable;
-  }
-
-  formatLabelObservers(sites: ISiteField[]) {
-    const rowSitesTable: ISiteField[] = [];
-    for (const site of sites) {
-      if (site['id_inventor']) {
-        site['id_inventor'] = site['inventor'];
-      }
-      rowSitesTable.push(site);
-    }
-    return rowSitesTable;
-  }
 }
 
 @Injectable()
 export class VisitsService extends ApiService<IVisit> {
-  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
-    super(_cacheService, _configJsonService);
+  constructor(
+    _cacheService: CacheService,
+    _configJsonService: ConfigJsonService,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configJsonService, _monitoringObjectService);
     this.init();
   }
   init(): void {
@@ -337,8 +387,12 @@ export class VisitsService extends ApiService<IVisit> {
 
 @Injectable()
 export class IndividualsService extends ApiService<IIndividual> {
-  constructor(_cacheService: CacheService, _configJsonService: ConfigJsonService) {
-    super(_cacheService, _configJsonService);
+  constructor(
+    _cacheService: CacheService,
+    _configJsonService: ConfigJsonService,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configJsonService, _monitoringObjectService);
     this.init();
   }
   init(): void {

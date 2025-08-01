@@ -1,5 +1,5 @@
 import { Observable, forkJoin, of } from 'rxjs';
-import { concatMap, mergeMap } from 'rxjs/operators';
+import { map, concatMap, mergeMap } from 'rxjs/operators';
 import { JsonData } from '../types/jsondata';
 
 export class Utils {
@@ -123,10 +123,72 @@ export class Utils {
   }
 }
 
+export function buildObjectResolvePropertyProcessing(
+  data,
+  fieldsConfig,
+  moduleCode,
+  _objService,
+  _cacheService
+): Observable<any> {
+  /**
+   * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+   *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+   *
+   *
+   * @param data - Données à traiter.
+   * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+   * @param moduleCode - Le code de module courrant
+   * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
+   * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
+   * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+   */
+
+  const dataProcessing$ =
+    data &&
+    data.items &&
+    data.items.length > 0 &&
+    fieldsConfig &&
+    Object.keys(fieldsConfig).length > 0
+      ? forkJoin(
+          data.items.map((dataItem) => {
+            const propertyObservables = {};
+            for (const attribut_name of Object.keys(fieldsConfig)) {
+              if (dataItem.hasOwnProperty(attribut_name)) {
+                propertyObservables[attribut_name] = resolveProperty(
+                  _objService,
+                  _cacheService,
+                  moduleCode,
+                  fieldsConfig[attribut_name],
+                  dataItem[attribut_name]
+                );
+              }
+            }
+            if (Object.keys(propertyObservables).length === 0) {
+              return of(dataItem);
+            }
+            return forkJoin(propertyObservables).pipe(
+              map((resolvedProperties) => {
+                const updatedSiteGroupItem = { ...dataItem };
+                for (const attribut_name of Object.keys(resolvedProperties)) {
+                  updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+                }
+                return updatedSiteGroupItem;
+              })
+            );
+          })
+        ).pipe(
+          map((resolvedSiteGroupItems) => ({
+            ...data,
+            items: resolvedSiteGroupItems,
+          }))
+        )
+      : of(data);
+  return dataProcessing$;
+}
+
 export function resolveProperty(
   _objService,
   _cacheService,
-  _configService,
   moduleCode,
   elem,
   val
@@ -134,11 +196,16 @@ export function resolveProperty(
   if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
     val = Utils.formatDate(val);
   }
-
+  if (elem.type_util === 'types_site') {
+    val = val.map((item) => {
+      return item.label;
+    });
+  }
   const fieldName = _objService.configUtils(elem, moduleCode);
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
   }
+
   return of(val);
 }
 
