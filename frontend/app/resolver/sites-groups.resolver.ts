@@ -157,10 +157,9 @@ export class SitesGroupsResolver
             }
           : {};
 
-      const fieldsConfig = this._configService.schema(moduleCode, object_type);
       $getObjetTypes =
         permission > 0
-          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit, fieldsConfig)
+          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
     return $getObjetTypes;

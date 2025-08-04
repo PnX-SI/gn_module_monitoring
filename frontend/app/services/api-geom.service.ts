@@ -99,12 +99,7 @@ export class ApiService<T = IObject> implements IService<T> {
       }
     );
   }
-  getResolved(
-    page: number = 1,
-    limit: number = LIMIT,
-    params: JsonData = {},
-    fieldsConfig = {}
-  ): Observable<any> {
+  getResolved(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<any> {
     /**
      * getResolved
      *
@@ -114,15 +109,13 @@ export class ApiService<T = IObject> implements IService<T> {
      * @param {number} [page=1] The page number to fetch.
      * @param {number} [limit=10] The number of items to fetch.
      * @param {Object} [params={}] The parameters to pass to the service.
-     * @param {Object} [fieldsConfig={}] The configuration of fields to resolve.
      * @returns {Observable<any>}
      */
-
     return this.get(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
-          fieldsConfig,
+          this.objectObs.schema,
           this.objectObs.moduleCode,
           this._monitoringObjectService,
           this._cacheService

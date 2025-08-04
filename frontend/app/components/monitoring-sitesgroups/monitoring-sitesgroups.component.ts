@@ -234,10 +234,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
      */
     // Récupération du type d'objet
     const object_type = _service.objectObs.objectType;
-    // Récupération de la configuration des champs (pour la résolution )
-    const fieldsConfig = this._configService.schema(this.moduleCode, object_type);
     _service
-      .getResolved(page, LIMIT, params, fieldsConfig)
+      .getResolved(page, LIMIT, params)
       .subscribe((processedPaginatedData: IPaginated<any>) => {
         this.page = {
           count: processedPaginatedData.count,
