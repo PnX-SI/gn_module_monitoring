@@ -19,7 +19,6 @@ import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
-import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
@@ -92,7 +91,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
-    protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     private _permissionService: PermissionService,
     private _popup: Popup,
@@ -502,7 +500,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       }
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configJsonService.configModuleObject(
+      let config = this._configService.configModuleObject(
         data[dataType].objConfig.moduleCode,
         data[dataType].objConfig.objectType
       );
