@@ -9,26 +9,28 @@
 * [Gestion des sites et groupes de site](#gestion-des-sites)
 * [Permissions](#permissions)
 * [Base de données](#base-de-données)
+* [Suivi d'individus (CMR)](docs/individuals.md)
 * [Gestion de la synthèse](docs/synthese.md)
 * [Documentation technique](docs/documentation_technique.md)
 * [Liste des commandes](docs/commandes.md)
 
 ## Présentation
 
-Ce module permet de générer de façon générique des interfaces de saisie correspondant à des protocoles de suivi.  
+Ce module permet de générer de façon générique des interfaces de saisie correspondant à des protocoles de suivi.
+
 Par "suivi", on entend un protocole dont le point d'entrée est un site géographique, sur lequel on va revenir régulièrement effectuer des visites. Il se distingue par sa structure du module "Occtax" dont l'objectif est de faire de la saisie de données opportunistes ou d'inventaire (sans revenir régulièrement sur le même site de suivi).
 
 Le module est articulé autour de 3 concepts :
 
 - les sites : l'objet géographique de suivi (qui peuvent être regroupés par groupes de sites)
 - les visites : une visite est effectuée sur un site (date, observateurs)
-- les observations : observations faites durant la visite (espèces)
+- les observations : observations d'espèce faites durant la visite (qui peut être associé à un individu dans le cas des CMR)
 
-Les 3 niveaux que sont les sites, les visites et les observations sont fournis avec un tronc commun (les champs génériques) qui peuvent être complétés par des champs spécifiques à chaque protocole. Ces champs spécifiques sont définis par des fichiers de configuration JSON.  
+Les 3 niveaux que sont les sites, les visites et les observations sont fournis avec un tronc commun (les champs génériques) qui peuvent être complétés par des champs spécifiques à chaque protocole. Ces champs spécifiques sont définis par des fichiers de configuration JSON.
+
 Pour chaque sous-module, correspondant à un protocole spécifique de suivi, il est ainsi possible d'ajouter dynamiquement des champs de différents types (liste, nomenclature, booléen, date, radio, observateurs, texte, taxonomie...). Ceux-ci peuvent être obligatoires ou non, affichés ou non et avoir des valeurs par défaut (voir doc détaillée : [Création d'un sous-module](docs/sous_module.md)).
 
 ![Liste des sites du protocole de test](docs/images/apercu.png)
-
 
 ## Installation du module
 
@@ -250,6 +252,7 @@ Les sites et groupes de sites peuvent être associés à plusieurs protocoles (s
 
 ## Autres
 
+* [Suivi d'individus (CMR)](docs/individuals.md)
 * [Gestion de la synthèse](docs/synthese.md)
 * [Documentation technique](docs/documentation_technique.md)
 * [Liste des commandes](docs/commandes.md)
