@@ -9,11 +9,11 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 export class ConfigService {
   protected _config;
 
-
   /**
    * Observable that stores the current module config
   */
-  public currentModuleConfig$ = new BehaviorSubject<any | null>(null);
+  private currentModuleConfig$ = new BehaviorSubject<any | null>(null);
+  public currentModuleConfigObs = this.currentModuleConfig$.asObservable();
 
   public get currentModuleConfig() {
     return this.currentModuleConfig$.getValue();
@@ -34,11 +34,12 @@ export class ConfigService {
     protected _http: HttpClient,
     protected _moduleService: ModuleService,
     public appConfig: GnConfigService
-  ) {}
+  ) { console.log("Config service constructor") }
 
   /** Configuration */
 
   init(moduleCode: string | null = null) {
+    console.log("Config service init")
     moduleCode = moduleCode || 'generic';
 
     // test initialisation

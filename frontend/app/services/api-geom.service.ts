@@ -34,20 +34,29 @@ export class ApiService<T = IObject> implements IService<T> {
     protected _monitoringObjectService: MonitoringObjectService
   ) {}
 
-  init(endPoint: endPoints, objectObjs: IobjObs<T>) {
+  init(endPoint,  objectObjs) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    this._configService.currentModuleConfig.subscribe((value) => {
+    console.log("init");
+    this._configService.currentModuleConfigObs.subscribe((value) => {
+      console.log("init sub", value);
+      if (value !== null) {
+      console.log("init run initConfig", value, this.objectObs);
        this.initConfig()
+      }
     })
   }
 
   public initConfig(): Observable<IobjObs<T>> {
+    console.log("initConfig")
+    this.objectObs.moduleCode = this._configService.currentModuleConfig?.module?.module_code;
+    console.log("initConfig", this.objectObs.moduleCode )
      const fieldNames = this._configService.configModuleObjectParam(
           this.objectObs.moduleCode,
           this.objectObs.objectType,
           'display_properties'
         );
+    console.log("fieldNames")
         //FIXME: same as site group: to refact
         const fieldNamesList = this._configService.configModuleObjectParam(
           this.objectObs.moduleCode,
@@ -87,8 +96,6 @@ export class ApiService<T = IObject> implements IService<T> {
           this.objectObs.template.labelList = labelList;
         }
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-
-
   }
 
   protected getModuleObjetTypeLabels(): {} {
@@ -209,7 +216,7 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     protected _monitoringObjectService: MonitoringObjectService
   ) {
     super(_cacheService, _configService, _monitoringObjectService);
-    this.init(this.endPoint, this.objectObs);
+    // this.init(this.endPoint, this.objectObs);
   }
 
   get_geometries(params: JsonData = {}): Observable<GeoJSON.FeatureCollection> {
@@ -466,6 +473,7 @@ export class IndividualsService extends ApiService<IIndividual> {
       },
       dataTable: { colNameObj: {} },
     };
+
     super.init(endPoint, objectObs);
   }
 }

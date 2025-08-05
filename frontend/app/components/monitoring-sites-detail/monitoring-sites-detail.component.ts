@@ -73,6 +73,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   moduleCode: string;
 
   constructor(
+    private _configService: ConfigService,
     private _auth: AuthService,
     private _sitesGroupService: SitesGroupService,
     private _visits_service: VisitsService,
@@ -82,7 +83,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _Activatedroute: ActivatedRoute,
     private _formBuilder: FormBuilder,
     private _formService: FormService,
-    private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,

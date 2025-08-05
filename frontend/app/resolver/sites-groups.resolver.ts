@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { SitesGroupService, SitesService, IndividualsService } from '../services/api-geom.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { ISite, ISitesGroup } from '../interfaces/geom';
@@ -13,6 +12,7 @@ import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
 import { ObjectService } from '../services/object.service';
+import { SitesGroupService, SitesService, IndividualsService } from '../services/api-geom.service';
 
 const LIMIT = 10;
 
@@ -54,20 +54,19 @@ export class SitesGroupsResolver
   }> {
     const moduleCode = route.params.moduleCode || 'generic';
     this.listChildObjectType = ['sites_group', 'site'];
-    this.serviceSitesGroup.setModuleCode(`${moduleCode}`);
-    this.serviceSite.setModuleCode(`${moduleCode}`);
-    this.serviceIndividual.setModuleCode(`${moduleCode}`);
+    // this.serviceSitesGroup.setModuleCode(`${moduleCode}`);
+    // this.serviceSite.setModuleCode(`${moduleCode}`);
+    // this.serviceIndividual.setModuleCode(`${moduleCode}`);
 
-    const $configSitesGroups = this.serviceSitesGroup.initConfig();
-    const $configSites = this.serviceSite.initConfig();
-    const $configIndividuals = this.serviceIndividual.initConfig();
+    // const $configSitesGroups = this.serviceSitesGroup.initConfig();
+    // const $configSites = this.serviceSite.initConfig();
+    // const $configIndividuals = this.serviceIndividual.initConfig();
 
     this._permissionService.setPermissionMonitorings(moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
     const resolvedData = this._configService.init(moduleCode).pipe(
-      concatMap(() =>
-        forkJoin([$configSitesGroups, $configSites, $configIndividuals]).pipe(
+
           map((configs) => {
             // Récupération des permissions du module
             const module_permissions = this._configService.moduleCruved(moduleCode);
@@ -131,8 +130,6 @@ export class SitesGroupsResolver
           mergeMap((result) => {
             return result;
           })
-        )
-      )
     );
     return resolvedData;
   }
