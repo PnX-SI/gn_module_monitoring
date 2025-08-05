@@ -14,7 +14,6 @@ import { ObjectService } from '../../services/object.service';
 import { IobjObs } from '../../interfaces/objObs';
 import { IBreadCrumb, SelectObject } from '../../interfaces/object';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
-import { ConfigJsonService } from '../../services/config-json.service';
 import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
@@ -77,7 +76,6 @@ export class MonitoringSitesgroupsDetailComponent
     private router: Router,
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
-    private _configJsonService: ConfigJsonService,
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
     private _formService: FormService,
@@ -328,7 +326,7 @@ export class MonitoringSitesgroupsDetailComponent
       }
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configJsonService.configModuleObject(
+      let config = this._configService.configModuleObject(
         this.moduleCode,
         data[dataType].objConfig.objectType
       );
@@ -386,9 +384,9 @@ export class MonitoringSitesgroupsDetailComponent
 
   addNewVisit(event) {
     this.modulSelected = event;
-    this._configJsonService.init(this.modulSelected.id).subscribe(() => {
+    this._configService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configJsonService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config()[moduleCode]);
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },

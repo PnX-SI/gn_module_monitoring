@@ -26,7 +26,6 @@ import { MapService } from '@geonature_common/map/map.service';
 import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
-import { ConfigJsonService } from '../../services/config-json.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ListService } from '../../services/list.service';
 
