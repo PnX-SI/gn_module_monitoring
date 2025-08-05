@@ -125,8 +125,8 @@ export class MonitoringSitesgroupsDetailComponent
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {
-          this._siteService.setModuleCode(`${this.moduleCode}`);
-          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+          // this._siteService.setModuleCode(`${this.moduleCode}`);
+          // this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
 
           const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
           // Récupération des sites et résolution des propriétés
@@ -377,7 +377,7 @@ export class MonitoringSitesgroupsDetailComponent
     this.modulSelected = event;
     this._configService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config());
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },

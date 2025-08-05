@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
-import { of , BehaviorSubject, Observable} from 'rxjs';
+import { of, BehaviorSubject, Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
@@ -9,9 +9,11 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 export class ConfigService {
   protected _config;
 
+  public frontendParams = {};
+
   /**
    * Observable that stores the current module config
-  */
+   */
   private currentModuleConfig$ = new BehaviorSubject<any | null>(null);
   public currentModuleConfigObs = this.currentModuleConfig$.asObservable();
 
@@ -25,49 +27,45 @@ export class ConfigService {
 
   public setCurrentModuleConfig(moduleCode) {
     this.loadConfig(moduleCode).subscribe((value) => {
-      this.currentModuleConfig = value
-    })
+      if (!(value['module'] || {})['module_code']) {
+        (value['module'] || {})['module_code'] = moduleCode || 'generic';
+      }
+      this.currentModuleConfig = value;
+    });
   }
-
 
   constructor(
     protected _http: HttpClient,
     protected _moduleService: ModuleService,
     public appConfig: GnConfigService
-  ) { console.log("Config service constructor") }
+  ) {}
 
   /** Configuration */
 
   init(moduleCode: string | null = null) {
-    console.log("Config service init")
     moduleCode = moduleCode || 'generic';
 
     // test initialisation
     if (this.currentModuleConfig?.module?.module_code == moduleCode) {
-      return
+      return;
     }
     // Sinon currentModuleConfig
     this.setCurrentModuleConfig(moduleCode);
-    // a definir ailleurs
-    // if (this._config && this._config[moduleCode]) {
-    //   return of(true);
-    // } else {
-    //   return this.loadConfig(moduleCode);
-    // }
-    this._config={}
-    this._config['frontendParams'] = {
-          bChainInput: false,
-        };
-    return of(true)
+
+    this._config = {};
+    this.frontendParams = {
+      bChainInput: false,
+    };
+    return of(true);
   }
 
-   loadConfig(moduleCode:string) : Observable<{}> {
+  loadConfig(moduleCode: string): Observable<{}> {
     const urlConfig =
       moduleCode === 'generic'
         ? `${this.backendModuleUrl()}/config`
         : `${this.backendModuleUrl()}/config/${moduleCode}`;
-    return this._http.get<any>(urlConfig)
-   }
+    return this._http.get<any>(urlConfig);
+  }
 
   // loadConfig(moduleCode) {
   //   const urlConfig =
@@ -236,8 +234,7 @@ export class ConfigService {
   }
 
   configModuleObject(moduleCode: string, objectType: string) {
-    moduleCode = moduleCode || 'generic';
-    return this.currentModuleConfig?.objectType;
+    return this.currentModuleConfig[objectType];
   }
 
   /**
@@ -257,18 +254,12 @@ export class ConfigService {
     return this.currentModuleConfig['data'];
   }
 
-  frontendParams() {
-    return this._config.frontendParams;
-  }
-
   setFrontendParams(paramName, paramValue) {
-    if (this._config && this._config.frontendParams) {
-      this._config.frontendParams[paramName] = paramValue;
-    }
+    this.frontendParams[paramName] = paramValue;
   }
 
   config() {
-    return this._config;
+    return this.currentModuleConfig;
   }
 
   cache() {

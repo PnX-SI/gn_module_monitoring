@@ -138,16 +138,16 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this._objService.loadBreadCrumb(this.moduleCode, 'module', null, queryParams);
 
       this.page = {
-        count: currentData.count,
-        limit: currentData.limit,
-        page: currentData.page - 1,
+        count: currentData?.count,
+        limit: currentData?.limit,
+        page: (currentData?.page || 1) - 1,
       };
       // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
       this.colsname = currentObjConfig.dataTable.colNameObj;
 
       const { route, permission, moduleCode, ...dataToTable } = data;
 
-      this.setDataTableObj(dataToTable);
+      this.setDataTableObj(dataToTable, data.tree);
 
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);
@@ -170,22 +170,15 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       }
 
       if (this.obj) {
-        return this._configService
-          .init(this.moduleCode)
-          .pipe(
-            mergeMap(() => {
-              return this.obj.get(0);
-            })
-          )
-          .subscribe(() => {
-            this.obj.initTemplate();
-            this.objForm = this._formBuilder.group({});
-            this.obj.bIsInitialized = true;
-            this._formService.changeFormMapObj({
-              frmGp: this.objForm,
-              obj: this.obj,
-            });
+        return this.obj.get(0).subscribe(() => {
+          this.obj.initTemplate();
+          this.objForm = this._formBuilder.group({});
+          this.obj.bIsInitialized = true;
+          this._formService.changeFormMapObj({
+            frmGp: this.objForm,
+            obj: this.obj,
           });
+        });
       } else {
         this._configService.init(this.moduleCode);
       }
@@ -458,13 +451,14 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  setDataTableObj(data) {
+  setDataTableObj(data, tree) {
     const objTemp = {};
     for (const dataType in data) {
-      if (!data[dataType].objConfig) {
+      let objType = data[dataType]?.objConfig?.objectType;
+      if (!tree.includes(objType)) {
         continue;
       }
-      let objType = data[dataType].objConfig.objectType;
+
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
       this.config = this._configService.configModuleObject(
@@ -473,13 +467,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       );
       data[dataType].objConfig['config'] = this.config;
       this.dataTableArray.push(data[dataType].objConfig);
-    }
 
-    for (const dataType in data) {
-      if (!data[dataType].objConfig) {
-        continue;
-      }
-      let objType = data[dataType].objConfig.objectType;
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       if (objType == 'site') {
         let siteList = data[dataType].data.items;
@@ -534,7 +522,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this.modulSelected = event;
     this._configService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config());
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },

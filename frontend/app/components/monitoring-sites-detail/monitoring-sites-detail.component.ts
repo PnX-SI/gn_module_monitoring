@@ -310,7 +310,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47
     this._configService.init(moduleCode).subscribe(() => {
-      const keys = Object.keys(this._configService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config());
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },

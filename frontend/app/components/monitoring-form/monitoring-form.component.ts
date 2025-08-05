@@ -161,7 +161,7 @@ export class MonitoringFormComponent implements OnInit {
           // Initialisation des paramètres par défaut du formulaire
           this.queryParams = this._route.snapshot.queryParams || {};
 
-          this.bChainInput = this._configService.frontendParams()['bChainInput'];
+          this.bChainInput = this._configService.frontendParams['bChainInput'];
 
           this.meta = {
             nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
