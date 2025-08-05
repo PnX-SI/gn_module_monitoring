@@ -1,6 +1,6 @@
 <div>
   <span class="obj-title"
-    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ _sitesGroupService.objectObs.label }}:</span
+    >{{ bEdit ?  _sitesGroupService.objectObs.editObjLabel : _sitesGroupService.objectObs.detailObjLabel }} :</span
   >
   <span *ngIf="sitesGroup" class="obj-description"> {{ sitesGroup.sites_group_name }} </span>
 </div>
@@ -30,7 +30,7 @@
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
   (saveOptionChildren)="onSaveAddChildren($event)"
-  (onAddObj)="navigateToAddObj($event)" 
+  (onAddObj)="navigateToAddObj($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
   [permission]="currentPermission"
   parentPath="sites_group"

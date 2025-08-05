@@ -6,7 +6,6 @@ import { ISite, ISitesGroup } from '../interfaces/geom';
 import { IPaginated } from '../interfaces/page';
 import { IobjObs } from '../interfaces/objObs';
 import { concatMap, map, mergeMap } from 'rxjs/operators';
-import { ConfigJsonService } from '../services/config-json.service';
 import { PermissionService } from '../services/permission.service';
 import { TPermission } from '../types/permission';
 import { MonitoringObjectService } from '../services/monitoring-object.service';
@@ -35,7 +34,6 @@ export class SitesGroupsResolver
     public serviceSitesGroup: SitesGroupService,
     public serviceSite: SitesService,
     public serviceIndividual: IndividualsService,
-    public _configJsonService: ConfigJsonService,
     public _permissionService: PermissionService,
     private router: Router,
     private _objService: MonitoringObjectService,
@@ -145,7 +143,7 @@ export class SitesGroupsResolver
     };
     let $getObjetTypes = of(null);
     if (this.listChildObjectType.includes(object_type) && config) {
-      configSchemaObjetType = this._configJsonService.configModuleObject(
+      configSchemaObjetType = this._configService.configModuleObject(
         config.moduleCode,
         config.objectType
       );
@@ -157,10 +155,9 @@ export class SitesGroupsResolver
             }
           : {};
 
-      const fieldsConfig = this._configService.schema(moduleCode, object_type);
       $getObjetTypes =
         permission > 0
-          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit, fieldsConfig)
+          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
     return $getObjetTypes;

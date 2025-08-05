@@ -12,6 +12,7 @@ export interface IobjObs<T> {
   label: string;
   addObjLabel: string;
   editObjLabel: string;
+  detailObjLabel: string;
   seeObjLabel: string;
   addChildLabel?: string;
   childType?: string;
