@@ -1,13 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
-import { of } from 'rxjs';
+import { of , BehaviorSubject, Observable} from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
 @Injectable()
 export class ConfigService {
   protected _config;
+
+
+  /**
+   * Observable that stores the current module config
+  */
+  public currentModuleConfig$ = new BehaviorSubject<any | null>(null);
+
+  public get currentModuleConfig() {
+    return this.currentModuleConfig$.getValue();
+  }
+
+  public set currentModuleConfig(value) {
+    this.currentModuleConfig$.next(value);
+  }
+
+  public setCurrentModuleConfig(moduleCode) {
+    this.loadConfig(moduleCode).subscribe((value) => {
+      this.currentModuleConfig = value
+    })
+  }
+
 
   constructor(
     protected _http: HttpClient,
@@ -18,31 +39,50 @@ export class ConfigService {
   /** Configuration */
 
   init(moduleCode: string | null = null) {
-    // a definir ailleurs
     moduleCode = moduleCode || 'generic';
-    if (this._config && this._config[moduleCode]) {
-      return of(true);
-    } else {
-      return this.loadConfig(moduleCode);
+
+    // test initialisation
+    if (this.currentModuleConfig?.module?.module_code == moduleCode) {
+      return
     }
+    // Sinon currentModuleConfig
+    this.setCurrentModuleConfig(moduleCode);
+    // a definir ailleurs
+    // if (this._config && this._config[moduleCode]) {
+    //   return of(true);
+    // } else {
+    //   return this.loadConfig(moduleCode);
+    // }
+    this._config['frontendParams'] = {
+          bChainInput: false,
+        };
+    return of(true)
   }
 
-  loadConfig(moduleCode) {
+   loadConfig(moduleCode:string) : Observable<{}> {
     const urlConfig =
       moduleCode === 'generic'
         ? `${this.backendModuleUrl()}/config`
         : `${this.backendModuleUrl()}/config/${moduleCode}`;
-    return this._http.get<any>(urlConfig).pipe(
-      mergeMap((config) => {
-        this._config = this._config || {};
-        this._config[moduleCode] = config;
-        this._config['frontendParams'] = {
-          bChainInput: false,
-        };
-        return of(true);
-      })
-    );
-  }
+    return this._http.get<any>(urlConfig)
+   }
+
+  // loadConfig(moduleCode) {
+  //   const urlConfig =
+  //     moduleCode === 'generic'
+  //       ? `${this.backendModuleUrl()}/config`
+  //       : `${this.backendModuleUrl()}/config/${moduleCode}`;
+  //   return this._http.get<any>(urlConfig).pipe(
+  //     mergeMap((config) => {
+  //       this._config = this._config || {};
+  //       this._config[moduleCode] = config;
+  //       this._config['frontendParams'] = {
+  //         bChainInput: false,
+  //       };
+  //       return of(true);
+  //     })
+  //   );
+  // }
 
   loadConfigSpecificConfig(obj) {
     const urlConfig = `${this.backendModuleUrl()}/sites/${obj.id}/types`;
@@ -141,7 +181,7 @@ export class ConfigService {
   change(moduleCode, objectType) {
     moduleCode = moduleCode || 'generic';
 
-    const configObject = this._config[moduleCode][objectType];
+    const configObject = this.currentModuleConfig[objectType];
     const change = configObject.change;
     return this.toFunction(change);
   }
@@ -149,7 +189,7 @@ export class ConfigService {
   /** Config Object Schema */
   schema(moduleCode, objectType, typeSchema = 'all'): Object {
     moduleCode = moduleCode || 'MONITORINGS';
-    const configObject = this._config[moduleCode][objectType];
+    const configObject = this.currentModuleConfig[objectType];
     // gerer quand les paramètres ont un fonction comme valeur
     if (configObject) {
       for (const typeSchema of ['generic', 'specific']) {
@@ -195,7 +235,7 @@ export class ConfigService {
 
   configModuleObject(moduleCode: string, objectType: string) {
     moduleCode = moduleCode || 'generic';
-    return this._config[moduleCode][objectType];
+    return this.currentModuleConfig[objectType];
   }
 
   /**
@@ -212,7 +252,7 @@ export class ConfigService {
    * contient une liste de type de nomenclature, les liste d'utilisateur et une liste de taxon
    */
   configData(moduleCode) {
-    return this._config[moduleCode]['data'];
+    return this.currentModuleConfig['data'];
   }
 
   frontendParams() {

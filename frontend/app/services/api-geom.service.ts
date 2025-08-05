@@ -37,17 +37,13 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    // souscrit au sujet config du module en cours
-    // quand le module change
-    // test if config exist pour le module
-    // sinon raise
-    // lancer opération de initConfig
+    this._configService.currentModuleConfig.subscribe((value) => {
+       this.initConfig()
+    })
   }
 
   public initConfig(): Observable<IobjObs<T>> {
-    return this._configService.init(this.objectObs.moduleCode).pipe(
-      map(() => {
-        const fieldNames = this._configService.configModuleObjectParam(
+     const fieldNames = this._configService.configModuleObjectParam(
           this.objectObs.moduleCode,
           this.objectObs.objectType,
           'display_properties'
@@ -91,9 +87,8 @@ export class ApiService<T = IObject> implements IService<T> {
           this.objectObs.template.labelList = labelList;
         }
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-        return this.objectObs;
-      })
-    );
+
+
   }
 
   protected getModuleObjetTypeLabels(): {} {

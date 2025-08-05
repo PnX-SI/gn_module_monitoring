@@ -100,9 +100,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.siteService.setModuleCode(`${this.moduleCode}`);
     this._visits_service.setModuleCode(`${this.moduleCode}`);
     this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
-    const $configSitesGroups = this._sitesGroupService.initConfig();
-    const $configSites = this.siteService.initConfig();
-    const $configIndividuals = this._visits_service.initConfig();
+    // const $configSitesGroups = this._sitesGroupService.initConfig();
+    // const $configSites = this.siteService.initConfig();
+    // const $configIndividuals = this._visits_service.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas
@@ -119,9 +119,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
     forkJoin([
       this._configService.init(this.moduleCode),
-      $configSitesGroups,
-      $configSites,
-      $configIndividuals,
+      // $configSitesGroups,
+      // $configSites,
+      // $configIndividuals,
     ]).subscribe(() => {
       this.initSiteVisit();
     });
