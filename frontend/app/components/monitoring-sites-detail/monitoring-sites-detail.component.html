@@ -1,6 +1,6 @@
 <div>
   <span class="obj-title"
-    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ siteService.objectObs.label }}:</span
+    >{{ bEdit ?  siteService.objectObs.editObjLabel : siteService.objectObs.detailObjLabel }} :</span
   >
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>

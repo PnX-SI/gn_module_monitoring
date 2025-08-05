@@ -19,7 +19,6 @@ import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
-import { ConfigJsonService } from '../../services/config-json.service';
 import { breadCrumbBase } from '../../class/breadCrumb';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
@@ -92,7 +91,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
-    protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     private _permissionService: PermissionService,
     private _popup: Popup,
@@ -106,6 +104,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     this.siteService.setModuleCode(`${this.moduleCode}`);
     this._visits_service.setModuleCode(`${this.moduleCode}`);
+    this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+    const $configSitesGroups = this._sitesGroupService.initConfig();
+    const $configSites = this.siteService.initConfig();
+    const $configIndividuals = this._visits_service.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas
@@ -116,7 +118,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
 
-    this._configService.init(this.moduleCode).subscribe(() => {
+    forkJoin([
+      this._configService.init(this.moduleCode),
+      $configSitesGroups,
+      $configSites,
+      $configIndividuals,
+    ]).subscribe(() => {
       this.initSiteVisit();
     });
   }
@@ -125,7 +132,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._permissionService.setPermissionMonitorings(this.moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
-    const fieldsConfig = this._configService.schema(this.moduleCode, 'visit');
     this._Activatedroute.params
       .pipe(
         map((params) => {
@@ -153,14 +159,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
                 return of(null);
               }
             }),
-            visits: this._visits_service.getResolved(
-              1,
-              this.limit,
-              {
-                id_base_site: id,
-              },
-              fieldsConfig
-            ),
+            visits: this._visits_service.getResolved(1, this.limit, {
+              id_base_site: id,
+            }),
           }).pipe(
             map((data) => {
               return data;
@@ -276,7 +277,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   getVisits(page: number, filters: JsonData) {
     const queryParams = { ...filters, ...{ id_base_site: this.site.id_base_site } };
     this._visits_service
-      .get(page, this.limit, queryParams)
+      .getResolved(page, this.limit, queryParams)
       .subscribe((visits: IPaginated<IVisit>) => this.setVisits(visits));
   }
 
@@ -499,7 +500,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       }
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configJsonService.configModuleObject(
+      let config = this._configService.configModuleObject(
         data[dataType].objConfig.moduleCode,
         data[dataType].objConfig.objectType
       );

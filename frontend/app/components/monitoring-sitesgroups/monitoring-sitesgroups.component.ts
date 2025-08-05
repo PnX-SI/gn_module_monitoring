@@ -17,7 +17,6 @@ import {
   SitesGroupService,
   SitesService,
 } from '../../services/api-geom.service';
-import { ConfigJsonService } from '../../services/config-json.service';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { GeoJSONService } from '../../services/geojson.service';
@@ -88,7 +87,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private router: Router,
     private _objService: ObjectService,
     private _formBuilder: FormBuilder,
-    private _configJsonService: ConfigJsonService,
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     private _formService: FormService,
     private _location: Location,
@@ -234,10 +232,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
      */
     // Récupération du type d'objet
     const object_type = _service.objectObs.objectType;
-    // Récupération de la configuration des champs (pour la résolution )
-    const fieldsConfig = this._configService.schema(this.moduleCode, object_type);
     _service
-      .getResolved(page, LIMIT, params, fieldsConfig)
+      .getResolved(page, LIMIT, params)
       .subscribe((processedPaginatedData: IPaginated<any>) => {
         this.page = {
           count: processedPaginatedData.count,
@@ -487,7 +483,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       let objType = data[dataType].objConfig.objectType;
       Object.assign(objType, objTemp);
       objTemp[objType] = { columns: {}, rows: [], page: {} };
-      this.config = this._configJsonService.configModuleObject(
+      this.config = this._configService.configModuleObject(
         data[dataType].objConfig.moduleCode,
         data[dataType].objConfig.objectType
       );
@@ -552,9 +548,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   addNewVisit(event) {
     this.modulSelected = event;
-    this._configJsonService.init(this.modulSelected.id).subscribe(() => {
+    this._configService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configJsonService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config()[moduleCode]);
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
