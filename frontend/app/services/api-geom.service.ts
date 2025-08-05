@@ -37,6 +37,11 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
+    // souscrit au sujet config du module en cours
+    // quand le module change
+    // test if config exist pour le module
+    // sinon raise
+    // lancer opération de initConfig
   }
 
   public initConfig(): Observable<IobjObs<T>> {
@@ -57,6 +62,12 @@ export class ApiService<T = IObject> implements IService<T> {
         if (!fieldNamesList) {
           return null;
         }
+
+        // Initialisation des différents labels de l'objet
+        const objetLabels = this.getModuleObjetTypeLabels();
+        Object.entries(objetLabels).forEach(([key, value]) => {
+          this.objectObs[key] = value;
+        });
 
         const labelList = this._configService.configModuleObjectParam(
           this.objectObs.moduleCode,
@@ -79,11 +90,49 @@ export class ApiService<T = IObject> implements IService<T> {
         if (labelList != undefined) {
           this.objectObs.template.labelList = labelList;
         }
-
         this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
         return this.objectObs;
       })
     );
+  }
+
+  protected getModuleObjetTypeLabels(): {} {
+    const moduleCode = this.objectObs.moduleCode;
+    const objectType = this.objectObs.objectType;
+    const childObjectType = this.objectObs.childType;
+
+    const genre = this._configService.configModuleObjectParam(moduleCode, objectType, 'genre');
+    const label = this._configService.configModuleObjectParam(moduleCode, objectType, 'label');
+
+    let nouveauLabel = Utils.labelNew(genre, label);
+    let articleDuLabel = Utils.labelDu(genre, label);
+    let articleLabel = Utils.labelArtDef(genre, label);
+    let articleUndefLabel = Utils.labelArtUndef(genre);
+
+    let labels = {
+      label: label,
+      addObjLabel: `Ajouter ${articleUndefLabel} ${nouveauLabel} ${label.toLowerCase()}`,
+      editObjLabel: `Editer ${articleLabel} ${label.toLowerCase()}`,
+      seeObjLabel: `Consulter ${articleLabel} ${label.toLowerCase()}`,
+      deleteObjLabel: `Supprimer ${articleLabel} ${label.toLowerCase()}`,
+      detailObjLabel: `Detail ${articleDuLabel} ${label.toLowerCase()}`,
+    };
+
+    if (childObjectType) {
+      const genreChild = this._configService.configModuleObjectParam(
+        moduleCode,
+        childObjectType,
+        'genre'
+      );
+      const labelChild = this._configService.configModuleObjectParam(
+        moduleCode,
+        childObjectType,
+        'label'
+      );
+      labels['addChildLabel'] =
+        `Ajouter ${Utils.labelArtUndef(genreChild)} ${Utils.labelNew(genreChild, labelChild)} ${labelChild.toLowerCase()}`;
+    }
+    return labels;
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
@@ -204,6 +253,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       label: 'groupe de site',
       addObjLabel: 'Ajouter un nouveau groupe de site',
       editObjLabel: 'Editer le groupe de site',
+      detailObjLabel: 'Détail du groupe de site',
       seeObjLabel: 'Consulter le groupe de site',
       addChildLabel: 'Ajouter un site',
       childType: 'site',
@@ -292,6 +342,7 @@ export class SitesService extends ApiGeomService<ISite> {
       label: 'site',
       addObjLabel: 'Ajouter un nouveau site',
       editObjLabel: 'Editer le site',
+      detailObjLabel: 'Détail du site',
       seeObjLabel: 'Consulter le site',
       deleteObjLabel: 'Supprimer le site',
       addChildLabel: 'Ajouter une visite',
@@ -358,6 +409,7 @@ export class VisitsService extends ApiService<IVisit> {
       addObjLabel: 'Ajouter une nouvelle visite',
       editObjLabel: 'Editer la visite',
       seeObjLabel: 'Consulter la visite',
+      detailObjLabel: 'Détail de la visite',
       addChildLabel: 'Ajouter une observation',
       childType: 'observation',
       deleteObjLabel: 'Supprimer la visite',
@@ -397,6 +449,7 @@ export class IndividualsService extends ApiService<IIndividual> {
       label: 'individu',
       addObjLabel: 'Ajouter un nouvel individu',
       editObjLabel: 'Editer la individu',
+      detailObjLabel: "Détail de  l'individu",
       seeObjLabel: "Consulter l'individu",
       addChildLabel: 'Ajouter un marquage',
       childType: 'marking',
