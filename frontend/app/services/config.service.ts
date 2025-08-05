@@ -54,6 +54,7 @@ export class ConfigService {
     // } else {
     //   return this.loadConfig(moduleCode);
     // }
+    this._config={}
     this._config['frontendParams'] = {
           bChainInput: false,
         };
@@ -236,7 +237,7 @@ export class ConfigService {
 
   configModuleObject(moduleCode: string, objectType: string) {
     moduleCode = moduleCode || 'generic';
-    return this.currentModuleConfig[objectType];
+    return this.currentModuleConfig?.objectType;
   }
 
   /**
