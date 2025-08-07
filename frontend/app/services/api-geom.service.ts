@@ -129,8 +129,12 @@ export class ApiService<T = IObject> implements IService<T> {
         childObjectType,
         'label'
       );
-      labels['addChildLabel'] =
-        `Ajouter ${Utils.labelArtUndef(genreChild)} ${Utils.labelNew(genreChild, labelChild)} ${labelChild.toLowerCase()}`;
+      if (labelChild) {
+        labels['addChildLabel'] = `Ajouter ${Utils.labelArtUndef(genreChild)} ${Utils.labelNew(
+          genreChild,
+          labelChild
+        )} ${labelChild.toLowerCase()}`;
+      }
     }
     return labels;
   }

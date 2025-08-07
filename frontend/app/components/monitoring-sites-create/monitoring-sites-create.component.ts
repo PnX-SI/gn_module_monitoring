@@ -13,7 +13,6 @@ import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { IPaginated } from '../../interfaces/page';
 import { IBreadCrumb } from '../../interfaces/object';
-import { breadCrumbBase } from '../../class/breadCrumb';
 import { GeoJSONService } from '../../services/geojson.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 
@@ -39,9 +38,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
   objToCreate: IobjObs<ObjDataType>;
   urlRelative: string;
 
-  breadCrumbList: IBreadCrumb[] = [];
-  breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSites.value;
-
   obj: MonitoringObject;
   bEdit: boolean = true;
   currentUser: User;
@@ -64,6 +60,11 @@ export class MonitoringSitesCreateComponent implements OnInit {
   ngOnInit() {
     const idSitesGroup = this._route.snapshot.data.createSite.id_sites_group;
     this.moduleCode = this._route.snapshot.data.createSite.moduleCode;
+
+    // breadcrumb
+    const queryParams = this._route.snapshot.queryParams;
+    this._objService.loadBreadCrumb(this.moduleCode, 'site', null, queryParams);
+
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
     const elements = document.getElementsByClassName('monitoring-map-container');
@@ -95,7 +96,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
           obj: this.obj,
         });
         this._formService.changeCurrentEditMode(this.bEdit);
-        this.updateBreadCrumb();
         this.obj.bIsInitialized = true;
       });
   }
@@ -126,35 +126,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
         return of(true);
       })
     );
-  }
-
-  updateBreadCrumb() {
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/sites_group`,
-      });
-      if (this.sitesGroup) {
-        breadcrumb.push({
-          description: `Groupe de site : ${this.sitesGroup.sites_group_name}`,
-          label: '',
-          url: `object/${module.module_code}/sites_group/${this.sitesGroup.id_sites_group}`,
-        });
-      }
-    }
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/site`,
-    };
-
-    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase];
-
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   ngOnDestroy() {

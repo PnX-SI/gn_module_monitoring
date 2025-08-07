@@ -115,6 +115,7 @@ export class DataMonitoringObjectService {
    * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
+   * @param queryParams paramètre supplémentaire permettant d'indiquer les parents souhaités
    */
   getBreadcrumbs(moduleCode, objectType, id, queryParams) {
     const url = this.urlMonitoring('breadcrumbs', moduleCode, objectType, id);

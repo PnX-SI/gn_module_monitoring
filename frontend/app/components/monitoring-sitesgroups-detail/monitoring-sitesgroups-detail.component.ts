@@ -12,8 +12,7 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { IobjObs } from '../../interfaces/objObs';
-import { IBreadCrumb, SelectObject } from '../../interfaces/object';
-import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
+import { SelectObject } from '../../interfaces/object';
 import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
@@ -44,9 +43,6 @@ export class MonitoringSitesgroupsDetailComponent
   form: FormGroup;
   objectType: IobjObs<ISite>;
   objParent: any;
-  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
-  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
-  breadCrumbList: IBreadCrumb[] = [];
 
   modules: SelectObject[];
   modulSelected;
@@ -90,6 +86,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSitesGroups.moduleCode;
+
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
@@ -109,6 +106,16 @@ export class MonitoringSitesgroupsDetailComponent
           this.checkEditParam = params['edit'];
           this.siteGroupId = params['id'];
           this.baseFilters = { id_sites_group: this.siteGroupId };
+
+          // breadcrumb
+          const queryParams = this._Activatedroute.snapshot.queryParams;
+          this._objService.loadBreadCrumb(
+            this.moduleCode,
+            'sites_group',
+            this.siteGroupId,
+            queryParams
+          );
+
           this.obj = new MonitoringObject(
             this.moduleCode,
             'sites_group',
@@ -174,7 +181,6 @@ export class MonitoringSitesgroupsDetailComponent
         sites['objConfig'] = data.objObsSite;
         this.sitesGroup['objConfig'] = data.objObsSiteGp;
 
-        this.moduleCode === 'generic' && this.updateBreadCrumb(data.sitesGroup);
         this.setDataTableObj({ sites: sites, sitesGroup: this.sitesGroup });
 
         if (this.checkEditParam) {
@@ -292,21 +298,6 @@ export class MonitoringSitesgroupsDetailComponent
         this.initSite();
       }, 100);
     });
-  }
-
-  updateBreadCrumb(sitesGroup) {
-    this.breadCrumbElemnt.description = sitesGroup.sites_group_name;
-    this.breadCrumbElemnt.label = 'Groupe de site';
-    this.breadCrumbElemnt['id'] = sitesGroup.id_sites_group;
-    this.breadCrumbElemnt['objectType'] =
-      this._sitesGroupService.objectObs.objectType || 'sites_group';
-    this.breadCrumbElemnt['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbElemnt.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbList = [this.breadCrumbElementBase, this.breadCrumbElemnt];
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   onObjChanged($event) {

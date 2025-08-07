@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, g
 
 from sqlalchemy import select
 from sqlalchemy.sql import text
@@ -189,13 +189,24 @@ class MonitoringObject(MonitoringObjectSerializer):
         breadcrumbs = [breadcrumb] if breadcrumb else []
 
         next = None
-
+        next_breadcrumbs = None
         if params["parents_path"]:
             object_type = params.get("parents_path", []).pop()
-            next = MonitoringObject(self._module_code, object_type, config=self._config)
-            if next._object_type == "module":
-                next.get(field_name="module_code", value=self._module_code)
+            if object_type == "module":
+                next = None
+                if g.current_module.module_code.upper() == "MONITORINGS":
+                    module_code = "generic"
+                else:
+                    module_code = g.current_module.module_code
+                next_breadcrumbs = {
+                    "description": g.current_module.module_label,
+                    "id": g.current_module.id_module,
+                    "label": "Module",
+                    "module_code": module_code,
+                    "object_type": "module",
+                }
             else:
+                next = MonitoringObject(self._module_code, object_type, config=self._config)
                 id_field_name = next.config_param("id_field_name")
                 next._id = self.get_value(id_field_name) or params.get(id_field_name)
                 next.get(0)
@@ -204,6 +215,8 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         if next:
             breadcrumbs = next.breadcrumbs(params) + breadcrumbs
+        if next_breadcrumbs:
+            breadcrumbs = [next_breadcrumbs] + breadcrumbs
 
         return breadcrumbs
 
