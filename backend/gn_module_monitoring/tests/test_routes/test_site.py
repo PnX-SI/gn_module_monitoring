@@ -64,15 +64,17 @@ class TestSite:
         assert r.json["items"][0]["id_base_site"] == min(ids_sites)
 
         r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="desc"))
+
         assert r.json["count"] >= len(sites)
-        assert r.json["items"][0]["inventor"] == [users["user"].nom_complet]
+        assert r.json["items"][0]["id_inventor"] == users["user"].id_role
 
         r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="asc"))
 
         assert r.json["count"] >= len(sites)
-        assert r.json["items"][0]["inventor"] == [users["admin_user"].nom_complet]
+        assert r.json["items"][0]["id_inventor"] == users["admin_user"].id_role
 
     def test_get_sites_order_by_unknown_field(self, sites, users):
+
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.get(
