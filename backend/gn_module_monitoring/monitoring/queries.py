@@ -46,6 +46,10 @@ class GnMonitoringGenericFilter:
                     join_inventor = aliased(User)
                     query = query.join(join_inventor, cls.inventor)
                     query = query.filter(join_inventor.nom_complet.ilike(f"%{value}%"))
+                elif key == "id_digitiser" and not value.isdigit():
+                    join_digitiser = aliased(User)
+                    query = query.join(join_digitiser, cls.digitiser)
+                    query = query.filter(join_digitiser.nom_complet.ilike(f"%{value}%"))
                 else:
                     and_list.append(column == value)
                 params.pop(key)
@@ -319,4 +323,43 @@ class ObservationsQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
                 ]
             query = query.where(or_(*ors))
+        return query
+
+
+class IndividualsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
+        if user is None:
+            user = g.current_user
+        if scope == 0:
+            query = query.where(false())
+        elif scope in (1, 2):
+            ors = [
+                Models.TMonitoringIndividuals.id_digitiser == user.id_role,
+            ]
+            # if organism is None => do not filter on id_organism even if level = 2
+            if scope == 2 and user.id_organisme is not None:
+                ors += [
+                    Models.TMonitoringIndividuals.digitiser.has(id_organisme=user.id_organisme)
+                ]
+            query = query.where(or_(*ors))
+        return query
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "cd_nom" in params:
+            value = params.pop("cd_nom")
+            # Cas ou le filtre provient du front
+            # La valeur est passée en chaine de caractère
+            if value.isdigit():
+                query = query.where(Models.TMonitoringIndividuals.cd_nom == value)
+            else:
+                join_table = aliased(Taxref)
+                join_column = join_table.cd_nom
+                filter_column = join_table.nom_vern_or_lb_nom
+                query = query.join(join_table, Models.TMonitoringIndividuals.cd_nom == join_column)
+                # Filtre sur la valeur de la table de jointure
+                query = query.where(filter_column.ilike(f"{value}%"))
+
+        query = super().filter_by_params(query, params)
         return query
