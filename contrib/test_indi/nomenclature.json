@@ -1,0 +1,25 @@
+{
+  "types": [
+    {
+      "mnemonique": "TEST_METEO",
+      "label_default": "Météo",
+      "definition_default": "Météo (protocôle de suivi test)"
+    }
+  ],
+  "nomenclatures": [
+    {
+      "type":"TEST_METEO",
+      "cd_nomenclature": "METEO_B",
+      "mnemonique": "Beau",
+      "label_default": "Beau temps",
+      "definition_default": "Beau temps (test)"
+    },
+    {
+      "type":"TEST_METEO",
+      "cd_nomenclature": "METEO_M",
+      "mnemonique": "Mauvais",
+      "label_default": "Mauvais temps",
+      "definition_default": "Mauvais temps (test)"
+    }
+  ]
+}
