@@ -14,12 +14,10 @@ import { SitesGroupService, SitesService, VisitsService } from '../../services/a
 import { GeoJSONService } from '../../services/geojson.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
-import { IBreadCrumb, SelectObject } from '../../interfaces/object';
+import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
-import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
-import { breadCrumbBase } from '../../class/breadCrumb';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
@@ -54,10 +52,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   types_site: string[];
   config: JsonData;
   siteGroupIdParent: number;
-  breadCrumbParent: IBreadCrumb = { label: 'Groupe de site', description: '' };
-  breadCrumbChild: IBreadCrumb = { label: 'Site', description: '' };
-  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
-  breadCrumbList: IBreadCrumb[] = [];
   objSelected: ISiteField;
   objResolvedProperties: ISiteField;
   parentsPath: string[] = [];
@@ -102,6 +96,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
+    const idSite = this._Activatedroute.snapshot.params.id;
     this.siteService.setModuleCode(`${this.moduleCode}`);
     this._visits_service.setModuleCode(`${this.moduleCode}`);
     this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
@@ -117,6 +112,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.form = this._formBuilder.group({});
     this._objService.changeObjectTypeParent(this.siteService.objectObs);
     this._objService.changeObjectType(this._visits_service.objectObs);
+
+    // breadcrumb
+    const queryParams = this._Activatedroute.snapshot.queryParams;
+    this._objService.loadBreadCrumb(this.moduleCode, 'site', idSite, queryParams);
 
     forkJoin([
       this._configService.init(this.moduleCode),
@@ -248,11 +247,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
         dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
         this.setDataTableObj(dataonlyObjConfigAndObj);
-        if (isNaN(this.siteGroupIdParent)) {
-          this.updateBreadCrumbWithoutGpSite(data.site);
-        } else {
-          this.updateBreadCrumb(data.site, data.parentObjSelected);
-        }
+
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.objSelected,
@@ -396,84 +391,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.site.types_site = this.config.types_site;
     Object.assign(this.site.dataComplement, this.config);
     this._formService.updateSpecificForm(this.site, specificData);
-  }
-
-  updateBreadCrumb(site, parentSelected) {
-    this.breadCrumbParent.description = parentSelected.sites_group_name;
-    this.breadCrumbParent.label = 'Groupe de site';
-    this.breadCrumbParent['id'] = parentSelected.id_sites_group;
-    this.breadCrumbParent['objectType'] =
-      this._sitesGroupService.objectObs.objectType || 'sites_group';
-    this.breadCrumbParent['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbParent.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbChild.description = site.base_site_name;
-    this.breadCrumbChild.label = 'Site';
-    this.breadCrumbChild['id'] = site.id_base_site;
-    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType || 'site';
-    this.breadCrumbChild['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbParent.id?.toString(),
-      `object/${this.moduleCode}/site`,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/sites_group`,
-    };
-
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/site`,
-      });
-    }
-
-    this.breadCrumbList = [
-      ...breadcrumb,
-      this.breadCrumbElementBase,
-      this.breadCrumbParent,
-      this.breadCrumbChild,
-    ];
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
-  }
-
-  updateBreadCrumbWithoutGpSite(sites) {
-    this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-    this.breadCrumbChild.description = sites.base_site_name;
-    this.breadCrumbChild.label = 'Site';
-    this.breadCrumbChild['id'] = sites.id_base_site;
-    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
-    this.breadCrumbChild['url'] = [
-      `object/${this.moduleCode}/site`,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/site`,
-    };
-
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/site`,
-      });
-    }
-
-    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase, this.breadCrumbChild];
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   onObjChanged($event) {

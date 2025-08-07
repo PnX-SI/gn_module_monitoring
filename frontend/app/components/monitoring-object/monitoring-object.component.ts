@@ -59,7 +59,8 @@ export class MonitoringObjectComponent implements OnInit {
 
   constructor(
     private _route: ActivatedRoute,
-    private _objService: MonitoringObjectService,
+    private _monitoringObjService: MonitoringObjectService,
+    private _objectService: ObjectService,
     private _configService: ConfigService,
     private _dataUtilsService: DataUtilsService,
     private _formBuilder: FormBuilder,
@@ -119,6 +120,14 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
+        // breadcrumb
+        const queryParams = this._route.snapshot.queryParams || {};
+        this._objectService.loadBreadCrumb(
+          this.obj.moduleCode,
+          this.obj.objectType,
+          this.obj.id,
+          queryParams
+        );
       });
   }
 
@@ -205,7 +214,7 @@ export class MonitoringObjectComponent implements OnInit {
           params.get('moduleCode'),
           objectType,
           params.get('id'),
-          this._objService
+          this._monitoringObjService
         );
 
         this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll('parents_path') || [];
@@ -213,7 +222,7 @@ export class MonitoringObjectComponent implements OnInit {
           params.get('moduleCode'),
           'module',
           null,
-          this._objService
+          this._monitoringObjService
         );
         this.objForm = this._formBuilder.group({});
 
@@ -234,12 +243,12 @@ export class MonitoringObjectComponent implements OnInit {
     return this._configService.init(this.obj.moduleCode).pipe(
       concatMap(() => {
         if (this.obj.objectType == 'site' && this.obj.id != null) {
-          return this._objService
+          return this._monitoringObjService
             .configService()
             .loadConfigSpecificConfig(this.obj)
             .pipe(
               tap((config) => {
-                this.obj.template_specific = this._objService
+                this.obj.template_specific = this._monitoringObjService
                   .configService()
                   .addSpecificConfig(config);
               })
