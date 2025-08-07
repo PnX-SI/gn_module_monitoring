@@ -34,12 +34,12 @@ from gn_module_monitoring.utils.routes import (
     defaults={"object_type": "individual"},
 )
 @check_cruved_scope("R", object_code="MONITORINGS_INDIVIDUALS")
-def get_indivudals(object_type, module_code=None):
+def get_individuals(object_type, module_code=None):
     object_code = "MONITORINGS_INDIVIDUALS"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
-        params=params, default_sort="id_base_site", default_direction="desc"
+        params=params, default_sort="id_individual", default_direction="desc"
     )
 
     query = select(TMonitoringIndividuals)
@@ -53,9 +53,7 @@ def get_indivudals(object_type, module_code=None):
     specific_properties = config.get("individuals", {}).get("specific", {})
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
-    query = sort_according_to_column_type_for_site(
-        query, sort_label, sort_dir, specific_properties
-    )
+    query = sort(TMonitoringIndividuals, query, sort_label, sort_dir, specific_properties)
 
     query_allowed = TMonitoringIndividuals.filter_by_readable(
         query=query, module_code=g.current_module.module_code, object_code=object_code

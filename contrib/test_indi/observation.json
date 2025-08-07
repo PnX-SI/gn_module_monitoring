@@ -1,0 +1,17 @@
+{
+  "specific": {
+    "cd_nom": {
+       "type_widget": "text",
+       "required": false,
+       "hidden": true
+    },
+    "id_individual": {
+      "type_widget": "individuals",
+      "attribut_label": "Choix de l'individu",
+      "id_module": "__MODULE.ID_MODULE",
+      "id_list": "__MODULE.ID_LIST_TAXONOMY",
+      "cd_nom": "__MODULE.CD_NOM",
+      "hidden": false
+    }
+  }
+}
