@@ -8,6 +8,7 @@ on:
       - main
       - hotfixes
       - develop
+      - improve-module-part-indivuduals
   pull_request:
     paths:
       - 'backend/**'
@@ -15,6 +16,7 @@ on:
       - main
       - hotfixes
       - develop
+      - improve-module-part-indivuduals
 
 jobs:
   build:
