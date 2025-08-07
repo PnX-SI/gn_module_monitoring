@@ -44,6 +44,7 @@ from gn_module_monitoring.monitoring.queries import (
     SitesGroupsQuery,
     VisitQuery,
     ObservationsQuery,
+    IndividualsQuery,
 )
 
 
@@ -625,7 +626,7 @@ class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
 
 
 @serializable
-class TMonitoringIndividuals(TIndividuals, PermissionModel, MonitoringQuery):
+class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
 
     nb_sites = column_property(
         select([func.count(func.distinct(TMonitoringSites.id_base_site))])
