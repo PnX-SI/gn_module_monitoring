@@ -3,12 +3,11 @@ import { Component, EventEmitter, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { breadCrumbBase } from '../../class/breadCrumb';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { IDataTableObj, ISite, ISitesGroup } from '../../interfaces/geom';
 import { Module } from '../../interfaces/module';
-import { IBreadCrumb, SelectObject } from '../../interfaces/object';
+import { SelectObject } from '../../interfaces/object';
 import { IobjObs } from '../../interfaces/objObs';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { IIndividual } from '../../interfaces/individual';
@@ -46,8 +45,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
-  breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSiteGroups.value;
-
   rows;
   dataTableObj: IDataTableObj;
   dataTableArray: {}[] = [];
@@ -136,6 +133,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       this.currentPermission = data.permission;
 
+      // breadcrumb
+      const queryParams = this._Activatedroute.snapshot.queryParams;
+      this._objService.loadBreadCrumb(this.moduleCode, 'module', null, queryParams);
+
       this.page = {
         count: currentData.count,
         limit: currentData.limit,
@@ -152,7 +153,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.activetabIndex = this.getdataTableIndex(data.route);
 
       if (data.route == 'site') {
-        this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
         this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
       } else {
         this.currentPermission.MONITORINGS_GRP_SITES.canRead
@@ -188,7 +188,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           });
       } else {
         this._configService.init(this.moduleCode);
-        this.updateBreadCrumb();
       }
     });
   }
@@ -386,8 +385,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
                 onSameUrlNavigation: 'reload',
               }
             );
-            this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
-            this.updateBreadCrumb();
             this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
             this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
           }, 100);
@@ -405,8 +402,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
                 onSameUrlNavigation: 'reload',
               }
             );
-            this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
-            this.updateBreadCrumb();
             this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
             this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
           }, 100);
@@ -419,8 +414,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           this.router.navigate([`/monitorings/object/${this.moduleCode}/site`, { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
-          this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-          this.updateBreadCrumb();
+
           this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
           this.getGeometriesSite();
         }, 100);
@@ -438,10 +432,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  updateBreadCrumb() {
-    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
-  }
-
   getdataTableIndex(objetType: string) {
     return this.dataTableArray.findIndex((element) => element['objectType'] == objetType);
   }
@@ -451,22 +441,16 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     if ($event == 'site') {
       this.currentRoute = 'site';
       this._location.go(`/monitorings/object/${this.moduleCode}/site`);
-      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-      this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else if ($event == 'individual') {
       this.currentRoute = 'individual';
       this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
-      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-      this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.currentRoute = 'sites_group';
       this._location.go(`/monitorings/object/${this.moduleCode}/sites_group`);
-      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
-      this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
       this.currentPermission.MONITORINGS_GRP_SITES.canRead
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())

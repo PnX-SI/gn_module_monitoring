@@ -12,6 +12,7 @@ import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
+import { ObjectService } from '../services/object.service';
 
 const LIMIT = 10;
 
@@ -36,7 +37,7 @@ export class SitesGroupsResolver
     public serviceIndividual: IndividualsService,
     public _permissionService: PermissionService,
     private router: Router,
-    private _objService: MonitoringObjectService,
+    private _objectService: ObjectService,
     private _cacheService: CacheService,
     private _configService: ConfigService
   ) {}
