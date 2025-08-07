@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { JsonData } from '../types/jsondata';
 import { IBreadCrumb, SelectObject } from '../interfaces/object';
+import { DataMonitoringObjectService } from './data-monitoring-object.service';
 
 @Injectable()
 export class ObjectService {
@@ -19,13 +21,14 @@ export class ObjectService {
   private dataObjTypeParent = new ReplaySubject<IobjObs<JsonData>>(1);
   currentObjectTypeParent = this.dataObjTypeParent.asObservable();
 
+  // comment
   private dataBreadCrumb = new ReplaySubject<IBreadCrumb[]>(1);
   currentDataBreadCrumb = this.dataBreadCrumb.asObservable();
 
   private dataListOption = new ReplaySubject<SelectObject[]>(1);
   currentListOption = this.dataListOption.asObservable();
 
-  constructor() {
+  constructor(private _dataMonitoringObjectService: DataMonitoringObjectService) {
     let storedObjectType = localStorage.getItem('storedObjectType');
     let storedObjectTypeParent = localStorage.getItem('storedObjectTypeParent');
     let storedObjectSelected = localStorage.getItem('storedObjectSelected');
@@ -70,9 +73,50 @@ export class ObjectService {
     this.parentObjSelected.next(newObjParentSelected);
   }
 
+  loadBreadCrumb(
+    moduleCode: string,
+    objectType: string,
+    id: number | null,
+    queryParams: {},
+    storeDataBreadCrumb: boolean = false
+  ): void {
+    /**
+     * Charge les données du breadcrumb via un appel à l'API
+     *   pour un module, un type d'objet et un ID spécifiques
+     *   et des paramètres supplémentaires qui permettent de spécifier les parents désirés.
+     * Une fois les données récupérées, la méthode changeBreadCrumb est appelée
+     * pour mettre à jour le ReplaySubject dataBreadCrumb.
+     * Si storeDataBreadCrumb est vrai, les données du fil d'Ariane seront stockées dans localStorage
+     * et pourront être récupérées ultérieurement. ??? Utile
+     *
+     * @param {string} moduleCode - The code of the module.
+     * @param {string} objectType - The type of the object.
+     * @param {number | null} id - The ID of the object.
+     * @param {Object} queryParams - Additional query parameters to pass to the API.
+     * @param {boolean} storeDataBreadCrumb - Whether to store the breadcrumb data in localStorage.
+     */
+
+    this._dataMonitoringObjectService
+      .getBreadcrumbs(moduleCode, objectType, id, queryParams)
+      .subscribe((data: IBreadCrumb[]) => {
+        this.changeBreadCrumb(data, storeDataBreadCrumb);
+      });
+  }
+
   changeBreadCrumb(newDataBreadCrumb: IBreadCrumb[], storeDataBreadCrumb: boolean = false) {
-    if (storeDataBreadCrumb)
+    /**
+     * Change the breadcrumb data and optionally store it in localStorage
+     * to be used later (e.g., after a page refresh).
+     *
+     * @param {IBreadCrumb[]} newDataBreadCrumb - The new breadcrumb data.
+     * @param {boolean} [storeDataBreadCrumb=false] - Whether to store the breadcrumb data in localStorage.
+     *   If true, the breadcrumb data will be stored in localStorage and can be retrieved later.
+     */
+    if (storeDataBreadCrumb) {
+      // Store the breadcrumb data in localStorage
       localStorage.setItem('storedDataBreadCrumb', JSON.stringify(newDataBreadCrumb));
+    }
+    // Update the ReplaySubject dataBreadCrumb with the new breadcrumb data
     this.dataBreadCrumb.next(newDataBreadCrumb);
   }
 

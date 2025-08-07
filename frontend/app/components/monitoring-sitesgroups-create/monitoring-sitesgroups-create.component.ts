@@ -13,8 +13,6 @@ import { GeoJSONService } from '../../services/geojson.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
-import { IBreadCrumb } from '../../interfaces/object';
-import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'monitoring-sitesgroups-create',
@@ -29,10 +27,6 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
 
   obj: MonitoringObject;
   bEdit: boolean = true;
-
-  breadCrumbList: IBreadCrumb[] = [];
-  breadCrumbElemnt: IBreadCrumb = { label: 'Groupe de site', description: '' };
-  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
 
   moduleCode: string;
 
@@ -50,6 +44,10 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
 
   ngOnInit() {
     this.moduleCode = this._route.snapshot.data.createSitesGroups.moduleCode;
+
+    // breadcrumb
+    const queryParams = this._route.snapshot.queryParams;
+    this._objService.loadBreadCrumb(this.moduleCode, 'site', null, queryParams);
 
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
@@ -83,31 +81,9 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
           obj: this.obj,
         });
         this._formService.changeCurrentEditMode(this.bEdit);
-        this.updateBreadCrumb();
+
         this.obj.bIsInitialized = true;
       });
-  }
-
-  updateBreadCrumb() {
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/sites_group`,
-      });
-    }
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/site`,
-    };
-
-    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase];
-
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
   }
 
   ngOnDestroy() {
