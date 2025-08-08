@@ -67,60 +67,6 @@ id_field_name_dict = dict(
 id_field_name_dict["municipality"] = "id_area"
 
 
-@blueprint.route("util/init_data/<string:module_code>", methods=["GET"])
-@json_resp
-def get_init_data(module_code):
-    """
-    renvoie les données nomenclatures, etc à précharger par le module
-    """
-    if module_code == "MONITORINGS":
-        module_code = "generic"
-    out = {}
-    config = get_config(module_code, True)
-    data = config.get("data")
-    if not data:
-        return {}
-
-    id_module = config["custom"]["__MODULE.ID_MODULE"]
-
-    # nomenclature
-    if data.get("nomenclature"):
-        out["nomenclature"] = []
-        for code_type in data.get("nomenclature"):
-            nomenclature_list = get_nomenclature_list(code_type=code_type)
-            # TODO : exception quand pas de valeur
-            try:
-                for nomenclature in nomenclature_list["values"]:
-                    nomenclature["code_type"] = code_type
-                    out["nomenclature"].append(nomenclature)
-            except KeyError:
-                pass
-
-    # user
-    if data.get("user"):
-        res_user = DB.session.scalars(
-            select(VUserslistForallMenu).where(VUserslistForallMenu.id_menu == data.get("user"))
-        ).all()
-        out["user"] = [user.as_dict() for user in res_user]
-
-    # sites_group
-    if "sites_group" in config:
-        sites_groups = get_sites_groups_from_module_id(id_module)
-        schema = MonitoringSitesGroupsSchema()
-        out["sites_group"] = [schema.dump(sites_group) for sites_group in sites_groups]
-
-    # dataset (cruved ??)
-    res_dataset = (
-        DB.session.scalars(select(TDatasets).where(TDatasets.modules.any(module_code=module_code)))
-        .unique()
-        .all()
-    )
-
-    out["dataset"] = [dataset.as_dict() for dataset in res_dataset]
-
-    return out
-
-
 @blueprint.route(
     "util/nomenclature/<string:code_nomenclature_type>/<string:cd_nomenclature>", methods=["GET"]
 )

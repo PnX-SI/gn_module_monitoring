@@ -170,6 +170,7 @@ export class MonitoringFormComponent implements OnInit {
             bChainInput: this.bChainInput,
             parents: this.obj.parents,
           };
+
           // Récupération de la définition du formulaire
           this.objFormsDefinition = this.initObjFormDefiniton(this.confiGenericSpec, this.meta);
           // Tri des proprités en fonction de la variable display_properties
