@@ -141,6 +141,8 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getModuleSet(): Observable<any> {
+    // TODO ANALYSER A QUOI SERT CETTE FONCTION
+    // Surrement à supprimer quand la configuration du module sera chargée en behaviourSubject
     // récupération des données de l'object selon le type (module, site, etc..)
     return this.module.get(0).pipe(
       mergeMap(() =>
@@ -268,15 +270,7 @@ export class MonitoringObjectComponent implements OnInit {
   initData(): Observable<any> {
     // Réinitialisation des services
     this._listService.reinitializeObservables();
-
-    return of(true).pipe(
-      mergeMap(() => {
-        return this.getModuleSet();
-      }),
-      mergeMap(() => {
-        return this._dataUtilsService.getInitData(this.obj.moduleCode);
-      })
-    );
+    return this.getModuleSet();
   }
 
   getDataObject(): Observable<any> {
