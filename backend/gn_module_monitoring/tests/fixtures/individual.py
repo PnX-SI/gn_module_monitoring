@@ -20,6 +20,8 @@ individuals_exemple = [
     ("indi_1", 79273, True, "A Super lézard", "user"),
     ("indi_2", 79273, False, "B Super lézard désactivé", "user"),
     ("indi_3", 649883, True, "Super python", "admin_user"),
+    ("indi_4", 97947, True, "Fagus sylvatica", "self_user"),
+    ("indi_5", 3493, True, "Bubo bubo", "stranger_user"),
 ]
 
 
