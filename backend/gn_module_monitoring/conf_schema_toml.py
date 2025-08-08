@@ -21,7 +21,8 @@ PERMISSION_LEVEL_DEFAULT = {
 
 
 class DynamicFormDefSchema(Schema):
-    fields = fields.List(fields.Dict())
+    fields_form = fields.List(fields.Dict())
+    show_advanced_filters = fields.Boolean(load_default=False)
 
 
 class GnModuleSchemaConf(Schema):
@@ -32,8 +33,9 @@ class GnModuleSchemaConf(Schema):
     PERMISSION_LEVEL = fields.Dict(
         keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
     )
+    SHOW_ADVANCED_FILTERS = fields.Boolean(load_default=False)
     DYNAMIC_FORM_DEF_MONITORING = fields.Dict(
-        keys=fields.Str(),  # module_code
+        keys=fields.Str(),
         values=fields.Nested(DynamicFormDefSchema),
         required=False,
         load_default={},

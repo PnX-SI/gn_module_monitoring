@@ -2,7 +2,7 @@
 routes pour les modules de suivis...
 """
 
-from flask import request, jsonify
+from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
 
 from geonature.core.gn_permissions.tools import get_scopes_by_action, has_any_permissions_by_action
@@ -97,8 +97,3 @@ def get_all_types_site_from_module_id(module_code):
     types_site = query_all_types_site_from_module_id(id_module)
     schema = BibTypeSiteSchema()
     return [schema.dump(res) for res in types_site]
-    
-@blueprint.route("/_internal/modules", methods=["GET"])
-def get_modules_api_internal():
-    modules = get_modules()
-    return jsonify([m.module_code for m in modules])
