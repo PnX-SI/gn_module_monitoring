@@ -23,7 +23,7 @@ from gn_module_monitoring.utils.routes import (
 
 
 @blueprint.route("/module/<int:value>", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE)
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="ALL")
 @json_resp
 def get_module_api(value):
     """
@@ -48,7 +48,7 @@ def get_module_api(value):
 
 
 @blueprint.route("/modules", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE)
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="ALL")
 @json_resp_accept_empty_list
 def get_modules_api():
     """
