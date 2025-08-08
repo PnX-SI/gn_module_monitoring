@@ -30,7 +30,7 @@ class TestIndividuals:
         assert response.status_code == 200
         individuals_response = response.json["items"]
 
-        assert len(individuals_response) == 3
+        assert len(individuals_response) == len(individuals)
         assert individuals_response[0]["id_individual"] == max(id_individuals)
 
         # Test sort asc
@@ -51,7 +51,7 @@ class TestIndividuals:
             )
         )
         individuals_response = response.json["items"]
-        assert len(individuals_response) == 3
+        assert len(individuals_response) == len(individuals)
         assert individuals_response[0]["comment"] == "A Super lézard"
 
         # Test filter main column
@@ -76,3 +76,22 @@ class TestIndividuals:
         individuals_response = response.json["items"]
         assert len(individuals_response) == 1
         assert individuals_response[0]["cd_nom"] == 649883
+
+    def test_get_individuals_scope_1(self, install_module_test_indi, users):
+        set_logged_user_cookie(self.client, users["self_user"])
+        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        assert response.status_code == 200
+        assert len(response.json["items"]) == 1
+
+    def test_get_individuals_scope_2(self, install_module_test_indi, users):
+        set_logged_user_cookie(self.client, users["stranger_user"])
+
+        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        assert response.status_code == 200
+        assert len(response.json["items"]) == 1
+
+    def test_get_individuals_scope_2_organism(self, install_module_test_indi, users):
+        set_logged_user_cookie(self.client, users["user"])
+        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        assert response.status_code == 200
+        assert len(response.json["items"]) == 4
