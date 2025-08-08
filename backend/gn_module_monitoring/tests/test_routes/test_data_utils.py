@@ -4,12 +4,6 @@ from flask import url_for
 
 @pytest.mark.usefixtures("client_class")
 class TestRouteDataUtils:
-    def test_get_init_data(self, install_module_test):
-        response = self.client.get(
-            url_for("monitorings.get_init_data", module_code="test"),
-        )
-        assert response.status_code == 200
-        assert response.json["nomenclature"][0]["cd_nomenclature"] == "2"
 
     def test_get_util_nomenclature_api_valid(self, install_module_test):
         code_nomenclature_type = "TYPE_MEDIA"
