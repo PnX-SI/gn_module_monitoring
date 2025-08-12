@@ -1,15 +1,10 @@
 import pytest
 
 from pathlib import Path
-from flask import url_for, current_app
-
-from sqlalchemy import select
-
-from geonature.utils.env import DB
 
 from gn_module_monitoring.tests.fixtures.generic import *
-from gn_module_monitoring.command.utils import execute_sql_file, FORBIDDEN_SQL_INSTRUCTION
-from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.command.imports.constant import FORBIDDEN_SQL_INSTRUCTION
+from gn_module_monitoring.command.sql import execute_sql_file
 
 
 @pytest.mark.usefixtures("client_class")

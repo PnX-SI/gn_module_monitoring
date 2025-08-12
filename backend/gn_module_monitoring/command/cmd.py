@@ -1,8 +1,8 @@
 import click
 
-from pathlib import Path
 from flask.cli import with_appcontext
-from sqlalchemy.sql import text, select, exists
+from sqlalchemy.sql import select
+from sqlalchemy import exists
 
 from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
@@ -10,21 +10,20 @@ from geonature.core.gn_synthese.utils.process import import_from_table
 from geonature.core.gn_commons.models import TModules
 from geonature.core.imports.models import Destination
 
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_simple_module
-
+from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.command.nomenclature import add_nomenclature
+from gn_module_monitoring.command.permissions import process_available_permissions
+from gn_module_monitoring.command.sql import process_sql_files
 from gn_module_monitoring.command.utils import (
-    process_available_permissions,
-    remove_monitoring_module,
-    add_nomenclature,
     available_modules,
     installed_modules,
-    process_sql_files,
     process_module_import,
-    validate_json_file_protocol,
     process_update_module_import,
+    remove_monitoring_module,
+    validate_json_file_protocol,
 )
 
 

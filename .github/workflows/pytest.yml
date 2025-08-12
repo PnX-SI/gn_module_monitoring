@@ -9,6 +9,7 @@ on:
       - hotfixes
       - develop
       - feat/import-monitoring
+      - reorganize-import-install
   pull_request:
     paths:
       - "backend/**"

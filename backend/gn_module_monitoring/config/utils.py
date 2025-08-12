@@ -141,7 +141,6 @@ def json_from_file(file_path, result_default={}):
             with open(file_path, "r") as f:
                 out = json.load(f)
     except Exception as e:
-        pass
         raise GeoNatureError(
             "Module monitoring - Config - error in file {} : {}".format(file_path, str(e))
         )
