@@ -170,6 +170,8 @@ const routes: Routes = [
       },
     ],
   },
+  // Patch permettant d'éviter la redirection vers la page de détail d'un module
+  { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
   {
     path: 'object/:moduleCode/:objectType/:id',
     component: MonitoringObjectComponent,
