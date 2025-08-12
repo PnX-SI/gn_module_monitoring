@@ -311,7 +311,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this._formService.changeDataSub(
       $event,
       this._sites_group_service.objectObs.objectType,
-      this._sites_group_service.objectObs.endPoint
+      this._sites_group_service.objectObs.endPoint,
+      this.moduleCode
     );
 
     this.router.navigate([

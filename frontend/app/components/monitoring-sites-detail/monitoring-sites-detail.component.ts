@@ -52,8 +52,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   types_site: string[];
   config: JsonData;
   siteGroupIdParent: number;
-  objSelected: ISiteField;
-  objResolvedProperties: ISiteField;
   parentsPath: string[] = [];
   rows;
   dataTableObj: IDataTableObj;
@@ -237,22 +235,21 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
         this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
-        let siteList = this.site;
-        this.objSelected = siteList[0];
-        this.objResolvedProperties = siteList[0];
+
         this.addSpecificConfig();
 
         const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
-        dataonlyObjConfigAndObj;
+
         dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
         dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
         this.setDataTableObj(dataonlyObjConfigAndObj);
 
         if (this.checkEditParam) {
           this._formService.changeDataSub(
-            this.objSelected,
+            this.site,
             this.siteService.objectObs.objectType,
-            this.siteService.objectObs.endPoint
+            this.siteService.objectObs.endPoint,
+            this.moduleCode
           );
 
           this.bEdit = true;
