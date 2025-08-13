@@ -16,15 +16,13 @@ from gn_module_monitoring.command.cmd import (
     synchronize_synthese,
     cmd_install_monitoring_module,
 )
-from gn_module_monitoring.command.utils import (
-    get_protocol_data,
-    insert_bib_field,
+from gn_module_monitoring.command.imports.protocol import get_protocol_data
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.command.imports.entity import (
     insert_entities,
     insert_entity_field_relations,
-    delete_bib_fields,
 )
-
-from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.command.imports.fields import delete_bib_fields, insert_bib_field
 
 
 class TestCommands:
