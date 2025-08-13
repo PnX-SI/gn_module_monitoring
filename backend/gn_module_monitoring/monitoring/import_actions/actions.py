@@ -214,8 +214,10 @@ class MonitoringImportActions(ImportActions):
 
             complement_select_stmt = None
             model_complements = get_entity_model_complements(entity)
-            if model_complements is not None and len(json_args):
-                cols = [sa.func.json_build_object(*json_args).label("data")]
+            if model_complements is not None:
+                cols = [sa.text("'{}'::JSONB as data")]
+                if len(json_args):
+                    cols = [sa.func.json_build_object(*json_args).label("data")]
                 if entity.code != "observation":
                     cols.insert(0, transient_table.c[id_col_name])
                 complement_select_stmt = (
