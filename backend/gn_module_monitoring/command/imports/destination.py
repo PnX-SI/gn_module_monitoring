@@ -50,6 +50,7 @@ def upsert_bib_destination(module_data: dict) -> Destination:
         "code": module_data["module_code"],
         "label": module_data["module_label"],
         "table_name": f"t_imports_{module_data['module_code'].lower()}",
+        "active":False
     }
     destination = Destination(**destination_data)
     db.session.add(destination)
