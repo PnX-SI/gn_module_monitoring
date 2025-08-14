@@ -300,14 +300,6 @@ export class MonitoringSitesgroupsDetailComponent
     });
   }
 
-  onObjChanged($event) {
-    if ($event == 'deleted') {
-      return;
-    }
-    this._geojsonService.removeAllFeatureGroup();
-    this.initSite();
-  }
-
   setDataTableObj(data) {
     const objTemp = {};
     for (const dataType in data) {

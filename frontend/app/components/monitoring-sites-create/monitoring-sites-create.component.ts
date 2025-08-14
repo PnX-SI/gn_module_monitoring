@@ -100,10 +100,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
       });
   }
 
-  onObjChanged(obj: MonitoringObject) {
-    this.obj = obj;
-  }
-
   initConfig(): Observable<any> {
     return this._configService.init(this.moduleCode).pipe(
       concatMap(() => {
