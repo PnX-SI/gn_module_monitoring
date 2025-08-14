@@ -15,6 +15,7 @@ from gn_module_monitoring.command.cmd import (
     cmd_add_module_nomenclature_cli,
     synchronize_synthese,
     cmd_install_monitoring_module,
+    cmd_add_update_import_on_protocole
 )
 from gn_module_monitoring.command.imports.protocol import get_protocol_data
 from gn_module_monitoring.monitoring.models import TMonitoringModules
@@ -159,7 +160,7 @@ class TestCommands:
 
     def test_install_protocol_no_updates(self, install_module_test):
         runner = current_app.test_cli_runner()
-        result = runner.invoke(cmd_install_monitoring_module, ["test"])
+        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
         assert result.exit_code == 0
         assert "Le module test est déjà à jour" in result.output
 

@@ -99,31 +99,7 @@ def cmd_install_monitoring_module(module_code):
         click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
 
-    try:
-        module = get_simple_module("module_code", module_code)
-        destination_exists = DB.session.scalar(
-            exists(Destination).where(Destination.code == module_code).select()
-        )
-        # Vérifier si le module existe
-        if module and destination_exists:
-            # Effectuer une mise à jour
-            try:
-                click.secho(f"Mise à jour du module {module_code}")
-                state = process_update_module_import(config, module_code)
-                if state is None:
-                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
-                    return
-                if state:
-                    click.secho(f"Module {module_code} mis à jour", fg="green")
-                else:
-                    click.secho(
-                        f"La mise à jour du module {module_code} a était annulée", fg="red"
-                    )
-            except Exception:
-                return
-            return
-    except Exception:
-        pass
+    
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
@@ -172,8 +148,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     # insert nomenclature
     add_nomenclature(module_code)
 
-    # Ajouter les destinations disponibles
-    process_module_import(module_data)
+    
 
     source_data = {
         "name_source": "MONITORING_{}".format(module_code.upper()),
@@ -192,9 +167,59 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(source)
     DB.session.commit()
 
-    # TODO ++++ create specific tables
     click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
+
+
+@click.command("process_import")
+@click.argument("module_code", type=str, required=True)
+@with_appcontext
+def cmd_add_update_import_on_protocole(module_code):
+    module_code_installed = [module['module_code'] for module in installed_modules()]
+    if not module_code in module_code_installed:
+        raise KeyError(f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !")
+
+    config = get_config(module_code, force=True)
+    module_monitoring = get_simple_module("module_code", "MONITORINGS")
+    module_data = {
+        "module_picto": "fa-puzzle-piece",
+        **config["module"],
+        "module_code": module_code,
+        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "active_frontend": False,
+        "active_backend": False,
+        "type": "monitoring_module",
+    }
+
+    try:
+        module = get_simple_module("module_code", module_code)
+        destination_exists = DB.session.scalar(
+            exists(Destination).where(Destination.code == module_code).select()
+        )
+        # Vérifier si le module existe
+        if module and destination_exists:
+            # Effectuer une mise à jour
+            try:
+                click.secho(f"Mise à jour du module {module_code}")
+                state = process_update_module_import(config, module_code)
+                if state is None:
+                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+                    return
+                if state:
+                    click.secho(f"Module {module_code} mis à jour", fg="green")
+                else:
+                    click.secho(
+                        f"La mise à jour du module {module_code} a était annulée", fg="red"
+                    )
+            except Exception:
+                return
+            return
+    except Exception:
+        pass
+    
+    # Ajouter les destinations disponibles
+    process_module_import(module_data)
+    
 
 
 @click.command("update_module_available_permissions")
@@ -272,4 +297,5 @@ commands = [
     cmd_add_module_nomenclature_cli,
     cmd_process_sql,
     synchronize_synthese,
+    cmd_add_update_import_on_protocole
 ]
