@@ -408,9 +408,15 @@ export class MonitoringObjectBase {
       this.parentsPath.pop();
       const parent = new this.myClass(this.moduleCode, parentType, null, this._objService);
       const parentId = this.properties[parent.idFieldName()];
-      this._objService.navigate('object', this.moduleCode, parentType, parentId, {
-        parents_path: this.parentsPath,
-      });
+      if (parentType === 'module') {
+        this._objService.navigate('object', this.moduleCode, this.objectType, null, {
+          parents_path: this.parentsPath,
+        });
+      } else {
+        this._objService.navigate('object', this.moduleCode, parentType, parentId, {
+          parents_path: this.parentsPath,
+        });
+      }
     }
   }
 }
