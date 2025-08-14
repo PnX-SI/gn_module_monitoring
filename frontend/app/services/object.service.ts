@@ -101,9 +101,12 @@ export class ObjectService {
     parentsPath = Array.isArray(parentsPath) ? parentsPath : [parentsPath];
 
     if (objectType !== 'module' && !parentsPath.includes('module')) {
+      // Ajoute 'module' au début du tableau parentsPath
+      // pour s'assurer que le module est inclus dans le fil d'Ariane
+      parentsPath.unshift('module');
       queryParams = {
         ...queryParams,
-        parents_path: parentsPath.push('module'),
+        parents_path: parentsPath,
       };
     }
 
