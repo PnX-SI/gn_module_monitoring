@@ -46,7 +46,6 @@ export class MonitoringFormComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   @Input() obj: MonitoringObject;
-  @Output() objChanged = new EventEmitter<MonitoringObject>();
 
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
@@ -369,8 +368,6 @@ export class MonitoringFormComponent implements OnInit {
     for (const key of this.keepNames()) {
       this.obj.properties[key] = keep[key];
     }
-    // TODO voir si objChanged est nécessaire
-    // this.objChanged.emit(this.obj);
     this.objForm.patchValue({ geometry: null });
     this.initForm();
     // });
@@ -452,8 +449,6 @@ export class MonitoringFormComponent implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
-      // this.objChanged.emit(this.obj);
-
       /** si c'est un module : reset de la config */
       if (this.obj.objectType === 'module') {
         this._configService.loadConfig(this.obj.moduleCode).subscribe();
@@ -496,7 +491,6 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.obj.deleted = true;
-      // this.objChanged.emit(this.obj);
       this._commonService.regularToaster('info', this.msgToaster('Suppression'));
       setTimeout(() => {
         this.navigateToParent();

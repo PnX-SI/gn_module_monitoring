@@ -390,13 +390,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._formService.updateSpecificForm(this.site, specificData);
   }
 
-  onObjChanged($event) {
-    if ($event == 'deleted') {
-      return;
-    }
-    this.initSiteVisit();
-  }
-
   onbEditChange(event) {
     this._formService.changeFormMapObj({
       frmGp: this.form,
