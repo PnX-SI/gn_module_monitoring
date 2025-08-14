@@ -96,6 +96,17 @@ export class ObjectService {
      * @param {boolean} storeDataBreadCrumb - Whether to store the breadcrumb data in localStorage.
      */
 
+    // Si l'objet n'est pas de type module et que le breadcrumb ne contient pas le module, on force la récupération du module
+    let parentsPath = queryParams['parents_path'] || [];
+    parentsPath = Array.isArray(parentsPath) ? parentsPath : [parentsPath];
+
+    if (objectType !== 'module' && !parentsPath.includes('module')) {
+      queryParams = {
+        ...queryParams,
+        parents_path: parentsPath.push('module'),
+      };
+    }
+
     this._dataMonitoringObjectService
       .getBreadcrumbs(moduleCode, objectType, id, queryParams)
       .subscribe((data: IBreadCrumb[]) => {
