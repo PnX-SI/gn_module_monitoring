@@ -18,7 +18,7 @@ from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
 )
-from gn_module_monitoring.command.imports.constant import TABLE_NAME_SUBMODULE
+from gn_module_monitoring.command.imports.constant import TABLE_NAME_SUBMODULE, UUID_FIELD_NAME
 from gn_module_monitoring.command.imports.fields import get_themes_dict
 from gn_module_monitoring.utils.utils import extract_keys
 
@@ -85,11 +85,18 @@ def insert_entities(
         entity_data = unique_fields[entity_code]
         entity_config = entity_hierarchy_map.get(entity_code)
         id_field_name = entity_config["id_field_name"]
+        uuid_field_name = UUID_FIELD_NAME[entity_code]
         parent_entity = entity_config["parent_entity"]
 
         id_field = DB.session.scalar(
             sa.select(BibFields.id_field).filter_by(
                 name_field=id_field_name, id_destination=id_destination
+            )
+        )
+
+        uuid_field = DB.session.scalar(
+            sa.select(BibFields.id_field).filter_by(
+                name_field=uuid_field_name, id_destination=id_destination
             )
         )
 
@@ -119,6 +126,7 @@ def insert_entities(
             "id_unique_column": id_field,
             "id_parent": id_parent,
             "id_object": id_object,
+            "id_uuid_column":uuid_field
         }
 
         order += 1
