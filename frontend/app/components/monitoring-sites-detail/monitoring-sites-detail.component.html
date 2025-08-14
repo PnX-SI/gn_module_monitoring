@@ -5,7 +5,6 @@
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
 <pnx-monitoring-form [obj]="obj" [objForm]="form"
-  (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"

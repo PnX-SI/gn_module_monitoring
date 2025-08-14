@@ -36,7 +36,7 @@
 
       <pnx-monitoring-properties id="nav-properties" [obj]="obj" *ngIf="!bEdit && obj.bIsInitialized" [(bEdit)]="bEdit"
         [currentUser]="currentUser"></pnx-monitoring-properties>
-      <pnx-monitoring-form [obj]="obj" (objChanged)="onObjChanged($event)" *ngIf="bEdit && obj?.bIsInitialized"
+      <pnx-monitoring-form [obj]="obj" *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
       <pnx-monitoring-lists [(obj)]="obj" [(bEdit)]="bEdit" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"
