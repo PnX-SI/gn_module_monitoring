@@ -292,15 +292,9 @@ export class MonitoringObjectComponent implements OnInit {
     return this.obj.getParents(0);
   }
 
-  onObjChanged(obj: MonitoringObject) {
-    this.obj = obj;
-    this.getModuleSet().subscribe();
-  }
-
   onDeleteRowChange(event) {
     this.getDataObject().subscribe((obj) => {
       this.forceReload = true;
-      this.onObjChanged(obj);
     });
   }
 }

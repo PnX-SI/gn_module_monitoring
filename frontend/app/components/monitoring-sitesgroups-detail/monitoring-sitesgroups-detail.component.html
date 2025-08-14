@@ -11,7 +11,7 @@
   [(bEdit)]="bEdit"
   [currentUser]="currentUser">
 </pnx-monitoring-properties>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)" *ngIf="bEdit" [(bEdit)]="bEdit"
+<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
   [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
 </pnx-monitoring-form>
 <pnx-monitoring-datatable-g
