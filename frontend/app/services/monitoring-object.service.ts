@@ -167,7 +167,7 @@ export class MonitoringObjectService {
   }
 
   configUtils(elem, moduleCode) {
-    return (this._configService.config()[moduleCode].display_field_names || [])[elem.type_util];
+    return (this._configService.config().display_field_names || [])[elem.type_util];
   }
 
   toForm(elem, val): Observable<any> {

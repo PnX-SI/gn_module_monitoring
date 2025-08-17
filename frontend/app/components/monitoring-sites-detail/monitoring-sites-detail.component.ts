@@ -71,6 +71,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   moduleCode: string;
 
   constructor(
+    private _configService: ConfigService,
     private _auth: AuthService,
     private _sitesGroupService: SitesGroupService,
     private _visits_service: VisitsService,
@@ -80,7 +81,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _Activatedroute: ActivatedRoute,
     private _formBuilder: FormBuilder,
     private _formService: FormService,
-    private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
@@ -98,9 +98,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.siteService.setModuleCode(`${this.moduleCode}`);
     this._visits_service.setModuleCode(`${this.moduleCode}`);
     this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
-    const $configSitesGroups = this._sitesGroupService.initConfig();
-    const $configSites = this.siteService.initConfig();
-    const $configIndividuals = this._visits_service.initConfig();
+    // const $configSitesGroups = this._sitesGroupService.initConfig();
+    // const $configSites = this.siteService.initConfig();
+    // const $configIndividuals = this._visits_service.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas
@@ -117,9 +117,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
     forkJoin([
       this._configService.init(this.moduleCode),
-      $configSitesGroups,
-      $configSites,
-      $configIndividuals,
+      // $configSitesGroups,
+      // $configSites,
+      // $configIndividuals,
     ]).subscribe(() => {
       this.initSiteVisit();
     });
@@ -307,7 +307,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47
     this._configService.init(moduleCode).subscribe(() => {
-      const keys = Object.keys(this._configService.config()[moduleCode]);
+      const keys = Object.keys(this._configService.config());
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },

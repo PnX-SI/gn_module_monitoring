@@ -34,66 +34,59 @@ export class ApiService<T = IObject> implements IService<T> {
     protected _monitoringObjectService: MonitoringObjectService
   ) {}
 
-  init(endPoint: endPoints, objectObjs: IobjObs<T>) {
+  init(endPoint, objectObs) {
     this.endPoint = endPoint;
-    this.objectObs = objectObjs;
-    // souscrit au sujet config du module en cours
-    // quand le module change
-    // test if config exist pour le module
-    // sinon raise
-    // lancer opération de initConfig
+    this.objectObs = objectObs;
+    this._configService.currentModuleConfigObs.subscribe((value) => {
+      if (value !== null) {
+        this.initConfig();
+      }
+    });
   }
 
   public initConfig(): Observable<IobjObs<T>> {
-    return this._configService.init(this.objectObs.moduleCode).pipe(
-      map(() => {
-        const fieldNames = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_properties'
-        );
-        //FIXME: same as site group: to refact
-        const fieldNamesList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_list'
-        );
-
-        if (!fieldNamesList) {
-          return null;
-        }
-
-        // Initialisation des différents labels de l'objet
-        const objetLabels = this.getModuleObjetTypeLabels();
-        Object.entries(objetLabels).forEach(([key, value]) => {
-          this.objectObs[key] = value;
-        });
-
-        const labelList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'label_list'
-        );
-        const schema = this._configService.schema(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType
-        );
-        const fieldLabels = this._configService.fieldLabels(schema);
-        const fieldDefinitions = this._configService.fieldDefinitions(schema);
-        this.objectObs.template.fieldNames = fieldNames;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-        this.objectObs.schema = schema;
-        this.objectObs.template.fieldLabels = fieldLabels;
-        this.objectObs.template.fieldDefinitions = fieldDefinitions;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-
-        if (labelList != undefined) {
-          this.objectObs.template.labelList = labelList;
-        }
-        this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-        return this.objectObs;
-      })
+    this.objectObs.moduleCode = this._configService.currentModuleConfig?.module?.module_code;
+    const fieldNames = this._configService.configModuleObjectParam(
+      this.objectObs.moduleCode,
+      this.objectObs.objectType,
+      'display_properties'
     );
+    //FIXME: same as site group: to refact
+    const fieldNamesList = this._configService.configModuleObjectParam(
+      this.objectObs.moduleCode,
+      this.objectObs.objectType,
+      'display_list'
+    );
+
+    if (!fieldNamesList) {
+      return null;
+    }
+
+    // Initialisation des différents labels de l'objet
+    const objetLabels = this.getModuleObjetTypeLabels();
+    Object.entries(objetLabels).forEach(([key, value]) => {
+      this.objectObs[key] = value;
+    });
+
+    const labelList = this._configService.configModuleObjectParam(
+      this.objectObs.moduleCode,
+      this.objectObs.objectType,
+      'label_list'
+    );
+    const schema = this._configService.schema(this.objectObs.moduleCode, this.objectObs.objectType);
+    const fieldLabels = this._configService.fieldLabels(schema);
+    const fieldDefinitions = this._configService.fieldDefinitions(schema);
+    this.objectObs.template.fieldNames = fieldNames;
+    this.objectObs.template.fieldNamesList = fieldNamesList;
+    this.objectObs.schema = schema;
+    this.objectObs.template.fieldLabels = fieldLabels;
+    this.objectObs.template.fieldDefinitions = fieldDefinitions;
+    this.objectObs.template.fieldNamesList = fieldNamesList;
+
+    if (labelList != undefined) {
+      this.objectObs.template.labelList = labelList;
+    }
+    this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
   }
 
   protected getModuleObjetTypeLabels(): {} {
@@ -214,7 +207,6 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     protected _monitoringObjectService: MonitoringObjectService
   ) {
     super(_cacheService, _configService, _monitoringObjectService);
-    this.init(this.endPoint, this.objectObs);
   }
 
   get_geometries(params: JsonData = {}): Observable<GeoJSON.FeatureCollection> {
@@ -245,6 +237,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
     _monitoringObjectService: MonitoringObjectService
   ) {
     super(_cacheService, _configService, _monitoringObjectService);
+    this.init();
   }
 
   init(): void {
@@ -334,6 +327,7 @@ export class SitesService extends ApiGeomService<ISite> {
     _monitoringObjectService: MonitoringObjectService
   ) {
     super(_cacheService, _configService, _monitoringObjectService);
+    this.init();
   }
 
   init(): void {
