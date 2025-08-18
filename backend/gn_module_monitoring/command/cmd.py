@@ -219,6 +219,7 @@ def cmd_add_update_import_on_protocole(module_code):
     
     # Ajouter les destinations disponibles
     process_module_import(module_data)
+    DB.session.commit()
     
 
 
