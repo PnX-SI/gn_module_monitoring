@@ -19,7 +19,6 @@ import { IColumn } from '../../interfaces/column';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { IPage } from '../../interfaces/page';
 import { DataTableService } from '../../services/data-table.service';
-import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { SelectObject } from '../../interfaces/object';
 import { CommonService } from '@geonature_common/service/common.service';
@@ -102,7 +101,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   constructor(
     private _dataTableService: DataTableService,
-    private _objService: ObjectService,
     private router: Router,
     private _Activatedroute: ActivatedRoute,
     private _commonService: CommonService
@@ -355,13 +353,11 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   navigateToAddChildren(_, row) {
-    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
     row['object_type'] = this.dataTableArray[this.activetabIndex]['childType'];
     this.onAddChildren.emit(row);
   }
 
   navigateToAddObj() {
-    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
     this.onAddObj.emit(this.dataTableArray[this.activetabIndex]['objectType']);
   }
 

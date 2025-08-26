@@ -3,7 +3,6 @@ import { tap, mergeMap, map, distinctUntilChanged } from 'rxjs/operators';
 import { SiteSiteGroup } from '../../interfaces/objObs';
 import { FormService } from '../../services/form.service';
 import { ApiGeomService } from '../../services/api-geom.service';
-import { ObjectService } from '../../services/object.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { FormGroup } from '@angular/forms';
 import { Router, NavigationStart, ActivatedRoute } from '@angular/router';

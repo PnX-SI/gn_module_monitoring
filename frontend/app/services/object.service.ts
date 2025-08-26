@@ -1,25 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { IobjObs, ObjDataType } from '../interfaces/objObs';
-import { JsonData } from '../types/jsondata';
 import { IBreadCrumb, SelectObject } from '../interfaces/object';
 import { DataMonitoringObjectService } from './data-monitoring-object.service';
 
 @Injectable()
 export class ObjectService {
   objObs: IobjObs<ObjDataType>;
-  private objSelected = new ReplaySubject<any>(1);
-  currentObjSelected = this.objSelected.asObservable();
-
-  private parentObjSelected = new ReplaySubject<any>(1);
-  currentParentObjSelected = this.parentObjSelected.asObservable();
-
-  private dataObjType = new ReplaySubject<IobjObs<JsonData>>(1);
-  currentObjectType = this.dataObjType.asObservable();
-
-  private dataObjTypeParent = new ReplaySubject<IobjObs<JsonData>>(1);
-  currentObjectTypeParent = this.dataObjTypeParent.asObservable();
 
   // comment
   private dataBreadCrumb = new ReplaySubject<IBreadCrumb[]>(1);
@@ -29,48 +16,9 @@ export class ObjectService {
   currentListOption = this.dataListOption.asObservable();
 
   constructor(private _dataMonitoringObjectService: DataMonitoringObjectService) {
-    let storedObjectType = localStorage.getItem('storedObjectType');
-    let storedObjectTypeParent = localStorage.getItem('storedObjectTypeParent');
-    let storedObjectSelected = localStorage.getItem('storedObjectSelected');
-    let storedParentObjectSelected = localStorage.getItem('storedParentObjectSelected');
     let storedDataBreadCrumb = localStorage.getItem('storedDataBreadCrumb');
-    if (storedObjectType) this.changeObjectType(JSON.parse(storedObjectType), false);
-
-    if (storedObjectTypeParent)
-      this.changeObjectTypeParent(JSON.parse(storedObjectTypeParent), false);
-
-    if (storedObjectSelected) this.changeSelectedObj(JSON.parse(storedObjectSelected), false);
-
-    if (storedParentObjectSelected)
-      this.changeSelectedObj(JSON.parse(storedParentObjectSelected), false);
 
     if (storedDataBreadCrumb) this.changeBreadCrumb(JSON.parse(storedDataBreadCrumb), false);
-  }
-
-  changeObjectType(newObjType: IobjObs<JsonData>, storeObjectType: boolean = false) {
-    if (storeObjectType) localStorage.setItem('storedObjectType', JSON.stringify(newObjType));
-    this.dataObjType.next(newObjType);
-  }
-
-  changeObjectTypeParent(newObjType: IobjObs<JsonData>, storeObjectTypeParent: boolean = false) {
-    if (storeObjectTypeParent)
-      localStorage.setItem('storedObjectTypeParent', JSON.stringify(newObjType));
-    this.dataObjTypeParent.next(newObjType);
-  }
-
-  changeSelectedObj(newObjSelected: ObjDataType | {}, storeObjectTypeSelected: boolean = false) {
-    if (storeObjectTypeSelected)
-      localStorage.setItem('storedObjectSelected', JSON.stringify(newObjSelected));
-    this.objSelected.next(newObjSelected);
-  }
-
-  changeSelectedParentObj(
-    newObjParentSelected: ObjDataType | {},
-    storeParentObjectTypeSelected: boolean = false
-  ) {
-    if (storeParentObjectTypeSelected)
-      localStorage.setItem('storedParentObjectSelected', JSON.stringify(newObjParentSelected));
-    this.parentObjSelected.next(newObjParentSelected);
   }
 
   loadBreadCrumb(

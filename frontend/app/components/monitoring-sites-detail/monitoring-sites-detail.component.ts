@@ -108,8 +108,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.funcInitValues = this.initValueToSend.bind(this);
     this.funcToFilt = this.partialfuncToFilt.bind(this);
     this.form = this._formBuilder.group({});
-    this._objService.changeObjectTypeParent(this.siteService.objectObs);
-    this._objService.changeObjectType(this._visits_service.objectObs);
 
     // breadcrumb
     const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -178,40 +176,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           );
         }),
         mergeMap(({ data, objConfig }) => {
-          return this._objService.currentObjSelected.pipe(
-            take(1),
-            map((objSelectParent: any) => {
-              return {
-                site: data.site,
-                visits: data.visits,
-                parentObjSelected: objSelectParent,
-                objConfig: objConfig,
-              };
-            })
-          );
+          return of({
+            site: data.site,
+            visits: data.visits,
+            objConfig: objConfig,
+          });
         }),
         mergeMap((data) => {
           if (this.parentsPath.includes('sites_group')) {
             this.siteGroupIdParent = data.site.id_sites_group;
           }
-          if (!this.siteGroupIdParent) {
-            return of(data);
-          } else {
-            return iif(
-              () => data.parentObjSelected == this.siteGroupIdParent,
-              of(data),
-              this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
-                map((objSelectParent) => {
-                  return {
-                    site: data.site,
-                    visits: data.visits,
-                    parentObjSelected: objSelectParent,
-                    objConfig: data.objConfig,
-                  };
-                })
-              )
-            );
-          }
+          return of(data);
         })
       )
       .subscribe((data) => {
@@ -223,7 +198,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             obj: this.obj,
           });
         }
-        this._objService.changeSelectedObj(data.site, true);
         this.site = data.site;
         this.types_site = data.site['types_site'];
         this.visits = data.visits.items;
@@ -238,7 +212,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
         this.addSpecificConfig();
 
-        const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
+        const { objConfig, ...dataonlyObjConfigAndObj } = data;
 
         dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
         dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
