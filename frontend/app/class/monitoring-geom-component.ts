@@ -13,7 +13,8 @@ export class MonitoringGeomComponent {
 
   constructor() {}
 
-  setPage({ page, tabObj = '' }) {
+  setPage({ page, filters, tabObj = '' }) {
+    this.filters = { ...this.baseFilters, ...filters };
     this.getAllItemsCallback(page.offset + 1, this.filters, tabObj);
   }
 
