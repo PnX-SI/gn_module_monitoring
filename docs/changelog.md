@@ -2,9 +2,15 @@
 
 ## 1.2.0 (unreleased)
 
+**🚀 Nouveautés**
+
 - Mise en place de la pagination des listes d'objets (groupes de sites, sites, visites, observations, individus) côté serveur pour améliorer de manière importante les performances de chargement du module (#378 par @marcantoinedupre, @bastyen, @amandine-sahl et @pierre-narcisi)
 - Mise en place de routes spécifiques à chaque objet (groupes de sites, sites, viites, observations) et non plus une route et un objet commun et générique complexe (#378 par @marcantoinedupre, @bastyen, @amandine-sahl)
 - Factorisation, clarification et simplification globale du code du module (par @amandine-sahl et @pierre-narcisi)
+
+**🐛 Corrections**
+
+- Correction du chargement des GeoJSON ou GPX sur la carte (#461 par @amandine-sahl et @pierre-narcisi)
 
 ## 1.1.0 (28-07-2025)
 
