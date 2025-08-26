@@ -351,14 +351,13 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   private updateRowsAndPage() {
-    if (this.rows && this.rows.length > 0) {
-      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
-      const dataTable = this.dataTableObj[this.activetabType];
-
-      this.rows = dataTable.rows;
-      this.page = dataTable.page;
-      this.initPermissionAction();
-    }
+    // mise à jour des données de la liste
+    // et de la pagination lors d'un changement de données suite un appel API
+    this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
+    const dataTable = this.dataTableObj[this.activetabType];
+    this.rows = dataTable.rows || [];
+    this.page = dataTable.page;
+    this.initPermissionAction();
   }
 
   addChildrenVisit(selected) {
