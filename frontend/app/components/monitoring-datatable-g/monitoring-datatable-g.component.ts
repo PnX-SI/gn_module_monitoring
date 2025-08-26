@@ -126,8 +126,8 @@ export class MonitoringDatatableGComponent implements OnInit {
     // this._objService.currentObjectType.subscribe((newObjType) => {
     //   this.objectType = newObjType;
     // });
-
-    this.filters = {};
+    // Initialisation des filtres
+    this.clearFilters();
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
       this.filter();
     });
@@ -141,7 +141,6 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.dataTableObj[this.activetabType].rows.length > 0
         ? this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns)
         : null;
-
     this.rows = this.dataTableObj[this.activetabType].rows;
     this.page = this.dataTableObj[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
@@ -149,6 +148,17 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.initPermissionAction();
   }
 
+  initSort() {
+    const configObject = this.dataTableArray[this.activetabIndex].config;
+    const sort =
+      'sorts' in configObject
+        ? {
+            sort_dir: configObject.sorts[0]['dir'] || 'asc',
+            sort: configObject.sorts[0]['prop'],
+          }
+        : {};
+    this.filters = { ...this.filters, ...sort };
+  }
   reInitStatut() {
     let status_type = Utils.copy(this.objectsStatus);
     for (let typeObject in status_type) {
@@ -186,7 +196,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   setPage($event) {
-    this.onSetPage.emit({ page: $event, tabObj: this.activetabType });
+    this.onSetPage.emit({ page: $event, filters: this.filters, tabObj: this.activetabType });
   }
 
   filterInput($event) {
@@ -317,6 +327,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   private clearFilters() {
     this.filters = {};
+    this.initSort();
   }
 
   private updateDataTable(objChanges: SimpleChange) {
