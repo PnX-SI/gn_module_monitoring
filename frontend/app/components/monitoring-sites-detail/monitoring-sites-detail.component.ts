@@ -176,17 +176,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           );
         }),
         mergeMap(({ data, objConfig }) => {
+          if (this.parentsPath.includes('sites_group')) {
+            this.siteGroupIdParent = data.site.id_sites_group;
+          }
           return of({
             site: data.site,
             visits: data.visits,
             objConfig: objConfig,
           });
-        }),
-        mergeMap((data) => {
-          if (this.parentsPath.includes('sites_group')) {
-            this.siteGroupIdParent = data.site.id_sites_group;
-          }
-          return of(data);
         })
       )
       .subscribe((data) => {
