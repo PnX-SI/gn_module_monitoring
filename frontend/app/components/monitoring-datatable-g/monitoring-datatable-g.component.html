@@ -43,8 +43,10 @@
               class="ml-2 mb-2"
               (click)="displayFilter = !displayFilter"
               matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
-            >
-              <mat-icon>filter_alt</mat-icon>
+            ><i
+                class="fa fa-filter"
+                aria-hidden="true"
+              ></i>
             </button>
 
             <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
@@ -83,7 +85,7 @@
               [limit]="page.limit"
               [rows]="rows"
               [columns]="columns"
-              [selected]="selected" 
+              [selected]="selected"
               (activate)="onRowClick($event)"
               selectionType="single"
               [messages]="{
@@ -154,7 +156,7 @@
 
                   <!-- On ne peut supprimer un objet que s'il n'a pas d'enfant -->
                   <ng-container
-                    *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0" 
+                    *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0"
                   >
                     <a
                       [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
