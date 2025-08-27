@@ -161,7 +161,7 @@ class GnMonitoringGenericFilter:
                     query = query.where(filter_column.ilike(f"{value}%"))
                 else:
                     # Sinon filtre texte simple
-                    query = query.where(cls.data[param].astext.ilike(f"{value}%"))
+                    query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
 
         return query
 
