@@ -99,7 +99,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initSiteGroup();
-    this._objService.changeSelectedObj({}, true);
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
@@ -121,9 +120,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         currentData = data.sitesGroups.data;
         currentObjConfig = data.sitesGroups.objConfig;
       }
-
-      this._objService.changeObjectTypeParent(objectObs);
-      this._objService.changeObjectType(objectObs);
 
       this.currentRoute = data.route;
       this.moduleCode = data.moduleCode;
@@ -278,17 +274,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   seeDetails($event) {
     // TODO: routerLink
-    let objectType;
-    if (this.moduleCode === 'generic') {
-      if (this.activetabIndex == 1) {
-        this._objService.changeObjectTypeParent(this._sitesService.objectObs);
-        objectType = 'sites';
-      } else {
-        this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
-        objectType = 'sites_group';
-      }
-    }
-
     this.router.navigate(
       [`/monitorings/object/${this.moduleCode}/`, this.currentRoute, $event[$event.id]],
       {
@@ -299,15 +284,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
-    const current_object = this.dataTableArray[this.activetabIndex]['objectType'];
-    if (current_object == 'site') {
-      this._objService.changeObjectTypeParent(this._sitesService.objectObs);
-    } else if (current_object == 'individual') {
-      this._objService.changeObjectTypeParent(this._individualService.objectObs);
-    } else {
-      this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
-    }
-
     this._formService.changeDataSub(
       $event,
       this._sites_group_service.objectObs.objectType,

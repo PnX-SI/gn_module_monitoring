@@ -89,8 +89,6 @@ export class MonitoringSitesgroupsDetailComponent
 
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
-    this._objService.changeObjectTypeParent(this._sitesGroupService.objectObs);
-    this._objService.changeObjectType(this._siteService.objectObs);
     this._configService.init(this.moduleCode).subscribe(() => {
       this.initSite();
     });
@@ -164,8 +162,6 @@ export class MonitoringSitesgroupsDetailComponent
         })
       )
       .subscribe((data) => {
-        this._objService.changeSelectedObj(data.sitesGroup, true);
-        this._objService.changeSelectedParentObj(data.sitesGroup, true);
         this.sitesGroup = data.sitesGroup;
         const sites = data.sites;
 
@@ -264,16 +260,12 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   seeDetails($event) {
-    this._objService.changeSelectedParentObj($event);
-    this._objService.changeObjectTypeParent(this._siteService.objectObs);
     this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
       queryParams: { parents_path: ['module', 'sites_group'] },
     });
   }
 
   editChild($event) {
-    this._objService.changeSelectedParentObj($event);
-    this._objService.changeObjectTypeParent(this._siteService.objectObs);
     this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
       queryParams: { parents_path: ['module', 'sites_group'] },
     });
