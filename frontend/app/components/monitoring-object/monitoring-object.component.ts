@@ -28,7 +28,6 @@ import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ListService } from '../../services/list.service';
-
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -270,7 +269,19 @@ export class MonitoringObjectComponent implements OnInit {
   initData(): Observable<any> {
     // Réinitialisation des services
     this._listService.reinitializeObservables();
-    return this.getModuleSet();
+
+    return of(true).pipe(
+      mergeMap(() => {
+        // A voir ce que fait cette fonction
+        return this.getModuleSet();
+      }),
+      mergeMap(() => {
+        // Récupération des données nomenclatures utilisées dans le module
+        // Ce qui permet de les stocker en cache pour les réutiliser dans les formulaires
+        //  notamment pour la variable meta
+        return this._dataUtilsService.initModuleNomenclatures(this.module.moduleCode);
+      })
+    );
   }
 
   getDataObject(): Observable<any> {

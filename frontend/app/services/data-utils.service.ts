@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, forkJoin, of } from 'rxjs';
-import { concatMap, mergeMap } from 'rxjs/operators';
+import { concatMap, mergeMap, map } from 'rxjs/operators';
 
 import { Utils } from './../utils/utils';
 
@@ -86,6 +86,34 @@ export class DataUtilsService {
     return forkJoin(observables).pipe(
       concatMap((res) => {
         return of(res.join(', '));
+      })
+    );
+  }
+
+  initModuleNomenclatures(moduleCode: string): Observable<any> {
+    /**
+     * Récupération et mise en cache de l'ensemble des nomenclatures utilisées dans le module
+     *
+     * @param moduleCode the module code
+     * @returns an Observable that completes when the nomenclatures are stored in cache
+     */
+
+    // Récupération des types de nomenclatures utilisées dans le module
+    const nomenclatureTypes =
+      this._configService.configModuleObject(moduleCode, 'data')['nomenclature'] || [];
+    // Récupération des nomenclatures mise en forme et stockage en cache
+    return this._commonsDataFormService.getNomenclatures(nomenclatureTypes).pipe(
+      map((nomenclatures) => {
+        for (const key of Object.keys(nomenclatures)) {
+          for (const nomenclature of nomenclatures[key].values || []) {
+            let nomenclatureToStore = nomenclature;
+            nomenclatureToStore['code_type'] = nomenclatures[key].mnemonique;
+            this._cacheService.setCacheValue(
+              `util|nomenclature|${nomenclature['id_nomenclature']}`,
+              nomenclature
+            );
+          }
+        }
       })
     );
   }
