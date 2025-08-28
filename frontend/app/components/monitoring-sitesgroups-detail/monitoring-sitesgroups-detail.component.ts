@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ReplaySubject, forkJoin, of } from 'rxjs';
 import { tap, map, mergeMap, takeUntil, switchMap, concatMap } from 'rxjs/operators';
 import * as L from 'leaflet';
-import { IDataTableObj, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
+import { IdataTableObjData, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
@@ -49,8 +49,7 @@ export class MonitoringSitesgroupsDetailComponent
   siteSelectedId: number;
   rows;
   siteResolvedProperties;
-  dataTableObj: IDataTableObj;
-  dataTableArray: {}[] = [];
+  dataTableConfig: {}[] = [];
   checkEditParam: boolean;
 
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
@@ -174,11 +173,20 @@ export class MonitoringSitesgroupsDetailComponent
         this.colsname = data.objObsSite.dataTable.colNameObj;
         this.objParent = data.objObsSiteGp;
 
-        sites['objConfig'] = data.objObsSite;
-        this.sitesGroup['objConfig'] = data.objObsSiteGp;
+        this.setDataTableObjData(
+          {
+            sites: {
+              data: sites,
+              objConfig: data.objObsSite,
+            },
+          },
+          this._configService,
+          this.moduleCode,
+          ['site', 'individual']
+        );
 
-        this.setDataTableObj({ sites: sites, sitesGroup: this.sitesGroup });
-
+        this.rows = this.dataTableObjData.site.rows;
+        this.getSitesFromSiteGroupId(this.page.page, {});
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.sitesGroup,
@@ -245,10 +253,10 @@ export class MonitoringSitesgroupsDetailComponent
         const siteList = data.items;
         this.rows = siteList;
         this.siteResolvedProperties = siteList;
-        this.dataTableObj.site.rows = this.rows;
-        this.dataTableObj.site.page.count = data.count;
-        this.dataTableObj.site.page.limit = data.limit;
-        this.dataTableObj.site.page.page = data.page - 1;
+        this.dataTableObjData.site.rows = this.rows;
+        this.dataTableObjData.site.page.count = data.count;
+        this.dataTableObjData.site.page.limit = data.limit;
+        this.dataTableObjData.site.page.page = data.page - 1;
       });
     // Données carto
     this._geojsonService.getSitesGroupsGeometriesWithSites(
@@ -290,46 +298,6 @@ export class MonitoringSitesgroupsDetailComponent
         this.initSite();
       }, 100);
     });
-  }
-
-  setDataTableObj(data) {
-    const objTemp = {};
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType == 'sites_group') {
-        continue;
-      }
-      Object.assign(objType, objTemp);
-      objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configService.configModuleObject(
-        this.moduleCode,
-        data[dataType].objConfig.objectType
-      );
-      data[dataType].objConfig['config'] = config;
-      this.dataTableArray.push(data[dataType].objConfig);
-    }
-
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType == 'sites_group') {
-        continue;
-      }
-      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
-      let siteList = data[dataType].items;
-      this.rows = siteList;
-      objTemp[objType].rows = siteList;
-      this.siteResolvedProperties = siteList;
-
-      objTemp[objType].page = {
-        count: data[dataType].count,
-        limit: data[dataType].limit,
-        page: data[dataType].page - 1,
-        total: data[dataType].count,
-      };
-
-      this.dataTableObj = objTemp as IDataTableObj;
-    }
-    this.getSitesFromSiteGroupId(this.page.page, {});
   }
 
   onAddChildren(event) {
