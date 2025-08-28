@@ -52,7 +52,7 @@ import {
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
-import { BtnSelectComponent } from './components/btn-select/btn-select.component';
+
 import { MonitoringSitesDetailComponent } from './components/monitoring-sites-detail/monitoring-sites-detail.component';
 import { OptionListButtonComponent } from './components/option-list-btn/option-list-btn.component';
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
@@ -203,7 +203,6 @@ const routes: Routes = [
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
-    BtnSelectComponent,
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
