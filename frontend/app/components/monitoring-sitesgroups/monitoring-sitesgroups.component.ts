@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { MonitoringObject } from '../../class/monitoring-object';
-import { IDataTableObj, ISite, ISitesGroup } from '../../interfaces/geom';
+import { IdataTableObjData, ISite, ISitesGroup } from '../../interfaces/geom';
 import { Module } from '../../interfaces/module';
 import { SelectObject } from '../../interfaces/object';
 import { IobjObs } from '../../interfaces/objObs';
@@ -46,8 +46,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   objForm: FormGroup;
   objInitForm: Object = {};
   rows;
-  dataTableObj: IDataTableObj;
-  dataTableArray: {}[] = [];
+  dataTableConfig: {}[] = [];
   activetabIndex: number;
   currentRoute: string;
   // siteGroupEmpty={
@@ -143,7 +142,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       const { route, permission, moduleCode, ...dataToTable } = data;
 
-      this.setDataTableObj(dataToTable);
+      this.setDataTableObjData(dataToTable, this._configService, this.moduleCode, [
+        'site',
+        'individual',
+        'sites_group',
+      ]);
 
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);
@@ -237,8 +240,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         };
         this.rows = processedPaginatedData.items;
         this.colsname = _service.objectObs.dataTable.colNameObj;
-        this.dataTableObj[object_type].rows = processedPaginatedData.items;
-        this.dataTableObj[object_type].page = {
+        this.dataTableObjData[object_type].rows = processedPaginatedData.items;
+        this.dataTableObjData[object_type].page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
@@ -305,7 +308,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       row['id'] = row[row.pk];
       let queryParams = {};
       queryParams[row['pk']] = row['id'];
-      const current_object = this.dataTableArray[this.activetabIndex]['objectType'];
+      const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
       queryParams['parents_path'] = ['module', current_object];
 
       if (current_object == 'individual') {
@@ -410,7 +413,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   getdataTableIndex(objetType: string) {
-    return this.dataTableArray.findIndex((element) => element['objectType'] == objetType);
+    return this.dataTableConfig.findIndex((element) => element['objectType'] == objetType);
   }
 
   updateActiveTab($event) {
@@ -432,49 +435,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentPermission.MONITORINGS_GRP_SITES.canRead
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;
-    }
-  }
-
-  setDataTableObj(data) {
-    const objTemp = {};
-    for (const dataType in data) {
-      if (!data[dataType].objConfig) {
-        continue;
-      }
-      let objType = data[dataType].objConfig.objectType;
-      Object.assign(objType, objTemp);
-      objTemp[objType] = { columns: {}, rows: [], page: {} };
-      this.config = this._configService.configModuleObject(
-        data[dataType].objConfig.moduleCode,
-        data[dataType].objConfig.objectType
-      );
-      data[dataType].objConfig['config'] = this.config;
-      this.dataTableArray.push(data[dataType].objConfig);
-    }
-
-    for (const dataType in data) {
-      if (!data[dataType].objConfig) {
-        continue;
-      }
-      let objType = data[dataType].objConfig.objectType;
-      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
-      if (objType == 'site') {
-        let siteList = data[dataType].data.items;
-        this.rows = siteList;
-        objTemp[objType].rows = siteList;
-        this.siteResolvedProperties = siteList;
-      } else {
-        objTemp[objType].rows = data[dataType].data.items;
-      }
-
-      objTemp[objType].page = {
-        count: data[dataType].data.count,
-        limit: data[dataType].data.limit,
-        page: data[dataType].data.page - 1,
-        total: data[dataType].data.count,
-      };
-
-      this.dataTableObj = objTemp as IDataTableObj;
     }
   }
 
