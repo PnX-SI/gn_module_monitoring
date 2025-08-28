@@ -311,7 +311,9 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
 
     if (changes.rows || changes.page) {
-      this.updateRowsAndPage();
+      if (this.dataTableArray && this.dataTableObj) {
+        this.updateRowsAndPage();
+      }
     }
 
     for (const propName of Object.keys(changes)) {
