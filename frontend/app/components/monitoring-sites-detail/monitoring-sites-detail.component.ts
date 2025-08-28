@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
-import { exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
+import { ReplaySubject, forkJoin, of } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ModuleService } from '@geonature/services/module.service';
 
@@ -42,14 +42,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   modules: SelectObject[];
   site: ISite;
 
-  isInitialValues: boolean;
-  paramToFilt: string = 'label';
-  funcToFilt: Function;
-  funcInitValues: Function;
-  titleBtn: string = 'Choix des types de sites';
-  placeholderText: string = 'Sélectionnez les types de site';
-  id_sites_group: number;
-  types_site: string[];
   config: JsonData;
   siteGroupIdParent: number;
   parentsPath: string[] = [];
@@ -58,7 +50,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   dataTableArray: {}[] = [];
   checkEditParam: boolean;
 
-  modulSelected;
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
@@ -105,8 +96,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas
     this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
-    this.funcInitValues = this.initValueToSend.bind(this);
-    this.funcToFilt = this.partialfuncToFilt.bind(this);
+
     this.form = this._formBuilder.group({});
 
     // breadcrumb
@@ -129,8 +119,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
     this._Activatedroute.params
       .pipe(
-        map((params) => {
+        mergeMap((params) => {
+          const siteId = params['id'] as number;
           this.checkEditParam = params['edit'];
+
           this.parentsPath =
             this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
           this.obj = new MonitoringObject(
@@ -139,56 +131,33 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             params['id'],
             this._monitoringObjServiceMonitoring
           );
-          return params['id'] as number;
-        }),
-        tap((id: number) => {
+
+          // Récupération et affichage de la géométrie du site
           this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-            id_base_site: id,
+            id_base_site: siteId,
           });
-        }),
-        mergeMap((id: number) => {
+
+          // Récupération des données et des configurations
+          //  pour le site et les visites associées
           return forkJoin({
-            site: this.siteService.getById(id).catch((err) => {
+            site: this.siteService.getById(siteId).catch((err) => {
               if (err.status == 404) {
                 this.router.navigate(['/not-found'], { skipLocationChange: true });
                 return of(null);
               }
             }),
             visits: this._visits_service.getResolved(1, this.limit, {
-              id_base_site: id,
+              id_base_site: siteId,
             }),
-          }).pipe(
-            map((data) => {
-              return data;
-            })
-          );
-        }),
-        exhaustMap((data) => {
-          return forkJoin({
             objObsSite: this.siteService.initConfig(),
             objObsVisit: this._visits_service.initConfig(),
             obj: this.obj.get(0),
-          }).pipe(
-            tap((objConfig) => (this.objParent = objConfig.objObsSite)),
-            map((objConfig) => {
-              return { data, objConfig: objConfig };
-            })
-          );
-        }),
-        mergeMap(({ data, objConfig }) => {
-          if (this.parentsPath.includes('sites_group')) {
-            this.siteGroupIdParent = data.site.id_sites_group;
-          }
-          return of({
-            site: data.site,
-            visits: data.visits,
-            objConfig: objConfig,
           });
         })
       )
       .subscribe((data) => {
+        this.objParent = data.objObsSite;
         this.obj.initTemplate();
-        this.obj.bIsInitialized = true;
         if (this.moduleCode !== 'generic') {
           this._formService.changeFormMapObj({
             frmGp: null,
@@ -196,7 +165,18 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           });
         }
         this.site = data.site;
-        this.types_site = data.site['types_site'];
+
+        if (this.parentsPath.includes('sites_group')) {
+          this.siteGroupIdParent = data.site.id_sites_group;
+        }
+
+        // ajout des propriétés spécifiques au type de site
+        // dans l'objet MonitoringObject
+        const types_site = data.site['types_site'];
+        this.obj['template_specific'] = this._monitoringObjServiceMonitoring
+          .configService()
+          .addSpecificConfig(types_site);
+
         this.visits = data.visits.items;
         this.page = {
           page: data.visits.page - 1,
@@ -205,17 +185,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         };
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
-        this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
+        this.colsname = data.objObsVisit.dataTable.colNameObj;
 
-        this.addSpecificConfig();
+        // Configuration du datatable
+        const { objObsSite, objObsVisit, obj, ...dataonlyObjConfigAndObj } = data;
 
-        const { objConfig, ...dataonlyObjConfigAndObj } = data;
-
-        dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
-        dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
+        dataonlyObjConfigAndObj.site['objConfig'] = data.objObsSite;
+        dataonlyObjConfigAndObj.visits['objConfig'] = data.objObsVisit;
         this.setDataTableObj(dataonlyObjConfigAndObj);
 
         if (this.checkEditParam) {
+          // Si mode édition demandé via le paramètre d'URL "edit"
           this._formService.changeDataSub(
             this.site,
             this.siteService.objectObs.objectType,
@@ -226,8 +206,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           this.bEdit = true;
           this._formService.changeCurrentEditMode(this.bEdit);
         }
+        this.obj.bIsInitialized = true;
       });
-    this.isInitialValues = true;
   }
 
   onEachFeatureSite() {
@@ -301,64 +281,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         this.bDeleteModalEmitter.emit(false);
         this.initSiteVisit();
       });
-  }
-
-  partialfuncToFilt(
-    pageNumber: number,
-    limit: number,
-    valueToFilter: string
-  ): Observable<IPaginated<ISiteType>> {
-    return this.siteService.getTypeSites(pageNumber, limit, {
-      label_fr: valueToFilter,
-      sort_dir: 'desc',
-    });
-  }
-
-  onSendConfig(config: JsonData): void {
-    this.config = this.addTypeSiteListIds(config);
-    this.updateForm();
-  }
-
-  addTypeSiteListIds(config: JsonData): JsonData {
-    if (config && config.length != 0) {
-      config.types_site = [];
-      for (const key in config) {
-        if ('id_nomenclature_type_site' in config[key]) {
-          config.types_site.push(config[key]['id_nomenclature_type_site']);
-        }
-      }
-    }
-    return config;
-  }
-
-  addSpecificConfig() {
-    this.objParent['template_specific'] = {};
-    this.objParent['template_specific'] = this._monitoringObjServiceMonitoring
-      .configService()
-      .addSpecificConfig(this.types_site);
-  }
-
-  initValueToSend() {
-    this.initSiteVisit();
-    return this.types_site;
-  }
-
-  updateForm() {
-    this.site.specific = {};
-    this.site.dataComplement = {};
-    for (const key in this.config) {
-      if (this.config[key].config != undefined) {
-        if (Object.keys(this.config[key].config).length !== 0) {
-          Object.assign(this.site.specific, this.config[key].config.specific);
-        }
-      }
-    }
-    const specificData = {};
-    for (const k in this.site.data) this.site[k] = this.site.data[k];
-    for (const k in this.site.data) specificData[k] = this.site.data[k];
-    this.site.types_site = this.config.types_site;
-    Object.assign(this.site.dataComplement, this.config);
-    this._formService.updateSpecificForm(this.site, specificData);
   }
 
   onbEditChange(event) {
