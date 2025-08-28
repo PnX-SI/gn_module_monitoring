@@ -2,12 +2,12 @@ import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReplaySubject, forkJoin, of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ModuleService } from '@geonature/services/module.service';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
+import { IdataTableObjData, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { IVisit } from '../../interfaces/visit';
 import { SitesGroupService, SitesService, VisitsService } from '../../services/api-geom.service';
@@ -34,10 +34,8 @@ import { MonitoringObject } from '../../class/monitoring-object';
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IVisit[];
   @Input() page: IPage;
-  // colsname: typeof columnNameVisit = columnNameVisit;
   @Input() bEdit: boolean;
   form: FormGroup;
-  colsname: {};
   objParent: any;
   modules: SelectObject[];
   site: ISite;
@@ -46,8 +44,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   siteGroupIdParent: number;
   parentsPath: string[] = [];
   rows;
-  dataTableObj: IDataTableObj;
-  dataTableArray: {}[] = [];
+  dataTableConfig: {}[] = [];
   checkEditParam: boolean;
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
@@ -185,14 +182,15 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         };
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
-        this.colsname = data.objObsVisit.dataTable.colNameObj;
 
         // Configuration du datatable
-        const { objObsSite, objObsVisit, obj, ...dataonlyObjConfigAndObj } = data;
-
-        dataonlyObjConfigAndObj.site['objConfig'] = data.objObsSite;
-        dataonlyObjConfigAndObj.visits['objConfig'] = data.objObsVisit;
-        this.setDataTableObj(dataonlyObjConfigAndObj);
+        let dataTableData = {
+          visits: {
+            data: data.visits,
+            objConfig: data.objObsVisit,
+          },
+        };
+        this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"
@@ -226,10 +224,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   setVisits(visits) {
     this.rows = visits.items;
-    this.dataTableObj.visit.rows = this.rows;
-    this.dataTableObj.visit.page.count = visits.count;
-    this.dataTableObj.visit.page.limit = visits.limit;
-    this.dataTableObj.visit.page.page = visits.page - 1;
+    this.dataTableObjData.visit.rows = this.rows;
+    this.dataTableObjData.visit.page.count = visits.count;
+    this.dataTableObjData.visit.page.limit = visits.limit;
+    this.dataTableObjData.visit.page.page = visits.page - 1;
   }
 
   seeDetails($event) {
@@ -289,42 +287,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       obj: this.obj,
     });
     this._formService.changeCurrentEditMode(this.bEdit);
-  }
-
-  setDataTableObj(data) {
-    const objTemp = {};
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType != 'visit') {
-        continue;
-      }
-      Object.assign(objType, objTemp);
-      objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configService.configModuleObject(
-        data[dataType].objConfig.moduleCode,
-        data[dataType].objConfig.objectType
-      );
-      data[dataType].objConfig['config'] = config;
-      this.dataTableArray.push(data[dataType].objConfig);
-    }
-
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType != 'visit') {
-        continue;
-      }
-      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
-      objTemp[objType].rows = data[dataType].items;
-
-      objTemp[objType].page = {
-        count: data[dataType].count,
-        limit: data[dataType].limit,
-        page: data[dataType].page - 1,
-        total: data[dataType].count,
-      };
-
-      this.dataTableObj = objTemp as IDataTableObj;
-    }
   }
 
   ngOnDestroy() {

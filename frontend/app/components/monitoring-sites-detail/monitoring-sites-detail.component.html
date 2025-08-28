@@ -22,8 +22,8 @@
 ></pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [dataTableArray]="dataTableArray"
-  [dataTableObj]="dataTableObj"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
   [rows]="rows"
   [colsname]="colsname"
   (onSort)="setSort($event)"

@@ -11,8 +11,8 @@
     [(bEdit)]="bEdit" [addChildren]=false></pnx-monitoring-form>
   <pnx-monitoring-datatable-g
     *ngIf="!bEdit"
-    [dataTableArray]="dataTableArray"
-    [dataTableObj]="dataTableObj"
+    [dataTableConfig]="dataTableConfig"
+    [dataTableObjData]="dataTableObjData"
     [rows]="siteResolvedProperties"
     [colsname]="colsname"
     (onSort)="setSort($event)"
@@ -22,7 +22,7 @@
     [obj]="sitesGroups"
     (onDetailsRow)="seeDetails($event)"
     (onEditEvent)="editChild($event)"
-    (onDeleteEvent)="onDelete($event)" 
+    (onDeleteEvent)="onDelete($event)"
     (tabChanged)="updateActiveTab($event)"
     [activetabIndex]="activetabIndex"
     (addVisitFromTable)="addChildrenVisit($event)"
