@@ -62,7 +62,9 @@ Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs qu
 
 ### Mise à jour du module
 
-Pour mettre à jour le modue Monitoring, suivre la documentation de [mise à jour d'un module GeoNature](https://docs.geonature.fr/installation.html#mise-a-jour-du-module)
+Pour mettre à jour le modue Monitoring, suivre la documentation de [mise à jour d'un module GeoNature](https://docs.geonature.fr/installation.html#mise-a-jour-du-module).
+
+Suite à la mise à jour du module Monitoring, les liens symboliques peuvent être rompus. Dans ce cas, les images n'apparaissent pas sur la page du module et les sous-modules ne se chargent pas lorsque l'utilisateur clique dessus. De ce fait, il faut recréer les liens symboliques dans le dossier `geonature/backend/media/monitorings` comme lors de l'installation d'un sous-module.
 
 ### Configuration générale du module
 
