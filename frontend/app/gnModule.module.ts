@@ -58,7 +58,6 @@ import { OptionListButtonComponent } from './components/option-list-btn/option-l
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsResolver } from './resolver/sites-groups.resolver';
 import { CreateSiteResolver } from './resolver/create-site.resolver';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { ObjectsPermissionMonitorings } from './enum/objectPermission';
 
 import { Popup } from './utils/popup';
@@ -180,8 +179,6 @@ const routes: Routes = [
     path: 'create_object/:moduleCode/:objectType',
     component: MonitoringObjectComponent,
   },
-  { path: 'not-found', component: PageNotFoundComponent },
-  { path: '**', redirectTo: 'not-found' },
 ];
 
 @NgModule({
@@ -206,7 +203,6 @@ const routes: Routes = [
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
-    PageNotFoundComponent,
   ],
   imports: [
     GN2CommonModule,
