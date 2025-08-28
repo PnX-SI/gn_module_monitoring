@@ -40,6 +40,7 @@ export class MonitoringMapComponent implements OnInit {
   selectedSiteId: Number;
   currentSiteId: Number;
   publicDisplaySitesGroup: boolean = false;
+  enableCluster: boolean = false;
 
   listObjectSubscription: any;
 
@@ -135,6 +136,7 @@ export class MonitoringMapComponent implements OnInit {
       // Sinon affichage des sites
       displayObject = 'site';
     }
+    this.getClusterConfig();
 
     this._geojsonService.removeAllFeatureGroup();
     if (displayObject == 'site') {
@@ -144,7 +146,9 @@ export class MonitoringMapComponent implements OnInit {
       };
       this._geojsonService.getSitesGroupsChildGeometries(
         this.onEachFeatureSite(this.buildQueryParams('site')),
-        params
+        params,
+        undefined,
+        this.enableCluster
       );
     } else if (displayObject == 'sites_group') {
       const params = {
@@ -153,7 +157,9 @@ export class MonitoringMapComponent implements OnInit {
       };
       this._geojsonService.getSitesGroupsGeometries(
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
-        params
+        params,
+        undefined,
+        this.enableCluster
       );
     } else if (displayObject == 'sites_group_with_child') {
       const paramsSitesGroup = {
@@ -168,8 +174,28 @@ export class MonitoringMapComponent implements OnInit {
         this.onEachFeatureGroupSite(this.buildQueryParams('sites_group')),
         this.onEachFeatureSite(this.buildQueryParams('site')),
         paramsSitesGroup,
-        paramsSite
+        paramsSite,
+        undefined,
+        undefined,
+        this.enableCluster
       );
+    }
+  }
+
+  getClusterConfig() {
+    const moduleConfig = this._configService.config()[this.obj.moduleCode];
+    let currentObjectType = this.obj.objectType;
+
+    if (currentObjectType === 'module') {
+      currentObjectType = this.listService.listType || 'site';
+    }
+    if (
+      moduleConfig.module.clustering &&
+      moduleConfig.module.clustering.hasOwnProperty(currentObjectType)
+    ) {
+      this.enableCluster = moduleConfig.module.clustering[currentObjectType];
+    } else {
+      this.enableCluster = this._configService.clusteringConfig();
     }
   }
 
