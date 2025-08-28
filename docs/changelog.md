@@ -4,9 +4,11 @@
 
 **🚀 Nouveautés**
 
-- Mise en place de la pagination des listes d'objets (groupes de sites, sites, visites, observations, individus) côté serveur pour améliorer de manière importante les performances de chargement du module (#378 par @marcantoinedupre, @bastyen, @amandine-sahl et @pierre-narcisi)
-- Mise en place de routes spécifiques à chaque objet (groupes de sites, sites, viites, observations) et non plus une route et un objet commun et générique complexe (#378 par @marcantoinedupre, @bastyen, @amandine-sahl)
+- Mise en place de la pagination coté serveur pour les listes d'objets (groupes de sites, sites, individus) de façon à améliorer de manière importante les performances de chargement du module (#393, #378 par @marcantoinedupre, @bastyen, @amandine-sahl et @pierre-narcisi)
+  - Mise en place de routes spécifiques à chaque objet (groupes de sites, sites, viites, observations) et non plus une route et un objet commun et générique complexe (#378 par @marcantoinedupre, @bastyen, @amandine-sahl)
+  - Création et généralisation de composants spécifiques pour les modules, groupes de sites et site. 
 - Factorisation, clarification et simplification globale du code du module (par @amandine-sahl et @pierre-narcisi)
+- Complément de documentation (@marie-laure-cen)
 
 **🐛 Corrections**
 
