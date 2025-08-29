@@ -167,11 +167,11 @@ def get_sites(object_type, module_code=None):
     )
 
 
-@blueprint.route("/sites/<int:id>", methods=["GET"], defaults={"object_type": "site"})
-@permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
+@blueprint.route(
+    "/sites/<string:module_code>/<int:id>", methods=["GET"], defaults={"object_type": "site"}
 )
-def get_site_by_id(scope, id, object_type):
+@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_SITES")
+def get_site_by_id(scope, module_code, id, object_type):
     site = db.get_or_404(TMonitoringSites, id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
@@ -250,9 +250,9 @@ def _get_site_geometries(module_code=None):
     return jsonify(result)
 
 
-@blueprint.route("/sites/<int:id_base_site>/modules", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
-def get_module_by_id_base_site(id_base_site: int):
+@blueprint.route("/sites/<string:module_code>/<int:id_base_site>/modules", methods=["GET"])
+@check_cruved_scope("R", object_code="MONITORINGS_SITES")
+def get_module_by_id_base_site(module_code: str, id_base_site: int):
 
     modules_object = get_modules()
     modules = get_objet_with_permission_boolean(

@@ -173,7 +173,12 @@ class TestSite:
         id_base_site = site.id_base_site
 
         r = self.client.get(
-            url_for("monitorings.get_site_by_id", id=id_base_site, object_type="site")
+            url_for(
+                "monitorings.get_site_by_id",
+                module_code="generic",
+                id=id_base_site,
+                object_type="site",
+            )
         )
 
         assert r.json["id_base_site"] == id_base_site
@@ -341,7 +346,11 @@ class TestSite:
         id_base_site = site.id_base_site
 
         r = self.client.get(
-            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+            url_for(
+                "monitorings.get_module_by_id_base_site",
+                module_code="generic",
+                id_base_site=id_base_site,
+            )
         )
 
         expected_absent_modules = {monitoring_module_wo_types_site.id_module}
@@ -353,7 +362,11 @@ class TestSite:
         id_base_site = sites["no-type"].id_base_site
 
         r = self.client.get(
-            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+            url_for(
+                "monitorings.get_module_by_id_base_site",
+                module_code="generic",
+                id_base_site=id_base_site,
+            )
         )
         expected_modules = {monitoring_module.id_module}
         current_modules = {module["id_module"] for module in r.json}
@@ -366,7 +379,11 @@ class TestSite:
         site = list(sites.values())[0]
 
         r = self.client.get(
-            url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+            url_for(
+                "monitorings.get_module_by_id_base_site",
+                module_code="generic",
+                id_base_site=site.id_base_site,
+            )
         )
         assert r.status_code == 200, f"Erreur HTTP {r.status_code} : {r.data}"
         ids = {m["id_module"] for m in r.json}
@@ -386,7 +403,11 @@ class TestSite:
             assert site, f"Aucun site trouvé pour le type {label}"
 
             r = self.client.get(
-                url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
+                url_for(
+                    "monitorings.get_module_by_id_base_site",
+                    module_code="generic",
+                    id_base_site=site.id_base_site,
+                )
             )
 
             assert r.status_code == 200, f"Échec HTTP pour site {label}"
