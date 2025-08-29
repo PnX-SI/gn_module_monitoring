@@ -16,7 +16,7 @@ import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 })
 export class ModulesComponent implements OnInit {
   canAccessSite: boolean = false;
-  currentPermission: TPermission  ;
+  currentPermission: TPermission;
 
   description: string;
   titleModule: string;
@@ -35,7 +35,7 @@ export class ModulesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.currentPermission = this._permissionService.defaultPermission
+    this.currentPermission = this._permissionService.defaultPermission;
     this.bLoading = true;
 
     // Paramètre d'affichage

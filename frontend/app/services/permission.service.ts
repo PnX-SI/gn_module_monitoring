@@ -40,7 +40,6 @@ export class PermissionService {
     },
   };
 
-
   constructor(
     public appConfig: GnConfigService,
     protected _moduleService: ModuleService

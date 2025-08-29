@@ -250,7 +250,7 @@ export class MonitoringDatatableGComponent implements OnInit {
         objectType = 'visit';
         objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
         this.canCreateObj = true;
-        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       default:
         objectType = 'undefined';

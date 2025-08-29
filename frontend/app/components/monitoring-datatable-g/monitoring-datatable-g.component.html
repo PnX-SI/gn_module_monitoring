@@ -108,14 +108,14 @@
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
 
                   <ng-template
-                    [ngIf]="!dataTableConfig[i].addChildLabel.includes('visit')"
+                    [ngIf]="!(dataTableConfig[i].childType == 'visit')"
                     [ngIfElse]="chooseProtocolPopup"
                   >
-                    <ng-container *ngIf="!dataTableConfig[i].addChildLabel.includes('observation')">
+                    <ng-container *ngIf="!(dataTableConfig[i].childType =='observation')">
                       <a
                         [ngClass]="{ isDisableBtn: !canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj.siteId) : null"
+                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
                         [matTooltip]="
                           canCreateChild ? dataTableConfig[i].addChildLabel : toolTipNotAllowed
                         "

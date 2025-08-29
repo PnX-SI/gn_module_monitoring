@@ -179,7 +179,10 @@ export class ApiService<T = IObject> implements IService<T> {
   }
 
   getById(id: number, moduleCode: string = 'generic'): Observable<T> {
-    return this._cacheService.request<Observable<T>>('get', `${this.objectObs.endPoint}/${moduleCode}/${id}`);
+    return this._cacheService.request<Observable<T>>(
+      'get',
+      `${this.objectObs.endPoint}/${moduleCode}/${id}`
+    );
   }
 
   patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
@@ -388,7 +391,7 @@ export class SitesService extends ApiGeomService<ISite> {
     return this._cacheService.request<Observable<any>>('get', `sites/types/${idTypeSite}`);
   }
 
-  getSiteModules(idSite: number, moduleCode: string='generic'): Observable<Module[]> {
+  getSiteModules(idSite: number, moduleCode: string = 'generic'): Observable<Module[]> {
     return this._cacheService.request('get', `sites/${moduleCode}/${idSite}/modules`);
   }
 }

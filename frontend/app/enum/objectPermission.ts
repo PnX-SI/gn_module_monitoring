@@ -5,4 +5,3 @@ export enum ObjectsPermissionMonitorings {
   MONITORINGS_VISITES = 'MONITORINGS_VISITES',
   MONITORINGS_MARKINGS = 'MONITORINGS_MARKINGS',
 }
-
