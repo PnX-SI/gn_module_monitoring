@@ -49,8 +49,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
-  private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
-
   currentUser: User;
   currentPermission: TPermission;
 
@@ -296,7 +294,5 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       frmGp: null,
       obj: {},
     });
-    this.destroyed$.next(true);
-    this.destroyed$.complete();
   }
 }
