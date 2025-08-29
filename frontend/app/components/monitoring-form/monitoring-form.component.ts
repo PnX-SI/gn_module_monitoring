@@ -607,10 +607,15 @@ export class MonitoringFormComponent implements OnInit {
 
     // Si objet de type module ou création d'un nouvel objet
     //    => récupération des droits au niveau de la config globale et pas de l'objet
-    this.canUpdate =
-      this.obj.objectType == 'module' || !this.isEditObject
-        ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
-        : this.obj.cruved['U'];
+   if (this.obj.objectType == 'module') {
+      this.canUpdate = this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
+    }
+    else if (!this.isEditObject) {
+      this.canUpdate = this.currentUser?.moduleCruved[this.obj.objectType]['C'] > 0
+    }
+    else {
+      this.canUpdate = this.obj.cruved['U']
+    }
   }
 
   notAllowedMessage() {
