@@ -234,7 +234,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # test si présent dans le module
         # sinon []
-
         if not self.config().get(self._object_type):
             return []
 
@@ -257,10 +256,23 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # filtres params get
         for key in args:
+            if key == "id_module" and hasattr(Model, "modules"):
+                # Filtre particulier sur les modules
+                req = req.where(Model.modules.any(id_module=args[key]))
             if hasattr(Model, key) and args[key] not in ["", None, "null", "undefined"]:
                 vals = args.getlist(key)
                 req = req.where(getattr(Model, key).in_(vals))
 
+        #  Si le modèle est de type Permission model et qu'il implémente la fonction filter_by_readable
+        #  Filtre des données retournées en fonction des permissions
+        if hasattr(Model, "filter_by_readable"):
+            req = Model.filter_by_readable(
+                query=req,
+                object_code=current_app.config["MONITORINGS"]
+                .get("PERMISSION_LEVEL", {})
+                .get(self._object_type, None),
+                module_code=g.current_module.module_code,
+            )
         # # filtres config
 
         # filters_config = self.config_param('filters')
