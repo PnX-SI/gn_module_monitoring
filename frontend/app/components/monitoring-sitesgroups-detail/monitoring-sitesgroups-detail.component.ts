@@ -300,10 +300,14 @@ export class MonitoringSitesgroupsDetailComponent
     });
   }
 
-  onAddChildren(event) {
+  addChildrenVisit(event) {
     if (event.objectType == 'site') {
       this.siteSelectedId = event.rowSelected[event.rowSelected['pk']];
-      this.getModules();
+      if (this.moduleCode === 'generic') {
+        this.getModules();
+      } else {
+        this.addNewVisit({ id: this.moduleCode, label: '' });
+      }
     }
   }
 
