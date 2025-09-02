@@ -256,12 +256,13 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # filtres params get
         for key in args:
-            if key == "id_module" and hasattr(Model, "modules"):
-                # Filtre particulier sur les modules
-                req = req.where(Model.modules.any(id_module=args[key]))
-            if hasattr(Model, key) and args[key] not in ["", None, "null", "undefined"]:
-                vals = args.getlist(key)
-                req = req.where(getattr(Model, key).in_(vals))
+            if args[key] not in ["", None, "null", "undefined", "None"]:
+                if key == "id_module" and hasattr(Model, "modules"):
+                    # Filtre particulier sur les modules
+                    req = req.where(Model.modules.any(id_module=args[key]))
+                if hasattr(Model, key):
+                    vals = args.getlist(key)
+                    req = req.where(getattr(Model, key).in_(vals))
 
         #  Si le modèle est de type Permission model et qu'il implémente la fonction filter_by_readable
         #  Filtre des données retournées en fonction des permissions
