@@ -188,6 +188,12 @@ export function buildObjectResolvePropertyProcessing(
           data.items.map((dataItem) => {
             const propertyObservables = {};
             for (const attribut_name of Object.keys(fieldsConfig)) {
+              // si des données sont contenues dans dataItem.data merge avec dataItem
+              // cas des propriétés supplémentaires des visites
+              // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
+              if (dataItem.data) {
+                dataItem = { ...dataItem, ...dataItem.data };
+              }
               if (dataItem.hasOwnProperty(attribut_name)) {
                 propertyObservables[attribut_name] = resolveProperty(
                   _objService,
