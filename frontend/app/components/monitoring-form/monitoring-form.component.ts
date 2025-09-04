@@ -29,6 +29,8 @@ import {
   scan,
 } from 'rxjs/operators';
 import { defer, forkJoin, from, iif, of, Observable } from 'rxjs';
+
+import { Location } from '@angular/common';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
 import { TOOLTIPMESSAGEALERT, TOOLTIPMESSAGEALERT_CHILD } from '../../constants/guard';
@@ -111,7 +113,8 @@ export class MonitoringFormComponent implements OnInit {
     private _siteService: SitesService,
     private _formService: FormService,
     private _router: Router,
-    private _geojsonService: GeoJSONService
+    private _geojsonService: GeoJSONService,
+    private _location: Location
   ) {}
 
   ngOnInit() {
@@ -469,20 +472,12 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onCancelEdit() {
+    this.bEditChange.emit(false);
+    this._location.back();
     if (this.obj.id) {
-      const urlTree = this._router.parseUrl(this._router.url);
-      const urlWithoutParams = urlTree.root.children['primary'].segments
-        .map((it) => it.path)
-        .join('/');
-      this._router.navigate([urlWithoutParams]);
-
-      // this._geojsonService.removeAllFeatureGroup();
       this.obj.geometry == null
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
         : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
-      this.bEditChange.emit(false);
-    } else {
-      this.navigateToParent();
     }
   }
 
