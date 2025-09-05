@@ -10,7 +10,7 @@
     <i class="fa fa-plus" [ngClass]="{ isDisableIcon: !canCreateChild }" aria-hidden="true"></i>
   </button>
 </ng-template>
-<ng-template #buttonComp> {{canCreateChild}}
+<ng-template #buttonComp>
   <button
     mat-raised-button
     [disabled]="!canCreateObj"
