@@ -300,7 +300,7 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.properties[key] = strToInt;
       }
     }
-    return this.obj.getParents(0);
+    return this.obj.getParents(0, this._configService.moduleCruved(this.obj.moduleCode));
   }
 
   onDeleteRowChange(event) {

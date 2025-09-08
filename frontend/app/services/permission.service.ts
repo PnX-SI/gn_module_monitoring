@@ -26,6 +26,18 @@ export class PermissionService {
       canUpdate: false,
       canDelete: false,
     },
+    [typePerm.MONITORINGS_VISITES]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    [typePerm.MONITORINGS_MARKINGS]: {
+      canCreate: false,
+      canRead: false,
+      canUpdate: false,
+      canDelete: false,
+    },
   };
 
   constructor(

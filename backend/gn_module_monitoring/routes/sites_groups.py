@@ -109,13 +109,12 @@ def get_sites_groups(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/sites_groups/<int:id_sites_group>", methods=["GET"], defaults={"object_type": "sites_group"}
+    "/sites_groups/<string:module_code>/<int:id_sites_group>",
+    methods=["GET"],
+    defaults={"object_type": "sites_group"},
 )
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-@permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
-)
-def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
+@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(

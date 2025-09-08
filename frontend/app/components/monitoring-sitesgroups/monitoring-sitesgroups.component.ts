@@ -455,7 +455,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   getModules() {
     this._sitesService
-      .getSiteModules(this.siteSelectedId)
+      .getSiteModules(this.siteSelectedId, this.moduleCode)
       .pipe(takeUntil(this.destroyed$))
       .subscribe(
         (data: Module[]) => (

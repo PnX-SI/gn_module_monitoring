@@ -43,6 +43,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Input() colsname: IColumn[];
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
+  @Input() moduleCode: string = 'generic'; // Code du module courant
   // Objet contenant les données des éléments à afficher dans les tableaux
   @Input() dataTableObjData: IdataTableObjData;
   // Array d'objets contenant la configuration éléments à afficher dans les tableaux
@@ -238,19 +239,25 @@ export class MonitoringDatatableGComponent implements OnInit {
         break;
       case 'site':
         objectType = ObjectsPermissionMonitorings.MONITORINGS_SITES;
-        objectTypeChild = 'visit';
-        this.canCreateChild = true;
+        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
+        // Cas du module générique (moduleCode = 'generic')
+        //  Il n'y a pas de permissions pour les visites,
+        //  elles sont créées dans le contexte d'un module
+        // Par défaut : création autorisée mais seul les modules où l'utilisateur a le droit de créer des visites
+        //  seront afficher dans le menu déroulant
+        if (this.moduleCode === 'generic') this.canCreateChild = true;
         break;
       case 'individual':
         objectType = ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS;
         objectTypeChild = 'marking';
-        this.canCreateChild = true;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       case 'visit':
         objectType = 'visit';
-        objectTypeChild = 'undefined';
+        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
         this.canCreateObj = true;
-        this.canCreateChild = true;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       default:
         objectType = 'undefined';
