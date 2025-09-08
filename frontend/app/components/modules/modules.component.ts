@@ -16,26 +16,7 @@ import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 })
 export class ModulesComponent implements OnInit {
   canAccessSite: boolean = false;
-  currentPermission: TPermission = {
-    [ObjectsPermissionMonitorings.MONITORINGS_GRP_SITES]: {
-      canCreate: false,
-      canRead: false,
-      canUpdate: false,
-      canDelete: false,
-    },
-    [ObjectsPermissionMonitorings.MONITORINGS_SITES]: {
-      canCreate: false,
-      canRead: false,
-      canUpdate: false,
-      canDelete: false,
-    },
-    [ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS]: {
-      canCreate: false,
-      canRead: false,
-      canUpdate: false,
-      canDelete: false,
-    },
-  };
+  currentPermission: TPermission;
 
   description: string;
   titleModule: string;
@@ -54,6 +35,7 @@ export class ModulesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.currentPermission = this._permissionService.defaultPermission;
     this.bLoading = true;
 
     // Paramètre d'affichage

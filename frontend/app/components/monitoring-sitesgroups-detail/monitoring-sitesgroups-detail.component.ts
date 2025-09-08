@@ -135,7 +135,7 @@ export class MonitoringSitesgroupsDetailComponent
           );
 
           return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id).catch((err) => {
+            sitesGroup: this._sitesGroupService.getById(id, this.moduleCode).catch((err) => {
               if (err.status == 404) {
                 this.router.navigate(['/not-found'], { skipLocationChange: true });
                 return of(null);
@@ -300,10 +300,14 @@ export class MonitoringSitesgroupsDetailComponent
     });
   }
 
-  onAddChildren(event) {
+  addChildrenVisit(event) {
     if (event.objectType == 'site') {
       this.siteSelectedId = event.rowSelected[event.rowSelected['pk']];
-      this.getModules();
+      if (this.moduleCode === 'generic') {
+        this.getModules();
+      } else {
+        this.addNewVisit({ id: this.moduleCode, label: '' });
+      }
     }
   }
 
@@ -313,7 +317,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   getModules() {
     this._siteService
-      .getSiteModules(this.siteSelectedId)
+      .getSiteModules(this.siteSelectedId, this.moduleCode)
       .pipe(takeUntil(this.destroyed$))
       .subscribe(
         (data: Module[]) => (

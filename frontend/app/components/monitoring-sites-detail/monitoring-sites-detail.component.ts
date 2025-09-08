@@ -135,7 +135,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           // Récupération des données et des configurations
           //  pour le site et les visites associées
           return forkJoin({
-            site: this.siteService.getById(siteId).catch((err) => {
+            site: this.siteService.getById(siteId, this.moduleCode).catch((err) => {
               if (err.status == 404) {
                 this.router.navigate(['/not-found'], { skipLocationChange: true });
                 return of(null);
@@ -239,7 +239,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   getModules() {
     if (this.moduleCode === 'generic') {
-      this.siteService.getSiteModules(this.site.id_base_site).subscribe(
+      this.siteService.getSiteModules(this.site.id_base_site, this.moduleCode).subscribe(
         (data: Module[]) =>
           (this.modules = data.map((item) => {
             return { id: item.module_code, label: item.module_label };
