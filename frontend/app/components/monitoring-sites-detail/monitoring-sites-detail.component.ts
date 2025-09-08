@@ -263,10 +263,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   editChild($event) {
-    this.router.navigate([
-      `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
-      { edit: true },
-    ]);
+    const parentsPath = this.parentsPath;
+    parentsPath.push('site');
+    this.router.navigate(
+      [
+        `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
+        { edit: true },
+      ],
+      {
+        queryParams: { id_base_site: this.site.id_base_site, parents_path: parentsPath },
+      }
+    );
   }
 
   // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
