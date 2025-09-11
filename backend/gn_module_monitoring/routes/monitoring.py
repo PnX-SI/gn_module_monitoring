@@ -280,21 +280,7 @@ def delete_object_api(scope, module_code, object_type, id):
 def breadcrumbs_object_api(module_code, object_type, id):
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
-
     config = get_config(module_code=module_code, force=True)
-    # PATCH si module_code == "MONITORINGS" et object_type == "module"
-    #  alors réponse en dur car le module monitoring n'est pas de type TModuleMonitoring
-    if g.current_module.module_code.upper() == "MONITORINGS" and object_type == "module":
-        return [
-            {
-                "description": "Monitoring",
-                "id": g.current_module.id_module,
-                "label": "Module",
-                "module_code": "generic",
-                "object_type": "module",
-            }
-        ]
-
     return (
         monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id

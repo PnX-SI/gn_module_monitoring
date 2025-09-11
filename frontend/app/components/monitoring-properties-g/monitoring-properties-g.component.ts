@@ -6,6 +6,7 @@ import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { ISitesGroup } from '../../interfaces/geom';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { FormService } from '../../services/form.service';
+import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { TPermission } from '../../types/permission';
 import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
@@ -46,6 +47,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   constructor(
     private _formService: FormService,
+    private _objService: ObjectService,
     public ms: MediaService
   ) {}
 

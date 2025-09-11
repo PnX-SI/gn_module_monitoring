@@ -22,11 +22,7 @@ class TestSitesGroups:
         sites_group = list(sites_groups.values())[0]
         id_sites_group = sites_group.id_sites_group
         r = self.client.get(
-            url_for(
-                "monitorings.get_sites_group_by_id",
-                module_code="generic",
-                id_sites_group=id_sites_group,
-            )
+            url_for("monitorings.get_sites_group_by_id", id_sites_group=id_sites_group)
         )
 
         assert r.json["id_sites_group"] == id_sites_group

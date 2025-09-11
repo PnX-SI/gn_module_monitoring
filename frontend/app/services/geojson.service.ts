@@ -224,8 +224,4 @@ export class GeoJSONService {
       this.removeFeatureGroup(featureGroup);
     }
   }
-
-  removeFileLayerGroup() {
-    this._mapService.removeAllLayers(this._mapService.map, this._mapService.fileLayerFeatureGroup);
-  }
 }

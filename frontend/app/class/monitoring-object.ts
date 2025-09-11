@@ -112,17 +112,13 @@ export class MonitoringObject extends MonitoringObjectBase {
       .deleteObject(this.moduleCode, this.objectType, this.id);
   }
 
-  getParents(depth = 0, cruved = {}): Observable<any> {
+  getParents(depth = 0): Observable<any> {
     const promises = {};
     if (!this.parentTypes().length) {
       return of({});
     }
     for (const parentType of this.parentTypes()) {
-      if ((cruved['parentType'] || {}).R > 0) {
-        promises[parentType] = this.getParent(parentType, depth, cruved);
-      } else {
-        promises[parentType] = of({});
-      }
+      promises[parentType] = this.getParent(parentType, depth);
     }
     return forkJoin(promises);
   }
@@ -142,7 +138,7 @@ export class MonitoringObject extends MonitoringObjectBase {
   }
 
   /** methodes pour obtenir les parent et enfants de l'object */
-  getParent(parentType = null, depth = 0, cruved): Observable<any> {
+  getParent(parentType = null, depth = 0): Observable<any> {
     if (!parentType) {
       parentType = this.parentType();
     }
@@ -169,7 +165,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       mergeMap((parent) => {
         parentOut = parent;
         this.parents[parent.objectType] = parent;
-        return parent.getParents(depth, cruved);
+        return parent.getParents(depth);
       }),
       concatMap((parents) => {
         for (const key of Object.keys(parents)) {

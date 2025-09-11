@@ -64,17 +64,15 @@ class TestSite:
         assert r.json["items"][0]["id_base_site"] == min(ids_sites)
 
         r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="desc"))
-
         assert r.json["count"] >= len(sites)
-        assert r.json["items"][0]["id_inventor"] == users["user"].id_role
+        assert r.json["items"][0]["inventor"] == [users["user"].nom_complet]
 
         r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="asc"))
 
         assert r.json["count"] >= len(sites)
-        assert r.json["items"][0]["id_inventor"] == users["admin_user"].id_role
+        assert r.json["items"][0]["inventor"] == [users["admin_user"].nom_complet]
 
     def test_get_sites_order_by_unknown_field(self, sites, users):
-
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.get(
@@ -173,12 +171,7 @@ class TestSite:
         id_base_site = site.id_base_site
 
         r = self.client.get(
-            url_for(
-                "monitorings.get_site_by_id",
-                module_code="generic",
-                id=id_base_site,
-                object_type="site",
-            )
+            url_for("monitorings.get_site_by_id", id=id_base_site, object_type="site")
         )
 
         assert r.json["id_base_site"] == id_base_site
@@ -346,11 +339,7 @@ class TestSite:
         id_base_site = site.id_base_site
 
         r = self.client.get(
-            url_for(
-                "monitorings.get_module_by_id_base_site",
-                module_code="generic",
-                id_base_site=id_base_site,
-            )
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
         )
 
         expected_absent_modules = {monitoring_module_wo_types_site.id_module}
@@ -362,11 +351,7 @@ class TestSite:
         id_base_site = sites["no-type"].id_base_site
 
         r = self.client.get(
-            url_for(
-                "monitorings.get_module_by_id_base_site",
-                module_code="generic",
-                id_base_site=id_base_site,
-            )
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
         )
         expected_modules = {monitoring_module.id_module}
         current_modules = {module["id_module"] for module in r.json}
@@ -379,11 +364,7 @@ class TestSite:
         site = list(sites.values())[0]
 
         r = self.client.get(
-            url_for(
-                "monitorings.get_module_by_id_base_site",
-                module_code="generic",
-                id_base_site=site.id_base_site,
-            )
+            url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
         )
         assert r.status_code == 200, f"Erreur HTTP {r.status_code} : {r.data}"
         ids = {m["id_module"] for m in r.json}
@@ -403,11 +384,7 @@ class TestSite:
             assert site, f"Aucun site trouvé pour le type {label}"
 
             r = self.client.get(
-                url_for(
-                    "monitorings.get_module_by_id_base_site",
-                    module_code="generic",
-                    id_base_site=site.id_base_site,
-                )
+                url_for("monitorings.get_module_by_id_base_site", id_base_site=site.id_base_site)
             )
 
             assert r.status_code == 200, f"Échec HTTP pour site {label}"

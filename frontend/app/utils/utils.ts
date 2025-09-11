@@ -1,5 +1,5 @@
 import { Observable, forkJoin, of } from 'rxjs';
-import { map, concatMap, mergeMap } from 'rxjs/operators';
+import { concatMap, mergeMap } from 'rxjs/operators';
 import { JsonData } from '../types/jsondata';
 
 export class Utils {
@@ -121,115 +121,12 @@ export class Utils {
     }, {});
     return filteredObject;
   }
-
-  static testPremiereLettreVoyelle(s: string): boolean {
-    // Test si la première lettre d'une chaine de caractère est une voyelle
-    return s && s[0] && 'aeéiouy'.includes(s[0].toLowerCase());
-  }
-
-  static labelArtDef(genre: string, label: string): string {
-    return this.testPremiereLettreVoyelle(label) ? "l'" : genre == 'F' ? 'la ' : 'le ';
-  }
-
-  static labelDu(genre: string, label: string): string {
-    const labelDu = this.testPremiereLettreVoyelle(label)
-      ? "de l'"
-      : genre == 'F'
-        ? 'de la '
-        : 'du ';
-    return labelDu;
-  }
-
-  static labelArtUndef(genre: string): string {
-    const article = genre == 'F' ? 'une' : 'un';
-    return article;
-  }
-
-  static labelNew(genre: string, label: string): string {
-    let strNew = 'nouveau';
-
-    if (genre == 'F') {
-      strNew = 'nouvelle';
-    } else if (this.testPremiereLettreVoyelle(label)) {
-      // Si masculin mais avec comme première lettre une voyelle
-      strNew = 'nouvel';
-    }
-    return strNew;
-  }
-}
-
-export function buildObjectResolvePropertyProcessing(
-  data,
-  fieldsConfig,
-  moduleCode,
-  _objService,
-  _cacheService
-): Observable<any> {
-  /**
-   * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
-   *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
-   *
-   *
-   * @param data - Données à traiter.
-   * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
-   * @param moduleCode - Le code de module courrant
-   * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
-   * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
-   * @returns Un observable émettant l'objet de données avec les propriétés résolues.
-   */
-
-  const dataProcessing$ =
-    data &&
-    data.items &&
-    data.items.length > 0 &&
-    fieldsConfig &&
-    Object.keys(fieldsConfig).length > 0
-      ? forkJoin(
-          data.items.map((dataItem) => {
-            const propertyObservables = {};
-            for (const attribut_name of Object.keys(fieldsConfig)) {
-              // si des données sont contenues dans dataItem.data merge avec dataItem
-              // cas des propriétés supplémentaires des visites
-              // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
-              if (dataItem.data) {
-                dataItem = { ...dataItem, ...dataItem.data };
-              }
-              if (dataItem.hasOwnProperty(attribut_name)) {
-                propertyObservables[attribut_name] = resolveProperty(
-                  _objService,
-                  _cacheService,
-                  moduleCode,
-                  fieldsConfig[attribut_name],
-                  dataItem[attribut_name]
-                );
-              }
-            }
-            if (Object.keys(propertyObservables).length === 0) {
-              return of(dataItem);
-            }
-            return forkJoin(propertyObservables).pipe(
-              map((resolvedProperties) => {
-                const updatedSiteGroupItem = { ...dataItem };
-                for (const attribut_name of Object.keys(resolvedProperties)) {
-                  updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
-                }
-                return updatedSiteGroupItem;
-              })
-            );
-          })
-        ).pipe(
-          map((resolvedSiteGroupItems) => ({
-            ...data,
-            items: resolvedSiteGroupItems,
-          }))
-        )
-      : of(data);
-  return dataProcessing$;
 }
 
 export function resolveProperty(
   _objService,
   _cacheService,
+  _configService,
   moduleCode,
   elem,
   val
@@ -237,16 +134,12 @@ export function resolveProperty(
   if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
     val = Utils.formatDate(val);
   }
-  if (elem.type_util === 'types_site') {
-    val = val.map((item) => {
-      return item.label;
-    });
-  }
+
   const fieldName = _objService.configUtils(elem, moduleCode);
+
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
   }
-
   return of(val);
 }
 
@@ -258,7 +151,7 @@ function getUtil(
   idFieldName: string | null = null
 ) {
   if (Array.isArray(id)) {
-    return getUtils(_cacheService, typeUtil, id, fieldName, idFieldName);
+    return getUtils(typeUtil, id, fieldName, idFieldName);
   }
 
   var urlRelative = `util/${typeUtil}/${id}`;
@@ -268,7 +161,6 @@ function getUtil(
   }
 
   const sCachePaths = `util|${typeUtil}|${id}`;
-
   return _cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
     mergeMap((value) => {
       let out;
@@ -289,16 +181,14 @@ function getUtil(
   );
 }
 
-function getUtils(_cacheService, typeUtilObject, ids, fieldName, idFieldName) {
+function getUtils(typeUtilObject, ids, fieldName, idFieldName) {
   if (!ids.length) {
     return of(null);
   }
   const observables: any[] = [];
-
   for (const id of ids) {
-    observables.push(getUtil(_cacheService, typeUtilObject, id, fieldName, idFieldName));
+    observables.push(getUtil(typeUtilObject, id, fieldName, idFieldName));
   }
-
   return forkJoin(observables).pipe(
     concatMap((res) => {
       return of(res.join(', '));

@@ -26,43 +26,23 @@ from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 @pytest.fixture
 def install_module_test(types_site, users):
-    install_monitoring_module("test", types_site, users)
-
-
-@pytest.fixture
-def install_module_test_indi(types_site, data_individuals, users):
-    install_monitoring_module("test_indi", types_site, users)
-
-    module_indi = db.session.execute(
-        select(TMonitoringModules).where(TMonitoringModules.module_code == "test_indi")
-    ).scalar_one_or_none()
-    module_data = []
-    with db.session.begin_nested():
-        for individual in data_individuals:
-            individual.modules.append(module_indi)
-            db.session.add(individual)
-            module_data.append(individual)
-    return module_data
-
-
-def install_monitoring_module(module_code, type_site, users):
     # Copy des fichiers du module de test
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
-    path_module_test = path_gn_monitoring / Path(f"contrib/{module_code}")
-    path_gn_monitoring = BACKEND_DIR / Path(f"media/monitorings/{module_code}")
+    path_module_test = path_gn_monitoring / Path("contrib/test")
+    path_gn_monitoring = BACKEND_DIR / Path("media/monitorings/test")
     shutil.copytree(src=str(path_module_test), dst=str(path_gn_monitoring), dirs_exist_ok=True)
 
     # Installation du module
     runner = current_app.test_cli_runner()
-    result = runner.invoke(cmd_install_monitoring_module, [module_code])
+    result = runner.invoke(cmd_install_monitoring_module, ["test"])
 
     assert result.exit_code == 0
     # Association du module aux types de site existant
     module = db.session.execute(
-        select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one()
     with db.session.begin_nested():
-        module.types_site = list(type_site.values())
+        module.types_site = list(types_site.values())
         db.session.add(module)
 
     # Association des permissions aux différents utilisateurs
@@ -99,7 +79,7 @@ def install_monitoring_module(module_code, type_site, users):
     # (because the module does not exist yet in the DB) but this incomplete config is still registered with the cache.
     from gn_module_monitoring.config.repositories import get_config
 
-    get_config(module_code, force=True)
+    get_config("test", force=True)
 
 
 @pytest.fixture

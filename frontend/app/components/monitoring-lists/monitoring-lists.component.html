@@ -1,7 +1,4 @@
-<div
-  class="cadre"
-  *ngIf="children0Array && children0Array.length"
->
+<div class="cadre" *ngIf="children0Array && children0Array.length">
   <mat-tab-group
     mat-stretch-tabs="false"
     mat-align-tabs="start"
@@ -14,15 +11,8 @@
         *ngIf="obj.moduleCode && currentUser.moduleCruved[child0.objectType].R >= 1"
         label="{{ child0.template['label_list'] }} {{ displayNumber(child0.objectType) }}"
       >
-        <div
-          let
-          childrenType="child0.objectType"
-          class="list-children"
-        >
-          <div
-            class="btn-height"
-            *ngIf="queyParamsNewObject[child0.objectType]"
-          >
+        <div let childrenType="child0.objectType" class="list-children">
+          <div class="btn-height" *ngIf="queyParamsNewObject[child0.objectType]">
             <div class="btn-float-right">
               <button
                 mat-mini-fab
@@ -50,11 +40,7 @@
                 [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
                 *ngIf="obj.moduleCode"
               >
-                <i
-                  class="fa fa-plus"
-                  aria-hidden="true"
-                ></i>
-                Ajouter
+                <i class="fa fa-plus" aria-hidden="true"></i> Ajouter
                 {{ child0.template['label_art_undef_new'] || '' }}
               </button>
             </div>
@@ -62,10 +48,10 @@
           <div class="mt-2">
             <pnx-monitoring-datatable
               *ngIf="childrenDataTable && childrenDataTable[child0.objectType]"
-              (bEditChange)="onbEditChange($event)"
+              (bEditChange)="onbEditChange($event)" 
               [rows]="childrenDataTable[child0.objectType]['rows']"
-              [columns]="childrenDataTable[child0.objectType]['columns']"
-              [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl"
+              [columns]="childrenDataTable[child0.objectType]['columns']" 
+              [frontendModuleMonitoringUrl]="frontendModuleMonitoringUrl" 
               (rowStatusChange)="onSelectedChildren(child0.objectType, $event)"
               (onFilter)="onFilterChange(child0.objectType, $event)"
               (onDeleteRow)="onDeleteRowChange($event)"

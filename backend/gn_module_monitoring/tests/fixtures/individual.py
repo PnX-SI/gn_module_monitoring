@@ -15,37 +15,6 @@ from geonature.tests.fixtures import users
 SPECIES = "Athene noctua"
 
 
-individuals_exemple = [
-    # individual_name, cd_nom, active, comment, user
-    ("indi_1", 79273, True, "A Super lézard", "user"),
-    ("indi_2", 79273, False, "B Super lézard désactivé", "user"),
-    ("indi_3", 649883, True, "Super python", "admin_user"),
-    ("indi_4", 97947, True, "Fagus sylvatica", "self_user"),
-    ("indi_5", 3493, True, "Bubo bubo", "stranger_user"),
-]
-
-
-@pytest.fixture
-def data_individuals(users):
-    db_individuals = []
-
-    for individual_name, cd_nom, active, comment, user in individuals_exemple:
-        db_individuals.append(
-            TMonitoringIndividuals(
-                individual_name=individual_name,
-                cd_nom=cd_nom,
-                active=active,
-                id_digitiser=users[user].id_role,
-                comment=comment,
-            )
-        )
-    # Insertion des individus dans la base de données
-    with db.session.begin_nested():
-        db.session.add_all(db_individuals)
-        db.session.flush()
-    return db_individuals
-
-
 @pytest.fixture
 def individuals(users, monitoring_module):
     user = users["user"]
