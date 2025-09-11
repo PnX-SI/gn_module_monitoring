@@ -1,10 +1,11 @@
 <div>
   <span class="obj-title"
-    >{{ bEdit ?  siteService.objectObs.editObjLabel : siteService.objectObs.detailObjLabel }} :</span
+    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ siteService.objectObs.label }}:</span
   >
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
 <pnx-monitoring-form [obj]="obj" [objForm]="form"
+  (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
@@ -22,8 +23,8 @@
 ></pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [dataTableConfig]="dataTableConfig"
-  [dataTableObjData]="dataTableObjData"
+  [dataTableArray]="dataTableArray"
+  [dataTableObj]="dataTableObj"
   [rows]="rows"
   [colsname]="colsname"
   (onSort)="setSort($event)"
@@ -31,7 +32,6 @@
   (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)"
   [obj]="visits"
-  [moduleCode]="moduleCode"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"

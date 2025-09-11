@@ -29,7 +29,6 @@ export class OptionListButtonComponent {
   @Output() onDeployed = new EventEmitter<any>();
 
   @Input() item: [];
-  @Input() canCreateChild: boolean = false;
 
   constructor(private _objService: ObjectService) {}
 

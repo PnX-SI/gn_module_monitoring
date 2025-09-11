@@ -1,14 +1,14 @@
-<ng-container *ngIf="rowDeleted">
+<ng-container *ngIf="rowSelected">
   <pnx-modal-msg [bDisplayModal]="bDeleteModal">
     <h2>Attention</h2>
     <p>
       <!-- TODO: voir pour améliorer le passage d'informations ici -->
       Vous êtes sur le point de supprimer :
-      {{ rowDeleted['name_object'] }}
+      {{ rowSelected['name_object'] }}
       <br />
     </p>
 
-    <button class="btn btn-danger float-right" (click)="onDelete(rowDeleted)">
+    <button class="btn btn-danger float-right" (click)="onDelete(rowSelected)">
       <span
         [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
         class="spinner-border spinner-border-sm"
@@ -20,7 +20,7 @@
     <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
   </pnx-modal-msg>
 </ng-container>
-<div class="cadre" *ngIf="rows && dataTableObjData">
+<div class="cadre" *ngIf="rows && dataTableObj">
   <mat-tab-group
     mat-stretch-tabs="false"
     mat-align-tabs="start"
@@ -29,9 +29,9 @@
     animationDuration="0ms"
   >
     <mat-tab
-      *ngFor="let objType of dataTableObjData | keyvalue; let i = index"
-      label="{{ dataTableConfig[i].template['labelList'] }} {{
-        displayNumber(dataTableConfig[i].objectType)
+      *ngFor="let objType of dataTableObj | keyvalue; let i = index"
+      label="{{ dataTableArray[i].template['labelList'] }} {{
+        displayNumber(dataTableArray[i].objectType)
       }}"
     >
       <ng-template matTabContent>
@@ -44,10 +44,7 @@
               (click)="displayFilter = !displayFilter"
               matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
             >
-              <i
-                class="fa fa-filter"
-                aria-hidden="true"
-              ></i>
+              <mat-icon>filter_alt</mat-icon>
             </button>
 
             <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
@@ -61,7 +58,7 @@
                 (click)="canCreateObj ? navigateToAddObj() : null"
                 [matTooltip]="canCreateObj ? null : toolTipNotAllowed"
               >
-                <i class="fa fa-plus" aria-hidden="true"></i> {{ dataTableConfig[i].addObjLabel }}
+                <i class="fa fa-plus" aria-hidden="true"></i> {{ dataTableArray[i].addObjLabel }}
               </button>
             </ng-template>
 
@@ -86,6 +83,7 @@
               [limit]="page.limit"
               [rows]="rows"
               [columns]="columns"
+              [selected]="selected" 
               (activate)="onRowClick($event)"
               selectionType="single"
               [messages]="{
@@ -101,23 +99,23 @@
                   <a
                     class="nav-link link cell-link"
                     (click)="navigateToDetail(row)"
-                    matTooltip="{{ dataTableConfig[i].seeObjLabel }}"
+                    matTooltip="{{ dataTableArray[i].seeObjLabel }}"
                   >
                     <i class="fa fa-eye" aria-hidden="true"></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
 
                   <ng-template
-                    [ngIf]="!(dataTableConfig[i].childType == 'visit')"
+                    [ngIf]="!dataTableArray[i].addChildLabel.includes('visit')"
                     [ngIfElse]="chooseProtocolPopup"
                   >
-                    <ng-container *ngIf="!(dataTableConfig[i].childType =='observation')">
+                    <ng-container *ngIf="!dataTableArray[i].addChildLabel.includes('observation')">
                       <a
                         [ngClass]="{ isDisableBtn: !canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
+                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj.siteId) : null"
                         [matTooltip]="
-                          canCreateChild ? dataTableConfig[i].addChildLabel : toolTipNotAllowed
+                          canCreateChild ? dataTableArray[i].addChildLabel : toolTipNotAllowed
                         "
                       >
                         <i
@@ -133,7 +131,6 @@
                       placeholder="Sélectionner le protocole"
                       label="Ajouter une visite"
                       [iconOrButton]="icon"
-                      [canCreateChild]="canCreateChild"
                       [item]="row"
                       (onDeployed)="addChildrenVisit(row)"
                       (onSaved)="saveOptionChild($event)"
@@ -145,7 +142,7 @@
                     class="nav-link link cell-link"
                     (click)="row.cruved['U'] ? editSelectedItem(row) : null"
                     [matTooltip]="
-                      row.cruved['U'] ? dataTableConfig[i].editObjLabel : toolTipNotAllowed
+                      row.cruved['U'] ? dataTableArray[i].editObjLabel : toolTipNotAllowed
                     "
                   >
                     <i
@@ -157,14 +154,14 @@
 
                   <!-- On ne peut supprimer un objet que s'il n'a pas d'enfant -->
                   <ng-container
-                    *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0"
+                    *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0" 
                   >
                     <a
                       [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
                       class="nav-link link cell-link"
                       (click)="row.cruved['D'] ? alertMessage(row) : null"
                       [matTooltip]="
-                        row.cruved['D'] ? dataTableConfig[i].deleteObjLabel : toolTipNotAllowed
+                        row.cruved['D'] ? dataTableArray[i].deleteObjLabel : toolTipNotAllowed
                       "
                     >
                       <i

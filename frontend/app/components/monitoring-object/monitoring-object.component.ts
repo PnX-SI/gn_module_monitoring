@@ -26,8 +26,10 @@ import { MapService } from '@geonature_common/map/map.service';
 import { ObjectService } from '../../services/object.service';
 
 import { Utils } from '../../utils/utils';
+import { ConfigJsonService } from '../../services/config-json.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ListService } from '../../services/list.service';
+
 @Component({
   selector: 'pnx-object',
   templateUrl: './monitoring-object.component.html',
@@ -58,8 +60,7 @@ export class MonitoringObjectComponent implements OnInit {
 
   constructor(
     private _route: ActivatedRoute,
-    private _monitoringObjService: MonitoringObjectService,
-    private _objectService: ObjectService,
+    private _objService: MonitoringObjectService,
     private _configService: ConfigService,
     private _dataUtilsService: DataUtilsService,
     private _formBuilder: FormBuilder,
@@ -119,14 +120,6 @@ export class MonitoringObjectComponent implements OnInit {
           (!this.obj.id && !!this.obj.parentId);
         this.bLoadingModal = false; // fermeture du modal
         this.obj.bIsInitialized = true; // obj initialisé
-        // breadcrumb
-        const queryParams = this._route.snapshot.queryParams || {};
-        this._objectService.loadBreadCrumb(
-          this.obj.moduleCode,
-          this.obj.objectType,
-          this.obj.id,
-          queryParams
-        );
       });
   }
 
@@ -140,8 +133,6 @@ export class MonitoringObjectComponent implements OnInit {
   }
 
   getModuleSet(): Observable<any> {
-    // TODO ANALYSER A QUOI SERT CETTE FONCTION
-    // Surrement à supprimer quand la configuration du module sera chargée en behaviourSubject
     // récupération des données de l'object selon le type (module, site, etc..)
     return this.module.get(0).pipe(
       mergeMap(() =>
@@ -215,7 +206,7 @@ export class MonitoringObjectComponent implements OnInit {
           params.get('moduleCode'),
           objectType,
           params.get('id'),
-          this._monitoringObjService
+          this._objService
         );
 
         this.obj.parentsPath = this._route.snapshot.queryParamMap.getAll('parents_path') || [];
@@ -223,7 +214,7 @@ export class MonitoringObjectComponent implements OnInit {
           params.get('moduleCode'),
           'module',
           null,
-          this._monitoringObjService
+          this._objService
         );
         this.objForm = this._formBuilder.group({});
 
@@ -244,12 +235,12 @@ export class MonitoringObjectComponent implements OnInit {
     return this._configService.init(this.obj.moduleCode).pipe(
       concatMap(() => {
         if (this.obj.objectType == 'site' && this.obj.id != null) {
-          return this._monitoringObjService
+          return this._objService
             .configService()
             .loadConfigSpecificConfig(this.obj)
             .pipe(
               tap((config) => {
-                this.obj.template_specific = this._monitoringObjService
+                this.obj.template_specific = this._objService
                   .configService()
                   .addSpecificConfig(config);
               })
@@ -272,14 +263,10 @@ export class MonitoringObjectComponent implements OnInit {
 
     return of(true).pipe(
       mergeMap(() => {
-        // A voir ce que fait cette fonction
         return this.getModuleSet();
       }),
       mergeMap(() => {
-        // Récupération des données nomenclatures utilisées dans le module
-        // Ce qui permet de les stocker en cache pour les réutiliser dans les formulaires
-        //  notamment pour la variable meta
-        return this._dataUtilsService.initModuleNomenclatures(this.module.moduleCode);
+        return this._dataUtilsService.getInitData(this.obj.moduleCode);
       })
     );
   }
@@ -300,12 +287,18 @@ export class MonitoringObjectComponent implements OnInit {
         this.obj.properties[key] = strToInt;
       }
     }
-    return this.obj.getParents(0, this._configService.moduleCruved(this.obj.moduleCode));
+    return this.obj.getParents(0);
+  }
+
+  onObjChanged(obj: MonitoringObject) {
+    this.obj = obj;
+    this.getModuleSet().subscribe();
   }
 
   onDeleteRowChange(event) {
     this.getDataObject().subscribe((obj) => {
       this.forceReload = true;
+      this.onObjChanged(obj);
     });
   }
 }

@@ -14,6 +14,7 @@ import { ListService } from '../../services/list.service';
 import { Subject } from 'rxjs';
 import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
 import { CommonService } from '@geonature_common/service/common.service';
+import { ObjectService } from '../../services/object.service';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { Utils } from '../../utils/utils';
 
@@ -62,6 +63,7 @@ export class MonitoringDatatableComponent implements OnInit {
   constructor(
     private _monitoring: MonitoringObjectService,
     private _commonService: CommonService,
+    private _objectService: ObjectService,
     private _listService: ListService
   ) {}
 

@@ -3,7 +3,6 @@
   "id_field_name": "id_base_site",
   "description_field_name": "base_site_name",
   "label": "Site",
-  "label_list": "Sites",
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",

@@ -1,30 +1,28 @@
-import { Location } from '@angular/common';
-import { Component, EventEmitter, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { MonitoringObject } from '../../class/monitoring-object';
-import { IdataTableObjData, ISite, ISitesGroup } from '../../interfaces/geom';
-import { Module } from '../../interfaces/module';
-import { SelectObject } from '../../interfaces/object';
-import { IobjObs } from '../../interfaces/objObs';
-import { IPage, IPaginated } from '../../interfaces/page';
-import { IIndividual } from '../../interfaces/individual';
-import {
-  IndividualsService,
-  SitesGroupService,
-  SitesService,
-} from '../../services/api-geom.service';
-import { ConfigService } from '../../services/config.service';
-import { FormService } from '../../services/form.service';
+import { Component, OnInit, EventEmitter } from '@angular/core';
+import { SitesGroupService, SitesService } from '../../services/api-geom.service';
+import { IPaginated, IPage } from '../../interfaces/page';
+import { Router, ActivatedRoute } from '@angular/router';
+import { IDataTableObj, ISite, ISitesGroup } from '../../interfaces/geom';
 import { GeoJSONService } from '../../services/geojson.service';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
-import { ObjectService } from '../../services/object.service';
-import { TPermission } from '../../types/permission';
+import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
+import { ObjectService } from '../../services/object.service';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import { IobjObs } from '../../interfaces/objObs';
+import { ConfigJsonService } from '../../services/config-json.service';
+import { IBreadCrumb, SelectObject } from '../../interfaces/object';
+import { FormService } from '../../services/form.service';
+import { Location } from '@angular/common';
+import { breadCrumbBase } from '../../class/breadCrumb';
+import { Module } from '../../interfaces/module';
+import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { TPermission } from '../../types/permission';
+import { MonitoringObject } from '../../class/monitoring-object';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { ConfigService } from '../../services/config.service';
 
 import { CacheService } from '../../services/cache.service';
+import { resolveProperty } from '../../utils/utils';
 
 const LIMIT = 10;
 
@@ -38,6 +36,7 @@ import { map, mergeMap, takeUntil } from 'rxjs/operators';
 })
 export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent implements OnInit {
   page: IPage;
+  sitesGroups: ISitesGroup[];
 
   obj;
 
@@ -45,8 +44,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
+  breadCrumbElementBase: IBreadCrumb = breadCrumbBase.baseBreadCrumbSiteGroups.value;
+
   rows;
-  dataTableConfig: {}[] = [];
+  dataTableObj: IDataTableObj;
+  dataTableArray: {}[] = [];
   activetabIndex: number;
   currentRoute: string;
   // siteGroupEmpty={
@@ -72,17 +74,18 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   bEdit: false;
 
+  shouldHandleGroupSites = true;
   config;
 
   constructor(
     private _auth: AuthService,
     private _sites_group_service: SitesGroupService,
     private _sitesService: SitesService,
-    private _individualService: IndividualsService,
     public geojsonService: GeoJSONService,
     private router: Router,
     private _objService: ObjectService,
     private _formBuilder: FormBuilder,
+    private _configJsonService: ConfigJsonService,
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     private _formService: FormService,
     private _location: Location,
@@ -92,33 +95,25 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _cacheService: CacheService
   ) {
     super();
-    this.getAllItemsCallback = this.getData; //[this.getSitesGroups, this.getSites];
+    this.getAllItemsCallback = this.getSitesOrSitesGroups; //[this.getSitesGroups, this.getSites];
   }
 
   ngOnInit() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initSiteGroup();
+    this._objService.changeSelectedObj({}, true);
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
   initSiteGroup() {
     this._Activatedroute.data.subscribe(({ data }) => {
-      let objectObs;
-      let currentData;
-      let currentObjConfig;
-      if (data.route == 'site') {
-        objectObs = this._sitesService.objectObs;
-        currentData = data.sites.data;
-        currentObjConfig = data.sites.objConfig;
-      } else if (data.route == 'individual') {
-        objectObs = this._individualService;
-        currentData = data.individuals.data;
-        currentObjConfig = data.individuals.objConfig;
-      } else {
-        objectObs = this._sites_group_service.objectObs;
-        currentData = data.sitesGroups.data;
-        currentObjConfig = data.sitesGroups.objConfig;
-      }
+      this.shouldHandleGroupSites = Boolean(data.sitesGroups.objConfig as any);
+      const objectObs = this.shouldHandleGroupSites
+        ? this._sites_group_service.objectObs
+        : this._sitesService.objectObs;
+
+      this._objService.changeObjectTypeParent(objectObs);
+      this._objService.changeObjectType(objectObs);
 
       this.currentRoute = data.route;
       this.moduleCode = data.moduleCode;
@@ -128,36 +123,32 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       this.currentPermission = data.permission;
 
-      // breadcrumb
-      const queryParams = this._Activatedroute.snapshot.queryParams;
-      this._objService.loadBreadCrumb(this.moduleCode, 'module', null, queryParams);
+      const currentData = this.shouldHandleGroupSites ? data.sitesGroups.data : data.sites.data;
+      const currentObjConfig = this.shouldHandleGroupSites
+        ? data.sitesGroups.objConfig
+        : data.sites.objConfig;
 
       this.page = {
         count: currentData.count,
         limit: currentData.limit,
         page: currentData.page - 1,
       };
+      this.sitesGroups = currentData.items;
       // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
       this.colsname = currentObjConfig.dataTable.colNameObj;
-
-      const { route, permission, moduleCode, ...dataToTable } = data;
-
-      this.setDataTableObjData(dataToTable, this._configService, this.moduleCode, [
-        'site',
-        'individual',
-        'sites_group',
-      ]);
-
-      // Indentify active tab
-      this.activetabIndex = this.getdataTableIndex(data.route);
-
       if (data.route == 'site') {
+        this.activetabIndex = this.shouldHandleGroupSites ? 1 : 0;
+        this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
         this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
       } else {
+        this.activetabIndex = 0;
         this.currentPermission.MONITORINGS_GRP_SITES.canRead
           ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
           : null;
       }
+      const { route, permission, moduleCode, ...dataToTable } = data;
+
+      this.setDataTableObj(dataToTable);
 
       if (this.moduleCode !== 'generic') {
         this.obj = new MonitoringObject(
@@ -187,6 +178,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           });
       } else {
         this._configService.init(this.moduleCode);
+        this.updateBreadCrumb();
       }
     });
   }
@@ -205,62 +197,155 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     };
   }
 
-  getData(page = 1, params = {}, objectType: string) {
-    if (objectType == 'sites_group') {
+  getSitesOrSitesGroups(page = 1, params = {}, siteOrSiteGroups: string) {
+    if (siteOrSiteGroups == 'sites_group') {
       this.getSitesGroups((page = page), (params = params));
-    } else if (objectType == 'individual') {
-      this.getIndividuals((page = page), (params = params));
     } else {
       this.getSites((page = page), (params = params));
     }
   }
 
-  updateDataTableContent(page = 1, params = {}, _service) {
-    /**
-     * updateDataTableContent
-     *
-     * Mise à jour du contenu du composant datatable en fonction des paramètres (numéro de page, filtre)
-     *  Récupère les données via _service qui correspond au serviceApi de l'objet (IndividualsService,  SitesGroupService,  SitesService)
-     *  Résou les valeur des propriétés grace à la fonctionbuildObjectResolvePropertyProcessing
-     *  Met à jour le composant datatable
-     *
-     * @param {number} page The page number to fetch.
-     * @param {Object} params The parameters to pass to the service.
-     * @param {_service} _service The service to use to fetch the data.
-     */
-    // Récupération du type d'objet
-    const object_type = _service.objectObs.objectType;
-    _service
-      .getResolved(page, LIMIT, params)
-      .subscribe((processedPaginatedData: IPaginated<any>) => {
+  getSitesGroups(page = 1, params = {}) {
+    const specificConfig = this.config?.specific;
+
+    this._sites_group_service
+      .get(page, LIMIT, params)
+      .pipe(
+        mergeMap((paginatedSiteGroups: IPaginated<ISitesGroup>) => {
+          const siteGroupsItems = paginatedSiteGroups.items;
+
+          if (
+            !siteGroupsItems ||
+            siteGroupsItems.length === 0 ||
+            !specificConfig ||
+            Object.keys(specificConfig).length === 0
+          ) {
+            return of(paginatedSiteGroups);
+          }
+
+          const siteGroupProcessingObservables = siteGroupsItems.map((siteGroupItem) => {
+            const propertyObservables = {};
+            for (const attribut_name of Object.keys(specificConfig)) {
+              if (siteGroupItem.hasOwnProperty(attribut_name)) {
+                propertyObservables[attribut_name] = resolveProperty(
+                  this._monitoringObjectService,
+                  this._cacheService,
+                  this._configService,
+                  this.moduleCode,
+                  specificConfig[attribut_name],
+                  siteGroupItem[attribut_name]
+                );
+              }
+            }
+
+            if (Object.keys(propertyObservables).length === 0) {
+              return of(siteGroupItem);
+            }
+
+            return forkJoin(propertyObservables).pipe(
+              map((resolvedProperties) => {
+                const updatedSiteGroupItem = { ...siteGroupItem };
+                for (const attribut_name of Object.keys(resolvedProperties)) {
+                  updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+                }
+                return updatedSiteGroupItem;
+              })
+            );
+          });
+
+          return forkJoin(siteGroupProcessingObservables).pipe(
+            map((resolvedSiteGroupItems) => ({
+              ...paginatedSiteGroups,
+              items: resolvedSiteGroupItems,
+            }))
+          );
+        }),
+        takeUntil(this.destroyed$)
+      )
+      .subscribe((processedPaginatedData: IPaginated<ISitesGroup>) => {
         this.page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
+        this.sitesGroups = processedPaginatedData.items;
         this.rows = processedPaginatedData.items;
-        this.colsname = _service.objectObs.dataTable.colNameObj;
-        this.dataTableObjData[object_type].rows = processedPaginatedData.items;
-        this.dataTableObjData[object_type].page = {
+        this.colsname = this._sites_group_service.objectObs.dataTable.colNameObj;
+        this.dataTableObj.sites_group.rows = processedPaginatedData.items;
+        this.dataTableObj.sites_group.page = {
           count: processedPaginatedData.count,
           limit: processedPaginatedData.limit,
           page: processedPaginatedData.page - 1,
         };
       });
-  }
-
-  getSitesGroups(page = 1, params = {}) {
-    this.updateDataTableContent(page, params, this._sites_group_service);
-    this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
-  }
-
-  getIndividuals(page = 1, params = {}) {
-    this.updateDataTableContent(page, params, this._individualService);
     this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
-    this.updateDataTableContent(page, params, this._sitesService);
+    this._sitesService
+      .get(page, LIMIT, params)
+      .pipe(
+        mergeMap((paginatedSites: IPaginated<ISite>) => {
+          const sites = paginatedSites.items;
+          const specificConfig = this.config?.specific;
+
+          if (
+            !sites ||
+            sites.length === 0 ||
+            !specificConfig ||
+            Object.keys(specificConfig).length === 0
+          ) {
+            return of(paginatedSites);
+          }
+
+          const siteProcessingObservables = sites.map((siteItem) => {
+            const propertyObservables = {};
+            for (const attribut_name of Object.keys(specificConfig)) {
+              if (siteItem.hasOwnProperty(attribut_name)) {
+                propertyObservables[attribut_name] = resolveProperty(
+                  this._monitoringObjectService,
+                  this._cacheService,
+                  this._configService,
+                  this.moduleCode,
+                  specificConfig[attribut_name],
+                  siteItem[attribut_name]
+                );
+              }
+            }
+
+            if (Object.keys(propertyObservables).length === 0) {
+              return of(siteItem);
+            }
+
+            return forkJoin(propertyObservables).pipe(
+              map((resolvedProperties) => {
+                const updatedSiteItem = { ...siteItem };
+                for (const attribut_name of Object.keys(resolvedProperties)) {
+                  updatedSiteItem[attribut_name] = resolvedProperties[attribut_name];
+                }
+                return updatedSiteItem;
+              })
+            );
+          });
+
+          return forkJoin(siteProcessingObservables).pipe(
+            map((resolvedSiteItems) => ({ ...paginatedSites, items: resolvedSiteItems }))
+          );
+        }),
+        takeUntil(this.destroyed$)
+      )
+      .subscribe((processedPaginatedData: IPaginated<ISite>) => {
+        this.colsname = this._sitesService.objectObs.dataTable.colNameObj;
+        const itemsAfterResolveProperty = processedPaginatedData.items;
+        let siteListAfterTypes = this._sitesService.formatLabelTypesSite(itemsAfterResolveProperty);
+        this.rows = siteListAfterTypes;
+        const siteListAfterObservers = this._sitesService.formatLabelObservers(siteListAfterTypes);
+        this.siteResolvedProperties = siteListAfterObservers;
+        this.dataTableObj.site.rows = siteListAfterObservers as any;
+        this.dataTableObj.site.page.count = processedPaginatedData.count;
+        this.dataTableObj.site.page.limit = processedPaginatedData.limit;
+        this.dataTableObj.site.page.page = processedPaginatedData.page - 1;
+      });
     this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
@@ -277,6 +362,17 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   seeDetails($event) {
     // TODO: routerLink
+    let objectType;
+    if (this.moduleCode === 'generic') {
+      if (this.activetabIndex == 1) {
+        this._objService.changeObjectTypeParent(this._sitesService.objectObs);
+        objectType = 'sites';
+      } else {
+        this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
+        objectType = 'sites_group';
+      }
+    }
+
     this.router.navigate(
       [`/monitorings/object/${this.moduleCode}/`, this.currentRoute, $event[$event.id]],
       {
@@ -287,13 +383,16 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
+    if ((this.shouldHandleGroupSites && this.activetabIndex == 1) || !this.shouldHandleGroupSites) {
+      this._objService.changeObjectTypeParent(this._sitesService.objectObs);
+    } else {
+      this._objService.changeObjectTypeParent(this._sites_group_service.objectObs);
+    }
     this._formService.changeDataSub(
       $event,
       this._sites_group_service.objectObs.objectType,
-      this._sites_group_service.objectObs.endPoint,
-      this.moduleCode
+      this._sites_group_service.objectObs.endPoint
     );
-
     this.router.navigate([
       `/monitorings/object/${this.moduleCode}/`,
       this.currentRoute,
@@ -308,26 +407,14 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       row['id'] = row[row.pk];
       let queryParams = {};
       queryParams[row['pk']] = row['id'];
-      const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
-      queryParams['parents_path'] = ['module', current_object];
+      queryParams['parents_path'] = ['module', 'sites_group'];
 
-      if (current_object == 'individual') {
-        // Patch individual tant que la page détail des individus est générique
-        queryParams['parents_path'] = ['module', 'individual'];
-        this.router.navigate(
-          [`/monitorings/create_object/${this.moduleCode}/`, row['object_type']],
-          {
-            queryParams: queryParams,
-          }
-        );
-      } else {
-        this.router.navigate(
-          [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
-          {
-            queryParams: queryParams,
-          }
-        );
-      }
+      this.router.navigate(
+        [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
+        {
+          queryParams: queryParams,
+        }
+      );
     }
   }
 
@@ -336,65 +423,41 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     const queryParams = {
       parents_path: ['module'],
     };
-    if (type == 'individual') {
-      // Patch individual tant que la page détail des individus est générique
-      queryParams['parents_path'] = ['module', 'individual'];
-      this.router.navigate([`/monitorings/create_object/${this.moduleCode}/`, type], {
-        queryParams: queryParams,
-      });
-    } else {
-      this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
-        queryParams: queryParams,
-      });
-    }
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
+      queryParams: queryParams,
+    });
   }
 
   onDelete(event) {
-    this.currentRoute = event.objectType;
-    const queryParams = { module_code: this.moduleCode };
     if (event.objectType == 'sites_group') {
-      this._sites_group_service
-        .delete(event.rowSelected.id_sites_group, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/sites_group`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-            this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-            this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
-          }, 100);
-        });
-    } else if (event.objectType == 'individual') {
-      this._individualService
-        .delete(event.rowSelected.id_individual, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/individual`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-            this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-            this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
-          }, 100);
-        });
-    } else {
-      this._sitesService.delete(event.rowSelected.id_base_site, queryParams).subscribe((del) => {
+      this._sites_group_service.delete(event.rowSelected.id_sites_group).subscribe((del) => {
         setTimeout(() => {
           this.bDeleteModalEmitter.emit(false);
-          this.activetabIndex = this.getdataTableIndex(event.objectType);
+          this.activetabIndex = 0;
+          this.currentRoute = 'sites_group';
+          this.router.navigate(
+            [`/monitorings/object/${this.moduleCode}/sites_group`, { delete: true }],
+            {
+              onSameUrlNavigation: 'reload',
+            }
+          );
+          this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
+          this.updateBreadCrumb();
+          this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+          this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
+        }, 100);
+      });
+    } else {
+      this._sitesService.delete(event.rowSelected.id_base_site).subscribe((del) => {
+        setTimeout(() => {
+          this.bDeleteModalEmitter.emit(false);
+          this.activetabIndex = 1;
+          this.currentRoute = 'site';
           this.router.navigate([`/monitorings/object/${this.moduleCode}/site`, { delete: true }], {
             onSameUrlNavigation: 'reload',
           });
-
+          this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
+          this.updateBreadCrumb();
           this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
           this.getGeometriesSite();
         }, 100);
@@ -412,29 +475,73 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     }
   }
 
-  getdataTableIndex(objetType: string) {
-    return this.dataTableConfig.findIndex((element) => element['objectType'] == objetType);
+  updateBreadCrumb() {
+    this._objService.changeBreadCrumb([this.breadCrumbElementBase], true);
   }
 
   updateActiveTab($event) {
-    this.activetabIndex = this.getdataTableIndex($event);
     if ($event == 'site') {
+      this.activetabIndex = 1;
       this.currentRoute = 'site';
       this._location.go(`/monitorings/object/${this.moduleCode}/site`);
-      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
-    } else if ($event == 'individual') {
-      this.currentRoute = 'individual';
-      this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
+      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
+      this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
+      this.activetabIndex = 0;
       this.currentRoute = 'sites_group';
       this._location.go(`/monitorings/object/${this.moduleCode}/sites_group`);
+      this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSiteGroups.value;
+      this.updateBreadCrumb();
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
       this.currentPermission.MONITORINGS_GRP_SITES.canRead
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;
+    }
+  }
+
+  setDataTableObj(data) {
+    const objTemp = {};
+    for (const dataType in data) {
+      if (!data[dataType].objConfig) {
+        continue;
+      }
+      let objType = data[dataType].objConfig.objectType;
+      Object.assign(objType, objTemp);
+      objTemp[objType] = { columns: {}, rows: [], page: {} };
+      this.config = this._configJsonService.configModuleObject(
+        data[dataType].objConfig.moduleCode,
+        data[dataType].objConfig.objectType
+      );
+      data[dataType].objConfig['config'] = this.config;
+      this.dataTableArray.push(data[dataType].objConfig);
+    }
+
+    for (const dataType in data) {
+      if (!data[dataType].objConfig) {
+        continue;
+      }
+      let objType = data[dataType].objConfig.objectType;
+      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
+      if (objType == 'site') {
+        let siteList = this._sitesService.formatLabelTypesSite(data[dataType].data.items);
+        this.rows = siteList;
+        const siteListResolvedProp = this._sitesService.formatLabelObservers(siteList);
+        objTemp[objType].rows = siteListResolvedProp;
+        this.siteResolvedProperties = siteListResolvedProp;
+      } else {
+        objTemp[objType].rows = data[dataType].data.items;
+      }
+
+      objTemp[objType].page = {
+        count: data[dataType].data.count,
+        limit: data[dataType].data.limit,
+        page: data[dataType].data.page - 1,
+        total: data[dataType].data.count,
+      };
+
+      this.dataTableObj = objTemp as IDataTableObj;
     }
   }
 
@@ -455,7 +562,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   getModules() {
     this._sitesService
-      .getSiteModules(this.siteSelectedId, this.moduleCode)
+      .getSiteModules(this.siteSelectedId)
       .pipe(takeUntil(this.destroyed$))
       .subscribe(
         (data: Module[]) => (
@@ -469,9 +576,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   addNewVisit(event) {
     this.modulSelected = event;
-    this._configService.init(this.modulSelected.id).subscribe(() => {
+    this._configJsonService.init(this.modulSelected.id).subscribe(() => {
       const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configService.config()[moduleCode]);
+      const keys = Object.keys(this._configJsonService.config()[moduleCode]);
       const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
       this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
