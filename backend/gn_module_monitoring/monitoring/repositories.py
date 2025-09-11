@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, g
 
 from sqlalchemy import select
 from sqlalchemy.sql import text
@@ -189,13 +189,24 @@ class MonitoringObject(MonitoringObjectSerializer):
         breadcrumbs = [breadcrumb] if breadcrumb else []
 
         next = None
-
+        next_breadcrumbs = None
         if params["parents_path"]:
             object_type = params.get("parents_path", []).pop()
-            next = MonitoringObject(self._module_code, object_type, config=self._config)
-            if next._object_type == "module":
-                next.get(field_name="module_code", value=self._module_code)
+            if object_type == "module":
+                next = None
+                if g.current_module.module_code.upper() == "MONITORINGS":
+                    module_code = "generic"
+                else:
+                    module_code = g.current_module.module_code
+                next_breadcrumbs = {
+                    "description": g.current_module.module_label,
+                    "id": g.current_module.id_module,
+                    "label": "Module",
+                    "module_code": module_code,
+                    "object_type": "module",
+                }
             else:
+                next = MonitoringObject(self._module_code, object_type, config=self._config)
                 id_field_name = next.config_param("id_field_name")
                 next._id = self.get_value(id_field_name) or params.get(id_field_name)
                 next.get(0)
@@ -204,6 +215,8 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         if next:
             breadcrumbs = next.breadcrumbs(params) + breadcrumbs
+        if next_breadcrumbs:
+            breadcrumbs = [next_breadcrumbs] + breadcrumbs
 
         return breadcrumbs
 
@@ -221,7 +234,6 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # test si présent dans le module
         # sinon []
-
         if not self.config().get(self._object_type):
             return []
 
@@ -244,10 +256,24 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # filtres params get
         for key in args:
-            if hasattr(Model, key) and args[key] not in ["", None, "null", "undefined"]:
-                vals = args.getlist(key)
-                req = req.where(getattr(Model, key).in_(vals))
+            if args[key] not in ["", None, "null", "undefined", "None"]:
+                if key == "id_module" and hasattr(Model, "modules"):
+                    # Filtre particulier sur les modules
+                    req = req.where(Model.modules.any(id_module=args[key]))
+                if hasattr(Model, key):
+                    vals = args.getlist(key)
+                    req = req.where(getattr(Model, key).in_(vals))
 
+        #  Si le modèle est de type Permission model et qu'il implémente la fonction filter_by_readable
+        #  Filtre des données retournées en fonction des permissions
+        if hasattr(Model, "filter_by_readable"):
+            req = Model.filter_by_readable(
+                query=req,
+                object_code=current_app.config["MONITORINGS"]
+                .get("PERMISSION_LEVEL", {})
+                .get(self._object_type, None),
+                module_code=g.current_module.module_code,
+            )
         # # filtres config
 
         # filters_config = self.config_param('filters')

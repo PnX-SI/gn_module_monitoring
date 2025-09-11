@@ -9,7 +9,6 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -19,12 +18,12 @@ import { IColumn } from '../../interfaces/column';
 import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { IPage } from '../../interfaces/page';
 import { DataTableService } from '../../services/data-table.service';
-import { ObjectService } from '../../services/object.service';
 import { Utils } from '../../utils/utils';
 import { SelectObject } from '../../interfaces/object';
 import { CommonService } from '@geonature_common/service/common.service';
 import { TPermission } from '../../types/permission';
 import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
+import { IdataTableObjData } from '../../interfaces/geom';
 
 interface ItemObjectTable {
   id: number | null;
@@ -44,16 +43,21 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Input() colsname: IColumn[];
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
-  @Input() dataTableObj;
-  @Input() dataTableArray;
+  @Input() moduleCode: string = 'generic'; // Code du module courant
+  // Objet contenant les données des éléments à afficher dans les tableaux
+  @Input() dataTableObjData: IdataTableObjData;
+  // Array d'objets contenant la configuration éléments à afficher dans les tableaux
+  @Input() dataTableConfig: [{ objectType: string; childType: string; label: string; config: any }];
+  @Input() currentUser;
+  @Input() permission: TPermission;
+  @Input() bDeleteModalEmitter: EventEmitter<boolean>;
+  @Input() parentPath: string;
+  @Input() activetabIndex: number = 0;
 
-  @Input() rowStatus: Array<any>;
   @Output() rowStatusChange = new EventEmitter<Object>();
   @Output() addVisitFromTable = new EventEmitter<Object>();
   @Output() saveOptionChildren = new EventEmitter<SelectObject>();
   @Output() bEditChange = new EventEmitter<boolean>();
-  @Input() currentUser;
-  @Input() permission: TPermission;
 
   @Output() onSort = new EventEmitter<any>();
   @Output() onFilter = new EventEmitter<any>();
@@ -65,9 +69,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Output() onEditEvent = new EventEmitter<any>();
   @Output() onAddChildren = new EventEmitter<any>();
   @Output() onAddObj = new EventEmitter<any>();
-
-  @Input() bDeleteModalEmitter: EventEmitter<boolean>;
-  @Input() parentPath: string;
+  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   bDeleteModal: boolean = false;
   bDeleteSpinner: boolean = false;
@@ -77,24 +79,21 @@ export class MonitoringDatatableGComponent implements OnInit {
   private filterSubject: Subject<string> = new Subject();
   displayFilter: boolean = false;
   objectsStatus: ItemsObjectTable = {};
-
+  //  Current object type (site, individual, visit...)
   objectType: IobjObs<ObjDataType>;
+  // Columns for ngx-datatable
   columns;
-  row_save;
-  selected = [];
-  filters = {};
 
-  rowSelected;
+  filters = {};
+  // Selected rows in the table for deletion
+  rowDeleted;
 
   canCreateObj: boolean;
   canCreateChild: boolean;
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
-  @Input() activetabIndex: number = 0;
   activetabType: string;
-
-  @Output() objectsStatusChange: EventEmitter<Object> = new EventEmitter<Object>();
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -102,9 +101,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   constructor(
     private _dataTableService: DataTableService,
-    private _objService: ObjectService,
-    private router: Router,
-    private _Activatedroute: ActivatedRoute,
     private _commonService: CommonService
   ) {}
 
@@ -126,8 +122,8 @@ export class MonitoringDatatableGComponent implements OnInit {
     // this._objService.currentObjectType.subscribe((newObjType) => {
     //   this.objectType = newObjType;
     // });
-
-    this.filters = {};
+    // Initialisation des filtres
+    this.clearFilters();
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
       this.filter();
     });
@@ -136,19 +132,29 @@ export class MonitoringDatatableGComponent implements OnInit {
   changeActiveTab(tab) {
     this.activetabIndex = tab.index;
     // Réinitialisation des données selectés
-    this.activetabType = this.dataTableArray[tab.index].objectType;
+    this.activetabType = this.dataTableConfig[tab.index].objectType;
     this.columns =
-      this.dataTableObj[this.activetabType].rows.length > 0
-        ? this._dataTableService.colsTable(this.dataTableObj[this.activetabType].columns)
+      this.dataTableObjData[this.activetabType].rows.length > 0
+        ? this._dataTableService.colsTable(this.dataTableObjData[this.activetabType].columns)
         : null;
-
-    this.rows = this.dataTableObj[this.activetabType].rows;
-    this.page = this.dataTableObj[this.activetabType].page;
+    this.rows = this.dataTableObjData[this.activetabType].rows;
+    this.page = this.dataTableObjData[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
     this.tabChanged.emit(this.activetabType);
     this.initPermissionAction();
   }
 
+  initSort() {
+    const configObject = this.dataTableConfig[this.activetabIndex]?.config || {};
+    const sort =
+      'sorts' in configObject
+        ? {
+            sort_dir: configObject.sorts[0]['dir'] || 'asc',
+            sort: configObject.sorts[0]['prop'],
+          }
+        : {};
+    this.filters = { ...this.filters, ...sort };
+  }
   reInitStatut() {
     let status_type = Utils.copy(this.objectsStatus);
     for (let typeObject in status_type) {
@@ -171,8 +177,9 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
     const visibles = this.objectsStatus[chidrenType].filter((s) => s.visible);
     // const nbSelected = visibles.length;
-    const nbSelected = this.dataTableObj[chidrenType].page.count;
-    const nb = this.dataTableObj[chidrenType].page.total;
+    // TODO inutilisé car la variable nb total sans filtre n'est pas transmise par le backend
+    const nbSelected = this.dataTableObjData[chidrenType].page.count;
+    const nb = this.dataTableObjData[chidrenType].page.count;
     return nb == nbSelected ? `(${nb})` : nb ? `(${nbSelected}/${nb})` : `(${nbSelected})`;
   }
 
@@ -186,7 +193,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   setPage($event) {
-    this.onSetPage.emit({ page: $event, tabObj: this.activetabType });
+    this.onSetPage.emit({ page: $event, filters: this.filters, tabObj: this.activetabType });
   }
 
   filterInput($event) {
@@ -221,28 +228,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.saveOptionChildren.emit($event);
   }
 
-  setSelected() {
-    // this.table._internalRows permet d'avoir les ligne triées et d'avoir les bons index
-    if (!this.rowStatus) {
-      return;
-    }
-
-    const status_selected = this.rowStatus.find((status) => status.selected);
-    if (!status_selected) {
-      return;
-    }
-
-    const index_row_selected = this.table._internalRows.findIndex(
-      (row) => row.id === status_selected.id
-    );
-    if (index_row_selected === -1) {
-      return;
-    }
-
-    this.selected = [this.table._internalRows[index_row_selected]];
-    this.table.offset = Math.floor(index_row_selected / this.table._limit);
-  }
-
   initPermissionAction() {
     let objectType: ObjectsPermissionMonitorings | string;
     let objectTypeChild: ObjectsPermissionMonitorings | string;
@@ -254,14 +239,25 @@ export class MonitoringDatatableGComponent implements OnInit {
         break;
       case 'site':
         objectType = ObjectsPermissionMonitorings.MONITORINGS_SITES;
-        objectTypeChild = 'visit';
-        this.canCreateChild = true;
+        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
+        // Cas du module générique (moduleCode = 'generic')
+        //  Il n'y a pas de permissions pour les visites,
+        //  elles sont créées dans le contexte d'un module
+        // Par défaut : création autorisée mais seul les modules où l'utilisateur a le droit de créer des visites
+        //  seront afficher dans le menu déroulant
+        if (this.moduleCode === 'generic') this.canCreateChild = true;
+        break;
+      case 'individual':
+        objectType = ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS;
+        objectTypeChild = 'marking';
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       case 'visit':
         objectType = 'visit';
-        objectTypeChild = 'undefined';
+        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
         this.canCreateObj = true;
-        this.canCreateChild = true;
+        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
       default:
         objectType = 'undefined';
@@ -298,33 +294,28 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
 
     if (changes.rows || changes.page) {
-      this.updateRowsAndPage();
-    }
-
-    for (const propName of Object.keys(changes)) {
-      switch (propName) {
-        case 'rowStatus':
-          this.setSelected();
-          break;
+      if (this.dataTableConfig && this.dataTableObjData) {
+        this.updateRowsAndPage();
       }
     }
   }
 
   private clearFilters() {
     this.filters = {};
+    this.initSort();
   }
 
   private updateDataTable(objChanges: SimpleChange) {
-    if (this.dataTableObj && Object.keys(this.dataTableObj).length > 0) {
-      for (const objType in this.dataTableObj) {
+    if (this.dataTableObjData && Object.keys(this.dataTableObjData).length > 0) {
+      for (const objType in this.dataTableObjData) {
         this.objectsStatus[objType] = this._dataTableService.initObjectsStatus(
-          this.dataTableObj[objType].rows,
+          this.dataTableObjData[objType].rows,
           objType
         );
       }
 
-      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
-      const dataTable = this.dataTableObj[this.activetabType];
+      this.activetabType = this.dataTableConfig[this.activetabIndex].objectType;
+      const dataTable = this.dataTableObjData[this.activetabType];
       this.columns =
         dataTable.rows.length > 0 ? this._dataTableService.colsTable(dataTable.columns) : null;
 
@@ -335,14 +326,13 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   private updateRowsAndPage() {
-    if (this.rows && this.rows.length > 0) {
-      this.activetabType = this.dataTableArray[this.activetabIndex].objectType;
-      const dataTable = this.dataTableObj[this.activetabType];
-
-      this.rows = dataTable.rows;
-      this.page = dataTable.page;
-      this.initPermissionAction();
-    }
+    // mise à jour des données de la liste
+    // et de la pagination lors d'un changement de données suite un appel API
+    this.activetabType = this.dataTableConfig[this.activetabIndex].objectType;
+    const dataTable = this.dataTableObjData[this.activetabType];
+    this.rows = dataTable.rows || [];
+    this.page = dataTable.page;
+    this.initPermissionAction();
   }
 
   addChildrenVisit(selected) {
@@ -350,14 +340,12 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   navigateToAddChildren(_, row) {
-    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    row['object_type'] = this.dataTableArray[this.activetabIndex]['childType'];
+    row['object_type'] = this.dataTableConfig[this.activetabIndex]['childType'];
     this.onAddChildren.emit(row);
   }
 
   navigateToAddObj() {
-    this._objService.changeObjectType(this.dataTableArray[this.activetabIndex]);
-    this.onAddObj.emit(this.dataTableArray[this.activetabIndex]['objectType']);
+    this.onAddObj.emit(this.dataTableConfig[this.activetabIndex]['objectType']);
   }
 
   navigateToDetail(row) {
@@ -384,10 +372,10 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   alertMessage(row) {
     row['id'] = row[row.pk];
-    this.rowSelected = row;
-    const varNameObjet = this.dataTableArray[this.activetabIndex].config.description_field_name;
+    this.rowDeleted = row;
+    const varNameObjet = this.dataTableConfig[this.activetabIndex].config.description_field_name;
 
-    this.rowSelected['name_object'] = row[varNameObjet];
+    this.rowDeleted['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
   }
 }

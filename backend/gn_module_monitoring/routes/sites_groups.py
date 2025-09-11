@@ -22,7 +22,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
 )
 from gn_module_monitoring.monitoring.schemas import (
-    MonitoringSitesGroupsDetailSchema,
+    MonitoringSitesGroupsSchema,
     add_specific_attributes,
 )
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
@@ -95,11 +95,9 @@ def get_sites_groups(object_type: str, module_code=None):
     )
 
     if module_code:
-        schema = add_specific_attributes(
-            MonitoringSitesGroupsDetailSchema, object_type, module_code
-        )
+        schema = add_specific_attributes(MonitoringSitesGroupsSchema, object_type, module_code)
     else:
-        schema = MonitoringSitesGroupsDetailSchema
+        schema = MonitoringSitesGroupsSchema
 
     return paginate_scope(
         query=query_allowed,
@@ -111,19 +109,18 @@ def get_sites_groups(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/sites_groups/<int:id_sites_group>", methods=["GET"], defaults={"object_type": "sites_group"}
+    "/sites_groups/<string:module_code>/<int:id_sites_group>",
+    methods=["GET"],
+    defaults={"object_type": "sites_group"},
 )
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-@permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
-)
-def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
+@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsDetailSchema()
+    schema = MonitoringSitesGroupsSchema()
     response = schema.dump(sites_group)
     response["cruved"] = get_objet_with_permission_boolean(
         [sites_group], object_code="MONITORINGS_GRP_SITES"

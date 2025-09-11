@@ -1,5 +1,6 @@
 import { JsonData } from '../types/jsondata';
 import { IColumn } from './column';
+import { IIndividual } from './individual';
 import { IObject, IService } from './object';
 import { IPage } from './page';
 import { IVisit } from './visit';
@@ -60,8 +61,9 @@ export interface ISiteType {
   label: string;
 }
 
-export interface IDataTableObj {
+export interface IdataTableObjData {
   site: { columns: IColumn[]; rows: ISite[]; page: IPage };
   visit: { columns: IColumn[]; rows: IVisit[]; page: IPage };
   sites_group: { columns: IColumn[]; rows: ISitesGroup[]; page: IPage };
+  individual: { columns: IColumn[]; rows: IIndividual[]; page: IPage };
 }

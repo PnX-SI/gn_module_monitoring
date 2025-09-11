@@ -1,26 +1,23 @@
 import { Component, Input, OnInit, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, ReplaySubject, forkJoin, iif, of } from 'rxjs';
-import { concatMap, exhaustMap, map, mergeMap, take, tap } from 'rxjs/operators';
+import { ReplaySubject, forkJoin, of } from 'rxjs';
+import { mergeMap, map } from 'rxjs/operators';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ModuleService } from '@geonature/services/module.service';
 
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { IDataTableObj, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
+import { IdataTableObjData, ISite, ISiteField, ISiteType } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { IVisit } from '../../interfaces/visit';
 import { SitesGroupService, SitesService, VisitsService } from '../../services/api-geom.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
-import { IBreadCrumb, SelectObject } from '../../interfaces/object';
+import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
-import { breadCrumbElementBase } from '../breadcrumbs/breadcrumbs.component';
-import { ConfigJsonService } from '../../services/config-json.service';
-import { breadCrumbBase } from '../../class/breadCrumb';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
@@ -37,40 +34,20 @@ import { MonitoringObject } from '../../class/monitoring-object';
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IVisit[];
   @Input() page: IPage;
-  // colsname: typeof columnNameVisit = columnNameVisit;
   @Input() bEdit: boolean;
   form: FormGroup;
-  colsname: {};
   objParent: any;
   modules: SelectObject[];
   site: ISite;
 
-  isInitialValues: boolean;
-  paramToFilt: string = 'label';
-  funcToFilt: Function;
-  funcInitValues: Function;
-  titleBtn: string = 'Choix des types de sites';
-  placeholderText: string = 'Sélectionnez les types de site';
-  id_sites_group: number;
-  types_site: string[];
   config: JsonData;
   siteGroupIdParent: number;
-  breadCrumbParent: IBreadCrumb = { label: 'Groupe de site', description: '' };
-  breadCrumbChild: IBreadCrumb = { label: 'Site', description: '' };
-  breadCrumbElementBase: IBreadCrumb = breadCrumbElementBase;
-  breadCrumbList: IBreadCrumb[] = [];
-  objSelected: ISiteField;
-  objResolvedProperties: ISiteField;
   parentsPath: string[] = [];
   rows;
-  dataTableObj: IDataTableObj;
-  dataTableArray: {}[] = [];
+  dataTableConfig: {}[] = [];
   checkEditParam: boolean;
 
-  modulSelected;
   bDeleteModalEmitter = new EventEmitter<boolean>();
-
-  private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   currentUser: User;
   currentPermission: TPermission;
@@ -92,7 +69,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
-    protected _configJsonService: ConfigJsonService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     private _permissionService: PermissionService,
     private _popup: Popup,
@@ -104,134 +80,98 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
+    const idSite = this._Activatedroute.snapshot.params.id;
     this.siteService.setModuleCode(`${this.moduleCode}`);
     this._visits_service.setModuleCode(`${this.moduleCode}`);
+    this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+    const $configSitesGroups = this._sitesGroupService.initConfig();
+    const $configSites = this.siteService.initConfig();
+    const $configIndividuals = this._visits_service.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
-    this.funcInitValues = this.initValueToSend.bind(this);
-    this.funcToFilt = this.partialfuncToFilt.bind(this);
-    this.form = this._formBuilder.group({});
-    this._objService.changeObjectTypeParent(this.siteService.objectObs);
-    this._objService.changeObjectType(this._visits_service.objectObs);
+    // TODO comprendre pourquoi nessaire que dans certains cas
+    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
 
-    this._configService.init(this.moduleCode).subscribe(() => {
+    this.form = this._formBuilder.group({});
+
+    // breadcrumb
+    const queryParams = this._Activatedroute.snapshot.queryParams;
+    this._objService.loadBreadCrumb(this.moduleCode, 'site', idSite, queryParams);
+
+    forkJoin([
+      this._configService.init(this.moduleCode),
+      $configSitesGroups,
+      $configSites,
+      $configIndividuals,
+    ]).subscribe(() => {
       this.initSiteVisit();
     });
   }
 
   initSiteVisit() {
-    // Get obj data
-    const $getPermissionMonitoring = this._objServiceMonitoring.getCruvedMonitoring();
-    const $permissionUserObject = this._permissionService.currentPermissionObj;
-    $getPermissionMonitoring
+    this._permissionService.setPermissionMonitorings(this.moduleCode);
+    this.currentPermission = this._permissionService.getPermissionUser();
+
+    this._Activatedroute.params
       .pipe(
-        map((listObjectCruved: Object) => {
-          this._permissionService.setPermissionMonitorings(listObjectCruved);
-        }),
-        concatMap(() =>
-          $permissionUserObject.pipe(
-            map((permissionObject: TPermission) => (this.currentPermission = permissionObject))
-          )
-        ),
-        concatMap(() =>
-          this._Activatedroute.params.pipe(
-            map((params) => {
-              this.checkEditParam = params['edit'];
-              this.parentsPath =
-                this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
-              this.obj = new MonitoringObject(
-                this.moduleCode,
-                'site',
-                params['id'],
-                this._monitoringObjServiceMonitoring
-              );
-              return params['id'] as number;
-            }),
-            tap((id: number) => {
-              this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                id_base_site: id,
-              });
-            }),
-            mergeMap((id: number) => {
-              return forkJoin({
-                site: this.siteService.getById(id).catch((err) => {
-                  if (err.status == 404) {
-                    this.router.navigate(['/not-found'], { skipLocationChange: true });
-                    return of(null);
-                  }
-                }),
-                visits: this._visits_service.get(1, this.limit, {
-                  id_base_site: id,
-                }),
-              }).pipe(
-                map((data) => {
-                  return data;
-                })
-              );
-            }),
-            exhaustMap((data) => {
-              return forkJoin({
-                objObsSite: this.siteService.initConfig(),
-                objObsVisit: this._visits_service.initConfig(),
-                obj: this.obj.get(0),
-              }).pipe(
-                tap((objConfig) => (this.objParent = objConfig.objObsSite)),
-                map((objConfig) => {
-                  return { data, objConfig: objConfig };
-                })
-              );
-            }),
-            mergeMap(({ data, objConfig }) => {
-              return this._objService.currentObjSelected.pipe(
-                take(1),
-                map((objSelectParent: any) => {
-                  return {
-                    site: data.site,
-                    visits: data.visits,
-                    parentObjSelected: objSelectParent,
-                    objConfig: objConfig,
-                  };
-                })
-              );
-            }),
-            mergeMap((data) => {
-              if (this.parentsPath.includes('sites_group')) {
-                this.siteGroupIdParent = data.site.id_sites_group;
+        mergeMap((params) => {
+          const siteId = params['id'] as number;
+          this.checkEditParam = params['edit'];
+
+          this.parentsPath =
+            this._Activatedroute.snapshot.queryParamMap.getAll('parents_path') || [];
+          this.obj = new MonitoringObject(
+            this.moduleCode,
+            'site',
+            params['id'],
+            this._monitoringObjServiceMonitoring
+          );
+
+          // Récupération et affichage de la géométrie du site
+          this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+            id_base_site: siteId,
+          });
+
+          // Récupération des données et des configurations
+          //  pour le site et les visites associées
+          return forkJoin({
+            site: this.siteService.getById(siteId, this.moduleCode).catch((err) => {
+              if (err.status == 404) {
+                this.router.navigate(['/not-found'], { skipLocationChange: true });
+                return of(null);
               }
-              if (!this.siteGroupIdParent) {
-                return of(data);
-              } else {
-                return iif(
-                  () => data.parentObjSelected == this.siteGroupIdParent,
-                  of(data),
-                  this._sitesGroupService.getById(this.siteGroupIdParent).pipe(
-                    map((objSelectParent) => {
-                      return {
-                        site: data.site,
-                        visits: data.visits,
-                        parentObjSelected: objSelectParent,
-                        objConfig: data.objConfig,
-                      };
-                    })
-                  )
-                );
-              }
-            })
-          )
-        )
+            }),
+            visits: this._visits_service.getResolved(1, this.limit, {
+              id_base_site: siteId,
+            }),
+            objObsSite: this.siteService.initConfig(),
+            objObsVisit: this._visits_service.initConfig(),
+            obj: this.obj.get(0),
+          });
+        })
       )
       .subscribe((data) => {
+        this.objParent = data.objObsSite;
         this.obj.initTemplate();
-        this.obj.bIsInitialized = true;
         if (this.moduleCode !== 'generic') {
           this._formService.changeFormMapObj({
             frmGp: null,
             obj: this.obj,
           });
         }
-        this._objService.changeSelectedObj(data.site, true);
         this.site = data.site;
-        this.types_site = data.site['types_site'];
+
+        if (this.parentsPath.includes('sites_group')) {
+          this.siteGroupIdParent = data.site.id_sites_group;
+        }
+
+        // ajout des propriétés spécifiques au type de site
+        // dans l'objet MonitoringObject
+        const types_site = data.site['types_site'];
+        this.obj['template_specific'] = this._monitoringObjServiceMonitoring
+          .configService()
+          .addSpecificConfig(types_site);
+
         this.visits = data.visits.items;
         this.page = {
           page: data.visits.page - 1,
@@ -240,35 +180,30 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         };
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
-        this.colsname = data.objConfig.objObsVisit.dataTable.colNameObj;
-        let siteList = this.siteService.formatLabelTypesSite([this.site]);
-        this.objSelected = siteList[0];
-        const siteListResolvedProp = this.siteService.formatLabelObservers(siteList);
-        this.objResolvedProperties = siteListResolvedProp[0];
-        this.addSpecificConfig();
 
-        const { parentObjSelected, objConfig, ...dataonlyObjConfigAndObj } = data;
-        dataonlyObjConfigAndObj;
-        dataonlyObjConfigAndObj.site['objConfig'] = objConfig.objObsSite;
-        dataonlyObjConfigAndObj.visits['objConfig'] = objConfig.objObsVisit;
-        this.setDataTableObj(dataonlyObjConfigAndObj);
-        if (isNaN(this.siteGroupIdParent)) {
-          this.updateBreadCrumbWithoutGpSite(data.site);
-        } else {
-          this.updateBreadCrumb(data.site, data.parentObjSelected);
-        }
+        // Configuration du datatable
+        let dataTableData = {
+          visits: {
+            data: data.visits,
+            objConfig: data.objObsVisit,
+          },
+        };
+        this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
+
         if (this.checkEditParam) {
+          // Si mode édition demandé via le paramètre d'URL "edit"
           this._formService.changeDataSub(
-            this.objSelected,
+            this.site,
             this.siteService.objectObs.objectType,
-            this.siteService.objectObs.endPoint
+            this.siteService.objectObs.endPoint,
+            this.moduleCode
           );
 
           this.bEdit = true;
           this._formService.changeCurrentEditMode(this.bEdit);
         }
+        this.obj.bIsInitialized = true;
       });
-    this.isInitialValues = true;
   }
 
   onEachFeatureSite() {
@@ -281,16 +216,16 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   getVisits(page: number, filters: JsonData) {
     const queryParams = { ...filters, ...{ id_base_site: this.site.id_base_site } };
     this._visits_service
-      .get(page, this.limit, queryParams)
+      .getResolved(page, this.limit, queryParams)
       .subscribe((visits: IPaginated<IVisit>) => this.setVisits(visits));
   }
 
   setVisits(visits) {
     this.rows = visits.items;
-    this.dataTableObj.visit.rows = this.rows;
-    this.dataTableObj.visit.page.count = visits.count;
-    this.dataTableObj.visit.page.limit = visits.limit;
-    this.dataTableObj.visit.page.page = visits.page - 1;
+    this.dataTableObjData.visit.rows = this.rows;
+    this.dataTableObjData.visit.page.count = visits.count;
+    this.dataTableObjData.visit.page.limit = visits.limit;
+    this.dataTableObjData.visit.page.page = visits.page - 1;
   }
 
   seeDetails($event) {
@@ -304,7 +239,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   getModules() {
     if (this.moduleCode === 'generic') {
-      this.siteService.getSiteModules(this.site.id_base_site).subscribe(
+      this.siteService.getSiteModules(this.site.id_base_site, this.moduleCode).subscribe(
         (data: Module[]) =>
           (this.modules = data.map((item) => {
             return { id: item.module_code, label: item.module_label };
@@ -328,10 +263,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   editChild($event) {
-    this.router.navigate([
-      `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
-      { edit: true },
-    ]);
+    const parentsPath = this.parentsPath;
+    parentsPath.push('site');
+    this.router.navigate(
+      [
+        `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
+        { edit: true },
+      ],
+      {
+        queryParams: { id_base_site: this.site.id_base_site, parents_path: parentsPath },
+      }
+    );
   }
 
   // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
@@ -344,191 +286,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       });
   }
 
-  partialfuncToFilt(
-    pageNumber: number,
-    limit: number,
-    valueToFilter: string
-  ): Observable<IPaginated<ISiteType>> {
-    return this.siteService.getTypeSites(pageNumber, limit, {
-      label_fr: valueToFilter,
-      sort_dir: 'desc',
-    });
-  }
-
-  onSendConfig(config: JsonData): void {
-    this.config = this.addTypeSiteListIds(config);
-    this.updateForm();
-  }
-
-  addTypeSiteListIds(config: JsonData): JsonData {
-    if (config && config.length != 0) {
-      config.types_site = [];
-      for (const key in config) {
-        if ('id_nomenclature_type_site' in config[key]) {
-          config.types_site.push(config[key]['id_nomenclature_type_site']);
-        }
-      }
-    }
-    return config;
-  }
-
-  addSpecificConfig() {
-    this.objParent['template_specific'] = {};
-    this.objParent['template_specific'] = this._monitoringObjServiceMonitoring
-      .configService()
-      .addSpecificConfig(this.types_site);
-  }
-
-  initValueToSend() {
-    this.initSiteVisit();
-    return this.types_site;
-  }
-
-  updateForm() {
-    this.site.specific = {};
-    this.site.dataComplement = {};
-    for (const key in this.config) {
-      if (this.config[key].config != undefined) {
-        if (Object.keys(this.config[key].config).length !== 0) {
-          Object.assign(this.site.specific, this.config[key].config.specific);
-        }
-      }
-    }
-    const specificData = {};
-    for (const k in this.site.data) this.site[k] = this.site.data[k];
-    for (const k in this.site.data) specificData[k] = this.site.data[k];
-    this.site.types_site = this.config.types_site;
-    Object.assign(this.site.dataComplement, this.config);
-    this._formService.updateSpecificForm(this.site, specificData);
-  }
-
-  updateBreadCrumb(site, parentSelected) {
-    this.breadCrumbParent.description = parentSelected.sites_group_name;
-    this.breadCrumbParent.label = 'Groupe de site';
-    this.breadCrumbParent['id'] = parentSelected.id_sites_group;
-    this.breadCrumbParent['objectType'] =
-      this._sitesGroupService.objectObs.objectType || 'sites_group';
-    this.breadCrumbParent['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbParent.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbChild.description = site.base_site_name;
-    this.breadCrumbChild.label = 'Site';
-    this.breadCrumbChild['id'] = site.id_base_site;
-    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType || 'site';
-    this.breadCrumbChild['url'] = [
-      this.breadCrumbElementBase.url,
-      this.breadCrumbParent.id?.toString(),
-      `object/${this.moduleCode}/site`,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/sites_group`,
-    };
-
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/site`,
-      });
-    }
-
-    this.breadCrumbList = [
-      ...breadcrumb,
-      this.breadCrumbElementBase,
-      this.breadCrumbParent,
-      this.breadCrumbChild,
-    ];
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
-  }
-
-  updateBreadCrumbWithoutGpSite(sites) {
-    this.breadCrumbElementBase = breadCrumbBase.baseBreadCrumbSites.value;
-    this.breadCrumbChild.description = sites.base_site_name;
-    this.breadCrumbChild.label = 'Site';
-    this.breadCrumbChild['id'] = sites.id_base_site;
-    this.breadCrumbChild['objectType'] = this.siteService.objectObs.objectType + 's' || 'sites';
-    this.breadCrumbChild['url'] = [
-      `object/${this.moduleCode}/site`,
-      this.breadCrumbChild.id?.toString(),
-    ].join('/');
-
-    this.breadCrumbElementBase = {
-      ...this.breadCrumbElementBase,
-      url: `object/${this.moduleCode}/site`,
-    };
-
-    const breadcrumb: IBreadCrumb[] = [];
-
-    if (this.moduleCode !== 'generic') {
-      const module = this._configService.config()[this.moduleCode].module;
-      breadcrumb.push({
-        description: module.module_label,
-        label: '',
-        url: `object/${module.module_code}/site`,
-      });
-    }
-
-    this.breadCrumbList = [...breadcrumb, this.breadCrumbElementBase, this.breadCrumbChild];
-    this._objService.changeBreadCrumb(this.breadCrumbList, true);
-  }
-
-  onObjChanged($event) {
-    if ($event == 'deleted') {
-      return;
-    }
-    this.initSiteVisit();
-  }
-
   onbEditChange(event) {
     this._formService.changeFormMapObj({
       frmGp: this.form,
       obj: this.obj,
     });
     this._formService.changeCurrentEditMode(this.bEdit);
-  }
-
-  setDataTableObj(data) {
-    const objTemp = {};
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType != 'visit') {
-        continue;
-      }
-      Object.assign(objType, objTemp);
-      objTemp[objType] = { columns: {}, rows: [], page: {} };
-      let config = this._configJsonService.configModuleObject(
-        data[dataType].objConfig.moduleCode,
-        data[dataType].objConfig.objectType
-      );
-      data[dataType].objConfig['config'] = config;
-      this.dataTableArray.push(data[dataType].objConfig);
-    }
-
-    for (const dataType in data) {
-      let objType = data[dataType].objConfig.objectType;
-      if (objType != 'visit') {
-        continue;
-      }
-      objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
-      objTemp[objType].rows = data[dataType].items;
-
-      objTemp[objType].page = {
-        count: data[dataType].count,
-        limit: data[dataType].limit,
-        page: data[dataType].page - 1,
-        total: data[dataType].count,
-      };
-
-      this.dataTableObj = objTemp as IDataTableObj;
-    }
   }
 
   ngOnDestroy() {
@@ -538,7 +301,5 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       frmGp: null,
       obj: {},
     });
-    this.destroyed$.next(true);
-    this.destroyed$.complete();
   }
 }

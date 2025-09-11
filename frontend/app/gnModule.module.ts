@@ -13,7 +13,6 @@ import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
 import { MonitoringObjectService } from './services/monitoring-object.service';
 import { ConfigService } from './services/config.service';
-import { ConfigJsonService } from './services/config-json.service';
 
 // Component
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
@@ -49,16 +48,16 @@ import {
   SitesService,
   ApiGeomService,
   VisitsService,
+  IndividualsService,
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
-import { BtnSelectComponent } from './components/btn-select/btn-select.component';
+
 import { MonitoringSitesDetailComponent } from './components/monitoring-sites-detail/monitoring-sites-detail.component';
 import { OptionListButtonComponent } from './components/option-list-btn/option-list-btn.component';
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsResolver } from './resolver/sites-groups.resolver';
 import { CreateSiteResolver } from './resolver/create-site.resolver';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { ObjectsPermissionMonitorings } from './enum/objectPermission';
 
 import { Popup } from './utils/popup';
@@ -154,6 +153,25 @@ const routes: Routes = [
     ],
   },
   {
+    path: 'object/:moduleCode/individual',
+    component: MonitoringMapListComponent,
+    resolve: {
+      data: MapListResolver,
+    },
+    children: [
+      {
+        path: '',
+        component: MonitoringSitesGroupsComponent,
+        resolve: {
+          data: SitesGroupsResolver,
+        },
+        runGuardsAndResolvers: 'always',
+      },
+    ],
+  },
+  // Patch permettant d'éviter la redirection vers la page de détail d'un module
+  { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
+  {
     path: 'object/:moduleCode/:objectType/:id',
     component: MonitoringObjectComponent,
   },
@@ -161,8 +179,6 @@ const routes: Routes = [
     path: 'create_object/:moduleCode/:objectType',
     component: MonitoringObjectComponent,
   },
-  { path: 'not-found', component: PageNotFoundComponent },
-  { path: '**', redirectTo: 'not-found' },
 ];
 
 @NgModule({
@@ -184,11 +200,9 @@ const routes: Routes = [
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
     MonitoringSitesCreateComponent,
-    BtnSelectComponent,
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
-    PageNotFoundComponent,
   ],
   imports: [
     GN2CommonModule,
@@ -212,11 +226,11 @@ const routes: Routes = [
     DataMonitoringObjectService,
     DataUtilsService,
     ConfigService,
-    ConfigJsonService,
     MonitoringObjectService,
     DataTableService,
     SitesGroupService,
     SitesService,
+    IndividualsService,
     GeoJSONService,
     ListService,
     FormService,

@@ -6,6 +6,8 @@ from flask.json import jsonify
 from typing import Tuple, Optional
 from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
+
+from sqlalchemy import desc
 from sqlalchemy import cast, func, text, select, and_, Integer
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import load_only, aliased
@@ -95,7 +97,7 @@ def sort(
     if getattr(model, sort, None):
         order_by = getattr(model, sort)
         if sort_dir == "desc":
-            order_by = order_by.desc()
+            order_by = desc(order_by)
         return query.order_by(order_by)
     elif specific_properties and sort in specific_properties:
         field = specific_properties.get(sort)
@@ -106,14 +108,12 @@ def sort(
             )
             query = query.join(join_table, model.data[sort].astext.cast(Integer) == join_column)
             order_by = filter_column
-            if sort_dir == "desc":
-                order_by = order_by.desc()
-            return query.order_by(order_by)
         else:
             order_by = model.data[sort]
-            if sort_dir == "desc":
-                order_by = order_by.desc()
-            return query.order_by(order_by)
+
+        if sort_dir == "desc":
+            order_by = desc(order_by)
+        return query.order_by(order_by)
 
     return query
 

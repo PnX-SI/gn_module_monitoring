@@ -206,7 +206,6 @@ def get_config(module_code=None, force=False):
                 for t in module.types_site
             ]
             config["default_display_field_names"].update(config.get("display_field_names", {}))
-            config["display_field_names"] = config["default_display_field_names"]
 
             # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
             config["data"] = get_data_preload(config, module)
@@ -219,6 +218,7 @@ def get_config(module_code=None, force=False):
         config["custom"]["__MODULE.ID_MODULE"] = None
         config["custom"]["__MODULE.B_SYNTHESE"] = False
 
+    config["display_field_names"] = config["default_display_field_names"]
     config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
     # Remplacement des variables __MODULE.XXX
     #   par les valeurs spécifiées en base
