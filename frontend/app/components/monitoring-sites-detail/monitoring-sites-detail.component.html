@@ -39,6 +39,9 @@
   [permission]="currentPermission"
   parentPath="site"
 >
+  <!-- Bouton pour ajouter une visite
+      dans le module generic le bouton est toujours actif c'est la liste des modules disponibles à l'utilisateur qui determinera les permissions
+      Sinon dans le contexte d'un sous module on verifie la permission sur VISITES -->
   <option-list-btn
     add-button
     placeholder="Sélectionner le protocole"
@@ -46,6 +49,6 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild] = "currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
+    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
   ></option-list-btn>
 </pnx-monitoring-datatable-g>
