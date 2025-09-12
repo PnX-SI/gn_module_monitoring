@@ -241,24 +241,39 @@ def process_schema(object_type, config):
         if not "id_sites_group" in generic.keys():
             generic.update({"id_sites_group": SITES_GROUP_CONFIG.copy()})
 
-    # generic redef in specific
-    #  cas ou un element de generic est redefini dans specific
-    keys_s = list(specific.keys())
-    keys_g = list(generic.keys())
-    for key in keys_s:
-        if key in keys_g:
-            type_widget_s = specific[key].get("type_widget")
-            type_widget_g = generic[key].get("type_widget")
+    # Traitement des elements du formulaires
+    # 3 cas possibles:
+    #   1 - element défini uniquement dans les generic
+    #   2 - element défini uniquement dans les specific
+    #   3 - element générique redefini par les specific
+    keys_s = set(specific.keys())
+    keys_g = set(generic.keys())
 
-            if type_widget_s and type_widget_s == type_widget_g:
-                generic[key] = copy_dict(specific[key])
-            else:
-                generic[key].update(copy_dict(specific[key]))
-            generic[key].update(process_display_element(generic[key]))
+    generic_only = list(keys_g - keys_s)
+    specific_only = list(keys_s - keys_g)
+    specific_overwrite = list(keys_s & keys_g)
 
-            del specific[key]
+    # mise a jour des elements generic en vue de leur affichage
+    for key in generic_only:
+        generic[key].update(process_display_element(generic[key]))
+
+    # mise a jour des elements specific en vue de leur affichage
+    for key in specific_only:
+        specific[key].update(process_display_element(specific[key]))
+
+    # Remplacement des éléments génériques par ceux spécifiques
+    #   s'ils sont redéfinis dans les specific du module
+    for key in specific_overwrite:
+        type_widget_s = specific[key].get("type_widget")
+        type_widget_g = generic[key].get("type_widget")
+
+        if type_widget_s and type_widget_s == type_widget_g:
+            generic[key] = copy_dict(specific[key])
         else:
-            specific[key].update(process_display_element(specific[key]))
+            generic[key].update(copy_dict(specific[key]))
+        generic[key].update(process_display_element(generic[key]))
+
+        del specific[key]
 
 
 def process_display_element(element):

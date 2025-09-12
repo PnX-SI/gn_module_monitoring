@@ -46,6 +46,10 @@ class GnMonitoringGenericFilter:
                     join_inventor = aliased(User)
                     query = query.join(join_inventor, cls.inventor)
                     query = query.filter(join_inventor.nom_complet.ilike(f"%{value}%"))
+                elif key == "id_digitiser" and not value.isdigit():
+                    join_digitiser = aliased(User)
+                    query = query.join(join_digitiser, cls.digitiser)
+                    query = query.filter(join_digitiser.nom_complet.ilike(f"%{value}%"))
                 else:
                     and_list.append(column == value)
                 params.pop(key)
@@ -90,6 +94,102 @@ class GnMonitoringGenericFilter:
             query=query,
             scope=cls._get_read_scope(module_code=module_code, object_code=object_code, user=user),
         )
+
+    @classmethod
+    def filter_by_specific(
+        cls,
+        query: Select,
+        params: MultiDict = None,
+        specific_properties: dict = None,
+    ):
+        """
+        Permet d'ajouter les filtres définis dans `params` à la requête SQLA `query`. Les filtres ciblent les propriétés
+        spécifiques enregistrées dans le champ JSON `data` du modèle. Les définitions de ces propriétés sont attendues dans
+        `specific_properties` telles que présentes dans les configs.
+
+        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
+            et de construire une requête sql en fonction de ces infos
+
+        :param query: requête sql initiale
+        :param params: liste des paramètres que l'on souhaite filtrer
+        :param specific_properties: Configuration des propriétés spécifiques
+        :return: requête sql amendée de filtre
+        """
+        for param, value in params.items():
+            if param in specific_properties:
+                type = "text"
+                if "type_util" in specific_properties[param]:
+                    type = specific_properties[param]["type_util"]
+                multiple = False
+                if "multiple" in specific_properties[param]:
+                    multiple_value = specific_properties[param]["multiple"]
+                    if isinstance(multiple_value, bool):
+                        multiple = multiple_value
+                    else:
+                        multiple = json.loads(multiple_value)
+
+                if type in ("nomenclature", "taxonomy", "user", "area"):
+                    join_table, join_column, filter_column = cls._get_relationship_clause(type)
+                    if multiple:
+                        # Si la propriété est de type multiple
+                        # Alors jointure sur chaque element de data->'params'
+                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
+                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
+                        #       soient de nouveau dans la clause from
+                        subquery_select = (
+                            select(
+                                [
+                                    func.jsonb_array_elements_text(cls.data[param])
+                                    .cast(db.Integer)
+                                    .label("id")
+                                ]
+                            )
+                            .correlate_except()
+                            .lateral()
+                        )
+                        query = query.join(subquery_select, cls.data[param] != None)
+                        query = query.join(
+                            join_table,
+                            subquery_select.c.id == join_column,
+                        )
+                    else:
+                        # Sinon type non multiple, jointure sur la valeur de data->'params'
+                        query = query.join(
+                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
+                        )
+                    # Filtre sur la valeur de la table de jointure
+                    query = query.where(filter_column.ilike(f"{value}%"))
+                else:
+                    # Sinon filtre texte simple
+                    query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
+
+        return query
+
+    @staticmethod
+    def _get_relationship_clause(type):
+        join_table = None  # alias de la table de jointure
+        join_column = None  # nom de la colonne permettant la jointure entre data et la table
+        filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
+        if type == "nomenclature":
+            join_table = aliased(TNomenclatures)
+            join_column = join_table.id_nomenclature
+            filter_column = join_table.label_default
+        elif type == "taxonomy":
+            join_table = aliased(Taxref)
+            join_column = join_table.cd_nom
+            filter_column = join_table.nom_vern_or_lb_nom
+        elif type == "user":
+            join_table = aliased(User)
+            join_column = join_table.id_role
+            filter_column = join_table.nom_complet
+        elif type == "area":
+            join_table = aliased(LAreas)
+            join_column = join_table.id_area
+            filter_column = join_table.area_name
+        elif type == "habitat":
+            pass
+
+        return join_table, join_column, filter_column
 
 
 class SitesQuery(GnMonitoringGenericFilter):
@@ -141,105 +241,6 @@ class SitesQuery(GnMonitoringGenericFilter):
 
         query = super().filter_by_params(query, params)
         return query
-
-    @classmethod
-    def filter_by_specific(
-        cls,
-        query: Select,
-        params: MultiDict = None,
-        specific_properties: dict = None,
-        **kwargs,
-    ):
-        """
-        Permet d'ajouter des filtres à la requête des sites
-        en fonction des propriétés spécifiques définies au niveau du module ou des types de sites
-
-        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
-            et de construire une requête sql en fonction de ces infos
-
-        :param query: requête sql initiale
-        :param params: liste des paramètres que l'on souhaite filtrer
-        :param specific_properties: Configuration des propriétés spécifiques des sites
-        :return: requête sql amendée de filtre
-        """
-        for param, value in params.items():
-            if param in specific_properties:
-                type = "text"
-                if "type_util" in specific_properties[param]:
-                    type = specific_properties[param]["type_util"]
-                multiple = False
-                if "multiple" in specific_properties[param]:
-                    multiple_value = specific_properties[param]["multiple"]
-                    if isinstance(multiple_value, bool):
-                        multiple = multiple_value
-                    else:
-                        multiple = json.loads(multiple_value)
-
-                if type in ("nomenclature", "taxonomy", "user", "area"):
-                    join_table, join_column, filter_column = cls.get_relationship_clause(type)
-                    if multiple:
-                        # Si la propriété est de type multiple
-                        # Alors jointure sur chaque element de data->'params'
-                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
-                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
-                        #       soient de nouveau dans la clause from
-                        subquery_select = (
-                            select(
-                                [
-                                    func.jsonb_array_elements_text(cls.data[param])
-                                    .cast(db.Integer)
-                                    .label("id")
-                                ]
-                            )
-                            .correlate_except()
-                            .lateral()
-                        )
-                        query = query.join(subquery_select, cls.data[param] != None)
-                        query = query.join(
-                            join_table,
-                            subquery_select.c.id == join_column,
-                        )
-                    else:
-                        # Sinon type non multiple, jointure sur la valeur de data->'params'
-                        query = query.join(
-                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
-                        )
-                    # Filtre sur la valeur de la table de jointure
-                    query = query.where(filter_column.ilike(f"{value}%"))
-                else:
-                    # Sinon filtre texte simple
-                    query = query.where(cls.data[param].astext.ilike(f"{value}%"))
-
-        return query
-
-    @classmethod
-    def get_relationship_clause(
-        cls,
-        type,
-    ):
-        join_table = None  # alias de la table de jointure
-        join_column = None  # nom de la colonne permettant la jointure entre data et la table
-        filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
-        if type == "nomenclature":
-            join_table = aliased(TNomenclatures)
-            join_column = join_table.id_nomenclature
-            filter_column = join_table.label_default
-        elif type == "taxonomy":
-            join_table = aliased(Taxref)
-            join_column = join_table.cd_nom
-            filter_column = join_table.nom_vern_or_lb_nom
-        elif type == "user":
-            join_table = aliased(User)
-            join_column = join_table.id_role
-            filter_column = join_table.nom_complet
-        elif type == "area":
-            join_table = aliased(LAreas)
-            join_column = join_table.id_area
-            filter_column = join_table.area_name
-        elif type == "habitat":
-            pass
-
-        return join_table, join_column, filter_column
 
 
 class SitesGroupsQuery(GnMonitoringGenericFilter):
@@ -322,4 +323,43 @@ class ObservationsQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
                 ]
             query = query.where(or_(*ors))
+        return query
+
+
+class IndividualsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
+        if user is None:
+            user = g.current_user
+        if scope == 0:
+            query = query.where(false())
+        elif scope in (1, 2):
+            ors = [
+                Models.TMonitoringIndividuals.id_digitiser == user.id_role,
+            ]
+            # if organism is None => do not filter on id_organism even if level = 2
+            if scope == 2 and user.id_organisme is not None:
+                ors += [
+                    Models.TMonitoringIndividuals.digitiser.has(id_organisme=user.id_organisme)
+                ]
+            query = query.where(or_(*ors))
+        return query
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "cd_nom" in params:
+            value = params.pop("cd_nom")
+            # Cas ou le filtre provient du front
+            # La valeur est passée en chaine de caractère
+            if value.isdigit():
+                query = query.where(Models.TMonitoringIndividuals.cd_nom == value)
+            else:
+                join_table = aliased(Taxref)
+                join_column = join_table.cd_nom
+                filter_column = join_table.nom_vern_or_lb_nom
+                query = query.join(join_table, Models.TMonitoringIndividuals.cd_nom == join_column)
+                # Filtre sur la valeur de la table de jointure
+                query = query.where(filter_column.ilike(f"{value}%"))
+
+        query = super().filter_by_params(query, params)
         return query

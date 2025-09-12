@@ -28,6 +28,8 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   obj: MonitoringObject;
   bEdit: boolean = true;
 
+  moduleCode: string;
+
   constructor(
     private _auth: AuthService,
     private _formService: FormService,
@@ -41,6 +43,12 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.moduleCode = this._route.snapshot.data.createSitesGroups.moduleCode;
+
+    // breadcrumb
+    const queryParams = this._route.snapshot.queryParams;
+    this._objService.loadBreadCrumb(this.moduleCode, 'site', null, queryParams);
+
     this.bEdit = true;
     this.objForm = this._formBuilder.group({});
 
@@ -50,7 +58,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     }
 
     this.obj = new MonitoringObject(
-      'generic',
+      this.moduleCode,
       'sites_group',
       null,
       this._monitoringObjServiceMonitoring
@@ -60,7 +68,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     this._route.paramMap
       .pipe(
         mergeMap(() => {
-          return this._configService.init();
+          return this._configService.init(this.moduleCode);
         }),
         mergeMap(() => {
           return this.obj.get(0);
@@ -73,6 +81,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
           obj: this.obj,
         });
         this._formService.changeCurrentEditMode(this.bEdit);
+
         this.obj.bIsInitialized = true;
       });
   }

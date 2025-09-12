@@ -56,6 +56,13 @@
           "cd_typo": 7,
           "search_name": ""
       }
+    },
+    "meteo": {
+      "type_widget": "nomenclature",
+      "attribut_label": "test météo",
+      "code_nomenclature_type": "TEST_METEO",
+      "type_util": "nomenclature",
+      "required": false
     }
   }
 }

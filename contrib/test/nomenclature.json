@@ -9,17 +9,24 @@
   "nomenclatures": [
     {
       "type":"TEST_METEO",
-      "cd_nomenclature": "METEO_B",
-      "mnemonique": "Beau",
-      "label_default": "Beau temps",
-      "definition_default": "Beau temps (test)"
-    },
-    {
-      "type":"TEST_METEO",
       "cd_nomenclature": "METEO_M",
       "mnemonique": "Mauvais",
       "label_default": "Mauvais temps",
       "definition_default": "Mauvais temps (test)"
+    },
+    {
+      "type":"TEST_METEO",
+      "cd_nomenclature": "METEO_N",
+      "mnemonique": "Nuageux",
+      "label_default": "Temps nuageux",
+      "definition_default": "Temps nuageux (test)"
+    },
+    {
+      "type":"TEST_METEO",
+      "cd_nomenclature": "METEO_B",
+      "mnemonique": "Beau",
+      "label_default": "Beau temps",
+      "definition_default": "Beau temps (test)"
     },
     {
       "type": "TEST_UNKWONW_TYPE",

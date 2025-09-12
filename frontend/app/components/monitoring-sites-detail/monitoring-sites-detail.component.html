@@ -1,32 +1,29 @@
 <div>
   <span class="obj-title"
-    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ siteService.objectObs.label }}:</span
+    >{{ bEdit ?  siteService.objectObs.editObjLabel : siteService.objectObs.detailObjLabel }} :</span
   >
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
 <pnx-monitoring-form [obj]="obj" [objForm]="form"
-  (objChanged)="onObjChanged($event)"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
   [currentUser]="currentUser"
-  (bEditChange)="onbEditChange($event)" 
-> 
+  (bEditChange)="onbEditChange($event)"
+>
 </pnx-monitoring-form>
-<pnx-monitoring-properties-g
-  *ngIf="!bEdit"
+<pnx-monitoring-properties
+  *ngIf="obj && !bEdit && obj.bIsInitialized"
+  id="nav-properties"
+  [obj]="obj"
   [(bEdit)]="bEdit"
-  [newParentType]="objParent"
-  [selectedObj]="objResolvedProperties"
-  [selectedObjRaw]="objSelected"
-  [permission]="currentPermission"
-  (bEditChange)="onbEditChange($event)" 
-></pnx-monitoring-properties-g>
+  [currentUser]="currentUser"
+></pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [dataTableArray]="dataTableArray"
-  [dataTableObj]="dataTableObj"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
   [rows]="rows"
   [colsname]="colsname"
   (onSort)="setSort($event)"
@@ -34,6 +31,7 @@
   (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)"
   [obj]="visits"
+  [moduleCode]="moduleCode"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
@@ -41,6 +39,9 @@
   [permission]="currentPermission"
   parentPath="site"
 >
+  <!-- Bouton pour ajouter une visite
+      dans le module generic le bouton est toujours actif c'est la liste des modules disponibles à l'utilisateur qui determinera les permissions
+      Sinon dans le contexte d'un sous module on verifie la permission sur VISITES -->
   <option-list-btn
     add-button
     placeholder="Sélectionner le protocole"
@@ -48,5 +49,6 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-  ></option-list-btn
-></pnx-monitoring-datatable-g>
+    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
+  ></option-list-btn>
+</pnx-monitoring-datatable-g>

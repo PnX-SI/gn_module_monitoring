@@ -23,7 +23,7 @@ from gn_module_monitoring.utils.routes import (
 
 
 @blueprint.route("/module/<int:value>", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE)
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="ALL")
 @json_resp
 def get_module_api(value):
     """
@@ -47,25 +47,8 @@ def get_module_api(value):
     return module_out
 
 
-@blueprint.route("/cruved_object", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE)
-def get_cruved_monitorings():
-    """
-    Renvoie la liste des modules de suivi
-    """
-    dic_object_cruved = {}
-    object_list_tuples = get_object_list_monitorings()
-    object_list = [value for (value,) in object_list_tuples]
-    for object in object_list:
-        dic_object_cruved[object] = has_any_permissions_by_action(
-            module_code=MODULE_CODE, object_code=object
-        )
-
-    return dic_object_cruved
-
-
 @blueprint.route("/modules", methods=["GET"])
-@check_cruved_scope("R", module_code=MODULE_CODE)
+@check_cruved_scope("R", module_code=MODULE_CODE, object_code="ALL")
 @json_resp_accept_empty_list
 def get_modules_api():
     """

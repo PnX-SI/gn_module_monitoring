@@ -1,28 +1,23 @@
 <div>
   <span class="obj-title"
-    >{{ bEdit ? 'Editer le ' : 'Détails du ' }}{{ _sitesGroupService.objectObs.label }}:</span
+    >{{ bEdit ?  _sitesGroupService.objectObs.editObjLabel : _sitesGroupService.objectObs.detailObjLabel }} :</span
   >
   <span *ngIf="sitesGroup" class="obj-description"> {{ sitesGroup.sites_group_name }} </span>
 </div>
-<pnx-monitoring-properties-g
-  *ngIf="!bEdit"
+<pnx-monitoring-properties
+  *ngIf="obj && !bEdit && obj.bIsInitialized"
+  id="nav-properties"
+  [obj]="obj"
   [(bEdit)]="bEdit"
-  [selectedObj]="sitesGroup"
-  [newParentType]="objParent"
-  [selectedObjRaw]="sitesGroup"
-  [permission]="currentPermission"
-  (bEditChange)="onbEditChange($event)" 
->
-</pnx-monitoring-properties-g>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" (objChanged)="onObjChanged($event)"
-  *ngIf="bEdit && obj?.bIsInitialized" [(bEdit)]="bEdit"
-  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser"
-  (bEditChange)="onbEditChange($event)" >
+  [currentUser]="currentUser">
+</pnx-monitoring-properties>
+<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
+  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
 </pnx-monitoring-form>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
-  [dataTableArray]="dataTableArray"
-  [dataTableObj]="dataTableObj"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
   [rows]="siteResolvedProperties"
   [colsname]="colsname"
   (onSort)="setSort($event)"
@@ -30,12 +25,13 @@
   (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)"
   [obj]="rows"
+  [moduleCode]="moduleCode"
+  (addVisitFromTable)="addChildrenVisit($event)"
   (onDetailsRow)="seeDetails($event)"
-  (addVisitFromTable)="onAddChildren($event)"
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
   (saveOptionChildren)="onSaveAddChildren($event)"
-  (onAddObj)="navigateToAddObj($event)" 
+  (onAddObj)="navigateToAddObj($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
   [permission]="currentPermission"
   parentPath="sites_group"

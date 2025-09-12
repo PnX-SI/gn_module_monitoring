@@ -15,8 +15,14 @@
     </pnx-map>
   </div>
   <div id="monitoring-elem-container" class="cadre scroll">
-    <pnx-monitoring-breadcrumbs></pnx-monitoring-breadcrumbs>
+    <div>
+      <pnx-monitoring-breadcrumbs
+        [(bEdit)]="bEdit">
+      </pnx-monitoring-breadcrumbs>
+    </div>
+
+
     <!-- <button (click)="displayMap = !displayMap">HIDE MAP</button> -->
-    <router-outlet (activate)="onActivate($event)"></router-outlet>
+    <router-outlet (activate)="onActivate()"></router-outlet>
   </div>
 </div>

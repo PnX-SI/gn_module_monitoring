@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, forkJoin, of } from 'rxjs';
-import { concatMap, mergeMap } from 'rxjs/operators';
+import { concatMap, mergeMap, map } from 'rxjs/operators';
 
 import { Utils } from './../utils/utils';
 
@@ -90,6 +90,34 @@ export class DataUtilsService {
     );
   }
 
+  initModuleNomenclatures(moduleCode: string): Observable<any> {
+    /**
+     * Récupération et mise en cache de l'ensemble des nomenclatures utilisées dans le module
+     *
+     * @param moduleCode the module code
+     * @returns an Observable that completes when the nomenclatures are stored in cache
+     */
+
+    // Récupération des types de nomenclatures utilisées dans le module
+    const nomenclatureTypes =
+      this._configService.configModuleObject(moduleCode, 'data')['nomenclature'] || [];
+    // Récupération des nomenclatures mise en forme et stockage en cache
+    return this._commonsDataFormService.getNomenclatures(nomenclatureTypes).pipe(
+      map((nomenclatures) => {
+        for (const key of Object.keys(nomenclatures)) {
+          for (const nomenclature of nomenclatures[key].values || []) {
+            let nomenclatureToStore = nomenclature;
+            nomenclatureToStore['code_type'] = nomenclatures[key].mnemonique;
+            this._cacheService.setCacheValue(
+              `util|nomenclature|${nomenclature['id_nomenclature']}`,
+              nomenclature
+            );
+          }
+        }
+      })
+    );
+  }
+
   /** Renvoie une nomenclature à partir de son type et son code */
   getNomenclature(typeNomenclature, codeNomenclature) {
     const urlRelative = `util/nomenclature/${typeNomenclature}/${codeNomenclature}`;
@@ -97,153 +125,8 @@ export class DataUtilsService {
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
   }
 
-  /** Récupère les données qui seront utiles pour le module
-   * ces données sont déduites automatiquement de la configuration du module
-   */
-  getInitData(moduleCode): Observable<any> {
-    // parametre pour le stockage dans le cache
-    // récupération dans le cache ou requête si besoin
-    const cache = this._cacheService.cache();
-
-    if (cache[moduleCode] && cache[moduleCode]['init_data']) {
-      return of(true);
-    }
-
-    const urlRelative = `util/init_data/${moduleCode}`;
-    return this._cacheService.request('get', urlRelative).pipe(
-      mergeMap((initData) => {
-        if (cache[moduleCode] && cache[moduleCode]['init_data']) {
-          return of(true);
-        }
-
-        for (const nomenclature of initData['nomenclature'] || []) {
-          this._cacheService.setCacheValue(
-            `util|nomenclature|${nomenclature['id_nomenclature']}`,
-            nomenclature
-          );
-        }
-
-        for (const user of initData['user'] || []) {
-          this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
-        }
-
-        for (const sitesGroup of initData['sites_group'] || []) {
-          this._cacheService.setCacheValue(
-            `util|sites_group|${sitesGroup['id_sites_group']}`,
-            sitesGroup
-          );
-        }
-
-        for (const dataset of initData['dataset'] || []) {
-          this._cacheService.setCacheValue(`util|dataset|${dataset['id_dataset']}`, dataset);
-        }
-
-        // pour ne pas appeler la fonction deux fois
-        if (!cache[moduleCode]) {
-          cache[moduleCode] = {};
-        }
-        cache[moduleCode]['init_data'] = true;
-        return of(true);
-      })
-    );
-  }
-
-  // /** Récupère les données qui seront utiles pour le module */
-  // getInitData(moduleCode): Observable<any> {
-  //   /** Les données à récupérer sont spécifiées dans la config du module
-  //    * config/<module_code>/data_config.json et
-  //    * config/<module_code>/custom_config.json
-  //   */
-
-  //   if (!Object.keys(this._configService.configData(moduleCode)).length) {
-  //     return of(true);
-  //   }
-
-  //   const cache = this._cacheService.cache();
-  //   // test si la fonction a déjà été appelée
-  //   if (cache[moduleCode] && cache[moduleCode]['init_data']) {
-  //     return of(true);
-  //   }
-
-  //   const observables = {};
-  //   const configData = this._configService.configData(moduleCode);
-
-  //   // Test if nomenclature is define
-  //   if (('nomenclature' in configData) && (configData['nomenclature'].length > 0)) {
-  //     const nomenclatureRequest = this._commonsDataFormService.getNomenclatures(configData['nomenclature']);
-  //     observables['nomenclature'] = nomenclatureRequest;
-  //   }
-
-  //   // if('sites_group' in configData) {
-  //   // const sitesGroupRequest = this._co
-  //   // }
-
-  //   // Taxonomie (liste ou ensemble de )
-  //   // const taxonomyRequests = [];
-  //   // if (configData.taxonomy && configData.taxonomy.cd_noms) {
-  //   //   for (const cd_nom of configData.taxonomy.cd_noms) {
-  //   //     taxonomyRequests.push(this._commonsDataFormService.getTaxonInfo(cd_nom));
-  //   //   }
-  //   // }
-  //   // if (taxonomyRequests.length) {
-  //   //   observables['taxonomy'] = forkJoin(taxonomyRequests);
-  //   // }
-
-  //   const userRequests = [];
-  //   for (const idMenu of (configData['user'] || [])) {
-  //     userRequests.push(this._commonsDataFormService.getObservers(idMenu));
-  //   }
-  //   if (userRequests.length) {
-  //     observables['user'] = forkJoin(userRequests);
-  //   }
-
-  //   return forkJoin(observables)
-  //     .pipe(
-  //       concatMap((data) => {
-  //         // mise en cache
-
-  //         const nomenclatures = data['nomenclature'] as Array<any>;
-  //         if (nomenclatures) {
-  //           for (const nomenclature_type of nomenclatures) {
-  //             for (const nomenclature of nomenclature_type.values) {
-  //               this._cacheService.setCacheValue(`util|nomenclature|${nomenclature['id_nomenclature']}`, nomenclature);
-  //             }
-  //           }
-  //         }
-
-  //         const userLists = data['user'];
-  //         if (userLists) {
-  //           for (const userList of userLists as Array<any>) {
-  //             for (const user of userList) {
-  //               this._cacheService.setCacheValue(`util|user|${user['id_role']}`, user);
-  //             }
-  //           }
-  //         }
-
-  //         const taxonomy = data['taxonomy'] as Array<any>;
-  //         if (taxonomy) {
-  //           for (const taxon of taxonomy) {
-  //             this._cacheService.setCacheValue(`util|taxonomy|${taxon['cd_nom']}`, taxon);
-  //           }
-  //         }
-
-  //         // pour ne pas appeler la fonction deux fois
-  //         if (!cache[moduleCode]) {
-  //           cache[moduleCode] = {};
-  //         }
-  //         cache[moduleCode]['init_data'] = true;
-
-  //         return of(true);
-  //       })
-  //     );
-  // }
-
   getDataUtil(key) {
     return (this._cacheService['_cache']['util'] || [])[key];
-  }
-
-  getNomenclatures() {
-    return this._cacheService['_cache']['util']['nomenclature'];
   }
 
   getUsersByCodeList(codeMenu) {

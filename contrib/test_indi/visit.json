@@ -1,0 +1,24 @@
+{
+  "display_properties": [
+    "visit_date_min",
+    "observers",
+    "meteo",
+    "id_dataset",
+    "comments",
+    "nb_observations"
+  ],
+  "keep": [
+    "meteo"
+  ],
+  "specific": {
+    "id_base_site": {
+      "type_widget": "site",
+      "required": true,
+      "attribut_label": "Choix du site"
+    },
+    "meteo": {
+      "type_widget": "text",
+      "attribut_label": "Météo"
+    }
+  }
+}

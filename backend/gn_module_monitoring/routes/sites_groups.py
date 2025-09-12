@@ -21,7 +21,10 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringSitesGroups,
     TMonitoringModules,
 )
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsDetailSchema
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringSitesGroupsSchema,
+    add_specific_attributes,
+)
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -47,8 +50,13 @@ def get_config_sites_groups(id=None, module_code="generic", object_type="sites_g
 
 
 @blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-def get_sites_groups(object_type: str):
+@blueprint.route(
+    "/refacto/<string:module_code>/sites_groups",
+    methods=["GET"],
+    defaults={"object_type": "sites_group"},
+)
+@check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
+def get_sites_groups(object_type: str, module_code=None):
     object_code = "MONITORINGS_GRP_SITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -57,6 +65,12 @@ def get_sites_groups(object_type: str):
         params=params, default_sort="id_sites_group", default_direction="desc"
     )
     query = select(TMonitoringSitesGroups)
+
+    if module_code:
+        query = query.where(
+            TMonitoringSitesGroups.modules.any(TMonitoringModules.module_code == module_code)
+        )
+
     query = filter_params(TMonitoringSitesGroups, query=query, params=params)
 
     # PATCH order by modules
@@ -69,10 +83,25 @@ def get_sites_groups(object_type: str):
     else:
         query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
 
-    query_allowed = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
+    query_allowed = TMonitoringSitesGroups.filter_by_readable(
+        query=query, object_code=object_code, module_code=g.current_module.module_code
+    )
+
+    config = get_config(module_code)
+    query_allowed = TMonitoringSitesGroups.filter_by_specific(
+        query=query_allowed,
+        params=params,
+        specific_properties=config.get("sites_group", {}).get("specific", {}),
+    )
+
+    if module_code:
+        schema = add_specific_attributes(MonitoringSitesGroupsSchema, object_type, module_code)
+    else:
+        schema = MonitoringSitesGroupsSchema
+
     return paginate_scope(
         query=query_allowed,
-        schema=MonitoringSitesGroupsDetailSchema,
+        schema=schema,
         limit=limit,
         page=page,
         object_code=object_code,
@@ -80,19 +109,18 @@ def get_sites_groups(object_type: str):
 
 
 @blueprint.route(
-    "/sites_groups/<int:id_sites_group>", methods=["GET"], defaults={"object_type": "sites_group"}
+    "/sites_groups/<string:module_code>/<int:id_sites_group>",
+    methods=["GET"],
+    defaults={"object_type": "sites_group"},
 )
-@check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-@permissions.check_cruved_scope(
-    "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
-)
-def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
+@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsDetailSchema()
+    schema = MonitoringSitesGroupsSchema()
     response = schema.dump(sites_group)
     response["cruved"] = get_objet_with_permission_boolean(
         [sites_group], object_code="MONITORINGS_GRP_SITES"
@@ -108,8 +136,13 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 @blueprint.route(
     "/sites_groups/geometries", methods=["GET"], defaults={"object_type": "sites_group"}
 )
+@blueprint.route(
+    "/refacto/<string:module_code>/sites_groups/geometries",
+    methods=["GET"],
+    defaults={"object_type": "site"},
+)
 @check_cruved_scope("R")
-def get_sites_group_geometries(object_type: str):
+def get_sites_group_geometries(object_type: str, module_code=None):
 
     if g.current_module:
         module_code = g.current_module.module_code
@@ -123,6 +156,11 @@ def get_sites_group_geometries(object_type: str):
         query=query, module_code=module_code, object_code=object_code
     )
     query = TMonitoringSitesGroups.filter_by_params(query=query, params=params)
+
+    if module_code != MODULE_CODE:
+        query = query.where(
+            TMonitoringSitesGroups.modules.any(TMonitoringModules.module_code == module_code)
+        )
 
     alias_sites = aliased(TMonitoringSites)
     subquery_not_geom = (

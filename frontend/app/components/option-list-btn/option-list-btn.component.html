@@ -1,24 +1,27 @@
 <ng-template [ngIf]="iconOrButton != 'button'" [ngIfElse]="buttonComp">
   <button
+    [ngClass]="{ isDisableBtn: !canCreateChild }"
     class="icon-btn"
     [matTooltip]="label"
-    (click)="onDeploy(row)"
+    (click)="canCreateChild ? onDeploy() : null"
     #ddTrigger="matMenuTrigger"
-    [matMenuTriggerFor]="dd"
+    [matMenuTriggerFor]="canCreateChild ? dd :null"
   >
-    <i class="fa fa-plus" aria-hidden="true"></i>
+    <i class="fa fa-plus" [ngClass]="{ isDisableIcon: !canCreateChild }" aria-hidden="true"></i>
   </button>
 </ng-template>
 <ng-template #buttonComp>
   <button
     mat-raised-button
+    [disabled]="!canCreateChild"
     color="primary"
     class="btn btn-success float-right"
-    (click)="onDeploy()"
+    [ngClass]="{ isDisableBtn: !canCreateChild }"
+    (click)="canCreateChild ? onDeploy() : null"
     #ddTrigger="matMenuTrigger"
-    [matMenuTriggerFor]="dd"
+    [matMenuTriggerFor]="canCreateChild ? dd :null"
   >
-    <i class="fa fa-plus" aria-hidden="true"></i> {{ label }}
+    <i class="fa fa-plus" [ngClass]="{ isDisableIcon: !canCreateChild }" aria-hidden="true"></i> {{ label }}
   </button>
 </ng-template>
 <mat-menu #dd="matMenu" [overlapTrigger]="false" class="btn-menu">
@@ -45,7 +48,7 @@
     </mat-form-field>
     <div>
       <button mat-flat-button color="primary" (click)="onSave()">Ajouter</button>
-      <button mat-button (click)="onCancel()">Annuler</button>
+      <button mat-button (click)="canCreateChild ? onCancel() : null">Annuler</button>
     </div>
   </div>
 </mat-menu>

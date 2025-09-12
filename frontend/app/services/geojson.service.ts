@@ -50,6 +50,11 @@ export class GeoJSONService {
     private _formService: FormService
   ) {}
 
+  setModuleCode(moduleCode: string) {
+    this._sites_group_service.setModuleCode(moduleCode);
+    this._sites_service.setModuleCode(moduleCode);
+  }
+
   removeAllLayers() {
     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
     this.removeFeatureGroup(this.sitesFeatureGroup);
@@ -218,5 +223,9 @@ export class GeoJSONService {
     for (const featureGroup of listFeatureGroup) {
       this.removeFeatureGroup(featureGroup);
     }
+  }
+
+  removeFileLayerGroup() {
+    this._mapService.removeAllLayers(this._mapService.map, this._mapService.fileLayerFeatureGroup);
   }
 }

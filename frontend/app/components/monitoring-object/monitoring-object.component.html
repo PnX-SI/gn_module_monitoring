@@ -22,9 +22,9 @@
     </div>
 
     <div id="monitoring-elem-container" class="cadre scroll">
-      <pnx-monitoring-breadcrumbs *ngIf="obj && obj.bIsInitialized" [obj]="obj"
-        [(bEdit)]="bEdit"></pnx-monitoring-breadcrumbs>
-
+      <pnx-monitoring-breadcrumbs
+        [(bEdit)]="bEdit">
+      </pnx-monitoring-breadcrumbs>
       <div>
         <span class="obj-title" *ngIf="obj.bIsInitialized" [innerHTML]="obj.titleHTML(this.bEdit)"></span>
       </div>
@@ -36,7 +36,7 @@
 
       <pnx-monitoring-properties id="nav-properties" [obj]="obj" *ngIf="!bEdit && obj.bIsInitialized" [(bEdit)]="bEdit"
         [currentUser]="currentUser"></pnx-monitoring-properties>
-      <pnx-monitoring-form [obj]="obj" (objChanged)="onObjChanged($event)" *ngIf="bEdit && obj?.bIsInitialized"
+      <pnx-monitoring-form [obj]="obj" *ngIf="bEdit && obj?.bIsInitialized"
         [(bEdit)]="bEdit" [objForm]="objForm" [currentUser]="currentUser"></pnx-monitoring-form>
 
       <pnx-monitoring-lists [(obj)]="obj" [(bEdit)]="bEdit" *ngIf="!bEdit && obj && obj.bIsInitialized && moduleSet"

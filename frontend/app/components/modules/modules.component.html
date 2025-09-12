@@ -8,7 +8,7 @@
 
   <h1 class="title-module display-5 mb-4">{{ titleModule }}</h1>
   <div class="text-center my-auto" style="height: 80vh" *ngIf="modules.length < 1 && !bLoading">
-    Vous n'avez pas encore de protocole installé
+    Vous n'avez pas encore de protocole accessible
   </div>
   <div class="text-center">{{ description }}</div>
   <div class="m-2" *ngIf="modules.length > 0">
@@ -41,7 +41,7 @@
             style="min-width: 250px; max-width: 250px"
             *ngFor="let module of modules"
           >
-            <a [routerLink]="['object', module.module_code, 'module', module.id_module]">
+            <a [routerLink]="['object', module.module_code, 'sites_group']">
               <div class="card module-card" title="code&nbsp;: {{ module.module_code }}">
                 <img
                   class="card-img-top"

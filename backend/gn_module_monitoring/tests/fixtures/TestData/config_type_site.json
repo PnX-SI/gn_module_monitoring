@@ -101,6 +101,13 @@
         "type_widget": "textarea",
         "attribut_label": "Mesure(s) préconisé(s)",
         "rows": 3
+      },
+      "meteo_gite": {
+        "type_widget": "nomenclature",
+        "attribut_label": "test météo gîte",
+        "code_nomenclature_type": "TEST_METEO",
+        "type_util": "nomenclature",
+        "required": false
       }
     }
   }

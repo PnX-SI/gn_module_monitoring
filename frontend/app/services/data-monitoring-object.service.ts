@@ -18,19 +18,12 @@ export class DataMonitoringObjectService {
     private _config: ConfigService
   ) {}
 
-  /**
-   * Renvoie la liste des cruved object liés à Monitorings et de l'utilisateur connecté
-   */
-  getCruvedMonitoring() {
-    return this._cacheService.request('get', `cruved_object`);
-  }
-
   /** Modules */
 
   /**
    * Renvoie la liste des modules
    */
-  getModules(): Array<any> {
+  getModules(): Observable<any> {
     return this._cacheService.request('get', `modules`);
   }
 
@@ -122,6 +115,7 @@ export class DataMonitoringObjectService {
    * @param moduleCode le champ module_code du module
    * @param objectType le type de l'objet (site, visit, observation, ...)
    * @param id l'identifiant de l'objet
+   * @param queryParams paramètre supplémentaire permettant d'indiquer les parents souhaités
    */
   getBreadcrumbs(moduleCode, objectType, id, queryParams) {
     const url = this.urlMonitoring('breadcrumbs', moduleCode, objectType, id);

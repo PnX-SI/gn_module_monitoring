@@ -29,6 +29,8 @@ import {
   scan,
 } from 'rxjs/operators';
 import { defer, forkJoin, from, iif, of, Observable } from 'rxjs';
+
+import { Location } from '@angular/common';
 import { FormService } from '../../services/form.service';
 import { Router } from '@angular/router';
 import { TOOLTIPMESSAGEALERT, TOOLTIPMESSAGEALERT_CHILD } from '../../constants/guard';
@@ -46,7 +48,6 @@ export class MonitoringFormComponent implements OnInit {
   @Input() objForm: FormGroup;
 
   @Input() obj: MonitoringObject;
-  @Output() objChanged = new EventEmitter<MonitoringObject>();
 
   @Input() bEdit: boolean;
   @Output() bEditChange = new EventEmitter<boolean>();
@@ -112,7 +113,8 @@ export class MonitoringFormComponent implements OnInit {
     private _siteService: SitesService,
     private _formService: FormService,
     private _router: Router,
-    private _geojsonService: GeoJSONService
+    private _geojsonService: GeoJSONService,
+    private _location: Location
   ) {}
 
   ngOnInit() {
@@ -170,6 +172,7 @@ export class MonitoringFormComponent implements OnInit {
             bChainInput: this.bChainInput,
             parents: this.obj.parents,
           };
+
           // Récupération de la définition du formulaire
           this.objFormsDefinition = this.initObjFormDefiniton(this.confiGenericSpec, this.meta);
           // Tri des proprités en fonction de la variable display_properties
@@ -368,8 +371,6 @@ export class MonitoringFormComponent implements OnInit {
     for (const key of this.keepNames()) {
       this.obj.properties[key] = keep[key];
     }
-
-    // this.objChanged.emit(this.obj);
     this.objForm.patchValue({ geometry: null });
     this.initForm();
     // });
@@ -451,8 +452,6 @@ export class MonitoringFormComponent implements OnInit {
     action.subscribe((objData) => {
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
-      // this.objChanged.emit(this.obj);
-
       /** si c'est un module : reset de la config */
       if (this.obj.objectType === 'module') {
         this._configService.loadConfig(this.obj.moduleCode).subscribe();
@@ -473,20 +472,12 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   onCancelEdit() {
+    this.bEditChange.emit(false);
+    this._location.back();
     if (this.obj.id) {
-      const urlTree = this._router.parseUrl(this._router.url);
-      const urlWithoutParams = urlTree.root.children['primary'].segments
-        .map((it) => it.path)
-        .join('/');
-      this._router.navigate([urlWithoutParams]);
-
-      // this._geojsonService.removeAllFeatureGroup();
       this.obj.geometry == null
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
         : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
-      this.bEditChange.emit(false);
-    } else {
-      this.navigateToParent();
     }
   }
 
@@ -495,7 +486,6 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.obj.deleted = true;
-      this.objChanged.emit(this.obj);
       this._commonService.regularToaster('info', this.msgToaster('Suppression'));
       setTimeout(() => {
         this.navigateToParent();
@@ -617,10 +607,13 @@ export class MonitoringFormComponent implements OnInit {
 
     // Si objet de type module ou création d'un nouvel objet
     //    => récupération des droits au niveau de la config globale et pas de l'objet
-    this.canUpdate =
-      this.obj.objectType == 'module' || !this.isEditObject
-        ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
-        : this.obj.cruved['U'];
+    if (this.obj.objectType == 'module') {
+      this.canUpdate = this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0;
+    } else if (!this.isEditObject) {
+      this.canUpdate = this.currentUser?.moduleCruved[this.obj.objectType]['C'] > 0;
+    } else {
+      this.canUpdate = this.obj.cruved['U'];
+    }
   }
 
   notAllowedMessage() {
