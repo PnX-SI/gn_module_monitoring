@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.2.0 (unreleased)
+## 1.2.0 (2025-09-12)
 
 Evolutions importantes des performances de chargement et factorisation, nettoyage global du code du module.
 
