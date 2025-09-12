@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 1.2.0 (2025-09-12)
+
+Evolutions importantes des performances de chargement et factorisation, nettoyage global du code du module.
+
+**🚀 Nouveautés**
+
+- Mise en place de la pagination coté serveur pour les listes d'objets (groupes de sites, sites, individus) de façon à améliorer de manière importante les performances de chargement du module (#393, #378 par @marcantoinedupre, @bastyen, @amandine-sahl et @pierre-narcisi)
+  - Mise en place de routes spécifiques à chaque objet (groupes de sites, sites, visites, individus) et non plus une route et un objet commun et générique complexe (#378 par @marcantoinedupre, @bastyen, @amandine-sahl)
+  - Création et généralisation de composants spécifiques pour les modules, groupes de sites et sites (@bastyen, @amandine-sahl et @pierre-narcisi)
+- Factorisation, clarification et simplification globale du code du module (par @amandine-sahl et @pierre-narcisi)
+- Complément de documentation (par @marie-laure-cen)
+
+**🐛 Corrections**
+
+- Correction du chargement des GeoJSON ou GPX sur la carte (#461 par @amandine-sahl et @pierre-narcisi)
+
 ## 1.1.0 (28-07-2025)
 
 Nécessite GeoNature 2.16.0 (ou plus)
