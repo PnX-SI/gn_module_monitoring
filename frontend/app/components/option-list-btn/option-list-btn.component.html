@@ -13,10 +13,10 @@
 <ng-template #buttonComp>
   <button
     mat-raised-button
-    [disabled]="!canCreateObj"
+    [disabled]="!canCreateChild"
     color="primary"
     class="btn btn-success float-right"
-    [ngClass]="{ isDisableBtn: !canCreateObj }"
+    [ngClass]="{ isDisableBtn: !canCreateChild }"
     (click)="canCreateChild ? onDeploy() : null"
     #ddTrigger="matMenuTrigger"
     [matMenuTriggerFor]="canCreateChild ? dd :null"

@@ -46,5 +46,6 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
+    [canCreateChild] = "currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
   ></option-list-btn>
 </pnx-monitoring-datatable-g>
