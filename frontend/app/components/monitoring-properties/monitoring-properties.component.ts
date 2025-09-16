@@ -44,6 +44,10 @@ export class MonitoringPropertiesComponent implements OnInit {
 
   ngOnInit() {
     this.backendUrl = this._configService.backendUrl();
+    // Si les permissions n'ont pas été initialisées
+    if (this.currentUser.moduleCruved == undefined) {
+      this.currentUser.moduleCruved = this._configService.moduleCruved(this.obj.moduleCode);
+    }
   }
 
   initPermission() {
