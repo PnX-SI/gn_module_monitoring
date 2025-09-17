@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.1 (2025-09-17)
+
+**🐛 Corrections**
+
+- Correction de l'affichage des fiches détail quand les exports PDF sont activés, régression de la 1.2.0 (#497 par @amandine-sahl)
+
 ## 1.2.0 (2025-09-12)
 
 Evolutions importantes des performances de chargement et factorisation, nettoyage global du code du module.
