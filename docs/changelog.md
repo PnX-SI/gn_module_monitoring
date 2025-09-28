@@ -1,5 +1,14 @@
 # CHANGELOG
 
+
+## 1.2.2 (2025-09-28)
+
+**🐛 Corrections**
+
+- Correction de l'affichage des sous-modules quand seuls les groupes de site sont définis dans l'objet `tree` de la config du sous-module (#500, #501 par @amandine-sahl)
+- Correction de la prise en compte des permissions d'ajout des marquages depuis la liste des individus (#500, #502 par @amandine-sahl)
+
+
 ## 1.2.1 (2025-09-17)
 
 **🐛 Corrections**
