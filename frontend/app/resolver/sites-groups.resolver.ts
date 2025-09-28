@@ -117,10 +117,21 @@ export class SitesGroupsResolver
 
             return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
               map(([processedSiteGroups, processedSites, processedIndividuals]) => {
+                // La configuration des objets enfants est renvoyée uniquement si l'objet est dans la liste des objets à afficher
+                // TODO ne pas récupérer les données et la config si l'objet n'est pas dans la liste des objets à afficher
                 return {
-                  sitesGroups: { data: processedSiteGroups, objConfig: configs[0] },
-                  sites: { data: processedSites, objConfig: configs[1] },
-                  individuals: { data: processedIndividuals, objConfig: configs[2] },
+                  sitesGroups: {
+                    data: processedSiteGroups,
+                    objConfig: this.listChildObjectType.includes('sites_group') ? configs[0] : null,
+                  },
+                  sites: {
+                    data: processedSites,
+                    objConfig: this.listChildObjectType.includes('site') ? configs[1] : null,
+                  },
+                  individuals: {
+                    data: processedIndividuals,
+                    objConfig: this.listChildObjectType.includes('individual') ? configs[2] : null,
+                  },
                   route: route['_urlSegment'].segments[3].path,
                   permission: this.currentPermission,
                   moduleCode,
