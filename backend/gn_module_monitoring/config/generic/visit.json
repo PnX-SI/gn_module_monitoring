@@ -41,9 +41,11 @@
     },
     "observers": {
       "type_widget": "observers",
-      "attribut_label": "Observateur",
+      "attribut_label": "Observateurs",
       "type_util": "user",
-      "code_list": "CODE_OBSERVERS_LIST",
+      "id_list": "__MODULE.ID_LIST_OBSERVER",
+      "multi_select": true,
+      "hidden": false,
       "required": true,
       "multi_select": true
     },
