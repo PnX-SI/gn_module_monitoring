@@ -181,6 +181,7 @@ class MonitoringImportActions(ImportActions):
                 else:
                     complement_fields.append(field)
 
+
             core_select_cols = [sa.literal(imprt.id_import).label("id_import")]
             core_select_cols.extend(
                 transient_table.c[field.dest_field].label(
@@ -201,6 +202,11 @@ class MonitoringImportActions(ImportActions):
                     transient_table.c.line_no
                 )  # Required for the process of inserting observation complements
             )
+            
+            # IF NO ENTITY to INSERT continue
+            count_entity_to_import=db.session.scalar(sa.select(sa.func.count("*")).select_from(core_select_stmt.subquery()))
+            if count_entity_to_import <1:
+                continue
 
             id_col_name = f"id_base_{entity.code}"
             json_args = []
