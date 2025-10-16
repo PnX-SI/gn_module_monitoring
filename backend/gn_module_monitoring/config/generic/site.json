@@ -60,12 +60,17 @@
       "attribut_label": "Description"
     },
     "id_inventor": {
-      "type_widget": "observers",
-      "attribut_label": "Observateur",
+      "type_widget": "datalist",
+      "attribut_label": "Observateurs",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
       "type_util": "user",
-      "id_list": "__MODULE.ID_LIST_OBSERVER",
+      "multiple": false,
+      "hidden": false,
       "required": true,
-      "multi_select": false
+      "designStyle": "bootstrap"
     },
     "id_digitiser": {
       "type_widget": "text",
