@@ -15,7 +15,7 @@ from gn_module_monitoring.command.cmd import (
     cmd_add_module_nomenclature_cli,
     synchronize_synthese,
     cmd_install_monitoring_module,
-    cmd_add_update_import_on_protocole
+    cmd_add_update_import_on_protocole,
 )
 from gn_module_monitoring.command.imports.protocol import get_protocol_data
 from gn_module_monitoring.monitoring.models import TMonitoringModules

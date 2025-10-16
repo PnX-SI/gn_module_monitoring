@@ -10,7 +10,7 @@ from werkzeug.exceptions import Forbidden
 
 from flask import request, url_for, g, current_app
 
-from sqlalchemy import select,update
+from sqlalchemy import select, update
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
@@ -144,7 +144,6 @@ def create_or_update_object_api(module_code, object_type, id=None):
 
     # recupération des données post
     post_data = dict(request.get_json())
-    
 
     # on rajoute id_module s'il n'est pas renseigné par défaut
     post_data["properties"].setdefault("id_module", None)

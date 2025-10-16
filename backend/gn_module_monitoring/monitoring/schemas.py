@@ -63,7 +63,7 @@ def add_specific_attributes(schema, object_type, module_code):
     parameters = {"model": model_class, "exclude": ["data"], "include_fk": True}
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson", "geom"])
-    if issubclass(model_class,TBaseSites):
+    if issubclass(model_class, TBaseSites):
         parameters["exclude"].extend(["geom_local"])
     Meta = type("Meta", (), parameters)
 

@@ -126,7 +126,7 @@ def insert_entities(
             "id_unique_column": id_field,
             "id_parent": id_parent,
             "id_object": id_object,
-            "id_uuid_column":uuid_field
+            "id_uuid_column": uuid_field,
         }
 
         order += 1

@@ -99,8 +99,6 @@ def cmd_install_monitoring_module(module_code):
         click.secho(f"config directory for module {module_code} does not exist", fg="red")
         return None
 
-    
-
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
     # process Synthese
@@ -148,8 +146,6 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     # insert nomenclature
     add_nomenclature(module_code)
 
-    
-
     source_data = {
         "name_source": "MONITORING_{}".format(module_code.upper()),
         "desc_source": "Données issues du module de suivi générique (sous-module: {})".format(
@@ -175,9 +171,11 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
 @click.argument("module_code", type=str, required=True)
 @with_appcontext
 def cmd_add_update_import_on_protocole(module_code):
-    module_code_installed = [module['module_code'] for module in installed_modules()]
+    module_code_installed = [module["module_code"] for module in installed_modules()]
     if not module_code in module_code_installed:
-        raise KeyError(f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !")
+        raise KeyError(
+            f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !"
+        )
 
     config = get_config(module_code, force=True)
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
@@ -216,11 +214,10 @@ def cmd_add_update_import_on_protocole(module_code):
             return
     except Exception:
         pass
-    
+
     # Ajouter les destinations disponibles
     process_module_import(module_data)
     DB.session.commit()
-    
 
 
 @click.command("update_module_available_permissions")
@@ -298,5 +295,5 @@ commands = [
     cmd_add_module_nomenclature_cli,
     cmd_process_sql,
     synchronize_synthese,
-    cmd_add_update_import_on_protocole
+    cmd_add_update_import_on_protocole,
 ]
