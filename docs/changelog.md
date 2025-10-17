@@ -5,7 +5,7 @@
 **🐛 Corrections**
 
 - Rétrocompatibilité de la redirection du menu latéral vers le protocole monitoring (#506 par @amandine-sahl)
-- Correction des formulaires concernant les observateurs dans l'édition de site et l'édition de visites (#508 par @amandine-sahl)
+- Correction des formulaires concernant les observateurs dans l'édition de site et l'édition de visite (#508 par @amandine-sahl)
 
 
 ## 1.2.2 (2025-09-28)
