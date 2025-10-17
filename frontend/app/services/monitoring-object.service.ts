@@ -174,47 +174,46 @@ export class MonitoringObjectService {
     let x = val;
     // valeur par default depuis la config schema
     x = [undefined, null].includes(x) ? elem.value || null : x;
+    if (elem.type_widget == 'date') {
+      const date = new Date(x);
+      x = x
+        ? {
+            year: date.getUTCFullYear(),
+            month: date.getUTCMonth() + 1,
+            day: date.getUTCDate(),
+          }
+        : null;
+    } else if (elem.type_widget === 'observers') {
+      const codeListObservers = this._configService.codeListObservers();
+      // Gestion des observateurs multiples
+      if (!Array.isArray(val)) val = [val];
 
-    switch (elem.type_widget) {
-      case 'date': {
-        const date = new Date(x);
-        x = x
-          ? {
-              year: date.getUTCFullYear(),
-              month: date.getUTCMonth() + 1,
-              day: date.getUTCDate(),
-            }
-          : null;
-        break;
-      }
-      case 'observers': {
-        const codeListObservers = this._configService.codeListObservers();
-        x == null
-          ? (x = [])
-          : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
-              mergeMap((users) => {
-                let currentUser;
-                if (Array.isArray(users)) {
-                  for (const user of users) {
-                    if (user.id_role == val) {
-                      currentUser = user;
-                    }
+      x == null
+        ? (x = [])
+        : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
+            // Cas des observateurs multiples à gérer
+            mergeMap((users: any) => {
+              let currentUser = [];
+              if (!Array.isArray(users)) {
+                return of(null);
+              }
+              for (const user of users) {
+                for (const obs of val) {
+                  if (user.id_role == obs) {
+                    currentUser.push(user);
                   }
-                } else {
-                  return of(null);
                 }
-                return of([currentUser]);
-              })
-            ));
-        break;
-      }
-      case 'taxonomy': {
-        x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
-        break;
-      }
-    }
-
-    if (
+              }
+              //Si non multiple on renvoie le premier élément ou null
+              if (!elem.multi_select) {
+                currentUser = currentUser.length ? currentUser[0] : null;
+              }
+              return of(currentUser);
+            })
+          ));
+    } else if (elem.type_widget === 'taxonomy') {
+      x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
+    } else if (
       elem.type_util === 'nomenclature' &&
       Utils.isObject(x) &&
       x.code_nomenclature_type &&
@@ -242,8 +241,13 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        //  x = x ? this._dataUtilsService.getUtil('user', x, 'nom_complet') : null;
-        x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
+        if ('multi_select' in elem && elem.multi_select) {
+          x = x.map((item) => {
+            return item.id_role;
+          });
+        } else {
+          x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
+        }
         break;
       }
       case 'taxonomy': {

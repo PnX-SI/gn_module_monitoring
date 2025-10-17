@@ -15,7 +15,7 @@ title: 'Création d''un sous-module'
   - [Redéfinir une variable existante](#redéfinir-une-variable-existante)
   - [`datalists`](#datalists)
   - [Les paramètres dynamiques](#les-paramètres-dynamiques)
-    - [Exemples champs des formulaires](#exemples-champs-des-formulaires) 
+    - [Exemples champs des formulaires](#exemples-champs-des-formulaires)
     - [Exemples variable `change`](#exemples-variable-change)
 - [Nomenclature](#nomenclature)
 - [Configuration de la carte](#configuration-de-la-carte)
@@ -39,7 +39,7 @@ title: 'Création d''un sous-module'
 
 S'ajoute à ces fichiers,  des fichiers de config de `types de site` que l'on devra associer aux sous modules installés.
 
-Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux imags ci dessous) . 
+Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux imags ci dessous) .
 
 <details><summary> Images représentant l'interface administrateur au niveau du menu "Types de site"</summary>
 
@@ -252,9 +252,10 @@ pour les datalist). Voir ci dessous
 | number                                  | max                    | Valeur maximum de l'input                                                                                                                         |
 | nomenclature                            | code_nomenclature_type | Code de la nomenclature à afficher                                                                                                                |
 | nomenclature                            | cd_nomenclatures       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items de nomenclatures que l'on ne veut pas pour ce sous-module)               |
-| nomenclature / dataset                  | multi_select           | Booléan : permet de seléctionner plusieurs items de nomenclatures                                                                                 |
+| nomenclature / dataset / observers      | multi_select           | Booléan : permet de seléctionner plusieurs items dans la liste de valeurs                                                                         |
 | dataset                                 | module_code            | Limite aux jeu de données associés à ce module                                                                                                    |
 | html                                    | html                   | Contenu du bloc html                                                                                                                              |
+
 
 ## Définir une nouvelle variable
 
@@ -497,15 +498,15 @@ Par exemple :
 
 ## Les paramètres dynamiques
 
-Il est possible de définir des fonctions javascript (sous forme de chaine de caractères) qui peuvent modifier les comportements et valeurs du formulaire. 
+Il est possible de définir des fonctions javascript (sous forme de chaine de caractères) qui peuvent modifier les comportements et valeurs du formulaire.
 
 **Ce cas n'est pris en compte que pour les composants spécifiques, ou pour les composants redéfinis dans `specific`**
 
 Il est possible de définir des fonctions à deux niveaux:
 * au niveau de chaque champ du formulaire
 * au niveau global au formulaire (via la fonction change)
-  
-Les variables accessibles en fonction des différents contextes sont les suivantes : 
+
+Les variables accessibles en fonction des différents contextes sont les suivantes :
 * `value` : la valeur du formulaire. Dans le contexte d'un champ specific
 * `attribut_name` : du composant concerné. Dans le contexte d'un champ specific
 * `objForm` : Formulaire. Dans le contexte de la fonction change
@@ -514,8 +515,8 @@ Les variables accessibles en fonction des différents contextes sont les suivant
     * `dataset` : liste des jdds disponibles pour l'utilisateur et le module
     * `id_role` : identifiant de l'utilisateur courant
     * `bChainInput`:  si on enchaîne les relevés
-    * `parents`: Objets parents. Permet de récupérer les valeurs définies dans le parents. 
- 
+    * `parents`: Objets parents. Permet de récupérer les valeurs définies dans le parents.
+
 
 La chaîne de caractère qui décrit la fonction doit être de la forme
 suivante :
@@ -532,7 +533,7 @@ Le format JSON ne permet pas les sauts de ligne dans les chaînes de caractère,
         "}"
     ]
 ```
- 
+
 
 ### Exemples champs des formulaires
 
@@ -574,7 +575,7 @@ Dans le fichier `site.json`
 
 ### Exemples variable `change`
 
-On peut y définir une fonction qui sera appelée chaque fois que le formulaire change. 
+On peut y définir une fonction qui sera appelée chaque fois que le formulaire change.
 
 **Exemple utilisation de objForm**
 Un exemple (`module.json` du module test) :
@@ -611,7 +612,7 @@ Un exemple (`module.json` du module test) :
 ```
 
 Ici on donne à la variable `test3` la valeur `<test>_<test2>`. Le test `!objForm.controls.test3.dirty` permet de ne modifier la variable que si l'utilisateur ne l'a pas modifié manuellement.
- 
+
 
 **Exemple valeur par défaut en fonction des valeurs du formulaire parent**
 Il est possible avec meta de récupérer les données du niveau supérieur. Voici un exemple sur la réutilisation de valeurs au niveau du site pour pré-remplir les champs au niveau de la visite:
@@ -640,7 +641,7 @@ Fichier de configuration du niveau site:
 }
 ```
 
-Fichier de configuration du niveau visite: 
+Fichier de configuration du niveau visite:
 
 ```json
 {
@@ -653,7 +654,7 @@ Fichier de configuration du niveau visite:
       "values": [...],
       "required": true,
       "hidden": false
-    }, 
+    },
     "gestion":{
       "attribut_label": "Gestion",
       "type_widget": "select",
