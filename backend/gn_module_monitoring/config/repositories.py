@@ -27,7 +27,7 @@ config_cache_name = "MONITORINGS_CONFIG"
 
 def get_config_objects(module_code, config, tree=None, parent_type=None):
     """
-    recupere la config de chaque object present dans tree pour le module <module_code>
+    Récupère la config de chaque object present dans tree pour le module <module_code>
     """
     if not tree:
         # initial tree
@@ -83,7 +83,7 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
 
 def config_object_from_files(module_code, object_type, custom=None):
     """
-    recupere la configuration d'un object de type <object_type> pour le module <module_code>
+    Récupère la configuration d'un object de type <object_type> pour le module <module_code>
     """
     generic_config_object = json_config_from_file("generic", object_type)
     specific_config_object = (
@@ -142,9 +142,9 @@ def config_object_from_files(module_code, object_type, custom=None):
 
 def get_config(module_code=None, force=False):
     """
-    recupere la configuration pour le module monitoring
+    Récupère la configuration pour le module monitoring
 
-    si la configuration en presente dans le dictionnaire current_app.config
+    si la configuration en présente dans le dictionnaire current_app.config
     et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
         alors la configuration est récupéré depuis current_app.config
     sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
@@ -181,8 +181,15 @@ def get_config(module_code=None, force=False):
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config)
 
-    # customize config
-    config["custom"] = {}
+    # Si module est `generic`
+    config["custom"] = {
+        "CODE_OBSERVERS_LIST": current_app.config["MONITORINGS"]["CODE_OBSERVERS_LIST"],
+        "DESCRIPTION_MODULE": current_app.config["MONITORINGS"]["TITLE_MODULE"],
+        "PERMISSION_LEVEL": current_app.config["MONITORINGS"]["PERMISSION_LEVEL"],
+        "__MODULE.MODULE_CODE": "generic",
+        "__MODULE.ID_MODULE": None,
+        "__MODULE.B_SYNTHESE": False,
+    }
     if module:
         for field_name in [
             "module_code",
@@ -209,14 +216,6 @@ def get_config(module_code=None, force=False):
 
             # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
             config["data"] = get_data_preload(config, module)
-    else:
-        # Si module est généric
-        config["custom"]["CODE_OBSERVERS_LIST"] = current_app.config["MONITORINGS"].get(
-            "CODE_OBSERVERS_LIST", {}
-        )
-        config["custom"]["__MODULE.MODULE_CODE"] = "generic"
-        config["custom"]["__MODULE.ID_MODULE"] = None
-        config["custom"]["__MODULE.B_SYNTHESE"] = False
 
     config["display_field_names"] = config["default_display_field_names"]
     config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
