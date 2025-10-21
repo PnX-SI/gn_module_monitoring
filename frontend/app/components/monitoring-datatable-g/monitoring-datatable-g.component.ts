@@ -12,6 +12,7 @@ import {
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { IColumn } from '../../interfaces/column';
@@ -101,7 +102,8 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   constructor(
     private _dataTableService: DataTableService,
-    private _commonService: CommonService
+    private _commonService: CommonService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {

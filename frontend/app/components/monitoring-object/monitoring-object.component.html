@@ -1,6 +1,6 @@
 <div class="object">
   <pnx-modal-msg [bDisplayModal]="!(obj && obj.bIsInitialized)">
-    <h2>Chargement en cours</h2>
+    <h2>{{ 'Monitoring.Module.Loading' | translate }}</h2>
     <div>
       <span class="center spinner-border" role="status" aria-hidden="true"></span>
     </div>
@@ -29,9 +29,9 @@
         <span class="obj-title" *ngIf="obj.bIsInitialized" [innerHTML]="obj.titleHTML(this.bEdit)"></span>
       </div>
       <div *ngIf="!moduleSet && obj.bIsInitialized" class="alert alert-warning">
-        <p>Le module n'est pas encore configuré.</p>
+        <p>{{ 'Monitoring.Module.NotConfigured' | translate }}</p>
 
-        <p>Veuillez éditer le module et renseigner les champs requis.</p>
+        <p>{{ 'Monitoring.Module.EditModule' | translate }}</p>
       </div>
 
       <pnx-monitoring-properties id="nav-properties" [obj]="obj" *ngIf="!bEdit && obj.bIsInitialized" [(bEdit)]="bEdit"

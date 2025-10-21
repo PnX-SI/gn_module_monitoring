@@ -45,7 +45,7 @@
   <option-list-btn
     add-button
     placeholder="Sélectionner le protocole"
-    label="Ajouter une visite"
+    label="{{ 'Monitoring.Sites.addVisit' | translate }}"
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"

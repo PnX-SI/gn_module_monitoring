@@ -37,7 +37,7 @@
       />
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" classList="width-mat">
         <mat-option *ngIf="optionList?.length == 0; else elseBlock" disabled
-          >Aucun protocole n'est disponible pour ce type de site</mat-option
+          >{{ 'Monitoring.List.NoModules' | translate }}</mat-option
         >
         <ng-template #elseBlock>
           <mat-option *ngFor="let option of optionList" [value]="option">
@@ -47,8 +47,8 @@
       </mat-autocomplete>
     </mat-form-field>
     <div>
-      <button mat-flat-button color="primary" (click)="onSave()">Ajouter</button>
-      <button mat-button (click)="canCreateChild ? onCancel() : null">Annuler</button>
+      <button mat-flat-button color="primary" (click)="onSave()">{{ 'Monitoring.List.Add' | translate }}</button>
+      <button mat-button (click)="canCreateChild ? onCancel() : null">{{ 'Monitoring.List.Cancel' | translate }}</button>
     </div>
   </div>
 </mat-menu>
