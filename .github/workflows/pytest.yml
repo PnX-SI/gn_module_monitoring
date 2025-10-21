@@ -4,10 +4,11 @@ on:
   push:
     paths:
       - "backend/**"
+      - "backend/**"
     branches:
       - main
       - hotfixes
-      - develop 
+      - develop
   pull_request:
     paths:
       - "backend/**"
@@ -15,6 +16,7 @@ on:
       - main
       - hotfixes
       - develop
+      - refact-config
 
 jobs:
   build:
