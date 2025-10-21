@@ -22,7 +22,7 @@ from gn_module_monitoring.config.utils import (
 from gn_module_monitoring.utils.utils import dict_deep_update
 
 # pour stocker la config dans current_app.config
-CONFIG_CACHE_NAME = "MONITORINGS_CONFIG"
+CONFIG_CACHE_NAME = config_cache_name = "MONITORINGS_CONFIG"
 
 
 def get_config_objects(module_code, config, tree=None, parent_type=None):
