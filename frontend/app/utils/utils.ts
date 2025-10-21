@@ -121,7 +121,6 @@ export class Utils {
     }, {});
     return filteredObject;
   }
-
 }
 
 export function buildObjectResolvePropertyProcessing(

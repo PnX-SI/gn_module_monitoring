@@ -101,7 +101,6 @@ export class ApiService<T = IObject> implements IService<T> {
     const objectType = this.objectObs.objectType;
     const label = this._configService.configModuleObjectParam(moduleCode, objectType, 'label');
 
-
     let labels = {
       label: label,
     };
