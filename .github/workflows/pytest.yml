@@ -3,7 +3,7 @@ name: pytest
 on:
   push:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
@@ -11,12 +11,12 @@ on:
       - improve-module-part-indivuduals
   pull_request:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
       - develop
-      - improve-module-part-indivuduals
+      - refact-config
 
 jobs:
   build:
