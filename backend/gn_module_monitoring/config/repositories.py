@@ -308,7 +308,7 @@ def get_config_v2(module_code=None, force=False):
 
     for object_ in get_object_list(config.get("tree", [])):
         config[object_]["fields"] = config[object_].pop("generic")
-        config[object_].update(config[object_].pop("specific", {}))
+        config[object_]["fields"].update(config[object_].pop("specific", {}))
 
     # Mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(CONFIG_CACHE_NAME, {}):
@@ -325,4 +325,4 @@ def get_object_list(tree):
     object_ = list(tree.keys())
     for key in tree:
         object_.extend(get_object_list(tree[key]))
-    return object_
+    return set(object_)
