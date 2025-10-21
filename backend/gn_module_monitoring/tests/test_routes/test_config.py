@@ -18,7 +18,7 @@ class TestRouteConfig:
         "route,fields_key",
         [("monitorings.get_config_api", "specific"), ("monitorings.get_config_apiV2", "fields")],
     )  # TODO remove when new config API is official
-    def test_get_config_module(self, install_module_test, users,route,fields_key):
+    def test_get_config_module(self, install_module_test, users, route, fields_key):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(url_for(route, module_code="test"))
 
