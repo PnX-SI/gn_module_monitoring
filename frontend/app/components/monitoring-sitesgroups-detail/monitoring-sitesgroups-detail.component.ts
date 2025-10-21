@@ -22,6 +22,7 @@ import { PermissionService } from '../../services/permission.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { CacheService } from '../../services/cache.service';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 const LIMIT = 10;
 
@@ -42,7 +43,6 @@ export class MonitoringSitesgroupsDetailComponent
   @Input() bEdit: boolean;
   form: FormGroup;
   objectType: IobjObs<ISite>;
-  objParent: any;
 
   modules: SelectObject[];
   modulSelected;
@@ -73,6 +73,7 @@ export class MonitoringSitesgroupsDetailComponent
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     private _formService: FormService,
     private _permissionService: PermissionService,
     private _popup: Popup,
@@ -84,7 +85,9 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
-    this.moduleCode = this._Activatedroute.snapshot.data.detailSitesGroups.moduleCode;
+    this._Activatedroute.data.subscribe(({ data }) => {
+      this.moduleCode = data.moduleCode;
+    });
 
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
@@ -122,10 +125,10 @@ export class MonitoringSitesgroupsDetailComponent
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {
-          this._siteService.setModuleCode(`${this.moduleCode}`);
-          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+          this._siteService.initConfig();
+          this._sitesGroupService.initConfig();
 
-          const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+          const fieldsConfig = this._configServiceG.config()['site']['fields'];
           // Récupération des sites et résolution des propriétés
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
@@ -142,8 +145,6 @@ export class MonitoringSitesgroupsDetailComponent
               }
             }),
             sites: sitedata$,
-            objObsSite: this._siteService.initConfig(),
-            objObsSiteGp: this._sitesGroupService.initConfig(),
             obj: this.obj.get(0),
           }).pipe(
             map((data) => {
@@ -164,20 +165,19 @@ export class MonitoringSitesgroupsDetailComponent
           limit: sites.limit,
         };
 
-        this.colsname = data.objObsSite.dataTable.colNameObj;
-        this.objParent = data.objObsSiteGp;
-
         this.setDataTableObjData(
           {
             sites: {
               data: sites,
-              objConfig: data.objObsSite,
+              objType: 'site',
             },
           },
-          this._configService,
+          this._configServiceG,
           this.moduleCode,
           ['site', 'individual']
         );
+
+        this.colsname = this.dataTableConfig[0]['colNameObj'];
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
@@ -254,7 +254,7 @@ export class MonitoringSitesgroupsDetailComponent
   getSitesFromSiteGroupId(page, params) {
     const sitesParams = { ...params, ...this.baseFilters };
     // Tableau
-    const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+    const fieldsConfig = this._configServiceG.config()['site']['fields'];
     this._sitesGroupService
       .getSitesChildResolved(1, this.limit, sitesParams, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
