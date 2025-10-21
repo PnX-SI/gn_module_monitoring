@@ -10,13 +10,7 @@ export interface IobjObs<T> {
   objectType: 'site' | 'sites_group' | 'visit' | 'individual';
   routeBase: 'site' | 'sites_group' | 'visit' | 'individual';
   label: string;
-  addObjLabel: string;
-  editObjLabel: string;
-  detailObjLabel: string;
-  seeObjLabel: string;
-  addChildLabel?: string;
   childType?: string;
-  deleteObjLabel: string;
   id: string | null;
   moduleCode: string;
   schema: JsonData;
