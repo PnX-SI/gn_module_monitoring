@@ -96,6 +96,10 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   activetabType: string;
 
+  labelEdit: string;
+  labelDelete: string;
+  labelAdd: string;
+
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
   @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
@@ -107,6 +111,10 @@ export class MonitoringDatatableGComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.labelEdit = this._translate.instant('Actions.Edit');
+    this.labelDelete = this._translate.instant('Actions.Delete');
+    this.labelAdd = this._translate.instant('Actions.Add');
+
     this.subscribeToParentEmitter();
     this.initDatatable();
   }

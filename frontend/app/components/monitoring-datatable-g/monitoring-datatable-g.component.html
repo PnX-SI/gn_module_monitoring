@@ -101,7 +101,7 @@
                   <a
                     class="nav-link link cell-link"
                     (click)="navigateToDetail(row)"
-                    matTooltip="_translate.instant('Actions.Detail')"
+                    matTooltip="{{ 'Detail' | translate }}"
                   >
                     <i class="fa fa-eye" aria-hidden="true"></i>
                   </a>
@@ -117,7 +117,7 @@
                         class="nav-link link cell-link"
                         (click)="canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
                         [matTooltip]="
-                          canCreateChild ? _translate.instant('Actions.Add') : toolTipNotAllowed
+                          canCreateChild ? labelAdd : toolTipNotAllowed
                         "
                       >
                         <i
@@ -145,7 +145,7 @@
                     class="nav-link link cell-link"
                     (click)="row.cruved['U'] ? editSelectedItem(row) : null"
                     [matTooltip]="
-                      row.cruved['U'] ? _translate.instant('Actions.Edit')  : toolTipNotAllowed
+                      row.cruved['U'] ? labelEdit  : toolTipNotAllowed
                     "
                   >
                     <i
@@ -164,7 +164,7 @@
                       class="nav-link link cell-link"
                       (click)="row.cruved['D'] ? alertMessage(row) : null"
                       [matTooltip]="
-                        row.cruved['D'] ? _translate.instant('Actions.Delete') : toolTipNotAllowed
+                        row.cruved['D'] ? labelDelete : toolTipNotAllowed
                       "
                     >
                       <i

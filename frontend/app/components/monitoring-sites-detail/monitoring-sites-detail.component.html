@@ -1,6 +1,6 @@
 <div>
   <span class="obj-title" *ngIf="bEdit">{{'Actions.Edit' | translate }} </span>
-  <span class="obj-title" *ngIf="!bEdit">{{ 'Actions.Detail' | translate }} </span>
+  <span class="obj-title" *ngIf="!bEdit">{{ 'Detail' | translate }} </span>
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
 <pnx-monitoring-form [obj]="obj" [objForm]="form"
