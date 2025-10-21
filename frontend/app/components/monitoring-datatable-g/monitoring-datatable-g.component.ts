@@ -98,6 +98,10 @@ export class MonitoringDatatableGComponent implements OnInit {
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   activetabType: string;
+
+  labelEdit: string;
+  labelDelete: string;
+  labelAdd: string;
   public importAvailable = false;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
@@ -108,11 +112,15 @@ export class MonitoringDatatableGComponent implements OnInit {
     private _dataTableService: DataTableService,
     private _commonService: CommonService,
     private _configService: ConfigService,
-    private translate: TranslateService,
+    public _translate: TranslateService,
     private httpClient: HttpClient
   ) {}
 
   ngOnInit() {
+    this.labelEdit = this._translate.instant('Actions.Edit');
+    this.labelDelete = this._translate.instant('Actions.Delete');
+    this.labelAdd = this._translate.instant('Actions.Add');
+
     this.subscribeToParentEmitter();
     this.initDatatable();
     this.isImportDestinationAvailable();
@@ -368,7 +376,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   msgToaster(action) {
-    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
     return `${action}  effectuée`.trim();
   }
 
