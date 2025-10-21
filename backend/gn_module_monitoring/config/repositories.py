@@ -22,7 +22,7 @@ from gn_module_monitoring.config.utils import (
 from gn_module_monitoring.utils.utils import dict_deep_update
 
 # pour stocker la config dans current_app.config
-config_cache_name = "MONITORINGS_CONFIG"
+CONFIG_CACHE_NAME = "MONITORINGS_CONFIG"
 
 
 def get_config_objects(module_code, config, tree=None, parent_type=None):
@@ -57,8 +57,6 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
         config[object_type]["parent_types"] = list(
             dict.fromkeys(config[object_type]["parent_types"])
         )
-
-        # config[object_type]['parent_type'] = parent_type
 
         # schema
         process_schema(object_type, config)
@@ -142,9 +140,9 @@ def config_object_from_files(module_code, object_type, custom=None):
 
 def get_config(module_code=None, force=False):
     """
-    Récupère la configuration pour le module monitoring
+    recupere la configuration pour le module monitoring
 
-    si la configuration en présente dans le dictionnaire current_app.config
+    si la configuration en presente dans le dictionnaire current_app.config
     et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
         alors la configuration est récupéré depuis current_app.config
     sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
@@ -181,6 +179,90 @@ def get_config(module_code=None, force=False):
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config)
 
+    # customize config
+    config["custom"] = {}
+    if module:
+        for field_name in [
+            "module_code",
+            "id_list_observer",
+            "id_list_taxonomy",
+            "b_synthese",
+            "b_draw_sites_group",
+            "taxonomy_display_field_name",
+            "id_module",
+            "cd_nom",
+        ]:
+            var_name = "__MODULE.{}".format(field_name.upper())
+            config["custom"][var_name] = getattr(module, field_name)
+            config["module"][field_name] = getattr(module, field_name)
+
+            config["custom"]["__MODULE.TYPES_SITE"] = [
+                type_site.as_dict() for type_site in module.types_site
+            ]
+            config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
+                {"id_nomenclature_type_site": t.id_nomenclature_type_site}
+                for t in module.types_site
+            ]
+            config["default_display_field_names"].update(config.get("display_field_names", {}))
+
+            # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
+            config["data"] = get_data_preload(config, module)
+    else:
+        # Si module est généric
+        config["custom"]["CODE_OBSERVERS_LIST"] = current_app.config["MONITORINGS"].get(
+            "CODE_OBSERVERS_LIST", {}
+        )
+        config["custom"]["__MODULE.MODULE_CODE"] = "generic"
+        config["custom"]["__MODULE.ID_MODULE"] = None
+        config["custom"]["__MODULE.B_SYNTHESE"] = False
+
+    config["display_field_names"] = config["default_display_field_names"]
+    config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
+    # Remplacement des variables __MODULE.XXX
+    #   par les valeurs spécifiées en base
+    customize_config(config, config["custom"])
+
+    # mise en cache dans current_app.config[config_cache_name][module_code]
+    if not current_app.config.get(config_cache_name, {}):
+        current_app.config[config_cache_name] = {}
+    current_app.config[config_cache_name][module_code] = config
+
+    return config
+
+
+def get_config_v2(module_code=None, force=False):
+    """
+    Récupère la configuration pour le module monitoring
+
+    Si la configuration en présente dans le dictionnaire current_app.config
+    et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
+        alors la configuration est récupéré depuis current_app.config
+    sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
+    """
+    if module_code == "MONITORINGS":
+        module_code = "generic"
+    module_code = module_code if module_code else "generic"
+
+    module_config_dir_path = monitoring_module_config_path(module_code)
+    # test si le repertoire existe
+    if module_code != "generic" and not os.path.exists(module_config_dir_path):
+        return
+
+    # Si la configuration a été chargé précédemment
+    if (
+        config := current_app.config.get(
+            CONFIG_CACHE_NAME,
+            {},
+        ).get(module_code)
+        and not force
+    ):
+        return config
+
+    module = get_monitoring_module(module_code)
+
+    config = config_from_files("config", module_code)
+    get_config_objects(module_code, config)
+
     # Si module est `generic`
     config["custom"] = {
         "CODE_OBSERVERS_LIST": current_app.config["MONITORINGS"]["CODE_OBSERVERS_LIST"],
@@ -189,6 +271,7 @@ def get_config(module_code=None, force=False):
         "__MODULE.MODULE_CODE": "generic",
         "__MODULE.ID_MODULE": None,
         "__MODULE.B_SYNTHESE": False,
+        "__MONITORINGS_PATH": get_monitorings_path(),
     }
     if module:
         for field_name in [
@@ -218,23 +301,28 @@ def get_config(module_code=None, force=False):
             config["data"] = get_data_preload(config, module)
 
     config["display_field_names"] = config["default_display_field_names"]
-    config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
-    # Remplacement des variables __MODULE.XXX
-    #   par les valeurs spécifiées en base
+
+    # Remplacement de certaines valeurs de la config si elles correspondent à
+    # un identifiant d'une variable définie en base ou dans la configuration de monitorings
     customize_config(config, config["custom"])
 
-    # mise en cache dans current_app.config[config_cache_name][module_code]
-    if not current_app.config.get(config_cache_name, {}):
-        current_app.config[config_cache_name] = {}
-    current_app.config[config_cache_name][module_code] = config
+    for object_ in get_object_list(config.get("tree", [])):
+        config[object_]["fields"] = config[object_].pop("generic")
+        config[object_].update(config[object_].pop("specific", {}))
+
+    # Mise en cache dans current_app.config[config_cache_name][module_code]
+    if not current_app.config.get(CONFIG_CACHE_NAME, {}):
+        current_app.config[CONFIG_CACHE_NAME] = {}
+    current_app.config[CONFIG_CACHE_NAME][module_code] = config
 
     return config
 
 
-# def get_config_from_backend(module_code=None, force=False):
-
-#     module_code = 'generic'
-#     #TODO: voir la sortie de cette fonction
-#     config = config_from_backend('config', module_code)
-#     #TODO: voir également à quoi sert cette fonction
-#     get_config_objects(module_code, config)
+def get_object_list(tree):
+    object_ = []
+    if not tree:
+        return object_
+    object_ = list(tree.keys())
+    for key in tree:
+        object_.extend(get_object_list(tree[key]))
+    return object_
