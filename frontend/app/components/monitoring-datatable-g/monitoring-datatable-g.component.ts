@@ -12,6 +12,7 @@ import {
 import { DatatableComponent } from '@swimlane/ngx-datatable';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { IColumn } from '../../interfaces/column';
@@ -95,16 +96,25 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   activetabType: string;
 
+  labelEdit: string;
+  labelDelete: string;
+  labelAdd: string;
+
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
   @ViewChild('hdrTpl') hdrTpl: TemplateRef<any>;
 
   constructor(
     private _dataTableService: DataTableService,
-    private _commonService: CommonService
+    private _commonService: CommonService,
+    public _translate: TranslateService
   ) {}
 
   ngOnInit() {
+    this.labelEdit = this._translate.instant('Actions.Edit');
+    this.labelDelete = this._translate.instant('Actions.Delete');
+    this.labelAdd = this._translate.instant('Actions.Add');
+
     this.subscribeToParentEmitter();
     this.initDatatable();
   }
@@ -359,7 +369,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   msgToaster(action) {
-    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
     return `${action}  effectuée`.trim();
   }
 

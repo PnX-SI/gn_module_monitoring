@@ -99,43 +99,12 @@ export class ApiService<T = IObject> implements IService<T> {
   protected getModuleObjetTypeLabels(): {} {
     const moduleCode = this.objectObs.moduleCode;
     const objectType = this.objectObs.objectType;
-    const childObjectType = this.objectObs.childType;
-
-    const genre = this._configService.configModuleObjectParam(moduleCode, objectType, 'genre');
     const label = this._configService.configModuleObjectParam(moduleCode, objectType, 'label');
-
-    let nouveauLabel = Utils.labelNew(genre, label);
-    let articleDuLabel = Utils.labelDu(genre, label);
-    let articleLabel = Utils.labelArtDef(genre, label);
-    let articleUndefLabel = Utils.labelArtUndef(genre);
 
     let labels = {
       label: label,
-      addObjLabel: `Ajouter ${articleUndefLabel} ${nouveauLabel} ${label.toLowerCase()}`,
-      editObjLabel: `Editer ${articleLabel} ${label.toLowerCase()}`,
-      seeObjLabel: `Consulter ${articleLabel} ${label.toLowerCase()}`,
-      deleteObjLabel: `Supprimer ${articleLabel} ${label.toLowerCase()}`,
-      detailObjLabel: `Detail ${articleDuLabel} ${label.toLowerCase()}`,
     };
 
-    if (childObjectType) {
-      const genreChild = this._configService.configModuleObjectParam(
-        moduleCode,
-        childObjectType,
-        'genre'
-      );
-      const labelChild = this._configService.configModuleObjectParam(
-        moduleCode,
-        childObjectType,
-        'label'
-      );
-      if (labelChild) {
-        labels['addChildLabel'] = `Ajouter ${Utils.labelArtUndef(genreChild)} ${Utils.labelNew(
-          genreChild,
-          labelChild
-        )} ${labelChild.toLowerCase()}`;
-      }
-    }
     return labels;
   }
 
@@ -258,13 +227,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
       objectType: 'sites_group',
       routeBase: 'sites_group',
       label: 'groupe de site',
-      addObjLabel: 'Ajouter un nouveau groupe de site',
-      editObjLabel: 'Editer le groupe de site',
-      detailObjLabel: 'Détail du groupe de site',
-      seeObjLabel: 'Consulter le groupe de site',
-      addChildLabel: 'Ajouter un site',
       childType: 'site',
-      deleteObjLabel: 'Supprimer le groupe de site',
       id: null,
       moduleCode: 'generic',
       schema: {},
@@ -347,12 +310,6 @@ export class SitesService extends ApiGeomService<ISite> {
       objectType: 'site',
       routeBase: 'site',
       label: 'site',
-      addObjLabel: 'Ajouter un nouveau site',
-      editObjLabel: 'Editer le site',
-      detailObjLabel: 'Détail du site',
-      seeObjLabel: 'Consulter le site',
-      deleteObjLabel: 'Supprimer le site',
-      addChildLabel: 'Ajouter une visite',
       childType: 'visit',
       id: null,
       moduleCode: 'generic',
@@ -413,13 +370,7 @@ export class VisitsService extends ApiService<IVisit> {
       endPoint: endPoints.visits,
       objectType: 'visit',
       label: 'visite',
-      addObjLabel: 'Ajouter une nouvelle visite',
-      editObjLabel: 'Editer la visite',
-      seeObjLabel: 'Consulter la visite',
-      detailObjLabel: 'Détail de la visite',
-      addChildLabel: 'Ajouter une observation',
       childType: 'observation',
-      deleteObjLabel: 'Supprimer la visite',
       routeBase: 'visit',
       id: null,
       moduleCode: 'generic',
@@ -454,13 +405,7 @@ export class IndividualsService extends ApiService<IIndividual> {
       endPoint: endPoints.individuals,
       objectType: 'individual',
       label: 'individu',
-      addObjLabel: 'Ajouter un nouvel individu',
-      editObjLabel: 'Editer la individu',
-      detailObjLabel: "Détail de  l'individu",
-      seeObjLabel: "Consulter l'individu",
-      addChildLabel: 'Ajouter un marquage',
       childType: 'marking',
-      deleteObjLabel: "Supprimer l'individu",
       routeBase: 'individual',
       id: null,
       moduleCode: 'generic',
