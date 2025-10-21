@@ -122,40 +122,6 @@ export class Utils {
     return filteredObject;
   }
 
-  static testPremiereLettreVoyelle(s: string): boolean {
-    // Test si la première lettre d'une chaine de caractère est une voyelle
-    return s && s[0] && 'aeéiouy'.includes(s[0].toLowerCase());
-  }
-
-  static labelArtDef(genre: string, label: string): string {
-    return this.testPremiereLettreVoyelle(label) ? "l'" : genre == 'F' ? 'la ' : 'le ';
-  }
-
-  static labelDu(genre: string, label: string): string {
-    const labelDu = this.testPremiereLettreVoyelle(label)
-      ? "de l'"
-      : genre == 'F'
-        ? 'de la '
-        : 'du ';
-    return labelDu;
-  }
-
-  static labelArtUndef(genre: string): string {
-    const article = genre == 'F' ? 'une' : 'un';
-    return article;
-  }
-
-  static labelNew(genre: string, label: string): string {
-    let strNew = 'nouveau';
-
-    if (genre == 'F') {
-      strNew = 'nouvelle';
-    } else if (this.testPremiereLettreVoyelle(label)) {
-      // Si masculin mais avec comme première lettre une voyelle
-      strNew = 'nouvel';
-    }
-    return strNew;
-  }
 }
 
 export function buildObjectResolvePropertyProcessing(
