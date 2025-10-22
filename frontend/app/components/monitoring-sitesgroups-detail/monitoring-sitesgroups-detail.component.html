@@ -21,8 +21,9 @@
 [isExtraForm]="true" 
 [currentUser]="currentUser"> -->
 <pnx-monitoring-form-g
-  [obj]="obj"
-  [apiService]="_sitesGroupService">
+  [obj]="sitesGroup"
+  [apiService]="_sitesGroupService"
+  [config]="configG['sites_group']">
 </pnx-monitoring-form-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"

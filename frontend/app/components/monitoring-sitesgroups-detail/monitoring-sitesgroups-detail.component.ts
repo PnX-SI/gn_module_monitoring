@@ -59,6 +59,8 @@ export class MonitoringSitesgroupsDetailComponent
   currentUser: User;
   currentPermission: TPermission;
 
+  public configG;
+
   obj: MonitoringObject;
 
   moduleCode: string;
@@ -87,6 +89,8 @@ export class MonitoringSitesgroupsDetailComponent
   ngOnInit() {
     this._Activatedroute.data.subscribe(({ data }) => {
       this.moduleCode = data.moduleCode;
+      console.log('config ', this._configServiceG.config());
+      this.configG = this._configServiceG.config();
     });
 
     this.currentUser = this._auth.getCurrentUser();

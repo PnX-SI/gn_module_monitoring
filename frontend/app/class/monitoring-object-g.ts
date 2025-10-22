@@ -1,4 +1,4 @@
 export interface MonitoringObjectG {
-      id: number;
-      uniqueChildrenName: String;
+  id: number;
+  uniqueChildrenName: String;
 }
