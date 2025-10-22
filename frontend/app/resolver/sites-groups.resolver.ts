@@ -56,26 +56,17 @@ export class SitesGroupsResolver
   }> {
     const moduleCode = route.params.moduleCode || 'generic';
     this.listChildObjectType = ['sites_group', 'site'];
-    this.serviceSitesGroup.initConfig();
-    this.serviceSite.initConfig();
-    this.serviceIndividual.initConfig();
-
-    const $configSitesGroups = this.serviceSitesGroup.initConfig();
-    const $configSites = this.serviceSite.initConfig();
-    const $configIndividuals = this.serviceIndividual.initConfig();
 
     this._permissionService.setPermissionMonitorings(moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
-    const resolvedData = forkJoin([
-      this._configService.init(moduleCode),
-      this._configServiceG.init(moduleCode),
-    ]).pipe(
+    return this._configServiceG.init(moduleCode).pipe(
       concatMap(() => {
-        // Récupération des permissions du module
-        const module_permissions = this._configService.moduleCruved(moduleCode);
-
+        this.serviceSitesGroup.initConfig();
+        this.serviceSite.initConfig();
+        this.serviceIndividual.initConfig();
         const tree = this._configServiceG.config()['tree'];
+
         // Si le module n'est pas le module générique affichage des objets
         // en fonction de l'objet tree
         if (moduleCode !== 'generic') {
@@ -96,19 +87,19 @@ export class SitesGroupsResolver
         // Initialisation des getters et config de chaque type d'objet
         const $getSiteGroups = this.buildObjectConfig(
           'sites_group',
-          module_permissions['sites_group'].R,
+          this.currentPermission.MONITORINGS_GRP_SITES.canRead,
           this.serviceSitesGroup
         );
 
         const $getSites = this.buildObjectConfig(
           'site',
-          module_permissions['site'].R,
+          this.currentPermission.MONITORINGS_SITES.canRead,
           this.serviceSite
         );
 
         const $getIndividuals = this.buildObjectConfig(
           'individual',
-          module_permissions['individual'].R,
+          this.currentPermission.MONITORINGS_INDIVIDUALS.canRead,
           this.serviceIndividual
         );
 
@@ -128,7 +119,6 @@ export class SitesGroupsResolver
         );
       })
     );
-    return resolvedData;
   }
 
   buildObjectConfig(object_type, permission, objectService) {
