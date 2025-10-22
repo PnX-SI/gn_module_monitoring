@@ -127,13 +127,13 @@ export class ApiService<T = IObject> implements IService<T> {
     );
   }
 
-  patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
+  patch(id: number, updatedData): Observable<T> {
     return this._cacheService.request('patch', `${this.objectObs.endPoint}/${id}`, {
       postData: updatedData as {},
     });
   }
 
-  create(postData: IObjectProperties<T>): Observable<T> {
+  create(postData): Observable<T> {
     return this._cacheService.request('post', `${this.objectObs.endPoint}`, {
       postData: postData as {},
     });
