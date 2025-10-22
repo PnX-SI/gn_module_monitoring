@@ -17,7 +17,7 @@ export class ModuleConfigResolver implements Resolve<any> {
         mergeMap((data) => {
           return of({ moduleCode: route.params.moduleCode });
         })
-    );
+      );
     }
     return EMPTY;
   }
