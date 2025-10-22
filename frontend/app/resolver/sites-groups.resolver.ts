@@ -60,63 +60,59 @@ export class SitesGroupsResolver
     this._permissionService.setPermissionMonitorings(moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
-    return this._configServiceG.init(moduleCode).pipe(
-      concatMap(() => {
-        this.serviceSitesGroup.initConfig();
-        this.serviceSite.initConfig();
-        this.serviceIndividual.initConfig();
-        const tree = this._configServiceG.config()['tree'];
+    this.serviceSitesGroup.initConfig();
+    this.serviceSite.initConfig();
+    this.serviceIndividual.initConfig();
+    const tree = this._configServiceG.config()['tree'];
 
-        // Si le module n'est pas le module générique affichage des objets
-        // en fonction de l'objet tree
-        if (moduleCode !== 'generic') {
-          this.listChildObjectType = Object.keys(tree['module']);
-        }
+    // Si le module n'est pas le module générique affichage des objets
+    // en fonction de l'objet tree
+    if (moduleCode !== 'generic') {
+      this.listChildObjectType = Object.keys(tree['module']);
+    }
 
-        // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
-        // redirection vers la page des sites.
-        // TODO le rendre plus robuste
-        if (
-          !this.listChildObjectType.includes('sites_group') &&
-          state.url.includes('/monitorings/object/') &&
-          state.url.includes('sites_group')
-        ) {
-          this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
-        }
+    // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
+    // redirection vers la page des sites.
+    // TODO le rendre plus robuste
+    if (
+      !this.listChildObjectType.includes('sites_group') &&
+      state.url.includes('/monitorings/object/') &&
+      state.url.includes('sites_group')
+    ) {
+      this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
+    }
 
-        // Initialisation des getters et config de chaque type d'objet
-        const $getSiteGroups = this.buildObjectConfig(
-          'sites_group',
-          this.currentPermission.MONITORINGS_GRP_SITES.canRead,
-          this.serviceSitesGroup
-        );
+    // Initialisation des getters et config de chaque type d'objet
+    const $getSiteGroups = this.buildObjectConfig(
+      'sites_group',
+      this.currentPermission.MONITORINGS_GRP_SITES.canRead,
+      this.serviceSitesGroup
+    );
 
-        const $getSites = this.buildObjectConfig(
-          'site',
-          this.currentPermission.MONITORINGS_SITES.canRead,
-          this.serviceSite
-        );
+    const $getSites = this.buildObjectConfig(
+      'site',
+      this.currentPermission.MONITORINGS_SITES.canRead,
+      this.serviceSite
+    );
 
-        const $getIndividuals = this.buildObjectConfig(
-          'individual',
-          this.currentPermission.MONITORINGS_INDIVIDUALS.canRead,
-          this.serviceIndividual
-        );
+    const $getIndividuals = this.buildObjectConfig(
+      'individual',
+      this.currentPermission.MONITORINGS_INDIVIDUALS.canRead,
+      this.serviceIndividual
+    );
 
-        return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
-          map(([processedSiteGroups, processedSites, processedIndividuals]) => {
-            // La configuration des objets enfants est renvoyée uniquement si l'objet est dans la liste des objets à afficher
-            // TODO ne pas récupérer les données et la config si l'objet n'est pas dans la liste des objets à afficher
-            return {
-              sites_groups: processedSiteGroups,
-              sites: processedSites,
-              individuals: processedIndividuals,
-              route: route['_urlSegment'].segments[3].path,
-              permission: this.currentPermission,
-              moduleCode,
-            };
-          })
-        );
+    return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
+      map(([processedSiteGroups, processedSites, processedIndividuals]) => {
+        // La configuration des objets enfants est renvoyée uniquement si l'objet est dans la liste des objets à afficher
+        // TODO ne pas récupérer les données et la config si l'objet n'est pas dans la liste des objets à afficher
+        return {
+          sites_groups: processedSiteGroups,
+          sites: processedSites,
+          individuals: processedIndividuals,
+          route: route['_urlSegment'].segments[3].path,
+          permission: this.currentPermission,
+          moduleCode,
+        };
       })
     );
   }
