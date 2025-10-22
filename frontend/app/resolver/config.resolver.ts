@@ -12,7 +12,9 @@ export class ModuleConfigResolver implements Resolve<any> {
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
     const moduleCode = route.params?.moduleCode;
     if (moduleCode) {
-      return this.configServiceG.init(moduleCode);
+      return this.configServiceG.init(moduleCode).pipe(() => {
+        return of({ moduleCode: route.params.moduleCode });
+      });
     }
     return EMPTY;
   }

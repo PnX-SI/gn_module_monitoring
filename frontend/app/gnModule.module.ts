@@ -74,7 +74,7 @@ const routes: Routes = [
   {
     path: 'object/:moduleCode',
     resolve: {
-      moduleConfig: ModuleConfigResolver,
+      data: ModuleConfigResolver,
     },
     children: [
       {
@@ -152,6 +152,7 @@ const routes: Routes = [
           },
         ],
       },
+
       {
         path: 'individual',
         component: MonitoringMapListComponent,
@@ -166,21 +167,21 @@ const routes: Routes = [
           },
         ],
       },
-      // Patch permettant d'éviter la redirection vers la page de détail d'un module
-      { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
-      // Patch permettant de router les anciens liens directs vers la page de détail d'un module
-      // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
-      // car le nom des routes sera potentiellement à nouveau modifié dans le futur
-      { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
-      {
-        path: 'object/:moduleCode/:objectType/:id',
-        component: MonitoringObjectComponent,
-      },
-      {
-        path: 'create_object/:moduleCode/:objectType',
-        component: MonitoringObjectComponent,
-      },
     ],
+  },
+  // Patch permettant d'éviter la redirection vers la page de détail d'un module
+  { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
+  // Patch permettant de router les anciens liens directs vers la page de détail d'un module
+  // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
+  // car le nom des routes sera potentiellement à nouveau modifié dans le futur
+  { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
+  {
+    path: 'object/:moduleCode/:objectType/:id',
+    component: MonitoringObjectComponent,
+  },
+  {
+    path: 'create_object/:moduleCode/:objectType',
+    component: MonitoringObjectComponent,
   },
 ];
 
