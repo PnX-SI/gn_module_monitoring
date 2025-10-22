@@ -17,6 +17,7 @@ import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
 import { MonitoringObjectService } from './services/monitoring-object.service';
 import { ConfigService } from './services/config.service';
+import { ConfigServiceG } from './services/config-g.service';
 
 // Component
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
@@ -243,9 +244,11 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
   providers: [
     HttpClient,
     CacheService,
+    MapListResolver,
     DataMonitoringObjectService,
     DataUtilsService,
     ConfigService,
+    ConfigServiceG,
     MonitoringObjectService,
     DataTableService,
     SitesGroupService,
@@ -260,6 +263,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     SitesGroupsResolver,
     CreateSiteResolver,
     CreateSitesGroupsResolver,
+    DetailSitesGroupsResolver,
     PermissionService,
     Popup,
   ],
