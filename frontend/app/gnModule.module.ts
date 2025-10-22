@@ -206,8 +206,6 @@ const routes: Routes = [
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
-    TestComponent,
-    TestSubComponent,
   ],
   imports: [
     GN2CommonModule,
