@@ -9,10 +9,6 @@ export class DetailSitesGroupsResolver implements Resolve<{ moduleCode: string }
   constructor(private _configService: ConfigServiceG) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<{ moduleCode: string }> {
-    return this._configService.init(route.params.moduleCode).pipe(
-      mergeMap((data) => {
-        return of({ moduleCode: route.params.moduleCode });
-      })
-    );
+    return of({ moduleCode: route.params.moduleCode });
   }
 }
