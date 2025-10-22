@@ -71,42 +71,74 @@ import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolv
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
+import { ModuleConfigResolver } from './resolver/config.resolver';
 
-// my module routing
 const routes: Routes = [
-  /** modules  */
   { path: '', component: ModulesComponent },
   {
-    path: 'object/:moduleCode/sites_group',
-    component: MonitoringMapListComponent,
+    path: 'object/:moduleCode',
     resolve: {
-      data: MapListResolver,
+      data: ModuleConfigResolver,
     },
     children: [
       {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesGroupsCreateComponent,
-        resolve: {
-          createSitesGroups: CreateSitesGroupsResolver,
-        },
-      },
-      {
-        path: ':id',
+        path: 'sites_group',
+        component: MonitoringMapListComponent,
         children: [
           {
             path: '',
-            component: MonitoringSitesgroupsDetailComponent,
+            component: MonitoringSitesGroupsComponent,
             resolve: {
-              detailSitesGroups: DetailSitesGroupsResolver,
+              data: SitesGroupsResolver,
             },
+            runGuardsAndResolvers: 'always',
+          },
+          {
+            path: 'create',
+            component: MonitoringSitesGroupsCreateComponent,
+            resolve: {
+              createSitesGroups: CreateSitesGroupsResolver,
+            },
+          },
+          {
+            path: ':id',
+            children: [
+              {
+                path: '',
+                component: MonitoringSitesgroupsDetailComponent,
+                resolve: {
+                  detailSitesGroups: DetailSitesGroupsResolver,
+                },
+              },
+              {
+                path: 'create',
+                component: MonitoringSitesCreateComponent,
+                resolve: {
+                  createSite: CreateSiteResolver,
+                },
+              },
+              {
+                path: 'site/:id',
+                component: MonitoringSitesDetailComponent,
+                resolve: {
+                  detailSites: DetailSitesResolver,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'site',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: '',
+            component: MonitoringSitesGroupsComponent,
+            resolve: {
+              data: SitesGroupsResolver,
+            },
+            runGuardsAndResolvers: 'always',
           },
           {
             path: 'create',
@@ -116,7 +148,7 @@ const routes: Routes = [
             },
           },
           {
-            path: 'site/:id',
+            path: ':id',
             component: MonitoringSitesDetailComponent,
             resolve: {
               detailSites: DetailSitesResolver,
@@ -124,53 +156,20 @@ const routes: Routes = [
           },
         ],
       },
-    ],
-  },
-  {
-    path: 'object/:moduleCode/site',
-    component: MonitoringMapListComponent,
-    resolve: {
-      data: MapListResolver,
-    },
-    children: [
+
       {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesCreateComponent,
-        resolve: {
-          createSite: CreateSiteResolver,
-        },
-      },
-      {
-        path: ':id',
-        component: MonitoringSitesDetailComponent,
-        resolve: {
-          detailSites: DetailSitesResolver,
-        },
-      },
-    ],
-  },
-  {
-    path: 'object/:moduleCode/individual',
-    component: MonitoringMapListComponent,
-    resolve: {
-      data: MapListResolver,
-    },
-    children: [
-      {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
+        path: 'individual',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: '',
+            component: MonitoringSitesGroupsComponent,
+            resolve: {
+              data: SitesGroupsResolver,
+            },
+            runGuardsAndResolvers: 'always',
+          },
+        ],
       },
     ],
   },
@@ -248,7 +247,6 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     DataMonitoringObjectService,
     DataUtilsService,
     ConfigService,
-    ConfigServiceG,
     MonitoringObjectService,
     DataTableService,
     SitesGroupService,

@@ -30,6 +30,7 @@ const LIMIT = 10;
 
 import { Observable, ReplaySubject, forkJoin, of } from 'rxjs';
 import { map, mergeMap, takeUntil } from 'rxjs/operators';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 @Component({
   selector: 'monitoring-sitesgroups',
@@ -89,6 +90,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _popup: Popup,
     private _monitoringObjectService: MonitoringObjectService,
     private _configService: ConfigService,
+    private _newConfigService: ConfigServiceG,
     private _cacheService: CacheService
   ) {
     super();
@@ -98,6 +100,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initSiteGroup();
+    console.log(this._newConfigService.config());
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
