@@ -6,7 +6,7 @@ import { mergeMap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class DetailSitesGroupsResolver implements Resolve<{ moduleCode: string }> {
-  constructor(private _configService: ConfigServiceG) {}
+  constructor(private _configServiceG: ConfigServiceG) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<{ moduleCode: string }> {
     return of({ moduleCode: route.params.moduleCode });

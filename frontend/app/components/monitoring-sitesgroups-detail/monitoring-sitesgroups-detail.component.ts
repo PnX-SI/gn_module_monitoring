@@ -85,16 +85,13 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
-    console.log('MonitoringSitesgroupsDetailComponent ngOnInit');
     this._Activatedroute.data.subscribe(({ data }) => {
       this.moduleCode = data.moduleCode;
-      console.log('config ', this._configServiceG.config());
     });
 
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
     this._configService.init(this.moduleCode).subscribe(() => {
-      console.log('config ', this._configServiceG.config());
       this.initSite();
     });
   }

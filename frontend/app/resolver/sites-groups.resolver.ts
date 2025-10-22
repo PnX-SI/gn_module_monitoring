@@ -13,6 +13,7 @@ import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
 import { ObjectService } from '../services/object.service';
+import { ConfigServiceG } from '../services/config-g.service';
 
 const LIMIT = 10;
 
@@ -20,9 +21,9 @@ const LIMIT = 10;
 export class SitesGroupsResolver
   implements
     Resolve<{
-      sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
-      sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
-      individuals: { data: IPaginated<IIndividual>; objConfig: IobjObs<IIndividual> };
+      sites_groups: IPaginated<ISitesGroup>;
+      sites: IPaginated<ISite>;
+      individuals: IPaginated<IIndividual>;
       route: string;
       moduleCode: string | null;
     }>
@@ -39,16 +40,17 @@ export class SitesGroupsResolver
     private router: Router,
     private _objectService: ObjectService,
     private _cacheService: CacheService,
-    private _configService: ConfigService
+    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG
   ) {}
 
   resolve(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<{
-    sitesGroups: { data: IPaginated<ISitesGroup>; objConfig: IobjObs<ISitesGroup> };
-    sites: { data: IPaginated<ISite>; objConfig: IobjObs<ISite> };
-    individuals: { data: IPaginated<IIndividual>; objConfig: IobjObs<IIndividual> };
+    sites_groups: IPaginated<ISitesGroup>;
+    sites: IPaginated<ISite>;
+    individuals: IPaginated<IIndividual>;
     route: string;
     moduleCode: string | null;
   }> {
@@ -65,100 +67,75 @@ export class SitesGroupsResolver
     this._permissionService.setPermissionMonitorings(moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
 
-    const resolvedData = this._configService.init(moduleCode).pipe(
-      concatMap(() =>
-        forkJoin([$configSitesGroups, $configSites, $configIndividuals]).pipe(
-          map((configs) => {
-            // Récupération des permissions du module
-            const module_permissions = this._configService.moduleCruved(moduleCode);
+    const resolvedData = forkJoin([
+      this._configService.init(moduleCode),
+      this._configServiceG.init(moduleCode),
+    ]).pipe(
+      concatMap(() => {
+        // Récupération des permissions du module
+        const module_permissions = this._configService.moduleCruved(moduleCode);
 
-            // Si le module n'est pas le module générique affichage des objets
-            // en fonction de l'objet tree
-            if (moduleCode !== 'generic') {
-              const tree = this._configService.configModuleObject(moduleCode, 'tree');
-              this.listChildObjectType = Object.keys(tree['module']);
-            }
+        const tree = this._configServiceG.config()['tree'];
+        // Si le module n'est pas le module générique affichage des objets
+        // en fonction de l'objet tree
+        if (moduleCode !== 'generic') {
+          this.listChildObjectType = Object.keys(tree['module']);
+        }
 
-            // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
-            // redirection vers la page des sites.
-            // TODO le rendre plus robuste
-            if (
-              !configs[0] &&
-              state.url.includes('/monitorings/object/') &&
-              state.url.includes('sites_group')
-            ) {
-              this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
-            }
+        // S'il n'y a pas de groupe de site  et que la page demandée est sites_group
+        // redirection vers la page des sites.
+        // TODO le rendre plus robuste
+        if (
+          !this.listChildObjectType.includes('sites_group') &&
+          state.url.includes('/monitorings/object/') &&
+          state.url.includes('sites_group')
+        ) {
+          this.router.navigate(['monitorings', 'object', route.params.moduleCode, 'site']);
+        }
 
-            // Initialisation des getters et config de chaque type d'objet
-            const $getSiteGroups = this.buildObjectConfig(
-              'sites_group',
-              configs[0],
-              module_permissions['sites_group'].R,
-              this.serviceSitesGroup,
-              moduleCode
-            );
+        // Initialisation des getters et config de chaque type d'objet
+        const $getSiteGroups = this.buildObjectConfig(
+          'sites_group',
+          module_permissions['sites_group'].R,
+          this.serviceSitesGroup
+        );
 
-            const $getSites = this.buildObjectConfig(
-              'site',
-              configs[1],
-              module_permissions['site'].R,
-              this.serviceSite,
-              moduleCode
-            );
+        const $getSites = this.buildObjectConfig(
+          'site',
+          module_permissions['site'].R,
+          this.serviceSite
+        );
 
-            const $getIndividuals = this.buildObjectConfig(
-              'individual',
-              configs[2],
-              module_permissions['individual'].R,
-              this.serviceIndividual,
-              moduleCode
-            );
+        const $getIndividuals = this.buildObjectConfig(
+          'individual',
+          module_permissions['individual'].R,
+          this.serviceIndividual
+        );
 
-            return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
-              map(([processedSiteGroups, processedSites, processedIndividuals]) => {
-                // La configuration des objets enfants est renvoyée uniquement si l'objet est dans la liste des objets à afficher
-                // TODO ne pas récupérer les données et la config si l'objet n'est pas dans la liste des objets à afficher
-                return {
-                  sitesGroups: {
-                    data: processedSiteGroups,
-                    objConfig: this.listChildObjectType.includes('sites_group') ? configs[0] : null,
-                  },
-                  sites: {
-                    data: processedSites,
-                    objConfig: this.listChildObjectType.includes('site') ? configs[1] : null,
-                  },
-                  individuals: {
-                    data: processedIndividuals,
-                    objConfig: this.listChildObjectType.includes('individual') ? configs[2] : null,
-                  },
-                  route: route['_urlSegment'].segments[3].path,
-                  permission: this.currentPermission,
-                  moduleCode,
-                };
-              })
-            );
-          }),
-          mergeMap((result) => {
-            return result;
+        return forkJoin([$getSiteGroups, $getSites, $getIndividuals]).pipe(
+          map(([processedSiteGroups, processedSites, processedIndividuals]) => {
+            // La configuration des objets enfants est renvoyée uniquement si l'objet est dans la liste des objets à afficher
+            // TODO ne pas récupérer les données et la config si l'objet n'est pas dans la liste des objets à afficher
+            return {
+              sites_groups: processedSiteGroups,
+              sites: processedSites,
+              individuals: processedIndividuals,
+              route: route['_urlSegment'].segments[3].path,
+              permission: this.currentPermission,
+              moduleCode,
+            };
           })
-        )
-      )
+        );
+      })
     );
     return resolvedData;
   }
 
-  buildObjectConfig(object_type, config, permission, objectService, moduleCode) {
-    let configSchemaObjetType = {
-      sorts: [],
-      specific: {},
-    };
+  buildObjectConfig(object_type, permission, objectService) {
+    const config = this._configServiceG.config();
     let $getObjetTypes = of(null);
     if (this.listChildObjectType.includes(object_type) && config) {
-      configSchemaObjetType = this._configService.configModuleObject(
-        config.moduleCode,
-        config.objectType
-      );
+      const configSchemaObjetType = config[object_type];
       const sortObjetTypeInit =
         'sorts' in configSchemaObjetType
           ? {

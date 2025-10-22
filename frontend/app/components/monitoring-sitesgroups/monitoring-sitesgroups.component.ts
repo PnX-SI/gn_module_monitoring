@@ -90,7 +90,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _popup: Popup,
     private _monitoringObjectService: MonitoringObjectService,
     private _configService: ConfigService,
-    private _newConfigService: ConfigServiceG,
+    private _configServiceG: ConfigServiceG,
     private _cacheService: CacheService
   ) {
     super();
@@ -100,7 +100,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initSiteGroup();
-    console.log(this._newConfigService.config());
+    this.moduleCode = this._configServiceG.moduleCode();
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
@@ -111,16 +111,16 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       let currentObjConfig;
       if (data.route == 'site') {
         objectObs = this._sitesService.objectObs;
-        currentData = data.sites.data;
+        currentData = data.sites;
         currentObjConfig = data.sites.objConfig;
       } else if (data.route == 'individual') {
         objectObs = this._individualService;
-        currentData = data.individuals.data;
+        currentData = data.individuals;
         currentObjConfig = data.individuals.objConfig;
       } else {
         objectObs = this._sites_group_service.objectObs;
-        currentData = data.sitesGroups.data;
-        currentObjConfig = data.sitesGroups.objConfig;
+        currentData = data.sites_groups;
+        currentObjConfig = data.sites_groups.objConfig;
       }
 
       this.currentRoute = data.route;
@@ -140,16 +140,21 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         limit: currentData.limit,
         page: currentData.page - 1,
       };
-      // this.columns = [data.sitesGroups.data.items, data.sites.data.items]
-      this.colsname = currentObjConfig.dataTable.colNameObj;
 
-      const { route, permission, moduleCode, ...dataToTable } = data;
+      const tree = this._configServiceG.config()['tree'];
+      let dataToTable = {};
+      for (const objType of Object.keys(tree['module'])) {
+        dataToTable[objType] = {
+          data: data[`${objType}s`],
+          objType: objType,
+        };
+      }
 
-      // this.setDataTableObjData(dataToTable, this._configService, this.moduleCode, [
-      //   'site',
-      //   'individual',
-      //   'sites_group',
-      // ]);
+      this.setDataTableObjData(dataToTable, this._configServiceG, this.moduleCode, [
+        'site',
+        'individual',
+        'sites_group',
+      ]);
 
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);

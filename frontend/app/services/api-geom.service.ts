@@ -106,7 +106,6 @@ export class ApiService<T = IObject> implements IService<T> {
     if (!config) {
       return of(null);
     }
-    console.log('ApiService getResolved config : ', config);
     return this.get(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(

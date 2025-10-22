@@ -81,7 +81,6 @@ export class MonitoringGeomComponent {
         objectType: objType,
         moduleCode: moduleCode,
       };
-
       dataTableConfig.push(currentDataTableConfig);
       dataTableObjData[objType] = {
         columns: colNameObj,

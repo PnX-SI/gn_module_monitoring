@@ -30,7 +30,6 @@ export class ConfigServiceG {
   init(moduleCode: string | null = null) {
     // a definir ailleurs
     moduleCode = moduleCode || 'generic';
-    console.log('ConfigServiceG init for moduleCode ', moduleCode);
     if (this._moduleCode === moduleCode && this._config) {
       return of(true);
     } else {
@@ -43,7 +42,6 @@ export class ConfigServiceG {
       moduleCode === 'generic'
         ? `${this.backendModuleUrl()}/refacto/config`
         : `${this.backendModuleUrl()}/refacto/config/${moduleCode}`;
-
     return this._http.get<any>(urlConfig).pipe(
       mergeMap((config: any) => {
         this._config = config;
@@ -65,6 +63,7 @@ export class ConfigServiceG {
 
   getDataTableConfig(objectType: string): Object {
     // TODO ??? Pour le moment dans monitoring-geom-component.ts
+
     const configObject = this._config[objectType];
     let dataTableConfig = {};
     // Si pas de config, on retourne un objet vide
