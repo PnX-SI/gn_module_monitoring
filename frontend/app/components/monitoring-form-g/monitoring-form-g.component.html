@@ -1,0 +1,54 @@
+<div>
+    <div class="btn-child">
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="!chainInput && !obj.id && obj.uniqueChildrenName && addChildren"
+          class="btn btn-success float-right mr-1"
+          (click)="canUpdate ? onSubmit(true) : notAllowedMessage()"
+          [disabled]="!form.valid"
+        >
+          <span
+            [ngClass]="{ 'hide-spinner': !saveAndAddChildrenSpinner }"
+            class="spinner-border spinner-border-sm float-right"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>Valider et saisir des {{ obj.uniqueChildrenName }}</span>
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="float-right mr-1"
+          (click)="canUpdate ? onSubmit() : notAllowedMessage()"
+          [disabled]="!form.valid"
+        >
+          <span
+            [ngClass]="{ 'hide-spinner': !saveSpinner }"
+            class="spinner-border spinner-border-sm float-right"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span *ngIf="chainInput && !obj.id">Valider et enchainer les saisies</span>
+          <span *ngIf="!chainInput || obj.id">Valider</span>
+        </button>
+
+        <button mat-raised-button color="warn" class="float-left" (click)="onCancelEdit()">
+          Annuler
+        </button>
+        <button
+          mat-raised-button
+          [matTooltip]="canDelete ? null : toolTipNotAllowed"
+          [disabled]="!canDelete"
+          color="warn"
+          class="float-left"
+          (click)="canDelete ? (bDeleteModal = true) : null"
+          *ngIf="obj.id"
+        >
+          Supprimer
+        </button>
+      </div>
+</div>

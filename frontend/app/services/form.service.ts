@@ -127,64 +127,6 @@ export class FormService {
     );
   }
 
-  getProperties(formValue, obj): void {
-    const propertiesData = {};
-    const schema = obj[obj.moduleCode];
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      if (!elem.type_widget) {
-        continue;
-      }
-      propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
-    }
-  }
-
-  // TODO: A voir si nécessaire d'utiliser le formatage des post et update data avant éxécution route coté backend
-  postData(formValue, obj): { properties: ISitesGroup | ISite | any } {
-    const propertiesData = {};
-    const schema = obj[obj.moduleCode];
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      if (!elem.type_widget) {
-        continue;
-      }
-      propertiesData[attribut_name] = this._objService.fromForm(elem, formValue[attribut_name]);
-    }
-    const postData = { properties: {} };
-    if (obj.dataComplement == undefined) {
-      postData['properties'] = propertiesData;
-    } else {
-      postData['properties'] = propertiesData;
-      postData['dataComplement'] = obj.dataComplement;
-    }
-
-    // Ajout des id relationship
-    // if (obj.id_relationship != undefined) {
-    //   for (const [key, value] of Object.entries(obj.id_relationship)) {
-    //     if (typeof value == 'string') {
-    //       if (obj[value] != undefined) {
-    //         postData['properties'][value] = obj[value];
-    //       } else if (Object.keys(obj.dataComplement).includes(value)) {
-    //         postData['properties'][value] = obj.dataComplement[value];
-    //       }
-    //     }
-    //   }
-    // }
-
-    //   properties: propertiesData,
-    //   // id_parent: this.parentId
-    // };
-
-    // TODO: A voir q'il faut remettre
-    if (obj.config['geometry_type']) {
-      postData['geometry'] = formValue['geometry'];
-      // if(postData['geometry'] != null){
-      postData['type'] = 'Feature';
-      // }
-    }
-    return postData;
-  }
-
   /**
    * Add a form control to the object form.
    *

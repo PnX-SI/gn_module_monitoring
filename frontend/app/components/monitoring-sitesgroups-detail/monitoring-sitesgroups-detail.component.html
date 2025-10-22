@@ -10,9 +10,20 @@
   [(bEdit)]="bEdit"
   [currentUser]="currentUser">
 </pnx-monitoring-properties>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
+<!-- <pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
   [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
-</pnx-monitoring-form>
+</pnx-monitoring-form> -->
+<!-- [obj]="obj"
+[objForm]="form" 
+*ngIf="bEdit" 
+[(bEdit)]="bEdit"
+[apiService]="siteService" 
+[isExtraForm]="true" 
+[currentUser]="currentUser"> -->
+<pnx-monitoring-form-g
+  [obj]="obj"
+  [apiService]="_sitesGroupService">
+</pnx-monitoring-form-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
   [dataTableConfig]="dataTableConfig"
