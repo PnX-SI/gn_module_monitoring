@@ -22,6 +22,7 @@ import { PermissionService } from '../../services/permission.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { CacheService } from '../../services/cache.service';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 const LIMIT = 10;
 
@@ -73,6 +74,7 @@ export class MonitoringSitesgroupsDetailComponent
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     private _formService: FormService,
     private _permissionService: PermissionService,
     private _popup: Popup,
@@ -84,7 +86,10 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
-    this.moduleCode = this._Activatedroute.snapshot.data.detailSitesGroups.moduleCode;
+    this._Activatedroute.data.subscribe(({ data }) => {
+      this.moduleCode = data.moduleCode;
+      console.log('config ', this._configServiceG.config());
+    });
 
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
