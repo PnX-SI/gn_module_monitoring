@@ -67,42 +67,74 @@ import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolv
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
+import { ModuleConfigResolver } from './resolver/config.resolver';
 
-// my module routing
 const routes: Routes = [
-  /** modules  */
   { path: '', component: ModulesComponent },
   {
-    path: 'object/:moduleCode/sites_group',
-    component: MonitoringMapListComponent,
+    path: 'object/:moduleCode',
     resolve: {
-      data: MapListResolver,
+      moduleConfig: ModuleConfigResolver,
     },
     children: [
       {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-      {
-        path: 'create',
-        component: MonitoringSitesGroupsCreateComponent,
-        resolve: {
-          createSitesGroups: CreateSitesGroupsResolver,
-        },
-      },
-      {
-        path: ':id',
+        path: 'sites_group',
+        component: MonitoringMapListComponent,
         children: [
           {
             path: '',
-            component: MonitoringSitesgroupsDetailComponent,
+            component: MonitoringSitesGroupsComponent,
             resolve: {
-              detailSitesGroups: DetailSitesGroupsResolver,
+              data: SitesGroupsResolver,
             },
+            runGuardsAndResolvers: 'always',
+          },
+          {
+            path: 'create',
+            component: MonitoringSitesGroupsCreateComponent,
+            resolve: {
+              createSitesGroups: CreateSitesGroupsResolver,
+            },
+          },
+          {
+            path: ':id',
+            children: [
+              {
+                path: '',
+                component: MonitoringSitesgroupsDetailComponent,
+                resolve: {
+                  detailSitesGroups: DetailSitesGroupsResolver,
+                },
+              },
+              {
+                path: 'create',
+                component: MonitoringSitesCreateComponent,
+                resolve: {
+                  createSite: CreateSiteResolver,
+                },
+              },
+              {
+                path: 'site/:id',
+                component: MonitoringSitesDetailComponent,
+                resolve: {
+                  detailSites: DetailSitesResolver,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'site',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: '',
+            component: MonitoringSitesGroupsComponent,
+            resolve: {
+              data: SitesGroupsResolver,
+            },
+            runGuardsAndResolvers: 'always',
           },
           {
             path: 'create',
@@ -112,7 +144,7 @@ const routes: Routes = [
             },
           },
           {
-            path: 'site/:id',
+            path: ':id',
             component: MonitoringSitesDetailComponent,
             resolve: {
               detailSites: DetailSitesResolver,
@@ -120,69 +152,35 @@ const routes: Routes = [
           },
         ],
       },
-    ],
-  },
-  {
-    path: 'object/:moduleCode/site',
-    component: MonitoringMapListComponent,
-    resolve: {
-      data: MapListResolver,
-    },
-    children: [
       {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
+        path: 'individual',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: '',
+            component: MonitoringSitesGroupsComponent,
+            resolve: {
+              data: SitesGroupsResolver,
+            },
+            runGuardsAndResolvers: 'always',
+          },
+        ],
+      },
+      // Patch permettant d'éviter la redirection vers la page de détail d'un module
+      { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
+      // Patch permettant de router les anciens liens directs vers la page de détail d'un module
+      // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
+      // car le nom des routes sera potentiellement à nouveau modifié dans le futur
+      { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
+      {
+        path: 'object/:moduleCode/:objectType/:id',
+        component: MonitoringObjectComponent,
       },
       {
-        path: 'create',
-        component: MonitoringSitesCreateComponent,
-        resolve: {
-          createSite: CreateSiteResolver,
-        },
-      },
-      {
-        path: ':id',
-        component: MonitoringSitesDetailComponent,
-        resolve: {
-          detailSites: DetailSitesResolver,
-        },
+        path: 'create_object/:moduleCode/:objectType',
+        component: MonitoringObjectComponent,
       },
     ],
-  },
-  {
-    path: 'object/:moduleCode/individual',
-    component: MonitoringMapListComponent,
-    resolve: {
-      data: MapListResolver,
-    },
-    children: [
-      {
-        path: '',
-        component: MonitoringSitesGroupsComponent,
-        resolve: {
-          data: SitesGroupsResolver,
-        },
-        runGuardsAndResolvers: 'always',
-      },
-    ],
-  },
-  // Patch permettant d'éviter la redirection vers la page de détail d'un module
-  { path: 'object/:moduleCode/module/:id', redirectTo: 'object/:moduleCode/sites_group' },
-  // Patch permettant de router les anciens liens directs vers la page de détail d'un module
-  // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
-  // car le nom des routes sera potentiellement à nouveau modifié dans le futur
-  { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
-  {
-    path: 'object/:moduleCode/:objectType/:id',
-    component: MonitoringObjectComponent,
-  },
-  {
-    path: 'create_object/:moduleCode/:objectType',
-    component: MonitoringObjectComponent,
   },
 ];
 
@@ -208,6 +206,8 @@ const routes: Routes = [
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
+    TestComponent,
+    TestSubComponent,
   ],
   imports: [
     GN2CommonModule,
@@ -232,7 +232,6 @@ const routes: Routes = [
     DataMonitoringObjectService,
     DataUtilsService,
     ConfigService,
-    ConfigServiceG,
     MonitoringObjectService,
     DataTableService,
     SitesGroupService,
