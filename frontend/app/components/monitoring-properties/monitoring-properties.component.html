@@ -1,6 +1,6 @@
 <div id="properties-display" class="cadre">
   <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
-    <mat-tab label="Propriétés">
+    <mat-tab label="{{ 'Monitoring.Properties.Properties' | translate }}">
       <div class="mt-2">
         <table class="table table-striped table-sm">
           <tr *ngFor="let fieldName of obj.template['fieldNames']; let i = index">
@@ -23,7 +23,7 @@
         </table>
       </div>
     </mat-tab>
-    <mat-tab *ngIf="(obj.template_specific | json) != ({} | json)" label="Propriétés Spécifiques">
+    <mat-tab *ngIf="(obj.template_specific | json) != ({} | json)" label="{{ 'Monitoring.Properties.SpecificProperties' | translate }}">
       <div class="mt-2">
         <table class="table table-striped table-sm">
           <tr
@@ -102,7 +102,7 @@
       [matTooltip]="initPermission() ? null : toolTipNotAllowed"
       [disabled]="!initPermission()"
     >
-      Éditer {{ obj.template['label_art_def'] || '' }}
+      {{ 'Monitoring.Module.Edit' | translate }}{{ obj.template['label_art_def'] || '' }}
     </button>
     <!-- CHECK currentUser?.moduleCruved[obj.objectType].U >= 1 -->
     <!-- export pdf -->
@@ -140,7 +140,7 @@
         aria-hidden="true"
       ></span>
 
-      Mettre à jour la synthèse
+      {{ 'Monitoring.Module.UpdateSynth' | translate }}
       <mat-icon>sync</mat-icon>
     </button>
 
@@ -151,7 +151,7 @@
       color="primary"
       (click)="openModalExportCsv($event, modalExportCsv)"
     >
-      <i class="fa fa-arrow-down"></i>&nbsp;Téléchargements
+      <i class="fa fa-arrow-down"></i>&nbsp;{{ 'Monitoring.Module.Downloads' | translate }}
     </button>
   </div>
 </div>
@@ -175,7 +175,7 @@
         <mat-card-title> {{ obj.template['export_csv'][i].label }}</mat-card-title>
         <mat-card-content *ngIf="obj.template['export_csv'][i].filter_dataset" class="mb-0">
           <pnx-datasets
-            label="Choisir un jeu de données à télécharger"
+            label="{{ 'Monitoring.Properties.DownloadJdd' | translate }}"
             [parentFormControl]="datasetForm"
             [moduleCode]="obj.moduleCode"
             (onChange)="onDatasetChanged($event, i)"
@@ -191,7 +191,7 @@
             matTooltip="Télécharger"
             [disabled]="obj.template['export_csv'][i].filter_dataset && !selectedDataSet[i]"
           >
-            Téléchargement
+            {{ 'Monitoring.Module.Download' | translate }}
           </button>
         </mat-card-actions>
       </mat-card>

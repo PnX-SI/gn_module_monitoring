@@ -1,0 +1,56 @@
+{
+    "Monitoring" : {
+        "Error": {
+            "Required" : "Ce champs est requis.",
+            "MinLength" : "Vous devez choisir au moins une valeur."
+        },
+        "Export" : "Export HTML FICHE SITE",
+        "Module": {
+            "Loading" : "Chargement en cours",
+            "NoModule" : "Vous n'avez pas encore de protocole accessible",
+            "SiteManager" : "Gestionnaire de sites",
+            "SeeSites" : "Voir les sites et groupes de sites",
+            "ModulesList" : "Liste des protocoles",
+            "NotConfigured" : "Le module n'est pas encore configuré.",
+            "EditModule" : "Veuillez éditer le module et renseigner les champs requis.",
+            "Edit" : "Éditer ",
+            "UpdateSynth" : "Mettre à jour la synthèse",
+            "Downloads" : "Téléchargements",
+            "Download" : "Téléchargement"
+        },
+        "DeletingPopup" : {
+            "Warning" : "Attention",
+            "WarningDelete" : "Vous êtes sur le point de supprimer : ",
+            "ConfirmDelete" : "Confirmer la suppression",
+            "Cancel" : "Annuler"
+        },
+        "Form" : {
+            "PickGeom" : " Veuillez saisir une géométrie sur la carte ",
+            "GrpSiteGeom" : "La géométrie de groupe site est actuellement auto-générée sur la base des sites enfants \n(si existants). Vous avez la possibilité de créer vous même une géométrie",
+            "AssignedFields" : "Champs associés au type: ",
+            "ValidateEnter" : "Valider et saisir des ",
+            "ValidateChain" : "Valider et enchainer les saisies",
+            "Validate" : "Valider",
+            "Cancel" : "Annuler",
+            "Delete" : "Supprimer",
+            "MissingPermissions" : "Vous n'avez pas les permissions nécessaires pour éditer l'objet"
+        },
+        "Properties" : {
+            "Properties" : "Propriétés",
+            "SpecificProperties" : "Propriétés spécifiques",
+            "DownloadJdd" : "Choisir un jeu de données à télécharger"
+        },
+        "List" : {
+            "Add" : "Ajouter ",
+            "Cancel" : "Annuler",
+            "NoModules" : "Aucun protocole n'est disponible pour ce type de site"
+        },
+        "Sites" : {
+            "addVisit" : "Ajouter une visite" 
+        },
+        "Actions" : {
+            "Done" : " effectuée",
+            "Deleted" : "Suppression"
+        }
+    }
+}
