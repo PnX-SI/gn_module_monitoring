@@ -21,7 +21,6 @@ import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
 import { MonitoringObjectService } from './monitoring-object.service';
-import { ConfigService } from './config.service';
 import { ConfigServiceG } from './config-g.service';
 
 @Injectable()
@@ -31,7 +30,6 @@ export class ApiService<T = IObject> implements IService<T> {
 
   constructor(
     protected _cacheService: CacheService,
-    protected _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {}
@@ -39,6 +37,7 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
+    console.log(this._configServiceG.config());
     // souscrit au sujet config du module en cours
     // quand le module change
     // test if config exist pour le module
@@ -46,35 +45,13 @@ export class ApiService<T = IObject> implements IService<T> {
     // lancer opération de initConfig
   }
 
-  public initConfig(): Observable<IobjObs<T>> {
-    return this._configService.init(this.objectObs.moduleCode).pipe(
-      map(() => {
-        const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
-        if (!config) return null;
-        const fieldNames = config['display_properties'];
-        const fieldNamesList = config['display_list'];
-        this.objectObs['label'] = config['label'];
-        // const labelList = config['label_list'];
-
-        // const schema = this._configServiceG.schema(
-        //   this.objectObs.objectType
-        // );
-        // const fieldLabels = this._configServiceG.fieldLabels(schema);
-        // const fieldDefinitions = this._configServiceG.fieldDefinitions(schema);
-        // this.objectObs.template.fieldNames = fieldNames;
-        // this.objectObs.template.fieldNamesList = fieldNamesList;
-        // this.objectObs.schema = schema;
-        // this.objectObs.template.fieldLabels = fieldLabels;
-        // this.objectObs.template.fieldDefinitions = fieldDefinitions;
-
-        // if (labelList != undefined) {
-        //   this.objectObs.template.labelList = labelList;
-        // }
-        // this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-        // console.log('colNameObj', this.objectObs.dataTable.colNameObj)
-        return this.objectObs;
-      })
-    );
+  public initConfig(): IobjObs<T> {
+    console.log('ApiService initConfig for ', this.objectObs.objectType);
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    this.objectObs.moduleCode = this._configServiceG.moduleCode();
+    if (!config) return null;
+    this.objectObs['label'] = config['label'];
+    return this.objectObs;
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
@@ -112,7 +89,7 @@ export class ApiService<T = IObject> implements IService<T> {
           paginatedData,
           config['fields'] || {},
           this._configServiceG.moduleCode(),
-          this._monitoringObjectService,
+          this._configServiceG,
           this._cacheService
         );
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
@@ -155,11 +132,10 @@ export class ApiService<T = IObject> implements IService<T> {
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
   constructor(
     protected _cacheService: CacheService,
-    protected _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -187,11 +163,10 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
 export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
@@ -258,7 +233,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
           paginatedData,
           fieldsConfig,
           this.objectObs.moduleCode,
-          this._monitoringObjectService,
+          this._configServiceG,
           this._cacheService
         );
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
@@ -271,11 +246,10 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
 export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
@@ -333,11 +307,10 @@ export class SitesService extends ApiGeomService<ISite> {
 export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {
@@ -369,11 +342,10 @@ export class VisitsService extends ApiService<IVisit> {
 export class IndividualsService extends ApiService<IIndividual> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
     protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {

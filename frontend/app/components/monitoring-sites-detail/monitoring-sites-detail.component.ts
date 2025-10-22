@@ -82,9 +82,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     const idSite = this._Activatedroute.snapshot.params.id;
-    this.siteService.setModuleCode(`${this.moduleCode}`);
-    this._visits_service.setModuleCode(`${this.moduleCode}`);
-    this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+    this.siteService.initConfig();
+    this._visits_service.initConfig();
+    this._sitesGroupService.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas

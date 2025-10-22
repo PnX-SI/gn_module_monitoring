@@ -125,8 +125,8 @@ export class MonitoringSitesgroupsDetailComponent
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {
-          this._siteService.setModuleCode(`${this.moduleCode}`);
-          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+          this._siteService.initConfig();
+          this._sitesGroupService.initConfig();
 
           const fieldsConfig = this._configServiceG.config()['site']['fields'];
           // Récupération des sites et résolution des propriétés

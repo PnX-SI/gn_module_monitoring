@@ -56,9 +56,9 @@ export class SitesGroupsResolver
   }> {
     const moduleCode = route.params.moduleCode || 'generic';
     this.listChildObjectType = ['sites_group', 'site'];
-    this.serviceSitesGroup.setModuleCode(`${moduleCode}`);
-    this.serviceSite.setModuleCode(`${moduleCode}`);
-    this.serviceIndividual.setModuleCode(`${moduleCode}`);
+    this.serviceSitesGroup.initConfig();
+    this.serviceSite.initConfig();
+    this.serviceIndividual.initConfig();
 
     const $configSitesGroups = this.serviceSitesGroup.initConfig();
     const $configSites = this.serviceSite.initConfig();
