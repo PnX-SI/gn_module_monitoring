@@ -188,7 +188,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             objConfig: data.objObsVisit,
           },
         };
-        this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
+        // this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"

@@ -145,11 +145,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       const { route, permission, moduleCode, ...dataToTable } = data;
 
-      this.setDataTableObjData(dataToTable, this._configService, this.moduleCode, [
-        'site',
-        'individual',
-        'sites_group',
-      ]);
+      // this.setDataTableObjData(dataToTable, this._configService, this.moduleCode, [
+      //   'site',
+      //   'individual',
+      //   'sites_group',
+      // ]);
 
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);

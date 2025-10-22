@@ -22,6 +22,7 @@ import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
 import { MonitoringObjectService } from './monitoring-object.service';
 import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -31,6 +32,7 @@ export class ApiService<T = IObject> implements IService<T> {
   constructor(
     protected _cacheService: CacheService,
     protected _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {}
 
@@ -47,65 +49,32 @@ export class ApiService<T = IObject> implements IService<T> {
   public initConfig(): Observable<IobjObs<T>> {
     return this._configService.init(this.objectObs.moduleCode).pipe(
       map(() => {
-        const fieldNames = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_properties'
-        );
-        //FIXME: same as site group: to refact
-        const fieldNamesList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_list'
-        );
+        const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+        if (!config) return null;
+        const fieldNames = config['display_properties'];
+        const fieldNamesList = config['display_list'];
+        this.objectObs['label'] = config['label'];
+        // const labelList = config['label_list'];
 
-        if (!fieldNamesList) {
-          return null;
-        }
+        // const schema = this._configServiceG.schema(
+        //   this.objectObs.objectType
+        // );
+        // const fieldLabels = this._configServiceG.fieldLabels(schema);
+        // const fieldDefinitions = this._configServiceG.fieldDefinitions(schema);
+        // this.objectObs.template.fieldNames = fieldNames;
+        // this.objectObs.template.fieldNamesList = fieldNamesList;
+        // this.objectObs.schema = schema;
+        // this.objectObs.template.fieldLabels = fieldLabels;
+        // this.objectObs.template.fieldDefinitions = fieldDefinitions;
 
-        // Initialisation des différents labels de l'objet
-        const objetLabels = this.getModuleObjetTypeLabels();
-        Object.entries(objetLabels).forEach(([key, value]) => {
-          this.objectObs[key] = value;
-        });
-
-        const labelList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'label_list'
-        );
-        const schema = this._configService.schema(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType
-        );
-        const fieldLabels = this._configService.fieldLabels(schema);
-        const fieldDefinitions = this._configService.fieldDefinitions(schema);
-        this.objectObs.template.fieldNames = fieldNames;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-        this.objectObs.schema = schema;
-        this.objectObs.template.fieldLabels = fieldLabels;
-        this.objectObs.template.fieldDefinitions = fieldDefinitions;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-
-        if (labelList != undefined) {
-          this.objectObs.template.labelList = labelList;
-        }
-        this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
+        // if (labelList != undefined) {
+        //   this.objectObs.template.labelList = labelList;
+        // }
+        // this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
+        // console.log('colNameObj', this.objectObs.dataTable.colNameObj)
         return this.objectObs;
       })
     );
-  }
-
-  protected getModuleObjetTypeLabels(): {} {
-    const moduleCode = this.objectObs.moduleCode;
-    const objectType = this.objectObs.objectType;
-    const label = this._configService.configModuleObjectParam(moduleCode, objectType, 'label');
-
-    let labels = {
-      label: label,
-    };
-
-    return labels;
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
@@ -133,12 +102,17 @@ export class ApiService<T = IObject> implements IService<T> {
      * @param {Object} [params={}] The parameters to pass to the service.
      * @returns {Observable<any>}
      */
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    if (!config) {
+      return of(null);
+    }
+    console.log('ApiService getResolved config : ', config);
     return this.get(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
-          this.objectObs.schema,
-          this.objectObs.moduleCode,
+          config['fields'] || {},
+          this._configServiceG.moduleCode(),
           this._monitoringObjectService,
           this._cacheService
         );
@@ -183,9 +157,10 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
   constructor(
     protected _cacheService: CacheService,
     protected _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -214,9 +189,10 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
     _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
@@ -297,9 +273,10 @@ export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
     _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
@@ -358,9 +335,10 @@ export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,
     _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {
@@ -393,9 +371,10 @@ export class IndividualsService extends ApiService<IIndividual> {
   constructor(
     _cacheService: CacheService,
     _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {
