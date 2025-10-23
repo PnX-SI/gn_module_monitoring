@@ -225,6 +225,7 @@ export class MonitoringFormComponent implements OnInit {
         ),
         switchMap((genericFormValues) =>
           defer(() => {
+            console.log("genericFormValues: ", genericFormValues)
             // Patch les valeurs du formulaire avec celle des propriétés spécifique aux types de site
             if (this.isSiteObject) {
               let siteConfig = this.allTypesSiteConfig;
@@ -259,6 +260,7 @@ export class MonitoringFormComponent implements OnInit {
         const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
         if (dynamicGroupsArray) this.subscribeToDynamicGroupsChanges(dynamicGroupsArray);
         this.setDefaultFormValue();
+        console.log("this.objFormsDefinition: ", this.objFormsDefinition);
       });
   }
 
@@ -439,15 +441,18 @@ export class MonitoringFormComponent implements OnInit {
     //   this.dataComplement = { ...this.typesSiteConfig, types_site: this.idsTypesSite };
     // }
     let objFormValueGroup = {};
+    console.log("objFormValueGroup1 : ", objFormValueGroup)
     this.isSiteObject
       ? (objFormValueGroup = this._formService.flattenFormGroup(this.objForm))
       : (objFormValueGroup = this.objForm.value);
+    console.log("objFormValueGroup2 : ", objFormValueGroup)
     // this.obj.objectType == 'site'
     //   ? Object.assign(this.obj.config['specific'], this.schemaUpdate)
     //   : null;
 
     // On merge l'objet avec les nouvelles valeurs issues du formulaire et les propriétés mises de cotés mais qui doivent être conservées
     const finalObject = Utils.mergeObjects(this.remainingTypeSiteProp, objFormValueGroup);
+    console.log("finalObject : ", finalObject)
     this.isSiteObject ? (finalObject['types_site'] = Array.from(this.idsTypesSite)) : null;
     const action = this.obj.id ? this.obj.patch(finalObject) : this.obj.post(finalObject);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
