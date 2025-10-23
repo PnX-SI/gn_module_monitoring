@@ -1,14 +1,30 @@
 <!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
 <div>
-  <pnx-monitoring-properties
+  <!-- <pnx-monitoring-properties
     *ngIf="moduleCode !== 'generic' && obj && !bEdit && obj.bIsInitialized"
     id="nav-properties"
     [obj]="obj"
     [(bEdit)]="bEdit"
-    [currentUser]="currentUser">
-  </pnx-monitoring-properties>
-  <pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
-    [(bEdit)]="bEdit" [addChildren]=false></pnx-monitoring-form>
+    [currentUser]="currentUser"
+  ></pnx-monitoring-properties> -->
+  <pnx-monitoring-properties-g
+  *ngIf="obj && !bEdit && obj.bIsInitialized"
+  id="nav-properties"
+  [obj]="obj.resolvedProperties"
+  [templateData]="templateData"
+  [(bEdit)]="bEdit"
+  [currentUser]="currentUser"
+  objectType="module"
+  [bSynthese]="obj.resolvedProperties['b_synthese']"
+></pnx-monitoring-properties-g>
+  <pnx-monitoring-form
+    [obj]="obj"
+    [objForm]="objForm"
+    [currentUser]="currentUser"
+    *ngIf="bEdit && obj?.bIsInitialized"
+    [(bEdit)]="bEdit"
+    [addChildren]="false"
+  ></pnx-monitoring-form>
   <pnx-monitoring-datatable-g
     *ngIf="!bEdit"
     [dataTableConfig]="dataTableConfig"

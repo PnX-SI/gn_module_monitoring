@@ -176,6 +176,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           null,
           this._monitoringObjectService
         );
+        this.setTemplateData('module');
       }
 
       if (this.obj) {

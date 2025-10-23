@@ -147,9 +147,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         // ajout des propriétés spécifiques au type de site
         // dans l'objet MonitoringObject
         const types_site = data.site['types_site'];
-        this.obj['template_specific'] = this._monitoringObjServiceMonitoring
-          .configService()
-          .addSpecificConfig(types_site);
+        this.obj['template_specific'] = this.setTemplateSpecificData(types_site);
+        this.obj['template'] = this.setTemplateData('site');
 
         this.visits = data.visits || { items: [], page: 1, limit: this.limit, count: 0 };
         this.page = {
