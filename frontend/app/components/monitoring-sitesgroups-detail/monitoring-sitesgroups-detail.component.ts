@@ -93,6 +93,7 @@ export class MonitoringSitesgroupsDetailComponent
     this.form = this._formBuilder.group({});
     this._configService.init(this.moduleCode).subscribe(() => {
       this.initSite();
+      this.setTemplateData('sites_group');
     });
   }
 
