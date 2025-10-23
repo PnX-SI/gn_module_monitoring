@@ -1,4 +1,5 @@
 import { IdataTableObjData } from '../interfaces/geom';
+import { PermissionService } from '../services/permission.service';
 import { JsonData } from '../types/jsondata';
 
 const LIMIT = 10;
@@ -15,7 +16,7 @@ export class MonitoringGeomComponent {
   public dataTableConfig: {}[] = [];
   public templateData: {} = {};
 
-  constructor() {}
+  constructor(public _permissionService: PermissionService) {}
 
   setPage({ page, filters, tabObj = '' }) {
     this.filters = { ...this.baseFilters, ...filters };
@@ -38,6 +39,7 @@ export class MonitoringGeomComponent {
       [key: string]: {
         data: { items: any[]; count: number; limit: number; page: number };
         objType: string;
+        childType: string;
       };
     },
     configService: any,
@@ -50,6 +52,7 @@ export class MonitoringGeomComponent {
      * @param {any} data data to set the data table config and data
      * @returns {void}
      */
+
     const dataTableObjData: IdataTableObjData = {} as IdataTableObjData;
     const dataTableConfig = [];
     for (const dataType in data) {
@@ -63,13 +66,12 @@ export class MonitoringGeomComponent {
       let colNameObj: { [index: string]: any } = {};
       const labelList = config['label_list'];
       for (const key of fieldNamesList) {
-        colNameObj[key] = config['fields'][key]['attribut_label'];
+        colNameObj[key] = (config['fields'][key] || [])['attribut_label'];
       }
-
       let currentDataTableConfig = {
         labelList: labelList,
         description_field_name: config['description_field_name'],
-        childType: config['childType'],
+        childType: data[dataType].childType,
         sorts:
           'sorts' in config
             ? {
@@ -80,6 +82,9 @@ export class MonitoringGeomComponent {
         colNameObj: colNameObj,
         objectType: objType,
         moduleCode: moduleCode,
+        canCreateObj: this._permissionService.modulePermission[objType]?.C > 0 || false,
+        canCreateChild:
+          this._permissionService.modulePermission[data[dataType].childType]?.C > 0 || false,
       };
       dataTableConfig.push(currentDataTableConfig);
       dataTableObjData[objType] = {

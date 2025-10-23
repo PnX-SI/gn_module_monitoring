@@ -36,7 +36,6 @@
   (onEditEvent)="editChild($event)"
   (onDeleteEvent)="onDelete($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
-  [permission]="currentPermission"
   parentPath="site"
 >
   <!-- Bouton pour ajouter une visite
@@ -49,6 +48,6 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
+    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.visit?.canCreate > 0"
   ></option-list-btn>
 </pnx-monitoring-datatable-g>

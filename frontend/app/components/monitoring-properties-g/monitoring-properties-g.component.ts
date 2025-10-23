@@ -8,7 +8,6 @@ import { IobjObs, ObjDataType } from '../../interfaces/objObs';
 import { FormService } from '../../services/form.service';
 import { JsonData } from '../../types/jsondata';
 import { TPermission } from '../../types/permission';
-import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 import { MediaService } from '@geonature_common/service/media.service';
 
 @Component({

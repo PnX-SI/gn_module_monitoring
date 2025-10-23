@@ -75,12 +75,12 @@ export class MonitoringSitesgroupsDetailComponent
     private _configService: ConfigService,
     private _configServiceG: ConfigServiceG,
     private _formService: FormService,
-    private _permissionService: PermissionService,
+    public _permissionService: PermissionService,
     private _popup: Popup,
     private _monitoringObjectService: MonitoringObjectService,
     private _cacheService: CacheService
   ) {
-    super();
+    super(_permissionService);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
@@ -98,7 +98,6 @@ export class MonitoringSitesgroupsDetailComponent
 
   initSite() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
 
     this._Activatedroute.params
       .pipe(
@@ -170,6 +169,7 @@ export class MonitoringSitesgroupsDetailComponent
             sites: {
               data: sites,
               objType: 'site',
+              childType: 'visit',
             },
           },
           this._configServiceG,
