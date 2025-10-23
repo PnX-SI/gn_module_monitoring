@@ -31,6 +31,7 @@ const LIMIT = 10;
 import { Observable, ReplaySubject, forkJoin, of } from 'rxjs';
 import { map, mergeMap, takeUntil } from 'rxjs/operators';
 import { ConfigServiceG } from '../../services/config-g.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'monitoring-sitesgroups',
@@ -50,13 +51,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   dataTableConfig: {}[] = [];
   activetabIndex: number;
   currentRoute: string;
-  // siteGroupEmpty={
-  //   "comments" :'',
-  //   sites_group_code: string;
-  //   sites_group_description: string;
-  //   sites_group_name: string;
-  //   uuid_sites_group: string; //FIXME: see if OK
-  // }
+
   modules: SelectObject[];
   modulSelected;
   siteSelectedId: number;
@@ -75,6 +70,13 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   config;
 
+  // TODO: move to a common file
+  private childTypes: { [index: string]: string } = {
+    site: 'visit',
+    sites_group: 'site',
+    individual: 'marking',
+  };
+
   constructor(
     private _auth: AuthService,
     private _sites_group_service: SitesGroupService,
@@ -91,9 +93,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _monitoringObjectService: MonitoringObjectService,
     private _configService: ConfigService,
     private _configServiceG: ConfigServiceG,
-    private _cacheService: CacheService
+    private _cacheService: CacheService,
+    public _permissionService: PermissionService
   ) {
-    super();
+    super(_permissionService);
     this.getAllItemsCallback = this.getData; //[this.getSitesGroups, this.getSites];
   }
 
@@ -127,8 +130,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.moduleCode = data.moduleCode;
       this.geojsonService.setModuleCode(`${this.moduleCode}`);
       this.currentUser = this._auth.getCurrentUser();
-      this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
-
       this.currentPermission = data.permission;
 
       // breadcrumb
@@ -147,6 +148,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         dataToTable[objType] = {
           data: data[`${objType}s`],
           objType: objType,
+          childType: this.childTypes[objType],
         };
       }
 
@@ -160,9 +162,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.activetabIndex = this.getdataTableIndex(data.route);
 
       if (data.route == 'site') {
-        this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+        this.currentPermission.site.R > 0 ? this.getGeometriesSite() : null;
       } else {
-        this.currentPermission.MONITORINGS_GRP_SITES.canRead
+        this.currentPermission.sites_group.R > 0
           ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
           : null;
       }
@@ -318,7 +320,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       queryParams[row['pk']] = row['id'];
       const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
       queryParams['parents_path'] = ['module', current_object];
-
       if (current_object == 'individual') {
         // Patch individual tant que la page détail des individus est générique
         queryParams['parents_path'] = ['module', 'individual'];
@@ -430,17 +431,17 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentRoute = 'site';
       this._location.go(`/monitorings/object/${this.moduleCode}/site`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+      this.currentPermission.site.R > 0 ? this.getGeometriesSite() : null;
     } else if ($event == 'individual') {
       this.currentRoute = 'individual';
       this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+      this.currentPermission.site.R > 0 ? this.getGeometriesSite() : null;
     } else {
       this.currentRoute = 'sites_group';
       this._location.go(`/monitorings/object/${this.moduleCode}/sites_group`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
-      this.currentPermission.MONITORINGS_GRP_SITES.canRead
+      this.currentPermission.sites_group.R > 0
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;
     }
