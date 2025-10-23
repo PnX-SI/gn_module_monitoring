@@ -3,6 +3,7 @@
   "description_field_name": "id_observation_detail",
   "chained": true,
   "label": "Observation détail",
+  "label_list": "Observations détail",
   "genre": "F",
   "display_properties": ["uuid_observation_detail"],
   "uuid_field_name": "uuid_observation_detail",

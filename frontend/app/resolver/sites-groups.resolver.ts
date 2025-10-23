@@ -28,7 +28,6 @@ export class SitesGroupsResolver
       moduleCode: string | null;
     }>
 {
-  currentPermission: TPermission;
   // Liste des type d'objets enfants à afficher sur la page
   listChildObjectType: string[] = ['sites_group', 'site'];
 
@@ -58,7 +57,7 @@ export class SitesGroupsResolver
     this.listChildObjectType = ['sites_group', 'site'];
 
     this._permissionService.setPermissionMonitorings(moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
+    const currentPermission = this._permissionService.modulePermission;
 
     this.serviceSitesGroup.initConfig();
     this.serviceSite.initConfig();
@@ -85,19 +84,19 @@ export class SitesGroupsResolver
     // Initialisation des getters et config de chaque type d'objet
     const $getSiteGroups = this.buildObjectConfig(
       'sites_group',
-      this.currentPermission.MONITORINGS_GRP_SITES.canRead,
+      currentPermission.sites_group.R > 0,
       this.serviceSitesGroup
     );
 
     const $getSites = this.buildObjectConfig(
       'site',
-      this.currentPermission.MONITORINGS_SITES.canRead,
+      currentPermission.site.R > 0,
       this.serviceSite
     );
 
     const $getIndividuals = this.buildObjectConfig(
       'individual',
-      this.currentPermission.MONITORINGS_INDIVIDUALS.canRead,
+      currentPermission.individual.R > 0,
       this.serviceIndividual
     );
 
@@ -110,7 +109,7 @@ export class SitesGroupsResolver
           sites: processedSites,
           individuals: processedIndividuals,
           route: route['_urlSegment'].segments[3].path,
-          permission: this.currentPermission,
+          permission: currentPermission,
           moduleCode,
         };
       })

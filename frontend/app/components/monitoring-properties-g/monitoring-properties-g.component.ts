@@ -1,15 +1,15 @@
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Subscription } from 'rxjs';
-
-import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
-import { ISitesGroup } from '../../interfaces/geom';
-import { IobjObs, ObjDataType } from '../../interfaces/objObs';
-import { FormService } from '../../services/form.service';
-import { JsonData } from '../../types/jsondata';
-import { TPermission } from '../../types/permission';
-import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { ConfigServiceG } from '../../services/config-g.service';
+import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
+import { CommonService } from '@geonature_common/service/common.service';
 import { MediaService } from '@geonature_common/service/media.service';
+import html2canvas from 'html2canvas';
+import { MapService } from '@geonature_common/map/map.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { FormControl } from '@angular/forms';
+import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { TemplateData } from '../../interfaces/template';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'pnx-monitoring-properties-g',
@@ -17,78 +17,134 @@ import { MediaService } from '@geonature_common/service/media.service';
   styleUrls: ['./monitoring-properties-g.component.css'],
 })
 export class MonitoringPropertiesGComponent implements OnInit {
-  // selectedObj: ISitesGroup;
-  @Input() selectedObj: ObjDataType;
-  @Input() selectedObjRaw: ObjDataType;
+  @Input() obj: any;
+  @Input() objectType: string;
+  @Input() currentUser;
+  @Input() templateData: TemplateData;
+  @Input() templateSpecific: TemplateData;
   @Input() bEdit: boolean;
+  @Input() bSynthese: boolean = false;
+
   @Output() bEditChange = new EventEmitter<boolean>();
-  objectType: IobjObs<ObjDataType>;
 
-  @Input() newParentType;
-  color: string = 'white';
-  dataDetails: ISitesGroup;
-  fields: JsonData;
-  fieldDefinitions: JsonData = {};
-  fieldsNames: string[];
-  endPoint: string;
-  datasetForm = new FormControl();
-  _sub: Subscription;
-
-  specificFields: JsonData;
-  specificFieldDefinitions: JsonData = {};
-  specificFieldsNames: string[];
-
-  @Input() permission: TPermission;
-
-  canUpdateObj: boolean;
-
-  toolTipNotAllowed: string;
+  public moduleCode: string = 'generic';
+  public datasetForm: FormControl = new FormControl();
+  public bUpdateSyntheseSpinner: boolean = false;
+  public modalReference: any;
+  public canUpdateObj: boolean;
+  public selectedDataSet: Array<number> = [];
+  public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  public userPermission: any;
 
   constructor(
-    private _formService: FormService,
-    public ms: MediaService
+    private _configServiceG: ConfigServiceG,
+    public ms: MediaService,
+    private _dataService: DataMonitoringObjectService,
+    private _commonService: CommonService,
+    public ngbModal: NgbModal,
+    public mapservice: MapService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit() {
-    this.toolTipNotAllowed = TOOLTIPMESSAGEALERT;
+    this.moduleCode = this._configServiceG.moduleCode() ?? '';
+    console.log(this.templateData.exportCSV, 'eeeee');
+    // Si les permissions n'ont pas été initialisées
+    this.userPermission =
+      this.currentUser.moduleCruved ||
+      this.permissionService.setModulePermissions(this._configServiceG.moduleCode() || 'generic');
   }
 
-  initProperties() {
-    this.objectType = this.newParentType;
-    this.fieldsNames = this.newParentType.template.fieldNames;
-    this.fields = this.newParentType.template.fieldLabels;
-    this.fieldDefinitions = this.newParentType.template.fieldDefinitions;
-    this.objectType.properties = this.selectedObj;
-    this.endPoint = this.newParentType.endPoint;
-  }
-
-  initSpecificProperties() {
-    // Suppression des propriétés génériques incluses dans les propriétés spécifiques
-    this.specificFieldsNames = this.newParentType.template_specific.fieldNames.filter(
-      (field) => !this.fieldsNames.includes(field)
-    );
-    this.specificFields = this.newParentType.template_specific.fieldLabels;
-    this.specificFieldDefinitions = this.newParentType.template_specific.fieldDefinitions;
+  hasEditPermission() {
+    return this.userPermission[this.objectType]['U'] > 0;
   }
 
   onEditClick() {
-    this.selectedObjRaw['id'] = this.selectedObjRaw[this.selectedObjRaw.pk];
     this.bEditChange.emit(true);
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.newParentType && this.newParentType.template.fieldNames.length != 0) {
-      this.initProperties();
-      if (this.selectedObj) {
-        this.canUpdateObj = this.selectedObj['cruved']['U'];
+  updateSynthese() {
+    this.bUpdateSyntheseSpinner = true;
+    this._dataService.updateSynthese(this.moduleCode).subscribe(
+      () => {
+        this.bUpdateSyntheseSpinner = false;
+        this._commonService.regularToaster(
+          'success',
+          `La synthèse a été mise à jour pour le module ${this.moduleCode}`
+        );
+      },
+      (err) => {
+        this.bUpdateSyntheseSpinner = false;
+        this._commonService.regularToaster(
+          'error',
+          `Erreur lors de la mise à jour de la synthèse pour le module ${this.moduleCode} - ${err.error.message}`
+        );
       }
-      if (
-        this.newParentType.template_specific &&
-        this.newParentType.template_specific.fieldNames &&
-        this.newParentType.template_specific.fieldNames.length != 0
-      ) {
-        this.initSpecificProperties();
-      }
+    );
+  }
+  // add mje: show dowload modal
+  openModalExportCsv(event, modal) {
+    this.selectedDataSet = [];
+    this.modalReference = this.ngbModal.open(modal, { size: 'lg' });
+  }
+
+  onDatasetChanged(id_dataset: any, i: number) {
+    this.selectedDataSet[i] = id_dataset;
+  }
+
+  getExportCsv(exportDef: any, jd: number) {
+    const queryParams = jd != null ? { id_dataset: jd } : {};
+    console.log(exportDef);
+    this._dataService.getExportCsv(this.moduleCode, exportDef.method, queryParams);
+  }
+
+  processExportPdf(exportPdfConfig: any) {
+    var map = this.mapservice.map;
+    const $this = this;
+
+    try {
+      var zoomInElement = document.querySelector(
+        '#monitoring-map-container .leaflet-control-zoom-in'
+      );
+      var snapshotElement = document.getElementById('geometry');
+      var config = {
+        allowTaint: true,
+        useCORS: true,
+        ignoreElements: function (element) {
+          return (
+            element.classList[0] == 'leaflet-control-zoom-in' ||
+            element.classList[0] == 'leaflet-control-zoom-out' ||
+            element.classList[0] == 'leaflet-control-layers-toggle' ||
+            element.title == 'A JS library for interactive maps' ||
+            element.placeholder == 'Rechercher un lieu'
+          );
+        },
+        logging: false,
+      };
+
+      html2canvas(snapshotElement, config).then(function (canvas) {
+        var imgData = canvas.toDataURL('image/png');
+        const extra_data = {
+          resolved_properties: $this.obj.resolvedProperties,
+        };
+        $this._dataService
+          .postPdfExport(
+            $this.obj.moduleCode,
+            $this.obj.objectType,
+            $this.obj.id,
+            exportPdfConfig.template,
+            imgData,
+            extra_data
+          )
+          .subscribe(() => {
+            $this._commonService.regularToaster(
+              'success',
+              "L'export PDF est prêt à être récupéré dans le dossier de Téléchargement"
+            );
+          });
+      });
+    } catch {
+      $this._commonService.regularToaster('error', "Une erreur est survenue durant l'export PDF");
     }
   }
 }
