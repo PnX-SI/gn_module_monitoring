@@ -5,6 +5,7 @@
   "label": "Visite",
   "genre": "F",
   "uuid_field_name": "uuid_base_visit",
+  "label_list": "Visites",
   "display_properties": [
     "id_base_site",
     "visit_date_min",
