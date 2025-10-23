@@ -51,8 +51,8 @@ export class GeoJSONService {
   ) {}
 
   setModuleCode(moduleCode: string) {
-    this._sites_group_service.setModuleCode(moduleCode);
-    this._sites_service.setModuleCode(moduleCode);
+    this._sites_group_service.initConfig();
+    this._sites_service.initConfig();
   }
 
   removeAllLayers() {

@@ -30,7 +30,7 @@
   >
     <mat-tab
       *ngFor="let objType of dataTableObjData | keyvalue; let i = index"
-      label="{{ dataTableConfig[i].template['labelList'] }} {{
+      label="{{ dataTableConfig[i].labelList}} {{
         displayNumber(dataTableConfig[i].objectType)
       }}"
     >

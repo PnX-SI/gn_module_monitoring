@@ -83,6 +83,7 @@ export class ConfigService {
     return this._moduleService.currentModule.module_path;
   }
 
+  // A DEPLACER DANS UTILS
   moduleCruved(module_code) {
     if (module_code == 'generic') {
       module_code = 'MONITORINGS';

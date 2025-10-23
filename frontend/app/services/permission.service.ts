@@ -50,6 +50,23 @@ export class PermissionService {
 
   currentPermissionObj = this.permissionObject.asObservable();
 
+  // Issue de ConfigService
+  moduleCruved(module_code: string) {
+    if (module_code == 'generic') {
+      module_code = 'MONITORINGS';
+    }
+    const permObjectDict = this.appConfig.MONITORINGS.PERMISSION_LEVEL;
+    const module = this._moduleService.getModule(module_code);
+
+    const moduleCruved: { [index: string]: any } = {};
+    for (const [objectCode, permObjectCode] of Object.entries(permObjectDict)) {
+      moduleCruved[objectCode] =
+        module.objects.find((o) => o.code_object == permObjectDict[objectCode])?.cruved ||
+        module.cruved;
+    }
+    return moduleCruved;
+  }
+
   setPermissionUser(permUser: TPermission) {
     this.permissionObject.next(permUser);
   }

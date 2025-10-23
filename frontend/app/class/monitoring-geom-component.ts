@@ -13,6 +13,7 @@ export class MonitoringGeomComponent {
 
   public dataTableObjData: IdataTableObjData;
   public dataTableConfig: {}[] = [];
+  public templateData: {} = {};
 
   constructor() {}
 
@@ -36,7 +37,7 @@ export class MonitoringGeomComponent {
     data: {
       [key: string]: {
         data: { items: any[]; count: number; limit: number; page: number };
-        objConfig: { objectType: string; dataTable: { colNameObj: any } };
+        objType: string;
       };
     },
     configService: any,
@@ -49,23 +50,40 @@ export class MonitoringGeomComponent {
      * @param {any} data data to set the data table config and data
      * @returns {void}
      */
-    const dataTableObjData = {} as IdataTableObjData;
+    const dataTableObjData: IdataTableObjData = {} as IdataTableObjData;
     const dataTableConfig = [];
-
     for (const dataType in data) {
-      if (!data[dataType].objConfig) {
-        continue;
-      }
-      const objType: string = data[dataType].objConfig.objectType;
+      const objType = data[dataType].objType;
       if (!allowedObjectType.includes(objType)) {
         continue;
       }
+      const config = configService.config()[objType];
 
-      const config = configService.configModuleObject(moduleCode, objType);
-      data[dataType].objConfig['config'] = config;
-      dataTableConfig.push(data[dataType].objConfig);
+      const fieldNamesList = config['display_list'];
+      let colNameObj: { [index: string]: any } = {};
+      const labelList = config['label_list'];
+      for (const key of fieldNamesList) {
+        colNameObj[key] = config['fields'][key]['attribut_label'];
+      }
+
+      let currentDataTableConfig = {
+        labelList: labelList,
+        description_field_name: config['description_field_name'],
+        childType: config['childType'],
+        sorts:
+          'sorts' in config
+            ? {
+                sort_dir: config.sorts[0]['dir'] || 'asc',
+                sort: config.sorts[0]['prop'],
+              }
+            : {},
+        colNameObj: colNameObj,
+        objectType: objType,
+        moduleCode: moduleCode,
+      };
+      dataTableConfig.push(currentDataTableConfig);
       dataTableObjData[objType] = {
-        columns: data[dataType].objConfig.dataTable.colNameObj,
+        columns: colNameObj,
         rows: data[dataType].data.items,
         page: {
           count: data[dataType].data.count,
@@ -75,8 +93,24 @@ export class MonitoringGeomComponent {
         },
       };
     }
-
     this.dataTableObjData = dataTableObjData;
     this.dataTableConfig = dataTableConfig;
+  }
+
+  setTemplateData(configService: any, objectType: string) {
+    /**
+     * Initialisation des données de configuration pour monitoring-properties-template
+     *
+     * @param {any}
+     * configService service de configuration
+     * objectType type d'objet
+     * @returns {void}
+     */
+    const config = configService.config()[objectType];
+    this.templateData = {
+      labelList: config['label_list'],
+      description_field_name: config['description_field_name'],
+      childType: config['childType'],
+    };
   }
 }

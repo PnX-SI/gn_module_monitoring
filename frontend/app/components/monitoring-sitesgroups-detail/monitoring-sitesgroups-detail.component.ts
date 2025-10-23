@@ -43,7 +43,6 @@ export class MonitoringSitesgroupsDetailComponent
   @Input() bEdit: boolean;
   form: FormGroup;
   objectType: IobjObs<ISite>;
-  objParent: any;
 
   modules: SelectObject[];
   modulSelected;
@@ -88,7 +87,6 @@ export class MonitoringSitesgroupsDetailComponent
   ngOnInit() {
     this._Activatedroute.data.subscribe(({ data }) => {
       this.moduleCode = data.moduleCode;
-      console.log('config ', this._configServiceG.config());
     });
 
     this.currentUser = this._auth.getCurrentUser();
@@ -127,10 +125,10 @@ export class MonitoringSitesgroupsDetailComponent
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {
-          this._siteService.setModuleCode(`${this.moduleCode}`);
-          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
+          this._siteService.initConfig();
+          this._sitesGroupService.initConfig();
 
-          const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+          const fieldsConfig = this._configServiceG.config()['site']['fields'];
           // Récupération des sites et résolution des propriétés
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
@@ -147,8 +145,6 @@ export class MonitoringSitesgroupsDetailComponent
               }
             }),
             sites: sitedata$,
-            objObsSite: this._siteService.initConfig(),
-            objObsSiteGp: this._sitesGroupService.initConfig(),
             obj: this.obj.get(0),
           }).pipe(
             map((data) => {
@@ -175,28 +171,27 @@ export class MonitoringSitesgroupsDetailComponent
           limit: sites.limit,
         };
 
-        this.colsname = data.objObsSite.dataTable.colNameObj;
-        this.objParent = data.objObsSiteGp;
-
         this.setDataTableObjData(
           {
             sites: {
               data: sites,
-              objConfig: data.objObsSite,
+              objType: 'site',
             },
           },
-          this._configService,
+          this._configServiceG,
           this.moduleCode,
           ['site', 'individual']
         );
+
+        this.colsname = this.dataTableConfig[0]['colNameObj'];
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
         if (this.checkEditParam) {
           this._formService.changeDataSub(
             this.sitesGroup,
-            this.objParent.objectType,
-            this.objParent.endPoint
+            this._sitesGroupService.objectObs.objectType,
+            this._sitesGroupService.objectObs.endPoint
           );
 
           this.bEdit = true;
@@ -251,7 +246,7 @@ export class MonitoringSitesgroupsDetailComponent
   getSitesFromSiteGroupId(page, params) {
     const sitesParams = { ...params, ...this.baseFilters };
     // Tableau
-    const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+    const fieldsConfig = this._configServiceG.config()['site']['fields'];
     this._sitesGroupService
       .getSitesChildResolved(1, this.limit, sitesParams, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
