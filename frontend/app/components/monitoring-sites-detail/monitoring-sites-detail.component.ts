@@ -71,11 +71,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
-    private _permissionService: PermissionService,
+    public _permissionService: PermissionService,
     private _popup: Popup,
     private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
-    super();
+    super(_permissionService);
     this.getAllItemsCallback = this.getVisits;
   }
 
@@ -87,15 +87,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._sitesGroupService.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
-    // TODO comprendre pourquoi nessaire que dans certains cas
-    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
-
     this.form = this._formBuilder.group({});
 
     // breadcrumb
     const queryParams = this._Activatedroute.snapshot.queryParams;
     this._objService.loadBreadCrumb(this.moduleCode, 'site', idSite, queryParams);
-
+    // initialisation de la configuration du fait de l'utilisation de Obj
     this._configService.init(this.moduleCode).subscribe(() => {
       this.initSiteVisit();
     });
@@ -103,7 +100,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   initSiteVisit() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
+    this.currentPermission = this._permissionService.modulePermission;
     this._Activatedroute.params
       .pipe(
         mergeMap((params) => {
@@ -161,9 +158,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         // ajout des propriétés spécifiques au type de site
         // dans l'objet MonitoringObject
         const types_site = data.site['types_site'];
-        this.obj['template_specific'] = this._monitoringObjServiceMonitoring
-          .configService()
-          .addSpecificConfig(types_site);
+        this.obj['template_specific'] = this.setTemplateSpecificData(types_site);
+        this.obj['template'] = this.setTemplateData('site');
 
         this.visits = data.visits || { items: [], page: 1, limit: this.limit, count: 0 };
         this.page = {
@@ -179,6 +175,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           visits: {
             data: data.visits,
             objType: 'visit',
+            childType: 'observation',
           },
         };
         this.setDataTableObjData(dataTableData, this._configServiceG, this.moduleCode, ['visit']);
@@ -248,12 +245,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   addNewVisit($event: SelectObject) {
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47
-    this._configService.init(moduleCode).subscribe(() => {
-      const keys = Object.keys(this._configService.config()[moduleCode]);
-      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-      this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
-      });
+    const keys = Object.keys(this._configServiceG.config());
+    const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
+    this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+      queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
     });
   }
 

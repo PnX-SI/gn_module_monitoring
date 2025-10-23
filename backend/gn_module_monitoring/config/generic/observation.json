@@ -3,6 +3,7 @@
   "description_field_name": "id_observation",
   "chained": true,
   "label": "Observation",
+  "label_list": "Observations",
   "genre": "F",
   "display_properties": [
     "cd_nom",
