@@ -197,6 +197,9 @@ def get_site_by_id(scope, module_code, id, object_type):
         "cruved": get_objet_with_permission_boolean([site], object_code="MONITORINGS_SITES")[0][
             "cruved"
         ],
+        "id": id,
+        "module_code": module_code,
+        "object_type": "site",
     }
 
 
