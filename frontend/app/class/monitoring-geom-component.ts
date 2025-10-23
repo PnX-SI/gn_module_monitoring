@@ -82,9 +82,9 @@ export class MonitoringGeomComponent {
         colNameObj: colNameObj,
         objectType: objType,
         moduleCode: moduleCode,
-        canCreateObj: this._permissionService.moduleCruved(moduleCode)[objType]?.C > 0 || false,
+        canCreateObj: this._permissionService.modulePermission[objType]?.C > 0 || false,
         canCreateChild:
-          this._permissionService.moduleCruved(moduleCode)[data[dataType].childType]?.C > 0 ||
+          this._permissionService.modulePermission[data[dataType].childType]?.C > 0 ||
           false,
       };
       dataTableConfig.push(currentDataTableConfig);

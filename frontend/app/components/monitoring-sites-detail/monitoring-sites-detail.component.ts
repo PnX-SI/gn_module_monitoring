@@ -103,7 +103,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   initSiteVisit() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
+    this.currentPermission =  this._permissionService.modulePermission;
     this._Activatedroute.params
       .pipe(
         mergeMap((params) => {

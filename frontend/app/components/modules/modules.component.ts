@@ -35,7 +35,6 @@ export class ModulesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.currentPermission = this._permissionService.defaultPermission;
     this.bLoading = true;
 
     // Paramètre d'affichage
@@ -49,10 +48,10 @@ export class ModulesComponent implements OnInit {
 
     // Récupération des permissions et de la liste des modules
     return this._dataMonitoringObjectService.getModules().subscribe((modules) => {
-      this.currentPermission = this._permissionService.getPermissionUser();
+      this.currentPermission = this._permissionService.setModulePermissions('generic');
       this.canAccessSite =
-        this.currentPermission.MONITORINGS_SITES.canRead ||
-        this.currentPermission.MONITORINGS_GRP_SITES.canRead;
+        this.currentPermission.site.C >0 ||
+        this.currentPermission.sites_group.C >0 ;
       this.modules = modules.filter((m) => m.cruved.R >= 1);
       this.bLoading = false;
     });

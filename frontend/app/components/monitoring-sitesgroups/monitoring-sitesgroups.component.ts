@@ -164,9 +164,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.activetabIndex = this.getdataTableIndex(data.route);
 
       if (data.route == 'site') {
-        this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+        this.currentPermission.site.C >0 ? this.getGeometriesSite() : null;
       } else {
-        this.currentPermission.MONITORINGS_GRP_SITES.canRead
+        this.currentPermission.sites_group.C >0
           ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
           : null;
       }
@@ -433,17 +433,17 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentRoute = 'site';
       this._location.go(`/monitorings/object/${this.moduleCode}/site`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+      this.currentPermission.site.C >0 ? this.getGeometriesSite() : null;
     } else if ($event == 'individual') {
       this.currentRoute = 'individual';
       this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-      this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
+      this.currentPermission.site.C >0 ? this.getGeometriesSite() : null;
     } else {
       this.currentRoute = 'sites_group';
       this._location.go(`/monitorings/object/${this.moduleCode}/sites_group`);
       this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
-      this.currentPermission.MONITORINGS_GRP_SITES.canRead
+      this.currentPermission.sites_group.C >0
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;
     }

@@ -58,7 +58,7 @@ export class SitesGroupsResolver
     this.listChildObjectType = ['sites_group', 'site'];
 
     this._permissionService.setPermissionMonitorings(moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
+    this.currentPermission =  this._permissionService.modulePermission;
 
     this.serviceSitesGroup.initConfig();
     this.serviceSite.initConfig();
@@ -85,19 +85,19 @@ export class SitesGroupsResolver
     // Initialisation des getters et config de chaque type d'objet
     const $getSiteGroups = this.buildObjectConfig(
       'sites_group',
-      this.currentPermission.MONITORINGS_GRP_SITES.canRead,
+      this.currentPermission.sites_group.C > 0,
       this.serviceSitesGroup
     );
 
     const $getSites = this.buildObjectConfig(
       'site',
-      this.currentPermission.MONITORINGS_SITES.canRead,
+      this.currentPermission.site.C > 0,
       this.serviceSite
     );
 
     const $getIndividuals = this.buildObjectConfig(
       'individual',
-      this.currentPermission.MONITORINGS_INDIVIDUALS.canRead,
+      this.currentPermission.individual.C > 0,
       this.serviceIndividual
     );
 
