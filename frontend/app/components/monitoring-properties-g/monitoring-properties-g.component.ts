@@ -23,7 +23,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   @Input() templateData: TemplateData;
   @Input() templateSpecific: TemplateData;
   @Input() bEdit: boolean;
-  @Input() bSynthese: boolean;
+  @Input() bSynthese: boolean=false;
 
   @Output() bEditChange = new EventEmitter<boolean>();
 
@@ -69,14 +69,14 @@ export class MonitoringPropertiesGComponent implements OnInit {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
           'success',
-          `La synthèse a été mise à jour pour le module ${this.obj.moduleCode}`
+          `La synthèse a été mise à jour pour le module ${this.moduleCode}`
         );
       },
       (err) => {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
           'error',
-          `Erreur lors de la mise à jour de la synthèse pour le module ${this.obj.moduleCode} - ${err.error.message}`
+          `Erreur lors de la mise à jour de la synthèse pour le module ${this.moduleCode} - ${err.error.message}`
         );
       }
     );
