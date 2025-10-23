@@ -9,7 +9,10 @@ import { PermissionService } from '../services/permission.service';
   providedIn: 'root',
 })
 export class ModuleConfigResolver implements Resolve<any> {
-  constructor(private configServiceG: ConfigServiceG, private _permissionService: PermissionService) {}
+  constructor(
+    private configServiceG: ConfigServiceG,
+    private _permissionService: PermissionService
+  ) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
     const moduleCode = route.params?.moduleCode;

@@ -98,7 +98,6 @@ export class MonitoringSitesgroupsDetailComponent
 
   initSite() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.modulePermission;
 
     this._Activatedroute.params
       .pipe(

@@ -87,9 +87,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._sitesGroupService.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
-    // TODO comprendre pourquoi nessaire que dans certains cas
-    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
-
     this.form = this._formBuilder.group({});
 
     // breadcrumb
@@ -103,7 +100,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   initSiteVisit() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission =  this._permissionService.modulePermission;
+    this.currentPermission = this._permissionService.modulePermission;
     this._Activatedroute.params
       .pipe(
         mergeMap((params) => {

@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
 import { TPermission } from '../types/permission';
-import { ReplaySubject, BehaviorSubject } from 'rxjs';
-import { ObjectsPermissionMonitorings as typePerm } from '../enum/objectPermission';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 import { ModuleService } from '@geonature/services/module.service';
-
 
 @Injectable({
   providedIn: 'root', // a changer :/
 })
 export class PermissionService {
-
-  modulePermission: TPermission ;
+  modulePermission: TPermission;
   constructor(
     public appConfig: GnConfigService,
     protected _moduleService: ModuleService
@@ -32,7 +28,6 @@ export class PermissionService {
     }
     return moduleCruved;
   }
-
 
   setPermissionMonitorings(module_code: string = 'generic') {
     /**

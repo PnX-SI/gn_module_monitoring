@@ -5,7 +5,6 @@ import { concatMap, map } from 'rxjs/operators';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { ConfigService } from '../../services/config.service';
 import { TPermission } from '../../types/permission';
-import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 import { PermissionService } from '../../services/permission.service';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 
@@ -16,7 +15,6 @@ import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 })
 export class ModulesComponent implements OnInit {
   canAccessSite: boolean = false;
-  currentPermission: TPermission;
 
   description: string;
   titleModule: string;
@@ -48,10 +46,8 @@ export class ModulesComponent implements OnInit {
 
     // Récupération des permissions et de la liste des modules
     return this._dataMonitoringObjectService.getModules().subscribe((modules) => {
-      this.currentPermission = this._permissionService.setModulePermissions('generic');
-      this.canAccessSite =
-        this.currentPermission.site.C >0 ||
-        this.currentPermission.sites_group.C >0 ;
+      const currentPermission = this._permissionService.setModulePermissions('generic');
+      this.canAccessSite = currentPermission.site.R > 0 || currentPermission.sites_group.R > 0;
       this.modules = modules.filter((m) => m.cruved.R >= 1);
       this.bLoading = false;
     });

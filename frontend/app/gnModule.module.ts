@@ -63,7 +63,6 @@ import { OptionListButtonComponent } from './components/option-list-btn/option-l
 import { MatErrorMessagesDirective } from './utils/matErrorMessages.directive';
 import { SitesGroupsResolver } from './resolver/sites-groups.resolver';
 import { CreateSiteResolver } from './resolver/create-site.resolver';
-import { ObjectsPermissionMonitorings } from './enum/objectPermission';
 
 import { Popup } from './utils/popup';
 import { ListService } from './services/list.service';
