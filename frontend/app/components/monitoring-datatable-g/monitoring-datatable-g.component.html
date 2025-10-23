@@ -54,12 +54,12 @@
               <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
               <button
                 mat-raised-button
-                [disabled]="!canCreateObj"
+                [disabled]="!dataTableConfig[i].canCreateObj"
                 color="primary"
-                [ngClass]="{ isDisableBtn: !canCreateObj }"
+                [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateObj }"
                 class="btn btn-success float-right"
-                (click)="canCreateObj ? navigateToAddObj() : null"
-                [matTooltip]="canCreateObj ? null : toolTipNotAllowed"
+                (click)="dataTableConfig[i].canCreateObj ? navigateToAddObj() : null"
+                [matTooltip]="dataTableConfig[i].canCreateObj ? null : toolTipNotAllowed"
               >
                 <i class="fa fa-plus" aria-hidden="true"></i> {{ "Actions.Add" | translate }}
               </button>
@@ -113,15 +113,15 @@
                   >
                     <ng-container *ngIf="!(dataTableConfig[i].childType =='observation')">
                       <a
-                        [ngClass]="{ isDisableBtn: !canCreateChild }"
+                        [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
+                        (click)="dataTableConfig[i].canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
                         [matTooltip]="
-                          canCreateChild ? labelAdd : toolTipNotAllowed
+                          dataTableConfig[i].canCreateChild ? labelAdd : toolTipNotAllowed
                         "
                       >
                         <i
-                          [ngClass]="{ isDisableIcon: !canCreateChild }"
+                          [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild }"
                           class="fa fa-plus"
                           aria-hidden="true"
                         ></i>
@@ -133,7 +133,7 @@
                       placeholder="Sélectionner le protocole"
                       label="{{ 'Monitoring.Sites.addVisit' | translate }}"
                       [iconOrButton]="icon"
-                      [canCreateChild]="canCreateChild"
+                      [canCreateChild]="dataTableConfig[i].canCreateChild"
                       [item]="row"
                       (onDeployed)="addChildrenVisit(row)"
                       (onSaved)="saveOptionChild($event)"

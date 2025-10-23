@@ -31,6 +31,7 @@ const LIMIT = 10;
 import { Observable, ReplaySubject, forkJoin, of } from 'rxjs';
 import { map, mergeMap, takeUntil } from 'rxjs/operators';
 import { ConfigServiceG } from '../../services/config-g.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'monitoring-sitesgroups',
@@ -50,13 +51,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   dataTableConfig: {}[] = [];
   activetabIndex: number;
   currentRoute: string;
-  // siteGroupEmpty={
-  //   "comments" :'',
-  //   sites_group_code: string;
-  //   sites_group_description: string;
-  //   sites_group_name: string;
-  //   uuid_sites_group: string; //FIXME: see if OK
-  // }
+
   modules: SelectObject[];
   modulSelected;
   siteSelectedId: number;
@@ -75,6 +70,13 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   config;
 
+  // TODO: move to a common file
+  private childTypes: { [index: string]: string } = {
+    site: 'visit',
+    sites_group: 'site',
+    individual: 'marking',
+  };
+
   constructor(
     private _auth: AuthService,
     private _sites_group_service: SitesGroupService,
@@ -91,9 +93,10 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _monitoringObjectService: MonitoringObjectService,
     private _configService: ConfigService,
     private _configServiceG: ConfigServiceG,
-    private _cacheService: CacheService
+    private _cacheService: CacheService,
+    public _permissionService: PermissionService
   ) {
-    super();
+    super(_permissionService);
     this.getAllItemsCallback = this.getData; //[this.getSitesGroups, this.getSites];
   }
 
@@ -147,6 +150,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         dataToTable[objType] = {
           data: data[`${objType}s`],
           objType: objType,
+          childType: this.childTypes[objType],
         };
       }
 
@@ -318,7 +322,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       queryParams[row['pk']] = row['id'];
       const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
       queryParams['parents_path'] = ['module', current_object];
-
       if (current_object == 'individual') {
         // Patch individual tant que la page détail des individus est générique
         queryParams['parents_path'] = ['module', 'individual'];
