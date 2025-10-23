@@ -45,6 +45,10 @@ export class ConfigServiceG {
     return this._http.get<any>(urlConfig).pipe(
       mergeMap((config: any) => {
         this._config = config;
+        // Traiter les champs de la config pour qu'ils soient exploitables
+        // par les composants
+        // Ex: transformer les chaines de caractères en fonctions JS
+        this.processConfig();
         this._moduleCode = moduleCode;
         return of(true);
       })
@@ -61,16 +65,47 @@ export class ConfigServiceG {
     return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
-  getDataTableConfig(objectType: string): Object {
-    // TODO ??? Pour le moment dans monitoring-geom-component.ts
+  processConfig() {
+    for (const keys of Object.keys(this._config)) {
+      if (Object.keys(this._config[keys]).includes('fields')) {
+        this._config[keys] = this.processFields(keys);
+      }
+      if (Object.keys(this._config[keys]).includes('change')) {
+        this._config[keys]['change'] = this.processChange(keys);
+      }
+    }
+  }
 
+  processFields(objectType: string): Object {
     const configObject = this._config[objectType];
-    let dataTableConfig = {};
+
     // Si pas de config, on retourne un objet vide
     if (!configObject) {
+      console.log(`No config found for ${objectType}`);
       return {};
     }
-    return dataTableConfig;
+
+    // gerer quand les paramètres ont un fonction comme valeur
+    for (const keyDef of Object.keys(configObject['fields'])) {
+      const formDef = configObject['fields'][keyDef];
+      for (const keyParam of Object.keys(formDef)) {
+        const func = this.toFunction(formDef[keyParam]);
+        if (func) {
+          formDef[keyParam] = func;
+          configObject['fields'][keyDef][keyParam] = func;
+        }
+      }
+    }
+    return configObject;
+  }
+  /**
+   * Pour récupérer la function change qui précise la procédure en cas de changement de valeur du formulaire
+   * @param objectType
+   */
+  processChange(objectType: string) {
+    const configObject = this._config[objectType];
+    const change = configObject.change;
+    return this.toFunction(change);
   }
 
   /**
@@ -106,27 +141,6 @@ export class ConfigServiceG {
     }
 
     return func;
-  }
-
-  schema(objectType: string): Object {
-    const configObject = this._config[objectType];
-    // Si pas de config, on retourne un objet vide
-    if (!configObject) {
-      return {};
-    }
-
-    // gerer quand les paramètres ont un fonction comme valeur
-    for (const keyDef of Object.keys(configObject['fields'])) {
-      const formDef = configObject['fields'][keyDef];
-      for (const keyParam of Object.keys(formDef)) {
-        const func = this.toFunction(formDef[keyParam]);
-        if (func) {
-          formDef[keyParam] = func;
-          configObject['fields'][keyDef][keyParam] = func;
-        }
-      }
-    }
-    return configObject['fields'];
   }
 
   fieldLabels(schema): Object {
