@@ -23,7 +23,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   @Input() templateData: TemplateData;
   @Input() templateSpecific: TemplateData;
   @Input() bEdit: boolean;
-  @Input() bSynthese: boolean=false;
+  @Input() bSynthese: boolean = false;
 
   @Output() bEditChange = new EventEmitter<boolean>();
 
@@ -34,7 +34,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   public canUpdateObj: boolean;
   public selectedDataSet: Array<number> = [];
   public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
-  public userPermission:any;
+  public userPermission: any;
 
   constructor(
     private _configServiceG: ConfigServiceG,
@@ -48,14 +48,15 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   ngOnInit() {
     this.moduleCode = this._configServiceG.moduleCode() ?? '';
-    console.log(this.templateData.exportCSV,"eeeee")
+    console.log(this.templateData.exportCSV, 'eeeee');
     // Si les permissions n'ont pas été initialisées
-    this.userPermission = this.currentUser.moduleCruved || this.permissionService.setModulePermissions(
-        this._configServiceG.moduleCode() || 'generic')
+    this.userPermission =
+      this.currentUser.moduleCruved ||
+      this.permissionService.setModulePermissions(this._configServiceG.moduleCode() || 'generic');
   }
 
   hasEditPermission() {
-    return this.userPermission[this.objectType]['U'] > 0
+    return this.userPermission[this.objectType]['U'] > 0;
   }
 
   onEditClick() {
@@ -93,7 +94,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   getExportCsv(exportDef: any, jd: number) {
     const queryParams = jd != null ? { id_dataset: jd } : {};
-    console.log(exportDef)
+    console.log(exportDef);
     this._dataService.getExportCsv(this.moduleCode, exportDef.method, queryParams);
   }
 

@@ -135,8 +135,8 @@ export class MonitoringGeomComponent {
      * @returns {void}
      */
     const config = this.configServiceG.config()[objectType];
-    this.templateData.fieldNames = config['display_properties'],
-    this.templateData.childType = config['children_type'];
+    ((this.templateData.fieldNames = config['display_properties']),
+      (this.templateData.childType = config['children_type']));
     this.templateData.exportPDF = config?.export_pdf;
     this.templateData.exportCSV = this.configServiceG.config()['module']?.export_csv;
 
