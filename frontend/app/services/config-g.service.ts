@@ -67,10 +67,10 @@ export class ConfigServiceG {
 
   processConfig() {
     for (const keys of Object.keys(this._config)) {
-      if (Object.keys(this._config[keys]).includes('fields')) {
+      if (this._config[keys] && Object.keys(this._config[keys]).includes('fields')) {
         this._config[keys] = this.processFields(keys);
       }
-      if (Object.keys(this._config[keys]).includes('change')) {
+      if (this._config[keys] && Object.keys(this._config[keys]).includes('change')) {
         this._config[keys]['change'] = this.processChange(keys);
       }
     }
