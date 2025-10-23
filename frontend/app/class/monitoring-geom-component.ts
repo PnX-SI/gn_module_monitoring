@@ -161,14 +161,16 @@ export class MonitoringGeomComponent {
     let keyHtmlToPop = '';
 
     for (let type_site of types_site) {
-      if (type_site['config'] && 'specific' in type_site['config']) {
+      if (type_site.config && 'specific' in type_site.config) {
+        const fields = type_site['config']['specific']
         // Exclusion des propriétés de type html (TODO hidden ??)
-        for (const prop in type_site['config']['specific']) {
+        for (const field_name in fields) {
+          const field = fields[field_name];
           if (
-            'type_widget' in type_site['config']['specific'][prop] &&
-            type_site['config']['specific'][prop]['type_widget'] == 'html'
+            'type_widget' in field &&
+            field['type_widget'] == 'html'
           ) {
-            keyHtmlToPop = prop;
+            keyHtmlToPop = field;
           }
         }
         const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
@@ -176,9 +178,8 @@ export class MonitoringGeomComponent {
         schemaSpecificType = Object.assign(schemaSpecificType, specificObjWithoutHtml);
       }
     }
-    const fieldNames = Object.keys(schemaSpecificType);
       this.templateSpecificData = {
-        fieldNames: fieldNames,
+        fieldNames: Object.keys(schemaSpecificType),
         fieldLabels: this.fetchFieldsProperty(schemaSpecificType,"attribut_label"),
         fieldDefinitions: this.fetchFieldsProperty(schemaSpecificType,"definition"),
         childType:[],

@@ -1,15 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Subscription } from 'rxjs';
-
-import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
-import { ISitesGroup } from '../../interfaces/geom';
-import { IobjObs, ObjDataType } from '../../interfaces/objObs';
-import { FormService } from '../../services/form.service';
-import { JsonData } from '../../types/jsondata';
-import { TPermission } from '../../types/permission';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { MonitoringObject } from '../../class/monitoring-object';
 import { ConfigService } from '../../services/config.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
@@ -18,7 +7,7 @@ import { MediaService } from '@geonature_common/service/media.service';
 import html2canvas from 'html2canvas';
 import { MapService } from '@geonature_common/map/map.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
+import {  FormControl } from '@angular/forms';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { TemplateData } from '../../interfaces/template';
 
