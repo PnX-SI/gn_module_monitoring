@@ -121,16 +121,23 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: 
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
     schema = MonitoringSitesGroupsSchema()
-    response = schema.dump(sites_group)
-    response["cruved"] = get_objet_with_permission_boolean(
-        [sites_group], object_code="MONITORINGS_GRP_SITES"
-    )[0]["cruved"]
-    response["geometry"] = (
-        json.loads(response["geometry"])
-        if response["geometry"] != None and isinstance(response["geometry"], str)
-        else response["geometry"]
+    data = schema.dump(sites_group)
+
+    geometry = (
+        json.loads(data.pop("geometry"))
+        if data["geometry"] != None and isinstance(data["geometry"], str)
+        else data.pop("geometry")
     )
-    return response
+    return {
+        "geometry": geometry,
+        "properties": data,
+        "cruved": get_objet_with_permission_boolean(
+            [sites_group], object_code="MONITORINGS_GRP_SITES"
+        )[0]["cruved"],
+        "id": id_sites_group,
+        "module_code": module_code,
+        "object_type": "sites_group",
+    }
 
 
 @blueprint.route(
