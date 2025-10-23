@@ -1,10 +1,19 @@
-<div id="properties-display" class="cadre">
-  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+<div
+  id="properties-display"
+  class="cadre"
+>
+  <mat-tab-group
+    mat-stretch-tabs="false"
+    mat-align-tabs="start"
+  >
     <mat-tab label="{{ 'Monitoring.Properties.Properties' | translate }}">
       <div class="mt-2">
         <table class="table table-striped table-sm">
           <tr *ngFor="let fieldName of templateData.fieldNames; let i = index">
-            <td style="width: 50%" class="key text-muted">
+            <td
+              style="width: 50%"
+              class="key text-muted"
+            >
               {{ templateData.fieldLabels[fieldName] }}
               <i
                 *ngIf="templateData.fieldDefinitions[fieldName]"
@@ -15,21 +24,26 @@
                   templateData.fieldDefinitions[fieldName]
                 "
                 matTooltipPosition="above"
-                >help</i
               >
+                help
+              </i>
             </td>
             <td class="td-value">{{ obj[fieldName] }}</td>
           </tr>
         </table>
       </div>
     </mat-tab>
-    <mat-tab *ngIf="(templateSpecific | json) != ({} | json)" label="{{ 'Monitoring.Properties.SpecificProperties' | translate }}">
+    <mat-tab
+      *ngIf="templateSpecific"
+      label="{{ 'Monitoring.Properties.SpecificProperties' | translate }}"
+    >
       <div class="mt-2">
         <table class="table table-striped table-sm">
-          <tr
-            *ngFor="let fieldName of templateSpecific['fieldLabels'] | keyvalue; let i = index"
-          >
-            <td style="width: 50%" class="key text-muted">
+          <tr *ngFor="let fieldName of templateSpecific['fieldLabels'] | keyvalue; let i = index">
+            <td
+              style="width: 50%"
+              class="key text-muted"
+            >
               {{ fieldName.value }}
               <i
                 *ngIf="templateSpecific['fieldDefinitions'][fieldName]"
@@ -40,8 +54,9 @@
                   templateSpecific['fieldDefinitions'][fieldName.key]
                 "
                 matTooltipPosition="above"
-                >help</i
               >
+                help
+              </i>
             </td>
             <td class="td-value">{{ obj[fieldName] }}</td>
           </tr>
@@ -52,21 +67,26 @@
       *ngIf="obj['medias'] && obj['medias'].length"
       label="Médias ({{ (obj['medias'] && obj['medias'].length) || 0 }})"
     >
-
       <ng-container *ngFor="let media of obj['medias']; index as i">
         <div class="medias-tab">
           <div [matTooltip]="ms.toString(media)">
-            <a [href]="ms.href(media)" target="_blank">{{ media.title_fr }}</a>
+            <a
+              [href]="ms.href(media)"
+              target="_blank"
+            >
+              {{ media.title_fr }}
+            </a>
             <i>
-              ({{ ms.typeMedia(media) }}<span *ngIf="media.author"> par {{ media.author }}</span
-              >)
+              ({{ ms.typeMedia(media) }}
+              <span *ngIf="media.author">par {{ media.author }}</span>
+              )
             </i>
           </div>
           <p *ngIf="media.description_fr">{{ media.description_fr }}</p>
           <div>
             <pnx-media-item
-                [inputMedia]="media"
-                display="medium"
+              [inputMedia]="media"
+              display="medium"
             ></pnx-media-item>
           </div>
         </div>
@@ -97,10 +117,10 @@
       mat-stroked-button
       color="primary"
       class="mr-2"
-      (click)="initPermission() ? onEditClick() : null"
+      (click)="hasEditPermission ? onEditClick() : null"
       *ngIf="!bEdit"
-      [matTooltip]="initPermission() ? null : toolTipNotAllowed"
-      [disabled]="!initPermission()"
+      [matTooltip]="hasEditPermission() ? null : toolTipNotAllowed"
+      [disabled]="!hasEditPermission"
     >
       {{ 'Monitoring.Module.Edit' | translate }}
     </button>
@@ -113,24 +133,23 @@
         (click)="processExportPdf(exportPdfConfig)"
         type="button"
         class="mr-2"
-        *ngIf="currentUser?.moduleCruved['module'].E >= 1"
+        *ngIf="userPermission['module'].E >= 1"
       >
-        <i class="fa fa-file-pdf-o"></i>&nbsp;
+        <i class="fa fa-file-pdf-o"></i>
+        &nbsp;
         {{ exportPdfConfig.label }}
       </button>
     </span>
     <!-- Mise à jour de la synthèse (Admin) -->
-     <!-- &&
-        obj.properties['b_synthese'] -->
+    <!-- &&
+        -->
     <button
       mat-stroked-button
       color="primary"
       class="float-right"
       (click)="updateSynthese()"
       *ngIf="
-        !bEdit &&
-        objectType === 'module' &&
-        currentUser?.moduleCruved.module.U >= 1 
+        !bEdit && objectType === 'module' && userPermission.module.U >= 1 && bSynthese
       "
       matTooltip="Attention, cette opération peux prendre du temps"
     >
@@ -147,19 +166,30 @@
 
     <button
       mat-stroked-button
-      *ngIf="templateData.exportCSV && currentUser?.moduleCruved[objectType].E >= 1"
+      *ngIf="templateData.exportCSV && userPermission[objectType].E >= 1"
       class="mr-2"
       color="primary"
       (click)="openModalExportCsv($event, modalExportCsv)"
     >
-      <i class="fa fa-arrow-down"></i>&nbsp;{{ 'Monitoring.Module.Downloads' | translate }}
+      <i class="fa fa-arrow-down"></i>
+      &nbsp;{{ 'Monitoring.Module.Downloads' | translate }}
     </button>
   </div>
 </div>
 <!--add mje modalExportCsv-->
-<ng-template #modalExportCsv id="modal-download" let-c="close" let-d="dismiss">
+<ng-template
+  #modalExportCsv
+  id="modal-download"
+  let-c="close"
+  let-d="dismiss"
+>
   <div class="modal-header">
-    <h5 class="modal-title" id="exampleModalLabel">{{ 'Actions.DownloadData' | translate }}</h5>
+    <h5
+      class="modal-title"
+      id="exampleModalLabel"
+    >
+      {{ 'Actions.DownloadData' | translate }}
+    </h5>
     <button
       type="button"
       class="close"
@@ -173,15 +203,17 @@
   <div class="modal-body">
     <div *ngFor="let exp of templateData.exportCSV || []; index as i">
       <mat-card class="mb-2">
-        <mat-card-title> {{ exp.label }}</mat-card-title>
-        <mat-card-content *ngIf="exp.filter_dataset" class="mb-0">
+        <mat-card-title>{{ exp.label }}</mat-card-title>
+        <mat-card-content
+          *ngIf="exp.filter_dataset"
+          class="mb-0"
+        >
           <pnx-datasets
             label="{{ 'Monitoring.Properties.DownloadJdd' | translate }}"
             [parentFormControl]="datasetForm"
             [moduleCode]="moduleCode"
             (onChange)="onDatasetChanged($event, i)"
-          >
-          </pnx-datasets>
+          ></pnx-datasets>
         </mat-card-content>
         <mat-card-actions align="end">
           <button

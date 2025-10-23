@@ -1,17 +1,33 @@
 <div>
-  <span class="obj-title" *ngIf="bEdit">{{'Actions.Edit' | translate }} </span>
-  <span class="obj-title" *ngIf="!bEdit">{{ 'Detail' | translate }} </span>
-  <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
+  <span
+    class="obj-title"
+    *ngIf="bEdit"
+  >
+    {{ 'Actions.Edit' | translate }}
+  </span>
+  <span
+    class="obj-title"
+    *ngIf="!bEdit"
+  >
+    {{ 'Detail' | translate }}
+  </span>
+  <span
+    *ngIf="site"
+    class="obj-description"
+  >
+    {{ site.base_site_name }}
+  </span>
 </div>
-<pnx-monitoring-form [obj]="obj" [objForm]="form"
+<pnx-monitoring-form
+  [obj]="obj"
+  [objForm]="form"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
   [currentUser]="currentUser"
   (bEditChange)="onbEditChange($event)"
->
-</pnx-monitoring-form>
+></pnx-monitoring-form>
 <pnx-monitoring-properties-g
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
@@ -20,6 +36,7 @@
   [currentUser]="currentUser"
   [templateData]="obj['template']"
   [templateSpecific]="obj['template_specific']"
+  [bSynthese]="obj.properties['b_synthese']"
   objectType="site"
 ></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g
@@ -50,6 +67,6 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.visit?.canCreate > 0"
+    [canCreateChild]="moduleCode === 'generic' ? true : currentPermission?.visit?.canCreate > 0"
   ></option-list-btn>
 </pnx-monitoring-datatable-g>

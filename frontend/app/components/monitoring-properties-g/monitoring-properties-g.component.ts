@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { ConfigService } from '../../services/config.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { CommonService } from '@geonature_common/service/common.service';
@@ -7,9 +6,10 @@ import { MediaService } from '@geonature_common/service/media.service';
 import html2canvas from 'html2canvas';
 import { MapService } from '@geonature_common/map/map.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import {  FormControl } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { TemplateData } from '../../interfaces/template';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'pnx-monitoring-properties-g',
@@ -18,54 +18,44 @@ import { TemplateData } from '../../interfaces/template';
 })
 export class MonitoringPropertiesGComponent implements OnInit {
   @Input() obj: any;
+  @Input() objectType: string;
+  @Input() currentUser;
   @Input() templateData: TemplateData;
+  @Input() templateSpecific: TemplateData;
   @Input() bEdit: boolean;
+  @Input() bSynthese: boolean;
+
   @Output() bEditChange = new EventEmitter<boolean>();
 
-  @Input() currentUser;
-  moduleCode:string="generic"
-  @Input() objectType:string;
-;
-  datasetForm = new FormControl();
-  backendUrl: string;
-  bUpdateSyntheseSpinner = false;
-
-  public modalReference;
-  selectedDataSet: Array<number> = [];
-
-  canUpdateObj: boolean;
-
-  toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
-
-  @Input() templateSpecific: any = {};
+  public moduleCode: string = 'generic';
+  public datasetForm: FormControl = new FormControl();
+  public bUpdateSyntheseSpinner: boolean = false;
+  public modalReference: any;
+  public canUpdateObj: boolean;
+  public selectedDataSet: Array<number> = [];
+  public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  public userPermission:any;
 
   constructor(
-    private _configService: ConfigService,
     private _configServiceG: ConfigServiceG,
     public ms: MediaService,
     private _dataService: DataMonitoringObjectService,
     private _commonService: CommonService,
     public ngbModal: NgbModal,
-    public mapservice: MapService
+    public mapservice: MapService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit() {
-    this.moduleCode = this._configServiceG.moduleCode() ?? ""
+    this.moduleCode = this._configServiceG.moduleCode() ?? '';
+    console.log(this.templateData.exportCSV,"eeeee")
     // Si les permissions n'ont pas été initialisées
-    if (this.currentUser.moduleCruved == undefined) {
-      this.currentUser.moduleCruved = this._configService.moduleCruved(this.moduleCode);
-      
-    }
-    console.log(this.templateData,"templateData")
-    console.log(this.templateSpecific,"templateDataS")
+    this.userPermission = this.currentUser.moduleCruved || this.permissionService.setModulePermissions(
+        this._configServiceG.moduleCode() || 'generic')
   }
 
-  initPermission() {
-    this.canUpdateObj =
-      this.obj.objectType == 'module'
-        ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
-        : this.obj?.cruved?.U;
-    return this.canUpdateObj;
+  hasEditPermission() {
+    return this.userPermission[this.objectType]['U'] > 0
   }
 
   onEditClick() {
@@ -97,18 +87,17 @@ export class MonitoringPropertiesGComponent implements OnInit {
     this.modalReference = this.ngbModal.open(modal, { size: 'lg' });
   }
 
-  onDatasetChanged(id_dataset: any, i) {
-    //update the ui
+  onDatasetChanged(id_dataset: any, i: number) {
     this.selectedDataSet[i] = id_dataset;
   }
 
   getExportCsv(exportDef: any, jd: number) {
     const queryParams = jd != null ? { id_dataset: jd } : {};
-    this._dataService.getExportCsv(this.obj.moduleCode, exportDef.method, queryParams);
+    console.log(exportDef)
+    this._dataService.getExportCsv(this.moduleCode, exportDef.method, queryParams);
   }
 
-  //mje: generate PDF export
-  processExportPdf(exportPdfConfig) {
+  processExportPdf(exportPdfConfig: any) {
     var map = this.mapservice.map;
     const $this = this;
 
