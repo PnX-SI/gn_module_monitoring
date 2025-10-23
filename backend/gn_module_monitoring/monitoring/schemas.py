@@ -34,6 +34,26 @@ def paginate_schema(schema):
     return PaginationSchema
 
 
+class DetailSchema(Schema):
+    geometry = fields.Method("serialize_geojson", dump_only=True)
+    properties = fields.Dict()
+    cruved = fields.Dict()
+    id = fields.Integer()
+    module_code = fields.String()
+    object_type = fields.String()
+
+    def serialize_geojson(self, obj):
+        print(obj["geometry"])
+
+        if obj["geometry"] != None and isinstance(obj["geometry"], str):
+            return json.loads(obj["geometry"])
+        else:
+            return obj["geometry"]
+
+        # if obj["geometry"] is not None:
+        #     return geojson.dumps(obj.as_geofeature().get("geometry"))
+
+
 def add_specific_attributes(schema, object_type, module_code):
     """Crée une classe Schema dynamiquement pour ajouter les propriétés spécifiques du type d'objet
     à la classe 'schema' passée en argument."""

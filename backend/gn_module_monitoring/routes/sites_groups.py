@@ -24,6 +24,7 @@ from gn_module_monitoring.monitoring.models import (
 from gn_module_monitoring.monitoring.schemas import (
     MonitoringSitesGroupsSchema,
     add_specific_attributes,
+    DetailSchema,
 )
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
@@ -123,21 +124,18 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: 
     schema = MonitoringSitesGroupsSchema()
     data = schema.dump(sites_group)
 
-    geometry = (
-        json.loads(data.pop("geometry"))
-        if data["geometry"] != None and isinstance(data["geometry"], str)
-        else data.pop("geometry")
+    return DetailSchema().dump(
+        {
+            "geometry": data.pop("geometry"),
+            "properties": data,
+            "cruved": get_objet_with_permission_boolean(
+                [sites_group], object_code="MONITORINGS_GRP_SITES"
+            )[0]["cruved"],
+            "id": id_sites_group,
+            "module_code": module_code,
+            "object_type": "sites_group",
+        }
     )
-    return {
-        "geometry": geometry,
-        "properties": data,
-        "cruved": get_objet_with_permission_boolean(
-            [sites_group], object_code="MONITORINGS_GRP_SITES"
-        )[0]["cruved"],
-        "id": id_sites_group,
-        "module_code": module_code,
-        "object_type": "sites_group",
-    }
 
 
 @blueprint.route(
