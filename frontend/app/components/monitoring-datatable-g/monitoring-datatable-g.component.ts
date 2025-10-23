@@ -288,12 +288,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
   }
 
-  // tooltip(column) {
-  //   return this.child0.template.fieldDefinitions[column.prop]
-  //     ? column.name + " : " + this.child0.template.fieldDefinitions[column.prop]
-  //     : column.name;
-  // }
-
   ngOnChanges(changes: SimpleChanges) {
     if (changes.activetabIndex) {
       this.clearFilters();

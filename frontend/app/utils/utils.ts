@@ -127,7 +127,7 @@ export function buildObjectResolvePropertyProcessing(
   data,
   fieldsConfig,
   moduleCode,
-  _objService,
+  _configService,
   _cacheService
 ): Observable<any> {
   /**
@@ -138,7 +138,7 @@ export function buildObjectResolvePropertyProcessing(
    * @param data - Données à traiter.
    * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
    * @param moduleCode - Le code de module courrant
-   * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
+   * @param _configService - Service utilisé pour la résolution des propriétés d'objet.
    * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
    * @returns Un observable émettant l'objet de données avec les propriétés résolues.
    */
@@ -161,9 +161,8 @@ export function buildObjectResolvePropertyProcessing(
               }
               if (dataItem.hasOwnProperty(attribut_name)) {
                 propertyObservables[attribut_name] = resolveProperty(
-                  _objService,
+                  _configService,
                   _cacheService,
-                  moduleCode,
                   fieldsConfig[attribut_name],
                   dataItem[attribut_name]
                 );
@@ -192,13 +191,7 @@ export function buildObjectResolvePropertyProcessing(
   return dataProcessing$;
 }
 
-export function resolveProperty(
-  _objService,
-  _cacheService,
-  moduleCode,
-  elem,
-  val
-): Observable<any> {
+export function resolveProperty(_configService, _cacheService, elem, val): Observable<any> {
   if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
     val = Utils.formatDate(val);
   }
@@ -207,7 +200,8 @@ export function resolveProperty(
       return item.label;
     });
   }
-  const fieldName = _objService.configUtils(elem, moduleCode);
+
+  const fieldName = (_configService.config()['display_field_names'] || [])[elem.type_util];
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
   }

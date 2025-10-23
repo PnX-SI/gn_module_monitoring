@@ -25,6 +25,7 @@ import { TPermission } from '../../types/permission';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 @Component({
   selector: 'monitoring-sites-detail',
@@ -32,11 +33,10 @@ import { MonitoringObject } from '../../class/monitoring-object';
   styleUrls: ['./monitoring-sites-detail.component.css'],
 })
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
-  @Input() visits: IVisit[];
+  @Input() visits: IPaginated<IVisit>;
   @Input() page: IPage;
   @Input() bEdit: boolean;
   form: FormGroup;
-  objParent: any;
   modules: SelectObject[];
   site: ISite;
 
@@ -67,6 +67,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
@@ -81,12 +82,9 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     const idSite = this._Activatedroute.snapshot.params.id;
-    this.siteService.setModuleCode(`${this.moduleCode}`);
-    this._visits_service.setModuleCode(`${this.moduleCode}`);
-    this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
-    const $configSitesGroups = this._sitesGroupService.initConfig();
-    const $configSites = this.siteService.initConfig();
-    const $configIndividuals = this._visits_service.initConfig();
+    this.siteService.initConfig();
+    this._visits_service.initConfig();
+    this._sitesGroupService.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
     // TODO comprendre pourquoi nessaire que dans certains cas
@@ -98,12 +96,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     const queryParams = this._Activatedroute.snapshot.queryParams;
     this._objService.loadBreadCrumb(this.moduleCode, 'site', idSite, queryParams);
 
-    forkJoin([
-      this._configService.init(this.moduleCode),
-      $configSitesGroups,
-      $configSites,
-      $configIndividuals,
-    ]).subscribe(() => {
+    this._configService.init(this.moduleCode).subscribe(() => {
       this.initSiteVisit();
     });
   }
@@ -111,7 +104,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   initSiteVisit() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
     this.currentPermission = this._permissionService.getPermissionUser();
-
     this._Activatedroute.params
       .pipe(
         mergeMap((params) => {
@@ -131,7 +123,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
             id_base_site: siteId,
           });
-
           // Récupération des données et des configurations
           //  pour le site et les visites associées
           return forkJoin({
@@ -144,14 +135,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             visits: this._visits_service.getResolved(1, this.limit, {
               id_base_site: siteId,
             }),
-            objObsSite: this.siteService.initConfig(),
-            objObsVisit: this._visits_service.initConfig(),
             obj: this.obj.get(0),
           });
         })
       )
       .subscribe((data) => {
-        this.objParent = data.objObsSite;
         this.obj.initTemplate();
         this.site = data.site;
 
@@ -166,11 +154,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           .configService()
           .addSpecificConfig(types_site);
 
-        this.visits = data.visits.items;
+        this.visits = data.visits || { items: [], page: 1, limit: this.limit, count: 0 };
         this.page = {
-          page: data.visits.page - 1,
-          count: data.visits.count,
-          limit: data.visits.limit,
+          page: this.visits.page - 1,
+          count: this.visits.count,
+          limit: this.visits.limit,
         };
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
@@ -179,10 +167,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         let dataTableData = {
           visits: {
             data: data.visits,
-            objConfig: data.objObsVisit,
+            objType: 'visit',
           },
         };
-        this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
+        this.setDataTableObjData(dataTableData, this._configServiceG, this.moduleCode, ['visit']);
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"
