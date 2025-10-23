@@ -1,5 +1,6 @@
 import { IdataTableObjData } from '../interfaces/geom';
 import { PermissionService } from '../services/permission.service';
+import { TemplateData } from '../interfaces/template';
 import { JsonData } from '../types/jsondata';
 
 const LIMIT = 10;
@@ -14,7 +15,14 @@ export class MonitoringGeomComponent {
 
   public dataTableObjData: IdataTableObjData;
   public dataTableConfig: {}[] = [];
-  public templateData: {} = {};
+  public templateData: TemplateData ={
+      fieldNames:[],
+      fieldLabels:{},
+      fieldDefinitions:{},
+      childType: [],
+      exportPDF:{},
+      exportCSV:{}
+    };
 
   constructor(public _permissionService: PermissionService) {}
 
@@ -112,10 +120,17 @@ export class MonitoringGeomComponent {
      * @returns {void}
      */
     const config = configService.config()[objectType];
-    this.templateData = {
-      labelList: config['label_list'],
-      description_field_name: config['description_field_name'],
-      childType: config['childType'],
-    };
+    console.log(configService.config())
+    this.templateData.fieldNames = config["display_properties"],
+    this.templateData.childType = config['children_type'];
+    this.templateData.exportPDF = config?.export_pdf
+    this.templateData.exportCSV = configService.config()["module"]?.export_csv;
+
+    // Pas beau 
+    this.templateData.fieldNames.forEach((field_name) => {
+      this.templateData.fieldLabels[field_name] = config.fields[field_name]?.attribut_label;
+      this.templateData.fieldDefinitions[field_name] = config.fields[field_name]?.definition;
+    });
+    
   }
 }

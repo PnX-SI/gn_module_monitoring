@@ -93,6 +93,7 @@ export class MonitoringSitesgroupsDetailComponent
     this.form = this._formBuilder.group({});
     this._configService.init(this.moduleCode).subscribe(() => {
       this.initSite();
+      this.setTemplateData(this._configServiceG,"sites_group");
     });
   }
 
@@ -121,6 +122,7 @@ export class MonitoringSitesgroupsDetailComponent
             this.siteGroupId,
             this._monitoringObjectService
           );
+          console.log("eeeeeeeeeeeooooooooooo")
           return this.siteGroupId as number;
         }),
         mergeMap((id: number) => {

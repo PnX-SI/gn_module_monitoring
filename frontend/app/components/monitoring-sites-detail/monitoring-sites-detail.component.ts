@@ -96,6 +96,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     this._configService.init(this.moduleCode).subscribe(() => {
       this.initSiteVisit();
     });
+    
   }
 
   initSiteVisit() {
