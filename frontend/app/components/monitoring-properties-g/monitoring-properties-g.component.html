@@ -43,7 +43,7 @@
                 >help</i
               >
             </td>
-            <td class="td-value">{{ obj.resolvedProperties[fieldName.key] }}</td>
+            <td class="td-value">{{ obj[fieldName] }}</td>
           </tr>
         </table>
       </div>
@@ -120,6 +120,8 @@
       </button>
     </span>
     <!-- Mise à jour de la synthèse (Admin) -->
+     <!-- &&
+        obj.properties['b_synthese'] -->
     <button
       mat-stroked-button
       color="primary"
@@ -127,9 +129,8 @@
       (click)="updateSynthese()"
       *ngIf="
         !bEdit &&
-        obj.objectType === 'module' &&
-        currentUser?.moduleCruved.module.U >= 1 &&
-        obj.properties['b_synthese']
+        objectType === 'module' &&
+        currentUser?.moduleCruved.module.U >= 1 
       "
       matTooltip="Attention, cette opération peux prendre du temps"
     >
@@ -146,7 +147,7 @@
 
     <button
       mat-stroked-button
-      *ngIf="templateData.exportCSV && currentUser?.moduleCruved[obj.objectType].E >= 1"
+      *ngIf="templateData.exportCSV && currentUser?.moduleCruved[objectType].E >= 1"
       class="mr-2"
       color="primary"
       (click)="openModalExportCsv($event, modalExportCsv)"
@@ -177,7 +178,7 @@
           <pnx-datasets
             label="{{ 'Monitoring.Properties.DownloadJdd' | translate }}"
             [parentFormControl]="datasetForm"
-            [moduleCode]="obj.moduleCode"
+            [moduleCode]="moduleCode"
             (onChange)="onDatasetChanged($event, i)"
           >
           </pnx-datasets>

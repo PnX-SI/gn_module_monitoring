@@ -12,13 +12,16 @@
   (bEditChange)="onbEditChange($event)"
 >
 </pnx-monitoring-form>
-<pnx-monitoring-properties
+<pnx-monitoring-properties-g
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
-  [obj]="obj"
+  [obj]="obj.resolvedProperties"
   [(bEdit)]="bEdit"
   [currentUser]="currentUser"
-></pnx-monitoring-properties>
+  [templateData]="obj['template']"
+  [templateSpecific]="obj['template_specific']"
+  objectType="site"
+></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
   [dataTableConfig]="dataTableConfig"

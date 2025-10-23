@@ -16,7 +16,9 @@
   [obj]="obj.resolvedProperties"
    [templateData]="templateData"
   [(bEdit)]="bEdit"
-  [currentUser]="currentUser">
+  [currentUser]="currentUser"
+  objectType="sites_group"
+  >
 </pnx-monitoring-properties-g>
 <pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
   [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">

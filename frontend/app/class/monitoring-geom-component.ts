@@ -1,7 +1,9 @@
 import { IdataTableObjData } from '../interfaces/geom';
 import { PermissionService } from '../services/permission.service';
 import { TemplateData } from '../interfaces/template';
+import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
+import { inject } from '@angular/core';
 
 const LIMIT = 10;
 
@@ -23,8 +25,20 @@ export class MonitoringGeomComponent {
       exportPDF:{},
       exportCSV:{}
     };
+  public templateSpecificData: TemplateData ={
+      fieldNames:[],
+      fieldLabels:{},
+      fieldDefinitions:{},
+      childType: [],
+      exportPDF:{},
+      exportCSV:{}
+    };
+    
+  private configServiceG:ConfigServiceG;
 
-  constructor(public _permissionService: PermissionService) {}
+  constructor(public _permissionService: PermissionService) {
+    this.configServiceG = inject(ConfigServiceG)
+  }
 
   setPage({ page, filters, tabObj = '' }) {
     this.filters = { ...this.baseFilters, ...filters };
@@ -110,7 +124,15 @@ export class MonitoringGeomComponent {
     this.dataTableConfig = dataTableConfig;
   }
 
-  setTemplateData(configService: any, objectType: string) {
+  fetchFieldsProperty(fields:any, property:string){
+    let fieldLabels = {}
+    for (const [field_name, field_config] of Object.entries(fields)) {
+      fieldLabels[field_name] = field_config[property]; // Valeur par défaut si attribut_label n'existe pas
+    }
+    return fieldLabels;
+  }
+
+  setTemplateData(objectType: string) {
     /**
      * Initialisation des données de configuration pour monitoring-properties-template
      *
@@ -119,18 +141,49 @@ export class MonitoringGeomComponent {
      * objectType type d'objet
      * @returns {void}
      */
-    const config = configService.config()[objectType];
-    console.log(configService.config())
+    const config = this.configServiceG.config()[objectType];
+    console.log(config)
     this.templateData.fieldNames = config["display_properties"],
     this.templateData.childType = config['children_type'];
     this.templateData.exportPDF = config?.export_pdf
-    this.templateData.exportCSV = configService.config()["module"]?.export_csv;
+    this.templateData.exportCSV = this.configServiceG.config()["module"]?.export_csv;
 
     // Pas beau 
     this.templateData.fieldNames.forEach((field_name) => {
       this.templateData.fieldLabels[field_name] = config.fields[field_name]?.attribut_label;
       this.templateData.fieldDefinitions[field_name] = config.fields[field_name]?.definition;
     });
-    
+    return this.templateData;
   }
-}
+
+  setTemplateSpecificData(types_site:{"config":{"specific":any}}[]){
+    let schemaSpecificType = {};
+    let keyHtmlToPop = '';
+
+    for (let type_site of types_site) {
+      if (type_site['config'] && 'specific' in type_site['config']) {
+        // Exclusion des propriétés de type html (TODO hidden ??)
+        for (const prop in type_site['config']['specific']) {
+          if (
+            'type_widget' in type_site['config']['specific'][prop] &&
+            type_site['config']['specific'][prop]['type_widget'] == 'html'
+          ) {
+            keyHtmlToPop = prop;
+          }
+        }
+        const { [keyHtmlToPop]: _, ...specificObjWithoutHtml } = type_site['config']['specific'];
+
+        schemaSpecificType = Object.assign(schemaSpecificType, specificObjWithoutHtml);
+      }
+    }
+    const fieldNames = Object.keys(schemaSpecificType);
+      this.templateSpecificData = {
+        fieldNames: fieldNames,
+        fieldLabels: this.fetchFieldsProperty(schemaSpecificType,"attribut_label"),
+        fieldDefinitions: this.fetchFieldsProperty(schemaSpecificType,"definition"),
+        childType:[],
+        exportCSV :[],
+        exportPDF: []
+      };
+    return this.templateSpecificData;
+}}

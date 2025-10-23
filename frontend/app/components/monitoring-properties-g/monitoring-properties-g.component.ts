@@ -11,7 +11,7 @@ import { TPermission } from '../../types/permission';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { ConfigService } from '../../services/config.service';
-import {ConfigServiceG} from '../../services/config-g.service'
+import { ConfigServiceG } from '../../services/config-g.service';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { CommonService } from '@geonature_common/service/common.service';
 import { MediaService } from '@geonature_common/service/media.service';
@@ -34,7 +34,9 @@ export class MonitoringPropertiesGComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
-
+  moduleCode:string="generic"
+  @Input() objectType:string;
+;
   datasetForm = new FormControl();
   backendUrl: string;
   bUpdateSyntheseSpinner = false;
@@ -45,7 +47,8 @@ export class MonitoringPropertiesGComponent implements OnInit {
   canUpdateObj: boolean;
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
-  templateSpecific:any = {};
+
+  @Input() templateSpecific: any = {};
 
   constructor(
     private _configService: ConfigService,
@@ -58,10 +61,14 @@ export class MonitoringPropertiesGComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.moduleCode = this._configServiceG.moduleCode() ?? ""
     // Si les permissions n'ont pas été initialisées
     if (this.currentUser.moduleCruved == undefined) {
-      this.currentUser.moduleCruved = this._configService.moduleCruved(this.obj.moduleCode);
+      this.currentUser.moduleCruved = this._configService.moduleCruved(this.moduleCode);
+      
     }
+    console.log(this.templateData,"templateData")
+    console.log(this.templateSpecific,"templateDataS")
   }
 
   initPermission() {
@@ -78,7 +85,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   updateSynthese() {
     this.bUpdateSyntheseSpinner = true;
-    this._dataService.updateSynthese(this.obj.moduleCode).subscribe(
+    this._dataService.updateSynthese(this.moduleCode).subscribe(
       () => {
         this.bUpdateSyntheseSpinner = false;
         this._commonService.regularToaster(
