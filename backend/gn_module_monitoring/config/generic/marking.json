@@ -3,6 +3,7 @@
     "description_field_name": "id_marking",
     "chained": true,
     "label": "Marquage",
+    "label_list": "Marquages",
     "genre": "M",
     "display_properties": [
         "marking_location",
