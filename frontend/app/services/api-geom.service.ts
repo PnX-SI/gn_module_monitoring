@@ -46,7 +46,6 @@ export class ApiService<T = IObject> implements IService<T> {
   }
 
   public initConfig(): IobjObs<T> {
-    console.log('ApiService initConfig for ', this.objectObs.objectType);
     const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
     this.objectObs.moduleCode = this._configServiceG.moduleCode();
     if (!config) return null;
@@ -67,6 +66,7 @@ export class ApiService<T = IObject> implements IService<T> {
       }
     );
   }
+
   getResolved(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<any> {
     /**
      * getResolved
@@ -102,6 +102,27 @@ export class ApiService<T = IObject> implements IService<T> {
       'get',
       `${this.objectObs.endPoint}/${moduleCode}/${id}`
     );
+  }
+
+  getByIdResolved(id: number, moduleCode: string = 'generic'): Observable<any> {
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    if (!config) {
+      return of(null);
+    }
+    return this.getById(id, moduleCode).pipe(
+      mergeMap((data: any) => {
+        const dataToResolve = {"items": [data]};
+        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
+          dataToResolve,
+          config['fields'] || {},
+          this._configServiceG.moduleCode(),
+          this._configServiceG,
+          this._cacheService
+        );
+        return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => {
+          return resolvedItems.items[0];
+        }));
+      }))
   }
 
   patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
