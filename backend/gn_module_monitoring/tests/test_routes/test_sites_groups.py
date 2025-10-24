@@ -10,7 +10,10 @@ from geonature.utils.env import db
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringModules
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringSitesGroupsSchema,
+    MonitoringSitesGroupsSchemaCruved,
+)
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
@@ -42,7 +45,7 @@ class TestSitesGroups:
 
         assert all(
             [
-                MonitoringSitesGroupsSchema().dump(group) in sites_group_response
+                MonitoringSitesGroupsSchemaCruved().dump(group) in sites_group_response
                 for group in sites_groups.values()
             ]
         )
@@ -50,7 +53,7 @@ class TestSitesGroups:
     def test_get_sites_groups_filter_name(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         name, name_not_present = list(sites_groups.keys())
-        schema = MonitoringSitesGroupsSchema()
+        schema = MonitoringSitesGroupsSchemaCruved()
 
         r = self.client.get(
             url_for("monitorings.get_sites_groups"), query_string={"sites_group_name": name}

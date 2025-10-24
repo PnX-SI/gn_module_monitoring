@@ -23,6 +23,7 @@ from gn_module_monitoring.monitoring.models import (
 )
 from gn_module_monitoring.monitoring.schemas import (
     MonitoringSitesGroupsSchema,
+    MonitoringSitesGroupsSchemaCruved,
     add_specific_attributes,
 )
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
@@ -120,7 +121,7 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: 
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsSchema()
+    schema = MonitoringSitesGroupsSchemaCruved()
 
     return schema.dump(sites_group)
 

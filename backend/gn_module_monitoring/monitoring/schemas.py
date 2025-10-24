@@ -77,6 +77,8 @@ class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
 
     @property
     def __module_code__(self):
+        if not getattr(g, "current_module", None):
+            return None
         return g.current_module.module_code
 
 
@@ -119,7 +121,7 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringSitesGroupsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     sites_group_name = fields.String(
         validate=validate.Length(min=3, error="Length must be greater than 3"),
     )
@@ -160,6 +162,10 @@ class MonitoringSitesGroupsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAuto
             return json.loads(obj.geom_geojson)
 
 
+class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
+    pass
+
+
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     label = fields.Method("get_label_from_type_site")
     # See if useful in the future:
@@ -174,7 +180,7 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringSitesSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringSites
         exclude = ("geom_geojson", "geom")
@@ -204,7 +210,11 @@ class MonitoringSitesSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema
         return obj.id_inventor
 
 
-class MonitoringVisitsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
+    pass
+
+
+class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringVisits
         include_fk = True
@@ -220,7 +230,11 @@ class MonitoringVisitsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchem
         return "id_base_visit"
 
 
-class MonitoringObservationsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
+    pass
+
+
+class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservations
         include_fk = True
@@ -229,7 +243,13 @@ class MonitoringObservationsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAut
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringObservationsDetailsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringObservationsSchemaCruved(
+    MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
+):
+    pass
+
+
+class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservationDetails
         include_fk = True
@@ -238,7 +258,13 @@ class MonitoringObservationsDetailsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlc
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringIndividualsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
+class MonitoringObservationsDetailsSchemaCruved(
+    MonitoringCruvedSchemaMixin, MonitoringObservationsDetailsSchema
+):
+    pass
+
+
+class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringIndividuals
         include_fk = True
@@ -250,3 +276,7 @@ class MonitoringIndividualsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAuto
 
     def set_pk(self, obj):
         return "id_individual"
+
+
+class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
+    pass
