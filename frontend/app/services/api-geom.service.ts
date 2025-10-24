@@ -111,7 +111,7 @@ export class ApiService<T = IObject> implements IService<T> {
     }
     return this.getById(id, moduleCode).pipe(
       mergeMap((data: any) => {
-        const dataToResolve = {"items": [data]};
+        const dataToResolve = { items: [data] };
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           dataToResolve,
           config['fields'] || {},
@@ -119,10 +119,13 @@ export class ApiService<T = IObject> implements IService<T> {
           this._configServiceG,
           this._cacheService
         );
-        return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => {
-          return resolvedItems.items[0];
-        }));
-      }))
+        return forkJoin(dataProcessingObservables).pipe(
+          map(([resolvedItems]) => {
+            return resolvedItems.items[0];
+          })
+        );
+      })
+    );
   }
 
   patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
