@@ -9,12 +9,11 @@
     {{ site.base_site_name }}
   </span>
 </div>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [bEdit]="bEdit" [apiService]="siteService"
+<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit" [apiService]="siteService"
   [isExtraForm]="true" [currentUser]="currentUser" (bEditChange)="onbEditChange($event)"></pnx-monitoring-form>
-<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties"
-  [obj]="obj.resolvedProperties" [(bEdit)]="bEdit" [currentUser]="currentUser" (bEditChange)="onbEditChange($event)"
-  [templateData]="obj['template']" [templateSpecific]="obj['template_specific']"
-  objectType="site"></pnx-monitoring-properties-g>
+<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties" [obj]="site"
+  [(bEdit)]="bEdit" [currentUser]="currentUser" [templateData]="obj['template']"
+  [templateSpecific]="obj['template_specific']" objectType="site"></pnx-monitoring-properties-g>
 <pnx-monitoring-datatable-g *ngIf="!bEdit" [dataTableConfig]="dataTableConfig" [dataTableObjData]="dataTableObjData"
   [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page" (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)" [obj]="visits" [moduleCode]="moduleCode" (onDetailsRow)="seeDetails($event)"
