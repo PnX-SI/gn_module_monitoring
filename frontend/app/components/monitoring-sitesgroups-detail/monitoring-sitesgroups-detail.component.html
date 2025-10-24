@@ -16,8 +16,8 @@
   [(bEdit)]="bEdit"
   [currentUser]="currentUser">
 </pnx-monitoring-properties> -->
-<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties"
-  [obj]="obj.resolvedProperties" [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
+<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties" [obj]="sitesGroup"
+  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
   objectType="sites_group"></pnx-monitoring-properties-g>
 <pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit" [apiService]="siteService"
   [isExtraForm]="true" [currentUser]="currentUser"></pnx-monitoring-form>
