@@ -295,6 +295,35 @@ export class SitesService extends ApiGeomService<ISite> {
 }
 
 @Injectable()
+export class ModuleService extends ApiService<any> {
+  constructor(
+    _cacheService: CacheService,
+    protected _configServiceG: ConfigServiceG,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configServiceG, _monitoringObjectService);
+    this.init();
+  }
+  init() {
+    const objectObs: IobjObs<any> = {
+      endPoint: endPoints.modules,
+      objectType: 'module',
+      label: 'module',
+      childType: 'sites_group',
+      moduleCode: 'generic',
+    };
+    super.init(endPoints.modules, objectObs);
+  }
+
+  getById(id: number, moduleCode?: string) {
+    return this._cacheService.request<Observable<any>>(
+      'get',
+      `module/${moduleCode}?field_name=module_code`
+    );
+  }
+}
+
+@Injectable()
 export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,

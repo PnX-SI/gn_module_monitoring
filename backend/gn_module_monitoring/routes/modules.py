@@ -9,7 +9,7 @@ from geonature.core.gn_permissions.tools import get_scopes_by_action, has_any_pe
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.modules.repositories import (
     get_module,
@@ -22,7 +22,7 @@ from gn_module_monitoring.utils.routes import (
 )
 
 
-@blueprint.route("/module/<int:value>", methods=["GET"])
+@blueprint.route("/module/<value>", methods=["GET"])
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="ALL")
 @json_resp
 def get_module_api(value):
@@ -33,13 +33,12 @@ def get_module_api(value):
     ?field_name=module_code pour avoir unmodule depuis son champs module_code
     """
 
-    depth = to_int(request.args.get("depth", 0))
     field_name = request.args.get("field_name", "id_module")
 
     module = get_module(field_name, value)
     module_out = []
     if module:
-        module_out = module.as_dict(depth=depth)
+        module_out = MonitoringModuleSchema().dump(module)
         module_out["cruved"] = get_scopes_by_action(
             module_code=module.module_code, object_code="MONITORINGS_MODULES"
         )
