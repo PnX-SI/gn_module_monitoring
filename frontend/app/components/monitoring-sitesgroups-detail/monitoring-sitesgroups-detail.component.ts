@@ -22,7 +22,6 @@ import { PermissionService } from '../../services/permission.service';
 import { MonitoringObject } from '../../class/monitoring-object';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { CacheService } from '../../services/cache.service';
-import { ConfigServiceG } from '../../services/config-g.service';
 
 const LIMIT = 10;
 
@@ -73,7 +72,6 @@ export class MonitoringSitesgroupsDetailComponent
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
     private _configService: ConfigService,
-    private _configServiceG: ConfigServiceG,
     private _formService: FormService,
     public _permissionService: PermissionService,
     private _popup: Popup,
@@ -85,10 +83,7 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
-    this._Activatedroute.data.subscribe(({ data }) => {
-      this.moduleCode = data.moduleCode;
-    });
-
+    this.moduleCode = this._configServiceG.moduleCode();
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
     this._configService.init(this.moduleCode).subscribe(() => {
@@ -138,12 +133,14 @@ export class MonitoringSitesgroupsDetailComponent
           );
 
           return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id, this.moduleCode).catch((err) => {
-              if (err.status == 404) {
-                this.router.navigate(['/not-found'], { skipLocationChange: true });
-                return of(null);
-              }
-            }),
+            sitesGroup: this._sitesGroupService
+              .getByIdResolved(id, this.moduleCode)
+              .catch((err) => {
+                if (err.status == 404) {
+                  this.router.navigate(['/not-found'], { skipLocationChange: true });
+                  return of(null);
+                }
+              }),
             sites: sitedata$,
             obj: this.obj.get(0),
           }).pipe(
@@ -179,7 +176,6 @@ export class MonitoringSitesgroupsDetailComponent
               childType: 'visit',
             },
           },
-          this._configServiceG,
           this.moduleCode,
           ['site', 'individual']
         );

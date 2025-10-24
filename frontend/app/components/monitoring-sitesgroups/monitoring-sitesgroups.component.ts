@@ -5,12 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { MonitoringObject } from '../../class/monitoring-object';
-import { IdataTableObjData, ISite, ISitesGroup } from '../../interfaces/geom';
+import { ISitesGroup } from '../../interfaces/geom';
 import { Module } from '../../interfaces/module';
 import { SelectObject } from '../../interfaces/object';
 import { IobjObs } from '../../interfaces/objObs';
 import { IPage, IPaginated } from '../../interfaces/page';
-import { IIndividual } from '../../interfaces/individual';
+
 import {
   IndividualsService,
   SitesGroupService,
@@ -24,14 +24,12 @@ import { ObjectService } from '../../services/object.service';
 import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
 
-import { CacheService } from '../../services/cache.service';
-
 const LIMIT = 10;
 
-import { Observable, ReplaySubject, forkJoin, of } from 'rxjs';
-import { map, mergeMap, takeUntil } from 'rxjs/operators';
-import { ConfigServiceG } from '../../services/config-g.service';
+import { ReplaySubject } from 'rxjs';
+import { mergeMap, takeUntil } from 'rxjs/operators';
 import { PermissionService } from '../../services/permission.service';
+import { ObjectType } from '../../enum/objecttype';
 
 @Component({
   selector: 'monitoring-sitesgroups',
@@ -39,9 +37,9 @@ import { PermissionService } from '../../services/permission.service';
   styleUrls: ['./monitoring-sitesgroups.component.css'],
 })
 export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent implements OnInit {
-  page: IPage;
-
   obj;
+  public bDeleteModalEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
+  public page: IPage;
 
   colsname: {};
   objectType: IobjObs<ISitesGroup>;
@@ -59,16 +57,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   siteResolvedProperties;
 
-  bDeleteModalEmitter = new EventEmitter<boolean>();
-
   currentUser: User;
   currentPermission: TPermission;
 
-  moduleCode: string;
+  public moduleCode: string;
 
-  bEdit: false;
-
-  config;
+  public bEdit: boolean = false;
 
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
@@ -92,8 +86,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _popup: Popup,
     private _monitoringObjectService: MonitoringObjectService,
     private _configService: ConfigService,
-    private _configServiceG: ConfigServiceG,
-    private _cacheService: CacheService,
     public _permissionService: PermissionService
   ) {
     super(_permissionService);
@@ -152,11 +144,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         };
       }
 
-      this.setDataTableObjData(dataToTable, this._configServiceG, this.moduleCode, [
-        'site',
-        'individual',
-        'sites_group',
-      ]);
+      this.setDataTableObjData(dataToTable, this.moduleCode, ['site', 'individual', 'sites_group']);
 
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);
@@ -217,9 +205,9 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   getData(page = 1, params = {}, objectType: string) {
-    if (objectType == 'sites_group') {
+    if (objectType == ObjectType.sites_group) {
       this.getSitesGroups((page = page), (params = params));
-    } else if (objectType == 'individual') {
+    } else if (objectType == ObjectType.individual) {
       this.getIndividuals((page = page), (params = params));
     } else {
       this.getSites((page = page), (params = params));
@@ -240,7 +228,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
      * @param {_service} _service The service to use to fetch the data.
      */
     // Récupération du type d'objet
-    const object_type = _service.objectObs.objectType;
+    const object_type: ObjectType = _service.objectObs.objectType;
     _service
       .getResolved(page, LIMIT, params)
       .subscribe((processedPaginatedData: IPaginated<any>) => {
@@ -487,9 +475,5 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
       });
     });
-  }
-
-  initConfig(): Observable<any> {
-    return this._configService.init(this.obj.moduleCode);
   }
 }
