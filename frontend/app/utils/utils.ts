@@ -136,7 +136,7 @@ export function resolveObjectProperties(
    *
    * @param data - Données à traiter.
    * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
-   * @param moduleCode - Le code de module courrant
+   * @param moduleCode - Le code de module courant
    * @param _configService - Service utilisé pour la résolution des propriétés d'objet.
    * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
    * @returns Un observable émettant l'objet de données avec les propriétés résolues.

@@ -55,6 +55,7 @@ import {
   ApiGeomService,
   VisitsService,
   IndividualsService,
+  ModuleService,
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
@@ -265,6 +266,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     DetailSitesGroupsResolver,
     PermissionService,
     Popup,
+    ModuleService,
   ],
   bootstrap: [ModulesComponent],
   schemas: [
