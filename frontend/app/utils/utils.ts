@@ -146,6 +146,13 @@ export function resolveObjectProperties(
   }
 
   const propertyObservables = {};
+  // si des données sont contenues dans dataItem.data merge avec dataItem
+  // cas des propriétés supplémentaires des visites
+  // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
+  if (data.data) {
+    data = { ...data, ...data.data };
+  }
+
   for (const attribut_name of Object.keys(fieldsConfig)) {
     if (data.hasOwnProperty(attribut_name)) {
       propertyObservables[attribut_name] = resolveProperty(
@@ -173,7 +180,6 @@ export function resolveObjectProperties(
 export function buildObjectResolvePropertyProcessing(
   data,
   fieldsConfig,
-  moduleCode,
   _configService,
   _cacheService
 ): Observable<any> {
@@ -184,7 +190,6 @@ export function buildObjectResolvePropertyProcessing(
    *
    * @param data - Données à traiter.
    * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
-   * @param moduleCode - Le code de module courrant
    * @param _configService - Service utilisé pour la résolution des propriétés d'objet.
    * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
    * @returns Un observable émettant l'objet de données avec les propriétés résolues.
@@ -197,36 +202,8 @@ export function buildObjectResolvePropertyProcessing(
     fieldsConfig &&
     Object.keys(fieldsConfig).length > 0
       ? forkJoin(
-          data.items.map((dataItem) => {
-            const propertyObservables = {};
-            for (const attribut_name of Object.keys(fieldsConfig)) {
-              // si des données sont contenues dans dataItem.data merge avec dataItem
-              // cas des propriétés supplémentaires des visites
-              // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
-              if (dataItem.data) {
-                dataItem = { ...dataItem, ...dataItem.data };
-              }
-              if (dataItem.hasOwnProperty(attribut_name)) {
-                propertyObservables[attribut_name] = resolveProperty(
-                  _configService,
-                  _cacheService,
-                  fieldsConfig[attribut_name],
-                  dataItem[attribut_name]
-                );
-              }
-            }
-            if (Object.keys(propertyObservables).length === 0) {
-              return of(dataItem);
-            }
-            return forkJoin(propertyObservables).pipe(
-              map((resolvedProperties) => {
-                const updatedSiteGroupItem = { ...dataItem };
-                for (const attribut_name of Object.keys(resolvedProperties)) {
-                  updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
-                }
-                return updatedSiteGroupItem;
-              })
-            );
+          data.items.map((dataItem: {}) => {
+            return resolveObjectProperties(dataItem, fieldsConfig, _configService, _cacheService);
           })
         ).pipe(
           map((resolvedSiteGroupItems) => ({
