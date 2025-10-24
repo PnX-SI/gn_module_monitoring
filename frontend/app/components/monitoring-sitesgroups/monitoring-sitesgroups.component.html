@@ -8,20 +8,20 @@
     [currentUser]="currentUser"
   ></pnx-monitoring-properties> -->
   <pnx-monitoring-properties-g
-  *ngIf="obj && !bEdit && obj.bIsInitialized"
-  id="nav-properties"
-  [obj]="obj.resolvedProperties"
-  [templateData]="templateData"
-  [(bEdit)]="bEdit"
-  [currentUser]="currentUser"
-  objectType="module"
-  [bSynthese]="obj.resolvedProperties['b_synthese']"
-></pnx-monitoring-properties-g>
+    *ngIf="obj && !bEdit && bIsInitialized"
+    id="nav-properties"
+    [obj]="obj"
+    [templateData]="templateData"
+    [(bEdit)]="bEdit"
+    [currentUser]="currentUser"
+    objectType="module"
+    [bSynthese]="obj.b_synthese"
+  ></pnx-monitoring-properties-g>
   <pnx-monitoring-form
     [obj]="obj"
     [objForm]="objForm"
     [currentUser]="currentUser"
-    *ngIf="bEdit && obj?.bIsInitialized"
+    *ngIf="bEdit && bIsInitialized"
     [(bEdit)]="bEdit"
     [addChildren]="false"
   ></pnx-monitoring-form>
