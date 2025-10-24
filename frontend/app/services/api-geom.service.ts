@@ -87,7 +87,6 @@ export class ApiService<T = IObject> implements IService<T> {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
           config['fields'] || {},
-          this._configServiceG.moduleCode(),
           this._configServiceG,
           this._cacheService
         );
@@ -114,7 +113,6 @@ export class ApiService<T = IObject> implements IService<T> {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           dataToResolve,
           config['fields'] || {},
-          this._configServiceG.moduleCode(),
           this._configServiceG,
           this._cacheService
         );
@@ -255,7 +253,6 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
           fieldsConfig,
-          this.objectObs.moduleCode,
           this._configServiceG,
           this._cacheService
         );

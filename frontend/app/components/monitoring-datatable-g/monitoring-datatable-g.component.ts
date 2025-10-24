@@ -39,6 +39,7 @@ type ItemsObjectTable = { [key: string]: ItemObjectTable[] };
 })
 export class MonitoringDatatableGComponent implements OnInit {
   @Input() rows;
+  // A supprimer
   @Input() colsname: IColumn[];
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
