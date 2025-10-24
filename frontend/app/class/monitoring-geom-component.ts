@@ -4,6 +4,7 @@ import { TemplateData } from '../interfaces/template';
 import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
 import { inject } from '@angular/core';
+import { ObjectType } from '../enum/objecttype';
 
 const LIMIT = 10;
 
@@ -77,6 +78,15 @@ export class MonitoringGeomComponent {
       }
       const config = this._configServiceG.config()[objType];
 
+      let canCreateChild =
+        this._permissionService.modulePermission[data[dataType].childType]?.C > 0 || false;
+
+      if (moduleCode == 'generic' && data[dataType].childType == 'visit') {
+        // Pour le module généric les permissions des visites sont toujours vrai
+        //  car ce sont les sous modules qui vont déterminer les permissions
+        canCreateChild = true;
+      }
+
       const fieldNamesList = config['display_list'];
       let colNameObj: { [index: string]: any } = {};
       const labelList = config['label_list'];
@@ -98,8 +108,7 @@ export class MonitoringGeomComponent {
         objectType: objType,
         moduleCode: moduleCode,
         canCreateObj: this._permissionService.modulePermission[objType]?.C > 0 || false,
-        canCreateChild:
-          this._permissionService.modulePermission[data[dataType].childType]?.C > 0 || false,
+        canCreateChild: canCreateChild,
       };
       dataTableConfig.push(currentDataTableConfig);
       dataTableObjData[objType] = {
