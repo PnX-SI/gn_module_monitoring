@@ -27,10 +27,10 @@ export class MonitoringGeomComponent {
   };
   public templateSpecificData: TemplateData | {} = {};
 
-  private configServiceG: ConfigServiceG;
+  protected _configServiceG: ConfigServiceG;
 
   constructor(public _permissionService: PermissionService) {
-    this.configServiceG = inject(ConfigServiceG);
+    this._configServiceG = inject(ConfigServiceG);
   }
 
   setPage({ page, filters, tabObj = '' }) {
@@ -57,7 +57,7 @@ export class MonitoringGeomComponent {
         childType: string;
       };
     },
-    configService: any,
+
     moduleCode: any,
     allowedObjectType: string[] = []
   ) {
@@ -75,7 +75,7 @@ export class MonitoringGeomComponent {
       if (!allowedObjectType.includes(objType)) {
         continue;
       }
-      const config = configService.config()[objType];
+      const config = this._configServiceG.config()[objType];
 
       const fieldNamesList = config['display_list'];
       let colNameObj: { [index: string]: any } = {};
@@ -134,11 +134,11 @@ export class MonitoringGeomComponent {
      * objectType type d'objet
      * @returns {void}
      */
-    const config = this.configServiceG.config()[objectType];
+    const config = this._configServiceG.config()[objectType];
     (this.templateData.fieldNames = config['display_properties']),
       (this.templateData.childType = config['children_type']);
     this.templateData.exportPDF = config?.export_pdf;
-    this.templateData.exportCSV = this.configServiceG.config()['module']?.export_csv;
+    this.templateData.exportCSV = this._configServiceG.config()['module']?.export_csv;
 
     // Pas beau
     this.templateData.fieldNames.forEach((field_name) => {

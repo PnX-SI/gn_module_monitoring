@@ -37,7 +37,6 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    console.log(this._configServiceG.config());
     // souscrit au sujet config du module en cours
     // quand le module change
     // test if config exist pour le module
