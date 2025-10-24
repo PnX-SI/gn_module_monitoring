@@ -181,7 +181,7 @@ class TestSite:
             )
         )
 
-        assert r.json["id"] == id_base_site
+        assert r.json["id_base_site"] == id_base_site
 
     def test_get_all_site_geometries(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])

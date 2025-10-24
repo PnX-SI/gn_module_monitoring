@@ -29,8 +29,8 @@ class TestSitesGroups:
             )
         )
 
-        assert r.json["id"] == id_sites_group
-        assert r.json["properties"]["sites_group_name"] == sites_group.sites_group_name
+        assert r.json["id_sites_group"] == id_sites_group
+        assert r.json["sites_group_name"] == sites_group.sites_group_name
 
     def test_get_sites_groups(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])

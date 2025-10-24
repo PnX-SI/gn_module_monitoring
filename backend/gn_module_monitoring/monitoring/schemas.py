@@ -9,7 +9,7 @@ from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
-
+from geonature.utils.schema import CruvedSchemaMixin
 from pypnusershub.db.models import User
 
 
@@ -32,26 +32,6 @@ def paginate_schema(schema):
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
-
-
-class DetailSchema(Schema):
-    geometry = fields.Method("serialize_geojson", dump_only=True)
-    properties = fields.Dict()
-    cruved = fields.Dict()
-    id = fields.Integer()
-    module_code = fields.String()
-    object_type = fields.String()
-
-    def serialize_geojson(self, obj):
-        print(obj["geometry"])
-
-        if obj["geometry"] != None and isinstance(obj["geometry"], str):
-            return json.loads(obj["geometry"])
-        else:
-            return obj["geometry"]
-
-        # if obj["geometry"] is not None:
-        #     return geojson.dumps(obj.as_geofeature().get("geometry"))
 
 
 def add_specific_attributes(schema, object_type, module_code):
@@ -93,6 +73,13 @@ def add_specific_attributes(schema, object_type, module_code):
     return schema_with_specifics
 
 
+class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
+
+    @property
+    def __module_code__(self):
+        return g.current_module.module_code
+
+
 class ObserverSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = User
@@ -132,7 +119,7 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesGroupsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     sites_group_name = fields.String(
         validate=validate.Length(min=3, error="Length must be greater than 3"),
     )
@@ -187,7 +174,7 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringSites
         exclude = ("geom_geojson", "geom")
@@ -217,7 +204,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         return obj.id_inventor
 
 
-class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringVisitsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringVisits
         include_fk = True
@@ -233,7 +220,7 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
         return "id_base_visit"
 
 
-class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringObservationsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservations
         include_fk = True
@@ -242,7 +229,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringObservationsDetailsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservationDetails
         include_fk = True
@@ -251,7 +238,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringIndividualsSchema(MonitoringCruvedSchemaMixin, MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringIndividuals
         include_fk = True
