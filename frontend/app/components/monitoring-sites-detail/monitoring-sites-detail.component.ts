@@ -25,7 +25,6 @@ import { TPermission } from '../../types/permission';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
-import { ConfigServiceG } from '../../services/config-g.service';
 
 @Component({
   selector: 'monitoring-sites-detail',
@@ -67,7 +66,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     private _configService: ConfigService,
-    private _configServiceG: ConfigServiceG,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
@@ -123,7 +121,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           // Récupération des données et des configurations
           //  pour le site et les visites associées
           return forkJoin({
-            site: this.siteService.getById(siteId, this.moduleCode).catch((err) => {
+            site: this.siteService.getByIdResolved(siteId, this.moduleCode).catch((err) => {
               if (err.status == 404) {
                 this.router.navigate(['/not-found'], { skipLocationChange: true });
                 return of(null);
@@ -173,7 +171,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             childType: 'observation',
           },
         };
-        this.setDataTableObjData(dataTableData, this._configServiceG, this.moduleCode, ['visit']);
+        this.setDataTableObjData(dataTableData, this.moduleCode, ['visit']);
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"

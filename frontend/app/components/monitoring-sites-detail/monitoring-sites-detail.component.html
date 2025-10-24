@@ -31,7 +31,7 @@
 <pnx-monitoring-properties-g
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
-  [obj]="obj.resolvedProperties"
+  [obj]="site"
   [(bEdit)]="bEdit"
   [currentUser]="currentUser"
   [templateData]="obj['template']"
