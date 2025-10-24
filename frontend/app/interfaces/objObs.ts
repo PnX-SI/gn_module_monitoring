@@ -6,10 +6,10 @@ import { IVisit } from './visit';
 export type ObjDataType = ISite | ISitesGroup | IVisit;
 export interface IobjObs<T> {
   endPoint: endPoints;
-  objectType: 'site' | 'sites_group' | 'visit' | 'individual';
+  objectType: 'site' | 'sites_group' | 'visit' | 'individual' | 'module';
   label: string;
   childType?: string;
-  moduleCode: string;
+  moduleCode: string; // Voir si utilisé
 }
 
 export interface SiteSiteGroup {
