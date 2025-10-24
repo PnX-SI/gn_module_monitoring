@@ -123,6 +123,53 @@ export class Utils {
   }
 }
 
+export function resolveObjectProperties(
+  data,
+  fieldsConfig,
+  _configService,
+  _cacheService
+): Observable<any> {
+  /**
+   * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+   *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+   *
+   *
+   * @param data - Données à traiter.
+   * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+   * @param moduleCode - Le code de module courrant
+   * @param _configService - Service utilisé pour la résolution des propriétés d'objet.
+   * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
+   * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+   */
+  if ((!data || !fieldsConfig) && Object.keys(fieldsConfig).length > 0) {
+    return of(data);
+  }
+
+  const propertyObservables = {};
+  for (const attribut_name of Object.keys(fieldsConfig)) {
+    if (data.hasOwnProperty(attribut_name)) {
+      propertyObservables[attribut_name] = resolveProperty(
+        _configService,
+        _cacheService,
+        fieldsConfig[attribut_name],
+        data[attribut_name]
+      );
+    }
+  }
+  if (Object.keys(propertyObservables).length === 0) {
+    return of(data);
+  }
+  return forkJoin(propertyObservables).pipe(
+    map((resolvedProperties) => {
+      const updatedSiteGroupItem = { ...data };
+      for (const attribut_name of Object.keys(resolvedProperties)) {
+        updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+      }
+      return updatedSiteGroupItem;
+    })
+  );
+}
+
 export function buildObjectResolvePropertyProcessing(
   data,
   fieldsConfig,
