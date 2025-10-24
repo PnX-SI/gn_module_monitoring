@@ -37,11 +37,6 @@ export class ApiService<T = IObject> implements IService<T> {
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    // souscrit au sujet config du module en cours
-    // quand le module change
-    // test if config exist pour le module
-    // sinon raise
-    // lancer opération de initConfig
   }
 
   public initConfig(): IobjObs<T> {
@@ -193,23 +188,11 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   init(): void {
     const endPoint = endPoints.sites_groups;
     const objectObs: IobjObs<ISitesGroup> = {
-      properties: {},
       endPoint: endPoints.sites_groups,
       objectType: 'sites_group',
-      routeBase: 'sites_group',
       label: 'groupe de site',
       childType: 'site',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Groupes de sites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -275,23 +258,11 @@ export class SitesService extends ApiGeomService<ISite> {
   init(): void {
     const endPoint = endPoints.sites;
     const objectObs: IobjObs<ISite> = {
-      properties: {},
       endPoint: endPoints.sites,
       objectType: 'site',
-      routeBase: 'site',
       label: 'site',
       childType: 'visit',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Sites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -336,23 +307,11 @@ export class VisitsService extends ApiService<IVisit> {
   init(): void {
     const endPoint = endPoints.visits;
     const objectObs: IobjObs<IVisit> = {
-      properties: {},
       endPoint: endPoints.visits,
       objectType: 'visit',
       label: 'visite',
       childType: 'observation',
-      routeBase: 'visit',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Visites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -371,23 +330,11 @@ export class IndividualsService extends ApiService<IIndividual> {
   init(): void {
     const endPoint = endPoints.individuals;
     const objectObs: IobjObs<IIndividual> = {
-      properties: {},
       endPoint: endPoints.individuals,
       objectType: 'individual',
       label: 'individu',
       childType: 'marking',
-      routeBase: 'individual',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Individus',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
