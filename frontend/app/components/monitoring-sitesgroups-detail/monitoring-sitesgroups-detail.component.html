@@ -1,20 +1,11 @@
 <div>
-  <span
-    class="obj-title"
-    *ngIf="bEdit"
-  >
+  <span class="obj-title" *ngIf="bEdit">
     {{ 'Actions.Edit' | translate }}
   </span>
-  <span
-    class="obj-title"
-    *ngIf="!bEdit"
-  >
+  <span class="obj-title" *ngIf="!bEdit">
     {{ 'Detail' | translate }}
   </span>
-  <span
-    *ngIf="sitesGroup"
-    class="obj-description"
-  >
+  <span *ngIf="sitesGroup" class="obj-description">
     {{ sitesGroup.sites_group_name }}
   </span>
 </div>
@@ -25,42 +16,16 @@
   [(bEdit)]="bEdit"
   [currentUser]="currentUser">
 </pnx-monitoring-properties> -->
-<pnx-monitoring-properties-g
-  *ngIf="obj && !bEdit && obj.bIsInitialized"
-  id="nav-properties"
-  [obj]="sitesGroup"
-  [templateData]="templateData"
-  [(bEdit)]="bEdit"
-  [currentUser]="currentUser"
-  objectType="sites_group"
-></pnx-monitoring-properties-g>
-<pnx-monitoring-form
-  [obj]="obj"
-  [objForm]="form"
-  *ngIf="bEdit"
-  [(bEdit)]="bEdit"
-  [apiService]="siteService"
-  [isExtraForm]="true"
-  [currentUser]="currentUser"
-></pnx-monitoring-form>
-<pnx-monitoring-datatable-g
-  *ngIf="!bEdit"
-  [dataTableConfig]="dataTableConfig"
-  [dataTableObjData]="dataTableObjData"
-  [rows]="siteResolvedProperties"
-  [colsname]="colsname"
-  (onSort)="setSort($event)"
-  [page]="page"
-  (onFilter)="setFilter($event)"
-  (onSetPage)="setPage($event)"
-  [obj]="rows"
-  [moduleCode]="moduleCode"
-  (addVisitFromTable)="addChildrenVisit($event)"
-  (onDetailsRow)="seeDetails($event)"
-  (onEditEvent)="editChild($event)"
-  (onDeleteEvent)="onDelete($event)"
-  (saveOptionChildren)="onSaveAddChildren($event)"
-  (onAddObj)="navigateToAddObj($event)"
-  [bDeleteModalEmitter]="bDeleteModalEmitter"
-  parentPath="sites_group"
-></pnx-monitoring-datatable-g>
+<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties" [obj]="sitesGroup"
+  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
+  objectType="sites_group"></pnx-monitoring-properties-g>
+<pnx-monitoring-form-g *ngIf="bEdit" [object]="sitesGroup" objectType="sites_group" [form]="form" [(bEdit)]="bEdit"
+  [apiService]="_sitesGroupService" [config]="configG['sites_group']" [currentUser]="currentUser">
+</pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g *ngIf="!bEdit" [dataTableConfig]="dataTableConfig" [dataTableObjData]="dataTableObjData"
+  [rows]="siteResolvedProperties" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
+  (onFilter)="setFilter($event)" (onSetPage)="setPage($event)" [obj]="rows" [moduleCode]="moduleCode"
+  (addVisitFromTable)="addChildrenVisit($event)" (onDetailsRow)="seeDetails($event)" (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)" (saveOptionChildren)="onSaveAddChildren($event)"
+  (onAddObj)="navigateToAddObj($event)" [bDeleteModalEmitter]="bDeleteModalEmitter"
+  parentPath="sites_group"></pnx-monitoring-datatable-g>

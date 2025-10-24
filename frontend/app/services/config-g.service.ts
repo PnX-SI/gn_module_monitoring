@@ -38,6 +38,7 @@ export class ConfigServiceG {
   }
 
   loadConfig(moduleCode: string): Observable<boolean> {
+    console.log('ConfigServiceG loadConfig for moduleCode : ', moduleCode);
     const urlConfig =
       moduleCode === 'generic'
         ? `${this.backendModuleUrl()}/refacto/config`

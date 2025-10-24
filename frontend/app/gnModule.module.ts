@@ -27,6 +27,7 @@ import { DrawFormComponent } from './components/draw-form/draw-form.component';
 import { ModalMsgComponent } from './components/modal-msg/modal-msg.component';
 import { MonitoringMapComponent } from './components/monitoring-map/monitoring-map.component';
 import { MonitoringFormComponent } from './components/monitoring-form/monitoring-form.component';
+import { MonitoringFormGComponent } from './components/monitoring-form-g/monitoring-form-g.component';
 import { MonitoringListComponent } from './components/monitoring-lists/monitoring-lists.component';
 import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
 import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
@@ -201,6 +202,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     ModalMsgComponent,
     MonitoringMapComponent,
     MonitoringFormComponent,
+    MonitoringFormGComponent,
     MonitoringListComponent,
     MonitoringPropertiesComponent,
     MonitoringDatatableComponent,
