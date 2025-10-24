@@ -58,6 +58,8 @@ export class MonitoringSitesgroupsDetailComponent
   currentUser: User;
   currentPermission: TPermission;
 
+  public configG;
+
   obj: MonitoringObject;
 
   moduleCode: string;
