@@ -48,8 +48,6 @@ class TestSite:
         assert r.json["count"] >= len(sites)
 
         sites_response = r.json["items"]
-        for s in sites_response:
-            s.pop("cruved")
 
         assert any([schema.dump(site) in sites_response for site in sites.values()])
 

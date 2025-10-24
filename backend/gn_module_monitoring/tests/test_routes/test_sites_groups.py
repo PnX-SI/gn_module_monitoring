@@ -39,8 +39,6 @@ class TestSitesGroups:
         assert r.json["count"] >= len(sites_groups)
 
         sites_group_response = r.json["items"]
-        for s in sites_group_response:
-            s.pop("cruved")
 
         assert all(
             [
@@ -60,10 +58,6 @@ class TestSitesGroups:
 
         assert r.json["count"] >= 1
         json_sites_groups = r.json["items"]
-
-        # Suppression du cruved
-        for s in json_sites_groups:
-            s.pop("cruved")
 
         assert schema.dump(sites_groups[name]) in json_sites_groups
         assert schema.dump(sites_groups[name_not_present]) not in json_sites_groups
