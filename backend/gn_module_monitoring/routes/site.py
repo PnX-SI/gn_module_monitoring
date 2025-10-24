@@ -187,7 +187,7 @@ def get_site_by_id(scope, module_code, id, object_type):
     # Cas des propriétés renseignées dans d'autre module
     #  Ajout manuel des propriétés manquantes
     # Voir si on peut créer un schéma marsmallow
-    for key in site.data:
+    for key in getattr(site, "data") or {}:
         if key not in data:
             if "additional_data_keys" not in data:
                 data["additional_data_keys"] = []
