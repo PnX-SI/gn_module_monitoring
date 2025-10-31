@@ -1,5 +1,6 @@
 from math import ceil
 
+from geonature.core.imports.models import BibFields
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
@@ -138,6 +139,17 @@ class MonitoringImportActions(ImportActions):
         VisitImportActions.check_sql(imprt)
         ObservationImportActions.check_sql(imprt)
 
+        # for entity in ("site", "visit"):  # v_observers pour les visite .....
+        #     observer_field = db.session.scalar(
+        #         sa.select(BibFields).where(
+        #             BibFields.name_field == f"{entity[0]}__id_inventor",
+        #             BibFields.id_destination == imprt.id_destination,
+        #         )
+        #     )
+        #     ImportActions.bind_matched_observers_without_correspondance_table(
+        #         imprt, observer_field
+        #     )
+
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
         transient_table = imprt.destination.get_transient_table()
@@ -168,7 +180,7 @@ class MonitoringImportActions(ImportActions):
             entity_fields = EntityImportActionsUtils.get_destination_fields(imprt, entity)
 
             core_fields = []
-            core_dest_col_names = ["id_import"]
+            core_dest_col_names = ["id_import", "id_digitiser"]
             complement_fields = []
             destination_model = get_entity_model(entity)
             destination_table = destination_model.__table__
@@ -181,7 +193,10 @@ class MonitoringImportActions(ImportActions):
                 else:
                     complement_fields.append(field)
 
-            core_select_cols = [sa.literal(imprt.id_import).label("id_import")]
+            core_select_cols = [
+                sa.literal(imprt.id_import).label("id_import"),
+                sa.literal(imprt.authors[0].id_role).label("id_digitiser"),
+            ]
             core_select_cols.extend(
                 transient_table.c[field.dest_field].label(
                     EntityImportActionsUtils.get_destination_column_name(field.dest_field)

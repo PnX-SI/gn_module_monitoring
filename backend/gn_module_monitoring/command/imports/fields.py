@@ -35,12 +35,19 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
         "medias",  # not importable
     ]
 
+    field_set_manually = ["id_digitiser"]
+
     generic_fields = generic_data.get("generic", {})
     for field_name, generic_field_data in generic_fields.items():
+        field_data = {}
         if field_name in ignored_fields:
             continue
-        if field_name in specific_data.get("specific", {}):
+
+        elif field_name in specific_data.get("specific", {}):
             field_data = {**generic_field_data, **specific_data["specific"][field_name]}
+            if field_name in field_set_manually:
+                field_data["required"] = False
+                field_data["display"] = False
             entity_fields["specific"].append(
                 monitoring_field_to_bib_field(
                     field_data, entity_code, field_name, id_destination, generic_data, parent_data
@@ -48,6 +55,9 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
             )
         else:
             field_data = generic_field_data
+            if field_name in field_set_manually:
+                field_data["required"] = False
+                field_data["display"] = False
             entity_fields["generic"].append(
                 monitoring_field_to_bib_field(
                     field_data, entity_code, field_name, id_destination, generic_data, parent_data
