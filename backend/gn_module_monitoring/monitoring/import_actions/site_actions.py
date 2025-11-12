@@ -24,6 +24,8 @@ from geonature.core.imports.utils import (
 
 from geonature.core.imports.checks.dataframe.geometry import check_geometry
 
+from geonature.core.imports.checks.sql.user import map_observer_matching
+
 
 class SiteImportActions:
     ENTITY_CODE = "site"
@@ -77,6 +79,8 @@ class SiteImportActions:
         SiteImportActions.check_and_compute_geometries(imprt)
 
         SiteImportActions.check_altitudes(imprt)
+
+        map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
 
     @staticmethod
     def check_dataframe(imprt: TImports, config):

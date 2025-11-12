@@ -18,6 +18,7 @@ from sqlalchemy.orm import aliased, joinedload
 from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
 from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
 from geonature.core.imports.models import Entity, TImports
+from geonature.core.gn_monitoring.models import CorVisitObserver
 
 
 from geonature.utils.env import db
@@ -139,17 +140,6 @@ class MonitoringImportActions(ImportActions):
         VisitImportActions.check_sql(imprt)
         ObservationImportActions.check_sql(imprt)
 
-        # for entity in ("site", "visit"):  # v_observers pour les visite .....
-        #     observer_field = db.session.scalar(
-        #         sa.select(BibFields).where(
-        #             BibFields.name_field == f"{entity[0]}__id_inventor",
-        #             BibFields.id_destination == imprt.id_destination,
-        #         )
-        #     )
-        #     ImportActions.bind_matched_observers_without_correspondance_table(
-        #         imprt, observer_field
-        #     )
-
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
         transient_table = imprt.destination.get_transient_table()
@@ -185,6 +175,7 @@ class MonitoringImportActions(ImportActions):
             destination_model = get_entity_model(entity)
             destination_table = destination_model.__table__
             destination_col_names = list(destination_table.columns.keys())
+
             for field in entity_fields:
                 col_name = EntityImportActionsUtils.get_destination_column_name(field.dest_field)
                 if col_name in destination_col_names and col_name not in core_dest_col_names:
@@ -361,6 +352,16 @@ class MonitoringImportActions(ImportActions):
 
                 yield (batch + 1) / batch_count
             imprt.statistics.update({f"{entity.code}_count": row_count})
+
+            if entity.code == "visit":
+                ImportActions.bind_matched_observers(
+                    imprt,
+                    TBaseVisits,
+                    "observers_txt",
+                    "id_base_visit",
+                    CorVisitObserver,
+                    ["id_base_visit", "id_role"],
+                )
 
         imprt.statistics.update(ObservationImportActions.compute_taxa_statistics(imprt))
 
