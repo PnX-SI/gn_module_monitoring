@@ -202,13 +202,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       }
       properties[attribut_name] = formValue[attribut_name];
     }
-    data = {
-      properties: properties,
-    };
-    if (this.config['geometry_type']) {
-      data['geometry'] = formValue['geometry'];
-      data['type'] = 'Feature';
-    }
+    data = properties;
+    data['geometry'] = formValue['geometry'];
     return data;
   }
 
