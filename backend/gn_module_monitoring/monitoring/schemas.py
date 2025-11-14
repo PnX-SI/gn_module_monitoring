@@ -10,6 +10,7 @@ from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
 from geonature.utils.schema import CruvedSchemaMixin
+from marshmallow_sqlalchemy import auto_field
 from pypnusershub.db.models import User
 
 
@@ -133,16 +134,13 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
         include_fk = True
         load_relationships = True
 
+    id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
     geometry = fields.Method("serialize_geojson", dump_only=True)
-    id_digitiser = fields.Method("get_id_digitiser")
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
     nb_visits = fields.Integer(dump_only=True)
-
-    def get_id_digitiser(self, obj):
-        return obj.id_digitiser
 
     def set_pk(self, obj):
         return "id_sites_group"
