@@ -237,9 +237,8 @@ class TestSitesGroupsWithModule:
             .where(TNomenclatures.mnemonique == mnemonique)
         ).scalar()
 
-    @pytest.mark.usefixtures("install_module_test")
     @pytest.fixture
-    def add_group(self, test_module_user):
+    def add_group(self, test_module_user, install_module_test):
 
         def _add_group(**kwargs):
             _add_group.counter += 1
