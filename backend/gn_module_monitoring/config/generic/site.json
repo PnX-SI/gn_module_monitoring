@@ -60,14 +60,10 @@
       "attribut_label": "Description"
     },
     "id_inventor": {
-      "type_widget": "datalist",
+      "type_widget": "observers",
       "attribut_label": "Observateurs",
-      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-      "application": "GeoNature",
-      "keyValue": "id_role",
-      "keyLabel": "nom_complet",
-      "type_util": "user",
-      "multiple": false,
+      "id_list":"__MODULE.ID_LIST_OBSERVER",
+      "multi_select": false,
       "hidden": false,
       "required": true,
       "designStyle": "bootstrap"
