@@ -126,6 +126,8 @@ class SiteImportActions:
                 geom_4326_field=entity_fields[geom_field_name__4326],
                 geom_local_field=entity_fields[geom_field_name__local],
                 wkt_field=entity_fields[geom_field_name__wkt],
+                latitude_field=entity_fields["y"],
+                longitude_field=entity_fields["x"],
             )
 
         update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
