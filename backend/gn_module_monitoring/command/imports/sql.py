@@ -64,13 +64,21 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")
             type_column = field.get("type_column", "text").lower()
+            type_field = field.get("type_field")
             field_type = map_field_type_sqlalchemy(type_column)
 
             if source_field and source_field not in added_columns:
                 columns.append(
                     Column(
                         source_field,
-                        JSONB if type_column in ["varchar[]", "integer[]", "jsonb"] else String,
+                        (
+                            JSONB
+                            if (
+                                type_column in ["varchar[]", "integer[]", "jsonb"]
+                                and type_field != "observers"
+                            )
+                            else String
+                        ),
                         nullable=True,  # Must be nullable because we perform partial inserts
                     )
                 )

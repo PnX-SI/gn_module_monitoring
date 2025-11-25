@@ -198,6 +198,12 @@ class MonitoringImportActions(ImportActions):
             if entity.code == "visit":
                 core_select_cols.append(sa.literal(imprt.destination.id_module).label("id_module"))
                 core_dest_col_names.append("id_module")
+                # FIXME: should be done automatically :/
+                if "v__observers" in map(lambda x: x.name_field, entity_fields):
+                    core_select_cols.append(
+                        transient_table.c.src_v__observers.label("observers_txt")
+                    )
+                    core_dest_col_names.append("observers_txt")
 
             core_select_stmt = (
                 sa.select(*core_select_cols)
@@ -207,6 +213,7 @@ class MonitoringImportActions(ImportActions):
                     transient_table.c.line_no
                 )  # Required for the process of inserting observation complements
             )
+            print(core_select_stmt)
 
             # IF NO ENTITY to INSERT continue
             count_entity_to_import = db.session.scalar(
