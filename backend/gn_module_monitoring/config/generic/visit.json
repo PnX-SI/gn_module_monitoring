@@ -45,8 +45,7 @@
       "id_list":"__MODULE.ID_LIST_OBSERVER",
       "multi_select": true,
       "hidden": false,
-      "required": true,
-      "multi_select": true
+      "required": true
     },
     "observers_txt": {
       "type_widget": "observers-text",
