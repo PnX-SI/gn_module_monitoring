@@ -39,6 +39,7 @@ class SiteImportActions:
     ALTITUDE_MIN_FIELD = "s__altitude_min"
     ALTITUDE_MAX_FIELD = "s__altitude_max"
     LINE_NO = "site_line_no"
+    ID_INVENTOR_FIELD = "s__id_inventor"
 
     @staticmethod
     def check_sql(imprt: TImports):
@@ -80,7 +81,8 @@ class SiteImportActions:
 
         SiteImportActions.check_altitudes(imprt)
 
-        map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
+        if SiteImportActions.ID_INVENTOR_FIELD in fieldmapped_fields:
+            map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
 
     @staticmethod
     def check_dataframe(imprt: TImports, config):
