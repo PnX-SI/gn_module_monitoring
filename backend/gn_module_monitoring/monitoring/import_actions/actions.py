@@ -213,7 +213,6 @@ class MonitoringImportActions(ImportActions):
                     transient_table.c.line_no
                 )  # Required for the process of inserting observation complements
             )
-            print(core_select_stmt)
 
             # IF NO ENTITY to INSERT continue
             count_entity_to_import = db.session.scalar(

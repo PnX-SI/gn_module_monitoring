@@ -1,4 +1,5 @@
 import os
+from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
@@ -52,6 +53,11 @@ def get_protocol_data(module_code: str, id_destination: int):
     entity_hierarchy_map = {}
     module_config_dir_path = monitoring_module_config_path(module_code)
     entities = get_entities_protocol(module_code)
+    config_module = get_config(module_code)
+    type_site_confs = []
+    if "custom" in config_module:
+        if "__MODULE.TYPES_SITE" in config_module["custom"]:
+            type_site_confs = config_module["custom"]["__MODULE.TYPES_SITE"]
 
     module_config_path = module_config_dir_path / "config.json"
     module_config = json_from_file(module_config_path)
@@ -64,6 +70,9 @@ def get_protocol_data(module_code: str, id_destination: int):
     for entity_code in entities:
         file_path = module_config_dir_path / f"{entity_code}.json"
         specific_data = json_from_file(file_path)
+        if entity_code == "site":
+            for type_site_conf in type_site_confs:
+                specific_data.update(type_site_conf["config"])
 
         generic_data = json_config_from_file("generic", entity_code)
 

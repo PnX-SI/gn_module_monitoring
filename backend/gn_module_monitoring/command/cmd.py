@@ -20,6 +20,7 @@ from gn_module_monitoring.command.sql import process_sql_files
 from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
+    is_module_configured,
     process_module_import,
     process_update_module_import,
     remove_monitoring_module,
@@ -178,6 +179,10 @@ def cmd_add_update_import_on_protocole(module_code):
         )
 
     config = get_config(module_code, force=True)
+
+    if not is_module_configured(module_code):
+        return
+
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
     module_data = {
         "module_picto": "fa-puzzle-piece",

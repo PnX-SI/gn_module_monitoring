@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import click
 from gn_module_monitoring.command.imports.constant import TYPE_WIDGET
 from gn_module_monitoring.command.imports.destination import upsert_bib_destination
 from gn_module_monitoring.command.imports.entity import (
@@ -20,6 +21,7 @@ from gn_module_monitoring.command.imports.sql import (
     create_sql_import_table_protocol,
 )
 from gn_module_monitoring.command.imports.utils import ask_confirmation
+from gn_module_monitoring.config.repositories import get_config
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
@@ -309,3 +311,22 @@ def validate_protocol_changes(module_code: str, module_data):
 
     except Exception as e:
         return False, [f"Erreur lors de la validation du protocole: {str(e)}"], [], False
+
+
+def is_module_configured(module_code: str):
+    config = get_config(module_code, force=True)
+
+    # Check for configuration
+    required_keys = "__MODULE.TYPES_SITE __MODULE.TAXONOMY_DISPLAY_FIELD_NAME __MODULE.ID_LIST_TAXONOMY".split()
+    try:
+        for key in required_keys:
+            if (
+                key == "__MODULE.ID_LIST_TAXONOMY" and config["custom"][key] == None
+            ):  # if ID_LIST_TAXONOMY == 0
+                raise KeyError(key)
+            elif not config["custom"][key]:
+                raise KeyError(key)
+    except KeyError as e:
+        click.secho(f"Le module {module_code} n'est pas configuré !", fg="red")
+        return False
+    return True
