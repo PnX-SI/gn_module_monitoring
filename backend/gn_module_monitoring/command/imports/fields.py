@@ -23,6 +23,7 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
     ignored_fields = [
         "id_module",  # handled manually
         "id_dataset",  # handled manually
+        "id_digitiser",  # handled manually
         "uuid_base_visit",  # handled manually
         "uuid_base_site",  # handled manually
         "uuid_observation",  # handled manually
@@ -35,7 +36,7 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
         "medias",  # not importable
     ]
 
-    field_set_manually = ["id_digitiser"]
+    field_set_manually = []
 
     generic_fields = generic_data.get("generic", {})
     for field_name, generic_field_data in generic_fields.items():
