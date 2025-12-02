@@ -184,7 +184,7 @@ def get_protocol_data(module_code: str, id_destination: int):
             [
                 {
                     "name_field": f"id_{suffix}",
-                    "fr_label": f"ID {suffix}",
+                    "fr_label": f"ID {name.capitalize()}",
                     "type_field": "text",
                     "type_column": "integer",
                     "mandatory": False,
@@ -197,7 +197,7 @@ def get_protocol_data(module_code: str, id_destination: int):
                 },
                 {
                     "name_field": f"uuid_{suffix}",
-                    "fr_label": f"UUID {suffix}",
+                    "fr_label": f"UUID {name.capitalize()}",
                     "type_field": "text",
                     "type_column": "uuid",
                     "mandatory": False,
