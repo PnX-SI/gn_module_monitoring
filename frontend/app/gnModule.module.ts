@@ -70,6 +70,7 @@ import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolv
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
+import { ImportButtonComponent } from './components/import-button/import-button.component';
 
 // my module routing
 const routes: Routes = [
@@ -215,6 +216,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringSitesDetailComponent,
     OptionListButtonComponent,
     MatErrorMessagesDirective,
+    ImportButtonComponent,
   ],
   imports: [
     GN2CommonModule,

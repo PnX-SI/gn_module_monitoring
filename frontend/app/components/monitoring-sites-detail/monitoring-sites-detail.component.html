@@ -1,18 +1,24 @@
 <div>
-  <span class="obj-title"
-    >{{ bEdit ?  siteService.objectObs.editObjLabel : siteService.objectObs.detailObjLabel }} :</span
+  <span class="obj-title">
+    {{ bEdit ? siteService.objectObs.editObjLabel : siteService.objectObs.detailObjLabel }} :
+  </span>
+  <span
+    *ngIf="site"
+    class="obj-description"
   >
-  <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
+    {{ site.base_site_name }}
+  </span>
 </div>
-<pnx-monitoring-form [obj]="obj" [objForm]="form"
+<pnx-monitoring-form
+  [obj]="obj"
+  [objForm]="form"
   *ngIf="bEdit"
   [(bEdit)]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
   [currentUser]="currentUser"
   (bEditChange)="onbEditChange($event)"
->
-</pnx-monitoring-form>
+></pnx-monitoring-form>
 <pnx-monitoring-properties
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
@@ -21,7 +27,7 @@
   [currentUser]="currentUser"
 ></pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
-  *ngIf="!bEdit"
+  *ngIf="obj && !bEdit && obj.bIsInitialized"
   [dataTableConfig]="dataTableConfig"
   [dataTableObjData]="dataTableObjData"
   [rows]="rows"
@@ -30,7 +36,7 @@
   [page]="page"
   (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)"
-  [obj]="visits"
+  [obj]="obj"
   [moduleCode]="moduleCode"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
@@ -49,6 +55,8 @@
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild] = "moduleCode === 'generic'? true : currentPermission?.MONITORINGS_VISITES?.canCreate > 0"
+    [canCreateChild]="
+      moduleCode === 'generic' ? true : currentPermission?.MONITORINGS_VISITES?.canCreate > 0
+    "
   ></option-list-btn>
 </pnx-monitoring-datatable-g>

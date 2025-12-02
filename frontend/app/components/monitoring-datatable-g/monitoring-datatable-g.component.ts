@@ -109,6 +109,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   ngOnInit() {
     this.subscribeToParentEmitter();
     this.initDatatable();
+    console.log(this.obj);
   }
   subscribeToParentEmitter(): void {
     if (this.bDeleteModalEmitter) {

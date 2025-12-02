@@ -5,12 +5,18 @@
     id="nav-properties"
     [obj]="obj"
     [(bEdit)]="bEdit"
-    [currentUser]="currentUser">
-  </pnx-monitoring-properties>
-  <pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
-    [(bEdit)]="bEdit" [addChildren]=false></pnx-monitoring-form>
+    [currentUser]="currentUser"
+  ></pnx-monitoring-properties>
+  <pnx-monitoring-form
+    [obj]="obj"
+    [objForm]="objForm"
+    [currentUser]="currentUser"
+    *ngIf="bEdit && obj?.bIsInitialized"
+    [(bEdit)]="bEdit"
+    [addChildren]="false"
+  ></pnx-monitoring-form>
   <pnx-monitoring-datatable-g
-    *ngIf="!bEdit"
+    *ngIf="!bEdit && obj.bIsInitialized"
     [dataTableConfig]="dataTableConfig"
     [dataTableObjData]="dataTableObjData"
     [rows]="siteResolvedProperties"
