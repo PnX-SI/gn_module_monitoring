@@ -25,12 +25,12 @@
   "sorts": [{ "prop": "visit_date_min", "dir": "desc" }],
   "generic": {
     "id_base_visit": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "ID",
       "hidden": true
     },
     "id_base_site": {
-      "type_widget": "text",
+      "type_widget": "number",
       "attribut_label": "ID SITE",
       "hidden": true
     },
@@ -41,11 +41,11 @@
     },
     "observers": {
       "type_widget": "observers",
-      "attribut_label": "Observateur",
-      "type_util": "user",
-      "code_list": "CODE_OBSERVERS_LIST",
-      "required": true,
-      "multi_select": true
+      "attribut_label": "Observateurs",
+      "id_list":"__MODULE.ID_LIST_OBSERVER",
+      "multi_select": true,
+      "hidden": false,
+      "required": true
     },
     "observers_txt": {
       "type_widget": "observers-text",
@@ -75,7 +75,8 @@
       "attribut_label": "Commentaires"
     },
     "uuid_base_visit": {
-      "attribut_label": "uuid"
+      "attribut_label": "uuid",
+      "type_util": "uuid"
     },
     "id_dataset": {
       "type_widget": "dataset",
@@ -86,6 +87,7 @@
       "required": true
     },
     "nb_observations": {
+      "type_widget": "number",
       "attribut_label": "Nombre d'observations"
     },
     "medias": {

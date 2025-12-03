@@ -8,7 +8,10 @@
       <br />
     </p>
 
-    <button class="btn btn-danger float-right" (click)="onDelete(rowDeleted)">
+    <button
+      class="btn btn-danger float-right"
+      (click)="onDelete(rowDeleted)"
+    >
       <span
         [ngClass]="{ 'hide-spinner': !bDeleteSpinner }"
         class="spinner-border spinner-border-sm"
@@ -17,10 +20,18 @@
       ></span>
       {{ 'Monitoring.DeletingPopup.ComfirmDelete' | translate }}
     </button>
-    <button class="btn btn-primary" (click)="bDeleteModal = false">{{ 'Monitoring.DeletingPopup.Cancel' | translate }}</button>
+    <button
+      class="btn btn-primary"
+      (click)="bDeleteModal = false"
+    >
+      {{ 'Monitoring.DeletingPopup.Cancel' | translate }}
+    </button>
   </pnx-modal-msg>
 </ng-container>
-<div class="cadre" *ngIf="rows && dataTableObjData">
+<div
+  class="cadre"
+  *ngIf="rows && dataTableObjData"
+>
   <mat-tab-group
     mat-stretch-tabs="false"
     mat-align-tabs="start"
@@ -49,8 +60,15 @@
                 aria-hidden="true"
               ></i>
             </button>
-
-            <ng-template [ngIf]="activetabType != 'visit'" [ngIfElse]="chooseProtocol">
+            <pnx-monitoring-import-button
+              [moduleCode]="moduleCode"
+              [objectType]="obj?.objectType"
+              [properties]="obj?.properties"
+            ></pnx-monitoring-import-button>
+            <ng-template
+              [ngIf]="activetabType != 'visit'"
+              [ngIfElse]="chooseProtocol"
+            >
               <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
               <button
                 mat-raised-button
@@ -61,7 +79,11 @@
                 (click)="canCreateObj ? navigateToAddObj() : null"
                 [matTooltip]="canCreateObj ? null : toolTipNotAllowed"
               >
-                <i class="fa fa-plus" aria-hidden="true"></i> {{ dataTableConfig[i].addObjLabel }}
+                <i
+                  class="fa fa-plus"
+                  aria-hidden="true"
+                ></i>
+                {{ dataTableConfig[i].addObjLabel }}
               </button>
             </ng-template>
 
@@ -96,14 +118,25 @@
               (page)="setPage($event)"
               (sort)="onSortEvent($event)"
             >
-              <ngx-datatable-column [cellClass]="'cell-link'" prop="Action" class="object-link">
-                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+              <ngx-datatable-column
+                [cellClass]="'cell-link'"
+                prop="Action"
+                class="object-link"
+              >
+                <ng-template
+                  let-row="row"
+                  let-value="value"
+                  ngx-datatable-cell-template
+                >
                   <a
                     class="nav-link link cell-link"
                     (click)="navigateToDetail(row)"
                     matTooltip="{{ dataTableConfig[i].seeObjLabel }}"
                   >
-                    <i class="fa fa-eye" aria-hidden="true"></i>
+                    <i
+                      class="fa fa-eye"
+                      aria-hidden="true"
+                    ></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
 
@@ -111,11 +144,13 @@
                     [ngIf]="!(dataTableConfig[i].childType == 'visit')"
                     [ngIfElse]="chooseProtocolPopup"
                   >
-                    <ng-container *ngIf="!(dataTableConfig[i].childType =='observation')">
+                    <ng-container *ngIf="!(dataTableConfig[i].childType == 'observation')">
                       <a
                         [ngClass]="{ isDisableBtn: !canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
+                        (click)="
+                          canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null
+                        "
                         [matTooltip]="
                           canCreateChild ? dataTableConfig[i].addChildLabel : toolTipNotAllowed
                         "
@@ -157,7 +192,12 @@
 
                   <!-- On ne peut supprimer un objet que s'il n'a pas d'enfant -->
                   <ng-container
-                    *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0"
+                    *ngIf="
+                      (row['nb_sites'] ||
+                        0 + row['nb_visits'] ||
+                        0 + row['nb_observations'] ||
+                        0) == 0
+                    "
                   >
                     <a
                       [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
@@ -186,8 +226,16 @@
               ></ngx-datatable-column>
             </ngx-datatable>
 
-            <ng-template #hdrTpl let-column="column" let-sortDir="sortDir" let-sortFn="sortFn">
-              <div class="header-sort-span" (click)="sortFn()">
+            <ng-template
+              #hdrTpl
+              let-column="column"
+              let-sortDir="sortDir"
+              let-sortFn="sortFn"
+            >
+              <div
+                class="header-sort-span"
+                (click)="sortFn()"
+              >
                 <!-- {{column.name}} -->
                 <i
                   class="material-icons icon-sort"
@@ -200,11 +248,15 @@
                   class="material-icons icon-sort"
                   [matTooltip]="column.description"
                   matTooltipPosition="above"
-                  >help</i
                 >
-                <span [matTooltip]="column.name" matTooltipPosition="above">
-                  {{ column.name }}</span
+                  help
+                </i>
+                <span
+                  [matTooltip]="column.name"
+                  matTooltipPosition="above"
                 >
+                  {{ column.name }}
+                </span>
               </div>
               <div class="header-filter-span">
                 <input
