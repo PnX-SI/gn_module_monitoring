@@ -245,7 +245,25 @@ def insert_bib_field(protocol_data):
         )
         DB.session.execute(stmt)
 
+    # Since conditions are based on existing fields sometimes yet not inserted
+    # we need to insert them first without conditions
     for field in all_fields:
+        without_conditions = field.copy()
+        without_conditions.update(
+            {
+                "mandatory_conditions": None,
+                "optional_conditions": None,
+            }
+        )
+
+        upsert_field(without_conditions)
+
+    field_with_conditions = [
+        field
+        for field in all_fields
+        if field.get("mandatory_conditions", None) or field.get("optional_conditions", None)
+    ]
+    for field in field_with_conditions:
         upsert_field(field)
 
 

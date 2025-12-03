@@ -72,7 +72,8 @@ def get_protocol_data(module_code: str, id_destination: int):
         specific_data = json_from_file(file_path)
         if entity_code == "site":
             for type_site_conf in type_site_confs:
-                specific_data.update(type_site_conf["config"])
+                if type_site_conf.get("config", None):
+                    specific_data.update(type_site_conf["config"])
 
         generic_data = json_config_from_file("generic", entity_code)
 
