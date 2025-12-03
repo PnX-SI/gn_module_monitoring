@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["feat/import-monitorings"] # Mettre version compatible
+        geonature_ref: ["feat/add-observer-control"] # Mettre version compatible
     uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
     with:
       geonature_ref: ${{ matrix.geonature_ref }}
