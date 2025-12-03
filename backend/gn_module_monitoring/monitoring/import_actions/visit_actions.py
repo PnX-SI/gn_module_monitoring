@@ -16,6 +16,7 @@ from geonature.core.imports.checks.sql import (
     check_existing_uuid,
     check_no_parent_entity,
     set_id_parent_from_destination,
+    do_nomenclatures_mapping,
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
@@ -80,6 +81,8 @@ class VisitImportActions:
             entity_fields.get(VisitImportActions.UUID_FIELD),
             whereclause=None,
         )
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
 
         # Wire parent child
         set_parent_line_no(

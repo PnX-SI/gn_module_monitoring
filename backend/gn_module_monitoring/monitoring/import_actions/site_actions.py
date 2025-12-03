@@ -1,3 +1,4 @@
+from flask import current_app
 from .entity_import_actions_utils import EntityImportActionsUtils
 
 from geonature.core.imports.models import Entity, TImports
@@ -14,6 +15,7 @@ from geonature.core.imports.checks.sql import (
     check_duplicate_uuid,
     check_existing_uuid,
     convert_geom_columns,
+    do_nomenclatures_mapping,
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
@@ -80,6 +82,8 @@ class SiteImportActions:
         SiteImportActions.check_and_compute_geometries(imprt)
 
         SiteImportActions.check_altitudes(imprt)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
 
         if SiteImportActions.ID_INVENTOR_FIELD in fieldmapped_fields:
             map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
