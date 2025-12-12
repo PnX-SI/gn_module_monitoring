@@ -36,6 +36,7 @@ setuptools.setup(
             "blueprint = gn_module_monitoring.blueprint:blueprint",
             "config_schema = gn_module_monitoring.conf_schema_toml:GnModuleSchemaConf",
             "migrations = gn_module_monitoring:migrations",
+            "form_def_enricher = gn_module_monitoring.utils.enrich_config:enrich_config_from_remote",
         ],
     },
     classifiers=[
