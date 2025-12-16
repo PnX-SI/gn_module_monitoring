@@ -133,7 +133,9 @@ export class MonitoringFormComponent implements OnInit {
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
-        mergeMap(() => {return this._dataUtilsService.initModuleNomenclatures(this.obj.moduleCode) }),
+        mergeMap(() => {
+          return this._dataUtilsService.initModuleNomenclatures(this.obj.moduleCode);
+        }),
         tap(() => {
           // Initialisation des configurations
           //  Selon si l'objet est ou non de type site
