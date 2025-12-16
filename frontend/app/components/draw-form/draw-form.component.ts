@@ -110,18 +110,7 @@ export class DrawFormComponent implements OnInit {
 
   // suivi composant => formControl
   bindGeojsonForm(geojson) {
-    if (!this.parentFormControl) {
-      this._formService.currentFormMap.subscribe((dataForm) => {
-        if ('geometry' in dataForm.frmGp.controls) {
-          this.parentFormControl = dataForm.frmGp.controls['geometry'] as FormControl;
-          // this.parentFormControl.setValue(geojson.geometry);
-          this.manageGeometryChange(geojson.geometry);
-        }
-      });
-    } else {
-      this.manageGeometryChange(geojson.geometry);
-      // this.parentFormControl.setValue(geojson.geometry);
-    }
+    this.manageGeometryChange(geojson.geometry);
   }
 
   manageGeometryChange(geometry) {
