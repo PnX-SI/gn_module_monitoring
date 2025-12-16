@@ -211,7 +211,6 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   onbEditChange(event: boolean) {
-    console.log('MonitoringSitesgroupsDetailComponent - onbEditChange - event', event);
     if (this.bEdit == true && event == false) {
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites

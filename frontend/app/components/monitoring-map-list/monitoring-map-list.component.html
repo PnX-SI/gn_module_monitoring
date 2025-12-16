@@ -3,7 +3,7 @@
     <pnx-map
       *ngIf="heightMap"
       [height]="heightMap"
-      [ngClass]="{ 'hide-draw-form': !(bEdit && obj) }"
+      [geolocation]="true"
     >
       <pnx-draw-form
         [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
