@@ -13,8 +13,7 @@ import { GeoJSONService } from '../../services/geojson.service';
 })
 export class DrawFormComponent implements OnInit {
   public geojson;
-  public leafletDrawOptions = leafletDrawOptions;
-  formValueChangeSubscription;
+  public leafletDrawOptions: any;
 
   public displayed = false;
 
@@ -41,7 +40,7 @@ export class DrawFormComponent implements OnInit {
 
   ngOnInit() {
     // choix du type de geometrie
-
+    this.initDrawConfig();
     this.initForm();
   }
 
@@ -51,6 +50,7 @@ export class DrawFormComponent implements OnInit {
       this.displayed = false;
       return;
     }
+
     this.displayed = true;
     this.initDrawConfig();
     if (this.geometryType.includes('Point')) {
@@ -83,23 +83,14 @@ export class DrawFormComponent implements OnInit {
 
     this.leafletDrawOptions = { ...this.leafletDrawOptions };
 
-    if (this.formValueChangeSubscription) {
-      this.formValueChangeSubscription.unsubscribe();
-    }
     if (this.parentFormControl && this.parentFormControl.value) {
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
-      // suivi formControl => composant
-      // this.formValueChangeSubscription = this.parentFormControl.valueChanges.subscribe(
-      //   (geometry) => {
-      //     this.setGeojson(geometry);
-      //   }
-      // );
     }
   }
 
   initDrawConfig() {
-    this.leafletDrawOptions = leafletDrawOptions;
+    this.leafletDrawOptions = JSON.parse(JSON.stringify(leafletDrawOptions));
   }
 
   setGeojson(geometry) {
