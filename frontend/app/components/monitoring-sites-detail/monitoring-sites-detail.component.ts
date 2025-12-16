@@ -186,12 +186,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"
-          this._formService.changeDataSub(
-            this.site,
-            this.siteService.objectObs.objectType,
-            this.siteService.objectObs.endPoint,
-            this.moduleCode
-          );
           this._formService.changeFormMapObj({
             frmGp: this.form,
             obj: this.obj,
