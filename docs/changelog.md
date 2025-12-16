@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 1.2.4 (2025-12-30)
+
+**🚀 Nouveautés**
+
+- Prise en charge du multilingue (#510 par @Pierre-Narcisi)
+
+**🐛 Corrections**
+
+- Chargement incomplet de l'objet méta des formulaires (#530, #535)
+  - nomenclature (#537 par @amandine-sahl)
+  - parents (#531 par @andriacap)
+- Correction de l'édition cartographique des formulaires (#536 par @amandine-sahl)
+- Affichage de la géolocalisation (#505, #536, https://github.com/PnX-SI/GeoNature/pull/3718 @pierre56)
+- Fil d'ariane : perte du niveau groupe de sites sur la page détail d'une visite (#539 par @andriacap)
+ 
 ## 1.2.3 (2025-10-17)
 
 **🐛 Corrections**
