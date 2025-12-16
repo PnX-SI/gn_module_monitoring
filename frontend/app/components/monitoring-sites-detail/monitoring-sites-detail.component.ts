@@ -153,12 +153,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       .subscribe((data) => {
         this.objParent = data.objObsSite;
         this.obj.initTemplate();
-        if (this.moduleCode !== 'generic') {
-          this._formService.changeFormMapObj({
-            frmGp: null,
-            obj: this.obj,
-          });
-        }
         this.site = data.site;
 
         if (this.parentsPath.includes('sites_group')) {
@@ -198,6 +192,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             this.siteService.objectObs.endPoint,
             this.moduleCode
           );
+          this._formService.changeFormMapObj({
+            frmGp: this.form,
+            obj: this.obj,
+          });
 
           this.bEdit = true;
           this._formService.changeCurrentEditMode(this.bEdit);
@@ -287,10 +285,21 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   onbEditChange(event) {
-    this._formService.changeFormMapObj({
-      frmGp: this.form,
-      obj: this.obj,
-    });
+    if (this.bEdit == true && event == false) {
+      // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
+      //  ont pu être faites
+      // Récupération et affichage de la géométrie du site
+      this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+        id_base_site: this.site.id_base_site,
+      });
+    }
+    this.bEdit = event;
+    if (this.bEdit) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form,
+        obj: this.obj,
+      });
+    }
     this._formService.changeCurrentEditMode(this.bEdit);
   }
 
