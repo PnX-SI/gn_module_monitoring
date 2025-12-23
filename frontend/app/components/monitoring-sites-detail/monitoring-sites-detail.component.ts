@@ -229,10 +229,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   seeDetails($event) {
+    const parentsPath = [...this.parentsPath];
+    if (!parentsPath.includes('module')) {
+      parentsPath.unshift('module');
+    }
+    if (!parentsPath.includes('site')) {
+      parentsPath.push('site');
+    }
     this.router.navigate(
       [`/monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`],
       {
-        queryParams: { parents_path: ['module', 'site'] },
+        queryParams: { parents_path: parentsPath },
       }
     );
   }
@@ -263,8 +270,13 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   editChild($event) {
-    const parentsPath = this.parentsPath;
-    parentsPath.push('site');
+    const parentsPath = [...this.parentsPath];
+    if (!parentsPath.includes('module')) {
+      parentsPath.unshift('module');
+    }
+    if (!parentsPath.includes('site')) {
+      parentsPath.push('site');
+    }
     this.router.navigate(
       [
         `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
