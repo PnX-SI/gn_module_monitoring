@@ -154,11 +154,6 @@ export class MonitoringSitesgroupsDetailComponent
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
         if (this.checkEditParam) {
-          this._formService.changeFormMapObj({
-            frmGp: this.form,
-            obj: this.obj,
-          });
-
           this.bEdit = true;
         }
 
