@@ -230,9 +230,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   seeDetails($event) {
     const parentsPath = [...this.parentsPath];
-    if (!parentsPath.includes('module')) {
-      parentsPath.unshift('module');
-    }
     if (!parentsPath.includes('site')) {
       parentsPath.push('site');
     }
@@ -271,9 +268,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     const parentsPath = [...this.parentsPath];
-    if (!parentsPath.includes('module')) {
-      parentsPath.unshift('module');
-    }
     if (!parentsPath.includes('site')) {
       parentsPath.push('site');
     }
