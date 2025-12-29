@@ -31,7 +31,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public canDelete: boolean = true;
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
-
   constructor(
     public _commonService: CommonService,
     public _formService: FormService,
@@ -45,6 +44,12 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     if (this.object) {
       this.form.patchValue(this.object);
+      if (this.config['geometry_type']) {
+        this._formService.changeFormMapObj({
+          frmGp: this.form.controls['geometry'] as FormControl,
+          geometry_type: this.config['geometry_type'],
+        });
+      }
     }
   }
 
@@ -57,7 +62,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     // // Initialisation des paramètres par défaut du formulaire
     // this.queryParams = this._route.snapshot.queryParams || {};
-
     this.meta = {
       nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
       dataset: this._dataUtilsService.getDataUtil('dataset'),
@@ -84,6 +88,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       };
 
       this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
+      const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
+        ? this.object['is_geom_from_child']
+        : false;
+      if (geomCalculated) {
+        this.object.geometry = null;
+      }
+      // Si mode édition initialisation du layer de l'objet en cours du composant carto
+      this._geojsonService.setCurrentmapData(JSON.parse(this.object.geometry), geomCalculated);
     }
 
     // // Conversion des query params de type entier mais en string en int
@@ -268,5 +280,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   ngOnDestroy() {
     this.form.patchValue({ geometry: null });
+    this._formService.changeFormMapObj({
+      frmGp: null,
+      geometry_type: null,
+    });
   }
 }
