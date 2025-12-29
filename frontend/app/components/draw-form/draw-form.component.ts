@@ -5,7 +5,6 @@ import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
 import { FormService } from '../../services/form.service';
-import { GeoJSONService } from '../../services/geojson.service';
 import { IFormMap } from '../../interfaces/object';
 
 @Component({
@@ -34,8 +33,7 @@ export class DrawFormComponent implements OnInit {
   @Input() geomFromProtocol: boolean = true;
 
   constructor(
-    private _formService: FormService,
-    public geoJsonService: GeoJSONService
+    private _formService: FormService
   ) {}
 
   ngOnInit() {
@@ -100,16 +98,16 @@ export class DrawFormComponent implements OnInit {
     this.leafletDrawOptions = JSON.parse(JSON.stringify(leafletDrawOptions));
   }
 
-  setGeojson(geometry) {
-    this.geojson = { geometry: geometry };
+  setGeojson(geometry : JSON) {
+    this.geojson =  geometry;
   }
 
   // suivi composant => formControl
-  bindGeojsonForm(geojson) {
-    this.manageGeometryChange(geojson.geometry);
+  bindGeojsonForm(geojson: JSON) {
+    this.manageGeometryChange(geojson);
   }
 
-  manageGeometryChange(geometry) {
+  manageGeometryChange(geometry: JSON) {
     if (!isEqual(geometry, this.parentFormControl.value)) {
       this.parentFormControl.setValue(geometry);
     }

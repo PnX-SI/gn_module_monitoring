@@ -94,8 +94,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       if (geomCalculated) {
         this.object.geometry = null;
       }
-      // Si mode édition initialisation du layer de l'objet en cours du composant carto
-      this._geojsonService.setCurrentmapData(JSON.parse(this.object.geometry), geomCalculated);
+      else {
+        // TODO pourquoi la conversion en JSON ici ?
+        this.object.geometry = JSON.parse(this.object.geometry);
+      }
     }
 
     // // Conversion des query params de type entier mais en string en int

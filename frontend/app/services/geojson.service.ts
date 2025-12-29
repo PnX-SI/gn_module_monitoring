@@ -41,6 +41,8 @@ export class GeoJSONService {
   geojsonSites: GeoJSON.FeatureCollection;
   sitesGroupFeatureGroup: L.FeatureGroup;
   sitesFeatureGroup: L.FeatureGroup;
+
+  // TODO : est-ce encore utile ? - cf draw-form.component.ts propriété geojson
   currentLayer: any = null;
 
   constructor(
@@ -138,10 +140,12 @@ export class GeoJSONService {
     }
   }
 
+  // TODO : est-ce encore utile ? - cf draw-form.component.ts propriété geojson
   setCurrentmapData(geom, isGeomCalculated) {
     isGeomCalculated ? (this.currentLayer = null) : (this.currentLayer = geom);
   }
 
+  // TODO : est-ce encore utile ? - cf draw-form.component.ts propriété geojson
   setMapBeforeEdit(geom) {
     this.currentLayer = null;
     this.setMapData(geom, () => {});
