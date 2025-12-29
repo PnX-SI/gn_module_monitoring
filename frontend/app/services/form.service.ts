@@ -12,23 +12,7 @@ import { ConfigService } from './config.service';
 
 @Injectable()
 export class FormService {
-  data: JsonData = {};
-  frmCtrl: FormControl = new FormControl(null);
-  frmCtrlName: string = '';
-  private dataSub = new BehaviorSubject<object>(this.data);
-  private dataSpec = new BehaviorSubject<object>(this.data);
-  private dataSpecToCreate = new BehaviorSubject<object>(this.data);
-  private formCtrl = new BehaviorSubject<IExtraForm>({
-    frmCtrl: this.frmCtrl,
-    frmName: this.frmCtrlName,
-  });
-  currentData = this.dataSub.asObservable();
-  currentDataSpec = this.dataSpec.asObservable();
-  currentDataSpecToCreate = this.dataSpecToCreate.asObservable();
-  currentExtraFormCtrl = this.formCtrl.asObservable();
-  properties: JsonData = {};
-  moduleCode: string;
-  objecType: string;
+
 
   frmrGrp: FormGroup = this._formBuilder.group({});
 
@@ -49,38 +33,6 @@ export class FormService {
     private _configService: ConfigService
   ) {}
 
-  changeDataSub(
-    newDat: JsonData,
-    objectType: string,
-    endPoint: string,
-    moduleCode: string = 'generic'
-  ) {
-    this.properties = newDat;
-    newDat.moduleCode = moduleCode;
-    newDat.objectType = objectType;
-    newDat.endPoint = endPoint;
-    this.dataSub.next(newDat);
-  }
-
-  dataToCreate(newDat: JsonData, urlRelative: string, moduleCode: string = 'generic') {
-    newDat[moduleCode] = {};
-    newDat.moduleCode = moduleCode;
-    newDat.urlRelative = urlRelative;
-    this.dataSub.next(newDat);
-  }
-
-  updateSpecificForm(newObj: JsonData, newPropSpec: JsonData) {
-    const newObjandSpec = { newObj: newObj, propSpec: newPropSpec };
-    this.dataSpec.next(newObjandSpec);
-  }
-
-  createSpecificForm(newPropSpec: JsonData) {
-    this.dataSpecToCreate.next(newPropSpec);
-  }
-
-  changeExtraFormControl(formCtrl: FormControl, formCtrlName: string) {
-    this.formCtrl.next({ frmCtrl: formCtrl, frmName: formCtrlName });
-  }
 
   changeFormMapObj(formMapObj: IFormMap) {
     this.formMap.next(formMapObj);
