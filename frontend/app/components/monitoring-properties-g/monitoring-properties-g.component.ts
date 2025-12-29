@@ -73,11 +73,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   onEditClick() {
     this.selectedObjRaw['id'] = this.selectedObjRaw[this.selectedObjRaw.pk];
-    this._formService.changeDataSub(
-      this.selectedObjRaw,
-      this.objectType.objectType,
-      this.objectType.endPoint
-    );
     this.bEditChange.emit(true);
   }
 

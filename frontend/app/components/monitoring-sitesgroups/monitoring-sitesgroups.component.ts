@@ -287,12 +287,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
-    this._formService.changeDataSub(
-      $event,
-      this._sites_group_service.objectObs.objectType,
-      this._sites_group_service.objectObs.endPoint,
-      this.moduleCode
-    );
 
     this.router.navigate([
       `/monitorings/object/${this.moduleCode}/`,

@@ -149,12 +149,6 @@ export class MonitoringSitesgroupsDetailComponent
             map((data) => {
               this.obj.initTemplate();
               this.obj.bIsInitialized = true;
-              if (this.moduleCode !== 'generic') {
-                this._formService.changeFormMapObj({
-                  frmGp: null,
-                  obj: this.obj,
-                });
-              }
               return data;
             })
           );
@@ -188,11 +182,10 @@ export class MonitoringSitesgroupsDetailComponent
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
         if (this.checkEditParam) {
-          this._formService.changeDataSub(
-            this.sitesGroup,
-            this.objParent.objectType,
-            this.objParent.endPoint
-          );
+          this._formService.changeFormMapObj({
+            frmGp: this.form,
+            obj: this.obj,
+          });
 
           this.bEdit = true;
         }
@@ -217,7 +210,22 @@ export class MonitoringSitesgroupsDetailComponent
     });
   }
 
-  onbEditChange(event) {
+  onbEditChange(event: boolean) {
+    if (this.bEdit == true && event == false) {
+      // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
+      //  ont pu être faites
+      // Récupération et affichage de la géométrie du site
+      const sitesParams = { ...{}, ...this.baseFilters };
+      this._geojsonService.getSitesGroupsGeometriesWithSites(
+        this.onEachFeatureGroupSite(),
+        this.onEachFeatureSite(),
+        this.baseFilters,
+        sitesParams
+      );
+    }
+
+    this.bEdit = event;
+
     this._formService.changeFormMapObj({
       frmGp: this.form,
       obj: this.obj,

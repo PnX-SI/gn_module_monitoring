@@ -8,11 +8,12 @@
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
   [obj]="obj"
-  [(bEdit)]="bEdit"
-  [currentUser]="currentUser">
+  [bEdit]="bEdit"
+  [currentUser]="currentUser"
+  (bEditChange)="onbEditChange($event)">
 </pnx-monitoring-properties>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit"
-  [apiService]="siteService" [isExtraForm]="true" [currentUser]="currentUser">
+<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [bEdit]="bEdit" [apiService]="siteService"
+  [isExtraForm]="true" [currentUser]="currentUser" (bEditChange)="onbEditChange($event)">
 </pnx-monitoring-form>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
