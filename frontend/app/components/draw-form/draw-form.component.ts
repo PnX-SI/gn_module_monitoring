@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
@@ -110,13 +110,39 @@ export class DrawFormComponent implements OnInit {
     }
   }
 
-  ngOnChanges(changes) {
+  cleanControl() {
+    /**
+     * PATCH en attendant l'intégration de la PR https://github.com/PnX-SI/GeoNature/pull/3842
+     * qui sera incluse dans la version 2.17 de GeoNature
+     * Si on passe en mode non-édition, on supprime les contrôles Leaflet Draw (boutons)
+     */
+    if (this.bEdit === false) {
+      const currentGpsElement: HTMLCollection = document.getElementsByClassName(
+        'leaflet-bar leaflet-control leaflet-control-custom'
+      );
+      for (let c of <any>currentGpsElement) {
+        c.remove();
+      }
+      const currentfileLayer: HTMLCollection = document.getElementsByClassName(
+        'leaflet-control-filelayer leaflet-control-zoom leaflet-bar leaflet-control'
+      );
+      for (let c of <any>currentfileLayer) {
+        c.remove();
+      }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
     if (changes.parentFormControl && changes.parentFormControl.currentValue) {
       this.initForm();
     }
-    // if (changes.geometryType && changes.geometryType.currentValue) {
-    //   console.log("ICI changement draw form parentFormControl et geometryType")
-    //   this.initForm();
-    // }
+
+    /**
+     * PATCH en attendant l'intégration de la PR https://github.com/PnX-SI/GeoNature/pull/3842
+     * qui sera incluse dans la version 2.17 de GeoNature
+     * */
+    if (changes.bEdit && !changes.bEdit.firstChange) {
+      this.cleanControl();
+    }
   }
 }
