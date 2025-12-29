@@ -270,18 +270,7 @@ export class MonitoringObjectComponent implements OnInit {
     // Réinitialisation des services
     this._listService.reinitializeObservables();
 
-    return of(true).pipe(
-      mergeMap(() => {
-        // A voir ce que fait cette fonction
-        return this.getModuleSet();
-      }),
-      mergeMap(() => {
-        // Récupération des données nomenclatures utilisées dans le module
-        // Ce qui permet de les stocker en cache pour les réutiliser dans les formulaires
-        //  notamment pour la variable meta
-        return this._dataUtilsService.initModuleNomenclatures(this.module.moduleCode);
-      })
-    );
+    return this.getModuleSet();
   }
 
   getDataObject(): Observable<any> {
