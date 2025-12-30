@@ -13,8 +13,6 @@ import { Router, NavigationStart, ActivatedRoute } from '@angular/router';
   styleUrls: ['./monitoring-map-list.component.css'],
 })
 export class MonitoringMapListComponent {
-  // TODO: object needed to manage map
-  obj: any;
   bEdit: boolean;
   objForm: FormGroup;
   heightMap: string = '80vh';
@@ -45,21 +43,6 @@ export class MonitoringMapListComponent {
   }
 
   onActivate() {
-    this._router.events.subscribe((route) => {
-      if (route instanceof NavigationStart) {
-        this._formService.changeFormMapObj({
-          frmGp: null,
-          obj: null,
-        });
-      }
-    });
-    this._formService.currentFormMap
-      .pipe(distinctUntilChanged((prev, curr) => prev.obj === curr.obj))
-      .subscribe((formMapObj) => {
-        this.obj = formMapObj.obj;
-        this.objForm = formMapObj.frmGp;
-      });
-
     this._formService.currentEditMode.subscribe((editMode) => {
       this.bEdit = editMode;
     });

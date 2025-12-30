@@ -8,8 +8,6 @@
     [ngClass]="{ 'hide-draw-form': !(bEdit && obj && obj.config['geometry_type']) }"
   >
     <pnx-draw-form
-      [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
-      [geometryType]="obj && obj.config['geometry_type']"
       [bZoomOnPoint]="false"
       [bEdit]="bEdit"
       [geomFromProtocol]="true"

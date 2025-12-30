@@ -76,10 +76,6 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
       )
       .subscribe((params) => {
         this.obj.initTemplate();
-        this._formService.changeFormMapObj({
-          frmGp: this.objForm,
-          obj: this.obj,
-        });
         this._formService.changeCurrentEditMode(this.bEdit);
 
         this.obj.bIsInitialized = true;
@@ -89,9 +85,5 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   ngOnDestroy() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 }

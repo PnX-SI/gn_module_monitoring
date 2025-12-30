@@ -93,10 +93,6 @@ export class MonitoringSitesCreateComponent implements OnInit {
       )
       .subscribe(() => {
         this.obj.initTemplate();
-        this._formService.changeFormMapObj({
-          frmGp: this.objForm,
-          obj: this.obj,
-        });
         this._formService.changeCurrentEditMode(this.bEdit);
         this.obj.bIsInitialized = true;
       });
@@ -130,9 +126,5 @@ export class MonitoringSitesCreateComponent implements OnInit {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.geojsonService.removeFileLayerGroup();
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 }
