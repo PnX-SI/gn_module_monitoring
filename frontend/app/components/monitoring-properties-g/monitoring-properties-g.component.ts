@@ -10,6 +10,7 @@ import { FormControl } from '@angular/forms';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { TemplateData } from '../../interfaces/template';
 import { PermissionService } from '../../services/permission.service';
+import { FormService } from '../../services/form.service';
 
 @Component({
   selector: 'pnx-monitoring-properties-g',
@@ -43,7 +44,8 @@ export class MonitoringPropertiesGComponent implements OnInit {
     private _commonService: CommonService,
     public ngbModal: NgbModal,
     public mapservice: MapService,
-    public permissionService: PermissionService
+    public permissionService: PermissionService,
+    private _formService: FormService
   ) {}
 
   ngOnInit() {
@@ -61,6 +63,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   onEditClick() {
     this.bEditChange.emit(true);
+    this._formService.changeCurrentEditMode(true);
   }
 
   updateSynthese() {

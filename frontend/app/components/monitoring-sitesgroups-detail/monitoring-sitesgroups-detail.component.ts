@@ -76,6 +76,10 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
+    this._formService.currentEditMode.pipe(takeUntil(this.destroyed$)).subscribe((bEdit) => {
+      this.bEdit = bEdit;
+    });
+
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
     this.currentUser = this._auth.getCurrentUser();
