@@ -45,7 +45,5 @@ export class MonitoringMapListComponent {
     });
   }
 
-  onActivate() {
-
-  }
+  onActivate() {}
 }
