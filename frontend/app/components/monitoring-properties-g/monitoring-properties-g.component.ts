@@ -25,7 +25,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
   @Input() templateSpecific: TemplateData;
   @Input() bSynthese: boolean = false;
 
-
   public moduleCode: string = 'generic';
   public datasetForm: FormControl = new FormControl();
   public bUpdateSyntheseSpinner: boolean = false;
