@@ -153,20 +153,12 @@ export class MonitoringSitesgroupsDetailComponent
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
-        if (this.checkEditParam) {
-          this._formService.changeFormMapObj({
-            frmGp: this.form,
-            obj: this.obj,
-          });
-
-          this.bEdit = true;
-        }
 
         this.bIsInitialized = true;
-        this._formService.changeFormMapObj({
-          frmGp: this.form,
-          obj: this.sitesGroup,
-        });
+
+        if (this.checkEditParam) {
+          this.bEdit = true;
+        }
         this._formService.changeCurrentEditMode(this.bEdit);
       });
   }
@@ -176,10 +168,6 @@ export class MonitoringSitesgroupsDetailComponent
     this.destroyed$.next(true);
     this.destroyed$.complete();
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 
   onbEditChange(event: boolean) {
@@ -198,10 +186,6 @@ export class MonitoringSitesgroupsDetailComponent
 
     this.bEdit = event;
 
-    this._formService.changeFormMapObj({
-      frmGp: this.form,
-      obj: this.sitesGroup,
-    });
     this._formService.changeCurrentEditMode(this.bEdit);
   }
 

@@ -169,10 +169,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"
-          this._formService.changeFormMapObj({
-            frmGp: this.form,
-            obj: this.obj,
-          });
 
           this.bEdit = true;
           this._formService.changeCurrentEditMode(this.bEdit);
@@ -275,21 +271,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       });
     }
     this.bEdit = event;
-    if (this.bEdit) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form,
-        obj: this.obj,
-      });
-    }
+
     this._formService.changeCurrentEditMode(this.bEdit);
   }
 
   ngOnDestroy() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 }
