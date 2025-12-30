@@ -50,13 +50,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     if (this.object) {
       this.form.patchValue(this.object);
-      this.setDefaultFormValue();
-      if (this.config['geometry_type']) {
-        this._formService.changeFormMapObj({
-          frmGp: this.form.controls['geometry'] as FormControl,
-          geometry_type: this.config['geometry_type'],
-        });
-      }
+    }
+    this.setDefaultFormValue();
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
     }
   }
 
@@ -96,14 +96,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       };
 
       this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
-      const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
-        ? this.object['is_geom_from_child']
-        : false;
-      if (geomCalculated) {
-        this.object.geometry = null;
-      } else {
-        // TODO pourquoi la conversion en JSON ici ?
-        this.object.geometry = JSON.parse(this.object.geometry);
+      if (this.object) {
+        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
+          ? this.object['is_geom_from_child']
+          : false;
+        if (geomCalculated) {
+          this.object.geometry = null;
+        } else {
+          // TODO pourquoi la conversion en JSON ici ?
+          this.object.geometry = JSON.parse(this.object.geometry);
+        }
       }
     }
 
@@ -174,8 +176,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     let actionLabel = '';
     let action;
-
-    console.log('formValueGroup: ', formValueGroup);
     if (this.object) {
       action = this.apiService.patch(
         this.object[this.object.pk],
@@ -187,17 +187,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       actionLabel = 'Création';
     }
 
-    console.log('action : ', action);
-    console.log('actionLabel : ', actionLabel);
-
     action.subscribe((objData) => {
+      this.object = objData;
       this._commonService.regularToaster('success', actionLabel);
       this.saveSpinner = this.saveAndAddChildrenSpinner = false;
       /** si c'est un module : reset de la config */
       // if (this.obj.objectType === 'module') {
       //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
       // }
-
       if (this.chainInput) {
         console.log('this.resetObjForm()');
         // this.resetObjForm();
@@ -229,19 +226,17 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     return formDef;
   }
 
-  formatForApi(formValue) {
+  formatForApi(formValue: any) {
     let data = {};
-    let properties = {};
     let fields = this.config.fields;
     for (const attribut_name of Object.keys(fields)) {
       const elem = fields[attribut_name];
       if (!elem.type_widget) {
         continue;
       }
-      properties[attribut_name] = formValue[attribut_name];
+      data[attribut_name] = formValue[attribut_name];
     }
-    data = properties;
-    data['geometry'] = formValue['geometry'];
+    data['geometry'] = formValue['geometry'].geometry;
     return data;
   }
 

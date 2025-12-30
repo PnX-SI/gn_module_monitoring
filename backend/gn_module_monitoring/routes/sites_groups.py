@@ -246,9 +246,29 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized site group
     """
     config = get_config(module_code)
+
+    from shapely.geometry import shape
+    from geoalchemy2.shape import from_shape
+    from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
+
+    geom = None
+    if "geometry" in post_data:
+        geometry = post_data.pop("geometry")
+
+        shape_ = shape(geometry)
+        two_dimension_geom = remove_third_dimension(shape_)
+        geom = from_shape(two_dimension_geom, srid=4326)
+
     process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
 
+    # TODO PATCH pour tester l'insertion des données a voir pourquoi medias est a None
+    if not process_data["medias"]:
+        process_data["medias"] = []
     sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+
+    if geom:
+        sites_group.geom = geom
+
     db.session.add(sites_group)
     db.session.commit()
     return MonitoringSitesGroupsSchema().dump(sites_group)
