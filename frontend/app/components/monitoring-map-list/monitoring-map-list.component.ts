@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { tap, mergeMap, map, distinctUntilChanged } from 'rxjs/operators';
 import { SiteSiteGroup } from '../../interfaces/objObs';
 import { FormService } from '../../services/form.service';
@@ -13,7 +14,9 @@ import { Router, NavigationStart, ActivatedRoute } from '@angular/router';
   styleUrls: ['./monitoring-map-list.component.css'],
 })
 export class MonitoringMapListComponent {
-  bEdit: boolean;
+  // TODO: object needed to manage map
+  obj: any;
+  bEdit$: Observable<Boolean> = this._formService.currentEditMode;
   objForm: FormGroup;
   heightMap: string = '80vh';
   //
@@ -43,8 +46,6 @@ export class MonitoringMapListComponent {
   }
 
   onActivate() {
-    this._formService.currentEditMode.subscribe((editMode) => {
-      this.bEdit = editMode;
-    });
+
   }
 }
