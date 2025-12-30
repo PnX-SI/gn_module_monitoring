@@ -93,8 +93,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         : false;
       if (geomCalculated) {
         this.object.geometry = null;
-      }
-      else {
+      } else {
         // TODO pourquoi la conversion en JSON ici ?
         this.object.geometry = JSON.parse(this.object.geometry);
       }

@@ -32,9 +32,7 @@ export class DrawFormComponent implements OnInit {
 
   @Input() geomFromProtocol: boolean = true;
 
-  constructor(
-    private _formService: FormService
-  ) {}
+  constructor(private _formService: FormService) {}
 
   ngOnInit() {
     this._formService.currentFormMap
@@ -98,8 +96,8 @@ export class DrawFormComponent implements OnInit {
     this.leafletDrawOptions = JSON.parse(JSON.stringify(leafletDrawOptions));
   }
 
-  setGeojson(geometry : JSON) {
-    this.geojson =  geometry;
+  setGeojson(geometry: JSON) {
+    this.geojson = geometry;
   }
 
   // suivi composant => formControl
