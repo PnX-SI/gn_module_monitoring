@@ -6,6 +6,7 @@
       "active": true
     },
     "label": "Individu",
+    "label_list": "Individus",
     "genre": "M",
     "display_properties": [
       "uuid_individual",

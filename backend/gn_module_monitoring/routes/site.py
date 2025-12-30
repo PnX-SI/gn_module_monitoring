@@ -26,6 +26,7 @@ from gn_module_monitoring.monitoring.models import (
 from gn_module_monitoring.monitoring.schemas import (
     BibTypeSiteSchema,
     MonitoringSitesSchema,
+    MonitoringSitesSchemaCruved,
     add_specific_attributes,
 )
 from gn_module_monitoring.routes.modules import get_modules
@@ -175,13 +176,25 @@ def get_site_by_id(scope, module_code, id, object_type):
     site = db.get_or_404(TMonitoringSites, id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
-    schema = MonitoringSitesSchema()
-    response = schema.dump(site)
-    response["cruved"] = get_objet_with_permission_boolean(
-        [site], object_code="MONITORINGS_SITES"
-    )[0]["cruved"]
-    response["geometry"] = json.loads(response["geometry"])
-    return response
+
+    if module_code:
+        schema = add_specific_attributes(MonitoringSitesSchemaCruved, object_type, module_code)
+    else:
+        schema = MonitoringSitesSchemaCruved
+
+    data = schema().dump(site)
+
+    # Cas des propriétés renseignées dans d'autre module
+    #  Ajout manuel des propriétés manquantes
+    # Voir si on peut créer un schéma marsmallow
+    for key in getattr(site, "data") or {}:
+        if key not in data:
+            if "additional_data_keys" not in data:
+                data["additional_data_keys"] = []
+            data["additional_data_keys"] = [key]
+            data[key] = site.data[key]
+
+    return data
 
 
 @blueprint.route("/sites/geometries", methods=["GET"], defaults={"object_type": "site"})

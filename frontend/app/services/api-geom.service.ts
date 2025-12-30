@@ -21,7 +21,7 @@ import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
 import { MonitoringObjectService } from './monitoring-object.service';
-import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -30,113 +30,21 @@ export class ApiService<T = IObject> implements IService<T> {
 
   constructor(
     protected _cacheService: CacheService,
-    protected _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {}
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
     this.objectObs = objectObjs;
-    // souscrit au sujet config du module en cours
-    // quand le module change
-    // test if config exist pour le module
-    // sinon raise
-    // lancer opération de initConfig
   }
 
-  public initConfig(): Observable<IobjObs<T>> {
-    return this._configService.init(this.objectObs.moduleCode).pipe(
-      map(() => {
-        const fieldNames = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_properties'
-        );
-        //FIXME: same as site group: to refact
-        const fieldNamesList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'display_list'
-        );
-
-        if (!fieldNamesList) {
-          return null;
-        }
-
-        // Initialisation des différents labels de l'objet
-        const objetLabels = this.getModuleObjetTypeLabels();
-        Object.entries(objetLabels).forEach(([key, value]) => {
-          this.objectObs[key] = value;
-        });
-
-        const labelList = this._configService.configModuleObjectParam(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType,
-          'label_list'
-        );
-        const schema = this._configService.schema(
-          this.objectObs.moduleCode,
-          this.objectObs.objectType
-        );
-        const fieldLabels = this._configService.fieldLabels(schema);
-        const fieldDefinitions = this._configService.fieldDefinitions(schema);
-        this.objectObs.template.fieldNames = fieldNames;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-        this.objectObs.schema = schema;
-        this.objectObs.template.fieldLabels = fieldLabels;
-        this.objectObs.template.fieldDefinitions = fieldDefinitions;
-        this.objectObs.template.fieldNamesList = fieldNamesList;
-
-        if (labelList != undefined) {
-          this.objectObs.template.labelList = labelList;
-        }
-        this.objectObs.dataTable.colNameObj = Utils.toObject(fieldNamesList, fieldLabels);
-        return this.objectObs;
-      })
-    );
-  }
-
-  protected getModuleObjetTypeLabels(): {} {
-    const moduleCode = this.objectObs.moduleCode;
-    const objectType = this.objectObs.objectType;
-    const childObjectType = this.objectObs.childType;
-
-    const genre = this._configService.configModuleObjectParam(moduleCode, objectType, 'genre');
-    const label = this._configService.configModuleObjectParam(moduleCode, objectType, 'label');
-
-    let nouveauLabel = Utils.labelNew(genre, label);
-    let articleDuLabel = Utils.labelDu(genre, label);
-    let articleLabel = Utils.labelArtDef(genre, label);
-    let articleUndefLabel = Utils.labelArtUndef(genre);
-
-    let labels = {
-      label: label,
-      addObjLabel: `Ajouter ${articleUndefLabel} ${nouveauLabel} ${label.toLowerCase()}`,
-      editObjLabel: `Editer ${articleLabel} ${label.toLowerCase()}`,
-      seeObjLabel: `Consulter ${articleLabel} ${label.toLowerCase()}`,
-      deleteObjLabel: `Supprimer ${articleLabel} ${label.toLowerCase()}`,
-      detailObjLabel: `Detail ${articleDuLabel} ${label.toLowerCase()}`,
-    };
-
-    if (childObjectType) {
-      const genreChild = this._configService.configModuleObjectParam(
-        moduleCode,
-        childObjectType,
-        'genre'
-      );
-      const labelChild = this._configService.configModuleObjectParam(
-        moduleCode,
-        childObjectType,
-        'label'
-      );
-      if (labelChild) {
-        labels['addChildLabel'] = `Ajouter ${Utils.labelArtUndef(genreChild)} ${Utils.labelNew(
-          genreChild,
-          labelChild
-        )} ${labelChild.toLowerCase()}`;
-      }
-    }
-    return labels;
+  public initConfig(): IobjObs<T> {
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    this.objectObs.moduleCode = this._configServiceG.moduleCode();
+    if (!config) return null;
+    this.objectObs['label'] = config['label'];
+    return this.objectObs;
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
@@ -152,6 +60,7 @@ export class ApiService<T = IObject> implements IService<T> {
       }
     );
   }
+
   getResolved(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<any> {
     /**
      * getResolved
@@ -164,13 +73,16 @@ export class ApiService<T = IObject> implements IService<T> {
      * @param {Object} [params={}] The parameters to pass to the service.
      * @returns {Observable<any>}
      */
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    if (!config) {
+      return of(null);
+    }
     return this.get(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
-          this.objectObs.schema,
-          this.objectObs.moduleCode,
-          this._monitoringObjectService,
+          config['fields'] || {},
+          this._configServiceG,
           this._cacheService
         );
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
@@ -185,13 +97,36 @@ export class ApiService<T = IObject> implements IService<T> {
     );
   }
 
-  patch(id: number, updatedData: IObjectProperties<T>): Observable<T> {
+  getByIdResolved(id: number, moduleCode: string = 'generic'): Observable<any> {
+    const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
+    if (!config) {
+      return of(null);
+    }
+    return this.getById(id, moduleCode).pipe(
+      mergeMap((data: any) => {
+        const dataToResolve = { items: [data] };
+        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
+          dataToResolve,
+          config['fields'] || {},
+          this._configServiceG,
+          this._cacheService
+        );
+        return forkJoin(dataProcessingObservables).pipe(
+          map(([resolvedItems]) => {
+            return resolvedItems.items[0];
+          })
+        );
+      })
+    );
+  }
+
+  patch(id: number, updatedData): Observable<T> {
     return this._cacheService.request('patch', `${this.objectObs.endPoint}/${id}`, {
       postData: updatedData as {},
     });
   }
 
-  create(postData: IObjectProperties<T>): Observable<T> {
+  create(postData): Observable<T> {
     return this._cacheService.request('post', `${this.objectObs.endPoint}`, {
       postData: postData as {},
     });
@@ -213,10 +148,10 @@ export class ApiService<T = IObject> implements IService<T> {
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
   constructor(
     protected _cacheService: CacheService,
-    protected _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     protected _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -244,38 +179,20 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
 export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
     const endPoint = endPoints.sites_groups;
     const objectObs: IobjObs<ISitesGroup> = {
-      properties: {},
       endPoint: endPoints.sites_groups,
       objectType: 'sites_group',
-      routeBase: 'sites_group',
       label: 'groupe de site',
-      addObjLabel: 'Ajouter un nouveau groupe de site',
-      editObjLabel: 'Editer le groupe de site',
-      detailObjLabel: 'Détail du groupe de site',
-      seeObjLabel: 'Consulter le groupe de site',
-      addChildLabel: 'Ajouter un site',
       childType: 'site',
-      deleteObjLabel: 'Supprimer le groupe de site',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Groupes de sites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -319,8 +236,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
         const dataProcessingObservables = buildObjectResolvePropertyProcessing(
           paginatedData,
           fieldsConfig,
-          this.objectObs.moduleCode,
-          this._monitoringObjectService,
+          this._configServiceG,
           this._cacheService
         );
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
@@ -333,38 +249,20 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
 export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
   }
 
   init(): void {
     const endPoint = endPoints.sites;
     const objectObs: IobjObs<ISite> = {
-      properties: {},
       endPoint: endPoints.sites,
       objectType: 'site',
-      routeBase: 'site',
       label: 'site',
-      addObjLabel: 'Ajouter un nouveau site',
-      editObjLabel: 'Editer le site',
-      detailObjLabel: 'Détail du site',
-      seeObjLabel: 'Consulter le site',
-      deleteObjLabel: 'Supprimer le site',
-      addChildLabel: 'Ajouter une visite',
       childType: 'visit',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Sites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -397,41 +295,52 @@ export class SitesService extends ApiGeomService<ISite> {
 }
 
 @Injectable()
+export class ModuleService extends ApiService<any> {
+  constructor(
+    _cacheService: CacheService,
+    protected _configServiceG: ConfigServiceG,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configServiceG, _monitoringObjectService);
+    this.init();
+  }
+  init() {
+    const objectObs: IobjObs<any> = {
+      endPoint: endPoints.modules,
+      objectType: 'module',
+      label: 'module',
+      childType: 'sites_group',
+      moduleCode: 'generic',
+    };
+    super.init(endPoints.modules, objectObs);
+  }
+
+  getById(id: number, moduleCode?: string) {
+    return this._cacheService.request<Observable<any>>(
+      'get',
+      `module/${moduleCode}?field_name=module_code`
+    );
+  }
+}
+
+@Injectable()
 export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {
     const endPoint = endPoints.visits;
     const objectObs: IobjObs<IVisit> = {
-      properties: {},
       endPoint: endPoints.visits,
       objectType: 'visit',
       label: 'visite',
-      addObjLabel: 'Ajouter une nouvelle visite',
-      editObjLabel: 'Editer la visite',
-      seeObjLabel: 'Consulter la visite',
-      detailObjLabel: 'Détail de la visite',
-      addChildLabel: 'Ajouter une observation',
       childType: 'observation',
-      deleteObjLabel: 'Supprimer la visite',
-      routeBase: 'visit',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Visites',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }
@@ -441,38 +350,20 @@ export class VisitsService extends ApiService<IVisit> {
 export class IndividualsService extends ApiService<IIndividual> {
   constructor(
     _cacheService: CacheService,
-    _configService: ConfigService,
+    protected _configServiceG: ConfigServiceG,
     _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configService, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _monitoringObjectService);
     this.init();
   }
   init(): void {
     const endPoint = endPoints.individuals;
     const objectObs: IobjObs<IIndividual> = {
-      properties: {},
       endPoint: endPoints.individuals,
       objectType: 'individual',
       label: 'individu',
-      addObjLabel: 'Ajouter un nouvel individu',
-      editObjLabel: 'Editer la individu',
-      detailObjLabel: "Détail de  l'individu",
-      seeObjLabel: "Consulter l'individu",
-      addChildLabel: 'Ajouter un marquage',
       childType: 'marking',
-      deleteObjLabel: "Supprimer l'individu",
-      routeBase: 'individual',
-      id: null,
       moduleCode: 'generic',
-      schema: {},
-      template: {
-        fieldNames: [],
-        fieldLabels: {},
-        fieldNamesList: [],
-        fieldDefinitions: {},
-        labelList: 'Individus',
-      },
-      dataTable: { colNameObj: {} },
     };
     super.init(endPoint, objectObs);
   }

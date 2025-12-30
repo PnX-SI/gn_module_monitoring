@@ -5,29 +5,11 @@ import { IVisit } from './visit';
 
 export type ObjDataType = ISite | ISitesGroup | IVisit;
 export interface IobjObs<T> {
-  properties: T | {};
   endPoint: endPoints;
-  objectType: 'site' | 'sites_group' | 'visit' | 'individual';
-  routeBase: 'site' | 'sites_group' | 'visit' | 'individual';
+  objectType: 'site' | 'sites_group' | 'visit' | 'individual' | 'module';
   label: string;
-  addObjLabel: string;
-  editObjLabel: string;
-  detailObjLabel: string;
-  seeObjLabel: string;
-  addChildLabel?: string;
   childType?: string;
-  deleteObjLabel: string;
-  id: string | null;
-  moduleCode: string;
-  schema: JsonData;
-  template: {
-    fieldNames: [];
-    fieldLabels: JsonData;
-    fieldNamesList: [];
-    fieldDefinitions: {};
-    labelList: string;
-  };
-  dataTable: { colNameObj: {} };
+  moduleCode: string; // Voir si utilisé
 }
 
 export interface SiteSiteGroup {

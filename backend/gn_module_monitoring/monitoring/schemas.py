@@ -9,7 +9,8 @@ from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
-
+from geonature.utils.schema import CruvedSchemaMixin
+from marshmallow_sqlalchemy import auto_field
 from pypnusershub.db.models import User
 
 
@@ -73,6 +74,15 @@ def add_specific_attributes(schema, object_type, module_code):
     return schema_with_specifics
 
 
+class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
+
+    @property
+    def __module_code__(self):
+        if not getattr(g, "current_module", None):
+            return None
+        return g.current_module.module_code
+
+
 class ObserverSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = User
@@ -124,16 +134,13 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
         include_fk = True
         load_relationships = True
 
+    id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
     geometry = fields.Method("serialize_geojson", dump_only=True)
-    id_digitiser = fields.Method("get_id_digitiser")
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
     nb_visits = fields.Integer(dump_only=True)
-
-    def get_id_digitiser(self, obj):
-        return obj.id_digitiser
 
     def set_pk(self, obj):
         return "id_sites_group"
@@ -151,6 +158,10 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
             return geojson.dumps(obj.as_geofeature().get("geometry"))
         if obj.geom_geojson is not None:
             return json.loads(obj.geom_geojson)
+
+
+class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
+    pass
 
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
@@ -197,6 +208,10 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         return obj.id_inventor
 
 
+class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
+    pass
+
+
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringVisits
@@ -213,6 +228,10 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
         return "id_base_visit"
 
 
+class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
+    pass
+
+
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservations
@@ -222,6 +241,12 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
+class MonitoringObservationsSchemaCruved(
+    MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
+):
+    pass
+
+
 class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservationDetails
@@ -229,6 +254,12 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
         load_relationships = True
 
     medias = MA.Nested(MediaSchema, many=True)
+
+
+class MonitoringObservationsDetailsSchemaCruved(
+    MonitoringCruvedSchemaMixin, MonitoringObservationsDetailsSchema
+):
+    pass
 
 
 class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
@@ -243,3 +274,7 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return "id_individual"
+
+
+class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
+    pass

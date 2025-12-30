@@ -32,11 +32,10 @@ import { MonitoringObject } from '../../class/monitoring-object';
   styleUrls: ['./monitoring-sites-detail.component.css'],
 })
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
-  @Input() visits: IVisit[];
+  @Input() visits: IPaginated<IVisit>;
   @Input() page: IPage;
   @Input() bEdit: boolean;
   form: FormGroup;
-  objParent: any;
   modules: SelectObject[];
   site: ISite;
 
@@ -70,48 +69,36 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     protected _moduleService: ModuleService,
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
-    private _permissionService: PermissionService,
+    public _permissionService: PermissionService,
     private _popup: Popup,
     private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
-    super();
+    super(_permissionService);
     this.getAllItemsCallback = this.getVisits;
   }
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     const idSite = this._Activatedroute.snapshot.params.id;
-    this.siteService.setModuleCode(`${this.moduleCode}`);
-    this._visits_service.setModuleCode(`${this.moduleCode}`);
-    this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
-    const $configSitesGroups = this._sitesGroupService.initConfig();
-    const $configSites = this.siteService.initConfig();
-    const $configIndividuals = this._visits_service.initConfig();
+    this.siteService.initConfig();
+    this._visits_service.initConfig();
+    this._sitesGroupService.initConfig();
 
     this.currentUser = this._auth.getCurrentUser();
-    // TODO comprendre pourquoi nessaire que dans certains cas
-    this.currentUser['moduleCruved'] = this._configService.moduleCruved(this.moduleCode);
-
     this.form = this._formBuilder.group({});
 
     // breadcrumb
     const queryParams = this._Activatedroute.snapshot.queryParams;
     this._objService.loadBreadCrumb(this.moduleCode, 'site', idSite, queryParams);
-
-    forkJoin([
-      this._configService.init(this.moduleCode),
-      $configSitesGroups,
-      $configSites,
-      $configIndividuals,
-    ]).subscribe(() => {
+    // initialisation de la configuration du fait de l'utilisation de Obj
+    this._configService.init(this.moduleCode).subscribe(() => {
       this.initSiteVisit();
     });
   }
 
   initSiteVisit() {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
-
+    this.currentPermission = this._permissionService.modulePermission;
     this._Activatedroute.params
       .pipe(
         mergeMap((params) => {
@@ -131,11 +118,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
             id_base_site: siteId,
           });
-
           // Récupération des données et des configurations
           //  pour le site et les visites associées
           return forkJoin({
-            site: this.siteService.getById(siteId, this.moduleCode).catch((err) => {
+            site: this.siteService.getByIdResolved(siteId, this.moduleCode).catch((err) => {
               if (err.status == 404) {
                 this.router.navigate(['/not-found'], { skipLocationChange: true });
                 return of(null);
@@ -144,14 +130,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
             visits: this._visits_service.getResolved(1, this.limit, {
               id_base_site: siteId,
             }),
-            objObsSite: this.siteService.initConfig(),
-            objObsVisit: this._visits_service.initConfig(),
             obj: this.obj.get(0),
           });
         })
       )
       .subscribe((data) => {
-        this.objParent = data.objObsSite;
         this.obj.initTemplate();
         this.site = data.site;
 
@@ -162,15 +145,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         // ajout des propriétés spécifiques au type de site
         // dans l'objet MonitoringObject
         const types_site = data.site['types_site'];
-        this.obj['template_specific'] = this._monitoringObjServiceMonitoring
-          .configService()
-          .addSpecificConfig(types_site);
+        this.obj['template_specific'] = this.setTemplateSpecificData(types_site || []);
+        this.obj['template'] = this.setTemplateData('site');
 
-        this.visits = data.visits.items;
+        this.visits = data.visits || { items: [], page: 1, limit: this.limit, count: 0 };
         this.page = {
-          page: data.visits.page - 1,
-          count: data.visits.count,
-          limit: data.visits.limit,
+          page: this.visits.page - 1,
+          count: this.visits.count,
+          limit: this.visits.limit,
         };
 
         this.baseFilters = { id_base_site: this.site.id_base_site };
@@ -179,17 +161,14 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         let dataTableData = {
           visits: {
             data: data.visits,
-            objConfig: data.objObsVisit,
+            objType: 'visit',
+            childType: 'observation',
           },
         };
-        this.setDataTableObjData(dataTableData, this._configService, this.moduleCode, ['visit']);
+        this.setDataTableObjData(dataTableData, this.moduleCode, ['visit']);
 
         if (this.checkEditParam) {
           // Si mode édition demandé via le paramètre d'URL "edit"
-          this._formService.changeFormMapObj({
-            frmGp: this.form,
-            obj: this.obj,
-          });
 
           this.bEdit = true;
           this._formService.changeCurrentEditMode(this.bEdit);
@@ -249,12 +228,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   addNewVisit($event: SelectObject) {
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47
-    this._configService.init(moduleCode).subscribe(() => {
-      const keys = Object.keys(this._configService.config()[moduleCode]);
-      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-      this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
-      });
+    const keys = Object.keys(this._configServiceG.config());
+    const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
+    this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+      queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
     });
   }
 
@@ -294,21 +271,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       });
     }
     this.bEdit = event;
-    if (this.bEdit) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form,
-        obj: this.obj,
-      });
-    }
+
     this._formService.changeCurrentEditMode(this.bEdit);
   }
 
   ngOnDestroy() {
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 }

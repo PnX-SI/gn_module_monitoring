@@ -1,6 +1,6 @@
 import { JsonData } from '../types/jsondata';
 import { IPaginated } from './page';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
 import { GeoJSON } from 'geojson';
 import { Observable } from 'rxjs';
 
@@ -35,4 +35,4 @@ export type IBreadCrumb = {
   params?: JsonData;
 };
 
-export type IFormMap = { frmGp: FormGroup; obj: any };
+export type IFormMap = { frmGp: FormControl; geometry_type: any };
