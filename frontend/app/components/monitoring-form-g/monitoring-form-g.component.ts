@@ -50,6 +50,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     if (this.object) {
       this.form.patchValue(this.object);
+      this.setDefaultFormValue();
       if (this.config['geometry_type']) {
         this._formService.changeFormMapObj({
           frmGp: this.form.controls['geometry'] as FormControl,
@@ -110,8 +111,25 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     // //  ??? A comprendre
     // this.obj = this.setQueryParams(this.obj);
 
-    // this.setDefaultFormValue();
   }
+
+  setDefaultFormValue() {
+    console.log('this.form before setDefaultFormValue: ', this.form);
+    const value = this.form.value;
+    const date = new Date();
+    const defaultValue = {
+      id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
+      id_inventor: value['id_inventor'] || this.currentUser.id_role,
+      first_use_date: value['first_use_date'] || {
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth() + 1,
+        day: date.getUTCDate(),
+      },
+    };
+    this.form.patchValue(defaultValue);
+    console.log('this.form after setDefaultFormValue: ', this.form);
+    }
+
 
   onFormValueChange(event) {
     // const change = this.obj.change();

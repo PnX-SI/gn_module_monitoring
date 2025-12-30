@@ -6,6 +6,7 @@ import { ConfigService } from '../../services/config.service';
 import { Router } from '@angular/router';
 import { ObjectService } from '../../services/object.service';
 import { IBreadCrumb } from '../../interfaces/object';
+import { FormService } from '../../services/form.service';
 
 @Component({
   selector: 'pnx-monitoring-breadcrumbs',
@@ -16,15 +17,11 @@ export class BreadcrumbsComponent implements OnInit {
   public breadcrumbs: IBreadCrumb[] = [];
   private breadCrumbSubscription;
 
-  @Input() bEdit: boolean;
-  @Output() bEditChange = new EventEmitter<boolean>();
-
-  public frontendModuleMonitoringUrl: string;
-
   constructor(
     private _configService: ConfigService,
     private _router: Router,
-    private _objectService: ObjectService
+    private _objectService: ObjectService,
+    private _formService: FormService
   ) {}
 
   ngOnInit() {
@@ -36,7 +33,7 @@ export class BreadcrumbsComponent implements OnInit {
   }
 
   onClick(elem) {
-    this.bEditChange.emit(false);
+    this._formService.changeCurrentEditMode(false);
     setTimeout(() => {
       if (elem) {
         const path = [
