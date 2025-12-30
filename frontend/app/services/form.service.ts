@@ -12,13 +12,9 @@ import { ConfigService } from './config.service';
 
 @Injectable()
 export class FormService {
-  frmrGrp: FormGroup = this._formBuilder.group({});
-
-  // Observable qui contient l'objet form et l'objet courant
-  //  utilisé par map-list pour afficher le formulaire geographique de l'objet sélectionné
-  // Seul le type de géométrie et le controle geometry sont utilisés actuellement
-  //  TODO: réduire les informations stockées dans cet observable
-  private formMap = new BehaviorSubject<IFormMap>({ frmGp: this.frmrGrp, obj: {} });
+  // Observable qui contient l'objet control geometry du formulaire et le type de géométrie
+  //  utilisé par draw-form pour afficher le formulaire geographique de l'objet sélectionné
+  private formMap = new BehaviorSubject<IFormMap>({ frmGp: null, geometry_type: null });
   currentFormMap = this.formMap.asObservable();
 
   // Observable qui contient le mode édition courant (true/false)

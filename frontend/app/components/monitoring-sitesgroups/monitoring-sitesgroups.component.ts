@@ -99,7 +99,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this.moduleCode = this._configServiceG.moduleCode();
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this.initObject();
-    // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
 
   initObject() {
@@ -171,10 +170,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
           this.objForm = this._formBuilder.group({});
           this.bIsInitialized = true;
-          this._formService.changeFormMapObj({
-            frmGp: this.objForm,
-            obj: this.obj,
-          });
         });
       }
     });
