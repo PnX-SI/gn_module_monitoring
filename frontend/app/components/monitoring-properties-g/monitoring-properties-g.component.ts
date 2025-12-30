@@ -23,10 +23,8 @@ export class MonitoringPropertiesGComponent implements OnInit {
   @Input() currentUser;
   @Input() templateData: TemplateData;
   @Input() templateSpecific: TemplateData;
-  @Input() bEdit: boolean;
   @Input() bSynthese: boolean = false;
 
-  @Output() bEditChange = new EventEmitter<boolean>();
 
   public moduleCode: string = 'generic';
   public datasetForm: FormControl = new FormControl();
@@ -62,7 +60,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
   }
 
   onEditClick() {
-    this.bEditChange.emit(true);
     this._formService.changeCurrentEditMode(true);
   }
 
