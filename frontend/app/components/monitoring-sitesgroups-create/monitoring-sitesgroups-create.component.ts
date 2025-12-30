@@ -40,18 +40,12 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
     // Création d'un nouvel objet site group
-    this.sitesGroup = {} as ISitesGroup;
+    this.sitesGroup = null;
 
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
     this._objService.loadBreadCrumb(moduleCode, 'site', null, queryParams);
-
-
-    // const elements = document.getElementsByClassName('monitoring-map-container');
-    // if (elements.length >= 1) {
-    //   elements[0].remove();
-    // }
 
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);
