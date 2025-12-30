@@ -2,7 +2,7 @@ import json
 
 from flask import jsonify, request, g
 
-from marshmallow import ValidationError
+from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
 
@@ -34,10 +34,9 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate_scope,
     sort,
-    get_objet_with_permission_boolean,
+    process_json_data_for_db_upsert,
 )
 from gn_module_monitoring.routes.monitoring import (
-    create_or_update_object_api,
     get_serialized_object,
 )
 from gn_module_monitoring.utils.utils import to_int
@@ -198,8 +197,9 @@ def patch(scope, _id: int, object_type: str):
         )
 
     module_code = "generic"
-    # get_config(module_code, force=True)
-    return create_or_update_object_api(module_code, object_type, _id), 201
+    post_data = dict(request.get_json())
+    sites_group = create_or_update_site_group(post_data, module_code)
+    return sites_group
 
 
 @blueprint.route(
@@ -223,8 +223,9 @@ def delete(scope, _id: int, object_type: str):
 @check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def post(object_type: str):
     module_code = "generic"
-    # get_config(module_code, force=True)
-    return create_or_update_object_api(module_code, object_type), 201
+    post_data = dict(request.get_json())
+    sites_group = create_or_update_site_group(post_data, module_code)
+    return sites_group
 
 
 @blueprint.errorhandler(ValidationError)
@@ -234,3 +235,20 @@ def handle_validation_error(error):
         status_code=422,
         payload=error.data,
     ).to_dict()
+
+
+def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
+    """
+    Create or update a site group.
+
+    :param post_data: dict containing data to create or update a site group
+    :param module_code: str, module code, default is "generic"
+    :return: dict, serialized site group
+    """
+    config = get_config(module_code)
+    process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
+
+    sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+    db.session.add(sites_group)
+    db.session.commit()
+    return MonitoringSitesGroupsSchema().dump(sites_group)

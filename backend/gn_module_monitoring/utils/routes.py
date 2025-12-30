@@ -267,3 +267,43 @@ def get_objet_with_permission_boolean(
             object_out["cruved"] = object.has_permission(cruved_object=cruved_object)
         objects_out.append(object_out)
     return objects_out
+
+
+def process_json_data_for_db_upsert(config, properties, object_type):
+    """
+    Process json data for db upsert.
+
+    This function takes a configuration for a site group and a dictionary of properties.
+    It checks which properties are specific to the site group type and adds them to the "data" key in the properties dictionary.
+    It also checks which properties are not in the site group type schema, the generic schema or the module schema and adds them to the "data" key in the properties dictionary.
+    Finally, it returns the processed properties dictionary.
+
+    :param config: dict, configuration for a site group
+    :param properties: dict, dictionary of properties
+    :return: dict, processed properties dictionary
+    """
+    data = {}
+    for attribut_name, attribut_value in config[object_type]["specific"].items():
+        if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
+            if attribut_name in properties:
+                val = properties.pop(attribut_name)
+                data[attribut_name] = val
+
+    if data:
+        properties["data"] = data
+    else:
+        properties["data"] = {}
+
+    # On ajoute les propriétés associées aux types de sites_group qui ne sont ni dans le schema specific
+    # ni dans generic ou appartenant au modèle
+    prop_remaining_to_check = list(properties.keys())
+    for prop in prop_remaining_to_check:
+        is_in_model = hasattr(TMonitoringSites, prop)
+        if (
+            not is_in_model
+            and prop not in config[object_type]["generic"].keys()
+            and prop != "id_module"
+            and prop != "data"
+        ):
+            properties["data"][prop] = properties.pop(prop)
+    return properties

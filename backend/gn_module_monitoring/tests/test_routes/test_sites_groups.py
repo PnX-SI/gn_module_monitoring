@@ -92,6 +92,52 @@ class TestSitesGroups:
         ][0]["id_sites_group"]
         assert id_ == site_group_with_sites.id_sites_group
 
+    def test_get_patch_groups(self, sites_groups, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        first_site = sites_groups["Site_eolien"]
+        data = self.client.get(
+            url_for(
+                "monitorings.get_sites_group_by_id",
+                module_code="generic",
+                id_sites_group=first_site.id_sites_group,
+            )
+        )
+        site_group = data.json
+
+        # Pop variable supplémentaires
+        for k in ["nb_sites", "nb_visits", "cruved"]:
+            site_group.pop(k)
+
+        site_group["sites_group_name"] = "update name"
+        r = self.client.patch(
+            url_for("monitorings.patch", _id=first_site.id_sites_group),
+            data=site_group,
+        )
+        assert r.status_code == 200
+
+        assert r.json["id_sites_group"] == first_site.id_sites_group
+        assert r.json["sites_group_name"] == "update name"
+
+    def test_get_post_groups(self, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        site_group = {
+            "altitude_max": None,
+            "altitude_min": None,
+            "comments": "dfgdfg",
+            "id_digitiser": users["admin_user"].id_role,
+            "id_sites_group": None,
+            "sites_group_code": "Cros_du_Lac",
+            "sites_group_description": "Site test",
+            "sites_group_name": "Cros du Lac",
+            "geometry": '{"type": "Polygon", "coordinates": [[[3.535269, 44.242648], [3.532821, 44.247625], [3.538272, 44.245986], [3.538398, 44.244186], [3.537732, 44.243658], [3.535269, 44.242648]]]}',
+        }
+        r = self.client.post(
+            url_for("monitorings.post"),
+            data=site_group,
+        )
+        assert r.status_code == 200
+        assert r.json["sites_group_name"] == "Cros du Lac"
+
 
 # TODO: ajouter tests sur tri
 # TODO: ajouter tests sur filtre par permissions
@@ -191,9 +237,8 @@ class TestSitesGroupsWithModule:
             .where(TNomenclatures.mnemonique == mnemonique)
         ).scalar()
 
-    @pytest.mark.usefixtures("install_module_test")
     @pytest.fixture
-    def add_group(self, test_module_user):
+    def add_group(self, test_module_user, install_module_test):
 
         def _add_group(**kwargs):
             _add_group.counter += 1
