@@ -12,8 +12,6 @@ import { ConfigService } from './config.service';
 
 @Injectable()
 export class FormService {
-
-
   frmrGrp: FormGroup = this._formBuilder.group({});
 
   // Observable qui contient l'objet form et l'objet courant
@@ -32,7 +30,6 @@ export class FormService {
     private _formBuilder: FormBuilder,
     private _configService: ConfigService
   ) {}
-
 
   changeFormMapObj(formMapObj: IFormMap) {
     this.formMap.next(formMapObj);
