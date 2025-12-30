@@ -1,9 +1,9 @@
 <ng-container *ngIf="rowDeleted">
   <pnx-modal-msg [bDisplayModal]="bDeleteModal">
-    <h2>Attention</h2>
+    <h2>{{ 'Monitoring.DeletingPopup.Warning' | translate }}</h2>
     <p>
       <!-- TODO: voir pour améliorer le passage d'informations ici -->
-      Vous êtes sur le point de supprimer :
+      {{ 'Monitoring.DeletingPopup.WarningDelete' | translate }}
       {{ rowDeleted['name_object'] }}
       <br />
     </p>
@@ -15,9 +15,9 @@
         role="status"
         aria-hidden="true"
       ></span>
-      Confirmer la suppression
+      {{ 'Monitoring.DeletingPopup.ComfirmDelete' | translate }}
     </button>
-    <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
+    <button class="btn btn-primary" (click)="bDeleteModal = false">{{ 'Monitoring.DeletingPopup.Cancel' | translate }}</button>
   </pnx-modal-msg>
 </ng-container>
 <div class="cadre" *ngIf="rows && dataTableObjData">
@@ -131,7 +131,7 @@
                   <ng-template #chooseProtocolPopup>
                     <option-list-btn
                       placeholder="Sélectionner le protocole"
-                      label="Ajouter une visite"
+                      label="{{ 'Monitoring.Sites.addVisit' | translate }}"
                       [iconOrButton]="icon"
                       [canCreateChild]="canCreateChild"
                       [item]="row"

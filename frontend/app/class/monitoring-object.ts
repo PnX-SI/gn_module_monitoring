@@ -118,7 +118,7 @@ export class MonitoringObject extends MonitoringObjectBase {
       return of({});
     }
     for (const parentType of this.parentTypes()) {
-      if ((cruved['parentType'] || {}).R > 0) {
+      if ((cruved[parentType] || {}).R > 0) {
         promises[parentType] = this.getParent(parentType, depth, cruved);
       } else {
         promises[parentType] = of({});

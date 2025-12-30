@@ -16,6 +16,7 @@ import { DynamicFormService } from '@geonature_common/form/dynamic-form-generato
 import { ActivatedRoute } from '@angular/router';
 import { JsonData } from '../../types/jsondata';
 import { SitesService } from '../../services/api-geom.service';
+import { TranslateService } from '@ngx-translate/core';
 import {
   concatMap,
   distinctUntilChanged,
@@ -114,7 +115,8 @@ export class MonitoringFormComponent implements OnInit {
     private _formService: FormService,
     private _router: Router,
     private _geojsonService: GeoJSONService,
-    private _location: Location
+    private _location: Location,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -131,6 +133,9 @@ export class MonitoringFormComponent implements OnInit {
     this._configService
       .init(this.obj.moduleCode)
       .pipe(
+        mergeMap(() => {
+          return this._dataUtilsService.initModuleNomenclatures(this.obj.moduleCode);
+        }),
         tap(() => {
           // Initialisation des configurations
           //  Selon si l'objet est ou non de type site
@@ -425,7 +430,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   msgToaster(action) {
-    return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
+    return `${action}${this.translate.instant('Monitoring.Actions.Done')}`.trim();
   }
 
   /** TODO améliorer site etc.. */
@@ -486,7 +491,10 @@ export class MonitoringFormComponent implements OnInit {
     this.obj.delete().subscribe((objData) => {
       this.bDeleteSpinner = this.bDeleteModal = false;
       this.obj.deleted = true;
-      this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+      this._commonService.regularToaster(
+        'info',
+        this.msgToaster(this.translate.instant('Monitoring.Actions.Deleted'))
+      );
       setTimeout(() => {
         this.navigateToParent();
       }, 100);

@@ -6,6 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { HttpClientXsrfModule } from '@angular/common/http';
+import { CustomTranslateLoader } from '@geonature/shared/translate/custom-loader';
+import { ConfigService as cs } from '@geonature/services/config.service';
+import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
+import { I18nService } from '@geonature/shared/translate/i18n-service';
 
 // Service
 import { DataMonitoringObjectService } from './services/data-monitoring-object.service';
@@ -185,6 +189,10 @@ const routes: Routes = [
   },
 ];
 
+export function createTranslateLoader(http: HttpClient, config: cs) {
+  return new CustomTranslateLoader(http, config, { moduleName: 'monitorings' });
+}
+
 @NgModule({
   declarations: [
     BreadcrumbsComponent,
@@ -223,6 +231,14 @@ const routes: Routes = [
     HttpClientXsrfModule.withOptions({
       headerName: 'token',
     }),
+    TranslateModule.forChild({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: createTranslateLoader,
+        deps: [HttpClient, cs],
+      },
+      isolate: true,
+    }),
   ],
   providers: [
     HttpClient,
@@ -252,4 +268,13 @@ const routes: Routes = [
     // CUSTOM_ELEMENTS_SCHEMA
   ],
 })
-export class GeonatureModule {}
+export class GeonatureModule {
+  constructor(
+    private translateService: TranslateService,
+    private i18nService: I18nService
+  ) {
+    // Workaround to force translation loaded for LazyModule.
+    // See: https://github.com/ngx-translate/core/issues/1302
+    this.i18nService.initializeModuleTranslateService(this.translateService);
+  }
+}

@@ -1,7 +1,7 @@
 <pnx-modal-msg [bDisplayModal]="bDeleteModal" *ngIf="rowSelected">
-  <h2>Attention</h2>
+  <h2>{{ 'Monitoring.DeletingPopup.Warning' | translate }}</h2>
   <p>
-    Vous êtes sur le point de supprimer
+    {{ 'Monitoring.DeletingPopup.WarningDelete' | translate }}
     {{ this.child0.template['label_art_def'] }}
     <b>{{ this.child0.template['description'] }}</b>
   </p>
@@ -12,9 +12,9 @@
       role="status"
       aria-hidden="true"
     ></span>
-    Confirmer la suppression
+    {{ 'Monitoring.DeletingPopup.ConfirmDelete' | translate }}
   </button>
-  <button class="btn btn-primary" (click)="bDeleteModal = false">Annuler</button>
+  <button class="btn btn-primary" (click)="bDeleteModal = false">{{ 'Monitoring.DeletingPopup.Cancel' | translate }}</button>
 </pnx-modal-msg>
 <div *ngIf="child0 && row_save">
   <!-- <input

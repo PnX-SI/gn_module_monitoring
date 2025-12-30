@@ -1,6 +1,6 @@
 <div class="modules container">
   <pnx-modal-msg [bDisplayModal]="bLoading">
-    <h2>Chargement en cours</h2>
+    <h2>{{ 'Monitoring.Module.Loading' | translate }}</h2>
     <div>
       <span class="center spinner-border" role="status" aria-hidden="true"></span>
     </div>
@@ -8,7 +8,7 @@
 
   <h1 class="title-module display-5 mb-4">{{ titleModule }}</h1>
   <div class="text-center my-auto" style="height: 80vh" *ngIf="modules.length < 1 && !bLoading">
-    Vous n'avez pas encore de protocole accessible
+    {{ 'Monitoring.Module.NoModule' | translate }}
   </div>
   <div class="text-center">{{ description }}</div>
   <div class="m-2" *ngIf="modules.length > 0">
@@ -27,14 +27,14 @@
           [disabled]="!canAccessSite"
           [routerLink]="'object/generic/sites_group'" 
         >
-          Gestionnaire de sites
+          {{ 'Monitoring.Module.SiteManager' | translate }}
           <mat-icon> map</mat-icon>
         </button>
         <br>
-        <small class="text-muted">Voir les sites et groupes de sites</small>
+        <small class="text-muted">{{ 'Monitoring.Module.SeeSites' | translate }}</small>
       </div>
       <div class="container-fluid py-5 m-2">
-        <h3>Liste des protocoles</h3>
+        <h3>{{ 'Monitoring.Module.ModulesList' | translate }}</h3>
         <div class="row row-eq-height justify-content-center">
           <div
             class="col-12 col-sm-5 col-md-3 col-lg-3 module"

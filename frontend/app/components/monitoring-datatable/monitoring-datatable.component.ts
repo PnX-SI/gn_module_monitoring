@@ -9,6 +9,7 @@ import {
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MonitoringObjectService } from './../../services/monitoring-object.service';
 import { ListService } from '../../services/list.service';
 import { Subject } from 'rxjs';
@@ -62,7 +63,8 @@ export class MonitoringDatatableComponent implements OnInit {
   constructor(
     private _monitoring: MonitoringObjectService,
     private _commonService: CommonService,
-    private _listService: ListService
+    private _listService: ListService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -251,7 +253,7 @@ export class MonitoringDatatableComponent implements OnInit {
   }
 
   msgToaster(action) {
-    return `${action}  effectuée`.trim();
+    return `${action}${this.translate.instant('Monitoring.Actions.Deleted')}`.trim();
   }
 
   onDelete(row) {
@@ -259,7 +261,10 @@ export class MonitoringDatatableComponent implements OnInit {
       .dataMonitoringObjectService()
       .deleteObject(this.obj.moduleCode, this.child0.objectType, row.id)
       .subscribe(() => {
-        this._commonService.regularToaster('info', this.msgToaster('Suppression'));
+        this._commonService.regularToaster(
+          'info',
+          this.msgToaster(this.translate.instant('Monitoring.Actions.Deleted'))
+        );
 
         this.onDeleteRow.emit({
           rowSelected: row,

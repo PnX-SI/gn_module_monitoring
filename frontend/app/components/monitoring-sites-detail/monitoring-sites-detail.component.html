@@ -4,9 +4,9 @@
   >
   <span *ngIf="site" class="obj-description"> {{ site.base_site_name }} </span>
 </div>
-<pnx-monitoring-form [obj]="obj" [objForm]="form"
+<pnx-monitoring-form [obj]="obj" [(objForm)]="form"
   *ngIf="bEdit"
-  [(bEdit)]="bEdit"
+  [bEdit]="bEdit"
   [apiService]="siteService"
   [isExtraForm]="true"
   [currentUser]="currentUser"
@@ -17,8 +17,9 @@
   *ngIf="obj && !bEdit && obj.bIsInitialized"
   id="nav-properties"
   [obj]="obj"
-  [(bEdit)]="bEdit"
+  [bEdit]="bEdit"
   [currentUser]="currentUser"
+  (bEditChange)="onbEditChange($event)"
 ></pnx-monitoring-properties>
 <pnx-monitoring-datatable-g
   *ngIf="!bEdit"
@@ -45,7 +46,7 @@
   <option-list-btn
     add-button
     placeholder="Sélectionner le protocole"
-    label="Ajouter une visite"
+    label="{{ 'Monitoring.Sites.addVisit' | translate }}"
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
