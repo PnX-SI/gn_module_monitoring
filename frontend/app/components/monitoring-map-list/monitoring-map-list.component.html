@@ -7,16 +7,15 @@
     >
       <pnx-draw-form
         [bZoomOnPoint]="false"
-        [bEdit]="bEdit"
+        [bEdit]="(bEdit$ | async)"
         [geomFromProtocol]="false"
       ></pnx-draw-form>
     </pnx-map>
   </div>
   <div id="monitoring-elem-container" class="cadre scroll">
     <div>
-      <pnx-monitoring-breadcrumbs
-        [(bEdit)]="bEdit">
-      </pnx-monitoring-breadcrumbs>
+      <pnx-monitoring-breadcrumbs>
+      </pnx-monitoring-breadcrumbs> AA{{ (bEdit$ | async) }}AA
     </div>
 
 

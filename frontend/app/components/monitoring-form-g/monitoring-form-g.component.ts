@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { ApiService } from '../../services/api-geom.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
 import { Location } from '@angular/common';
@@ -8,6 +9,7 @@ import { FormService } from '../../services/form.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
+import { NavigationService } from '../../services/navigation.service';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -31,6 +33,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public canDelete: boolean = true;
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
+  private queryParams: {};
+
   constructor(
     public _commonService: CommonService,
     public _formService: FormService,
@@ -38,18 +42,21 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _dynformService: DynamicFormService,
     private _formBuilder: FormBuilder,
     private _location: Location,
-    private _geojsonService: GeoJSONService
+    private _geojsonService: GeoJSONService,
+    private _navigationService: NavigationService,
+    private _route: ActivatedRoute
   ) {}
 
   ngAfterViewInit() {
     if (this.object) {
       this.form.patchValue(this.object);
-      if (this.config['geometry_type']) {
-        this._formService.changeFormMapObj({
-          frmGp: this.form.controls['geometry'] as FormControl,
-          geometry_type: this.config['geometry_type'],
-        });
-      }
+    }
+    this.setDefaultFormValue();
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
     }
   }
 
@@ -61,7 +68,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     // this.initPermission();
 
     // // Initialisation des paramètres par défaut du formulaire
-    // this.queryParams = this._route.snapshot.queryParams || {};
+    this.queryParams = this._route.snapshot.queryParams || {};
+
     this.meta = {
       nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
       dataset: this._dataUtilsService.getDataUtil('dataset'),
@@ -88,22 +96,39 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       };
 
       this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
-      const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
-        ? this.object['is_geom_from_child']
-        : false;
-      if (geomCalculated) {
-        this.object.geometry = null;
-      } else {
-        // TODO pourquoi la conversion en JSON ici ?
-        this.object.geometry = JSON.parse(this.object.geometry);
+      if (this.object) {
+        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
+          ? this.object['is_geom_from_child']
+          : false;
+        if (geomCalculated) {
+          this.object.geometry = null;
+        } else {
+          // TODO pourquoi la conversion en JSON ici ?
+          this.object.geometry = JSON.parse(this.object.geometry);
+        }
       }
     }
 
     // // Conversion des query params de type entier mais en string en int
     // //  ??? A comprendre
     // this.obj = this.setQueryParams(this.obj);
+  }
 
-    // this.setDefaultFormValue();
+  setDefaultFormValue() {
+    console.log('this.form before setDefaultFormValue: ', this.form);
+    const value = this.form.value;
+    const date = new Date();
+    const defaultValue = {
+      id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
+      id_inventor: value['id_inventor'] || this.currentUser.id_role,
+      first_use_date: value['first_use_date'] || {
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth() + 1,
+        day: date.getUTCDate(),
+      },
+    };
+    this.form.patchValue(defaultValue);
+    console.log('this.form after setDefaultFormValue: ', this.form);
   }
 
   onFormValueChange(event) {
@@ -149,8 +174,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     let actionLabel = '';
     let action;
-
-    console.log('formValueGroup: ', formValueGroup);
     if (this.object) {
       action = this.apiService.patch(
         this.object[this.object.pk],
@@ -162,17 +185,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       actionLabel = 'Création';
     }
 
-    console.log('action : ', action);
-    console.log('actionLabel : ', actionLabel);
-
     action.subscribe((objData) => {
+      this.object = objData;
       this._commonService.regularToaster('success', actionLabel);
       this.saveSpinner = this.saveAndAddChildrenSpinner = false;
       /** si c'est un module : reset de la config */
       // if (this.obj.objectType === 'module') {
       //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
       // }
-
       if (this.chainInput) {
         console.log('this.resetObjForm()');
         // this.resetObjForm();
@@ -184,7 +204,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
           console.log('this.navigateToParent()');
           this.navigateToParent();
         } else {
-          console.log('this.navigateToDetail()');
+          console.log('this.navigateToDetail() else');
           this.navigateToDetail();
         }
       }
@@ -204,19 +224,17 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     return formDef;
   }
 
-  formatForApi(formValue) {
+  formatForApi(formValue: any) {
     let data = {};
-    let properties = {};
     let fields = this.config.fields;
     for (const attribut_name of Object.keys(fields)) {
       const elem = fields[attribut_name];
       if (!elem.type_widget) {
         continue;
       }
-      properties[attribut_name] = formValue[attribut_name];
+      data[attribut_name] = formValue[attribut_name];
     }
-    data = properties;
-    data['geometry'] = formValue['geometry'];
+    data['geometry'] = formValue['geometry'].geometry;
     return data;
   }
 
@@ -224,16 +242,39 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    * Valider et renseigner les enfants
    */
   navigateToAddChildren() {
-    this.EditChange.emit(false);
-    this.object.navigateToAddChildren();
+    // TODO CHANGE action=> Rafraichir les données si l'enregistrement c'est bien passé
+    // notament pour la carte
+    // this.EditChange.emit(false); // patch bug navigation
+    this._formService.changeCurrentEditMode(false);
+
+    this._navigationService.navigateToAddChildren(
+      this.object[this.object.pk],
+      this.object['siteId'],
+      this.apiService.objectObs.moduleCode,
+      this.apiService.objectObs.objectType,
+      this.apiService.objectObs.childType,
+      this.queryParams['parents_path']
+    );
   }
 
   /**
    * Valider et aller à la page de l'objet
    */
   navigateToDetail() {
-    this.EditChange.emit(false); // patch bug navigation
-    this.object.navigateToDetail();
+    console.log('Form - G this.navigateToDetail()');
+    console.log('queryParams:', this.queryParams);
+    // TODO CHANGE action=> Rafraichir les données si l'enregistrement c'est bien passé
+    // notament pour la carte
+    // this.EditChange.emit(false); // patch bug navigation
+    this._formService.changeCurrentEditMode(false);
+
+    this._navigationService.navigateToDetail(
+      this.object[this.object.pk],
+      false,
+      this.apiService.objectObs.moduleCode,
+      this.apiService.objectObs.objectType,
+      this.queryParams['parents_path']
+    );
   }
 
   /**
@@ -241,7 +282,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    */
   navigateToParent() {
     this.EditChange.emit(false); // patch bug navigation
-    this.object.navigateToParent();
+    // this.object.navigateToParent();
+    const parentType = (this.queryParams['parents_path'] || []).pop();
+    const parentFieldId = (this.config[parentType] || [])['id_field_name'];
+
+    this._navigationService.navigateToParent(
+      this.apiService.objectObs.moduleCode,
+      this.apiService.objectObs.objectType,
+      this.object[parentFieldId],
+      this.queryParams['parents_path']
+    );
   }
 
   chainInputChanged() {
@@ -265,13 +315,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onCancelEdit() {
-    this.EditChange.emit(false);
-    this._location.back();
+    // this.EditChange.emit(false);
+    // this._location.back();
     if (this.object) {
       this.object.geometry == null
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
         : this._geojsonService.setMapBeforeEdit(this.object.geometry);
     }
+    this.navigateToDetail();
   }
 
   ngOnDestroy() {

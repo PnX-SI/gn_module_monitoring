@@ -118,7 +118,6 @@
       color="primary"
       class="mr-2"
       (click)="hasEditPermission ? onEditClick() : null"
-      *ngIf="!bEdit"
       [matTooltip]="hasEditPermission() ? null : toolTipNotAllowed"
       [disabled]="!hasEditPermission"
     >
@@ -149,7 +148,7 @@
       class="float-right"
       (click)="updateSynthese()"
       *ngIf="
-        !bEdit && objectType === 'module' && userPermission.module.U >= 1 && bSynthese
+        objectType === 'module' && userPermission.module.U >= 1 && bSynthese
       "
       matTooltip="Attention, cette opération peux prendre du temps"
     >

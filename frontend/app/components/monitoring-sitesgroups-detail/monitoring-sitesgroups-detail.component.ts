@@ -76,6 +76,11 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
+    this._formService.currentEditMode.pipe(takeUntil(this.destroyed$)).subscribe((bEdit) => {
+      this.onbEditChange(bEdit);
+      this.bEdit = bEdit;
+    });
+
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
     this.currentUser = this._auth.getCurrentUser();
@@ -175,6 +180,7 @@ export class MonitoringSitesgroupsDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
+      this.initSite();
       const sitesParams = { ...{}, ...this.baseFilters };
       this._geojsonService.getSitesGroupsGeometriesWithSites(
         this.onEachFeatureGroupSite(),
@@ -183,10 +189,6 @@ export class MonitoringSitesgroupsDetailComponent
         sitesParams
       );
     }
-
-    this.bEdit = event;
-
-    this._formService.changeCurrentEditMode(this.bEdit);
   }
 
   onEachFeatureSite() {

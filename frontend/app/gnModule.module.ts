@@ -13,6 +13,7 @@ import { I18nService } from '@geonature/shared/translate/i18n-service';
 
 // Service
 import { DataMonitoringObjectService } from './services/data-monitoring-object.service';
+import { NavigationService } from './services/navigation.service';
 import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
 import { MonitoringObjectService } from './services/monitoring-object.service';
@@ -247,6 +248,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     CacheService,
     MapListResolver,
     DataMonitoringObjectService,
+    NavigationService,
     DataUtilsService,
     ConfigService,
     MonitoringObjectService,
