@@ -246,9 +246,19 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized site group
     """
     config = get_config(module_code)
+    geom = post_data.pop("geometry", None)
+    as_geojson = False
     process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
+    # TODO PATCH pour tester l'insertion des données a voir pourquoi medias est a None
+    if not process_data["medias"]:
+        process_data["medias"] = []
 
-    sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+    if geom is not None:
+        as_geojson = True
+        process_data = {"type": "Feature", "geometry": geom, "properties": process_data}
+
+    sites_group = MonitoringSitesGroupsSchema(as_geojson=as_geojson).load(process_data)
+
     db.session.add(sites_group)
     db.session.commit()
     return MonitoringSitesGroupsSchema().dump(sites_group)
