@@ -5,13 +5,17 @@ from flask import g
 from marshmallow import Schema, fields, validate, post_dump
 import marshmallow
 
-from geonature.utils.env import MA
+from geonature.utils.env import MA, db
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
 from geonature.utils.schema import CruvedSchemaMixin
 from marshmallow_sqlalchemy import auto_field
 from pypnusershub.db.models import User
+from utils_flask_sqla_geo.schema import (
+    GeoAlchemyAutoSchema,
+    GeoModelConverter,
+)
 
 
 from gn_module_monitoring.monitoring.models import (
@@ -122,22 +126,24 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
-class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesGroupsSchema(GeoAlchemyAutoSchema):
     sites_group_name = fields.String(
         validate=validate.Length(min=3, error="Length must be greater than 3"),
     )
 
     class Meta:
         model = TMonitoringSitesGroups
-        exclude = ("geom_geojson", "geom")
+        sqla_session = db.session
         load_instance = True
         include_fk = True
         load_relationships = True
+        feature_id = "id_sites_group"
+        feature_geometry = "geom"
+        exclude = ("geom_geojson",)
 
     id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
-    geometry = fields.Method("serialize_geojson", dump_only=True)
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
     nb_visits = fields.Integer(dump_only=True)
