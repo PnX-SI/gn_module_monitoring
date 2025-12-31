@@ -129,6 +129,7 @@ class TestSitesGroups:
             "sites_group_code": "Cros_du_Lac",
             "sites_group_description": "Site test",
             "sites_group_name": "Cros du Lac",
+            "medias": [],
             "geometry": '{"type": "Polygon", "coordinates": [[[3.535269, 44.242648], [3.532821, 44.247625], [3.538272, 44.245986], [3.538398, 44.244186], [3.537732, 44.243658], [3.535269, 44.242648]]]}',
         }
         r = self.client.post(
