@@ -130,6 +130,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onFormValueChange(event) {
+    console.log("TEEEEEEESSSSSTT1")
+    console.log(this.form)
+    console.log("TEEEEEEESSSSSTT2")
     // const change = this.obj.change();
     // if (!change) {
     //   return;
@@ -192,8 +195,12 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
       // }
       if (this.chainInput) {
+<<<<<<< HEAD
         console.log('resetObjForm  - TODO');
         // this.resetObjForm();
+=======
+        this.resetForm();
+>>>>>>> 1bf9b9ba (add chain to form-g)
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
       } else {
@@ -297,7 +304,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const formKey = Object.keys(this.form.value);
 
     for (const key of formKey) {
-      if (key in keep) this.form.patchValue({ key: null });
+      if (!(key in keep)) {
+        this.form.patchValue({ [key]: null });
+      }
     }
     this.object = null;
 
@@ -305,6 +314,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     this.form.patchValue({ geometry: null });
     this.initForm();
+    // this.form.updateValueAndValidity();
   }
 
   onCancelEdit() {
