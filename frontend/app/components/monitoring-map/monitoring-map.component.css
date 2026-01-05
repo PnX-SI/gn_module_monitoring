@@ -1,3 +1,9 @@
 :host ::ng-deep .hide-draw-form .leaflet-top.leaflet-left {
   display: none;
 }
+
+:host ::ng-deep pnx-map:focus,
+:host ::ng-deep pnx-map:focus-visible,
+:host ::ng-deep .leaflet-container:focus {
+  outline: none;
+}

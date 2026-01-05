@@ -75,3 +75,9 @@
 .custom-dt {
   box-shadow: none !important;
 }
+
+:host ::ng-deep pnx-map:focus,
+:host ::ng-deep pnx-map:focus-visible,
+:host ::ng-deep .leaflet-container:focus {
+  outline: none;
+}
