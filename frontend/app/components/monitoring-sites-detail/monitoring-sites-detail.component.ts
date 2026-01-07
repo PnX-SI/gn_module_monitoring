@@ -304,7 +304,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   ngOnDestroy() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+    this.geojsonService.removeSitesLayerGroup();
     this._formService.changeCurrentEditMode(false);
     this._formService.changeFormMapObj({
       frmGp: null,

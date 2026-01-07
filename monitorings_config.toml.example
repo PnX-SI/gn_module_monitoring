@@ -6,3 +6,6 @@
 
 # code of the observator list -- utilisateurs.t_listes
 #CODE_OBSERVERS_LIST = "obsocctax"
+
+# Activer (=true) ou pas (=false) la clusterisation des objets sur la carte
+#ENABLE_LEAFLET_CLUSTER = false

@@ -96,7 +96,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   ngOnInit() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+    this.geojsonService.removeSitesLayerGroup();
     this.initSiteGroup();
     // this._formService.changeFormMapObj({frmGp: this._formBuilder.group({}),bEdit:false, objForm: {}})
   }
@@ -192,8 +192,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   ngOnDestroy() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+    this.geojsonService.removeAllLayers();
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }
@@ -359,7 +358,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
                 onSameUrlNavigation: 'reload',
               }
             );
-            this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+            this.geojsonService.removeSitesGroupLayerGroup();
             this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
           }, 100);
         });
@@ -376,7 +375,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
                 onSameUrlNavigation: 'reload',
               }
             );
-            this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+            this.geojsonService.removeSitesGroupLayerGroup();
             this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
           }, 100);
         });
@@ -389,7 +388,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
             onSameUrlNavigation: 'reload',
           });
 
-          this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+          this.geojsonService.removeSitesLayerGroup();
           this.getGeometriesSite();
         }, 100);
       });
@@ -415,17 +414,17 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     if ($event == 'site') {
       this.currentRoute = 'site';
       this._location.go(`/monitorings/object/${this.moduleCode}/site`);
-      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+      this.geojsonService.removeSitesGroupLayerGroup();
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else if ($event == 'individual') {
       this.currentRoute = 'individual';
       this._location.go(`/monitorings/object/${this.moduleCode}/individual`);
-      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+      this.geojsonService.removeSitesGroupLayerGroup();
       this.currentPermission.MONITORINGS_SITES.canRead ? this.getGeometriesSite() : null;
     } else {
       this.currentRoute = 'sites_group';
       this._location.go(`/monitorings/object/${this.moduleCode}/sites_group`);
-      this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+      this.geojsonService.removeSitesLayerGroup();
       this.currentPermission.MONITORINGS_GRP_SITES.canRead
         ? this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
         : null;

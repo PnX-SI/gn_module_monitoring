@@ -87,7 +87,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
   }
 
   ngOnDestroy() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+    this.geojsonService.removeSitesGroupLayerGroup();
     this._formService.changeCurrentEditMode(false);
     this._formService.changeFormMapObj({
       frmGp: null,

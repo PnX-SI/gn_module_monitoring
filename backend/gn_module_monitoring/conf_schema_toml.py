@@ -29,6 +29,8 @@ class GnModuleSchemaConf(Schema):
         keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
     )
 
+    ENABLE_LEAFLET_CLUSTER = fields.Boolean(load_default=False)
+
 
 #     AREA_TYPE = fields.List(fields.String(), missing=["COM", "M1", "M5", "M10"])
 #     BORNE_OBS = fields.List(fields.Integer(), missing=[1, 20, 40, 60, 80, 100, 120])

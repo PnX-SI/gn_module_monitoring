@@ -78,6 +78,11 @@ export class ConfigService {
   codeListObservers() {
     return this.appConfig.MONITORINGS.CODE_OBSERVERS_LIST;
   }
+
+  get enableClustering(): boolean {
+    return this.appConfig.MONITORINGS.ENABLE_LEAFLET_CLUSTER;
+  }
+
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;
