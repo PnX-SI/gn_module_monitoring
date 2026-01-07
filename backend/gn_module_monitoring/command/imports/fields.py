@@ -30,6 +30,7 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
         "id_base_site",  # generated
         "id_base_visit",  # generated
         "id_observation",  # generated
+        "id_nomenclature_type_site",  # handled manually
         "last_visit",  # dynamic
         "nb_visits",  # dynamic
         "nb_observations",  # dynamic
