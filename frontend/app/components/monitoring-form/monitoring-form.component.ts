@@ -481,7 +481,7 @@ export class MonitoringFormComponent implements OnInit {
     this._location.back();
     if (this.obj.id) {
       this.obj.geometry == null
-        ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
+        ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesLayerGroup])
         : this._geojsonService.setMapBeforeEdit(this.obj.geometry);
     }
   }
