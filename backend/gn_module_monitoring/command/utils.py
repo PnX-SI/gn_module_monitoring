@@ -110,6 +110,7 @@ def execute_sql_file(dir, file, module_code, forbidden_instruction=[]):
 
     """
     sql_content = Path(Path(dir) / file).read_text()
+    sql_content = sql_content.replace("v_synthese_:module_code",f"v_synthese_{module_code}") # On remplace explicitement le module_code dans le sql_content
     for sql_cmd in forbidden_instruction:
         if sql_cmd.lower() in sql_content.lower():
             raise Exception(
