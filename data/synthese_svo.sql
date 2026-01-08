@@ -29,7 +29,7 @@ WITH source AS (
         id_source
 
     FROM gn_synthese.t_sources
-	WHERE name_source = CONCAT('MONITORING_', UPPER(:'module_code'))
+	WHERE name_source = CONCAT('MONITORING_', UPPER(:module_code))
 	LIMIT 1
 
 ), sites AS (
@@ -37,6 +37,7 @@ WITH source AS (
     SELECT
 
         id_base_site,
+		base_site_name,
         geom AS the_geom_4326,
 	    ST_CENTROID(geom) AS the_geom_point,
 	    geom_local as geom_local
@@ -113,6 +114,7 @@ SELECT
 		--digital_proofvue
 		alt.altitude_min,
 		alt.altitude_max,
+		s.base_site_name as place_name,
 		s.the_geom_4326,
 		s.the_geom_point,
 		s.geom_local as the_geom_local,
