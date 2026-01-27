@@ -418,7 +418,7 @@ export class MonitoringFormComponent implements OnInit {
    */
   navigateToDetail() {
     this.bEditChange.emit(false); // patch bug navigation
-    this.obj.navigateToDetail();
+    this.obj.navigateToDetail(this.obj.id, this.queryParams);
   }
 
   /**
