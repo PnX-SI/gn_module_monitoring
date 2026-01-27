@@ -22,16 +22,14 @@ monitorings_schema = "gn_monitoring"
 
 def upgrade():
     # Transfert data to core_site_module table
-    statement = sa.text(
-        f"""
+    statement = sa.text(f"""
         INSERT INTO {monitorings_schema}.cor_site_module (id_module, id_base_site)
         SELECT tsc.id_module, tsc.id_base_site
         FROM {monitorings_schema}.t_site_complements AS tsc
         LEFT JOIN  {monitorings_schema}.cor_site_module AS csm
         ON tsc.id_base_site = csm.id_base_site
         WHERE csm.id_base_site IS NULL;
-        """
-    )
+        """)
     op.execute(statement)
 
     # Drop column id_module
@@ -57,8 +55,7 @@ def downgrade():
     # Cannot use orm here because need the model to be "downgraded" as well
     # Need to set nullable True above for existing rows
     # LIMITATION: Assume that current use is one site associated to one module
-    statement = sa.text(
-        f"""
+    statement = sa.text(f"""
         WITH sm AS (
             SELECT min(id_module) AS first_id_module, id_base_site
             FROM {monitorings_schema}.cor_site_module AS csm
@@ -68,15 +65,12 @@ def downgrade():
             SET id_module = sm.first_id_module
         FROM sm
         WHERE sm.id_base_site = sc.id_base_site;
-        """
-    )
+        """)
     op.execute(statement)
 
-    statement = sa.text(
-        f"""
+    statement = sa.text(f"""
         DELETE FROM gn_monitoring.t_site_complements WHERE id_module IS NULL;
-        """
-    )
+        """)
     op.execute(statement)
 
     op.alter_column("t_site_complements", "id_module", nullable=False, schema=monitorings_schema)

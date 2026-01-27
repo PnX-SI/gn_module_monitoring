@@ -6,7 +6,6 @@ Fichier à ne pas modifier. Paramètres surcouchables dans config/config_gn_modu
 
 from marshmallow import Schema, fields
 
-
 # Permissions associés à chaque objet monitoring
 PERMISSION_LEVEL_DEFAULT = {
     "module": "MONITORINGS_MODULES",
