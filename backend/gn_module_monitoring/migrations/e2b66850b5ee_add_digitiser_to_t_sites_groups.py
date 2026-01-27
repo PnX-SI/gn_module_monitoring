@@ -9,7 +9,6 @@ Create Date: 2023-09-11 12:17:17.280948
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "e2b66850b5ee"
 down_revision = "6a15625a0f4a"
@@ -42,10 +41,8 @@ def upgrade():
 
 
 def downgrade():
-    statement = sa.text(
-        f"""
+    statement = sa.text(f"""
         ALTER TABLE {monitorings_schema}.{table} DROP CONSTRAINT fk_{table}_{column};
-        """
-    )
+        """)
     op.execute(statement)
     op.drop_column(table, column, schema=monitorings_schema)

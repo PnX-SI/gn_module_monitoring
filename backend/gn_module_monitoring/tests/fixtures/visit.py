@@ -8,7 +8,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringVisits
 
 @pytest.fixture
 def visits(sites, datasets, monitoring_module):
-    visit_date_min = datetime.datetime.strptime('2025-01-01', "%Y-%m-%d").date()
+    visit_date_min = datetime.datetime.strptime("2025-01-01", "%Y-%m-%d").date()
     dataset = datasets["orphan_dataset"]
     db_visits = []
     for site in sites.values():

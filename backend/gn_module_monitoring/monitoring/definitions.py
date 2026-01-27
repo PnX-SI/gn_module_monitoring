@@ -17,7 +17,6 @@ from gn_module_monitoring.monitoring.base import monitoring_definitions
 from gn_module_monitoring.monitoring.repositories import MonitoringObject
 from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
 
-
 """
     MonitoringModels_dict :
     Fait le lien entre les monitoring_objects

@@ -18,8 +18,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE gn_monitoring.t_sites_groups
         ADD COLUMN geom
             public.geometry(geometry, 4326) NULL,
@@ -29,8 +28,7 @@ def upgrade():
                 int4 NULL,
         ADD COLUMN altitude_max
                 int4 NULL;
-        """
-    )
+        """)
 
     # version sqlalchemy
     # op.add_column(
@@ -53,21 +51,16 @@ def upgrade():
     #     )
     # )
 
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE gn_monitoring.t_sites_groups
 	        ADD CONSTRAINT enforce_srid_geom CHECK ((st_srid(geom) = 4326));
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         CREATE INDEX idx_t_sites_groups_geom ON gn_monitoring.t_sites_groups USING gist (geom);
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         create trigger tri_calculate_geom_local before
         insert
             or
@@ -91,13 +84,11 @@ def upgrade():
             geom on
             gn_monitoring.t_sites_groups for each row execute function ref_geo.fct_trg_calculate_alt_minmax('geom');
 
-         """
-    )
+         """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
         DROP TRIGGER tri_calculate_geom_local
             ON gn_monitoring.t_sites_groups;
         DROP TRIGGER tri_t_sites_groups_calculate_alt
@@ -106,15 +97,12 @@ def downgrade():
             ON gn_monitoring.t_sites_groups;
         DROP TRIGGER tri_update_calculate_altitude
             ON gn_monitoring.t_sites_groups;
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE gn_monitoring.t_sites_groups
         DROP COLUMN geom,
         DROP COLUMN geom_local,
         DROP COLUMN altitude_min,
         DROP COLUMN altitude_max;
-        """
-    )
+        """)

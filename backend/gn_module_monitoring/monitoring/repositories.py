@@ -91,15 +91,13 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # Test de l'existance de la colonne de synchronisation sur la vue synthese
         column_exist = DB.engine.execute(
-            text(
-                """
+            text("""
                 SELECT count(*)
                 FROM information_schema.columns
                 WHERE   table_schema=:table_schema
                     AND table_name=:table_name
                     AND column_name=:column_name;
-                """
-            ),
+                """),
             table_schema="gn_monitoring",
             table_name=table_name,
             column_name=self.config_param("id_field_name"),
