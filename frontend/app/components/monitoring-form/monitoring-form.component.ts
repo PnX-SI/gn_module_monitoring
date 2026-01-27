@@ -389,14 +389,28 @@ export class MonitoringFormComponent implements OnInit {
   setDefaultFormValue() {
     const value = this.objForm.value;
     const date = new Date();
+
+    const current_user = {
+      id_role: this.currentUser.id_role,
+      nom_complet: this.currentUser.nom_complet,
+    };
+    const today = {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate(),
+    };
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
-      id_inventor: value['id_inventor'] || this.currentUser.id_role,
-      first_use_date: value['first_use_date'] || {
-        year: date.getUTCFullYear(),
-        month: date.getUTCMonth() + 1,
-        day: date.getUTCDate(),
-      },
+      id_inventor:
+        (Array.isArray(value['id_inventor'])
+          ? value['id_inventor'].length > 0
+          : value['id_inventor']) || current_user,
+      observers: (Array.isArray(value['observers'])
+        ? value['observers'].length > 0
+        : value['observers']) || [current_user],
+      first_use_date: value['first_use_date'] || today,
+      visit_date_min: value['visit_date_min'] || today,
+      visit_date_max: value['visit_date_max'] || today,
     };
     this.objForm.patchValue(defaultValue);
   }
