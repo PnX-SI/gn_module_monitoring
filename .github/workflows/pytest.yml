@@ -23,8 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["develop"] # Mettre version compatible
-    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
+        geonature_ref: ["master"] # Mettre version compatible
+    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@master
     with:
       geonature_ref: ${{ matrix.geonature_ref }}
       upload_coverage: true
