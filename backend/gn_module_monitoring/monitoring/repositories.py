@@ -167,12 +167,17 @@ class MonitoringObject(MonitoringObjectSerializer):
     def breadcrumb(self, params):
         if not self._id:
             return
+        # Si le module code est monitorings on le transforme
+        #   en generic pour le front
+        module_code = self._module_code
+        if self._module_code.upper() == "MONITORINGS":
+            module_code = "generic"
 
         breadcrumb = {
             "id": self._id,
             "label": self.config_param("label"),
             "description": str(self.config_value("description_field_name")),
-            "module_code": self._module_code,
+            "module_code": module_code,
             "object_type": self._object_type,
         }
 
