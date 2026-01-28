@@ -2,6 +2,9 @@ import pytest
 from flask import url_for, current_app
 
 from pypnusershub.tests.utils import set_logged_user_cookie
+from geonature.tests.test_users_menu import tlist
+from geonature.utils.env import db
+from sqlalchemy import select
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
