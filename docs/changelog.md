@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 1.2.5 (unrelease)
+ 
+
+**🚀 Nouveautés**
+
+- Vue exemple de la synthese, ajout du mapping  "Nom lieu" (`place_name`) par le nom du site (`base_site_name`) (#549 par @maximetoma)
+
+**🐛 Corrections**
+
+- Création des vues de synthese, utilisation du paramètre :module_code (#550, #549 par @maximetoma)
+- Gestionnaire des sites : édition des sites impossible (#554, #562 par @amandine-sahl) 
+- Valeur par défaut des formulaires (#553, #557 par @amandine-sahl)
+  - Site : date création, créateur
+  - Visite: date de la visite, observateur
+- Correction du breadcrumb lors de l'ajoute d'un site depuis un groupe de site (#560 par @amandine-sahl) 
+- Liste des observateurs du module non pris en compte dans un module spécifique (#562 par @amandine-sahl)
+- Correction des actions github. Répercussion de la mise à jour des dépendances (#561 par @amandine-sahl)
+  - pytest
+  - black
+
+ 
 ## 1.2.4 (2025-12-30)
 
 **🚀 Nouveautés**
