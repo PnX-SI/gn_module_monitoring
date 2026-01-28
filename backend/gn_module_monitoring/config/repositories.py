@@ -18,6 +18,7 @@ from gn_module_monitoring.config.utils import (
     get_monitorings_path,
     get_data_preload,
     monitoring_module_config_path,
+    get_module_code_list,
 )
 from gn_module_monitoring.utils.utils import dict_deep_update
 
@@ -167,16 +168,6 @@ def get_config(module_code=None, force=False):
         return config
 
     module = get_monitoring_module(module_code)
-    # derniere modification
-    # fichiers
-    # file_last_modif = get_directory_last_modif(monitoring_config_path())
-    # base_last_modif = get_base_last_modif(module)
-    # last_modif = max(base_last_modif, file_last_modif)
-
-    # test si present dans cache et pas modifée depuis le dernier appel
-
-    # if config and config.get('last_modif', 0) >= last_modif:
-    # return config
 
     config = config_from_files("config", module_code)
     get_config_objects(module_code, config)
@@ -206,18 +197,16 @@ def get_config(module_code=None, force=False):
                 for t in module.types_site
             ]
             config["default_display_field_names"].update(config.get("display_field_names", {}))
-
-            # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-            config["data"] = get_data_preload(config, module)
     else:
-        # Si module est généric
-        config["custom"]["CODE_OBSERVERS_LIST"] = current_app.config["MONITORINGS"].get(
-            "CODE_OBSERVERS_LIST", {}
-        )
         config["custom"]["__MODULE.MODULE_CODE"] = "generic"
         config["custom"]["__MODULE.ID_MODULE"] = None
         config["custom"]["__MODULE.B_SYNTHESE"] = False
 
+    # Récupération de la liste des observateurs du module
+    config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
+
+    # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
+    config["data"] = get_data_preload(config, module)
     config["display_field_names"] = config["default_display_field_names"]
     config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
     # Remplacement des variables __MODULE.XXX
