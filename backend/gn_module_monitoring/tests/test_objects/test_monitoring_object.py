@@ -6,8 +6,6 @@ from sqlalchemy import select
 
 from geonature.utils.env import DB
 
-from gn_module_monitoring.tests.fixtures.generic import *
-
 from gn_module_monitoring.config.repositories import get_config
 
 

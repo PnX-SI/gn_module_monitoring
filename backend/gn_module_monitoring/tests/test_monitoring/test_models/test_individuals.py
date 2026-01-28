@@ -6,8 +6,6 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
     MonitoringQuery,
 )
-from gn_module_monitoring.tests.fixtures.individual import *
-from gn_module_monitoring.tests.fixtures.observation import *
 
 
 class TestMonitoringIndividuals:

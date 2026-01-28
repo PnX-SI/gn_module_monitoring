@@ -3,7 +3,7 @@ name: pytest
 on:
   push:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
@@ -11,7 +11,7 @@ on:
       - improve-module-part-indivuduals
   pull_request:
     paths:
-      - 'backend/**'
+      - "backend/**"
     branches:
       - main
       - hotfixes
@@ -23,8 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["master"] # Mettre version compatible
-    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@master
+        geonature_ref: ["develop"] # Mettre version compatible
+    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
     with:
       geonature_ref: ${{ matrix.geonature_ref }}
       upload_coverage: true

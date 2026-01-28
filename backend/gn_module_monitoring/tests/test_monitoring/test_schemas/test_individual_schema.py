@@ -2,8 +2,6 @@ import pytest
 from marshmallow import ValidationError
 
 from gn_module_monitoring.monitoring.schemas import MonitoringIndividualsSchema
-from gn_module_monitoring.tests.fixtures.individual import *
-from gn_module_monitoring.tests.fixtures.marking import *
 
 
 class TestMonitoringIndividuals:

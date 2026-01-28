@@ -21,7 +21,6 @@ from gn_module_monitoring.command.cmd import (
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.tests.fixtures.generic import add_user_permission
-from gn_module_monitoring.tests.fixtures.type_site import types_site
 
 
 @pytest.fixture

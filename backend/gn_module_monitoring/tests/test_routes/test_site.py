@@ -16,7 +16,6 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringVisits,
     TMonitoringModules,
 )
-from gn_module_monitoring.tests.fixtures.generic import *
 
 
 @pytest.mark.usefixtures("client_class")

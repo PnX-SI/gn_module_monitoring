@@ -5,8 +5,6 @@ from flask import url_for, current_app
 from sqlalchemy import select
 
 from geonature.utils.env import DB
-
-from gn_module_monitoring.tests.fixtures.generic import *
 from gn_module_monitoring.command.cmd import (
     cmd_remove_monitoring_module_cmd,
     cmd_process_sql,

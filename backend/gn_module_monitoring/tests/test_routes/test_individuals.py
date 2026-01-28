@@ -12,9 +12,6 @@ from io import StringIO
 import pandas as pd
 from pypnusershub.tests.utils import set_logged_user_cookie
 
-from gn_module_monitoring.tests.fixtures.generic import *
-from gn_module_monitoring.tests.fixtures.individual import *
-
 
 @pytest.mark.usefixtures("client_class")
 class TestIndividuals:

@@ -11,7 +11,6 @@ from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
-from gn_module_monitoring.tests.fixtures.generic import *
 
 
 @pytest.mark.usefixtures("client_class")

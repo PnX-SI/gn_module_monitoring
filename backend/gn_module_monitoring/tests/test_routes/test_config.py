@@ -1,8 +1,6 @@
 import pytest
 from flask import url_for, current_app
 
-from geonature.tests.test_users_menu import tlist
-from gn_module_monitoring.tests.fixtures.generic import *
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules

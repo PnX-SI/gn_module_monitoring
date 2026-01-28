@@ -3,8 +3,7 @@ import pytest
 from flask import url_for
 
 from pypnusershub.tests.utils import set_logged_user_cookie
-
-from gn_module_monitoring.tests.fixtures.generic import *
+from gn_module_monitoring.tests.fixtures.generic import add_user_permission
 
 
 @pytest.mark.usefixtures("client_class")
