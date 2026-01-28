@@ -5,7 +5,7 @@
 **🚀 Nouveautés**
 
 - Amélioration de la vue d'exemple alimentant la Synthèse depuis un sous-module Monitoring (`data/synthese_svo.sql`), en renseignant le champs "Nom lieu" de la Synthèse (`place_name`) avec le nom du site (`base_site_name`) (#549 par @maximetoma)
-- Remplissage automatique des formulaires par des valeurs par défaut (#553, #557 par @amandine-sahl)
+- Remplissage automatique des formulaires par des valeurs par défaut (#553 par @amandine-sahl)
   - Site : date création (aujourd'hui), créateur (utilisateur connecté)
   - Visite : date de la visite (aujourd'hui), observateur (utilisateur connecté)
 
@@ -13,7 +13,8 @@
 
 - Correction de la récupération du paramètre `:module_code` lors de la création des vues SQL d'alimentation de la Synthèse (#550 par @maximetoma)
 - Correction de l'édition des sites dans le gestionnaire de sites (#554 par @amandine-sahl) 
-- Correction du fil d'ariane lors de l'ajout d'un site depuis un groupe de sites (#560 par @amandine-sahl) 
+- Correction du fil d'ariane lors de l'ajout d'un site depuis un groupe de sites (#560 par @amandine-sahl)
+- Correction du fil d'ariane dans le gestionnaire de sites qui ne renvoyait pas vers le bon nom de sous-module (#564 par @amandine-sahl)
 - Correction de la prise en compte de la liste des observateurs définie au niveau du sous-module (#562 par @amandine-sahl)
 - Correction du texte de traduction dans la modale de suppression (#546 par @PaulLabruyere)
 - Correction des actions Github. Répercussion de la mise à jour des dépendances (#561 par @amandine-sahl)
