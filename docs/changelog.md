@@ -2,25 +2,24 @@
 
 ## 1.2.5 (unrelease)
  
-
 **🚀 Nouveautés**
 
-- Vue exemple de la synthese, ajout du mapping  "Nom lieu" (`place_name`) par le nom du site (`base_site_name`) (#549 par @maximetoma)
+- Amélioration de la vue d'exemple alimentant la Synthèse depuis un sous-module Monitoring (`data/synthese_svo.sql`), en renseignant le champs "Nom lieu" de la Synthèse (`place_name`) avec le nom du site (`base_site_name`) (#549 par @maximetoma)
+- Remplissage automatique des formulaires par des valeurs par défaut (#553, #557 par @amandine-sahl)
+  - Site : date création (aujourd'hui), créateur (utilisateur connecté)
+  - Visite : date de la visite (aujourd'hui), observateur (utilisateur connecté)
 
 **🐛 Corrections**
 
-- Création des vues de synthese, utilisation du paramètre :module_code (#550, #549 par @maximetoma)
-- Gestionnaire des sites : édition des sites impossible (#554, #562 par @amandine-sahl) 
-- Valeur par défaut des formulaires (#553, #557 par @amandine-sahl)
-  - Site : date création, créateur
-  - Visite: date de la visite, observateur
-- Correction du breadcrumb lors de l'ajoute d'un site depuis un groupe de site (#560 par @amandine-sahl) 
-- Liste des observateurs du module non pris en compte dans un module spécifique (#562 par @amandine-sahl)
-- Correction des actions github. Répercussion de la mise à jour des dépendances (#561 par @amandine-sahl)
+- Correction de la récupération du paramètre `:module_code` lors de la création des vues SQL d'alimentation de la Synthèse (#550 par @maximetoma)
+- Correction de l'édition des sites dans le gestionnaire de sites (#554 par @amandine-sahl) 
+- Correction du fil d'ariane lors de l'ajout d'un site depuis un groupe de sites (#560 par @amandine-sahl) 
+- Correction de la prise en compte de la liste des observateurs définie au niveau du sous-module (#562 par @amandine-sahl)
+- Correction du texte de traduction dans la modale de suppression (#546 par @PaulLabruyere)
+- Correction des actions Github. Répercussion de la mise à jour des dépendances (#561 par @amandine-sahl)
   - pytest
   - black
 
- 
 ## 1.2.4 (2025-12-30)
 
 **🚀 Nouveautés**
