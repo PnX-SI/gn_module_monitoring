@@ -19,6 +19,24 @@ const defaultSiteGroupStyle = {
   zIndex: 20,
 };
 
+const defaultSiteGroupStyleInfo = {
+  fillColor: '#a48aa4ff',
+  fillOpacity: 0.4,
+  color: '#a48aa4ff',
+  opacity: 0.7,
+  weight: 2,
+  fill: true,
+  zIndex: 200,
+};
+
+const defaultSiteStyleInfo = {
+  fillColor: '#a48aa4ff',
+  fillOpacity: 0.2,
+  color: '#fa3efaff',
+  opacity: 0.4,
+  zIndex: 300,
+};
+
 const selectedSiteGroupStyle = {
   fillColor: '#ac0000',
   fillOpacity: 0.5,
@@ -34,6 +52,17 @@ const selectedSiteStyle = {
   color: 'red',
   zIndex: 30,
 };
+
+const NAME_LAYER_SITE: string = 'Sites';
+const NAME_LAYER_GRP_SITE: string = 'Groupe de sites';
+
+export type DisplayMode = 'main' | 'info' | 'info_zoom';
+
+interface LayerModeConfig {
+  layerName: string | null;
+  zoom: boolean;
+  clearExisting: boolean;
+}
 
 @Injectable()
 export class GeoJSONService {
@@ -68,69 +97,131 @@ export class GeoJSONService {
     sitesOnEachFeature: Function,
     paramsSitesGroup = {},
     paramsSite = {},
+    mode: DisplayMode = 'main',
     sitesGroupstyle?,
     sitesStyle?
   ) {
+    const cfgGroup = this.resolveMode(mode, NAME_LAYER_GRP_SITE);
+    const cfgSite = this.resolveMode(mode, NAME_LAYER_SITE);
+
+    const effectiveGroupStyle =
+      sitesGroupstyle ??
+      (mode === 'info' || mode === 'info_zoom' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
+
+    const effectiveSiteStyle =
+      sitesStyle ?? (mode === 'info' || mode === 'info_zoom' ? defaultSiteStyleInfo : undefined);
+
     return forkJoin({
       sitesGroup: this._sites_group_service.get_geometries(paramsSitesGroup),
       sites: this._sites_service.get_geometries(paramsSite),
     }).subscribe((data) => {
       this.geojsonSitesGroups = data['sitesGroup'];
-      this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+
+      if (cfgGroup.clearExisting) this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+      if (cfgSite.clearExisting) this.removeFeatureGroup(this.sitesFeatureGroup);
+
       this.sitesGroupFeatureGroup = this.setMapData(
         data['sitesGroup'],
         sitesGroupOnEachFeature,
-        sitesGroupstyle || defaultSiteGroupStyle
+        cfgGroup.layerName,
+        cfgGroup.zoom,
+        effectiveGroupStyle
       );
-      this.removeFeatureGroup(this.sitesFeatureGroup);
-      this.sitesFeatureGroup = this.setMapData(data['sites'], sitesOnEachFeature, sitesStyle);
+      this.sitesFeatureGroup = this.setMapData(
+        data['sites'],
+        sitesOnEachFeature,
+        cfgSite.layerName,
+        false, // Toujours false car on zoom sur le groupe de site
+        effectiveSiteStyle
+      );
     });
   }
 
-  getSitesGroupsGeometries(onEachFeature: Function, params = {}, style?) {
+  getSitesGroupsGeometries(
+    onEachFeature: Function,
+    params = {},
+    mode: DisplayMode = 'main',
+    style?
+  ) {
+    const cfg = this.resolveMode(mode, NAME_LAYER_GRP_SITE);
+    const effectiveStyle =
+      style ??
+      (mode === 'info' || mode === 'info_zoom' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
+
     this._sites_group_service
       .get_geometries(params)
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
-        this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+        if (cfg.clearExisting) {
+          this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+        }
+
         this.sitesGroupFeatureGroup = this.setMapData(
           data,
           onEachFeature,
-          style || defaultSiteGroupStyle
+          cfg.layerName,
+          cfg.zoom,
+          effectiveStyle
         );
       });
   }
 
-  getSitesGroupsChildGeometries(onEachFeature: Function, params = {}, style?) {
+  getSitesGroupsChildGeometries(
+    onEachFeature: Function,
+    params = {},
+    mode: DisplayMode = 'main',
+    style?
+  ) {
+    const cfg = this.resolveMode(mode, NAME_LAYER_SITE);
+    const effectiveStyle =
+      style ?? (mode === 'info' || mode === 'info_zoom' ? defaultSiteStyleInfo : undefined);
+
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
-      this.removeFeatureGroup(this.sitesFeatureGroup);
-      this.sitesFeatureGroup = this.setMapData(data, onEachFeature, style);
+      if (cfg.clearExisting) {
+        this.removeFeatureGroup(this.sitesFeatureGroup);
+      }
+      this.sitesFeatureGroup = this.setMapData(
+        data,
+        onEachFeature,
+        cfg.layerName,
+        cfg.zoom,
+        effectiveStyle
+      );
     });
   }
 
-  setGeomSiteGroupFromExistingObject(geom) {
-    this.sitesGroupFeatureGroup = this.setMapData(geom, () => {});
-  }
+  // setGeomSiteGroupFromExistingObject(geom, name:boolean = false) {
+  //   this.sitesGroupFeatureGroup = this.setMapData(geom, () => {}, name ? NAME_LAYER_SITE : null, null);
+  // }
 
   setMapData(
     geojson: GeoJSON.Geometry | GeoJSON.FeatureCollection,
     onEachFeature: Function,
+    layerName: string | null,
+    zoom: boolean = true,
     style?
-  ) {
+  ): L.FeatureGroup | undefined {
     const map = this._mapService.getMap();
     if (geojson['features'] == null) {
       return undefined;
     }
+
     const layer: L.Layer = this._mapService.createGeojson(geojson, false, onEachFeature, style);
     const featureGroup = new L.FeatureGroup();
-    this._mapService.map.addLayer(featureGroup);
     featureGroup.addLayer(layer);
-    map.fitBounds(featureGroup.getBounds());
+    this._mapService.map.addLayer(featureGroup);
 
+    if (layerName) {
+      this._mapService.layerControl.addOverlay(featureGroup, layerName);
+    }
+    if (zoom) {
+      map.fitBounds(featureGroup.getBounds());
+    }
     return featureGroup;
   }
 
   setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {
+    // ?????? usage
     for (const layer of featureGroup) {
       if (layer != undefined) {
         this._mapService.map.addLayer(layer);
@@ -144,27 +235,28 @@ export class GeoJSONService {
 
   setMapBeforeEdit(geom) {
     this.currentLayer = null;
-    this.setMapData(geom, () => {});
+    this.setMapData(geom, () => {}, null);
   }
 
   removeFeatureGroup(feature: L.FeatureGroup) {
-    if (feature && this._mapService.map) {
+    if (feature && this._mapService.map?.hasLayer(feature)) {
       this._mapService.map.removeLayer(feature);
     }
   }
 
   onEachFeature() {}
 
-  filterSitesGroups(siteGroupId: number) {
-    if (this.geojsonSitesGroups !== undefined) {
-      const features = this.geojsonSitesGroups.features.filter(
-        (feature) => feature.properties.id_sites_group == siteGroupId
-      );
-      this.geojsonSitesGroups.features = features;
-      this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-      this.setMapData(this.geojsonSitesGroups, this.onEachFeature, defaultSiteGroupStyle);
-    }
-  }
+  // Jamais appelé
+  // filterSitesGroups(siteGroupId: number) {
+  //   if (this.geojsonSitesGroups !== undefined) {
+  //     const features = this.geojsonSitesGroups.features.filter(
+  //       (feature) => feature.properties.id_sites_group == siteGroupId
+  //     );
+  //     this.geojsonSitesGroups.features = features;
+  //     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
+  //     this.setMapData(this.geojsonSitesGroups, this.onEachFeature, null, defaultSiteGroupStyle);
+  //   }
+  // }
 
   selectSitesGroupLayer(id: number, zoom: boolean) {
     this.sitesGroupFeatureGroup.eachLayer((layer) => {
@@ -222,10 +314,26 @@ export class GeoJSONService {
     });
     for (const featureGroup of listFeatureGroup) {
       this.removeFeatureGroup(featureGroup);
+      this._mapService.layerControl.removeLayer(featureGroup);
     }
   }
 
   removeFileLayerGroup() {
     this._mapService.removeAllLayers(this._mapService.map, this._mapService.fileLayerFeatureGroup);
+  }
+
+  private resolveMode(mode: DisplayMode, layerNameIfInfo: string): LayerModeConfig {
+    if (mode === 'info' || mode === 'info_zoom') {
+      return {
+        layerName: layerNameIfInfo,
+        zoom: mode === 'info_zoom',
+        clearExisting: false, // en mode info on garde les données
+      };
+    }
+    return {
+      layerName: null,
+      zoom: true,
+      clearExisting: true, // en "main", on nettoye les données à chaque appel
+    };
   }
 }

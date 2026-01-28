@@ -158,6 +158,17 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         if (this.parentsPath.includes('sites_group')) {
           this.siteGroupIdParent = data.site.id_sites_group;
         }
+        // if (this.siteGroupIdParent) {
+        //   // Quand il y a un group de site défini affichage du groupes de sites
+        //   //  et autre sites associés pour avoir des repères
+        //   this.geojsonService.getSitesGroupsGeometriesWithSites(
+        //     this.onEachFeatureSite(),
+        //     this.onEachFeatureSite(),
+        //     { id_sites_group: this.siteGroupIdParent },
+        //     { id_sites_group: this.siteGroupIdParent },
+        //     true
+        //   );
+        // }
 
         // ajout des propriétés spécifiques au type de site
         // dans l'objet MonitoringObject
