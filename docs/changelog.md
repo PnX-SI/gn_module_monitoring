@@ -1,10 +1,14 @@
 # CHANGELOG
 
+## 1.2.6 (unreleased)
+
+- Correction du remplissage automatique du champs "observateurs" (mis en place dans la 1.2.5) pour ne pas l'appliquer, dans le cas où celui-ci est masqué pour renseigner les observateurs des visites en texte uniquement (#567 par @amandine-sahl) 
+
 ## 1.2.5 (28-01-2025)
  
 **🚀 Nouveautés**
 
-- Amélioration de la vue d'exemple alimentant la Synthèse depuis un sous-module Monitoring (`data/synthese_svo.sql`), en renseignant le champs "Nom lieu" de la Synthèse (`place_name`) avec le nom du site (`base_site_name`) (#549 par @maximetoma)
+- Amélioration de la vue SQL d'exemple alimentant la Synthèse depuis un sous-module Monitoring (`data/synthese_svo.sql`), en renseignant le champs "Nom lieu" de la Synthèse (`place_name`) avec le nom du site (`base_site_name`) (#549 par @maximetoma)
 - Remplissage automatique des formulaires par des valeurs par défaut (#553 par @amandine-sahl)
   - Site : date création (aujourd'hui), créateur (utilisateur connecté)
   - Visite : date de la visite (aujourd'hui), observateur (utilisateur connecté)
@@ -20,6 +24,10 @@
 - Correction des actions Github. Répercussion de la mise à jour des dépendances (#561 par @amandine-sahl)
   - pytest
   - black
+
+**⚠️ Notes de version**
+
+- Si vous souhaitez alimenter le champs "Nom du lieu" (`place_name`) de la table Synthèse avec les noms de site des observations, répercutez l'évolution de la vue d'exemple (`data/synthese_svo.sql`) dans les fichiers `synthese.sql` de vos sous-modules, mettez à jour les vues concernées, puis relancer la synchronisation de la synthèse depuis vos sous-modules de Monitoring concernés.
 
 ## 1.2.4 (2025-12-30)
 
