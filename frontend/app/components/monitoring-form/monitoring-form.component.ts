@@ -399,6 +399,7 @@ export class MonitoringFormComponent implements OnInit {
       month: date.getUTCMonth() + 1,
       day: date.getUTCDate(),
     };
+
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
       id_inventor:
@@ -412,6 +413,21 @@ export class MonitoringFormComponent implements OnInit {
       visit_date_min: value['visit_date_min'] || today,
       visit_date_max: value['visit_date_max'] || today,
     };
+
+    // Specificité du champ observers
+    // Si la config le rend hidden ou que le type de widget n'est pas observers
+    // On supprime la valeur par défaut pour éviter des erreurs ou incohérence
+    const observers_config = {
+      ...(this.obj.config['generic'] || {})['observers'],
+      ...(this.obj.config['specific'] || {})['observers'],
+    };
+    if (
+      (observers_config || {})['hidden'] == true ||
+      (observers_config || {})['type_widget'] !== 'observers'
+    ) {
+      delete defaultValue['observers'];
+    }
+
     this.objForm.patchValue(defaultValue);
   }
 
