@@ -441,7 +441,8 @@ export class MonitoringFormComponent implements OnInit {
     }
     this.objForm.patchValue({ geometry: null });
     this.initForm();
-    // });
+    // Force le rafraichissement des géométries de façon à ammender le layer avec la dernière données saisie
+    this.display_geometry();
   }
 
   /** Pour donner des valeurs par defaut si la valeur n'est pas définie
@@ -951,6 +952,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   ngOnDestroy() {
+    this._geojsonService.removeAllFeatureGroup();
     this.objForm.patchValue({ geometry: null });
   }
 }

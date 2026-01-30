@@ -241,6 +241,7 @@ export class GeoJSONService {
   removeFeatureGroup(feature: L.FeatureGroup) {
     if (feature && this._mapService.map?.hasLayer(feature)) {
       this._mapService.map.removeLayer(feature);
+      this._mapService.layerControl.removeLayer(feature);
     }
   }
 
@@ -322,12 +323,24 @@ export class GeoJSONService {
     this._mapService.removeAllLayers(this._mapService.map, this._mapService.fileLayerFeatureGroup);
   }
 
-  private resolveMode(mode: DisplayMode, layerNameIfInfo: string): LayerModeConfig {
+  /**
+   * Détermine la configuration du mode d'affichage d'un layer.
+   *
+   * @param mode - Type d'affichage demandé ("info", "info_zoom" ou "main")
+   * @param layerName - Nom du layer concerné (utilisé uniquement pour les modes info)
+   * @returns Un objet LayerModeConfig décrivant le comportement attendu
+   */
+
+  private resolveMode(mode: DisplayMode, layerName: string): LayerModeConfig {
+    // Modes "info" :
+    // - "info"      : Affichage dans le layer Control pas de zoom automatique
+    // - "info_zoom" : Affichage dans le layer Control zoom forcé sur l'entité cliquée
+    // - "main"      : Affichage en tant qu'élement principal de la carte zoom forcé sur l'entité cliquée
     if (mode === 'info' || mode === 'info_zoom') {
       return {
-        layerName: layerNameIfInfo,
+        layerName: layerName,
         zoom: mode === 'info_zoom',
-        clearExisting: false, // en mode info on garde les données
+        clearExisting: this.testLayerControlExists(layerName), // test si le layer est déjà présent dans Layercontrol
       };
     }
     return {
@@ -335,5 +348,21 @@ export class GeoJSONService {
       zoom: true,
       clearExisting: true, // en "main", on nettoye les données à chaque appel
     };
+  }
+
+  /**
+   * Vérifie si un layer  (défini par son nom)  existe déjà
+   * dans le LayerControl de la carte.
+   *
+   * @param layerName - Nom du layer à rechercher
+   * @returns true si un overlay du LayerControl possède ce nom, sinon false
+   */
+  private testLayerControlExists(layerName: string): boolean {
+    const layers = this._mapService.layerControl?.['_layers'] ?? [];
+    const overlayNames = new Set(layers.filter((o: any) => o?.overlay).map((o: any) => o?.name));
+    if (overlayNames.has(layerName)) {
+      return true;
+    }
+    return false;
   }
 }
