@@ -1,10 +1,20 @@
 # CHANGELOG
 
-## 1.2.6 (unreleased)
+## 1.2.6 (30-01-2026)
+
+**🚀 Nouveautés**
+ - Affichage cartographique des éléments lors de l'édition d'un site ou d'un groupe de site (les éléments sont activables/désactivables via le layerControl de leaflet):
+ 	- site : affichage des sites du module
+  	- groupe de site : affichage des groupes de sites du module
+    - site associé à un groupe de site : affichage du groupe de site avec les sites associés
+
+**🐛 Corrections**
 
 - Correction du remplissage automatique du champs "observateurs" (mis en place dans la 1.2.5) pour ne pas l'appliquer, dans le cas où celui-ci est masqué pour renseigner les observateurs des visites en texte uniquement (#567 par @amandine-sahl) 
+- Correction d'un bug de la modification d'une visite liée aux observateurs (#568 par @amandine-sahl)
+- Correction du texte de traduction dans la modale de suppression (#570 par @amandine-sahl)
 
-## 1.2.5 (28-01-2025)
+## 1.2.5 (28-01-2026)
  
 **🚀 Nouveautés**
 
