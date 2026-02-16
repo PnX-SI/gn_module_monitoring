@@ -43,8 +43,7 @@ def downgrade():
 
     # Remove all GNM related objects
 
-    op.execute(
-        """
+    op.execute("""
         DELETE FROM
             gn_permissions.t_permissions p
         USING gn_permissions.t_objects o
@@ -52,11 +51,9 @@ def downgrade():
                 p.id_object = o.id_object
                 AND o.code_object like 'GNM_%'
             ;
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         DELETE FROM
             gn_permissions.t_permissions_available p
         USING gn_permissions.t_objects o
@@ -64,8 +61,7 @@ def downgrade():
                 p.id_object = o.id_object
                 AND o.code_object like 'GNM_%'
             ;
-        """
-    )
+        """)
 
     statement = sa.delete(TObjects).where(TObjects.code_object.like("GNM_%"))
     op.execute(statement)

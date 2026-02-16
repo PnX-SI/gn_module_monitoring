@@ -9,7 +9,6 @@ Create Date: 2024-01-11 17:25:05.135068
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "7fbcdd93626a"
 down_revision = "f3413cccdfa8"
@@ -18,8 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
 
         DROP TRIGGER IF EXISTS trg_delete_synthese_observations ON gn_monitoring.t_observations;
         DROP FUNCTION IF EXISTS gn_synthese.fct_trg_delete_synthese_observations();
@@ -50,17 +48,14 @@ def upgrade():
         CREATE TRIGGER trg_delete_synthese_visits AFTER DELETE ON gn_monitoring.t_base_visits
             FOR EACH ROW EXECUTE PROCEDURE gn_synthese.fct_trg_delete_synthese_visits();
 
-    """
-    )
+    """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
         DROP TRIGGER trg_delete_synthese_observations ON gn_monitoring.t_observations;
         DROP FUNCTION gn_synthese.fct_trg_delete_synthese_observations();
 
         DROP TRIGGER trg_delete_synthese_visits ON gn_monitoring.t_base_visits;
         DROP FUNCTION gn_synthese.fct_trg_delete_synthese_visits();
-    """
-    )
+    """)

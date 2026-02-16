@@ -46,7 +46,6 @@ from gn_module_monitoring.config.utils import (
 from gn_module_monitoring.utils.utils import extract_keys
 from gn_module_monitoring.modules.repositories import get_module, get_source_by_code, get_modules
 
-
 """
 utils.py
 

@@ -16,7 +16,6 @@ from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 from gn_module_monitoring.utils.utils import extract_keys
 
-
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
 SITES_GROUP_CONFIG = {

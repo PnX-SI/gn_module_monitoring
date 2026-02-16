@@ -18,8 +18,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE gn_monitoring.t_observation_details
             DROP CONSTRAINT pk_t_observation_details;
         ALTER TABLE gn_monitoring.t_observation_details
@@ -27,13 +26,11 @@ def upgrade():
 
         ALTER TABLE gn_monitoring.t_observation_details
             ADD uuid_observation_detail UUID DEFAULT uuid_generate_v4() NOT NULL;
-    """
-    )
+    """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE gn_monitoring.t_observation_details
             DROP CONSTRAINT pk_t_observation_details;
         ALTER TABLE gn_monitoring.t_observation_details
@@ -41,5 +38,4 @@ def downgrade():
 
         ALTER TABLE gn_monitoring.t_observation_details
             DROP COLUMN uuid_observation_detail;
-    """
-    )
+    """)
