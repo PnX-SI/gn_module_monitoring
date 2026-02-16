@@ -191,9 +191,22 @@ class SiteImportActions:
         from gn_module_monitoring.monitoring.import_actions.observation_actions import (
             ObservationImportActions,
         )
+        from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
 
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem
+
+        deepest_child_entity_code = SiteImportActions.ENTITY_CODE
+
+        if EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        ):
+            deepest_child_entity_code = ObservationImportActions.ENTITY_CODE
+        elif EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, VisitImportActions.ENTITY_CODE
+        ):
+            deepest_child_entity_code = VisitImportActions.ENTITY_CODE
+
         return compute_bounding_box(
             imprt=imprt,
             geom_entity_code=SiteImportActions.ENTITY_CODE,
@@ -201,7 +214,7 @@ class SiteImportActions:
             geom_4326_field_name__destination=EntityImportActionsUtils.get_destination_column_name(
                 SiteImportActions.GEOMETRY_FIELD
             ),
-            child_entity_code=ObservationImportActions.ENTITY_CODE,
+            child_entity_code=deepest_child_entity_code,
         )
 
     @staticmethod

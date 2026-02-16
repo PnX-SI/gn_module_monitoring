@@ -119,6 +119,10 @@ class MonitoringImportActions(ImportActions):
 
         config = get_config(imprt.destination.code)
 
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+
         task.update_state(state="PROGRESS", meta={"progress": 0})
         init_rows_validity(imprt)
         task.update_state(state="PROGRESS", meta={"progress": 0.05})
@@ -134,14 +138,20 @@ class MonitoringImportActions(ImportActions):
         # check_types overriding generated values during SQL checks.
         SiteImportActions.check_dataframe(imprt, config)
         VisitImportActions.check_dataframe(imprt)
-        ObservationImportActions.check_dataframe(imprt)
+        if isObservation:
+            ObservationImportActions.check_dataframe(imprt)
 
         SiteImportActions.check_sql(imprt)
         VisitImportActions.check_sql(imprt)
-        ObservationImportActions.check_sql(imprt)
+        if isObservation:
+            ObservationImportActions.check_sql(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+
         transient_table = imprt.destination.get_transient_table()
         entities = {
             entity.code: entity
@@ -156,13 +166,14 @@ class MonitoringImportActions(ImportActions):
                 .all()
             )
         }
-
         SiteImportActions.generate_id(imprt)
         VisitImportActions.generate_id(imprt)
-        ObservationImportActions.generate_id(imprt)
+        if isObservation:
+            ObservationImportActions.generate_id(imprt)
 
         VisitImportActions.set_parent_id_from_line_no(imprt)
-        ObservationImportActions.set_parent_id_from_line_no(imprt)
+        if isObservation:
+            ObservationImportActions.set_parent_id_from_line_no(imprt)
 
         for entity in entities.values():
             print(f"--------- {entity.code}")
