@@ -119,6 +119,9 @@ class MonitoringImportActions(ImportActions):
 
         config = get_config(imprt.destination.code)
 
+        isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, VisitImportActions.ENTITY_CODE
+        )
         isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, ObservationImportActions.ENTITY_CODE
         )
@@ -132,22 +135,28 @@ class MonitoringImportActions(ImportActions):
         # We first check site and visit consistency in order to avoid checking
         # incoherent data
         SiteImportActions.check_entity_data_consistency(imprt)
-        VisitImportActions.check_entity_data_consistency(imprt)
+        if isVisit:
+            VisitImportActions.check_entity_data_consistency(imprt)
 
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
         SiteImportActions.check_dataframe(imprt, config)
-        VisitImportActions.check_dataframe(imprt)
+        if isVisit:
+            VisitImportActions.check_dataframe(imprt)
         if isObservation:
             ObservationImportActions.check_dataframe(imprt)
 
         SiteImportActions.check_sql(imprt)
-        VisitImportActions.check_sql(imprt)
+        if isVisit:
+            VisitImportActions.check_sql(imprt)
         if isObservation:
             ObservationImportActions.check_sql(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
+        isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, VisitImportActions.ENTITY_CODE
+        )
         isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, ObservationImportActions.ENTITY_CODE
         )
@@ -167,11 +176,13 @@ class MonitoringImportActions(ImportActions):
             )
         }
         SiteImportActions.generate_id(imprt)
-        VisitImportActions.generate_id(imprt)
+        if isVisit:
+            VisitImportActions.generate_id(imprt)
         if isObservation:
             ObservationImportActions.generate_id(imprt)
 
-        VisitImportActions.set_parent_id_from_line_no(imprt)
+        if isVisit:
+            VisitImportActions.set_parent_id_from_line_no(imprt)
         if isObservation:
             ObservationImportActions.set_parent_id_from_line_no(imprt)
 
