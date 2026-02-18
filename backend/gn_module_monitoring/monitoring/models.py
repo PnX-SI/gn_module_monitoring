@@ -275,7 +275,6 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
             "gn_monitoring.t_sites_groups.id_sites_group",
             # ondelete='SET NULL'
         ),
-        nullable=False,
     )
 
     data = DB.Column(JSONB)
