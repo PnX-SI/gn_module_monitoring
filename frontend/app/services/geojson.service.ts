@@ -180,6 +180,7 @@ export class GeoJSONService {
       if (cfg.clearExisting) {
         this.removeFeatureGroup(this.sitesFeatureGroup);
       }
+
       this.sitesFeatureGroup = this.setMapData(
         data,
         onEachFeature,
@@ -206,17 +207,19 @@ export class GeoJSONService {
       return undefined;
     }
 
-    const layer: L.Layer = this._mapService.createGeojson(geojson, false, onEachFeature, style);
-    const featureGroup = new L.FeatureGroup();
-    featureGroup.addLayer(layer);
-    this._mapService.map.addLayer(featureGroup);
-
+    const featureGroup: L.FeatureGroup = this._mapService.createOrderedGeojson(
+      geojson,
+      false,
+      onEachFeature,
+      style
+    );
     if (layerName) {
       this._mapService.layerControl.addOverlay(featureGroup, layerName);
     }
     if (zoom) {
       map.fitBounds(featureGroup.getBounds());
     }
+
     return featureGroup;
   }
 
