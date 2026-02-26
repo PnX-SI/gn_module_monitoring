@@ -36,6 +36,7 @@ def prepare_fields(specific_data, generic_data, entity_code, id_destination, par
         "nb_observations",  # dynamic
         "nb_individuals",  # dynamic
         "medias",  # not importable
+        "id_sites_group",  # ignored for now
     ]
 
     field_set_manually = []
