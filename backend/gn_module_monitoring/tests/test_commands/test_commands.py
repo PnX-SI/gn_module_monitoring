@@ -174,9 +174,7 @@ class TestCommands:
 
         # Edit field
         for field in protocol_data["site"]["specific"]:
-            print(field["name_field"])
             if field["name_field"] == "s__place_name":
-                print("aaaaaaaaaaaa")
                 field["fr_label"] = "Test Modified"
                 field["eng_label"] = "Test Modified"
                 break

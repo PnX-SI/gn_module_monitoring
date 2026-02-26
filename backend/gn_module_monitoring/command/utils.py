@@ -176,7 +176,6 @@ def process_module_import(module_data):
             module_code = module_data["module_code"]
 
             protocol_data, entity_hierarchy_map = get_protocol_data(module_code, id_destination)
-
             insert_bib_field(protocol_data)
 
             insert_entities(
