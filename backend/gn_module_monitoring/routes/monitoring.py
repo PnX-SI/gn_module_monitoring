@@ -11,6 +11,7 @@ from flask import request, url_for, g, current_app
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import NoSuchTableError
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp
@@ -358,7 +359,7 @@ def export_all_observations(module_code, method):
             geometry_field=None,
             srid=None,
         )
-    except KeyError:
+    except (KeyError, NoSuchTableError):
         return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
     model = export.get_model()
