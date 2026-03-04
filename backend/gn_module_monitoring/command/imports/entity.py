@@ -8,6 +8,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from gn_module_monitoring.command.imports.constant import (
+    ENTITIES_NOT_AVAILABLE,
     TABLE_NAME_SUBMODULE,
     TOOLTIPS,
     UUID_FIELD_NAME,
@@ -40,10 +41,9 @@ def get_entities_protocol(module_code: str) -> list:
     tree = data_config.get("tree", {}).get("module", {})
     keys = extract_keys(tree)
     unique_keys = list(dict.fromkeys(keys))
-    if "sites_group" in unique_keys:
-        unique_keys.remove(
-            "sites_group"
-        )  # sites_group are not available for import at the moment.
+    for key in list(unique_keys):
+        if key in ENTITIES_NOT_AVAILABLE:
+            unique_keys.remove(key)
     return unique_keys
 
 
@@ -160,7 +160,6 @@ def get_entity_ids_dict(protocol_data: dict, id_destination: int):
     Récupère les IDs des entités depuis bib_entities
     """
     entity_code_map = {"observation_detail": "obs_detail"}
-
     return {
         entity_code: DB.session.execute(
             select(Entity.id_entity).filter_by(
@@ -177,7 +176,6 @@ def insert_entity_field_relations(protocol_data, id_destination, entity_hierarch
     """
     bib_themes = get_themes_dict()
     entity_ids = get_entity_ids_dict(protocol_data, id_destination)
-
     for entity_code, fields in protocol_data.items():
         entity_id = entity_ids.get(entity_code)
         display_properties = protocol_data[entity_code].get("display_properties", [])

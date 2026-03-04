@@ -49,7 +49,6 @@ def install_test_module_with_import(install_module_test):
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
 
-    print(result.output)
     assert result.exit_code == 0
 
 
