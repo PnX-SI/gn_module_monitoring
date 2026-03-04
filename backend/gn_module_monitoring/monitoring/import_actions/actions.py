@@ -35,6 +35,7 @@ from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitIm
 from gn_module_monitoring.monitoring.import_actions.observation_actions import (
     ObservationImportActions,
 )
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
 def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
@@ -191,41 +192,53 @@ class MonitoringImportActions(ImportActions):
 
             entity_fields = EntityImportActionsUtils.get_destination_fields(imprt, entity)
 
-            core_fields = []
             core_dest_col_names = ["id_import", "id_digitiser"]
+            core_select_cols = [
+                sa.literal(imprt.id_import).label("id_import"),
+                sa.literal(imprt.authors[0].id_role).label("id_digitiser"),
+            ]
             complement_fields = []
             destination_model = get_entity_model(entity)
             destination_table = destination_model.__table__
             destination_col_names = list(destination_table.columns.keys())
 
+            # Add default values for hidden fields (lockstep with core_dest_col_names)
+            default_values = EntityImportActionsUtils.get_default_values_for_hidden_fields(
+                imprt, entity.code
+            )
+            for field, default_value in default_values.items():
+                dest_col_name = EntityImportActionsUtils.get_destination_column_name(
+                    field.dest_field
+                )
+                if dest_col_name not in core_dest_col_names:
+                    core_dest_col_names.append(dest_col_name)
+                    core_select_cols.append(sa.literal(default_value).label(dest_col_name))
+
+            # Add core fields (lockstep with core_dest_col_names)
             for field in entity_fields:
-                col_name = EntityImportActionsUtils.get_destination_column_name(field.dest_field)
-                if col_name in destination_col_names and col_name not in core_dest_col_names:
-                    core_fields.append(field)
-                    core_dest_col_names.append(col_name)
+                dest_col_name = EntityImportActionsUtils.get_destination_column_name(
+                    field.dest_field
+                )
+                if (
+                    dest_col_name in destination_col_names
+                    and dest_col_name not in core_dest_col_names
+                ):
+                    core_dest_col_names.append(dest_col_name)
+                    core_select_cols.append(
+                        transient_table.c[field.dest_field].label(dest_col_name)
+                    )
                 else:
                     complement_fields.append(field)
 
-            core_select_cols = [
-                sa.literal(imprt.id_import).label("id_import"),
-                sa.literal(imprt.authors[0].id_role).label("id_digitiser"),
-            ]
-            core_select_cols.extend(
-                transient_table.c[field.dest_field].label(
-                    EntityImportActionsUtils.get_destination_column_name(field.dest_field)
-                )
-                for field in core_fields
-            )
             if entity.code == "visit":
-                core_select_cols.append(sa.literal(imprt.destination.id_module).label("id_module"))
                 core_dest_col_names.append("id_module")
+                core_select_cols.append(sa.literal(imprt.destination.id_module).label("id_module"))
+
             core_select_stmt = (
                 sa.select(*core_select_cols)
                 .where(transient_table.c.id_import == imprt.id_import)
                 .where(transient_table.c[entity.validity_column] == True)
-                .order_by(
-                    transient_table.c.line_no
-                )  # Required for the process of inserting observation complements
+                .order_by(transient_table.c.line_no)
             )
 
             # IF NO ENTITY to INSERT continue
@@ -285,19 +298,16 @@ class MonitoringImportActions(ImportActions):
                 )
 
                 if entity.code == "observation":
-                    compiled_select_core = core_select.compile(
-                        compile_kwargs={"literal_binds": True}
+                    sql_query_obs = (
+                        pg_insert(destination_table)
+                        .from_select(names=core_dest_col_names, select=core_select)
+                        .returning(destination_table.c.id_observation)
                     )
-                    sql_query_obs = f"""
-                    INSERT INTO {destination_table.fullname} ({' ,'.join(core_dest_col_names)}) {compiled_select_core}
-                    RETURNING id_observation
-                    """
-                    result = db.session.execute(sa.text(sql_query_obs))
+                    result = db.session.execute(sql_query_obs)
                     created_ids = result.scalars().all()
                     row_count += result.rowcount
 
                     if complement_select_stmt is not None:
-                        # CTE pour récupérer les observations insérées, avec un row_number basé sur id_observation
                         obs_ordered_cte = (
                             sa.select(
                                 destination_table.c.id_observation,
@@ -309,7 +319,6 @@ class MonitoringImportActions(ImportActions):
                             .cte("obs_ordered")
                         )
 
-                        # CTE pour le complement_select_stmt, en ajoutant un row_number basé sur line_no
                         comp_cte = (
                             complement_select_stmt.add_columns(
                                 sa.func.row_number()
@@ -323,7 +332,6 @@ class MonitoringImportActions(ImportActions):
                             .cte("comp_cte")
                         )
 
-                        # On effectue la jointure sur row_num pour associer chaque observation à la ligne complémentaire correspondante
                         final_select = sa.select(
                             obs_ordered_cte.c.id_observation, comp_cte.c.data
                         ).select_from(
@@ -332,14 +340,11 @@ class MonitoringImportActions(ImportActions):
                             )
                         )
 
-                        # Insertion dans model_complements via from_select
                         final_insert = sa.insert(model_complements).from_select(
                             ["id_observation", "data"], final_select
                         )
-
                         db.session.execute(final_insert)
                 else:
-
                     core_insert_stmt = sa.insert(destination_model).from_select(
                         names=core_dest_col_names, select=core_select
                     )
@@ -371,7 +376,6 @@ class MonitoringImportActions(ImportActions):
             imprt.statistics.update({f"{entity.code}_count": row_count})
 
             if entity.code == "visit" and MonitoringImportActions.is_observer_mapping_enabled():
-
                 if "v__observers" in imprt.fieldmapping:
                     if imprt.fieldmapping["v__observers"].get("constant_value", None) is not None:
                         db.session.execute(
@@ -397,6 +401,7 @@ class MonitoringImportActions(ImportActions):
                             CorVisitObserver,
                             ["id_base_visit", "id_role"],
                         )
+
         imprt.statistics.update(ObservationImportActions.compute_taxa_statistics(imprt))
 
         # filter empty statistics

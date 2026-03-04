@@ -92,3 +92,16 @@ class EntityImportActionsUtils:
             return True
         except NoResultFound:
             return False
+
+    @staticmethod
+    def get_default_values_for_hidden_fields(imprt: TImports, entity_code: str):
+        default_values = {}
+        if EntityImportActionsUtils.is_entity_defined_in_import(imprt, entity_code):
+            entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
+            fields = [ef.field for ef in entity.fields]
+            for field in fields:
+                if not field.display and field.type_field_params is not None:
+                    default_value = field.type_field_params.get("value", None)
+                    if default_value is not None:
+                        default_values[field] = default_value
+        return default_values
