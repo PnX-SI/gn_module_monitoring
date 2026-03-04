@@ -88,7 +88,6 @@ def get_protocol_data(module_code: str, id_destination: int):
     for entity_code in entity_confs:
         entity_conf = entity_confs[entity_code]
         parent_entity = get_entity_parent(tree, entity_code)
-        print("aaaaaaaaaaa", parent_entity)
         specific_data = entity_conf["specific_data"]
         generic_data = entity_conf["generic_data"]
         id_field_name = generic_data.get("id_field_name")
@@ -264,7 +263,7 @@ def get_protocol_data(module_code: str, id_destination: int):
         )
 
     # Add observation_detail the file exists
-    if "observation" in entities:
+    if "observation_detail" in entities:
         observation_detail_specific_path = module_config_dir_path / "observation_detail.json"
         observation_detail_generic_path = os.path.join(
             project_root, "config", "generic", "observation_detail.json"
