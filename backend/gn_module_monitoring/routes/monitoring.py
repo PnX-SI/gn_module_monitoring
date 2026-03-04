@@ -11,6 +11,7 @@ from werkzeug.exceptions import Forbidden
 from flask import request, url_for, g, current_app
 
 from sqlalchemy import select, update
+from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
@@ -363,7 +364,7 @@ def export_all_observations(module_code, method):
             geometry_field=None,
             srid=None,
         )
-    except KeyError or sa.exc.NoSuchTableError:
+    except (KeyError, NoSuchTableError):
         return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
     model = export.get_model()
