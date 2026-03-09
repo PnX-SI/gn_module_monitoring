@@ -16,16 +16,22 @@ Ce développement a été réalisé dans le cadre d’un financement de PatriNat
 
 ## Comment importer les données ? 
 
-### Plusieurs manières de lancer un import 
+Un import peut être lancé de deux façons : depuis le module Import directement, ou depuis une
+entité parente (par exemple, importer des visites depuis un site, ou des observations depuis une
+visite).
 
- - Depuis le module d'import
- - Depuis une entité parente : importer des visites depuis un site, importer des observations depuis une visite ![Illustration du bouton importer dans le module monitoring](./images/import/import_import_from_monitoring.png)
+![Illustration du bouton importer dans le module monitoring](./images/import/import_import_from_monitoring.png)
 
-### Format de données attendues
 
-L'import monitoring comme l'import Occhab implique l'import de plusieurs entités différentes. Comme ce dernier l'ensemble des entités que l'on souhaite importés doivent se trouver dans un même fichier et suivent le format de données suivant : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
+Toutes les entités à importer doivent figurer dans un seul et même fichier CSV, selon le format
+défini dans la documentation GeoNature. Vous pouvez trouver un exemple ici : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
+
+> [!IMPORTANT]
+> Pour pouvoir importer des données, il faut disposer des permissions sur l'action C dans le module Import et l'action C dans le sous-module Monitoring concernés.
 
 ## Mise en correspondance des observateurs
+
+Depuis la version 2.17.0, l'import permet aussi de mettre en correspondance des observateurs par site et par visite.
 
 ### Observateurs des sites
 
