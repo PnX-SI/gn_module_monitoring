@@ -24,7 +24,7 @@ visite).
 
 
 Toutes les entités à importer doivent figurer dans un seul et même fichier CSV, selon le format
-défini dans la documentation GeoNature. Vous pouvez trouver un exemple ici : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
+défini dans la documentation GeoNature. Vous pouvez trouver un exemple ici pour Occhab, ayant une logique similaire : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
 
 > [!IMPORTANT]
 > Pour pouvoir importer des données, il faut disposer des permissions sur l'action C dans le module Import et l'action C dans le sous-module Monitoring concernés.
@@ -35,14 +35,14 @@ Depuis la version 2.17.0, l'import permet aussi de mettre en correspondance des 
 
 ### Observateurs des sites
 
-Lors de la saisie d'un site, un champ unique permet de mettre en correspondance un observateur par site. En base de données ce champ est stocké dans la table `gn_monitoring.t_base_sites` dans la colonne `id_inventor`. Si un observateur n'est pas mappé, la colonne `id_inventor` ne sera pas remplie.
+Lors de la saisie d'un site, un champ unique permet de mettre en correspondance un observateur par site. En base de données ce champ est stocké dans la table `gn_monitoring.t_base_sites` dans la colonne `id_inventor`. Si vous ne mappez pas un observateur, la colonne `id_inventor` ne sera pas remplie.
 
 
 ### Observateurs des visites
 
-Lors de la saisie d'une visite, deux champs paramétrables sont disponibles. L'un permet de sélectionner des utilisateurs et l'autre permet d'indiquer les observateurs dans une chaîne de caractères. Dans le premier cas, la table de correspondance `gn_monitoring.cor_visit_observer` est remplie automatiquement, et dans le second cas, la colonne `observer_txt` est remplie. Il est conseillé dans la documentation que seul un des deux champs soient utilisés.
+Lors de la saisie d'une visite, deux champs paramétrables sont disponibles. L'un permet de sélectionner des utilisateurs dans une liste et l'autre permet d'indiquer les observateurs dans un champ texte. Dans le premier cas, la table de correspondance `gn_monitoring.cor_visit_observer` est remplie automatiquement, et dans le second cas, c'est la colonne `observer_txt` qui est remplie. Il est conseillé dans la documentation que seul un des deux champs soit utilisé.
 
-Dans le cadre de l'import, seul les observateurs données dans les champs "Observateurs" (1er cas) seront utilisées pour la mise en correspondance.
+Dans le cadre de l'import, seuls les observateurs renseignés dans les champs "Observateurs" de type liste (1er cas) seront utilisés pour la mise en correspondance avec les utilisateurs existants dans l'instance GeoNature.
 
 
 ## Activation de l'import dans un protocole de suivi Monitoring
@@ -51,18 +51,18 @@ Pour pouvoir importer des données d'un sous-module Monitoring, il faut d'abord 
 
 Une fois le sous-module configuré, il suffit de lancer la commande `geonature monitorings process_import <module_code>`.
 
-Une fois la commande exécutée, le sous-module devient accessible dans la liste des destinations de l'import :
+Une fois la commande exécutée, le sous-module devient accessible dans la liste des destinations du module Import :
 
 ![Image qui montre l'affichage de la destination nouvellement créée à l'issue de la commande process_import](./images/import/import_destination_available.png)
 
-Les utilisateurs qui peuvent importer des données dans un sous-module Monitoring sont celles qui ont des permissions de création sur ce sous-module ainsi que sur le module Import.
+Les utilisateurs qui peuvent importer des données dans un sous-module Monitoring sont ceux qui ont des permissions de création sur ce sous-module ainsi que sur le module Import.
 
 > [!IMPORTANT]
-> A ce jour, l'autorisation d'importer une entité ne s'appuie pas sur la permission correspondante. Si un l'utilisateur à l'autorisation de créer une des trois entités (visite, sites ou observations) alors il est autorisé à créer un import.
+> A ce jour, la permission d'importer une entité ne s'appuie pas sur la permission correspondante. Si un l'utilisateur a la permission de créer une des trois entités (visite, sites ou observations) alors il est autorisé à créer un import.
 
 Pour en savoir plus sur le fonctionnement du module Import, voir sa documentation sur https://docs.geonature.fr/user-manual.html#import
 
 ## En cas de mise à jour du sous-module
 
-En cas de mise à jour de la configuration du sous-module, il faut relancer la commande suivante pour répercuter les modifications de la définition des champs additionnels des sites, visites et observations dans la table `gn_imports.bib_fields` : `geonature monitorings process_import <module_code>`.
+En cas de mise à jour de la configuration d'un sous-module, il faut relancer la commande suivante pour répercuter dans la table `gn_imports.bib_fields`, les modifications de la définition des champs additionnels des sites, visites et observations : `geonature monitorings process_import <module_code>`.
 
