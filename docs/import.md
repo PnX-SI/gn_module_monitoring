@@ -1,24 +1,29 @@
 # Import de données protocolées en utilisant le module Import
 
 Depuis la version 2.17.0 de GeoNature, un ensemble de fonctionnalités ont été ajoutées permettant d'importer des données de sites, visites et/ou observations depuis des fichiers CSV dans le module Monitoring, en s'appuyant sur le module Import de GeoNature.
-    
-Ce développement a été réalisé dans le cadre d’un financement de PatriNat et du ministère de la Transition écologique, avec Natural Solutions et le Parc national des Écrins en charge des travaux d'intégration dans le module Monitoring.
 
-## Prérequis
+>[!NOTE]    
+>Ce développement a été réalisé dans le cadre d’un financement de PatriNat et du ministère de la Transition écologique, avec Natural Solutions et le Parc national des Écrins en charge des travaux d'intégration dans le module Monitoring.
+
+## Pré-requis
 
 - Disposer de la version 2.17.0 (ou plus) de GeoNature
 
 ## Compatibilité avec les protocoles
 
-- L'import permet, à ce jour, d'importer des sites, des visites et des observations.
-- L'intégration de l'import Monitoring ne permet pas encore d'importer les groupes de sites. Des développements sont en cours.
-- Les instructions en JavaScript utilisées pour paramétrer l'affichage ou non d'un champ pour une entité (site, visite, observation) ne sont pas encore prises en compte. Des développements sont en cours.
+- L'import Monitoring permet uniquement importer des sites, des visites et des observations.
+- Les instructions en JavaScript (JS) utilisées pour paramétrer un champ d'une entité (site, visite, observation) ne sont pas encore prises en compte. Ces instructions sont autorisées dans les propriétés `hidden` et `required`. À ce jour :
+
+    - Si l'affichage d'un champs (propriété `hidden`) est conditionné par un instruction en JS, il est affiché dans les champs de l'import. 
+    - Si l'obligation d'un champ (propriété `required`) est conditionné par une instruction en JS, ce dernier est requis par défaut dans les champs de l'import.
+
+    Des développements sont en cours pour que ces conditions en JS deviennent utilisables dans le module Monitoring et dans le module Import.
 
 ## Comment importer les données ? 
 
-Un import peut être lancé de deux façons : depuis le module Import directement, ou depuis une
-entité parente (par exemple, importer des visites depuis un site, ou des observations depuis une
-visite).
+Un import peut être lancé de deux façons : **depuis le module Import** directement, ou **depuis une
+entité parente**, *i.e. importer des visites depuis un site, ou des observations depuis une visite* (Accessible depuis le bouton `Importer` dans le module Import, cf. image ci-dessous). 
+
 
 ![Illustration du bouton importer dans le module monitoring](./images/import/import_import_from_monitoring.png)
 
