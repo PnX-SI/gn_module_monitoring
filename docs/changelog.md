@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 1.3.0 (11-03-2026)
+
+Nécessite GeoNature 2.17.0 (ou plus).
+
+**🚀 Nouveautés**
+
+- Possibilité d'utiliser le module Import de GeoNature pour importer des sites, visites et/ou observations depuis des fichiers CSV (#457)
+- Documentation de l'import Monitoring sur https://github.com/PnX-SI/gn_module_monitoring/blob/main/docs/import.md
+
+**⚠️ Notes de version**
+
+- Pour pouvoir utiliser le module Import pour un sous-module de Monitoring, il faut le déclarer dans les destinations d'import et renseigner ses champs dans la table `gn_imports.bib_fields` (entre autres). 
+- Pour vos sous-modules déjà installés, vous devez lancer la commande de déclaration et mise à jour des imports vers un sous-module : `geonature monitorings process_import <module_code>`.
+- De la même manière quand vous mettez à jour la configuration d'un sous-module, il faut relancer cette commande `geonature monitorings process_import <module_code>` pour répercuter dans la table `gn_imports.bib_fields`, les modifications de la définition des champs additionnels des sites, visites et observations.
+
 ## 1.2.6 (30-01-2026)
 
 **🚀 Nouveautés**
@@ -62,14 +77,12 @@
 - Rétrocompatibilité de la redirection du menu latéral vers le protocole monitoring (#506 par @amandine-sahl)
 - Correction des formulaires concernant les observateurs dans l'édition de site et l'édition de visite (#508 par @amandine-sahl)
 
-
 ## 1.2.2 (2025-09-28)
 
 **🐛 Corrections**
 
 - Correction de l'affichage des sous-modules quand seuls les groupes de site sont définis dans l'objet `tree` de la config du sous-module (#500, #501 par @amandine-sahl)
 - Correction de la prise en compte des permissions d'ajout des marquages depuis la liste des individus (#500, #502 par @amandine-sahl)
-
 
 ## 1.2.1 (2025-09-17)
 
