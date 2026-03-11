@@ -14,7 +14,7 @@ Depuis la version 2.17.0 de GeoNature, un ensemble de fonctionnalités ont été
 - L'import Monitoring permet uniquement importer des sites, des visites et des observations.
 - Les instructions en JavaScript (JS) utilisées pour paramétrer un champ d'une entité (site, visite, observation) ne sont pas encore prises en compte. Ces instructions sont autorisées dans les propriétés `hidden` et `required`. À ce jour :
 
-    - Si l'affichage d'un champ (propriété `hidden`) est conditionné par un instruction en JS, il est toujours affiché dans les champs de l'import. 
+    - Si l'affichage d'un champ (propriété `hidden`) est conditionné par une instruction en JS, il est toujours affiché dans les champs de l'import. 
     - Si l'obligation d'un champ (propriété `required`) est conditionné par une instruction en JS, ce dernier est toujours requis dans les champs de l'import.
 
     Des développements sont en cours pour que ces conditions en JS deviennent utilisables dans le module Monitoring et dans le module Import.
@@ -22,14 +22,14 @@ Depuis la version 2.17.0 de GeoNature, un ensemble de fonctionnalités ont été
 ## Comment importer les données ? 
 
 Un import peut être lancé de deux façons : **depuis le module Import** directement, ou **depuis une
-entité parente**, *i.e. importer des visites depuis un site, ou des observations depuis une visite* (Accessible depuis le bouton `Importer` dans le module Monitoring, cf. image ci-dessous). 
+entité parente**, *i.e. importer des visites depuis un site, ou des observations depuis une visite* (Accessible depuis le bouton `Importer` dans le module Monitoring, cf. image ci-dessous). Dans ce cas, les données importées seront automatiquement associées à l'objet depuis lequel on importe.
 
 
 ![Illustration du bouton importer dans le module monitoring](./images/import/import_import_from_monitoring.png)
 
 
 Toutes les entités à importer doivent figurer dans un seul et même fichier CSV, selon le format
-défini dans la documentation GeoNature. Vous pouvez trouver un exemple ici pour Occhab, ayant une logique similaire : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
+défini dans la documentation GeoNature. Vous pouvez trouver un exemple ici pour Occhab, ayant une logique similaire au niveau du lien entre les sites, leurs visites et leurs observations : [Exemple de fichier CSV](https://docs.geonature.fr/user-manual.html#exemple-de-fichier-csv-pour-l-import-occhab) 
 
 > [!IMPORTANT]
 > Pour pouvoir importer des données, il faut disposer des permissions sur l'action C dans le module Import et l'action C dans le sous-module Monitoring concernés.
@@ -63,7 +63,7 @@ Une fois la commande exécutée, le sous-module devient accessible dans la liste
 Les utilisateurs qui peuvent importer des données dans un sous-module Monitoring sont ceux qui ont des permissions de création sur ce sous-module ainsi que sur le module Import.
 
 > [!IMPORTANT]
-> A ce jour, la permission d'importer une entité ne s'appuie pas sur la permission correspondante. Si un l'utilisateur a la permission de créer une des trois entités (visite, sites ou observations) alors il est autorisé à créer un import.
+> A ce jour, les permissions d'importer ne prend pas en compte le détail des permissions définies au niveau de chaque entité (sites, visites et/ou observations). Si un l'utilisateur a la permission de créer une des trois entités (visite, sites ou observations) alors il est autorisé à créer un import de sites, visites et observations.
 
 Pour en savoir plus sur le fonctionnement du module Import, voir sa documentation sur https://docs.geonature.fr/user-manual.html#import
 
