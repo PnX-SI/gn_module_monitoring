@@ -14,15 +14,15 @@ Depuis la version 2.17.0 de GeoNature, un ensemble de fonctionnalités ont été
 - L'import Monitoring permet uniquement importer des sites, des visites et des observations.
 - Les instructions en JavaScript (JS) utilisées pour paramétrer un champ d'une entité (site, visite, observation) ne sont pas encore prises en compte. Ces instructions sont autorisées dans les propriétés `hidden` et `required`. À ce jour :
 
-    - Si l'affichage d'un champs (propriété `hidden`) est conditionné par un instruction en JS, il est affiché dans les champs de l'import. 
-    - Si l'obligation d'un champ (propriété `required`) est conditionné par une instruction en JS, ce dernier est requis par défaut dans les champs de l'import.
+    - Si l'affichage d'un champ (propriété `hidden`) est conditionné par un instruction en JS, il est toujours affiché dans les champs de l'import. 
+    - Si l'obligation d'un champ (propriété `required`) est conditionné par une instruction en JS, ce dernier est toujours requis dans les champs de l'import.
 
     Des développements sont en cours pour que ces conditions en JS deviennent utilisables dans le module Monitoring et dans le module Import.
 
 ## Comment importer les données ? 
 
 Un import peut être lancé de deux façons : **depuis le module Import** directement, ou **depuis une
-entité parente**, *i.e. importer des visites depuis un site, ou des observations depuis une visite* (Accessible depuis le bouton `Importer` dans le module Import, cf. image ci-dessous). 
+entité parente**, *i.e. importer des visites depuis un site, ou des observations depuis une visite* (Accessible depuis le bouton `Importer` dans le module Monitoring, cf. image ci-dessous). 
 
 
 ![Illustration du bouton importer dans le module monitoring](./images/import/import_import_from_monitoring.png)
