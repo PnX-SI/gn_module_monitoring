@@ -3,10 +3,12 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@
 import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
+import { CruvedStoreService } from '@geonature_common/service/cruved-store.service';
 
 import { Utils } from '../../utils/utils';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { ListService } from '../../services/list.service';
+import { getImportProperties } from '../../utils/import';
 
 @Component({
   selector: 'pnx-monitoring-lists',
@@ -41,10 +43,12 @@ export class MonitoringListComponent implements OnInit {
   childrenColumns;
 
   queyParamsNewObject = {};
+  importQueryParams = {};
 
   // medias;
   canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+
   constructor(
     private _configService: ConfigService,
     private _listService: ListService
@@ -144,5 +148,8 @@ export class MonitoringListComponent implements OnInit {
           break;
       }
     }
+  }
+  getImportProperties() {
+    return getImportProperties(this.obj);
   }
 }

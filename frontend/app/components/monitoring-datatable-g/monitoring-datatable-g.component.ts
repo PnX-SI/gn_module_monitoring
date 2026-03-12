@@ -25,6 +25,7 @@ import { CommonService } from '@geonature_common/service/common.service';
 import { TPermission } from '../../types/permission';
 import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 import { IdataTableObjData } from '../../interfaces/geom';
+import { getImportProperties } from '../../utils/import';
 
 interface ItemObjectTable {
   id: number | null;
@@ -379,5 +380,8 @@ export class MonitoringDatatableGComponent implements OnInit {
 
     this.rowDeleted['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
+  }
+  getImportProperties() {
+    return getImportProperties(this.obj);
   }
 }
