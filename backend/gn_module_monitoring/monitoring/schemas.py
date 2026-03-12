@@ -1,4 +1,5 @@
 import json
+from geonature.core.gn_monitoring.models import TBaseSites
 import geojson
 
 from flask import g
