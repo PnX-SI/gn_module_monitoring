@@ -37,6 +37,7 @@ def module_list(install_module_test, tlist):
         db.session.add(module)
     return (module, tlist)
 
+
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from geonature.utils.env import db
 from sqlalchemy import select

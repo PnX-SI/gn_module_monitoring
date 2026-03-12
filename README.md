@@ -256,5 +256,7 @@ Les sites et groupes de sites peuvent être associés à plusieurs protocoles (s
 
 * [Suivi d'individus (CMR)](docs/individuals.md)
 * [Gestion de la synthèse](docs/synthese.md)
+* [Import de fichiers CSV](docs/import.md)
 * [Documentation technique](docs/documentation_technique.md)
 * [Liste des commandes](docs/commandes.md)
+
