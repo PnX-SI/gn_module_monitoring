@@ -217,7 +217,6 @@ def get_config(module_code=None, force=False):
     if not current_app.config.get(config_cache_name, {}):
         current_app.config[config_cache_name] = {}
     current_app.config[config_cache_name][module_code] = config
-
     return config
 
 
