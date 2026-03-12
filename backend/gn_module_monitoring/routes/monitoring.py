@@ -5,11 +5,13 @@ module definissant les routes d'accès de modification des objects
 
 import datetime as dt
 
+
 from werkzeug.exceptions import Forbidden
 
 from flask import request, url_for, g, current_app
 
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import NoSuchTableError
 
@@ -21,6 +23,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
 from geonature.core.gn_permissions.models import TObjects
+from geonature.core.imports.models import Destination
 
 from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
@@ -151,6 +154,9 @@ def create_or_update_object_api(module_code, object_type, id=None):
             post_data["properties"]["id_module"] = get_module("module_code", module_code).id_module
         else:
             post_data["properties"]["id_module"] = "generic"
+    if object_type == "module":
+        query = update(Destination).where(Destination.code == module_code).values(active=True)
+        DB.session.execute(query)
 
     config = get_config(module_code, force=True)
     return (
