@@ -37,6 +37,39 @@ def module_list(install_module_test, tlist):
         db.session.add(module)
     return (module, tlist)
 
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from geonature.utils.env import db
+from sqlalchemy import select
+
+# Liste des clés de premier niveau retournée par la config d'un module
+CONFIG_KEYS = (
+    "custom",
+    "data",
+    "default_display_field_names",
+    "display_field_names",
+    "module",
+    "observation",
+    "site",
+    "sites_group",
+    "synthese",
+    "tree",
+    "visit",
+)
+
+
+@pytest.fixture
+def module_list(install_module_test, tlist):
+    """
+    Ajout d'une liste d'observateur au module de test
+    """
+    with db.session.begin_nested():
+        module = db.session.scalar(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+        )
+        module.id_list_observer = tlist.id_liste
+        db.session.add(module)
+    return (module, tlist)
+
 
 @pytest.mark.usefixtures("client_class")
 class TestRouteConfig:

@@ -15,8 +15,12 @@ from geonature.core.gn_permissions.models import (
     Permission,
 )
 
+from apptax.taxonomie.models import BibListes
+from pypnusershub.db.models import UserList
+
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.command.cmd import (
+    cmd_add_update_import_on_protocole,
     cmd_install_monitoring_module,
 )
 from gn_module_monitoring.monitoring.models import TMonitoringModules
@@ -26,6 +30,22 @@ from gn_module_monitoring.tests.fixtures.generic import add_user_permission
 @pytest.fixture
 def install_module_test(types_site, users):
     install_monitoring_module("test", types_site, users)
+
+
+@pytest.fixture
+def install_module_test_with_config(install_module_test):
+    module_test = db.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+    ).scalar_one_or_none()
+
+    with db.session.begin_nested():
+        module_test.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
+        module_test.id_list_observer = db.session.scalar(select(UserList.id_liste).limit(1))
+        module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
+        db.session.add(module_test)
+    runner = current_app.test_cli_runner()
+    result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+    assert result.exit_code == 0
 
 
 @pytest.fixture
@@ -54,7 +74,7 @@ def install_monitoring_module(module_code, type_site, users):
     # Installation du module
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_install_monitoring_module, [module_code])
-
+    print(f"Result of command: {result.output}")
     assert result.exit_code == 0
     # Association du module aux types de site existant
     module = db.session.execute(
@@ -62,7 +82,7 @@ def install_monitoring_module(module_code, type_site, users):
     ).scalar_one()
     with db.session.begin_nested():
         module.types_site = list(type_site.values())
-        db.session.add(module)
+    db.session.add(module)
 
     # Association des permissions aux différents utilisateurs
     users_to_create = [

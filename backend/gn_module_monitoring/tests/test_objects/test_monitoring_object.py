@@ -1,11 +1,5 @@
 import pytest
 
-from flask import url_for, current_app
-
-from sqlalchemy import select
-
-from geonature.utils.env import DB
-
 from gn_module_monitoring.config.repositories import get_config
 
 
