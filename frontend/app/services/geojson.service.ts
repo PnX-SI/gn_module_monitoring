@@ -6,6 +6,7 @@ import { MapService } from '@geonature_common/map/map.service';
 
 import { SitesService, SitesGroupService } from './api-geom.service';
 import { FormService } from './form.service';
+import { ConfigService } from './config.service';
 
 // This service will be used for sites and sites groups
 
@@ -76,8 +77,11 @@ export class GeoJSONService {
     private _sites_group_service: SitesGroupService,
     private _sites_service: SitesService,
     private _mapService: MapService,
-    private _formService: FormService
-  ) {}
+    private _formService: FormService,
+    public _configService: ConfigService
+  ) {
+    this.sitesFeatureGroup = this._createSitesLayerGroup();
+  }
 
   setModuleCode(moduleCode: string) {
     this._sites_group_service.setModuleCode(moduleCode);
@@ -161,7 +165,8 @@ export class GeoJSONService {
           onEachFeature,
           cfg.layerName,
           cfg.zoom,
-          effectiveStyle
+          effectiveStyle,
+          false
         );
       });
   }
@@ -191,7 +196,7 @@ export class GeoJSONService {
   }
 
   // setGeomSiteGroupFromExistingObject(geom, name:boolean = false) {
-  //   this.sitesGroupFeatureGroup = this.setMapData(geom, () => {}, name ? NAME_LAYER_SITE : null, null);
+  //   this.sitesGroupFeatureGroup = this.setMapData(geom, () => {}, name ? NAME_LAYER_SITE : null, null, false);
   // }
 
   setMapData(
@@ -199,25 +204,70 @@ export class GeoJSONService {
     onEachFeature: Function,
     layerName: string | null,
     zoom: boolean = true,
-    style?
+    style?,
+    enableClustering: boolean = this._configService.enableClustering
   ): L.FeatureGroup | undefined {
     const map = this._mapService.getMap();
     if (geojson['features'] == null) {
       return undefined;
     }
 
-    const layer: L.Layer = this._mapService.createGeojson(geojson, false, onEachFeature, style);
-    const featureGroup = new L.FeatureGroup();
-    featureGroup.addLayer(layer);
-    this._mapService.map.addLayer(featureGroup);
+    const layer = this._mapService.createGeojson(geojson, false, onEachFeature, style);
 
-    if (layerName) {
-      this._mapService.layerControl.addOverlay(featureGroup, layerName);
+    if (enableClustering) {
+      const clusterGroup = this._createMarkerClusterGroup();
+      const mixedGroup = new L.FeatureGroup();
+      let hasClusterLayer = false;
+      let hasNonClusterLayer = false;
+      layer.eachLayer((geoLayer) => {
+        if (geoLayer instanceof L.Marker || geoLayer instanceof L.CircleMarker) {
+          clusterGroup.addLayer(geoLayer);
+          hasClusterLayer = true;
+          return;
+        }
+        mixedGroup.addLayer(geoLayer);
+        hasNonClusterLayer = true;
+      });
+
+      if (hasClusterLayer) {
+        mixedGroup.addLayer(clusterGroup);
+      }
+      this.sitesFeatureGroup = hasClusterLayer && !hasNonClusterLayer ? clusterGroup : mixedGroup;
+
+      if (this.sitesFeatureGroup.getLayers().length > 0) {
+        this._mapService.map.addLayer(this.sitesFeatureGroup);
+        if (layerName) {
+          this._mapService.layerControl.addOverlay(this.sitesFeatureGroup, layerName);
+        }
+        if (zoom) {
+          map.fitBounds(this.sitesFeatureGroup.getBounds());
+        }
+      }
+    } else {
+      this.sitesFeatureGroup = new L.FeatureGroup();
+      this.sitesFeatureGroup.addLayer(layer);
+      this._mapService.map.addLayer(this.sitesFeatureGroup);
+      if (layerName) {
+        this._mapService.layerControl.addOverlay(this.sitesFeatureGroup, layerName);
+      }
+      if (zoom) {
+        map.fitBounds(this.sitesFeatureGroup.getBounds());
+      }
     }
-    if (zoom) {
-      map.fitBounds(featureGroup.getBounds());
-    }
-    return featureGroup;
+
+    return this.sitesFeatureGroup;
+
+    // const featureGroup = new L.FeatureGroup();
+    // featureGroup.addLayer(layer);
+    // this._mapService.map.addLayer(featureGroup);
+
+    // if (layerName) {
+    //   this._mapService.layerControl.addOverlay(featureGroup, layerName);
+    // }
+    // if (zoom) {
+    //   map.fitBounds(featureGroup.getBounds());
+    // }
+    // return featureGroup;
   }
 
   setMapDataWithFeatureGroup(featureGroup: L.FeatureGroup[]) {
@@ -255,7 +305,7 @@ export class GeoJSONService {
   //     );
   //     this.geojsonSitesGroups.features = features;
   //     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-  //     this.setMapData(this.geojsonSitesGroups, this.onEachFeature, null, defaultSiteGroupStyle);
+  //     this.setMapData(this.geojsonSitesGroups, this.onEachFeature, null, defaultSiteGroupStyle, false);
   //   }
   // }
 
@@ -284,23 +334,61 @@ export class GeoJSONService {
   }
 
   selectSitesLayer(id: number, zoom: boolean) {
-    const layers = this.sitesFeatureGroup.eachLayer((layer) => {
-      if (layer instanceof L.GeoJSON) {
-        layer.eachLayer((sublayer: L.GeoJSON) => {
-          const feature = sublayer.feature as GeoJSON.Feature;
-          if (feature.properties['id_base_site'] == id) {
-            if (zoom == true) {
-              const featureGroup = new L.FeatureGroup();
-              featureGroup.addLayer(sublayer);
-              this._mapService.map.fitBounds(featureGroup.getBounds());
-            }
-            sublayer.openPopup();
+    let foundLayer: L.FeatureGroup | null = null;
+
+    const trySelect = (layer: any, getLatLng?: () => L.LatLng) => {
+      const feature = layer.feature as GeoJSON.Feature;
+      if (feature.properties['id_base_site'] == id) {
+        if (zoom) {
+          if (getLatLng) {
+            this._mapService.map.setView(getLatLng(), 18);
+          } else {
+            const fg = new L.FeatureGroup([layer]);
+            this._mapService.map.fitBounds(fg.getBounds());
+          }
+        }
+        layer.openPopup();
+        foundLayer = new L.FeatureGroup([layer]);
+      }
+    };
+
+    if (this.sitesFeatureGroup) {
+      if (this.sitesFeatureGroup instanceof L.MarkerClusterGroup) {
+        this.sitesFeatureGroup.getAllChildMarkers().forEach((marker: any) => {
+          if (foundLayer) return;
+          trySelect(marker, () => marker.getLatLng());
+        });
+      } else {
+        this.sitesFeatureGroup.eachLayer((layer: any) => {
+          if (foundLayer) return;
+
+          if (layer instanceof L.GeoJSON) {
+            layer.eachLayer((sublayer: any) => {
+              if (foundLayer) return;
+              trySelect(sublayer);
+            });
             return;
           }
+
+          if (layer instanceof L.MarkerClusterGroup) {
+            layer.getAllChildMarkers().forEach((marker: any) => {
+              if (foundLayer) return;
+              trySelect(marker, () => marker.getLatLng());
+            });
+            return;
+          }
+
+          if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+            trySelect(layer, () => layer.getLatLng());
+            return;
+          }
+
+          trySelect(layer);
         });
       }
-    });
-    return layers;
+    }
+
+    return foundLayer;
   }
 
   removeAllFeatureGroup() {
@@ -364,5 +452,36 @@ export class GeoJSONService {
       return true;
     }
     return false;
+  }
+
+  clusterCountOverrideFn(cluster) {
+    const obsChildCount = cluster.getChildCount();
+    const clusterSize = obsChildCount > 100 ? 'large' : obsChildCount > 10 ? 'medium' : 'small';
+    return L.divIcon({
+      html: `<div><span>${obsChildCount}</span></div>`,
+      className: `marker-cluster marker-cluster-${clusterSize}`,
+      iconSize: L.point(40, 40),
+    });
+  }
+
+  private _createSitesLayerGroup(): L.FeatureGroup | L.MarkerClusterGroup {
+    return this._configService.enableClustering
+      ? this._createMarkerClusterGroup()
+      : new L.FeatureGroup();
+  }
+
+  private _createMarkerClusterGroup(): L.MarkerClusterGroup {
+    return L.markerClusterGroup({
+      disableClusteringAtZoom: 18,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: true,
+      zoomToBoundsOnClick: true,
+      maxClusterRadius: (zoom) => {
+        if (zoom >= 15) return 50;
+        if (zoom >= 12) return 100;
+        return 200;
+      },
+      iconCreateFunction: this.clusterCountOverrideFn,
+    });
   }
 }
