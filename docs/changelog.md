@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.3.0 (11-03-2026)
+## 1.3.0 (13-03-2026)
 
 Nécessite GeoNature 2.17.0 (ou plus).
 
@@ -8,6 +8,10 @@ Nécessite GeoNature 2.17.0 (ou plus).
 
 - Possibilité d'utiliser le module Import de GeoNature pour importer des sites, visites et/ou observations depuis des fichiers CSV (#457)
 - Documentation de l'import Monitoring sur https://github.com/PnX-SI/gn_module_monitoring/blob/main/docs/import.md
+
+**🐛 Corrections**
+- Affichage des sites sur la carte. Les polygones sont affichés sous les lignes qui sont sous les points de façon à ce que la popup des éléments soit toujours cliquable (#579 par @TheoLechemia)
+- Incohérence dans la déclaration des modèles (#577 par @IdrissaD)
 
 **⚠️ Notes de version**
 
