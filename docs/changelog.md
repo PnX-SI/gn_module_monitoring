@@ -10,7 +10,7 @@ Nécessite GeoNature 2.17.0 (ou plus).
 - Documentation de l'import Monitoring sur https://github.com/PnX-SI/gn_module_monitoring/blob/main/docs/import.md
 
 **🐛 Corrections**
-- Affichage des sites sur la carte. Les polygones sont affichés sous les lignes qui sont sous les points de façon à ce que la popup des éléments soit toujours cliquable (#579 par @TheoLechemia)
+- Affichage des sites sur la carte de façon à éviter les recouvrements entre les objets. Les polygones sont affichés sous les lignes qui sont sous les points de façon à ce que la popup des éléments soit toujours cliquable (#579 par @TheoLechemia)
 - Incohérence dans la déclaration des modèles (#577 par @IdrissaD)
 
 **⚠️ Notes de version**
