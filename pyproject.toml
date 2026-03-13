@@ -1,17 +1,10 @@
 [tool.pytest.ini_options]
 minversion = "6.0"
-testpaths = [
-    "backend",
-]
+testpaths = ["backend"]
 
 [tool.coverage.run]
-source = [
-    "gn_module_monitoring",
-]
-omit = [
-    "*/tests/*",
-    "*/migrations/*",
-]
+source = ["backend/gn_module_monitoring"]
+omit = ["*/tests/*", "*/migrations/*", "setup.py", "conftest.py"]
 
 [tool.black]
 line-length = 99

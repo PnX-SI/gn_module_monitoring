@@ -58,7 +58,7 @@
                 {{ child0.template['label_art_undef_new'] || '' }}
               </button>
               <pnx-import-button
-                *ngIf="obj"
+                *ngIf="obj && importAvailable"
                 [moduleCode]="obj.moduleCode"
                 [objectType]="obj?.objectType"
                 [properties]="this.getImportProperties()"

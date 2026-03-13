@@ -3,9 +3,7 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@
 import { ConfigService } from '../../services/config.service';
 
 import { MonitoringObject } from '../../class/monitoring-object';
-import { CruvedStoreService } from '@geonature_common/service/cruved-store.service';
-
-import { Utils } from '../../utils/utils';
+import { HttpClient } from '@angular/common/http';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { ListService } from '../../services/list.service';
 import { getImportProperties } from '../../utils/import';
@@ -48,10 +46,12 @@ export class MonitoringListComponent implements OnInit {
   // medias;
   canCreateChild: { [key: string]: boolean } = {};
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
+  public importAvailable: boolean = false;
 
   constructor(
     private _configService: ConfigService,
-    private _listService: ListService
+    private _listService: ListService,
+    private httpClient: HttpClient
   ) {}
 
   ngOnInit() {
@@ -59,6 +59,7 @@ export class MonitoringListComponent implements OnInit {
     // this._configService.init(this.obj.moduleCode).subscribe(() => {
     //   this.initDataTable();
     // });
+    this.isImportDestinationAvailable();
   }
 
   initDataTable() {
@@ -151,5 +152,13 @@ export class MonitoringListComponent implements OnInit {
   }
   getImportProperties() {
     return getImportProperties(this.obj);
+  }
+  isImportDestinationAvailable() {
+    // TODO removed when 2.17.1 is released
+
+    this.httpClient.get(this.backendUrl + '/import/destinations/C').subscribe((data: any) => {
+      this.importAvailable =
+        data.filter((destination: any) => destination.code == this.obj.moduleCode).length > 0;
+    });
   }
 }

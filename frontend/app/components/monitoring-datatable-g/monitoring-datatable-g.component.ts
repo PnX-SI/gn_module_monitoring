@@ -26,6 +26,8 @@ import { TPermission } from '../../types/permission';
 import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 import { IdataTableObjData } from '../../interfaces/geom';
 import { getImportProperties } from '../../utils/import';
+import { HttpClient } from '@angular/common/http';
+import { ConfigService } from '../../services/config.service';
 
 interface ItemObjectTable {
   id: number | null;
@@ -96,6 +98,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   activetabType: string;
+  public importAvailable = false;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -104,12 +107,15 @@ export class MonitoringDatatableGComponent implements OnInit {
   constructor(
     private _dataTableService: DataTableService,
     private _commonService: CommonService,
-    private translate: TranslateService
+    private _configService: ConfigService,
+    private translate: TranslateService,
+    private httpClient: HttpClient
   ) {}
 
   ngOnInit() {
     this.subscribeToParentEmitter();
     this.initDatatable();
+    this.isImportDestinationAvailable();
   }
   subscribeToParentEmitter(): void {
     if (this.bDeleteModalEmitter) {
@@ -383,5 +389,16 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
   getImportProperties() {
     return getImportProperties(this.obj);
+  }
+  isImportDestinationAvailable() {
+    // TODO removed when 2.17.1 is released
+    console.log(this.moduleCode);
+    this.httpClient
+      .get(this._configService.backendUrl() + '/import/destinations/C')
+      .subscribe((data: any) => {
+        console.log(data);
+        this.importAvailable =
+          data.filter((destination: any) => destination.code == this.moduleCode).length > 0;
+      });
   }
 }
