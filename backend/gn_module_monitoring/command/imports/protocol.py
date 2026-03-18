@@ -1,4 +1,5 @@
 import os
+from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE
 from gn_module_monitoring.command.imports.utils import destination_name
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
@@ -97,7 +98,9 @@ def get_protocol_data(module_code: str, id_destination: int):
 
         entity_hierarchy_map[entity_code] = {
             "id_field_name": id_field_name,
-            "parent_entity": parent_entity,
+            "parent_entity": (
+                parent_entity if parent_entity not in ENTITIES_NOT_AVAILABLE else None
+            ),
         }
         parent_data = entity_confs.get(parent_entity, None)
         protocol_data[entity_code] = prepare_fields(
