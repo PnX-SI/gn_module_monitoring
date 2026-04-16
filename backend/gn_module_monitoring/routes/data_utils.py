@@ -44,7 +44,6 @@ from gn_module_monitoring.monitoring.models import (
 model_dict = {
     "habitat": Habref,
     "nomenclature": TNomenclatures,
-    "user": User,
     "taxonomy": Taxref,
     "dataset": TDatasets,
     "types_site": BibTypeSite,
@@ -144,10 +143,8 @@ def get_util_from_id_api(type_util, id):
     # paramètre de route
     # field_name vaut 'all' par défaut
     field_name = request.args.get("field_name", "all")
-
     # modèle SQLA
     obj = model_dict.get(type_util)
-
     if not hasattr(obj, field_name) and field_name != "all":
         raise GeoNatureError("{} n'a pas de champs {}".format(type_util, field_name))
 
