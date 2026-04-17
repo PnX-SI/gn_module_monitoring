@@ -50,7 +50,10 @@
         },
         "Actions" : {
             "Done" : " effectuée",
-            "Deleted" : "Suppression"
+            "Deleted" : "Suppression",
+            "Create": "Créer {{ object_type }}",
+            "Delete": "Supprimer {{ object_type }}",
+            "Update": "Editer {{ object_type }}"
         }
     }
 }

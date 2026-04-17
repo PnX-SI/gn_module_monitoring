@@ -17,6 +17,7 @@ import { catchError, map, tap, take, debounceTime } from 'rxjs/operators';
 import { CommonService } from '@geonature_common/service/common.service';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { Utils } from '../../utils/utils';
+import { ActionService } from '@geonature/services/action.service';
 
 @Component({
   selector: 'pnx-monitoring-datatable',
@@ -41,6 +42,7 @@ export class MonitoringDatatableComponent implements OnInit {
   @Output() bEditChange = new EventEmitter<boolean>();
 
   @Input() currentUser;
+  @Input() af_closed: boolean = false;
 
   private filterSubject: Subject<string> = new Subject();
   private subscription: any;
@@ -64,7 +66,8 @@ export class MonitoringDatatableComponent implements OnInit {
     private _monitoring: MonitoringObjectService,
     private _commonService: CommonService,
     private _listService: ListService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private actionService: ActionService
   ) {}
 
   ngOnInit() {
@@ -254,6 +257,22 @@ export class MonitoringDatatableComponent implements OnInit {
 
   msgToaster(action) {
     return `${action}${this.translate.instant('Monitoring.Actions.Deleted')}`.trim();
+  }
+
+  canDoAction(action: 'D' | 'U', row: any): boolean {
+    return this.actionService.isActionAllowed(row.cruved, !this.af_closed, action);
+  }
+
+  tooltipAction(action: 'D' | 'U', row: any, object_type): string {
+    return this.actionService.getActionTooltip(
+      row.cruved,
+      !this.af_closed,
+      action,
+      'Monitoring',
+      undefined,
+      { object_type: object_type },
+      this.translate
+    );
   }
 
   onDelete(row) {

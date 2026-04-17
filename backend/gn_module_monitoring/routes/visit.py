@@ -38,9 +38,10 @@ def get_visits(object_type, module_code=None):
     modules = get_objet_with_permission_boolean(modules_object, object_code=OBJECT_CODE)
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
     query = select(TMonitoringVisits)
-    query = query.options(joinedload(TMonitoringVisits.module)).where(
-        TMonitoringVisits.id_module.in_(ids_modules_allowed)
-    )
+    query = query.options(
+        joinedload(TMonitoringVisits.module),
+        joinedload(TMonitoringVisits.dataset).joinedload("acquisition_framework"),
+    ).where(TMonitoringVisits.id_module.in_(ids_modules_allowed))
     query = filter_params(TMonitoringVisits, query=query, params=params)
     query = sort(model=TMonitoringVisits, query=query, sort=sort_label, sort_dir=sort_dir)
     if module_code:

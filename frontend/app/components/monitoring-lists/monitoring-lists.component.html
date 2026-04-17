@@ -38,16 +38,16 @@
               </button>
               <button
                 mat-raised-button
-                [disabled]="!canCreateChild[child0.objectType]"
+                [disabled]="!childrenPermission[child0.objectType].canCreate"
                 color="primary"
-                [ngClass]="{ isDisableBtn: !canCreateChild[child0.objectType] }"
+                [ngClass]="{ isDisableBtn: !childrenPermission[child0.objectType].canCreate }"
                 class="btn btn-success float-right"
                 (click)="
-                  canCreateChild[child0.objectType]
+                  childrenPermission[child0.objectType].canCreate
                     ? obj.navigateToAddChildren(child0.objectType)
                     : null
                 "
-                [matTooltip]="canCreateChild[child0.objectType] ? null : toolTipNotAllowed"
+                [matTooltip]="childrenPermission[child0.objectType].tooltip"
                 *ngIf="obj.moduleCode"
               >
                 <i
@@ -79,6 +79,7 @@
               [(obj)]="obj"
               [sorts]="child0.configParam('sorts')"
               [currentUser]="currentUser"
+              [af_closed]="af_closed"
             ></pnx-monitoring-datatable>
           </div>
         </div>
