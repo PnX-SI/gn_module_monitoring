@@ -1,9 +1,10 @@
 import pytest
 from werkzeug.datastructures import MultiDict
+from flask import g
 
 from sqlalchemy import select
-
-from gn_module_monitoring.monitoring.models import TMonitoringSites
+from geonature.utils.env import db
+from gn_module_monitoring.monitoring.models import TMonitoringSites, TMonitoringModules
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
 from gn_module_monitoring.utils.routes import get_limit_page, paginate
 
@@ -21,6 +22,12 @@ def test_get_limit_page(limit, page):
 def test_paginate(sites):
     limit = 1
     page = 2
+
+    # Reload the module from the database. If not it can trigger ObjectDeletedError
+    monitoring_module = db.session.scalar(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+    )
+    g.current_module = monitoring_module
 
     res = paginate(
         query=select(TMonitoringSites), schema=MonitoringSitesSchema, limit=limit, page=page

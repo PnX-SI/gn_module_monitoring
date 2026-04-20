@@ -1,6 +1,6 @@
 from math import ceil
 
-from geonature.core.imports.models import BibFields
+from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
@@ -14,7 +14,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringVisits,
 )
 import sqlalchemy as sa
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import joinedload
 from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
 from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
 from geonature.core.imports.models import Entity, TImports
@@ -424,3 +424,17 @@ class MonitoringImportActions(ImportActions):
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem
         return SiteImportActions.compute_bounding_box(imprt)
+
+    @staticmethod
+    def get_dataset_where_clause(imprt: TImports) -> sa.sql.elements.BinaryExpression:
+        """
+        Get all datasets linked to current import via visits
+
+        """
+        query = (
+            sa.select(TDatasets)
+            .distinct()
+            .join(TBaseVisits, TDatasets.id_dataset == TBaseVisits.id_dataset)
+            .where(TBaseVisits.id_import == imprt.id_import)
+        )
+        return db.session.scalars(query).all()
