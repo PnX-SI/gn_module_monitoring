@@ -173,7 +173,7 @@ export class MonitoringObjectService {
   toForm(elem, val): Observable<any> {
     let x = val;
     // valeur par default depuis la config schema
-    x = [undefined, null].includes(x) ? elem.value || null : x;
+    x = [undefined, null].includes(x) ? (elem.value === '' ? null : elem.value) : x;
     if (elem.type_widget == 'date') {
       const date = new Date(x);
       x = x
