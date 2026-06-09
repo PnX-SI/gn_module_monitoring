@@ -10,6 +10,8 @@ from alembic import op
 import sqlalchemy as sa
 import geoalchemy2
 
+from geonature.utils.env import DB
+
 # revision identifiers, used by Alembic.
 revision = "f3413cccdfa8"
 down_revision = "f24adb481f54"
@@ -18,38 +20,20 @@ depends_on = None
 
 
 def upgrade():
-    op.execute("""
-        ALTER TABLE gn_monitoring.t_sites_groups
+
+    local_srid = DB.session.execute(sa.func.Find_SRID("ref_geo", "l_areas", "geom")).scalar()
+
+    op.execute(f"""
+        ALTER TABLE gn_monitoring.t_sites_groups 
         ADD COLUMN geom
             public.geometry(geometry, 4326) NULL,
         ADD COLUMN geom_local
-            public.geometry(geometry, 2154) NULL,
+            public.geometry(geometry, {local_srid}) NULL,
         ADD COLUMN altitude_min
                 int4 NULL,
         ADD COLUMN altitude_max
                 int4 NULL;
         """)
-
-    # version sqlalchemy
-    # op.add_column(
-    # schema="gn_monitoring",
-    #     table_name="t_sites_groups",
-    #     column=sa.Column(
-    #         "geom",
-    #         geoalchemy2.types.Geometry(geometry_type='GEOMETRY'),
-    #         nullable=True,
-    #     )
-    # )
-
-    # op.add_column(
-    # schema="gn_monitoring",
-    #     table_name="t_sites_groups",
-    #     column=sa.Column(
-    #         "geom_local",
-    #         geoalchemy2.types.Geometry(geometry_type='GEOMETRY'),
-    #         nullable=True,
-    #     )
-    # )
 
     op.execute("""
         ALTER TABLE gn_monitoring.t_sites_groups
