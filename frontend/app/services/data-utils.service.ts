@@ -30,14 +30,25 @@ export class DataUtilsService {
    * @param id identifiant de l'objet
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtil(typeUtil: string, id, fieldName: string, idFieldName: string = null) {
+  getUtil(
+    typeUtil: string,
+    id,
+    fieldName: string,
+    idFieldName: string | null = null
+  ): Observable<any> {
     if (Array.isArray(id)) {
       return this.getUtils(typeUtil, id, fieldName, idFieldName);
     }
 
-    // url relative
+    // définition de l'url du service à appeler
+    // soit interne à monitoring
+    // soit pour le type util user appels aux routes de geonature
     var urlRelative = `util/${typeUtil}/${id}`;
-
+    var isGN2Route = false;
+    if (typeUtil == 'user') {
+      var urlRelative = `users/role/${id}`;
+      var isGN2Route = true;
+    }
     if (idFieldName) {
       urlRelative += `?id_field_name=${idFieldName}`;
     }
@@ -45,7 +56,7 @@ export class DataUtilsService {
     // parametre pour le stockage dans le cache
     const sCachePaths = `util|${typeUtil}|${id}`;
     // récupération dans le cache ou requête si besoin
-    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths, isGN2Route).pipe(
       mergeMap((value) => {
         let out;
         if (fieldName === 'all') {
@@ -73,7 +84,7 @@ export class DataUtilsService {
    * @param ids tableau d'identifiant des objets
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtils(typeUtilObject, ids, fieldName, idFieldName = null) {
+  getUtils(typeUtilObject: string, ids, fieldName: string, idFieldName: string | null = null) {
     if (!ids.length) {
       return of(null);
     }
@@ -132,6 +143,102 @@ export class DataUtilsService {
   getUsersByCodeList(codeMenu) {
     const urlRelative = `users/menu_from_code/${codeMenu}`;
     const sCachePaths = `users|menu_from_code|${codeMenu}`;
-    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths);
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths, true);
+  }
+
+  buildObjectResolvePropertyProcessing(
+    data,
+    fieldsConfig,
+    moduleCode,
+    _objService
+  ): Observable<any> {
+    /**
+     * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+     *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+     *
+     *
+     * @param data - Données à traiter.
+     * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+     * @param moduleCode - Le code de module courrant
+     * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
+     * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
+     * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+     */
+
+    const dataProcessing$ =
+      data &&
+      data.items &&
+      data.items.length > 0 &&
+      fieldsConfig &&
+      Object.keys(fieldsConfig).length > 0
+        ? forkJoin(
+            data.items.map((dataItem) => {
+              const propertyObservables = {};
+              for (const attribut_name of Object.keys(fieldsConfig)) {
+                // si des données sont contenues dans dataItem.data merge avec dataItem
+                // cas des propriétés supplémentaires des visites
+                // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
+                if (dataItem.data) {
+                  dataItem = { ...dataItem, ...dataItem.data };
+                }
+                if (dataItem.hasOwnProperty(attribut_name)) {
+                  propertyObservables[attribut_name] = this.resolveProperty(
+                    _objService,
+                    moduleCode,
+                    fieldsConfig[attribut_name],
+                    dataItem[attribut_name]
+                  );
+                }
+              }
+              if (Object.keys(propertyObservables).length === 0) {
+                return of(dataItem);
+              }
+              return forkJoin(propertyObservables).pipe(
+                map((resolvedProperties) => {
+                  const updatedSiteGroupItem = { ...dataItem };
+                  for (const attribut_name of Object.keys(resolvedProperties)) {
+                    updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+                  }
+                  return updatedSiteGroupItem;
+                })
+              );
+            })
+          ).pipe(
+            map((resolvedSiteGroupItems) => ({
+              ...data,
+              items: resolvedSiteGroupItems,
+            }))
+          )
+        : of(data);
+    return dataProcessing$;
+  }
+
+  resolveProperty(_objService, moduleCode, elem, val): Observable<any> {
+    /**
+     * Traite et résout les propriétés de façon unitaire
+     *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+     *
+     *
+     * @param _objService - Service utilisé pour la résolution des propriétés d'objet.
+     * @param moduleCode - Le code de module courant
+     * @param elem - Elément à résoudre
+     * @param val - Valeur de l'élément à résoudre
+     * @returns Un observable la valeur à afficher
+     */
+
+    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
+      val = Utils.formatDate(val);
+    }
+    if (elem.type_util === 'types_site') {
+      val = val.map((item) => {
+        return item.label;
+      });
+    }
+    const fieldName = _objService.configUtils(elem, moduleCode);
+    if (val && fieldName && elem.type_widget) {
+      return this.getUtil(elem.type_util, val, fieldName, elem.value_field_name);
+    }
+
+    return of(val);
   }
 }

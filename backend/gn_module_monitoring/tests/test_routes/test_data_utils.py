@@ -41,6 +41,7 @@ class TestRouteDataUtils:
         )
         assert nomenclature_response.status_code == 200
 
+        # Route utils for user is not implemented
         user_response = self.client.get(
             url_for(
                 "monitorings.get_util_from_id_api",
@@ -48,7 +49,7 @@ class TestRouteDataUtils:
                 id="4",
             ),
         )
-        assert user_response.status_code == 200
+        assert user_response.status_code == 204
 
         taxonomy_response = self.client.get(
             url_for(

@@ -29,11 +29,13 @@ export class CacheService {
    * @param requestType get, post, patch ou delete
    * @param urlRelative url relative de la route
    * @param data post data (optionnel)
+   * @param isGN2Route indique si la route est une route du module monitoring ou de geonature
    */
   request<Return = Observable<any>>(
     requestType: string,
     urlRelative: string,
-    { postData = {}, queryParams = {} } = {}
+    { postData = {}, queryParams = {} } = {},
+    isGN2Route: boolean = false
   ): Return {
     // verification de requestType
     if (!['get', 'post', 'patch', 'delete'].includes(requestType)) {
@@ -51,7 +53,7 @@ export class CacheService {
           .join('&')
       : '';
     let url: string;
-    if (urlRelative.includes('menu_from_code')) {
+    if (isGN2Route === true) {
       url = this._config.backendUrl() + '/' + urlRelative + url_params;
     } else {
       url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
@@ -136,8 +138,14 @@ export class CacheService {
    * @param requestType get, post, patch ou delete
    * @param urlRelative url relative de la route
    * @param sCachePaths chaine de caractères tableau qui permet de parcourir le dictionnaire _cache
+   * @param isGN2Route indique si la route est une route du module monitoring ou de geonature
    */
-  cache_or_request(requestType: string, urlRelative: string, sCachePaths: string) {
+  cache_or_request(
+    requestType: string,
+    urlRelative: string,
+    sCachePaths: string,
+    isGN2Route: boolean = false
+  ) {
     // on renvoie un observable
     return new Observable((observer) => {
       // recuperation depuis le cache
@@ -152,7 +160,7 @@ export class CacheService {
       if (pendingSubject === undefined) {
         pendingSubject = new Subject();
         this.setCacheValue(sCachePaths, pendingSubject, this._pendingCache);
-        this.request(requestType, urlRelative).subscribe((value) => {
+        this.request(requestType, urlRelative, {}, isGN2Route).subscribe((value) => {
           // stockage de la donnée en cache
           this.setCacheValue(sCachePaths, value, this._cache);
 
