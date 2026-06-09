@@ -18,7 +18,6 @@ from geonature.core.gn_permissions.models import (
 from apptax.taxonomie.models import BibListes
 from pypnusershub.db.models import UserList
 
-from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.command.cmd import (
     cmd_add_update_import_on_protocole,
     cmd_install_monitoring_module,
@@ -74,7 +73,6 @@ def install_monitoring_module(module_code, type_site, users):
     # Installation du module
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_install_monitoring_module, [module_code])
-    print(f"Result of command: {result.output}")
     assert result.exit_code == 0
     # Association du module aux types de site existant
     module = db.session.execute(

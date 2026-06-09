@@ -177,20 +177,19 @@
                   </ng-template>
                   <!--  -->
                   <a
-                    [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
+                    [ngClass]="{ isDisableBtn: !canDoAction('U', row)}"
                     class="nav-link link cell-link"
-                    (click)="row.cruved['U'] ? editSelectedItem(row) : null"
+                    (click)="canDoAction('U', row) ? editSelectedItem(row) : null"
                     [matTooltip]="
-                      row.cruved['U'] ? dataTableConfig[i].editObjLabel : toolTipNotAllowed
+                      tooltipAction('U', row, dataTableConfig[i].editObjLabel)
                     "
                   >
                     <i
-                      [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
+                      [ngClass]="{ isDisableIcon: !canDoAction('U', row) }"
                       class="fa fa-edit"
                       aria-hidden="true"
                     ></i>
                   </a>
-
                   <!-- On ne peut supprimer un objet que s'il n'a pas d'enfant -->
                   <ng-container
                     *ngIf="
@@ -201,15 +200,15 @@
                     "
                   >
                     <a
-                      [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
+                      [ngClass]="{ isDisableBtn: !canDoAction('D', row) }"
                       class="nav-link link cell-link"
-                      (click)="row.cruved['D'] ? alertMessage(row) : null"
+                      (click)="canDoAction('D', row)  ? alertMessage(row) : null"
                       [matTooltip]="
-                        row.cruved['D'] ? dataTableConfig[i].deleteObjLabel : toolTipNotAllowed
+                        tooltipAction('D', row, dataTableConfig[i].deleteObjLabel)
                       "
                     >
                       <i
-                        [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
+                        [ngClass]="{ isDisableIcon: !canDoAction('D', row)  }"
                         class="fa fa-trash"
                         aria-hidden="true"
                       ></i>

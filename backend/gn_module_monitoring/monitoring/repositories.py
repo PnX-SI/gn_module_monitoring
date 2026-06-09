@@ -2,6 +2,7 @@ from flask import current_app, g
 
 from sqlalchemy import select
 from sqlalchemy.sql import text
+from werkzeug.exceptions import Conflict
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -11,6 +12,7 @@ from gn_module_monitoring.monitoring.serializer import MonitoringObjectSerialize
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
+from geonature.core.gn_meta.models import TDatasets
 
 import logging
 from ..utils.utils import to_int
@@ -132,6 +134,11 @@ class MonitoringObject(MonitoringObjectSerializer):
             # on assigne les données post à l'objet et on commite
             self.process_post_data_properties(post_data)
             self.populate(post_data)
+            if self.is_acquisition_framework_closed():
+                action = "create" if b_creation else "update"
+                raise Conflict(
+                    f"Cannot {action} {self._object_type} on a closed acquisition framework."
+                )
 
             if b_creation:
                 DB.session.add(self._model)
@@ -143,7 +150,8 @@ class MonitoringObject(MonitoringObjectSerializer):
                 self.process_synthese()
 
             return self
-
+        except Conflict:
+            raise
         except Exception as e:
             raise GeoNatureError("MONITORING: create_or_update {} : {}".format(self, str(e)))
 
@@ -153,6 +161,10 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         try:
             self.get()
+            if self.is_acquisition_framework_closed():
+                raise Conflict(
+                    f"Cannot delete {self._object_type} on a closed acquisition framework."
+                )
 
             monitoring_object_out = self.serialize(1)
 
@@ -160,8 +172,9 @@ class MonitoringObject(MonitoringObjectSerializer):
             DB.session.commit()
 
             return monitoring_object_out
-
-        except Exception as e:
+        except Conflict:
+            raise
+        except Exception:
             raise GeoNatureError("Delete {} raise error {}".format(self, str(e)))
 
     def breadcrumb(self, params):
@@ -318,3 +331,51 @@ class MonitoringObject(MonitoringObjectSerializer):
                 out = sorted(out, key=extract_number)
 
         return out
+
+    def _get_af_closed_from_model(self, model):
+        """
+        Helper method to check if acquisition framework is closed from a given model.
+
+        :param model: The model to check
+        :return: True if closed, False if opened, None if not linked to an af
+        :rtype: bool or None
+        """
+
+        if hasattr(model, "dataset") and model.dataset:
+            if (
+                hasattr(model.dataset, "acquisition_framework")
+                and model.dataset.acquisition_framework
+            ):
+                return not model.dataset.acquisition_framework.opened
+
+        if hasattr(model, "id_dataset") and model.id_dataset:
+            try:
+                dataset = DB.session.query(TDatasets).get(model.id_dataset)
+                if (
+                    dataset
+                    and hasattr(dataset, "acquisition_framework")
+                    and dataset.acquisition_framework
+                ):
+                    return not dataset.acquisition_framework.opened
+            except Exception as e:
+                logging.error(f"Error loading dataset with id_dataset={model.id_dataset}: {e}")
+
+        return None
+
+    def is_acquisition_framework_closed(self):
+        """
+        Check if acquisition framework linked to object is closed.
+        If the current object is not linked to a dataset, checks the parent object.
+
+        :return: True if closed, False if opened, None if object is not linked to an af
+        :rtype: bool or None
+        """
+
+        result = self._get_af_closed_from_model(self._model)
+        if result is not None:
+            return result
+
+        parent = self.get_parent()
+        if parent and parent._model:
+            return self._get_af_closed_from_model(parent._model)
+        return None

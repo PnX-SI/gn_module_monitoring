@@ -70,15 +70,15 @@
         </a>
         <!-- TODO: rajouter les permission currentUser  *ngIf="currentUser?.moduleCruved[child0.objectType].U >= child0.config.cruved('U')" -->
         <a
-          [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
+          [ngClass]="{ isDisableBtn: !canDoAction('U', row)}"
           class="nav-link link cell-link"
-          (click)="row.cruved['U'] ? child0.navigateToDetail(row.id, true) : null"
+          (click)="canDoAction('U', row)? child0.navigateToDetail(row.id, true) : null"
           [matTooltip]="
-            row.cruved['U'] ? 'Editer ' + child0.template.label_art_def : toolTipNotAllowed
+            tooltipAction('U', row, child0.template.label_art_def)
           "
         >
           <i
-            [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
+            [ngClass]="{ isDisableIcon: !canDoAction('U', row) }"
             class="fa fa-edit"
             aria-hidden="true"
           ></i>
@@ -88,15 +88,15 @@
           *ngIf="(row['nb_sites'] || 0 + row['nb_visits'] || 0 + row['nb_observations'] || 0)== 0"
         >
           <a
-            [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
+            [ngClass]="{ isDisableBtn: !canDoAction('D', row)  }"
             class="nav-link link cell-link"
-            (click)="row.cruved['D'] ? alertMessage(row) : null"
+            (click)="canDoAction('D', row)  ? alertMessage(row) : null"
             [matTooltip]="
-              row.cruved['D'] ? 'Supprimer ' + child0.template.label_art_def : toolTipNotAllowed
+              tooltipAction('D', row, child0.template.label_art_def)
             "
           >
             <i
-              [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
+              [ngClass]="{ isDisableIcon: !canDoAction('U', row)  }"
               class="fa fa-trash"
               aria-hidden="true"
             ></i>

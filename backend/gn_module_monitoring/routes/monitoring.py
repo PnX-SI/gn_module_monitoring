@@ -146,7 +146,6 @@ def create_or_update_object_api(module_code, object_type, id=None):
 
     # recupération des données post
     post_data = dict(request.get_json())
-
     # on rajoute id_module s'il n'est pas renseigné par défaut
     post_data["properties"].setdefault("id_module", None)
     if not post_data["properties"]["id_module"]:
@@ -218,8 +217,6 @@ def update_object_api(scope, module_code, object_type, id):
         ).get(depth=depth)
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
-
-    post_data = dict(request.get_json())
     return create_or_update_object_api(module_code, object_type, id)
 
 
@@ -235,8 +232,6 @@ def update_object_api(scope, module_code, object_type, id):
 @check_cruved_scope("C")
 @json_resp
 def create_object_api(module_code, object_type, id):
-    post_data = dict(request.get_json())
-    # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
 

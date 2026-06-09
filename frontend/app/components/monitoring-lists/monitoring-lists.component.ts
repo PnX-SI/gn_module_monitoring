@@ -1,12 +1,14 @@
 import { DataMonitoringObjectService } from './../../services/data-monitoring-object.service';
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { ConfigService } from '../../services/config.service';
+import { TranslateService } from '@ngx-translate/core';
 
 import { MonitoringObject } from '../../class/monitoring-object';
 import { HttpClient } from '@angular/common/http';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
 import { ListService } from '../../services/list.service';
 import { getImportProperties } from '../../utils/import';
+import { ActionService } from '@geonature/services/action.service';
 
 @Component({
   selector: 'pnx-monitoring-lists',
@@ -44,14 +46,17 @@ export class MonitoringListComponent implements OnInit {
   importQueryParams = {};
 
   // medias;
-  canCreateChild: { [key: string]: boolean } = {};
+  childrenPermission: { [key: string]: { canCreate: boolean; tooltip: string } } = {};
+  af_closed = false;
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   public importAvailable: boolean = false;
 
   constructor(
     private _configService: ConfigService,
     private _listService: ListService,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private actionService: ActionService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -73,6 +78,7 @@ export class MonitoringListComponent implements OnInit {
 
     this.frontendModuleMonitoringUrl = this._configService.frontendModuleMonitoringUrl();
     this.backendUrl = this._configService.backendUrl();
+    this.af_closed = this.obj.properties['af_opened'] === false;
 
     this.children0Array = this.obj.children0Array();
 
@@ -90,7 +96,22 @@ export class MonitoringListComponent implements OnInit {
   initPermission() {
     for (const child of this.children0Array) {
       const childType = child['objectType'];
-      this.canCreateChild[childType] = this.currentUser?.moduleCruved[childType].C > 0;
+      let permission = { canCreate: true, tooltip: '' };
+      permission.canCreate = this.actionService.isActionAllowed(
+        this.currentUser?.moduleCruved[childType],
+        !this.af_closed,
+        'C'
+      );
+      permission.tooltip = this.actionService.getActionTooltip(
+        this.currentUser?.moduleCruved[childType],
+        !this.af_closed,
+        'C',
+        'Monitoring',
+        undefined,
+        { object_type: childType },
+        this.translate
+      );
+      this.childrenPermission[childType] = permission;
     }
   }
 

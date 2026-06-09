@@ -28,6 +28,7 @@ import { IdataTableObjData } from '../../interfaces/geom';
 import { getImportProperties } from '../../utils/import';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from '../../services/config.service';
+import { ActionService } from '@geonature/services/action.service';
 
 interface ItemObjectTable {
   id: number | null;
@@ -35,6 +36,7 @@ interface ItemObjectTable {
   visible: boolean;
   current: boolean;
 }
+
 type ItemsObjectTable = { [key: string]: ItemObjectTable[] };
 
 @Component({
@@ -109,7 +111,8 @@ export class MonitoringDatatableGComponent implements OnInit {
     private _commonService: CommonService,
     private _configService: ConfigService,
     private translate: TranslateService,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private actionService: ActionService
   ) {}
 
   ngOnInit() {
@@ -117,6 +120,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.initDatatable();
     this.isImportDestinationAvailable();
   }
+
   subscribeToParentEmitter(): void {
     if (this.bDeleteModalEmitter) {
       this.subscription = this.bDeleteModalEmitter.subscribe((data: boolean) => {
@@ -164,6 +168,7 @@ export class MonitoringDatatableGComponent implements OnInit {
         : {};
     this.filters = { ...this.filters, ...sort };
   }
+
   reInitStatut() {
     let status_type = Utils.copy(this.objectsStatus);
     for (let typeObject in status_type) {
@@ -362,6 +367,27 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.onDetailsRow.emit(row);
   }
 
+  canDoAction(action: 'D' | 'U', row: any): boolean {
+    const af_closed = row.af_opened === false;
+    return this.actionService.isActionAllowed(row.cruved, !af_closed, action);
+  }
+
+  tooltipAction(action: 'D' | 'U', row: any, default_message: string): string {
+    if (this.canDoAction(action, row)) {
+      return default_message;
+    }
+    const af_closed = row.af_opened === false;
+    return this.actionService.getActionTooltip(
+      row.cruved,
+      !af_closed,
+      action,
+      'Monitoring',
+      undefined,
+      undefined,
+      this.translate
+    );
+  }
+
   editSelectedItem(row) {
     row['id'] = row.pk;
     this.onEditEvent.emit(row);
@@ -387,16 +413,16 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.rowDeleted['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
   }
+
   getImportProperties() {
     return getImportProperties(this.obj);
   }
+
   isImportDestinationAvailable() {
     // TODO removed when 2.17.1 is released
-    console.log(this.moduleCode);
     this.httpClient
       .get(this._configService.backendUrl() + '/import/destinations/C')
       .subscribe((data: any) => {
-        console.log(data);
         this.importAvailable =
           data.filter((destination: any) => destination.code == this.moduleCode).length > 0;
       });

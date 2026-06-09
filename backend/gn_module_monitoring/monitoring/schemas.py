@@ -213,11 +213,16 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
     visit_date_min = MA.Date()
     visit_date_max = MA.Date()
-
+    af_opened = fields.Method("is_af_opened", dump_only=True)
     observers = MA.Pluck(ObserverSchema, "id_role", many=True)
 
     def set_pk(self, obj):
         return "id_base_visit"
+
+    def is_af_opened(self, obj):
+        if obj.dataset and obj.dataset.acquisition_framework:
+            return getattr(obj.dataset.acquisition_framework, "opened", True)
+        return None
 
 
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):

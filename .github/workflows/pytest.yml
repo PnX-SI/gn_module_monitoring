@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["master"] # Mettre version compatible
+        geonature_ref: ["disallow_update_delete_on_closed_af"] # Mettre version compatible
     uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@master
     with:
       geonature_ref: ${{ matrix.geonature_ref }}

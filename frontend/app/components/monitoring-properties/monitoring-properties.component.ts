@@ -9,6 +9,8 @@ import { MapService } from '@geonature_common/map/map.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
+import { ActionService } from '@geonature/services/action.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'pnx-monitoring-properties',
@@ -29,7 +31,7 @@ export class MonitoringPropertiesComponent implements OnInit {
   public modalReference;
   selectedDataSet: Array<number> = [];
 
-  canUpdateObj: boolean;
+  objPermission: { canUpdate: boolean; tooltip: string };
 
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
@@ -39,7 +41,9 @@ export class MonitoringPropertiesComponent implements OnInit {
     private _dataService: DataMonitoringObjectService,
     private _commonService: CommonService,
     public ngbModal: NgbModal,
-    public mapservice: MapService
+    public mapservice: MapService,
+    private translate: TranslateService,
+    private actionService: ActionService
   ) {}
 
   ngOnInit() {
@@ -48,14 +52,26 @@ export class MonitoringPropertiesComponent implements OnInit {
     if (this.currentUser.moduleCruved == undefined) {
       this.currentUser.moduleCruved = this._configService.moduleCruved(this.obj.moduleCode);
     }
+    this.initPermission();
   }
 
   initPermission() {
-    this.canUpdateObj =
+    let af_closed = this.obj.properties['af_opened'] === false;
+    let permission = { canUpdate: true, tooltip: '' };
+    permission.canUpdate =
       this.obj.objectType == 'module'
         ? this.currentUser?.moduleCruved[this.obj.objectType]['U'] > 0
-        : this.obj.cruved['U'];
-    return this.canUpdateObj;
+        : this.obj.cruved['U'] && !af_closed;
+    permission.tooltip = this.actionService.getActionTooltip(
+      this.obj.cruved,
+      !af_closed,
+      'U',
+      'Monitoring',
+      undefined,
+      { object_type: this.obj.objectType },
+      this.translate
+    );
+    this.objPermission = permission;
   }
 
   onEditClick() {

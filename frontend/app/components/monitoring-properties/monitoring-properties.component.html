@@ -96,11 +96,12 @@
     <button
       mat-stroked-button
       color="primary"
-      class="mr-2"
-      (click)="initPermission() ? onEditClick() : null"
+      class="mr-2 btn btn-success"
+      (click)="objPermission.canUpdate ? onEditClick() : null"
       *ngIf="!bEdit"
-      [matTooltip]="initPermission() ? null : toolTipNotAllowed"
-      [disabled]="!initPermission()"
+      [matTooltip]="objPermission.tooltip"
+      [disabled]="!objPermission.canUpdate"
+      [ngClass]="{ isDisableBtn: !objPermission.canUpdate }"
     >
       {{ 'Monitoring.Module.Edit' | translate }}{{ obj.template['label_art_def'] || '' }}
     </button>
