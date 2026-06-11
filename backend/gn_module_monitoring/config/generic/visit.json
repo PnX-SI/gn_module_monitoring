@@ -88,7 +88,8 @@
     },
     "nb_observations": {
       "type_widget": "number",
-      "attribut_label": "Nombre d'observations"
+      "attribut_label": "Nombre d'observations",
+      "hidden": true
     },
     "medias": {
       "type_widget": "medias",

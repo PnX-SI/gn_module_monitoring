@@ -44,7 +44,7 @@
       "type_widget": "number",
       "attribut_label": "Id site",
       "hidden": true
-    },
+    },  
     "base_site_code": {
       "type_widget": "text",
       "attribut_label": "Code",
@@ -84,11 +84,14 @@
       "type_util": "date"
     },
     "nb_visits": {
+      "attribut_label": "Nb. visites",
       "type_widget": "number",
-      "attribut_label": "Nb. visites"
+      "hidden": true
     },
     "nb_individuals": {
-      "attribut_label": "Nb. individus"
+      "attribut_label": "Nb. individus",
+      "type_widget": "number",
+      "hidden": true
     },
     "uuid_base_site": {
       "attribut_label": "uuid",
@@ -101,11 +104,13 @@
     },
     "altitude_min": {
       "type_widget": "number",
-      "attribut_label": "Altitude (min)"
+      "attribut_label": "Altitude (min)",
+      "hidden": true
     },
     "altitude_max": {
       "type_widget": "number",
-      "attribut_label": "Altitude (max)"
+      "attribut_label": "Altitude (max)",
+      "hidden": true
     },
     "types_site": {
       "type_widget": "datalist",

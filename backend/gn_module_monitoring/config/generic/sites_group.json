@@ -47,10 +47,14 @@
         "attribut_label": "uuid"
       },
       "nb_sites": {
-        "attribut_label": "Nombre de sites"
+        "attribut_label": "Nombre de sites",
+        "type_widget": "number",
+        "hidden": true
       },
       "nb_visits": {
-        "attribut_label": "Nombre de visites"
+        "attribut_label": "Nombre de visites",
+        "type_widget": "number",
+        "hidden": true
       },
       "medias": {
         "type_widget": "medias",
