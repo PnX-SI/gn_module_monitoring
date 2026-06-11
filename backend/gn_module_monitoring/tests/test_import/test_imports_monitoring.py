@@ -6,7 +6,7 @@ from apptax.taxonomie.models import BibListes
 from flask import current_app, g
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TObservations
-from geonature.core.imports.models import Destination
+from geonature.core.imports.models import BibFields, Destination
 from geonature.tests.imports.utils import assert_import_errors
 from geonature.utils.env import db
 from pypnusershub.db.models import UserList
@@ -39,6 +39,31 @@ def install_test_module_with_import(install_module_test):
     result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
 
     assert result.exit_code == 0
+
+    site_fields = db.session.scalars(
+        sa.select(BibFields).where(
+            BibFields.id_destination
+            == sa.select(Destination.id_destination).where(
+                Destination.module.has(TModules.module_code == "test")
+            )
+        )
+    ).all()
+
+    assert set(
+        [
+            "s__roost_type",
+            "s__meteo",
+            "s__place_name",
+            "s__owner_name",
+            "s__owner_adress",
+            "s__owner_tel",
+            "s__owner_mail",
+            "s__opening",
+            "s__threat",
+            "s__recommandation",
+            "s__meteo_gite",
+        ]
+    ).issubset(set([f.name_field for f in site_fields]))
 
 
 @pytest.fixture()
