@@ -1,26 +1,28 @@
 TYPE_WIDGET = {
     "select": "varchar",
-    "checkbox": "varchar[]",
+    "checkbox": "varchar",
     "radio": "varchar",
     "html": "text",
     "bool_checkbox": "boolean",
-    "number": "integer",
-    "multiselect": "varchar[]",
-    "observers": "integer[]",
+    "number": "number",
+    "multiselect": "varchar",
+    "observers": "integer",
+    "observers-text": "varchar",
     "media": "varchar",
-    "medias": "varchar[]",
+    "medias": "varchar",
     "date": "date",
     "nomenclature": "integer",
     "datalist": "integer",
     "text": "varchar",
     "textarea": "text",
-    "integer": "integer",
     "jsonb": "jsonb",
     "time": "varchar",
     "taxonomy": "integer",
     "site": "integer",
     "individuals": "integer",
 }
+
+INT_TYPE_UTILS = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
 
 FORBIDDEN_SQL_INSTRUCTION = [
     "INSERT ",
