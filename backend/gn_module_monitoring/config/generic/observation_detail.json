@@ -19,7 +19,9 @@
     },
     "uuid_observation_detail": {
       "attribut_label": "uuid",
-      "type_util": "uuid"
+      "type_widget": "text",
+      "type_util": "uuid",
+      "hidden": true
     },
     "medias": {
       "type_widget": "medias",

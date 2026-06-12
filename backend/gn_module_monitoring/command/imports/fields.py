@@ -9,6 +9,13 @@ from geonature.core.imports.models import (
 )
 from utils_flask_sqla.utils import strtobool
 
+from gn_module_monitoring.command.imports.constant import (
+    TYPE_WIDGET,
+    INT_TYPE_UTILS,
+    OTHER_TYPE_UTILS,
+    MULTI_TYPE_WIDGET,
+)
+
 
 def prepare_fields(
     specific_data: dict,
@@ -135,39 +142,26 @@ def determine_field_type(field_data: dict) -> str:
     type_util = field_data.get("type_util")
     multiple = field_data.get("multiple", field_data.get("multi_select", False))
 
-    type_mapping = {
-        "textarea": "text",
-        "time": "varchar",
-        "date": "date",
-        "html": "varchar",
-        "radio": "varchar",
-        "select": "varchar",
-        "medias": "varchar",
-    }
+    # Si le champ est de type checkbox ou multiselect, on considère qu'il permet plusieurs valeurs
+    # TODO Devrait être forcé dans la configuration
+    if type_widget in MULTI_TYPE_WIDGET:
+        multiple = True
 
-    int_type_utils = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
+    field_type = "text"
+    # Si il y a un type utils défini c'est un integer
+    if type_util in INT_TYPE_UTILS:
+        field_type = "integer"
+    if type_util in OTHER_TYPE_UTILS:
+        field_type = type_util
+    # Sinon, on utilise le type définit par le widget
+    if type_widget in TYPE_WIDGET:
+        field_type = TYPE_WIDGET[type_widget]
 
-    if type_widget in ["observers", "datalist"]:
-        return "integer[]" if multiple else "integer"
+    # Si le champ est multivalue, on ajoute "[]"
+    if multiple:
+        return field_type + "[]"
 
-    if type_util in int_type_utils:
-        return "integer"
-    elif type_util in ["date", "uuid"]:
-        return type_util
-
-    if type_widget in ["checkbox", "multiselect"]:
-        return "varchar[]"
-
-    if type_widget in type_mapping:
-        return type_mapping[type_widget].upper()
-
-    if type_widget == "number":
-        return "integer"
-
-    if type_widget == "bool_checkbox":
-        return "boolean"
-
-    return "varchar"
+    return field_type
 
 
 def get_field_name(entity_code, field_name):

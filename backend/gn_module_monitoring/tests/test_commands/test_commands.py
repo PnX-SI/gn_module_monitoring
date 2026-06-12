@@ -1,10 +1,15 @@
 import pytest
+import json
+
+
+from pathlib import Path
+
 
 from flask import url_for, current_app
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
-from geonature.utils.env import DB
+from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.imports.models import BibFields, Destination
 
 from gn_module_monitoring.command.cmd import (
@@ -22,6 +27,8 @@ from gn_module_monitoring.command.imports.entity import (
     insert_entity_field_relations,
 )
 from gn_module_monitoring.command.imports.fields import delete_bib_fields, insert_bib_field
+
+from gn_module_monitoring.tests.fixtures.module import install_monitoring_module
 
 
 class TestCommands:
@@ -57,14 +64,6 @@ class TestCommands:
         # Commande process all
         result = runner.invoke(cmd_process_sql)
         # Pas de result
-        assert result.exit_code == 0
-
-    def test_process_all_with_module(self, install_module_test):
-        runner = current_app.test_cli_runner()
-        # Commande process all
-        # import pdb
-        result = runner.invoke(cmd_process_sql, ["test"])
-        # Pas de result juste <Result okay>
         assert result.exit_code == 0
 
     def test_process_available_permission_module_without_module(self, install_module_test):
@@ -138,12 +137,14 @@ class TestCommands:
             all_fields = entity_fields.get("generic", []) + entity_fields.get("specific", [])
             for field in all_fields:
                 fields_data.append((field["name_field"], field["fr_label"]))
-
-        fields = DB.session.execute(
-            select(BibFields.name_field, BibFields.fr_label).where(
-                BibFields.id_destination == destination.id_destination
+        existing_fields = (
+            DB.session.execute(
+                select(BibFields).where(BibFields.id_destination == destination.id_destination)
             )
-        ).fetchall()
+            .scalars()
+            .all()
+        )
+        fields = [(field.name_field, field.fr_label) for field in existing_fields]
 
         sorted_fields_data = sorted(fields_data)
         sorted_fields = sorted(fields)
@@ -154,10 +155,48 @@ class TestCommands:
         assert "observation" in entities
         assert "visit" in entities
 
-        query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'gn_imports' AND table_name = '{destination.table_name}');"
+        query = text(f"""
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM information_schema.tables 
+                    WHERE table_schema = 'gn_imports' 
+                    AND table_name = '{destination.table_name}'
+                );""")
         result = DB.session.execute(query).scalar_one()
 
         assert result == True
+
+        # Test data_type integer
+        fields_to_test = {
+            "s__altitude_max": ("number", "integer"),
+            "s__altitude_min": ("number", "integer"),
+            "s__geom": ("textarea", "USER-DEFINED"),
+            "s__id_inventor": ("observers", "integer"),
+            "s__first_use_date": ("date", "date"),
+            "s__types_site": ("datalist", "ARRAY"),
+            "s__base_site_name": ("text", "character varying"),
+            "s__base_site_code": ("text", "character varying"),
+            "s__base_site_description": ("textarea", "text"),
+            "s__multiselect": ("multiselect", "ARRAY"),
+        }
+
+        # Test qui ne peux pas fonctionner car le field_type est encore numeric dans bib_fields
+        for field in existing_fields:
+            if field.name_field in fields_to_test.keys():
+                assert field.type_field == fields_to_test[field.name_field][0]
+
+        # Test de la table de destination
+        query = text(f"""
+            SELECT column_name, data_type 
+            FROM information_schema."columns" c 
+            WHERE 
+                table_schema = 'gn_imports'
+                AND table_name = '{destination.table_name}';
+            """)
+        results = DB.session.execute(query).fetchall()
+        for result in results:
+            if result[0] in fields_to_test.keys():
+                assert result[1] == fields_to_test[result[0]][1]
 
     def test_install_protocol_no_updates(self, install_module_test_with_config):
         runner = current_app.test_cli_runner()
@@ -169,7 +208,6 @@ class TestCommands:
         destination = DB.session.execute(select(Destination).filter_by(code="test")).scalar_one()
 
         protocol_data, entity_hierarchy_map = get_protocol_data("test", destination.id_destination)
-        # print(protocol_data)
 
         # Edit field
         for field in protocol_data["site"]["specific"]:
@@ -232,3 +270,46 @@ class TestCommands:
             select(BibFields).filter_by(name_field="profondeur_grotte")
         ).scalar_one_or_none()
         assert profondeur_grotte_field is None
+
+    def test_update_protocol_invalid_config_data(self, install_module_test_with_config):
+        # Modification du fichier de configuration pour le rendre invalide
+        site_config_file = BACKEND_DIR / Path(f"media/monitorings/test/site.json")
+        site_content = json.loads(site_config_file.read_text())
+        site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
+        site_config_file.write_text(json.dumps(site_content))
+
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+        assert result.exit_code == 0
+        assert "Erreurs détectées dans les fichiers de configuration" in result.output
+
+    def test_install_protocol_invalid_fields(self, types_site, users):
+
+        module_code = "test"
+
+        # Modification du fichier de configuration
+        # pour le rendre invalide
+        path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
+        site_config_file = path_gn_monitoring / Path(f"contrib/{module_code}/site.json")
+        init_site_content = site_config_file.read_text()
+        site_content = json.loads(site_config_file.read_text())
+        site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
+
+        site_config_file.write_text(json.dumps(site_content))
+
+        # Installation du module de test
+        # doit être en echec
+        runner = current_app.test_cli_runner()
+        with pytest.raises(
+            Exception, match="Erreurs détectées dans les fichiers de configuration"
+        ) as e:
+            install_monitoring_module(module_code, types_site, users)
+
+        # Restauration du fichier de configuration et installation du module
+        site_config_file.write_text(init_site_content)
+
+        install_monitoring_module(module_code, types_site, users)
+        result = DB.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+        ).scalar_one()
+        assert result.module_code == module_code

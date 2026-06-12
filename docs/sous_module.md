@@ -195,7 +195,7 @@ Chaque entrée de la variable `generic` est le nom d'une variable
     * `type_util`: peut prendre pour valeur `"user"`,
         `"nomenclature"`, `"dataset"` ou `"taxonomy"`. Permet
         d'indiquer qu'il s'agit ici d'un identifiant (exemple : nomenclature) et
-        de traiter cette variable en fonction.
+        de traiter cette variable en fonction. 
 
 On peut mettre en valeur de ces attributs des données de la
 configuration du module.

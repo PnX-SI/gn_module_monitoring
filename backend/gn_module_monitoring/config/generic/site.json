@@ -81,7 +81,8 @@
     },
     "last_visit": {
       "attribut_label": "Dernière visite",
-      "type_util": "date"
+      "type_widget": "date",
+      "hidden": true
     },
     "nb_visits": {
       "attribut_label": "Nb. visites",
@@ -95,7 +96,9 @@
     },
     "uuid_base_site": {
       "attribut_label": "uuid",
-      "type_util": "uuid"
+      "type_widget": "text",
+      "type_util": "uuid",
+      "hidden": true
     },
     "medias": {
       "type_widget": "medias",

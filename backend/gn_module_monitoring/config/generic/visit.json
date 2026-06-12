@@ -76,7 +76,9 @@
     },
     "uuid_base_visit": {
       "attribut_label": "uuid",
-      "type_util": "uuid"
+      "type_widget": "text",
+      "type_util": "uuid",
+      "hidden": true
     },
     "id_dataset": {
       "type_widget": "dataset",
