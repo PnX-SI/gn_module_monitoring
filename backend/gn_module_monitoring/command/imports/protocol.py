@@ -1,5 +1,8 @@
 import os
 from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE
+
+from sqlalchemy import text
+
 from gn_module_monitoring.command.imports.utils import destination_name
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
@@ -311,7 +314,9 @@ def get_existing_protocol_state(id_destination: int, module_data: dict):
     }
 
 
-def update_protocol(module_data, module_code, fields_to_delete, update_label_only=False):
+def update_protocol(
+    module_data, module_code, fields_to_delete, update_label_only=False, force=False
+):
     """
     Met à jour un protocole existant ou uniquement le libellé de l'entité dans `bib_entities`.
 
@@ -360,7 +365,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
                 delete_bib_fields(fields_to_delete)
 
             table_name = f"t_imports_{module_code.lower()}"
-            DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
+            DB.engine.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
 
             create_sql_import_table_protocol(module_code, protocol_data)
 

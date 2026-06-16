@@ -193,17 +193,14 @@ def process_module_import(module_data):
         )
 
 
-def process_update_module_import(module_data, module_code: str):
+def process_update_module_import(module_data, module_code: str, force=False):
     """
     Gère la mise à jour complète d'un module.
     """
     try:
         is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
-            module_code, module_data
+            module_code, module_data, force
         )
-
-        if is_valid is None:
-            return None
 
         if not is_valid:
             print("Erreurs détectées lors de la validation du protocole:")
@@ -226,7 +223,7 @@ def process_update_module_import(module_data, module_code: str):
         return False
 
 
-def validate_protocol_changes(module_code: str, module_data):
+def validate_protocol_changes(module_code: str, module_data, force=False):
     """
     Valide les changements dans les fichiers de configuration du protocole.
 
@@ -242,15 +239,18 @@ def validate_protocol_changes(module_code: str, module_data):
     try:
         destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
 
-        if check_rows_exist_in_import_table(module_code):
-            return (
-                False,
-                [
-                    "La table d'importation contient des données. Impossible de mettre à jour le protocole."
-                ],
-                [],
-                False,
-            )
+        if check_rows_exist_in_import_table(module_code) and not force:
+            if not ask_confirmation(
+                "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données. Voulez-vous continuer ? (y/n): "
+            ):
+                return (
+                    False,
+                    [
+                        "La table d'importation contient des données. Impossible de mettre à jour le protocole."
+                    ],
+                    [],
+                    False,
+                )
 
         existing_data = get_existing_protocol_state(destination.id_destination, module_data)
         protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
@@ -301,6 +301,7 @@ def validate_protocol_changes(module_code: str, module_data):
             and not fields_to_update
             and not fields_to_delete
             and not existing_data["label"]
+            and not force
         ):
             warnings.append("Aucun changement détecté dans le protocole.")
             return None, warnings, [], False
@@ -308,7 +309,12 @@ def validate_protocol_changes(module_code: str, module_data):
         return True, warnings, fields_to_delete, False
 
     except Exception as e:
-        return False, [f"Erreur lors de la validation du protocole: {str(e)}"], [], False
+        return (
+            False,
+            [f"Erreur lors de la validation du protocole: {str(e)}"],
+            [],
+            False,
+        )
 
 
 def is_module_configured(module_code: str):

@@ -170,8 +170,15 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
 
 @click.command("process_import")
 @click.argument("module_code", type=str, required=True)
+@click.option(
+    "--force",
+    "force",
+    is_flag=True,
+    default=False,
+    help="When the protocol is already set up to make import, this params allows to make a clean set up instead of an update.",
+)
 @with_appcontext
-def cmd_add_update_import_on_protocole(module_code):
+def cmd_add_update_import_on_protocole(module_code, force=False):
     module_code_installed = [module["module_code"] for module in installed_modules()]
     if not module_code in module_code_installed:
         raise KeyError(
@@ -212,7 +219,7 @@ def cmd_add_update_import_on_protocole(module_code):
             # Effectuer une mise à jour
             try:
                 click.secho(f"Mise à jour du module {module_code}")
-                state = process_update_module_import(config, module_code)
+                state = process_update_module_import(config, module_code, force=force)
                 if state is None:
                     click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
                     return
