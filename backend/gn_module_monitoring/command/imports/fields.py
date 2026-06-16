@@ -9,7 +9,11 @@ from geonature.core.imports.models import (
 )
 from utils_flask_sqla.utils import strtobool
 
-from gn_module_monitoring.command.imports.constant import TYPE_WIDGET, INT_TYPE_UTILS
+from gn_module_monitoring.command.imports.constant import (
+    TYPE_WIDGET,
+    INT_TYPE_UTILS,
+    MULTI_TYPE_WIDGET,
+)
 
 
 def prepare_fields(
@@ -137,13 +141,23 @@ def determine_field_type(field_data: dict) -> str:
     type_util = field_data.get("type_util")
     multiple = field_data.get("multiple", field_data.get("multi_select", False))
 
+    # Si le champ est de type checkbox ou multiselect, on considère qu'il permet plusieurs valeurs
+    # TODO Devrait être forcé dans la configuration
+    if type_widget in MULTI_TYPE_WIDGET:
+        multiple = True
+
     # Si un type de données est explicitement fourni, on l'utilise
-    field_type = field_data.get("data_type", None)
+    field_type = (
+        field_data.get("data_type", None)
+        if field_data.get("data_type", None) in set(TYPE_WIDGET.values())
+        else None
+    )
+
     if not field_type:
         # Si il y a un type utils défini c'est un integer
         if type_util in INT_TYPE_UTILS:
             field_type = "integer"
-        # Sinon, on utilise le type utilitaire
+        # Sinon, on utilise le type définit par le widget
         if type_widget in TYPE_WIDGET:
             field_type = TYPE_WIDGET[type_widget]
 

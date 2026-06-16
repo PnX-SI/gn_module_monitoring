@@ -24,6 +24,8 @@ TYPE_WIDGET = {
 
 INT_TYPE_UTILS = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
 
+MULTI_TYPE_WIDGET = ["multiselect", "checkbox"]
+
 FORBIDDEN_SQL_INSTRUCTION = [
     "INSERT ",
     "DELETE ",
