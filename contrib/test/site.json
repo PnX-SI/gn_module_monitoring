@@ -41,6 +41,7 @@
     },
     "profondeur_grotte": {
       "type_widget": "number",
+      "data_type": "integer",
       "attribut_label": "Profondeur de la grotte",
       "hidden": "({value, meta}) => {return (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'}"
     },

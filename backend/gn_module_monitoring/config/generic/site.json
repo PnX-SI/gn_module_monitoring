@@ -101,10 +101,12 @@
     },
     "altitude_min": {
       "type_widget": "number",
+      "data_type": "integer",
       "attribut_label": "Altitude (min)"
     },
     "altitude_max": {
       "type_widget": "number",
+      "data_type": "integer",
       "attribut_label": "Altitude (max)"
     },
     "types_site": {
