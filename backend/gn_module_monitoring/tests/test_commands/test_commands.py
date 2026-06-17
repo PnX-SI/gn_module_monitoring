@@ -1,12 +1,13 @@
 import pytest
 import json
 
+
 from pathlib import Path
 
 
 from flask import url_for, current_app
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.imports.models import BibFields, Destination
@@ -154,15 +155,48 @@ class TestCommands:
         assert "observation" in entities
         assert "visit" in entities
 
-        # Test data_type integer
-        # for field in existing_fields:
-        #     if field.name_field == "s__altitude_max":
-        #         assert field.type_field == "integer"
-
-        query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'gn_imports' AND table_name = '{destination.table_name}');"
+        query = text(f"""
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM information_schema.tables 
+                    WHERE table_schema = 'gn_imports' 
+                    AND table_name = '{destination.table_name}'
+                );""")
         result = DB.session.execute(query).scalar_one()
 
         assert result == True
+
+        # Test data_type integer
+        fields_to_test = {
+            "s__altitude_max": ("number", "integer"),
+            "s__altitude_min": ("number", "integer"),
+            "s__geom": ("textarea", "USER-DEFINED"),
+            "s__id_inventor": ("observers", "integer"),
+            "s__first_use_date": ("date", "date"),
+            "s__types_site": ("datalist", "ARRAY"),
+            "s__base_site_name": ("text", "character varying"),
+            "s__base_site_code": ("text", "character varying"),
+            "s__base_site_description": ("textarea", "text"),
+            "s__multiselect": ("multiselect", "ARRAY"),
+        }
+
+        # Test qui ne peux pas fonctionner car le field_type est encore numeric dans bib_fields
+        for field in existing_fields:
+            if field.name_field in fields_to_test.keys():
+                assert field.type_field == fields_to_test[field.name_field][0]
+
+        # Test de la table de destination
+        query = text(f"""
+            SELECT column_name, data_type 
+            FROM information_schema."columns" c 
+            WHERE 
+                table_schema = 'gn_imports'
+                AND table_name = '{destination.table_name}';
+            """)
+        results = DB.session.execute(query).fetchall()
+        for result in results:
+            if result[0] in fields_to_test.keys():
+                assert result[1] == fields_to_test[result[0]][1]
 
     def test_install_protocol_no_updates(self, install_module_test_with_config):
         runner = current_app.test_cli_runner()
