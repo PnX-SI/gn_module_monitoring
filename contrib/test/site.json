@@ -64,6 +64,15 @@
       "code_nomenclature_type": "TEST_METEO",
       "type_util": "nomenclature",
       "required": false
+    }, 
+    "multiselect": {
+      "type_widget": "multiselect",
+      "attribut_label": "Multiselect",
+      "values": [
+        "choix_1",
+        "choix_2",
+        "choix_3"
+      ]
     }
   }
 }

@@ -1,10 +1,21 @@
+from sqlalchemy import (
+    Integer,
+    Float,
+    String,
+    Boolean,
+    Date,
+    ARRAY,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+
 TYPE_WIDGET = {
     "select": "varchar",
     "checkbox": "varchar",
     "radio": "varchar",
     "html": "text",
     "bool_checkbox": "boolean",
-    "number": "number",
+    "number": "integer",
     "multiselect": "varchar",
     "observers": "integer",
     "observers-text": "varchar",
@@ -20,11 +31,34 @@ TYPE_WIDGET = {
     "taxonomy": "integer",
     "site": "integer",
     "individuals": "integer",
+    "dataset": "integer",
 }
 
-INT_TYPE_UTILS = ["user", "taxonomy", "nomenclature", "types_site", "module", "dataset"]
+INT_TYPE_UTILS = [
+    "user",
+    "taxonomy",
+    "nomenclature",
+    "types_site",
+    "module",
+    "dataset",
+    "site",
+    "habitat",
+]
 
 MULTI_TYPE_WIDGET = ["multiselect", "checkbox"]
+
+SQL_DATA_TYPE_MAPPING = {
+    "varchar": String,
+    "varchar[]": ARRAY(String),
+    "text": Text,
+    "boolean": Boolean,
+    "integer": Integer,
+    "integer[]": ARRAY(Integer),
+    "number": Float(precision=24),
+    "date": Date,
+    "jsonb": JSONB,
+    "uuid": UUID,
+}
 
 FORBIDDEN_SQL_INSTRUCTION = [
     "INSERT ",
