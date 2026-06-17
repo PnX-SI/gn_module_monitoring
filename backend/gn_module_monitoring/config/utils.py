@@ -494,7 +494,7 @@ def validate_json_field(file_path, field_name, field_data, file_errors):
 
     if "type_widget" in field_data and field_data["type_widget"] not in valid_type_widgets:
         file_errors.append(
-            f"Dans {file_path}, le champ {field_name}: type_widget {field_data["type_widget"]} n'est pas valide"
+            f"Dans {file_path}, le champ {field_name}: type_widget {field_data['type_widget']} n'est pas valide"
         )
 
     if "type_util" in field_data and field_data["type_util"] not in valid_type_util:
