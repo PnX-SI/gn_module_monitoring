@@ -451,6 +451,8 @@ Les options supplémentaires pour ce widget :
 * `default` : permet de donner une valeur par defaut
     (`"default": {"cd_nomenclature": "1"}` permettra de récupérer le
     premier objet de la liste qui correspond)
+* `nullDefault` : quand mis a `true` permet d'ajouter une option vide `-- Aucun --` avec la valeur `null` en base. Necessite `required: false`
+* `orderBy` : permet de trier les valeurs par ordre alphabétiques avec `asc` ou `desc` 
 
 Par exemple :
 
