@@ -404,15 +404,23 @@ sera mis à jour :
     redéfinir toutes les variables.
 
 ```json
-    "id_nomenclature_type_site": {
+    "id_nomenclature_sex": {
         "type_widget": "text",
-        "attribut_label": "Type site",
+        "attribut_label": "Sexe",
         "type_util": "nomenclature",
         "value": {
-            "code_nomenclature_type": "TYPE_SITE",
-            "cd_nomenclature": "OEDIC"
+            "code_nomenclature_type": "SEXE",
+            "cd_nomenclature": "6"
         },
         "hidden": true
+    }
+```
+ * Donner au composant "type de site" les types de sites définis dans le module comme valeur par défaut et cacher l'élément
+
+```json
+ "types_site": {
+      "default": "__MODULE.IDS_TYPE_SITE", 
+      "hidden": true
     }
 ```
 
