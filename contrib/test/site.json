@@ -72,6 +72,11 @@
         "choix_2",
         "choix_3"
       ]
+    },
+    "uuid_test": {
+      "attribut_label": "uuid test",
+      "type_widget": "text",
+      "type_util": "uuid" 
     }
   }
 }
