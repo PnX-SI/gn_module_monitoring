@@ -1,8 +1,12 @@
 import os
 from pathlib import Path
+from typing import Tuple
 
 import click
-from gn_module_monitoring.command.imports.constant import TYPE_WIDGET, FLAG_UPDATE_MODULE
+from gn_module_monitoring.command.imports.constant import (
+    TYPE_WIDGET,
+    ValidationFlag,
+)
 from gn_module_monitoring.command.imports.destination import upsert_bib_destination
 from gn_module_monitoring.command.imports.entity import (
     get_entities_protocol,
@@ -200,12 +204,12 @@ def process_update_module_import(module_data, module_code: str):
     try:
         flags, messages, fields_to_delete = validate_protocol_changes(module_code, module_data)
 
-        if "NOTHING" in flags:
+        if ValidationFlag.NOTHING in flags:
             for msg in messages:
                 print(f"- {msg}")
             return None
 
-        if "INVALID" in flags:
+        if ValidationFlag.INVALID in flags:
             print("Erreurs détectées lors de la validation du protocole:")
             for msg in messages:
                 print(f"- {msg}")
@@ -221,7 +225,7 @@ def process_update_module_import(module_data, module_code: str):
         else:
 
             update_label_only = False
-            if "UPDATE_LABEL_ONLY" in flags:
+            if ValidationFlag.LABEL in flags:
                 update_label_only = True
             return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
 
@@ -230,7 +234,7 @@ def process_update_module_import(module_data, module_code: str):
         return False
 
 
-def validate_protocol_changes(module_code: str, module_data):
+def validate_protocol_changes(module_code: str, module_data) -> Tuple[set, list, list]:
     """
     Valide les changements dans les fichiers de configuration du protocole.
 
@@ -238,24 +242,29 @@ def validate_protocol_changes(module_code: str, module_data):
         module_code: Code du module à valider.
 
     Returns:
-        - Booléen indiquant si la validation a réussi.
+        - Flags indiquant les types des changements détectés.
         - Liste des messages d'erreur ou d'avertissement.
         - Champs à supprimer.
-        - Booléen indiquant si seule la mise à jour du label est nécessaire.
     """
     try:
+        flags = set()
         destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
+        warnings = []
+        fields_to_delete = []
 
         if check_rows_exist_in_import_table(module_code):
             if not ask_confirmation(
                 "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données. Voulez-vous continuer ? (y/n): "
             ):
+                warnings.append(
+                    "La table d'importation contient des données. Impossible de mettre à jour le protocole."
+                )
+                flags.add(ValidationFlag.INVALID)
+
                 return (
-                    ("INVALID",),
-                    [
-                        "La table d'importation contient des données. Impossible de mettre à jour le protocole."
-                    ],
-                    [],
+                    flags,
+                    warnings,
+                    fields_to_delete,
                 )
 
         existing_data = get_existing_protocol_state(destination.id_destination, module_data)
@@ -270,45 +279,41 @@ def validate_protocol_changes(module_code: str, module_data):
             existing_data["fields"], all_new_fields
         )
 
-        warnings = []
         if existing_data["label"]:
             warnings.append(
                 f"INFO: Le libellé du module va être modifié. '{destination.label}' -> '{module_data['module'].get('module_label')}'"
             )
 
-        if fields_to_delete:
+        if len(fields_to_delete) > 0:
             warnings.append(
                 "ATTENTION: Des champs vont être supprimés. "
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_delete)}"
             )
 
-        if fields_to_update:
+        if len(fields_to_update) > 0:
             warnings.append(
                 "ATTENTION: Des champs vont être modifiés. "
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_update)}"
             )
 
-        if fields_to_add:
+        if len(fields_to_add) > 0:
             warnings.append(
                 "INFO: De nouveaux champs vont être ajoutés. "
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
             )
 
-        flags = set()
         if existing_data["label"]:
-            flags.add("UPDATE_LABEL")
+            flags.add(ValidationFlag.LABEL)
         if fields_to_add or fields_to_update or fields_to_delete:
-            flags.add("FIELDS")
+            flags.add(ValidationFlag.FIELDS)
         if len(flags) == 0:
-            flags.add("NOTHING")
+            flags.add(ValidationFlag.NOTHING)
         return flags, warnings, fields_to_delete
 
     except Exception as e:
-        return (
-            ("INVALID",),
-            [f"Erreur lors de la validation du protocole: {str(e)}"],
-            [],
-        )
+        flags.add(ValidationFlag.INVALID)
+        warnings.append(f"Erreur lors de la validation du protocole: {str(e)}")
+        return flags, warnings, fields_to_delete
 
 
 def is_module_configured(module_code: str):

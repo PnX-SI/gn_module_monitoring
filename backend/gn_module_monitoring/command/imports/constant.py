@@ -121,4 +121,14 @@ ENTITIES_NOT_AVAILABLE = ["sites_group", "observation_detail"]
 
 # Valeur pouvant être retourné suite à l'analyse de la modification du protocole
 # cas de la mise à jour d'un module
-FLAG_UPDATE_MODULE = set(("LABEL", "FIELDS", "NOTHING", "INVALID"))
+
+
+class ValidationFlag:
+    """
+    Enumération des flags de validation.
+    """
+
+    LABEL = "LABEL"
+    FIELDS = "FIELDS"
+    NOTHING = "NOTHING"
+    INVALID = "INVALID"
