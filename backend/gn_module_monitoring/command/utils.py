@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import click
-from gn_module_monitoring.command.imports.constant import TYPE_WIDGET
+from gn_module_monitoring.command.imports.constant import TYPE_WIDGET, FLAG_UPDATE_MODULE
 from gn_module_monitoring.command.imports.destination import upsert_bib_destination
 from gn_module_monitoring.command.imports.entity import (
     get_entities_protocol,
@@ -198,16 +198,14 @@ def process_update_module_import(module_data, module_code: str):
     Gère la mise à jour complète d'un module.
     """
     try:
-        is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
-            module_code, module_data
-        )
+        flags, messages, fields_to_delete = validate_protocol_changes(module_code, module_data)
 
-        if is_valid is None:
+        if "NOTHING" in flags:
             for msg in messages:
                 print(f"- {msg}")
-            return False
+            return None
 
-        if is_valid is False:
+        if "INVALID" in flags:
             print("Erreurs détectées lors de la validation du protocole:")
             for msg in messages:
                 print(f"- {msg}")
@@ -221,6 +219,10 @@ def process_update_module_import(module_data, module_code: str):
         if not ask_confirmation():
             return False
         else:
+
+            update_label_only = False
+            if "UPDATE_LABEL_ONLY" in flags:
+                update_label_only = True
             return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
 
     except Exception as e:
@@ -249,12 +251,11 @@ def validate_protocol_changes(module_code: str, module_data):
                 "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données. Voulez-vous continuer ? (y/n): "
             ):
                 return (
-                    False,
+                    ("INVALID",),
                     [
                         "La table d'importation contient des données. Impossible de mettre à jour le protocole."
                     ],
                     [],
-                    False,
                 )
 
         existing_data = get_existing_protocol_state(destination.id_destination, module_data)
@@ -293,31 +294,20 @@ def validate_protocol_changes(module_code: str, module_data):
                 f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
             )
 
-        if (
-            not fields_to_add
-            and not fields_to_update
-            and not fields_to_delete
-            and existing_data["label"]
-        ):
-            return True, warnings, [], True
-
-        if (
-            not fields_to_add
-            and not fields_to_update
-            and not fields_to_delete
-            and not existing_data["label"]
-        ):
-            warnings.append("Aucun changement détecté dans le protocole.")
-            return None, warnings, [], False
-
-        return True, warnings, fields_to_delete, False
+        flags = set()
+        if existing_data["label"]:
+            flags.add("UPDATE_LABEL")
+        if fields_to_add or fields_to_update or fields_to_delete:
+            flags.add("FIELDS")
+        if len(flags) == 0:
+            flags.add("NOTHING")
+        return flags, warnings, fields_to_delete
 
     except Exception as e:
         return (
-            False,
+            ("INVALID",),
             [f"Erreur lors de la validation du protocole: {str(e)}"],
             [],
-            False,
         )
 
 

@@ -219,9 +219,7 @@ def cmd_add_update_import_on_protocole(module_code):
                 if state:
                     click.secho(f"Module {module_code} mis à jour", fg="green")
                 else:
-                    click.secho(
-                        f"La mise à jour du module {module_code} a était annulée", fg="red"
-                    )
+                    click.secho(f"La mise à jour du module {module_code} à été annulée", fg="red")
             except Exception:
                 return
             return
