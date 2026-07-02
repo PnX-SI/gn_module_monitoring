@@ -73,25 +73,6 @@ def get_monitorings_path():
     return module
 
 
-def get_base_last_modif(module):
-    """
-    renvoie (en seconde depuis le 1 1 1970) la date de modif du module
-    (i. e. de la ligne de gn_monitoring.t_module_complement )
-    """
-    if not module:
-        return 0
-
-    now_timestamp = time.time()
-    # prise en compte du offset pour etre raccord avec la date des fichiers
-    offset = (
-        datetime.datetime.fromtimestamp(now_timestamp)
-        - datetime.datetime.utcfromtimestamp(now_timestamp)
-    ).total_seconds()
-    date_module = getattr(module, "meta_update_date") or getattr(module, "meta_create_date")
-
-    return (date_module - datetime.datetime(1970, 1, 1)).total_seconds() - offset
-
-
 def get_id_table_location(object_type):
     table_names = {
         "module": "t_module_complements",
@@ -127,10 +108,6 @@ def get_id_table_location(object_type):
 
 def copy_dict(dict_in):
     return json.loads(json.dumps(dict_in))
-
-
-def keys_remove_doublons(dict1, dict2):
-    return list(dict.fromkeys(list(dict1.keys()) + list(dict2.keys())))
 
 
 def json_from_file(file_path, result_default={}):
@@ -212,36 +189,6 @@ def config_from_files(config_type, module_code):
     generic_config_custom.update(specific_config_custom)
 
     return generic_config_custom
-
-
-def get_directory_last_modif(dir_path):
-    """
-    get the last modification time among all file in a directory
-
-    :param dir_path: absolute path to the directory
-    :type dir_path: str
-    :return: last modification time
-    :rtype: float
-    """
-    modification_time_max = 0
-    for repertoire, _, fichiers in os.walk(dir_path, followlinks=True):
-        for fichier in fichiers:
-            modification_time = os.path.getmtime(repertoire + "/" + fichier)
-            if modification_time > modification_time_max:
-                modification_time_max = modification_time
-
-    return modification_time_max
-
-
-def schema_dict_to_array(schema_dict):
-    schema_array = []
-
-    for key in schema_dict:
-        elem = schema_dict[key]
-        elem["attribut_name"] = key
-        schema_array.append(elem)
-
-    return schema_array
 
 
 def process_schema(object_type, config):
@@ -410,16 +357,6 @@ def config_from_files_customized(type_config, module_code):
     config_type = config_from_files(type_config, module_code)
     custom = config_from_files("custom", module_code)
     return customize_config(config_type, custom)
-
-
-def map_field_type(type_field):
-    """
-    Mappe les types de données spécifiques à leur équivalent SQL.
-    """
-    # FONCTION INUTILISÉE !!!
-    if type_field is None:
-        return "TEXT"
-    return MAPPING_TYPE.get(type_field.lower(), "TEXT")
 
 
 def validate_json_file(file_path: Path, valid_type_widgets=None) -> list:
