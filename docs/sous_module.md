@@ -196,6 +196,8 @@ Chaque entrée de la variable `generic` est le nom d'une variable
         `"nomenclature"`, `"dataset"` ou `"taxonomy"`. Permet
         d'indiquer qu'il s'agit ici d'un identifiant (exemple : nomenclature) et
         de traiter cette variable en fonction.
+    * `data_type` : permet de spécifier explicitement le format de stockage de la donnée
+        permet notamment de spécifier qu'un number est de type integer
 
 On peut mettre en valeur de ces attributs des données de la
 configuration du module.

@@ -45,7 +45,9 @@
     },
     "uuid_observation": {
       "attribut_label": "uuid",
-      "type_util": "uuid"
+      "type_widget": "text",
+      "data_type": "uuid",
+      "hidden": true
     },
     "medias": {
       "type_widget": "medias",

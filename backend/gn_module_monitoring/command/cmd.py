@@ -179,6 +179,14 @@ def cmd_add_update_import_on_protocole(module_code):
         )
 
     config = get_config(module_code, force=True)
+    # Vérification de la conformité des fichier json
+    success, errors = validate_json_file_protocol(module_code)
+    if not success:
+        click.echo("Erreurs détectées dans les fichiers de configuration:")
+        for error in errors:
+            click.echo(f"- {error}")
+        click.echo("Mise à jour de l'import annulée")
+        return
 
     if not is_module_configured(module_code):
         return

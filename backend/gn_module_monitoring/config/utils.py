@@ -18,6 +18,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 from gn_module_monitoring.utils.utils import extract_keys
+from gn_module_monitoring.command.imports.constant import TYPE_WIDGET, INT_TYPE_UTILS
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -31,6 +32,8 @@ SITES_GROUP_CONFIG = {
     "application": "GeoNature",
 }
 
+
+# INUTILISÉE !!!
 MAPPING_TYPE = {
     "text": "VARCHAR",
     "uuid": "UUID",
@@ -409,6 +412,7 @@ def map_field_type(type_field):
     """
     Mappe les types de données spécifiques à leur équivalent SQL.
     """
+    # FONCTION INUTILISÉE !!!
     if type_field is None:
         return "TEXT"
     return MAPPING_TYPE.get(type_field.lower(), "TEXT")
@@ -461,31 +465,39 @@ def validate_json_file(file_path: Path, valid_type_widgets=None) -> list:
         # Validate the JSON content
         if "specific" in data:
             for field_name, field_data in data["specific"].items():
-                if not isinstance(field_data, dict):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name} doit être un objet"
-                    )
-                    continue
-
-                if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
-                    )
-
-                if (
-                    "type_widget" in field_data
-                    and field_data["type_widget"] not in valid_type_widgets
-                ):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_widget n'est pas valide"
-                    )
-
-                if "type_util" in field_data and not isinstance(field_data["type_util"], str):
-                    file_errors.append(
-                        f"Dans {file_path}, le champ {field_name}: type_util doit être une chaîne"
-                    )
+                validate_json_field(file_path, field_name, field_data, file_errors)
+        if "generic" in data:
+            for field_name, field_data in data["generic"].items():
+                validate_json_field(file_path, field_name, field_data, file_errors)
 
     except Exception as e:
         file_errors.append(f"Erreur lors de la lecture de {file_path}: {str(e)}")
+
+    return file_errors
+
+
+def validate_json_field(file_path, field_name, field_data, file_errors):
+    """
+    Valide un champ JSON individuel
+    """
+
+    valid_type_widgets = set(TYPE_WIDGET.keys())
+    valid_type_util = set(INT_TYPE_UTILS)
+
+    if not isinstance(field_data, dict):
+        file_errors.append(f"Dans {file_path}, le champ {field_name} doit être un objet")
+
+    if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
+        file_errors.append(
+            f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
+        )
+
+    if "type_widget" in field_data and field_data["type_widget"] not in valid_type_widgets:
+        file_errors.append(
+            f"Dans {file_path}, le champ {field_name}: type_widget {field_data['type_widget']} n'est pas valide"
+        )
+
+    if "type_util" in field_data and field_data["type_util"] not in valid_type_util:
+        file_errors.append(f"Dans {file_path}, le champ {field_name}: type_util n'est pas valide")
 
     return file_errors

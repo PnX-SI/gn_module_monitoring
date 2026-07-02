@@ -44,13 +44,18 @@
         "attribut_label": "Commentaires"
       },
       "uuid_sites_group": {
-        "attribut_label": "uuid"
+        "attribut_label": "uuid", 
+        "type_widget": "text",
+        "data_type": "uuid",
+        "hidden": true
       },
       "nb_sites": {
-        "attribut_label": "Nombre de sites"
+        "attribut_label": "Nombre de sites",
+        "hidden": true
       },
       "nb_visits": {
-        "attribut_label": "Nombre de visites"
+        "attribut_label": "Nombre de visites",
+        "hidden": true
       },
       "medias": {
         "type_widget": "medias",
