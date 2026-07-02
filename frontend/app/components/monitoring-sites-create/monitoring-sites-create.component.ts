@@ -61,6 +61,8 @@ export class MonitoringSitesCreateComponent implements OnInit {
     const idSitesGroup = this._route.snapshot.data.createSite.id_sites_group;
     this.moduleCode = this._route.snapshot.data.createSite.moduleCode;
 
+    this.siteService.setModuleCode(this.moduleCode);
+
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     this._objService.loadBreadCrumb(this.moduleCode, 'site', null, queryParams);
