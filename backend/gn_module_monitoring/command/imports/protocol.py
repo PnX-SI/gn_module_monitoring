@@ -307,6 +307,7 @@ def get_existing_protocol_state(id_destination: int, module_data: dict):
         select(Destination).filter_by(id_destination=id_destination)
     ).scalar()
     new_label = destination_name(module_data["module"].get("module_label"))
+
     return {
         "fields": [field.__dict__ for field in existing_fields],
         "entities": [entity.__dict__ for entity in existing_entities],
@@ -314,9 +315,7 @@ def get_existing_protocol_state(id_destination: int, module_data: dict):
     }
 
 
-def update_protocol(
-    module_data, module_code, fields_to_delete, update_label_only=False, force=False
-):
+def update_protocol(module_data, module_code, fields_to_delete, update_label_only=False):
     """
     Met à jour un protocole existant ou uniquement le libellé de l'entité dans `bib_entities`.
 

@@ -193,16 +193,21 @@ def process_module_import(module_data):
         )
 
 
-def process_update_module_import(module_data, module_code: str, force=False):
+def process_update_module_import(module_data, module_code: str):
     """
     Gère la mise à jour complète d'un module.
     """
     try:
         is_valid, messages, fields_to_delete, update_label_only = validate_protocol_changes(
-            module_code, module_data, force
+            module_code, module_data
         )
 
-        if not is_valid:
+        if is_valid is None:
+            for msg in messages:
+                print(f"- {msg}")
+            return False
+
+        if is_valid is False:
             print("Erreurs détectées lors de la validation du protocole:")
             for msg in messages:
                 print(f"- {msg}")
@@ -223,7 +228,7 @@ def process_update_module_import(module_data, module_code: str, force=False):
         return False
 
 
-def validate_protocol_changes(module_code: str, module_data, force=False):
+def validate_protocol_changes(module_code: str, module_data):
     """
     Valide les changements dans les fichiers de configuration du protocole.
 
@@ -239,7 +244,7 @@ def validate_protocol_changes(module_code: str, module_data, force=False):
     try:
         destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
 
-        if check_rows_exist_in_import_table(module_code) and not force:
+        if check_rows_exist_in_import_table(module_code):
             if not ask_confirmation(
                 "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données. Voulez-vous continuer ? (y/n): "
             ):
@@ -301,7 +306,6 @@ def validate_protocol_changes(module_code: str, module_data, force=False):
             and not fields_to_update
             and not fields_to_delete
             and not existing_data["label"]
-            and not force
         ):
             warnings.append("Aucun changement détecté dans le protocole.")
             return None, warnings, [], False
