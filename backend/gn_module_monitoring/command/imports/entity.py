@@ -348,6 +348,6 @@ def update_entity_label(destination_id: int, new_label: str):
         if entity.label != new_label:
             entity.label = new_label
             DB.session.add(entity)
-    print(entity.label == new_label)
+
     print(f"Libellé de l'entité mis à jour : '{entity.label}' -> '{new_label}'")
     DB.session.flush()

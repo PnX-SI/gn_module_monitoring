@@ -333,6 +333,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
         ).scalar_one()
 
         if update_label_only:
+            destination.label = destination_name(module_label)
             update_entity_label(destination.id_destination, module_label)
             DB.session.commit()
             return True
