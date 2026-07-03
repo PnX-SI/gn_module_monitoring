@@ -1,6 +1,7 @@
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy import (
     Integer,
+    Float,
     String,
     Boolean,
     Date,
@@ -43,6 +44,7 @@ def map_field_type_sqlalchemy(type_widget: str):
         "boolean": Boolean,
         "integer": Integer,
         "integer[]": ARRAY(Integer),
+        "number": Float(precision=24),
         "date": Date,
         "jsonb": JSONB,
         "uuid": UUID,

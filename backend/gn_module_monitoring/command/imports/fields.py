@@ -162,7 +162,7 @@ def determine_field_type(field_data: dict) -> str:
         return type_mapping[type_widget].upper()
 
     if type_widget == "number":
-        return "integer"
+        return "number"
 
     if type_widget == "bool_checkbox":
         return "boolean"
