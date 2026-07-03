@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 import sqlalchemy as sa
-from sqlalchemy import select
 from apptax.taxonomie.models import BibListes
 from flask import current_app, g
 from geonature.core.gn_commons.models import TModules
@@ -243,14 +242,18 @@ class TestImportMonitoring:
         module_data = {"module": {"module_label": new_label}}
 
         update_protocol(module_data, module_code, [], update_label_only=True)
-        destination = Destination.query.filter(
-            Destination.module.has(TModules.module_code == module_code)
-        ).one()
+        destination = db.session.execute(
+            sa.select(Destination).where(
+                Destination.module.has(TModules.module_code == module_code)
+            )
+        ).scalar_one()
 
         assert destination.label == f"Monitoring - {new_label}"
 
         entities = (
-            db.session.execute(select(Entity).filter_by(id_destination=destination.id_destination))
+            db.session.execute(
+                sa.select(Entity).where(Entity.id_destination == destination.id_destination)
+            )
             .scalars()
             .all()
         )
