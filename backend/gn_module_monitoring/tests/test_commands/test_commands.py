@@ -181,15 +181,13 @@ class TestCommands:
                 assert field.type_field == fields_to_test[field.name_field][0]
 
         # Test de la table de destination
-        query = text(
-            f"""
+        query = text(f"""
             SELECT column_name, data_type 
             FROM information_schema."columns" c 
             WHERE 
                 table_schema = 'gn_imports'
                 AND table_name = '{destination.table_name}';
-            """
-        )
+            """)
         results = DB.session.execute(query).fetchall()
         for result in results:
             if result[0] in fields_to_test.keys():
