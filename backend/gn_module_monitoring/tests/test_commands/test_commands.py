@@ -324,7 +324,8 @@ class TestCommands:
 
         # Test deletion
         site_config_file = BACKEND_DIR / Path(f"media/monitorings/test/site.json")
-        site_content = json.loads(site_config_file.read_text())
+        init_site_content = site_config_file.read_text()
+        site_content = json.loads(init_site_content)
         del site_content["specific"]["profondeur_grotte"]
         site_config_file.write_text(json.dumps(site_content))
 
@@ -362,3 +363,8 @@ class TestCommands:
         transient_table = destination.get_transient_table()
         count = DB.session.scalar(select(func.count("*")).select_from(transient_table))
         assert count == 0
+
+        # Restauration du fichier de configuration et installation du module
+        site_config_file.write_text(init_site_content)
+        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+        assert result.exit_code == 0
