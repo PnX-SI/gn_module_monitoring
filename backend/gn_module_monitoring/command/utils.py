@@ -222,12 +222,10 @@ def process_update_module_import(module_data, module_code: str):
 
         if not ask_confirmation():
             return False
-        else:
-
-            update_label_only = False
-            if ValidationFlag.LABEL in flags:
-                update_label_only = True
-            return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
+        update_label_only = False
+        if ValidationFlag.LABEL in flags:
+            update_label_only = True
+        return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
 
     except Exception as e:
         print(f"Erreur lors du traitement du module {module_code}: {str(e)}")

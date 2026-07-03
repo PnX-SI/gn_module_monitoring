@@ -10,7 +10,7 @@ from gn_module_monitoring.config.repositories import get_config
 
 from flask import url_for, current_app
 
-from sqlalchemy import select, text, inspect
+from sqlalchemy import func, select, text, inspect
 
 from geonature.utils.env import BACKEND_DIR, DB
 from geonature.core.imports.models import BibFields, Destination
@@ -345,3 +345,20 @@ class TestCommands:
         )
         flags, _, _ = validate_protocol_changes("test", config)
         assert ValidationFlag.INVALID in flags
+
+        monkeypatch.setattr(
+            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
+        )
+        flags, _, _ = validate_protocol_changes("test", config)
+        assert ValidationFlag.INVALID not in flags
+
+        monkeypatch.setattr(
+            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
+        )
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+        assert result.exit_code == 0
+
+        transient_table = destination.get_transient_table()
+        count = DB.session.scalar(select(func.count("*")).select_from(transient_table))
+        assert count == 0
