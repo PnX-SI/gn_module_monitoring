@@ -272,42 +272,36 @@ class TestCommands:
         assert profondeur_grotte_field is None
 
     def test_update_protocol_invalid_config_data(self, install_module_test_with_config):
-        # Modification du fichier de configuration pour le rendre invalide
-        site_config_file = BACKEND_DIR / Path(f"media/monitorings/test/site.json")
-        site_content = json.loads(site_config_file.read_text())
-        site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
-        site_config_file.write_text(json.dumps(site_content))
+        with ModificationProtocolContext("test", run_update_command=True) as context:
+            # Modification du fichier de configuration pour le rendre invalide
+            site_config_file = context.site_config_file
+            site_content = json.loads(site_config_file.read_text())
+            site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
+            site_config_file.write_text(json.dumps(site_content))
 
-        runner = current_app.test_cli_runner()
-        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
-        assert result.exit_code == 0
-        assert "Erreurs détectées dans les fichiers de configuration" in result.output
+            runner = current_app.test_cli_runner()
+            result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+            assert result.exit_code == 0
+            assert "Erreurs détectées dans les fichiers de configuration" in result.output
 
     def test_install_protocol_invalid_fields(self, types_site, users):
-
         module_code = "test"
 
-        # Modification du fichier de configuration
-        # pour le rendre invalide
-        path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
-        site_config_file = path_gn_monitoring / Path(f"contrib/{module_code}/site.json")
-        init_site_content = site_config_file.read_text()
-        site_content = json.loads(site_config_file.read_text())
-        site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
+        with ModificationProtocolContext(module_code, use_contrib=True) as context:
+            # Modification du fichier de configuration pour le rendre invalide
+            site_config_file = context.site_config_file
+            site_content = json.loads(site_config_file.read_text())
+            site_content["specific"]["profondeur_grotte"]["type_widget"] = "invalid_widget_type"
+            site_config_file.write_text(json.dumps(site_content))
 
-        site_config_file.write_text(json.dumps(site_content))
+            # Installation du module de test
+            # doit être en echec
+            with pytest.raises(
+                Exception, match="Erreurs détectées dans les fichiers de configuration"
+            ) as e:
+                install_monitoring_module(module_code, types_site, users)
 
-        # Installation du module de test
-        # doit être en echec
-        runner = current_app.test_cli_runner()
-        with pytest.raises(
-            Exception, match="Erreurs détectées dans les fichiers de configuration"
-        ) as e:
-            install_monitoring_module(module_code, types_site, users)
-
-        # Restauration du fichier de configuration et installation du module
-        site_config_file.write_text(init_site_content)
-
+        # After restoration by context manager, installation should succeed
         install_monitoring_module(module_code, types_site, users)
         result = DB.session.execute(
             select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
@@ -323,48 +317,89 @@ class TestCommands:
         assert ValidationFlag.NOTHING in flags
 
         # Test deletion
-        site_config_file = BACKEND_DIR / Path(f"media/monitorings/test/site.json")
-        init_site_content = site_config_file.read_text()
-        site_content = json.loads(init_site_content)
-        del site_content["specific"]["profondeur_grotte"]
-        site_config_file.write_text(json.dumps(site_content))
+        with ModificationProtocolContext("test", run_update_command=True) as context:
+            site_config_file = context.site_config_file
+            site_content = json.loads(site_config_file.read_text())
+            del site_content["specific"]["profondeur_grotte"]
+            site_config_file.write_text(json.dumps(site_content))
 
-        flags, _, fields_to_delete = validate_protocol_changes("test", config)
-        assert "s__profondeur_grotte" in fields_to_delete[0]["dest_field"]
-        assert ValidationFlag.FIELDS in flags
+            flags, _, fields_to_delete = validate_protocol_changes("test", config)
+            assert "s__profondeur_grotte" in fields_to_delete[0]["dest_field"]
+            assert ValidationFlag.FIELDS in flags
 
-        with DB.session.begin_nested():
-            imprt = TImports(destination=destination, authors=[users["user"]])
-            DB.session.add(imprt)
-            DB.session.flush()
+            with DB.session.begin_nested():
+                imprt = TImports(destination=destination, authors=[users["user"]])
+                DB.session.add(imprt)
+                DB.session.flush()
+                transient_table = destination.get_transient_table()
+                query = insert(transient_table).values(
+                    {"id_import": imprt.id_import, "line_no": 3}
+                )
+                DB.session.execute(query)
+
+            monkeypatch.setattr(
+                "gn_module_monitoring.command.utils.ask_confirmation",
+                lambda *args, **kwargs: False,
+            )
+            flags, _, _ = validate_protocol_changes("test", config)
+            assert ValidationFlag.INVALID in flags
+
+            monkeypatch.setattr(
+                "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
+            )
+            flags, _, _ = validate_protocol_changes("test", config)
+            assert ValidationFlag.INVALID not in flags
+
+            monkeypatch.setattr(
+                "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
+            )
+            runner = current_app.test_cli_runner()
+            result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+            assert result.exit_code == 0
+
             transient_table = destination.get_transient_table()
-            query = insert(transient_table).values({"id_import": imprt.id_import, "line_no": 3})
-            DB.session.execute(query)
+            count = DB.session.scalar(select(func.count("*")).select_from(transient_table))
+            assert count == 0
 
-        monkeypatch.setattr(
-            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: False
-        )
-        flags, _, _ = validate_protocol_changes("test", config)
-        assert ValidationFlag.INVALID in flags
 
-        monkeypatch.setattr(
-            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
-        )
-        flags, _, _ = validate_protocol_changes("test", config)
-        assert ValidationFlag.INVALID not in flags
+class ModificationProtocolContext:
+    """
+    Context manager for modifying protocol configuration files.
 
-        monkeypatch.setattr(
-            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: True
-        )
-        runner = current_app.test_cli_runner()
-        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
-        assert result.exit_code == 0
+    Parameters
+    ----------
+        module_code: str
+            The module code
+        use_contrib: bool
+            If True, uses contrib/{module_code}/site.json path
+            If False, uses media/monitorings/{module_code}/site.json path
+        run_update_command: bool
+            If True, runs cmd_add_update_import_on_protocole on exit
+    """
 
-        transient_table = destination.get_transient_table()
-        count = DB.session.scalar(select(func.count("*")).select_from(transient_table))
-        assert count == 0
+    def __init__(self, module_code, use_contrib=False, run_update_command=False):
+        self.module_code = module_code
+        self.run_update_command = run_update_command
 
-        # Restauration du fichier de configuration et installation du module
-        site_config_file.write_text(init_site_content)
-        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
-        assert result.exit_code == 0
+        if use_contrib:
+            path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
+            self.site_config_file = path_gn_monitoring / Path(f"contrib/{module_code}/site.json")
+        else:
+            self.site_config_file = BACKEND_DIR / Path(
+                f"media/monitorings/{module_code}/site.json"
+            )
+
+        self.init_site_content = self.site_config_file.read_text()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # Restauration du fichier de configuration
+        self.site_config_file.write_text(self.init_site_content)
+
+        # Run update command if requested
+        if self.run_update_command:
+            runner = current_app.test_cli_runner()
+            result = runner.invoke(cmd_add_update_import_on_protocole, [self.module_code])
+            assert result.exit_code == 0
