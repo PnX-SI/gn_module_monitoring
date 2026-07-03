@@ -37,18 +37,6 @@ SITES_GROUP_CONFIG = {
 }
 
 
-# INUTILISÉE !!!
-MAPPING_TYPE = {
-    "text": "VARCHAR",
-    "uuid": "UUID",
-    "integer": "INTEGER",
-    "boolean": "BOOLEAN",
-    "jsonb": "JSONB",
-    "date": "DATE",
-    "datetime": "TIMESTAMP",
-}
-
-
 def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
 

@@ -148,13 +148,13 @@ def determine_field_type(field_data: dict) -> str:
         multiple = True
 
     field_type = "text"
-    # Si il y a un type utils défini c'est un integer
+    # Si la propriété `type_utils` existe et correspond à un type de `INT_TYPE_UTILS` (c-a-d relationship)
     if type_util in INT_TYPE_UTILS:
         field_type = "integer"
-    if type_util in OTHER_TYPE_UTILS:
+    elif type_util in OTHER_TYPE_UTILS:
         field_type = type_util
     # Sinon, on utilise le type définit par le widget
-    if type_widget in TYPE_WIDGET:
+    elif type_widget in TYPE_WIDGET:
         field_type = TYPE_WIDGET[type_widget]
 
     # Si le champ est multivalue, on ajoute "[]"

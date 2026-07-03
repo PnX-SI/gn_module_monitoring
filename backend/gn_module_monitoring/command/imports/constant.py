@@ -50,6 +50,7 @@ OTHER_TYPE_UTILS = [
     "date",
 ]
 
+# Type de widget qui implique que multiple soit à true
 MULTI_TYPE_WIDGET = ["multiselect", "checkbox"]
 
 SQL_DATA_TYPE_MAPPING = {

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from flask import url_for, current_app
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, inspect
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.imports.models import BibFields, Destination
@@ -137,6 +137,7 @@ class TestCommands:
             all_fields = entity_fields.get("generic", []) + entity_fields.get("specific", [])
             for field in all_fields:
                 fields_data.append((field["name_field"], field["fr_label"]))
+
         existing_fields = (
             DB.session.execute(
                 select(BibFields).where(BibFields.id_destination == destination.id_destination)
@@ -155,14 +156,8 @@ class TestCommands:
         assert "observation" in entities
         assert "visit" in entities
 
-        query = text(f"""
-                SELECT EXISTS (
-                    SELECT 1 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'gn_imports' 
-                    AND table_name = '{destination.table_name}'
-                );""")
-        result = DB.session.execute(query).scalar_one()
+        inspector = inspect(DB.engine)
+        result = inspector.has_table(destination.table_name, schema="gn_imports")
 
         assert result == True
 
@@ -186,13 +181,15 @@ class TestCommands:
                 assert field.type_field == fields_to_test[field.name_field][0]
 
         # Test de la table de destination
-        query = text(f"""
+        query = text(
+            f"""
             SELECT column_name, data_type 
             FROM information_schema."columns" c 
             WHERE 
                 table_schema = 'gn_imports'
                 AND table_name = '{destination.table_name}';
-            """)
+            """
+        )
         results = DB.session.execute(query).fetchall()
         for result in results:
             if result[0] in fields_to_test.keys():
