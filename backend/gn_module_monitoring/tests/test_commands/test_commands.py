@@ -1,15 +1,17 @@
 import pytest
 import json
 
-
-from pathlib import Path
-
+from gn_module_monitoring.command.imports.constant import ValidationFlag
+from gn_module_monitoring.command.utils import (
+    validate_protocol_changes,
+)
+from gn_module_monitoring.config.repositories import get_config
 
 from flask import url_for, current_app
 
 from sqlalchemy import select, text, inspect
 
-from geonature.utils.env import DB, BACKEND_DIR
+from geonature.utils.env import BACKEND_DIR, DB
 from geonature.core.imports.models import BibFields, Destination
 
 from gn_module_monitoring.command.cmd import (
@@ -27,6 +29,8 @@ from gn_module_monitoring.command.imports.entity import (
     insert_entity_field_relations,
 )
 from gn_module_monitoring.command.imports.fields import delete_bib_fields, insert_bib_field
+from sqlalchemy import insert
+from geonature.core.imports.models import TImports
 
 from gn_module_monitoring.tests.fixtures.module import install_monitoring_module
 
@@ -308,3 +312,35 @@ class TestCommands:
             select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
         ).scalar_one()
         assert result.module_code == module_code
+
+    def test_validate_protocol_changes(self, install_module_test_with_config, users, monkeypatch):
+
+        destination = DB.session.execute(select(Destination).filter_by(code="test")).scalar_one()
+        config = get_config("test", force=True)
+
+        flags, _, _ = validate_protocol_changes("test", config)
+        assert ValidationFlag.NOTHING in flags
+
+        # Test deletion
+        site_config_file = BACKEND_DIR / Path(f"media/monitorings/test/site.json")
+        site_content = json.loads(site_config_file.read_text())
+        del site_content["specific"]["profondeur_grotte"]
+        site_config_file.write_text(json.dumps(site_content))
+
+        flags, _, fields_to_delete = validate_protocol_changes("test", config)
+        assert "s__profondeur_grotte" in fields_to_delete[0]["dest_field"]
+        assert ValidationFlag.FIELDS in flags
+
+        with DB.session.begin_nested():
+            imprt = TImports(destination=destination, authors=[users["user"]])
+            DB.session.add(imprt)
+            DB.session.flush()
+            transient_table = destination.get_transient_table()
+            query = insert(transient_table).values({"id_import": imprt.id_import, "line_no": 3})
+            DB.session.execute(query)
+
+        monkeypatch.setattr(
+            "gn_module_monitoring.command.utils.ask_confirmation", lambda *args, **kwargs: False
+        )
+        flags, _, _ = validate_protocol_changes("test", config)
+        assert ValidationFlag.INVALID in flags
