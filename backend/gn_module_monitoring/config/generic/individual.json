@@ -34,7 +34,10 @@
         "attribut_label": "Nombre de sites associés"
       },
       "uuid_individual": {
-        "attribut_label": "uuid"
+        "attribut_label": "uuid",
+        "type_widget": "text",
+        "type_util": "uuid",
+        "hidden": true
       },
       "individual_name": {
         "type_widget": "text",

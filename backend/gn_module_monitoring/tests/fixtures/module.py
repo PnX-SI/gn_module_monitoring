@@ -76,6 +76,9 @@ def install_monitoring_module(module_code, type_site, users):
     result = runner.invoke(cmd_install_monitoring_module, [module_code])
     print(f"Result of command: {result.output}")
     assert result.exit_code == 0
+    if "Installation annulée" in result.output:
+        raise Exception(f"Installation annulée: {result.output}")
+
     # Association du module aux types de site existant
     module = db.session.execute(
         select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)

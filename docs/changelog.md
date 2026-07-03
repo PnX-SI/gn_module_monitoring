@@ -1,4 +1,33 @@
 # CHANGELOG
+## 1.3.1 (03-07-2026)
+
+**🚀 Nouveautés**
+
+ - Doc : Complément de la documentation de configuration d'un sous-module (#624 par @pierre56, #627)
+ - Import :
+    - Champ considéré comme non obligatoire si la valeur n'est pas un booléen (condition javascript) (#596, #597 par @edelclaux)
+    - Possibilité de supprimer les données contenues dans la table temporaire d'import en cas de mise à jour de la configuration de l'import du sous-module (#622 @jacquesfize)
+
+**🐛 Corrections**
+
+ - Import :
+    - Prise en compte des propriétés specifiques des sous-modules et des types de sites (#617  par @amandine-sahl)
+    - Correction de l'erreur lors de l'activation de l'import sur un sous-module avec des groupes de sites (#591 #592 @jacquesfize)
+    - Mise à jour du label du module dans la table destination (#631  par @amandine-sahl)
+    - Refactoring et test (#626 par @amandine-sahl)
+
+ - Backend :
+    - Considération du SRID local pour la géometrie des groupes de sites (#589, #619 #630  par @amandine-sahl)
+    - Suppression de la route "util/user" et factorisation du code (#604, #605  par @amandine-sahl)
+
+ - Frontend :
+    - Prise en compte de la valeur par défaut 0 dans les champs numériques des formulaires (#595, #616 par @Pierre-Narcisi)
+    - Formulaire de création des sites : initialisation du contexte du sous-module (#628  par @amandine-sahl)
+
+ - Config :
+    - Par défaut les champs `nb_visits`, `nb_sites`, `nb_individus`, `nb_observations`, `altitude_min` et `altitude_max` ne sont plus visibles dans les formulaires ni importables. (#608, #620  par @amandine-sahl)
+
+ - Le taux de couverture de code par des test automatisés (Codecov) est de nouveau mesuré sur l'ensemble du code du module gn_module_monitoring (#623 par @amandine-sahl)
 
 ## 1.3.0 (13-03-2026)
 
@@ -16,7 +45,7 @@ Nécessite GeoNature 2.17.0 (ou plus).
 
 **⚠️ Notes de version**
 
-- Pour pouvoir utiliser le module Import pour un sous-module de Monitoring, il faut le déclarer dans les destinations d'import et renseigner ses champs dans la table `gn_imports.bib_fields` (entre autres). 
+- Pour pouvoir utiliser le module Import pour un sous-module de Monitoring, il faut le déclarer dans les destinations d'import et renseigner ses champs dans la table `gn_imports.bib_fields` (entre autres).
 - Pour vos sous-modules déjà installés, vous devez lancer la commande de déclaration et mise à jour des imports vers un sous-module : `geonature monitorings process_import <module_code>`.
 - De la même manière quand vous mettez à jour la configuration d'un sous-module, il faut relancer cette commande `geonature monitorings process_import <module_code>` pour répercuter dans la table `gn_imports.bib_fields`, les modifications de la définition des champs additionnels des sites, visites et observations.
 
@@ -31,12 +60,12 @@ Nécessite GeoNature 2.17.0 (ou plus).
 
 **🐛 Corrections**
 
-- Correction du remplissage automatique du champs "observateurs" (mis en place dans la 1.2.5) pour ne pas l'appliquer, dans le cas où celui-ci est masqué pour renseigner les observateurs des visites en texte uniquement (#567 par @amandine-sahl) 
+- Correction du remplissage automatique du champs "observateurs" (mis en place dans la 1.2.5) pour ne pas l'appliquer, dans le cas où celui-ci est masqué pour renseigner les observateurs des visites en texte uniquement (#567 par @amandine-sahl)
 - Correction d'une régression de la 1.2.5 lors de la modification des observateurs d'une visite (#568 par @amandine-sahl)
 - Correction du texte de traduction dans la modale de suppression (#570 par @amandine-sahl)
 
 ## 1.2.5 (28-01-2026)
- 
+
 **🚀 Nouveautés**
 
 - Amélioration de la vue SQL d'exemple alimentant la Synthèse depuis un sous-module Monitoring (`data/synthese_svo.sql`), en renseignant le champs "Nom lieu" de la Synthèse (`place_name`) avec le nom du site (`base_site_name`) (#549 par @maximetoma)
@@ -47,7 +76,7 @@ Nécessite GeoNature 2.17.0 (ou plus).
 **🐛 Corrections**
 
 - Correction de la récupération du paramètre `:module_code` lors de la création des vues SQL d'alimentation de la Synthèse (#550 par @maximetoma)
-- Correction de l'édition des sites dans le gestionnaire de sites (#554 par @amandine-sahl) 
+- Correction de l'édition des sites dans le gestionnaire de sites (#554 par @amandine-sahl)
 - Correction du fil d'ariane lors de l'ajout d'un site depuis un groupe de sites (#560 par @amandine-sahl)
 - Correction du fil d'ariane dans le gestionnaire de sites qui ne renvoyait pas vers le bon nom de sous-module (#564 par @amandine-sahl)
 - Correction de la prise en compte de la liste des observateurs définie au niveau du sous-module (#562 par @amandine-sahl)
@@ -74,7 +103,7 @@ Nécessite GeoNature 2.17.0 (ou plus).
 - Correction de l'édition cartographique des formulaires (#536 par @amandine-sahl)
 - Affichage de la géolocalisation (#505, #536, https://github.com/PnX-SI/GeoNature/pull/3718 @pierre56)
 - Fil d'ariane : perte du niveau groupe de sites sur la page détail d'une visite (#539 par @andriacap)
- 
+
 ## 1.2.3 (2025-10-17)
 
 **🐛 Corrections**

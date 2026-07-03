@@ -1,4 +1,8 @@
 import os
+from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE
+
+from sqlalchemy import text
+
 from gn_module_monitoring.command.imports.utils import destination_name
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
@@ -72,10 +76,13 @@ def get_protocol_data(module_code: str, id_destination: int):
     for entity_code in entities:
         file_path = module_config_dir_path / f"{entity_code}.json"
         specific_data = json_from_file(file_path)
+
         if entity_code == "site":
             for type_site_conf in type_site_confs:
                 if type_site_conf.get("config", None):
-                    specific_data.update(type_site_conf["config"])
+                    specific_data.get("specific", {}).update(
+                        type_site_conf["config"].get("specific", {})
+                    )
 
         generic_data = json_config_from_file("generic", entity_code)
 
@@ -94,7 +101,9 @@ def get_protocol_data(module_code: str, id_destination: int):
 
         entity_hierarchy_map[entity_code] = {
             "id_field_name": id_field_name,
-            "parent_entity": parent_entity,
+            "parent_entity": (
+                parent_entity if parent_entity not in ENTITIES_NOT_AVAILABLE else None
+            ),
         }
         parent_data = entity_confs.get(parent_entity, None)
         protocol_data[entity_code] = prepare_fields(
@@ -298,6 +307,7 @@ def get_existing_protocol_state(id_destination: int, module_data: dict):
         select(Destination).filter_by(id_destination=id_destination)
     ).scalar()
     new_label = destination_name(module_data["module"].get("module_label"))
+
     return {
         "fields": [field.__dict__ for field in existing_fields],
         "entities": [entity.__dict__ for entity in existing_entities],
@@ -327,6 +337,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
         ).scalar_one()
 
         if update_label_only:
+            destination.label = destination_name(module_label)
             update_entity_label(destination.id_destination, module_label)
             DB.session.commit()
             return True
@@ -354,7 +365,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
                 delete_bib_fields(fields_to_delete)
 
             table_name = f"t_imports_{module_code.lower()}"
-            DB.engine.execute(f"DROP TABLE IF EXISTS gn_imports.{table_name}")
+            DB.engine.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
 
             create_sql_import_table_protocol(module_code, protocol_data)
 

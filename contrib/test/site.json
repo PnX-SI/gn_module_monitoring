@@ -40,7 +40,7 @@
       "attribut_label": "contact"
     },
     "profondeur_grotte": {
-      "type_widget": "number",
+      "type_widget": "number", 
       "attribut_label": "Profondeur de la grotte",
       "hidden": "({value, meta}) => {return (meta.nomenclatures[value.id_nomenclature_type_site] || {}).cd_nomenclature !== '1'}"
     },
@@ -63,6 +63,20 @@
       "code_nomenclature_type": "TEST_METEO",
       "type_util": "nomenclature",
       "required": false
+    }, 
+    "multiselect": {
+      "type_widget": "multiselect",
+      "attribut_label": "Multiselect",
+      "values": [
+        "choix_1",
+        "choix_2",
+        "choix_3"
+      ]
+    },
+    "uuid_test": {
+      "attribut_label": "uuid test",
+      "type_widget": "text",
+      "type_util": "uuid" 
     }
   }
 }

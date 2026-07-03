@@ -195,7 +195,7 @@ Chaque entrée de la variable `generic` est le nom d'une variable
     * `type_util`: peut prendre pour valeur `"user"`,
         `"nomenclature"`, `"dataset"` ou `"taxonomy"`. Permet
         d'indiquer qu'il s'agit ici d'un identifiant (exemple : nomenclature) et
-        de traiter cette variable en fonction.
+        de traiter cette variable en fonction. 
 
 On peut mettre en valeur de ces attributs des données de la
 configuration du module.
@@ -404,15 +404,23 @@ sera mis à jour :
     redéfinir toutes les variables.
 
 ```json
-    "id_nomenclature_type_site": {
+    "id_nomenclature_sex": {
         "type_widget": "text",
-        "attribut_label": "Type site",
+        "attribut_label": "Sexe",
         "type_util": "nomenclature",
         "value": {
-            "code_nomenclature_type": "TYPE_SITE",
-            "cd_nomenclature": "OEDIC"
+            "code_nomenclature_type": "SEXE",
+            "cd_nomenclature": "6"
         },
         "hidden": true
+    }
+```
+ * Donner au composant "type de site" les types de sites définis dans le module comme valeur par défaut et cacher l'élément
+
+```json
+ "types_site": {
+      "default": "__MODULE.IDS_TYPE_SITE", 
+      "hidden": true
     }
 ```
 
@@ -443,6 +451,8 @@ Les options supplémentaires pour ce widget :
 * `default` : permet de donner une valeur par defaut
     (`"default": {"cd_nomenclature": "1"}` permettra de récupérer le
     premier objet de la liste qui correspond)
+* `nullDefault` : quand mis a `true` permet d'ajouter une option vide `-- Aucun --` avec la valeur `null` en base. Necessite `required: false`
+* `orderBy` : permet de trier les valeurs par ordre alphabétiques avec `asc` ou `desc` 
 
 Par exemple :
 
