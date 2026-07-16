@@ -48,14 +48,9 @@ class ObservationImportActions:
 
         # How to default ?
         do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
-        from gn_module_monitoring.config.repositories import get_config
 
-        config = get_config(imprt.destination.code)
-        check_cd_nom(
-            imprt,
-            entity,
-            fieldmapped_fields.get("o__cd_nom"),
-            config["custom"].get("__MODULE.ID_LIST_TAXONOMY"),
+        EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
+            imprt, ObservationImportActions.ENTITY_CODE
         )
 
         # Check existing uuid
