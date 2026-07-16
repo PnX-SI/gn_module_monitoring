@@ -102,7 +102,7 @@ class EntityImportActionsUtils:
         entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
         config = get_config(imprt.destination.code)
 
-        for _, field in EntityImportActionsUtils.get_destination_fields(imprt, entity).items():
+        for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
             if field.type_field == "taxonomy":
                 check_cd_nom(
                     imprt,
