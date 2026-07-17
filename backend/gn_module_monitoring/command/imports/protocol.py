@@ -24,7 +24,10 @@ from gn_module_monitoring.command.imports.fields import (
     insert_bib_field,
     prepare_fields,
 )
-from gn_module_monitoring.command.imports.sql import create_sql_import_table_protocol
+from gn_module_monitoring.command.imports.sql import (
+    create_sql_import_table_protocol,
+    transient_table_name,
+)
 from sqlalchemy import select
 
 
@@ -364,7 +367,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
             if fields_to_delete:
                 delete_bib_fields(fields_to_delete)
 
-            table_name = f"t_imports_{module_code.lower()}"
+            table_name = transient_table_name(module_code)
             DB.engine.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
 
             create_sql_import_table_protocol(module_code, protocol_data)

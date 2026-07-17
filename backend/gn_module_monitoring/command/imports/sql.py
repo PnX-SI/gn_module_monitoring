@@ -1,6 +1,6 @@
 from gn_module_monitoring.command.imports.utils import map_field_type_sqlalchemy
 from sqlalchemy.dialects.postgresql import JSONB
-
+import re
 from sqlalchemy import (
     MetaData,
     Table,
@@ -32,7 +32,7 @@ def check_rows_exist_in_import_table(module_code: str) -> bool:
     bool
         True si la table contient des données, False si la table est vide ou si une erreur se produit.
     """
-    table_name = f"t_imports_{module_code.lower()}"
+    table_name = transient_table_name(module_code)
     query = f"SELECT * FROM gn_imports.{table_name} LIMIT 1;"
     try:
         result = DB.session.execute(query).fetchone()
@@ -49,6 +49,11 @@ def create_sql_import_table_protocol(module_code: str, protocol_data):
     table = get_imports_table_metadata(module_code, protocol_data)
     table.metadata.create_all(DB.engine)
     print(f"La table transitoire d'importation pour {module_code} a été créée.")
+
+
+def transient_table_name(module_code: str) -> str:
+    without_special_character = re.sub(r"[^a-zA-Z0-9]", "_", module_code)
+    return f"t_imports_{without_special_character.lower()}"
 
 
 def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
@@ -68,7 +73,7 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
         objet `Table` de la table transitoire d'importation
     """
     metadata = MetaData()
-    table_name = f"t_imports_{module_code.lower()}"
+    table_name = transient_table_name(module_code)
     columns = [
         Column(
             "id_import",
