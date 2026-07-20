@@ -265,10 +265,10 @@ export class MonitoringFormComponent implements OnInit {
         const dynamicGroupsArray = this.objForm.get('dynamicGroups') as FormArray;
         if (dynamicGroupsArray) this.subscribeToDynamicGroupsChanges(dynamicGroupsArray);
         this.setDefaultFormValue();
-        console.log('this.objFormsDefinition: ', this.objFormsDefinition);
-        // this.display_geometry(); // TODO vérifier l'usage de la fonctionalité
+        this.display_geometry(); // Permet d'afficher les geométries des objets du modules sur la carte
       });
   }
+
 
   subscribeToDynamicGroupsChanges(dynamicGroupsArray: FormArray): void {
     dynamicGroupsArray.valueChanges
