@@ -269,7 +269,6 @@ export class MonitoringFormComponent implements OnInit {
       });
   }
 
-
   subscribeToDynamicGroupsChanges(dynamicGroupsArray: FormArray): void {
     dynamicGroupsArray.valueChanges
       .pipe(
