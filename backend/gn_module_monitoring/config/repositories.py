@@ -253,7 +253,6 @@ def get_config_v2(module_code=None, force=False):
 
     # Si module est `generic`
     config["custom"] = {
-        "CODE_OBSERVERS_LIST": current_app.config["MONITORINGS"]["CODE_OBSERVERS_LIST"],
         "DESCRIPTION_MODULE": current_app.config["MONITORINGS"]["TITLE_MODULE"],
         "PERMISSION_LEVEL": current_app.config["MONITORINGS"]["PERMISSION_LEVEL"],
         "__MODULE.MODULE_CODE": "generic",
@@ -284,9 +283,10 @@ def get_config_v2(module_code=None, force=False):
                 for t in module.types_site
             ]
             config["default_display_field_names"].update(config.get("display_field_names", {}))
-
-            # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-            config["data"] = get_data_preload(config, module)
+    # Get the list of observers
+    config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
+    # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
+    config["data"] = get_data_preload(config, module)
 
     config["display_field_names"] = config["default_display_field_names"]
 
