@@ -33,7 +33,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.utils import to_int
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config_old
 
 
 @blueprint.before_request
@@ -110,7 +110,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
 
     depth = to_int(request.args.get("depth", 1))
 
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     monitoring_obj = monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config, id=id
@@ -158,7 +158,7 @@ def create_or_update_object_api(module_code, object_type, id=None):
         query = update(Destination).where(Destination.code == module_code).values(active=True)
         DB.session.execute(query)
 
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
     return (
         monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id
@@ -185,7 +185,7 @@ def get_serialized_object(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
 
@@ -212,7 +212,7 @@ def update_object_api(scope, module_code, object_type, id):
     depth = to_int(request.args.get("depth", 1))
     if id != None:
 
-        config = get_config(module_code, force=True)
+        config = get_config_old(module_code, force=True)
         object = monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id
         ).get(depth=depth)
@@ -260,7 +260,7 @@ def delete_object_api(scope, module_code, object_type, id):
     #         f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
     #     )
 
-    config = get_config(module_code=module_code, force=True)
+    config = get_config_old(module_code=module_code, force=True)
     monitoring_obj = monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config, id=id
     )
@@ -288,7 +288,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
 
-    config = get_config(module_code=module_code, force=True)
+    config = get_config_old(module_code=module_code, force=True)
     # PATCH si module_code == "MONITORINGS" et object_type == "module"
     #  alors réponse en dur car le module monitoring n'est pas de type TModuleMonitoring
     if g.current_module.module_code.upper() == "MONITORINGS" and object_type == "module":
@@ -316,7 +316,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     return monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config
@@ -328,7 +328,7 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     return (
         monitoring_definitions.monitoring_object_instance(module_code, "module", config=config)
@@ -400,7 +400,7 @@ def post_export_pdf(module_code, object_type, id):
     """
 
     depth = to_int(request.args.get("depth", 0))
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
     monitoring_object = (
         monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id
