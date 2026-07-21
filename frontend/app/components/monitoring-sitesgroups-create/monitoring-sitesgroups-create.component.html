@@ -3,11 +3,7 @@
   <span class="obj-title">{{ 'Actions.Add' | translate }}</span>
 </div>
 <div>
-  <pnx-monitoring-form
-    [obj]="obj"
-    [objForm]="objForm"
-    [currentUser]="currentUser"
-    *ngIf="bEdit && obj?.bIsInitialized"
-    [(bEdit)]="bEdit"
-  ></pnx-monitoring-form>
+  <pnx-monitoring-form-g [object]="sitesGroup" objectType="sites_group" [form]="form" [apiService]="_sitesGroupService"
+    [config]="moduleConfig['sites_group']" [currentUser]="currentUser">
+  </pnx-monitoring-form-g>
 </div>
