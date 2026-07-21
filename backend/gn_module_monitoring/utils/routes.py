@@ -4,6 +4,8 @@ from flask import Response, g
 from flask.json import jsonify
 
 from typing import Tuple, Optional
+from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
+from gn_module_monitoring.utils.module import get_specific_properties
 from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
 
@@ -283,7 +285,9 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     :return: dict, processed properties dictionary
     """
     data = {}
-    for attribut_name, attribut_value in config[object_type]["specific"].items():
+    class_object_type = MonitoringModels_dict[object_type]
+    specific_properties = get_specific_properties(class_object_type, config, object_type)
+    for attribut_name, attribut_value in specific_properties.items():
         if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
             if attribut_name in properties:
                 val = properties.pop(attribut_name)
@@ -298,7 +302,7 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     # ni dans generic ou appartenant au modèle
     prop_remaining_to_check = list(properties.keys())
     for prop in prop_remaining_to_check:
-        is_in_model = hasattr(TMonitoringSites, prop)
+        is_in_model = hasattr(class_object_type, prop)
         if (
             not is_in_model
             and prop not in config[object_type]["generic"].keys()

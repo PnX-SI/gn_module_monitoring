@@ -1,4 +1,5 @@
 from flask import g, request
+from gn_module_monitoring.utils.module import get_specific_properties
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
@@ -50,7 +51,9 @@ def get_individuals(object_type, module_code=None):
         )
 
     config = get_config(g.current_module.module_code)
-    specific_properties = config.get("individuals", {}).get("specific", {})
+    specific_properties = get_specific_properties(
+        TMonitoringIndividuals, config, "individuals"
+    ).keys()
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
     query = sort(TMonitoringIndividuals, query, sort_label, sort_dir, specific_properties)

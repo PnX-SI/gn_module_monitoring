@@ -2,6 +2,7 @@ import json
 
 from flask import jsonify, request, g
 
+from gn_module_monitoring.utils.module import get_specific_properties
 from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
@@ -86,12 +87,13 @@ def get_sites_groups(object_type: str, module_code=None):
     query_allowed = TMonitoringSitesGroups.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
-
-    config = get_config(module_code)
+    specific_properties = get_specific_properties(
+        TMonitoringSitesGroups, get_config(module_code), "sites_group"
+    )
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,
         params=params,
-        specific_properties=config.get("sites_group", {}).get("specific", {}),
+        specific_properties=specific_properties,
     )
 
     if module_code:
