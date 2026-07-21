@@ -92,7 +92,31 @@ class TestSitesGroups:
         ][0]["id_sites_group"]
         assert id_ == site_group_with_sites.id_sites_group
 
-    def test_get_patch_groups(self, sites_groups, users):
+    @pytest.mark.parametrize(
+        ("geom", "status_code"),
+        [
+            (None, 200),
+            ("", 200),
+            ("abc", 422),
+            ({"type": "Point"}, 422),
+            ([1, 2, 3], 422),
+            (
+                {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [3.405955, 44.23842],
+                            [3.410139, 44.241925],
+                            [3.420503, 44.238666],
+                            [3.405955, 44.23842],
+                        ]
+                    ],
+                },
+                200,
+            ),
+        ],
+    )
+    def test_get_patch_groups(self, sites_groups, users, geom, status_code):
         set_logged_user_cookie(self.client, users["admin_user"])
         first_site = sites_groups["Site_eolien"]
         data = self.client.get(
@@ -108,15 +132,20 @@ class TestSitesGroups:
         for k in ["nb_sites", "nb_visits", "cruved"]:
             site_group.pop(k)
 
+        site_group["sites_group_code"] = "NEW_CODE"
         site_group["sites_group_name"] = "update name"
+        site_group["geom"] = geom
         r = self.client.patch(
             url_for("monitorings.patch", _id=first_site.id_sites_group),
             data=site_group,
         )
-        assert r.status_code == 200
-
-        assert r.json["id_sites_group"] == first_site.id_sites_group
-        assert r.json["sites_group_name"] == "update name"
+        assert r.status_code == status_code
+        if status_code == 200:
+            assert r.json["id_sites_group"] == first_site.id_sites_group
+            assert r.json["sites_group_name"] == "update name"
+            if geom == "":
+                geom = None
+            assert r.json["geom"] == geom if not "" else None
 
     def test_get_post_groups(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])

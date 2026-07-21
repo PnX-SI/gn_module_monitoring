@@ -103,8 +103,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         if (geomCalculated) {
           this.object.geometry = null;
         } else {
-          // TODO pourquoi la conversion en JSON ici ?
-          this.object.geometry = JSON.parse(this.object.geometry);
+          // Changement du nom de la propriété de geom en geometry pour le formulaire
+          this.object.geometry = this.object.geom;
         }
       }
     }
@@ -230,7 +230,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       data[attribut_name] = formValue[attribut_name];
     }
     if (formValue['geometry'] !== null) {
-      data['geometry'] = formValue['geometry'];
+      data['geom'] = formValue['geometry'];
     }
     return data;
   }

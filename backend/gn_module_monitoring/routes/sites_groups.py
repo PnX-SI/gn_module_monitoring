@@ -184,19 +184,35 @@ def get_sites_group_geometries(object_type: str, module_code=None):
 @blueprint.route(
     "/sites_groups/<int:_id>", methods=["PATCH"], defaults={"object_type": "sites_group"}
 )
-@permissions.check_cruved_scope(
-    "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
+@blueprint.route(
+    "/<string:module_code>/sites_groups/<int:_id>",
+    methods=["PATCH"],
+    defaults={"object_type": "sites_group"},
 )
-def patch(scope, _id: int, object_type: str):
-    # ###############################""
-    # FROM route/monitorings
+@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+def patch(scope, object_type: str, module_code: str = "generic", _id: int = None):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
         )
+    post_data = dict(request.get_json())
+    sites_group = create_or_update_site_group(post_data, module_code)
+    return sites_group
 
-    module_code = "generic"
+
+@blueprint.route(
+    "/sites_groups",
+    methods=["POST"],
+    defaults={"object_type": "sites_group"},
+)
+@blueprint.route(
+    "/<string:module_code>/sites_groups",
+    methods=["POST"],
+    defaults={"object_type": "sites_group"},
+)
+@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
+def post(object_type: str, module_code: str = "generic"):
     post_data = dict(request.get_json())
     sites_group = create_or_update_site_group(post_data, module_code)
     return sites_group
@@ -217,15 +233,6 @@ def delete(scope, _id: int, object_type: str):
     db.session.delete(sites_group)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
-
-
-@blueprint.route("/sites_groups", methods=["POST"], defaults={"object_type": "sites_group"})
-@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-def post(object_type: str):
-    module_code = "generic"
-    post_data = dict(request.get_json())
-    sites_group = create_or_update_site_group(post_data, module_code)
-    return sites_group
 
 
 @blueprint.errorhandler(ValidationError)
@@ -249,6 +256,7 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
 
     sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+
     db.session.add(sites_group)
     db.session.commit()
     return MonitoringSitesGroupsSchema().dump(sites_group)
