@@ -7,6 +7,7 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.utils.env import db
+from gn_module_monitoring.config.utils import get_specific_properties
 from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload
@@ -137,7 +138,7 @@ def get_sites(object_type, module_code=None):
         )
 
     config = get_config(g.current_module.module_code)
-    specific_properties = config.get("site", {}).get("specific", {})
+    specific_properties = get_specific_properties(TMonitoringSites, config, "site")
 
     query = filter_params(TMonitoringSites, query=query, params=params)
     query = sort_according_to_column_type_for_site(
@@ -250,12 +251,14 @@ def _get_site_geometries(module_code=None):
     ).distinct()
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
-    config = get_config(module_code)
+    specific_properties = get_specific_properties(
+        TMonitoringSites, get_config(module_code), "site"
+    )
 
     query_allowed = TMonitoringSites.filter_by_specific(
         query=query_allowed,
         params=params,
-        specific_properties=config.get("site", {}).get("specific", {}),
+        specific_properties=specific_properties,
     )
     subquery = query_allowed.subquery()
     result = geojson_query(subquery)

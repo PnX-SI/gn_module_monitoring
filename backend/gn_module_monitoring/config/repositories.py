@@ -139,7 +139,7 @@ def config_object_from_files(module_code, object_type, custom=None):
     return config_object
 
 
-def get_config(module_code=None, force=False):
+def get_config_old(module_code=None, force=False):
     """
     recupere la configuration pour le module monitoring
 
@@ -218,14 +218,26 @@ def get_config(module_code=None, force=False):
     return config
 
 
-def get_config_v2(module_code=None, force=False):
+def get_config(module_code=None, force=False):
     """
     Récupère la configuration pour le module monitoring
 
-    Si la configuration en présente dans le dictionnaire current_app.config
-    et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction
-        alors la configuration est récupéré depuis current_app.config
-    sinon la config est recupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config
+    Si la configuration est présente dans le dictionnaire current_app.config
+    et si aucun fichier du dossier de configuration n'a été modifié depuis le dernier appel de cette fonction,
+    alors la configuration est récupérée depuis current_app.config.
+    Sinon, la configuration est récupérée depuis les fichiers du dossier de configuration et stockée dans current_app.config.
+
+    Parameters
+    ----------
+    module_code : str, optional
+        Code du module de monitoring. Par défaut None (utilise "generic").
+    force : bool, optional
+        Force le rechargement de la configuration en ignorant le cache. Par défaut False.
+
+    Returns
+    -------
+    dict or None
+        Configuration du module monitoring ou None si le répertoire de configuration n'existe pas.
     """
     if module_code == "MONITORINGS":
         module_code = "generic"
@@ -242,8 +254,7 @@ def get_config_v2(module_code=None, force=False):
             CONFIG_CACHE_NAME,
             {},
         ).get(module_code)
-        and not force
-    ):
+    ) and not force:
         return config
 
     module = get_monitoring_module(module_code)

@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from gn_module_monitoring.command.imports.constant import (
     ENTITIES_NOT_AVAILABLE,
+    ID_FIELD_NAME,
     TABLE_NAME_SUBMODULE,
     TOOLTIPS,
     UUID_FIELD_NAME,
@@ -92,7 +93,7 @@ def insert_entities(
     for entity_code in get_entities_protocol(module_code):
         entity_data = unique_fields[entity_code]
         entity_config = entity_hierarchy_map.get(entity_code)
-        id_field_name = entity_config["id_field_name"]
+        id_field_name = ID_FIELD_NAME[entity_code]
         uuid_field_name = UUID_FIELD_NAME[entity_code]
         parent_entity = entity_config["parent_entity"]
 
@@ -217,27 +218,26 @@ def insert_entity_field_relations(
     """
     bib_themes = get_themes_dict()
     entity_ids = get_entity_ids_dict(protocol_data, id_destination)
-    for entity_code, fields in protocol_data.items():
+    for entity_code, entity_properties in protocol_data.items():
         entity_id = entity_ids.get(entity_code)
         display_properties = protocol_data[entity_code].get("display_properties", [])
         # raise Exception("stop")
         max_order = len(display_properties) + 1
-        for field_type in ["generic", "specific"]:
-            for field in fields[field_type]:
-                field_name = re.sub(r"^[a-z]__", "", field["name_field"])
-                order = (
-                    display_properties.index(field_name) + 1
-                    if field_name in display_properties
-                    else max_order
-                )
-                if get_cor_entity_field(
-                    entity_id=entity_id,
-                    field_name=field["name_field"],
-                    id_destination=id_destination,
-                    bib_themes=bib_themes,
-                    order=order,
-                ):
-                    max_order += 1
+        for field in entity_properties["fields"]:
+            field_name = re.sub(r"^[a-z]__", "", field["name_field"])
+            order = (
+                display_properties.index(field_name) + 1
+                if field_name in display_properties
+                else max_order
+            )
+            if get_cor_entity_field(
+                entity_id=entity_id,
+                field_name=field["name_field"],
+                id_destination=id_destination,
+                bib_themes=bib_themes,
+                order=order,
+            ):
+                max_order += 1
 
         parent_code = entity_hierarchy_map[entity_code]["parent_entity"]
         if parent_code:

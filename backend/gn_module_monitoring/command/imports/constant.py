@@ -105,6 +105,14 @@ TABLE_NAME_SUBMODULE = {
     "observation_detail": "t_observations_details",
 }
 
+ID_FIELD_NAME = {
+    "sites_group": "id_sites_group",
+    "site": "id_base_site",
+    "visit": "id_base_visit",
+    "observation": "id_observation",
+    "observation_detail": "id_observation_detail",
+}
+
 UUID_FIELD_NAME = {
     "sites_group": "uuid_sites_group",
     "site": "uuid_base_site",

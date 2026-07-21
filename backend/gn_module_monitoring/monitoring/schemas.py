@@ -2,8 +2,8 @@ from geonature.core.gn_monitoring.models import TBaseSites
 import geojson
 
 from flask import g
-from marshmallow import Schema, fields, validate, pre_load
-from marshmallow import ValidationError
+from marshmallow import Schema, fields, validate, pre_load, ValidationError
+
 import marshmallow
 
 from geonature.utils.env import MA
@@ -51,20 +51,22 @@ def add_specific_attributes(schema, object_type, module_code):
         MonitoringObjects_dict,
     )
     from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
+    from gn_module_monitoring.config.utils import get_specific_properties
 
-    config = get_config(module_code, force=True)
+    model_class = MonitoringModels_dict[object_type]
 
-    specific_properties = config[object_type]["specific"]
+    config = get_config(module_code)
+
+    specific_properties = get_specific_properties(model_class, config, object_type).keys()
 
     def create_getter(key):
         return lambda obj: (obj.data or {}).get(key)
 
     attrs = {}
-    for k, v in specific_properties.items():
-        attrs[k] = marshmallow.fields.Function(create_getter(k))
+    for property_ in specific_properties:
+        attrs[property_] = marshmallow.fields.Function(create_getter(property_))
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
-    model_class = MonitoringModels_dict[object_type]
     parameters = {"model": model_class, "exclude": ["data"], "include_fk": True}
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson", "geom"])
