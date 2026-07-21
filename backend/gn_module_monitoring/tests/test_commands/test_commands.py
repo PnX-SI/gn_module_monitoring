@@ -139,7 +139,7 @@ class TestCommands:
 
         for entity_code, entity_fields in protocol_data.items():
             entities.append(entity_code)
-            all_fields = entity_fields.get("generic", []) + entity_fields.get("specific", [])
+            all_fields = entity_fields.get("fields", [])
             for field in all_fields:
                 fields_data.append((field["name_field"], field["fr_label"]))
 
@@ -210,14 +210,14 @@ class TestCommands:
         protocol_data, entity_hierarchy_map = get_protocol_data("test", destination.id_destination)
 
         # Edit field
-        for field in protocol_data["site"]["specific"]:
+        for field in protocol_data["site"]["fields"]:
             if field["name_field"] == "s__place_name":
                 field["fr_label"] = "Test Modified"
                 field["eng_label"] = "Test Modified"
                 break
 
         # New field
-        protocol_data["site"]["specific"].append(
+        protocol_data["site"]["fields"].append(
             {
                 "name_field": "s__new_field",
                 "fr_label": "New Field",
@@ -323,7 +323,9 @@ class TestCommands:
             del site_content["specific"]["profondeur_grotte"]
             site_config_file.write_text(json.dumps(site_content))
 
+            config = get_config("test", force=True)
             flags, _, fields_to_delete = validate_protocol_changes("test", config)
+
             assert "s__profondeur_grotte" in fields_to_delete[0]["dest_field"]
             assert ValidationFlag.FIELDS in flags
 

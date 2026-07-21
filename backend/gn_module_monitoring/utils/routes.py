@@ -306,7 +306,7 @@ def process_json_data_for_db_upsert(config, properties, object_type):
         is_in_model = hasattr(class_object_type, prop)
         if (
             not is_in_model
-            and prop not in config[object_type]["generic"].keys()
+            and prop not in config[object_type]["fields"].keys()
             and prop != "id_module"
             and prop != "data"
         ):

@@ -52,7 +52,7 @@ def get_individuals(object_type, module_code=None):
 
     config = get_config(g.current_module.module_code)
     specific_properties = get_specific_properties(
-        TMonitoringIndividuals, config, "individuals"
+        TMonitoringIndividuals, config, "individual"
     ).keys()
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
