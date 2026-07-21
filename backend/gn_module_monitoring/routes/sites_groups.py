@@ -254,7 +254,7 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized site group
     """
-    config = get_config(module_code)
+    config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
 
     sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)

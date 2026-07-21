@@ -1,6 +1,6 @@
 import pytest
 
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.repositories import get_config, get_config_old
 
 
 class TestMonitoringObject:
@@ -18,7 +18,7 @@ class TestMonitoringObject:
         from gn_module_monitoring.monitoring.repositories import MonitoringObject
 
         module_code = "test"
-        config = get_config(module_code, force=True)
+        config = get_config_old(module_code, force=True)
         config["synthese"] = True
 
         object = MonitoringObject(module_code, "site", config, id=None, model=None)
