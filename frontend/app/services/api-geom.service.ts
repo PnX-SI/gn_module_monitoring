@@ -121,15 +121,23 @@ export class ApiService<T = IObject> implements IService<T> {
   }
 
   patch(id: number, updatedData): Observable<T> {
-    return this._cacheService.request('patch', `${this.objectObs.endPoint}/${id}`, {
-      postData: updatedData as {},
-    });
+    return this._cacheService.request(
+      'patch',
+      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}/${id}`,
+      {
+        postData: updatedData as {},
+      }
+    );
   }
 
   create(postData): Observable<T> {
-    return this._cacheService.request('post', `${this.objectObs.endPoint}`, {
-      postData: postData as {},
-    });
+    return this._cacheService.request(
+      'post',
+      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}`,
+      {
+        postData: postData as {},
+      }
+    );
   }
 
   delete(id: number, params: JsonData = {}): Observable<T> {
