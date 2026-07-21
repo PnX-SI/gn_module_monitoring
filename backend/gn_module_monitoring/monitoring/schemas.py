@@ -1,20 +1,23 @@
-import json
 from geonature.core.gn_monitoring.models import TBaseSites
 import geojson
 
 from flask import g
-from marshmallow import Schema, fields, validate, post_dump
+from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import ValidationError
 import marshmallow
 
 from geonature.utils.env import MA
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_meta.schemas import DatasetSchema
-from geonature.core.gn_monitoring.models import TBaseSites
 from geonature.utils.schema import CruvedSchemaMixin
 from marshmallow_sqlalchemy import auto_field
 from pypnusershub.db.models import User
 
+from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
+from shapely.geometry import shape
+from geoalchemy2.shape import to_shape, from_shape
+from geojson import Feature
 
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
@@ -126,25 +129,49 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
 
 
+# PATCH : To move in utils_flask_sqla_geo
+class GeojsonSerializationField(fields.Field):
+
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return value
+        else:
+            if type(value).__name__ == "WKBElement":
+                feature = Feature(geometry=to_shape(value))
+                return feature.geometry
+            else:
+                return None
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not value:
+            return None
+        try:
+            shape_ = shape(value)
+            two_dimension_geom = remove_third_dimension(shape_)
+            return from_shape(two_dimension_geom, srid=4326)
+        except ValueError as error:
+            raise ValidationError("Geometry error") from error
+
+
 class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
-    sites_group_name = fields.String(
-        validate=validate.Length(min=3, error="Length must be greater than 3"),
-    )
 
     class Meta:
         model = TMonitoringSitesGroups
-        exclude = ("geom_geojson", "geom")
         load_instance = True
         include_fk = True
         load_relationships = True
+        exclude = ("geom_geojson",)
 
+    sites_group_name = fields.String(
+        validate=validate.Length(min=3, error="Length must be greater than 3"),
+    )
     id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
-    geometry = fields.Method("serialize_geojson", dump_only=True)
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
     nb_visits = fields.Integer(dump_only=True)
+    geom = GeojsonSerializationField()
 
     def set_pk(self, obj):
         return "id_sites_group"
@@ -157,11 +184,10 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
         if obj.geom_geojson is not None:
             return True
 
-    def serialize_geojson(self, obj):
-        if obj.geom is not None:
-            return geojson.dumps(obj.as_geofeature().get("geometry"))
-        if obj.geom_geojson is not None:
-            return json.loads(obj.geom_geojson)
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+        return data
 
 
 class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
