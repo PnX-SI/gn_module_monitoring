@@ -107,10 +107,7 @@ def get_protocol_data(module_code: str, id_destination: int):
 
     for entity_code in entities_with_geom:
         entity_conf = entity_confs[entity_code]
-        entity_fields = entity_conf.get("fields", {})
-        geom_field_name = entity_fields.get(
-            "geom_field_name", entity_fields.get("geom_field_name")
-        )
+        geom_field_name = entity_conf.get("geom_field_name", None)
         protocol_data[entity_code]["display_properties"] = config_module[entity_code].get(
             "display_properties", []
         )
