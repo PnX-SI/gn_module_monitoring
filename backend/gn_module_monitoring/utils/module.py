@@ -1,10 +1,18 @@
+import warnings
+
+
 def get_specific_properties(monitoringClass: object, config: dict, object_type: str):
 
     return get_specific_properties_from_object_config(monitoringClass, config[object_type])
 
 
 def get_specific_properties_from_object_config(monitoringClass: object, object_config: dict):
-
+    if not "fields" in object_config:
+        warnings.warn(
+            f"Object config for {monitoringClass.__name__} does not contain 'fields' key. Returning empty specific properties.",
+            UserWarning,
+        )
+        return {}
     specific_properties = {
         field_name: field_data
         for field_name, field_data in object_config["fields"].items()
