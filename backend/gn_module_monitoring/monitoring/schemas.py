@@ -3,7 +3,6 @@ import geojson
 
 from flask import g
 from marshmallow import Schema, fields, validate, pre_load, ValidationError
-from gn_module_monitoring.utils.module import get_specific_properties
 
 import marshmallow
 
@@ -52,6 +51,7 @@ def add_specific_attributes(schema, object_type, module_code):
         MonitoringObjects_dict,
     )
     from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
+    from gn_module_monitoring.config.utils import get_specific_properties
 
     model_class = MonitoringModels_dict[object_type]
 

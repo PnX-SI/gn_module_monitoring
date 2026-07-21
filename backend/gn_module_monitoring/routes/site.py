@@ -7,7 +7,7 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.utils.env import db
-from gn_module_monitoring.utils.module import get_specific_properties
+from gn_module_monitoring.config.utils import get_specific_properties
 from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload

@@ -1,5 +1,5 @@
 from flask import g, request
-from gn_module_monitoring.utils.module import get_specific_properties
+from gn_module_monitoring.config.utils import get_specific_properties
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden

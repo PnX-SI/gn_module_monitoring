@@ -4,7 +4,7 @@ from flask import Response, g
 from flask.json import jsonify
 
 from typing import Tuple, Optional
-from gn_module_monitoring.utils.module import get_specific_properties
+
 from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
 
@@ -284,6 +284,7 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     :return: dict, processed properties dictionary
     """
     from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
+    from gn_module_monitoring.config.utils import get_specific_properties
 
     data = {}
     class_object_type = MonitoringModels_dict[object_type]

@@ -2,7 +2,7 @@ import json
 
 from flask import jsonify, request, g
 
-from gn_module_monitoring.utils.module import get_specific_properties
+from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
