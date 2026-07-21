@@ -271,12 +271,15 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   editChild($event) {
     // TODO: routerLink
-
+    const queryParams = {
+      parents_path: ['module'],
+      edit: true,
+    };
     this.router.navigate([
       `/monitorings/object/${this.moduleCode}/`,
       this.currentRoute,
       $event[$event.id],
-      { edit: true },
+      queryParams,
     ]);
   }
 
