@@ -52,12 +52,52 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.form.patchValue(this.object);
     }
     this.setDefaultFormValue();
+    console.log('this.form.value : ', this.form.value);
     if (this.config['geometry_type']) {
       this._formService.changeFormMapObj({
         frmGp: this.form.controls['geometry'] as FormControl,
         geometry_type: this.config['geometry_type'],
       });
     }
+  }
+
+  initForm() {
+    console.log("InitForm Should work, doesn't reset form");
+    this.queryParams = this._route.snapshot.queryParams || {};
+
+    this.meta = {
+      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+      dataset: this._dataUtilsService.getDataUtil('dataset'),
+      id_role: this.currentUser.id_role,
+      bChainInput: this.chainInput,
+      // parents: this.object.parents
+    };
+
+    if (this.config['geometry_type']) {
+      const validatorRequired =
+        this.objectType == 'sites_group'
+          ? this._formBuilder.control('')
+          : this._formBuilder.control('', Validators.required);
+
+      let frmCtrlGeom = {
+        frmCtrl: validatorRequired,
+        frmName: 'geometry',
+      };
+
+      this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
+      if (this.object) {
+        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
+          ? this.object['is_geom_from_child']
+          : false;
+        if (geomCalculated) {
+          this.object.geometry = null;
+        } else {
+          // TODO pourquoi la conversion en JSON ici ?
+          this.object.geometry = JSON.parse(this.object.geometry);
+        }
+      }
+    }
+    this.setDefaultFormValue();
   }
 
   ngOnInit() {
@@ -115,6 +155,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   setDefaultFormValue() {
+    console.log('this.form.value : ', this.form.value);
     const value = this.form.value;
     const date = new Date();
     const defaultValue = {
@@ -130,16 +171,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onFormValueChange(event) {
-    console.log("TEEEEEEESSSSSTT1")
-    console.log(this.form)
-    console.log("TEEEEEEESSSSSTT2")
-    // const change = this.obj.change();
-    // if (!change) {
-    //   return;
-    // }
-    // setTimeout(() => {
-    //   change({ objForm: this.form, meta: this.meta });
-    // }, 100);
+    console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAa1');
+    console.log('this.config : ', this.config);
+    console.log('HAAAAAAAAAAAAAAAAAAAAAAAAAa2');
+    const change = this.config.change();
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({ objForm: this.form, meta: this.meta });
+    }, 100);
   }
 
   initFormDefiniton(schema: JsonData, meta: JsonData) {
@@ -158,8 +199,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       });
     return objectFormDefiniton;
   }
-
-  initForm() {}
 
   notAllowedMessage() {
     this._commonService.translateToaster(
@@ -195,12 +234,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
       // }
       if (this.chainInput) {
-<<<<<<< HEAD
-        console.log('resetObjForm  - TODO');
-        // this.resetObjForm();
-=======
         this.resetForm();
->>>>>>> 1bf9b9ba (add chain to form-g)
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
       } else {
@@ -294,27 +328,25 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     );
   }
 
-  chainInputChanged() {
-    this.formsDefinition.meta.bChainInput = this.chainInput;
-  }
-
   resetForm() {
     // les valeur que l'on garde d'une saisie à l'autre
     const keep = this.config['keep'] || [];
     const formKey = Object.keys(this.form.value);
 
     for (const key of formKey) {
-      if (!(key in keep)) {
+      if (!keep.includes(key)) {
         this.form.patchValue({ [key]: null });
       }
     }
     this.object = null;
 
-    // this.obj = this.setQueryParams(this.obj);
-
     this.form.patchValue({ geometry: null });
+    this.resetDynamicForm;
     this.initForm();
-    // this.form.updateValueAndValidity();
+  }
+
+  resetDynamicForm() {
+    this.formsDefinition = (this.formsDefinition as any[]).map((formDef) => ({ ...formDef }));
   }
 
   onCancelEdit() {
