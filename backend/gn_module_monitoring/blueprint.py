@@ -9,13 +9,12 @@ from geonature.utils.env import DB
 from geonature.core.admin.admin import admin as flask_admin
 
 from gn_module_monitoring.monitoring.admin import BibTypeSiteView
+from gn_module_monitoring.command.cmd import commands  # noqa: E402
 
 blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
 from .routes import *  # noqa
-
-from gn_module_monitoring.command.cmd import commands  # noqa: E402
 
 blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORINGS"
 for cmd in commands:
