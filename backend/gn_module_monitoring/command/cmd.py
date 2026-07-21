@@ -93,6 +93,7 @@ def cmd_install_monitoring_module(module_code):
         return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
+    from gn_module_monitoring.config.repositories import get_config
 
     config = get_config(module_code, force=True)
 
