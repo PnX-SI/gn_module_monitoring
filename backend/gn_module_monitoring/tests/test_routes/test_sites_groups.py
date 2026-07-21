@@ -108,7 +108,9 @@ class TestSitesGroups:
         for k in ["nb_sites", "nb_visits", "cruved"]:
             site_group.pop(k)
 
+        site_group["sites_group_code"] = "NEW_CODE"
         site_group["sites_group_name"] = "update name"
+
         r = self.client.patch(
             url_for("monitorings.patch", _id=first_site.id_sites_group),
             data=site_group,
@@ -117,6 +119,24 @@ class TestSitesGroups:
 
         assert r.json["id_sites_group"] == first_site.id_sites_group
         assert r.json["sites_group_name"] == "update name"
+
+        new_geom = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [3.405955, 44.23842],
+                    [3.410139, 44.241925],
+                    [3.420503, 44.238666],
+                    [3.405955, 44.23842],
+                ]
+            ],
+        }
+        site_group["geom"] = new_geom
+        r = self.client.patch(
+            url_for("monitorings.patch", _id=first_site.id_sites_group),
+            data=site_group,
+        )
+        assert r.json["geom"] == new_geom
 
     def test_get_post_groups(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])

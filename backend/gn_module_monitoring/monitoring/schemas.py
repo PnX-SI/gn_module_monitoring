@@ -171,7 +171,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     is_geom_from_child = fields.Method("set_is_geom_from_child", dump_only=True)
     modules = MA.Pluck(ModuleSchema, "id_module", many=True)
     nb_visits = fields.Integer(dump_only=True)
-    geom = GeojsonSerializationField()
+    geom = GeojsonSerializationField(required=False, allow_none=True)
 
     def set_pk(self, obj):
         return "id_sites_group"
