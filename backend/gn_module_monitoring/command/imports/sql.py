@@ -87,7 +87,7 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
 
     added_columns = set()
     for entity_code, entity_fields in protocol_data.items():
-        all_fields = entity_fields["generic"] + entity_fields["specific"]
+        all_fields = entity_fields["fields"]
         for field in all_fields:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")

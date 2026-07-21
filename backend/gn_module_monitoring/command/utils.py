@@ -270,8 +270,7 @@ def validate_protocol_changes(module_code: str, module_data) -> Tuple[set, list,
 
         all_new_fields = []
         for entity_fields in protocol_data.values():
-            for field_type in ["generic", "specific"]:
-                all_new_fields.extend(entity_fields[field_type])
+            all_new_fields.extend(entity_fields["fields"])
 
         fields_to_add, fields_to_update, fields_to_delete = compare_protocol_fields(
             existing_data["fields"], all_new_fields
