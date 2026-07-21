@@ -55,7 +55,7 @@ def add_specific_attributes(schema, object_type, module_code):
 
     model_class = MonitoringModels_dict[object_type]
 
-    config = get_config(module_code, force=True)
+    config = get_config(module_code)
 
     specific_properties = get_specific_properties(model_class, config, object_type).keys()
 

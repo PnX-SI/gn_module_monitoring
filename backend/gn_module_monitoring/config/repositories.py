@@ -254,8 +254,7 @@ def get_config(module_code=None, force=False):
             CONFIG_CACHE_NAME,
             {},
         ).get(module_code)
-        and not force
-    ):
+    ) and not force:
         return config
 
     module = get_monitoring_module(module_code)
