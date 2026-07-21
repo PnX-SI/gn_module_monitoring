@@ -1,8 +1,3 @@
-from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
-from gn_module_monitoring.utils.module import (
-    get_specific_properties,
-    get_specific_properties_from_object_config,
-)
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
