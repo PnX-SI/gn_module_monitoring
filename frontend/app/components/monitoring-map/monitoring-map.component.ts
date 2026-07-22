@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
-import { merge } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
@@ -18,20 +18,21 @@ import { MapListService } from '@geonature_common/map-list/map-list.service';
 import { Utils } from '../../utils/utils';
 import * as L from 'leaflet';
 import { ListService } from '../../services/list.service';
-
+import { FormService } from '../../services/form.service';
 @Component({
   selector: 'pnx-monitoring-map',
   templateUrl: './monitoring-map.component.html',
   styleUrls: ['./monitoring-map.component.css'],
 })
 export class MonitoringMapComponent implements OnInit {
-  @Input() bEdit: boolean;
   @Input() obj: MonitoringObject;
 
   @Input() selectedObject: Object;
   @Input() objForm: FormGroup;
 
   @Input() heightMap;
+
+  bEdit: Observable<Boolean> = this._formService.currentEditMode;
 
   bListen = true;
   panes = {};
@@ -85,7 +86,8 @@ export class MonitoringMapComponent implements OnInit {
     private _geojsonService: GeoJSONService,
     private _popup: Popup,
     public listService: ListService,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
+    public _formService: FormService
   ) {}
 
   ngOnInit() {
