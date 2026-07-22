@@ -5,20 +5,26 @@ routes pour les modules de suivis...
 from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
 
-from geonature.core.gn_permissions.tools import get_scopes_by_action, has_any_permissions_by_action
+from marshmallow import EXCLUDE
+
+from geonature.utils.env import db
+from geonature.core.gn_permissions import decorators as permissions
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
 )
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_module_id,
-    get_object_list_monitorings,
+    process_json_data_for_db_upsert,
 )
 
 
@@ -79,3 +85,33 @@ def get_all_types_site_from_module_id(module_code):
     types_site = query_all_types_site_from_module_id(id_module)
     schema = BibTypeSiteSchema()
     return [schema.dump(res) for res in types_site]
+
+
+@blueprint.route("/module/<int:_id>", methods=["PATCH"], defaults={"object_type": "module"})
+@blueprint.route(
+    "/<string:module_code>/module/<int:_id>",
+    methods=["PATCH"],
+    defaults={"object_type": "module"},
+)
+@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_MODULES")
+def patch_module(scope, object_type: str, module_code: str = "generic", _id: int = None):
+    module = db.get_or_404(TMonitoringModules, _id)
+    post_data = dict(request.get_json())
+    module = create_or_update_module(post_data, module_code)
+    return module
+
+
+def create_or_update_module(post_data: dict, module_code: str):
+    """
+    Create or update a module.
+
+    :param post_data: dict containing data to create or update a module
+    :param module_code: str, module code, default is "generic"
+    :return: dict, serialized module
+    """
+    config = get_config(module_code)
+    process_data = process_json_data_for_db_upsert(config, post_data, "module")
+    sites_group = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data)
+    db.session.add(sites_group)
+    db.session.commit()
+    return MonitoringModuleSchema().dump(sites_group)
