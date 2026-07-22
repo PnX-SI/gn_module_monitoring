@@ -17,14 +17,19 @@
     objectType="module"
     [bSynthese]="obj.b_synthese"
   ></pnx-monitoring-properties-g>
-  <pnx-monitoring-form
+
+  <pnx-monitoring-form-g  *ngIf="obj && bEdit && bIsInitialized" [object]="obj" objectType="module" [form]="objForm" [apiService]="_moduleService"
+    [config]="moduleConfig['module']" [currentUser]="currentUser">
+  </pnx-monitoring-form-g>
+
+  <!-- <pnx-monitoring-form
     [obj]="obj"
     [objForm]="objForm"
     [currentUser]="currentUser"
     *ngIf="bEdit && bIsInitialized"
     [(bEdit)]="bEdit"
     [addChildren]="false"
-  ></pnx-monitoring-form>
+  ></pnx-monitoring-form> -->
   <pnx-monitoring-datatable-g
     *ngIf="!bEdit"
     [dataTableConfig]="dataTableConfig"
