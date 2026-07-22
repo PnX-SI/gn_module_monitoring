@@ -107,26 +107,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    // Initialisation des variables
-    // this.initializeVariables(this.obj);
+    this.initForm();
 
-    // Initialisation des permissions de l'utilisateur courant
-    // this.initPermission();
-
-    // // Initialisation des paramètres par défaut du formulaire
-    this.queryParams = this._route.snapshot.queryParams || {};
-
-    this.meta = {
-      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
-      dataset: this._dataUtilsService.getDataUtil('dataset'),
-      id_role: this.currentUser.id_role,
-      bChainInput: this.chainInput,
-      // parents: this.object.parents
-    };
-
-    // Récupération de la définition du formulaire
-    this.formsDefinition = this.initFormDefiniton(this.config.fields, this.meta);
-    // Tri des proprités en fonction de la variable display_properties
     let displayProperties = [...(this.config.display_properties || [])];
     this.formsDefinition = this.sortFormDefinition(displayProperties, this.formsDefinition);
 
@@ -157,6 +139,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     // // Conversion des query params de type entier mais en string en int
     // //  ??? A comprendre
     // this.obj = this.setQueryParams(this.obj);
+    this.formsDefinition = this.sortFormDefinition(
+      displayProperties,
+      this.initFormDefiniton(this.config.fields, this.meta)
+    );
   }
 
   setDefaultFormValue() {
@@ -396,6 +382,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     }
     this.navigateToDetail();
   }
+
+  onDelete() {}
 
   ngOnDestroy() {
     this.form.patchValue({ geometry: null });
