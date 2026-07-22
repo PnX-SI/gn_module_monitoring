@@ -130,6 +130,11 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     datasets = MA.Pluck(DatasetSchema, "id_dataset", many=True)
     medias = MA.Nested(MediaSchema, many=True)
 
+    pk = fields.Method("set_pk", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_module"
+
 
 # PATCH : To move in utils_flask_sqla_geo
 class GeojsonSerializationField(fields.Field):
