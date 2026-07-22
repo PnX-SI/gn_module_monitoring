@@ -148,15 +148,14 @@ def validate_json_file_protocol(module_code: str):
     try:
         entities = get_entities_protocol(module_code)
         for entity_code in entities:
-            if not entity_code == "sites_group":
-                # Valid specific file
-                specific_path = module_config_dir / f"{entity_code}.json"
-                errors.extend(validate_json_file(specific_path, valid_type_widgets))
+            # Valid specific file
+            specific_path = module_config_dir / f"{entity_code}.json"
+            errors.extend(validate_json_file(specific_path, valid_type_widgets))
 
-                # Valid generic file
-                project_root = Path(__file__).parent.parent
-                generic_path = project_root / "config" / "generic" / f"{entity_code}.json"
-                errors.extend(validate_json_file(generic_path, valid_type_widgets))
+            # Valid generic file
+            project_root = Path(__file__).parent.parent
+            generic_path = project_root / "config" / "generic" / f"{entity_code}.json"
+            errors.extend(validate_json_file(generic_path, valid_type_widgets))
     except Exception as e:
         errors.append(f"Erreur lors de la lecture des entités: {str(e)}")
 

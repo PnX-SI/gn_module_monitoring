@@ -2,13 +2,14 @@ from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitIm
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
-from geonature.core.imports.models import TImports
+from geonature.core.imports.models import Entity, TImports
 
 from geonature.core.gn_monitoring.models import TObservations
 from geonature.utils.env import db
 import sqlalchemy as sa
 
 from geonature.core.imports.checks.sql.extra import (
+    check_entity_data_consistency,
     disable_duplicated_rows,
     generate_entity_id,
     generate_missing_uuid,

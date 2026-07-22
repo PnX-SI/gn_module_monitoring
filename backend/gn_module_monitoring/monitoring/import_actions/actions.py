@@ -9,12 +9,16 @@ from geonature.core.gn_monitoring.models import (
 )
 
 from gn_module_monitoring.monitoring.models import (
-    TMonitoringObservations,
+    TMonitoringSitesGroups,
     TMonitoringSites,
     TMonitoringVisits,
+    TMonitoringObservations,
+    cor_sites_group_module,
 )
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.inspection import inspect
+from werkzeug.exceptions import Conflict
 from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
 from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
 from geonature.core.imports.models import Entity, TImports
@@ -30,6 +34,9 @@ import typing
 
 
 from .entity_import_actions_utils import EntityImportActionsUtils
+from gn_module_monitoring.monitoring.import_actions.sites_group_actions import (
+    SitesGroupImportActions,
+)
 from gn_module_monitoring.monitoring.import_actions.site_actions import SiteImportActions
 from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
 from gn_module_monitoring.monitoring.import_actions.observation_actions import (
@@ -48,6 +55,8 @@ def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
 
 
 def get_entity_model(entity: Entity):
+    if entity.code == "sites_group":
+        return TMonitoringSitesGroups
     if entity.code == "site":
         return TBaseSites
     elif entity.code == "visit":
@@ -74,6 +83,7 @@ class MonitoringImportActions(ImportActions):
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
         return [
+            {"key": "sites_group_count", "value": "Nombre de groupes de sites importés"},
             {"key": "site_count", "value": "Nombre de sites importés"},
             {"key": "visit_count", "value": "Nombre de visites importées"},
             {"key": "observation_count", "value": "Nombre d'observations importées"},
@@ -120,6 +130,14 @@ class MonitoringImportActions(ImportActions):
 
         config = get_config(imprt.destination.code)
 
+        isSitesGroup = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, SitesGroupImportActions.ENTITY_CODE
+        )
+        isSitesGroupMandatory = False
+        if isSitesGroup:
+            # Some protocols make sites group optionals by setting a site entity at the same level than sites group in tree config
+            isSitesGroupMandatory = "site" not in config["tree"]["module"]
+
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
@@ -135,19 +153,25 @@ class MonitoringImportActions(ImportActions):
 
         # We first check site and visit consistency in order to avoid checking
         # incoherent data
+        if isSitesGroup:
+            SitesGroupImportActions.check_entity_data_consistency(imprt)
         SiteImportActions.check_entity_data_consistency(imprt)
         if isVisit:
             VisitImportActions.check_entity_data_consistency(imprt)
 
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
+        if isSitesGroup:
+            SitesGroupImportActions.check_dataframe(imprt, config)
         SiteImportActions.check_dataframe(imprt, config)
         if isVisit:
             VisitImportActions.check_dataframe(imprt)
         if isObservation:
             ObservationImportActions.check_dataframe(imprt)
 
-        SiteImportActions.check_sql(imprt)
+        if isSitesGroup:
+            SitesGroupImportActions.check_sql(imprt)
+        SiteImportActions.check_sql(imprt, isSitesGroup, isSitesGroupMandatory)
         if isVisit:
             VisitImportActions.check_sql(imprt)
         if isObservation:
@@ -155,6 +179,9 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
+        isSitesGroup = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, SitesGroupImportActions.ENTITY_CODE
+        )
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
@@ -176,12 +203,17 @@ class MonitoringImportActions(ImportActions):
                 .all()
             )
         }
+
+        if isSitesGroup:
+            SitesGroupImportActions.generate_id(imprt)
         SiteImportActions.generate_id(imprt)
         if isVisit:
             VisitImportActions.generate_id(imprt)
         if isObservation:
             ObservationImportActions.generate_id(imprt)
 
+        if isSitesGroup:
+            SiteImportActions.set_parent_id_from_line_no(imprt)
         if isVisit:
             VisitImportActions.set_parent_id_from_line_no(imprt)
         if isObservation:
@@ -190,7 +222,9 @@ class MonitoringImportActions(ImportActions):
         for entity in entities.values():
             print(f"--------- {entity.code}")
 
-            entity_fields = EntityImportActionsUtils.get_destination_fields(imprt, entity)
+            entity_fields = EntityImportActionsUtils.get_destination_fields(
+                imprt, entity, isSitesGroup
+            )
 
             core_dest_col_names = ["id_import", "id_digitiser"]
             core_select_cols = [
@@ -234,6 +268,20 @@ class MonitoringImportActions(ImportActions):
                 core_dest_col_names.append("id_module")
                 core_select_cols.append(sa.literal(imprt.destination.id_module).label("id_module"))
 
+            # sites_group n'a pas de table complément séparée : ses champs spécifiques
+            # sont stockés dans sa propre colonne data (parité avec site/visit/observation).
+            if entity.code == "sites_group" and complement_fields:
+                sg_json_args = []
+                for field in complement_fields:
+                    sg_json_args.extend(
+                        [
+                            EntityImportActionsUtils.get_destination_column_name(field.dest_field),
+                            transient_table.c[field.dest_field],
+                        ]
+                    )
+                core_dest_col_names.append("data")
+                core_select_cols.append(sa.func.json_build_object(*sg_json_args).label("data"))
+
             core_select_stmt = (
                 sa.select(*core_select_cols)
                 .where(transient_table.c.id_import == imprt.id_import)
@@ -250,13 +298,19 @@ class MonitoringImportActions(ImportActions):
 
             id_col_name = f"id_base_{entity.code}"
             json_args = []
+            # Fields not to insert in data column
+            SITES_GROUP_ID_FIELDS = ["id_sites_group", "uuid_sites_group"]
+            is_sites_group_id_fields = False
             for field in complement_fields:
-                json_args.extend(
-                    [
-                        EntityImportActionsUtils.get_destination_column_name(field.dest_field),
-                        transient_table.c[field.dest_field],
-                    ]
-                )
+                if field.name_field not in SITES_GROUP_ID_FIELDS:
+                    json_args.extend(
+                        [
+                            EntityImportActionsUtils.get_destination_column_name(field.dest_field),
+                            transient_table.c[field.dest_field],
+                        ]
+                    )
+                else:
+                    is_sites_group_id_fields = True
 
             complement_select_stmt = None
             model_complements = get_entity_model_complements(entity)
@@ -266,14 +320,22 @@ class MonitoringImportActions(ImportActions):
                     cols = [sa.func.json_build_object(*json_args).label("data")]
                 if entity.code != "observation":
                     cols.insert(0, transient_table.c[id_col_name])
-                complement_select_stmt = (
-                    sa.select(*cols)
-                    .where(transient_table.c.id_import == imprt.id_import)
-                    .where(transient_table.c[entity.validity_column] == True)
-                    .order_by(
-                        transient_table.c.line_no
-                    )  # Required for the process of inserting observation complements
-                )
+                if entity.code == "site" and is_sites_group_id_fields:
+                    complement_select_stmt = (
+                        sa.select(*cols, transient_table.c["id_sites_group"])
+                        .where(transient_table.c.id_import == imprt.id_import)
+                        .where(transient_table.c[entity.validity_column] == True)
+                        .order_by(transient_table.c.line_no)
+                    )
+                else:
+                    complement_select_stmt = (
+                        sa.select(*cols)
+                        .where(transient_table.c.id_import == imprt.id_import)
+                        .where(transient_table.c[entity.validity_column] == True)
+                        .order_by(
+                            transient_table.c.line_no
+                        )  # Required for the process of inserting observation complements
+                    )
 
             types_site_select_stmt = None
             if entity.code == "site":
@@ -281,6 +343,17 @@ class MonitoringImportActions(ImportActions):
                     sa.select(
                         transient_table.c["id_base_site"],
                         sa.func.unnest(transient_table.c["s__types_site"]).label("id_type_site"),
+                    )
+                    .where(transient_table.c.id_import == imprt.id_import)
+                    .where(transient_table.c[entity.validity_column] == True)
+                )
+
+            cor_sites_group_module_select = None
+            if entity.code == "sites_group":
+                cor_sites_group_module_select = (
+                    sa.select(
+                        transient_table.c["id_sites_group"],
+                        sa.literal(imprt.destination.id_module).label("id_module"),
                     )
                     .where(transient_table.c.id_import == imprt.id_import)
                     .where(transient_table.c[entity.validity_column] == True)
@@ -350,16 +423,38 @@ class MonitoringImportActions(ImportActions):
                     )
                     row_count += db.session.execute(core_insert_stmt).rowcount
 
-                    if complement_select_stmt is not None:
+                    if cor_sites_group_module_select is not None:
                         db.session.execute(
-                            sa.insert(model_complements).from_select(
-                                names=[id_col_name, "data"],
-                                select=complement_select_stmt.filter(
+                            sa.insert(cor_sites_group_module).from_select(
+                                ["id_sites_group", "id_module"],
+                                cor_sites_group_module_select.filter(
                                     transient_table.c["line_no"] >= min_line_no,
                                     transient_table.c["line_no"] < max_line_no,
                                 ),
                             )
                         )
+
+                    if complement_select_stmt is not None:
+                        if entity.code == "site" and is_sites_group_id_fields:
+                            db.session.execute(
+                                sa.insert(model_complements).from_select(
+                                    names=[id_col_name, "data", "id_sites_group"],
+                                    select=complement_select_stmt.filter(
+                                        transient_table.c["line_no"] >= min_line_no,
+                                        transient_table.c["line_no"] < max_line_no,
+                                    ),
+                                )
+                            )
+                        else:
+                            db.session.execute(
+                                sa.insert(model_complements).from_select(
+                                    names=[id_col_name, "data"],
+                                    select=complement_select_stmt.filter(
+                                        transient_table.c["line_no"] >= min_line_no,
+                                        transient_table.c["line_no"] < max_line_no,
+                                    ),
+                                )
+                            )
 
                     if types_site_select_stmt is not None:
                         db.session.execute(
@@ -416,11 +511,86 @@ class MonitoringImportActions(ImportActions):
             imprt.statistics.pop(key)
 
     @staticmethod
+    def remove_data_from_destination(imprt: TImports):
+        """
+        Remove data from destination database for a given import.
+
+        Parameters
+        ----------
+        imprt : TImports
+            The import to remove data from.
+
+        Notes
+        -----
+        This method is called when an import is deleted.
+        It removes from the destination database all data that was created
+        by the import.
+
+        If a child entity (e.g. Habitat) was created later on an imported
+        parent entity (e.g. Station), deleting the imported entity will
+        be refused !
+        """
+        entities = db.session.scalars(
+            sa.select(Entity)
+            .where(Entity.destination == imprt.destination)
+            .order_by(sa.desc(Entity.order))
+        ).all()
+        for entity in entities:
+            parent_table = entity.get_destination_table()
+            if entity.childs:
+                for child in entity.childs:
+                    child_table = child.get_destination_table()
+                    (parent_pk,) = inspect(parent_table).primary_key.columns
+                    (child_pk,) = inspect(child_table).primary_key.columns
+                    # Looking for parent rows belonging to this import with child rows
+                    # not belonging to this import.
+                    # We use is_distinct_from to match rows with NULL id_import.
+
+                    if parent_table.name == "t_sites_groups":
+                        query = (
+                            sa.select(parent_pk, sa.func.array_agg(child_pk))
+                            .select_from(parent_table.join(TMonitoringSites))
+                            .where(
+                                parent_table.c.id_import == imprt.id_import,
+                                TMonitoringSites.id_import.is_distinct_from(imprt.id_import),
+                            )
+                            .group_by(parent_pk)
+                        )
+                    else:
+                        query = (
+                            sa.select(parent_pk, sa.func.array_agg(child_pk))
+                            .select_from(parent_table.join(child_table))
+                            .where(
+                                parent_table.c.id_import == imprt.id_import,
+                                child_table.c.id_import.is_distinct_from(imprt.id_import),
+                            )
+                            .group_by(parent_pk)
+                        )
+                    orphans = db.session.execute(query).fetchall()
+                    if orphans:
+                        description = "L’import ne peut pas être supprimé car cela provoquerait la suppression de données ne provenant pas de cet import :"
+                        description += "<ul>"
+                        for id_parent, ids_child in orphans:
+                            description += f"<li>{entity.label} {id_parent} : {child.label}s {*ids_child, }</li>"
+                        description += "</ul>"
+                        raise Conflict(description)
+            db.session.execute(
+                sa.delete(parent_table).where(parent_table.c.id_import == imprt.id_import)
+            )
+
+    @staticmethod
     def report_plot(imprt: TImports) -> StandaloneEmbedJson:
         return None
 
     @staticmethod
     def compute_bounding_box(imprt: TImports):
+        isSitesGroup = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, SitesGroupImportActions.ENTITY_CODE
+        )
+
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem
-        return SiteImportActions.compute_bounding_box(imprt)
+        if isSitesGroup:
+            return SitesGroupImportActions.compute_bounding_box(imprt)
+        else:
+            return SiteImportActions.compute_bounding_box(imprt)

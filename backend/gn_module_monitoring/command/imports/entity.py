@@ -32,6 +32,17 @@ def get_entities_protocol(module_code: str) -> list:
         list
             Liste des entités du module.
     """
+
+    entities_order = [
+        "sites_group",
+        "site",
+        "visit",
+        "observation",
+        "observation_detail",  # Pas encore géré par l'import
+        "individual",  # Pas encore géré par l'import
+        "marking",  # Pas encore géré par l'import
+    ]
+
     module_path = monitoring_module_config_path(module_code)
 
     if not (module_path / "config.json").is_file():
@@ -40,7 +51,9 @@ def get_entities_protocol(module_code: str) -> list:
     data_config = json_from_file(module_path / "config.json")
     tree = data_config.get("tree", {}).get("module", {})
     keys = extract_keys(tree)
-    return [key for key in list(dict.fromkeys(keys)) if key not in ENTITIES_NOT_AVAILABLE]
+    unique_keys = [key for key in list(dict.fromkeys(keys)) if key not in ENTITIES_NOT_AVAILABLE]
+
+    return [entity for entity in entities_order if entity in unique_keys]
 
 
 def get_entity_parent(tree: dict, entity_code: str):
@@ -57,6 +70,10 @@ def get_entity_parent(tree: dict, entity_code: str):
                 if found:
                     return found
         return None
+
+    # Handle protocol which have sites and sites groups at the same level in config
+    if entity_code == "site" and "site" in tree and "sites_group" in tree:
+        return "sites_group"
 
     parent_entity = find_parent(tree, entity_code)
     return parent_entity
@@ -114,6 +131,7 @@ def insert_entities(
             "obs_detail" if entity_code == "observation_detail" else entity_code
         )
         mapping_entity_object_code = {
+            "sites_group": "MONITORINGS_GRP_SITES",
             "site": "MONITORINGS_SITES",
             "visit": "MONITORINGS_VISITES",
             "observation": "MONITORINGS_OBSERVATIONS",
@@ -248,47 +266,43 @@ def insert_entity_field_relations(
                 bib_themes=bib_themes,
                 is_parent_link=True,
             )
-            get_cor_entity_field(
-                entity_id=entity_id,
-                field_name=f"uuid_base_{parent_code}",
-                id_destination=id_destination,
-                bib_themes=bib_themes,
-                is_parent_link=True,
-            )
-            get_cor_entity_field(
-                entity_id=entity_id,
-                field_name=f"id_base_{parent_code}_origin",
-                id_destination=id_destination,
-                bib_themes=bib_themes,
-                is_parent_link=True,
-            )
+            if parent_code == "sites_group":
+                get_cor_entity_field(
+                    entity_id=entity_id,
+                    field_name=f"uuid_{parent_code}",
+                    id_destination=id_destination,
+                    bib_themes=bib_themes,
+                    is_parent_link=True,
+                )
+                get_cor_entity_field(
+                    entity_id=entity_id,
+                    field_name=f"id_{parent_code}_origin",
+                    id_destination=id_destination,
+                    bib_themes=bib_themes,
+                    is_parent_link=True,
+                )
+            else:
+                get_cor_entity_field(
+                    entity_id=entity_id,
+                    field_name=f"uuid_base_{parent_code}",
+                    id_destination=id_destination,
+                    bib_themes=bib_themes,
+                    is_parent_link=True,
+                )
+                get_cor_entity_field(
+                    entity_id=entity_id,
+                    field_name=f"id_base_{parent_code}_origin",
+                    id_destination=id_destination,
+                    bib_themes=bib_themes,
+                    is_parent_link=True,
+                )
 
 
 def get_cor_entity_field(
     entity_id, field_name, id_destination, bib_themes, order=None, is_parent_link=False
 ):
     """
-    Crée une relation entre une entité et un champ dans cor_entity_field.
-
-    Parameters
-    ----------
-    entity_id : int
-        ID de l'entité
-    field_name : str
-        Nom du champ
-    id_destination : int
-        ID de la destination (table) où chercher les IDs des entités
-    bib_themes : dict
-        Dictionnaire contenant les thèmes
-    order : int
-        Ordre du champ dans la hiérarchie des entités
-    is_parent_link : bool
-        Indique si le champ est une relation parent
-
-    Returns
-    -------
-    bool
-        True si la relation a été créée, False sinon
+    Crée une relation entre une entité et un champ dans cor_entity_field
     """
 
     id_field = DB.session.execute(

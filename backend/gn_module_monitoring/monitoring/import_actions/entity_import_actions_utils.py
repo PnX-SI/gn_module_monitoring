@@ -28,7 +28,7 @@ class EntityImportActionsUtils:
         return updated_cols
 
     @staticmethod
-    def get_destination_fields(imprt: TImports, entity: Entity) -> None:
+    def get_destination_fields(imprt: TImports, entity: Entity, isSitesGroups) -> None:
         fields = {
             ef.field.name_field: ef.field for ef in entity.fields if ef.field.dest_field != None
         }
@@ -46,7 +46,18 @@ class EntityImportActionsUtils:
                 if column_src in imprt.columns or mapping.get("constant_value", None) is not None:
                     entity_fields |= {field}
 
-        if entity.code == "site":
+        if entity.code == "sites_group":
+            entity_fields |= {
+                fields["id_sites_group"],
+                fields["g__geom_4326"],
+                fields["g__geom_local"],
+                fields["uuid_sites_group"],
+            }
+        elif entity.code == "site":
+            if isSitesGroups:
+                entity_fields |= {
+                    fields["id_sites_group"],
+                }
             entity_fields |= {
                 fields["id_base_site"],
                 fields["s__geom_4326"],

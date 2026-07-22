@@ -116,9 +116,10 @@ UUID_FIELD_NAME = {
 TOOLTIPS = {
     "id_base_site_origin": "Identifiant alphanumérique permettant de faire le lien entre les sites et leurs visites si aucun UUID est fourni",
     "id_base_visit_origin": "Identifiant alphanumérique permettant de faire le lien entre les visites et leurs observations si aucun UUID est fourni",
+    "id_sites_group_origin": "Identifiant alphanumérique permettant de faire le lien entre les groupes de sites et leurs sites si aucun UUID est fourni",
 }
 
-ENTITIES_NOT_AVAILABLE = ["sites_group", "observation_detail"]
+ENTITIES_NOT_AVAILABLE = ["observation_detail", "individual", "marking"]
 
 # Valeur pouvant être retourné suite à l'analyse de la modification du protocole
 # cas de la mise à jour d'un module

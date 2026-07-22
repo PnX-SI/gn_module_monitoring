@@ -27,7 +27,7 @@ from geonature.core.imports.utils import (
 
 from geonature.core.imports.models import Entity, TImports
 
-from geonature.core.imports.checks.dataframe.core import check_datasets
+from geonature.core.imports.checks.dataframe.core import check_datasets, check_required_values
 from geonature.utils.env import db
 
 

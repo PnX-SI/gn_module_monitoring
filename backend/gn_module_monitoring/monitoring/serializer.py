@@ -80,8 +80,8 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         for attribut_name in self.config_schema(type_schema="specific"):
             if attribut_name in only or not only:
                 properties[attribut_name] = data.get(attribut_name)
-        # Nécessaire pour récupérer tous les données des champs additionnels mêmes ceux non présents dans la config specific
-        # Nécessaire pour les récupérer coté frontend lors de l'envoie de l'objet (patch et post)
+        # Nécessaire pour récupérer toutes les données des champs additionnels mêmes celles non présentes dans la config specific
+        # Nécessaire pour les récupérer coté frontend lors de l'envoi de l'objet (patch et post)
         properties["additional_data_keys"] = []
         for prop in data:
             if prop not in properties.keys():
@@ -149,7 +149,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         children = {}
 
         for children_type in children_types:
-            # attention a bien nommer les relation en children_type + 's' !!!
+            # attention a bien nommer les relations en children_type + 's' !!!
             relation_name = children_type + "s"
 
             if not hasattr(self._model, relation_name):
@@ -219,7 +219,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         # Liste des propriétés de l'objet qui doivent être récupérées
         display_properties = []
-        # Liste des propriétés spécifique de l'objet qui doivent être récupérées
+        # Liste des propriétés spécifiques de l'objet qui doivent être récupérées
         display_specific = []
         if is_child:
             module_config = self.config()
@@ -248,13 +248,13 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
 
         else:
             # Si l'objet n'est pas un enfant on récupére toutes les informations
-            # Pour pourvoir afficher le détails
+            # Pour pouvoir afficher les détails
             dump_object = MonitoringSerializer_dict[self._object_type](unknown=EXCLUDE).dump(
                 self._model
             )
         properties = dump_object
 
-        # Extraction des proprités spécifiques au même niveau que les génériques
+        # Extraction des propriétés spécifiques au même niveau que les génériques
         self.flatten_specific_properties(properties, only=display_specific)
 
         # Sérialisation des enfants

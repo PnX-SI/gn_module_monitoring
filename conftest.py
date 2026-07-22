@@ -1,3 +1,7 @@
+import pytest
+
+pytest.register_assert_rewrite("geonature.tests.imports.utils")
+
 from geonature.tests.fixtures import *
 from geonature.tests.fixtures import _session, app, _app, users
 
