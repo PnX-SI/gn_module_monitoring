@@ -94,14 +94,6 @@ def config_object_from_files(module_code, object_type, custom=None):
 
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
-        specific_site = specific_config_object.get("specific", {}).keys()
-
-        # Exclusion des propriétés des types de site définies dans site.json
-        for id, type_site in db_config_object.get("types_site", {}).items():
-            db_config_object["types_site"][id]["display_properties"] = [
-                d for d in type_site.get("display_properties", []) if d not in specific_site
-            ]
-
         # Mise a jour des configurations de façon récursive
         dict_deep_update(
             specific_config_object.get("specific", {}), db_config_object.get("specific", {})
@@ -286,13 +278,6 @@ def get_config(module_code=None, force=False):
             config["custom"][var_name] = getattr(module, field_name)
             config["module"][field_name] = getattr(module, field_name)
 
-            config["custom"]["__MODULE.TYPES_SITE"] = [
-                type_site.as_dict() for type_site in module.types_site
-            ]
-            config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
-                {"id_nomenclature_type_site": t.id_nomenclature_type_site}
-                for t in module.types_site
-            ]
             config["default_display_field_names"].update(config.get("display_field_names", {}))
     # Get the list of observers
     config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)

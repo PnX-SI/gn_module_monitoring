@@ -56,34 +56,17 @@ def get_protocol_data(module_code: str, id_destination: int):
     """
     protocol_data = {}
     entity_hierarchy_map = {}
-    module_config_dir_path = monitoring_module_config_path(module_code)
     entities = get_entities_protocol(module_code)
-    config_module = get_config(module_code)
-    type_site_confs = []
-    if "custom" in config_module:
-        if "__MODULE.TYPES_SITE" in config_module["custom"]:
-            type_site_confs = config_module["custom"]["__MODULE.TYPES_SITE"]
+    config_module = get_config(module_code, force=True)
 
+    module_config_dir_path = monitoring_module_config_path(module_code)
     module_config_path = module_config_dir_path / "config.json"
     module_config = json_from_file(module_config_path)
 
     tree = module_config.get("tree", {}).get("module", {})
 
-    entity_confs = {}
-    # Ensure all confs are loaded in a dict
-    for entity_code in entities:
-        specific_data = config_module.get(entity_code, {})
-
-        if entity_code == "site":
-            for type_site_conf in type_site_confs:
-                if type_site_conf.get("config", None):
-                    specific_data.get("fields", {}).update(
-                        type_site_conf["config"].get(
-                            "specific", {}
-                        )  # need to stay specific because of how type site confs are structured
-                    )
-
-        entity_confs[entity_code] = specific_data
+    # Ensure all configurations are loaded in a dict
+    entity_confs = {entity_code: config_module.get(entity_code, {}) for entity_code in entities}
 
     # Now we can iterate safetly over confs
     for entity_code in entity_confs:
