@@ -29,7 +29,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     private _formBuilder: FormBuilder,
     private _objService: ObjectService,
     public _sitesGroupService: SitesGroupService,
-    public geojsonService: GeoJSONService,
+    public _geojsonService: GeoJSONService,
     private _configServiceG: ConfigServiceG,
     private _route: ActivatedRoute
   ) {}
@@ -46,13 +46,12 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
     this._objService.loadBreadCrumb(moduleCode, 'site', null, queryParams);
-
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);
   }
 
   ngOnDestroy() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesGroupFeatureGroup);
+    this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
     this._formService.changeCurrentEditMode(false);
   }
 }

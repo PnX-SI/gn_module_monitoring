@@ -108,7 +108,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         }
       }
     }
-
     // // Conversion des query params de type entier mais en string en int
     // //  ??? A comprendre
     // this.obj = this.setQueryParams(this.obj);
