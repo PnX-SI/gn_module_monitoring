@@ -1,32 +1,28 @@
-from geonature.core.gn_monitoring.models import TBaseSites
 import geojson
 
 from flask import g
-from marshmallow import Schema, fields, validate, pre_load, ValidationError
-
 import marshmallow
-
-from geonature.utils.env import MA
-from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
-from geonature.core.gn_monitoring.models import BibTypeSite
-from geonature.core.gn_meta.schemas import DatasetSchema
-from geonature.utils.schema import CruvedSchemaMixin
-from marshmallow_sqlalchemy import auto_field
-from pypnusershub.db.models import User
-
-from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
-from shapely.geometry import shape
-from geoalchemy2.shape import to_shape, from_shape
+from geoalchemy2.shape import from_shape, to_shape
 from geojson import Feature
+from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
+from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
+from geonature.utils.env import MA
+from geonature.utils.schema import CruvedSchemaMixin
+from marshmallow import Schema, ValidationError, fields, pre_load, validate
+from marshmallow_sqlalchemy import auto_field
+from marshmallow_sqlalchemy.fields import Related, RelatedList
+from pypnusershub.db.models import User
+from shapely.geometry import shape
+from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
 from gn_module_monitoring.monitoring.models import (
+    TMonitoringIndividuals,
+    TMonitoringModules,
+    TMonitoringObservationDetails,
+    TMonitoringObservations,
     TMonitoringSites,
     TMonitoringSitesGroups,
     TMonitoringVisits,
-    TMonitoringModules,
-    TMonitoringObservations,
-    TMonitoringObservationDetails,
-    TMonitoringIndividuals,
 )
 
 
@@ -116,6 +112,7 @@ class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = BibTypeSite
         include_fk = True
+        load_instance = True
 
 
 class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
@@ -124,10 +121,9 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
         load_relationships = True
         include_fk = True
-        # include_fk=True
 
     types_site = MA.Pluck(MonitoringBibTypeSiteSchema, "id_nomenclature_type_site", many=True)
-    datasets = MA.Pluck(DatasetSchema, "id_dataset", many=True)
+    datasets = RelatedList(Related(["id_dataset"]))
     medias = MA.Nested(MediaSchema, many=True)
 
     pk = fields.Method("set_pk", dump_only=True)
