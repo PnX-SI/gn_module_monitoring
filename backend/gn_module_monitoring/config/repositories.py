@@ -3,6 +3,7 @@ module de gestion de la configuarion des protocoles de suivi
 """
 
 import os
+from types import MappingProxyType
 
 from flask import current_app
 
@@ -247,7 +248,7 @@ def get_config(module_code=None, force=False):
             {},
         ).get(module_code)
     ) and not force:
-        return config
+        return MappingProxyType(config)
 
     module = get_monitoring_module(module_code)
 
@@ -301,6 +302,7 @@ def get_config(module_code=None, force=False):
     # Mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(CONFIG_CACHE_NAME, {}):
         current_app.config[CONFIG_CACHE_NAME] = {}
+    config = MappingProxyType(config)
     current_app.config[CONFIG_CACHE_NAME][module_code] = config
 
     return config
