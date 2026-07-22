@@ -1,32 +1,28 @@
-from geonature.core.gn_monitoring.models import TBaseSites
 import geojson
 
 from flask import g
-from marshmallow import Schema, fields, validate, pre_load, ValidationError
-
 import marshmallow
-
-from geonature.utils.env import MA
-from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
-from geonature.core.gn_monitoring.models import BibTypeSite
-from geonature.core.gn_meta.schemas import DatasetSchema
-from geonature.utils.schema import CruvedSchemaMixin
-from marshmallow_sqlalchemy import auto_field
-from pypnusershub.db.models import User
-
-from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
-from shapely.geometry import shape
-from geoalchemy2.shape import to_shape, from_shape
+from geoalchemy2.shape import from_shape, to_shape
 from geojson import Feature
+from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
+from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
+from geonature.utils.env import MA
+from geonature.utils.schema import CruvedSchemaMixin
+from marshmallow import Schema, ValidationError, fields, post_dump, pre_load, validate
+from marshmallow_sqlalchemy import auto_field
+from marshmallow_sqlalchemy.fields import Related, RelatedList
+from pypnusershub.db.models import User
+from shapely.geometry import shape
+from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
 from gn_module_monitoring.monitoring.models import (
+    TMonitoringIndividuals,
+    TMonitoringModules,
+    TMonitoringObservationDetails,
+    TMonitoringObservations,
     TMonitoringSites,
     TMonitoringSitesGroups,
     TMonitoringVisits,
-    TMonitoringModules,
-    TMonitoringObservations,
-    TMonitoringObservationDetails,
-    TMonitoringIndividuals,
 )
 
 
@@ -38,6 +34,23 @@ def paginate_schema(schema):
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
+
+
+class AdditionalFieldsMixin:
+
+    @post_dump
+    def add_additional_fields(self, data, **kwargs):
+        additional_fields_data = data.pop("data", {})
+        if additional_fields_data is None:
+            return data
+        for key, value in additional_fields_data.items():
+            if key not in data:
+                data[key] = value
+            if not data.get("additional_data_keys"):
+                data["additional_data_keys"] = []
+            if key not in data["additional_data_keys"]:
+                data["additional_data_keys"].append(key)
+        return data
 
 
 def add_specific_attributes(schema, object_type, module_code):
@@ -116,19 +129,24 @@ class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = BibTypeSite
         include_fk = True
+        load_instance = True
 
 
-class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
     class Meta:
         model = TMonitoringModules
         load_instance = True
         load_relationships = True
         include_fk = True
-        # include_fk=True
 
     types_site = MA.Pluck(MonitoringBibTypeSiteSchema, "id_nomenclature_type_site", many=True)
-    datasets = MA.Pluck(DatasetSchema, "id_dataset", many=True)
+    datasets = RelatedList(Related(["id_dataset"]))
     medias = MA.Nested(MediaSchema, many=True)
+
+    pk = fields.Method("set_pk", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_module"
 
 
 # PATCH : To move in utils_flask_sqla_geo
@@ -155,7 +173,7 @@ class GeojsonSerializationField(fields.Field):
             raise ValidationError("Geometry error") from error
 
 
-class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
 
     class Meta:
         model = TMonitoringSitesGroups
@@ -210,7 +228,7 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
     class Meta:
         model = TMonitoringSites
         exclude = ("geom_geojson", "geom", "geom_local")

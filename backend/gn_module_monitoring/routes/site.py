@@ -113,8 +113,8 @@ def get_type_site_by_id(id_type_site):
 @blueprint.route("/sites/<int:id_site>/types", methods=["GET"], defaults={"object_type": "site"})
 def get_all_types_site_from_site_id(id_site, object_type):
     types_site = query_all_types_site_from_site_id(id_site)
-    schema = BibTypeSiteSchema()
-    return [schema.dump(res) for res in types_site]
+    schema = BibTypeSiteSchema(many=True)
+    return schema.dump(types_site)
 
 
 @blueprint.route("/sites", methods=["GET"], defaults={"object_type": "site"})
@@ -184,17 +184,6 @@ def get_site_by_id(scope, module_code, id, object_type):
         schema = MonitoringSitesSchemaCruved
 
     data = schema().dump(site)
-
-    # Cas des propriétés renseignées dans d'autre module
-    #  Ajout manuel des propriétés manquantes
-    # Voir si on peut créer un schéma marsmallow
-    for key in getattr(site, "data") or {}:
-        if key not in data:
-            if "additional_data_keys" not in data:
-                data["additional_data_keys"] = []
-            data["additional_data_keys"] = [key]
-            data[key] = site.data[key]
-
     return data
 
 
