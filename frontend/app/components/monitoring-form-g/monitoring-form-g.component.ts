@@ -34,6 +34,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
   private queryParams: {};
+  private pendingKeepValues: JsonData | null = null;
 
   constructor(
     public _commonService: CommonService,
@@ -58,6 +59,44 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         geometry_type: this.config['geometry_type'],
       });
     }
+  }
+
+  initForm() {
+    this.queryParams = this._route.snapshot.queryParams || {};
+
+    this.meta = {
+      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+      dataset: this._dataUtilsService.getDataUtil('dataset'),
+      id_role: this.currentUser.id_role,
+      bChainInput: this.chainInput,
+      // parents: this.object.parents
+    };
+
+    if (this.config['geometry_type']) {
+      const validatorRequired =
+        this.objectType == 'sites_group'
+          ? this._formBuilder.control('')
+          : this._formBuilder.control('', Validators.required);
+
+      let frmCtrlGeom = {
+        frmCtrl: validatorRequired,
+        frmName: 'geometry',
+      };
+
+      this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
+      if (this.object) {
+        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
+          ? this.object['is_geom_from_child']
+          : false;
+        if (geomCalculated) {
+          this.object.geometry = null;
+        } else {
+          // TODO pourquoi la conversion en JSON ici ?
+          this.object.geometry = JSON.parse(this.object.geometry);
+        }
+      }
+    }
+    this.setDefaultFormValue();
   }
 
   ngOnInit() {
@@ -103,8 +142,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         if (geomCalculated) {
           this.object.geometry = null;
         } else {
-          // Changement du nom de la propriété de geom en geometry pour le formulaire
-          this.object.geometry = this.object.geom;
+          // TODO pourquoi la conversion en JSON ici ?
+          this.object.geometry = JSON.parse(this.object.geometry);
         }
       }
     }
@@ -130,13 +169,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onFormValueChange(event) {
-    // const change = this.obj.change();
-    // if (!change) {
-    //   return;
-    // }
-    // setTimeout(() => {
-    //   change({ objForm: this.form, meta: this.meta });
-    // }, 100);
+    const change = this.config.change;
+    if (!change) {
+      return;
+    }
+    setTimeout(() => {
+      change({ objForm: this.form, meta: this.meta });
+    }, 100);
   }
 
   initFormDefiniton(schema: JsonData, meta: JsonData) {
@@ -155,8 +194,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       });
     return objectFormDefiniton;
   }
-
-  initForm() {}
 
   notAllowedMessage() {
     this._commonService.translateToaster(
@@ -192,8 +229,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
       // }
       if (this.chainInput) {
-        console.log('resetObjForm  - TODO');
-        // this.resetObjForm();
+        this.resetForm();
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
       } else {
@@ -230,7 +266,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       data[attribut_name] = formValue[attribut_name];
     }
     if (formValue['geometry'] !== null) {
-      data['geom'] = formValue['geometry'];
+      data['geometry'] = formValue['geometry'];
     }
     return data;
   }
@@ -287,24 +323,33 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     );
   }
 
-  chainInputChanged() {
-    this.formsDefinition.meta.bChainInput = this.chainInput;
-  }
-
   resetForm() {
-    // les valeur que l'on garde d'une saisie à l'autre
     const keep = this.config['keep'] || [];
-    const formKey = Object.keys(this.form.value);
+    const currentValue = this.form.value;
+    this.pendingKeepValues = keep.reduce((acc: JsonData, key: string) => {
+      if (key in currentValue) {
+        acc[key] = currentValue[key];
+      }
+      return acc;
+    }, {});
 
-    for (const key of formKey) {
-      if (key in keep) this.form.patchValue({ key: null });
-    }
     this.object = null;
 
-    // this.obj = this.setQueryParams(this.obj);
-
     this.form.patchValue({ geometry: null });
+    this.resetDynamicForm();
+  }
+
+  resetDynamicForm() {
+    this.formsDefinition = (this.formsDefinition as any[]).map((formDef) => ({ ...formDef }));
+  }
+
+  onDynamicFormGroupChange() {
     this.initForm();
+    if (this.pendingKeepValues) {
+      this.form.patchValue(this.pendingKeepValues);
+      this.pendingKeepValues = null;
+    }
+    this.form.updateValueAndValidity();
   }
 
   onCancelEdit() {
