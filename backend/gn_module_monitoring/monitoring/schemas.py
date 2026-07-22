@@ -8,7 +8,7 @@ from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
 from geonature.utils.env import MA
 from geonature.utils.schema import CruvedSchemaMixin
-from marshmallow import Schema, ValidationError, fields, pre_load, validate
+from marshmallow import Schema, ValidationError, fields, post_dump, pre_load, validate
 from marshmallow_sqlalchemy import auto_field
 from marshmallow_sqlalchemy.fields import Related, RelatedList
 from pypnusershub.db.models import User
@@ -34,6 +34,23 @@ def paginate_schema(schema):
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
+
+
+class AdditionalFieldsMixin:
+
+    @post_dump
+    def add_additional_fields(self, data, **kwargs):
+        additional_fields_data = data.pop("data", {})
+        if additional_fields_data is None:
+            return data
+        for key, value in additional_fields_data.items():
+            if key not in data:
+                data[key] = value
+            if not data.get("additional_data_keys"):
+                data["additional_data_keys"] = []
+            if key not in data["additional_data_keys"]:
+                data["additional_data_keys"].append(key)
+        return data
 
 
 def add_specific_attributes(schema, object_type, module_code):
@@ -115,7 +132,7 @@ class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
     class Meta:
         model = TMonitoringModules
         load_instance = True
@@ -156,7 +173,7 @@ class GeojsonSerializationField(fields.Field):
             raise ValidationError("Geometry error") from error
 
 
-class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
 
     class Meta:
         model = TMonitoringSitesGroups
@@ -211,7 +228,7 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
+class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
     class Meta:
         model = TMonitoringSites
         exclude = ("geom_geojson", "geom", "geom_local")

@@ -83,8 +83,8 @@ def get_all_types_site_from_module_id(module_code):
     if module:
         id_module = module.id_module
     types_site = query_all_types_site_from_module_id(id_module)
-    schema = BibTypeSiteSchema()
-    return [schema.dump(res) for res in types_site]
+    schema = BibTypeSiteSchema(many=True)
+    return schema.dump(types_site)
 
 
 @blueprint.route("/module/<int:_id>", methods=["PATCH"], defaults={"object_type": "module"})
@@ -109,7 +109,7 @@ def create_or_update_module(post_data: dict, module_code: str):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized module
     """
-    config = get_config(module_code)
+    config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, "module")
     sites_group = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data)
     db.session.add(sites_group)
