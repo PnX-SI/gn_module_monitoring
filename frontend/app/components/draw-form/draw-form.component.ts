@@ -28,7 +28,8 @@ export class DrawFormComponent implements OnInit {
   @Input() bZoomOnPoint = true;
   @Input() zoomLevelOnPoint = 8;
 
-  @Input() bEdit;
+  // TODO supprimer input quand monitoring-objet n'est plus utilisé
+  @Input() bEdit: boolean = false;
 
   @Input() geomFromProtocol: boolean = true;
 
@@ -47,6 +48,11 @@ export class DrawFormComponent implements OnInit {
       });
     // choix du type de geometrie
     this.initDrawConfig();
+
+    this._formService.currentEditMode.subscribe((editMode: boolean) => {
+      this.bEdit = editMode;
+      this.initForm();
+    });
   }
 
   initForm() {
