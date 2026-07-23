@@ -2,12 +2,21 @@ import datetime
 import pytest
 
 from geonature.utils.env import db
+from sqlalchemy import select
+from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
 
 
 @pytest.fixture
-def visits(sites, datasets, monitoring_module):
+def installed_module(install_module_test_with_config):
+    return db.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+    ).scalar_one_or_none()
+
+
+@pytest.fixture
+def visits(sites, datasets, installed_module):
     visit_date_min = datetime.datetime.strptime("2025-01-01", "%Y-%m-%d").date()
     dataset = datasets["orphan_dataset"]
     db_visits = []
@@ -15,14 +24,14 @@ def visits(sites, datasets, monitoring_module):
         db_visits.append(
             TMonitoringVisits(
                 id_base_site=site.id_base_site,
-                id_module=monitoring_module.id_module,
+                id_module=installed_module.id_module,
                 id_dataset=dataset.id_dataset,
                 visit_date_min=visit_date_min,
             )
         )
     with db.session.begin_nested():
         db.session.add_all(db_visits)
-
+    db.session.flush()
     return db_visits
 
 
