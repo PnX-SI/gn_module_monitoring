@@ -606,13 +606,6 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     )
     data = DB.Column(JSONB)
 
-    # visits = DB.relationship(
-    #     TMonitoringVisits,
-    #     lazy="select",
-    #     primaryjoin=(TModules.id_module == TBaseVisits.id_module),
-    #     foreign_keys=[TBaseVisits.id_module],
-    #     cascade="all,delete"
-    # )
     visits = DB.relationship(
         TMonitoringVisits,
         lazy="select",

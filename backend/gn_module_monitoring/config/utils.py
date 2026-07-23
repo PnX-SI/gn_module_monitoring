@@ -134,6 +134,7 @@ def json_config_from_file(module_code, type_config):
 
 def json_config_from_db(module_code):
     site_type_config = {"types_site": {}, "specific": {}}
+    field_to_types_sites = {}
     if module_code == "generic":
         # Si generic récupération de tous les types de sites
         types = query_all_types_site_from_module_id(0)
@@ -145,25 +146,19 @@ def json_config_from_db(module_code):
         types = query_all_types_site_from_module_id(module.id_module)
 
     for t in types:
-        fields = []
-
-        # Configuration des champs
         if "specific" in (t.config or {}):
             site_type_config["specific"].update(t.config["specific"])
-            fields = [k for k in t.config["specific"]]
+            site_type_config["types_site"][t.id_nomenclature_type_site] = {
+                "name": t.nomenclature.label_default,
+            }
 
-        # Liste des champs à afficher
-        display_properties = list(fields)
-        if "display_properties" in (t.config or {}):
-            display_properties = [
-                key for key in t.config.get("display_properties") if key in fields
-            ]
-            display_properties + [key for key in fields if not key in display_properties]
+            for field in t.config["specific"]:
+                if not field in field_to_types_sites:
+                    field_to_types_sites[field] = []
+                field_to_types_sites[field].append(t.id_nomenclature_type_site)
 
-        site_type_config["types_site"][t.id_nomenclature_type_site] = {
-            "display_properties": display_properties,
-            "name": t.nomenclature.label_default,
-        }
+    for field in field_to_types_sites:
+        site_type_config["specific"][field]["id_types_site"] = field_to_types_sites[field]
 
     return site_type_config
 
