@@ -117,35 +117,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.initForm();
 
     let displayProperties = [...(this.config.display_properties || [])];
-    this.formsDefinition = this.sortFormDefinition(displayProperties, this.formsDefinition);
-
-    if (this.config['geometry_type']) {
-      const validatorRequired =
-        this.objectType == 'sites_group'
-          ? this._formBuilder.control('')
-          : this._formBuilder.control('', Validators.required);
-
-      let frmCtrlGeom = {
-        frmCtrl: validatorRequired,
-        frmName: 'geometry',
-      };
-
-      this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
-      if (this.object) {
-        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
-          ? this.object['is_geom_from_child']
-          : false;
-        if (geomCalculated) {
-          this.object.geometry = null;
-        } else {
-          // TODO pourquoi la conversion en JSON ici ?
-          this.object.geometry = JSON.parse(this.object.geometry);
-        }
-      }
-    }
-    // // Conversion des query params de type entier mais en string en int
-    // //  ??? A comprendre
-    // this.obj = this.setQueryParams(this.obj);
     this.formsDefinition = this.sortFormDefinition(
       displayProperties,
       this.initFormDefiniton(this.config.fields, this.meta)
