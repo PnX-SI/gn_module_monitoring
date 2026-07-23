@@ -152,10 +152,9 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.activetabIndex = tab.index;
     // Réinitialisation des données selectés
     this.activetabType = this.dataTableConfig[tab.index].objectType;
-    this.columns =
-      this.dataTableObjData[this.activetabType].rows.length > 0
-        ? this._dataTableService.colsTable(this.dataTableObjData[this.activetabType].columns)
-        : null;
+    this.columns = this._dataTableService.colsTable(
+      this.dataTableObjData[this.activetabType].columns
+    );
     this.rows = this.dataTableObjData[this.activetabType].rows;
     this.page = this.dataTableObjData[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
@@ -285,8 +284,7 @@ export class MonitoringDatatableGComponent implements OnInit {
 
       this.activetabType = this.dataTableConfig[this.activetabIndex].objectType;
       const dataTable = this.dataTableObjData[this.activetabType];
-      this.columns =
-        dataTable.rows.length > 0 ? this._dataTableService.colsTable(dataTable.columns) : null;
+      this.columns = this._dataTableService.colsTable(dataTable.columns);
 
       this.rows = dataTable.rows;
       this.page = dataTable.page;
