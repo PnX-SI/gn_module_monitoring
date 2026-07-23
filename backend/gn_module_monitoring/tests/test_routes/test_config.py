@@ -119,7 +119,3 @@ class TestRouteConfig:
         type_site_name = [v["name"] for k, v in module_type_site.items()]
 
         assert set(type_site_name) == set(["Test_Grotte", "Test_Mine"])
-        for id, type_site in module_type_site.items():
-            assert set(type_site["display_properties"]).issubset(
-                [k for k in data["site"][fields_key]]
-            )

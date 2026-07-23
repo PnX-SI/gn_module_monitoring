@@ -22,6 +22,7 @@ from gn_module_monitoring.config.utils import (
     get_module_code_list,
 )
 from gn_module_monitoring.utils.utils import dict_deep_update
+from werkzeug.datastructures import ImmutableDict
 
 # pour stocker la config dans current_app.config
 CONFIG_CACHE_NAME = config_cache_name = "MONITORINGS_CONFIG"
@@ -248,7 +249,7 @@ def get_config(module_code=None, force=False):
             {},
         ).get(module_code)
     ) and not force:
-        return MappingProxyType(config)
+        return ImmutableDict(config)
 
     module = get_monitoring_module(module_code)
 
@@ -302,7 +303,7 @@ def get_config(module_code=None, force=False):
     # Mise en cache dans current_app.config[config_cache_name][module_code]
     if not current_app.config.get(CONFIG_CACHE_NAME, {}):
         current_app.config[CONFIG_CACHE_NAME] = {}
-    config = MappingProxyType(config)
+    config = ImmutableDict(config)
     current_app.config[CONFIG_CACHE_NAME][module_code] = config
 
     return config
