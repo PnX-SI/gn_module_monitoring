@@ -1,13 +1,15 @@
 import { forkJoin, Observable, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
-import { ApiService } from '../../services/api-geom.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
-import { Location } from '@angular/common';
 import { Utils } from '../../utils/utils';
+import { ApiService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
@@ -37,6 +39,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public canDelete: boolean = true;
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
+
+  public deleteSpinner = false;
+  public deleteModal = false;
+
   private queryParams: {};
   private pendingKeepValues: JsonData | null = null;
 
@@ -50,7 +56,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _geojsonService: GeoJSONService,
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
-    private _formUtils: MonitoringObjectService
+    private _formUtils: MonitoringObjectService,
+    private translate: TranslateService
   ) {}
 
   ngAfterViewInit() {
@@ -383,7 +390,20 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.navigateToDetail();
   }
 
-  onDelete() {}
+  onDelete() {
+    this.deleteSpinner = true;
+    this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
+      this.deleteSpinner = this.deleteModal = false;
+      this.object.deleted = true;
+      this._commonService.regularToaster(
+        'info',
+        this.translate.instant('Monitoring.Actions.Deleted')
+      );
+      setTimeout(() => {
+        this.navigateToParent();
+      }, 100);
+    });
+  }
 
   ngOnDestroy() {
     this.form.patchValue({ geometry: null });

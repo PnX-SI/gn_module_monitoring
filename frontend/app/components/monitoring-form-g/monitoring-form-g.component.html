@@ -1,3 +1,20 @@
+<pnx-modal-msg [bDisplayModal]="deleteModal" *ngIf="object">
+  <h2>{{ 'Monitoring.DeletingPopup.Warning' | translate }}</h2>
+  <p>
+    {{ 'Monitoring.DeletingPopup.WarningDelete' | translate }}
+  </p>
+  <button class="btn btn-danger float-right" (click)="onDelete()">
+    <span
+      [ngClass]="{ 'hide-spinner': !deleteSpinner }"
+      class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>
+    {{ 'Monitoring.DeletingPopup.ConfirmDelete' | translate }}
+  </button>
+  <button class="btn btn-primary" (click)="deleteModal = false">{{ 'Monitoring.DeletingPopup.Cancel' | translate }}</button>
+</pnx-modal-msg>
+
 <div>
   <div id="properties-form" class="cadre" *ngIf="formsDefinition">
     <div style="height: 25px;">
@@ -103,7 +120,7 @@
           [disabled]="!canDelete"
           color="warn"
           class="float-left"
-          (click)="canDelete ? (bDeleteModal = true) : null"
+          (click)="canDelete ? (deleteModal = true) : null"
           *ngIf="object"
         >
           {{ 'Monitoring.Form.Delete' | translate }}
