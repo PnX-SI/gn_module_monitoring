@@ -380,7 +380,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def nb_visits(self):
@@ -402,7 +402,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def organism_actors(self):

@@ -243,9 +243,10 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         include_fk = True
         load_relationships = True
 
+    id_base_site = auto_field(allow_none=True, required=False)
     geometry = fields.Method("serialize_geojson", dump_only=True)
     pk = fields.Method("set_pk", dump_only=True)
-    types_site = MA.Nested(BibTypeSiteSchema, many=True)
+    types_site = RelatedList(Related(["id_nomenclature_type_site"]))
     id_sites_group = fields.Method("get_id_sites_group")
     id_inventor = fields.Method("get_id_inventor")
     medias = MA.Nested(MediaSchema, many=True)
