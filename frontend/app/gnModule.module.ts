@@ -45,6 +45,8 @@ import { DataTableService } from './services/data-table.service';
 import { MonitoringPropertiesGComponent } from './components/monitoring-properties-g/monitoring-properties-g.component';
 import { GeoJSONService } from './services/geojson.service';
 import { MonitoringSitesgroupsDetailComponent } from './components/monitoring-sitesgroups-detail/monitoring-sitesgroups-detail.component';
+import { MonitoringVisitsDetailComponent } from './components/monitoring-visits-detail/monitoring-visits-detail.component';
+import { MonitoringVisitsCreateComponent } from './components/monitoring-visits-create/monitoring-visits-create.component';
 
 import { MonitoringMapListComponent } from './components/monitoring-map-list/monitoring-map-list.component';
 import { FormService } from './services/form.service';
@@ -55,6 +57,7 @@ import {
   SitesService,
   ApiGeomService,
   VisitsService,
+  ObservationsService,
   IndividualsService,
   ModuleService,
 } from './services/api-geom.service';
@@ -71,6 +74,7 @@ import { Popup } from './utils/popup';
 import { ListService } from './services/list.service';
 import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolver';
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
+import { DetailVisitsResolver } from './resolver/detail-visits-resolver';
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
 import { ModuleConfigResolver } from './resolver/config.resolver';
@@ -81,7 +85,7 @@ const routes: Routes = [
   {
     path: 'object/:moduleCode',
     resolve: {
-      data: ModuleConfigResolver,
+      data: ModuleConfigResolver, // Permet de charger la configuration du module
     },
     children: [
       {
@@ -159,7 +163,26 @@ const routes: Routes = [
           },
         ],
       },
-
+      {
+        path: 'visit',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: 'create',
+            component: MonitoringVisitsCreateComponent,
+            resolve: {
+              createSite: DetailVisitsResolver,
+            },
+          },
+          {
+            path: ':id',
+            component: MonitoringVisitsDetailComponent,
+            resolve: {
+              detailSites: DetailVisitsResolver,
+            },
+          },
+        ],
+      },
       {
         path: 'individual',
         component: MonitoringMapListComponent,
@@ -212,6 +235,8 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringMapListComponent,
     MonitoringSitesGroupsComponent,
     MonitoringSitesgroupsDetailComponent,
+    MonitoringVisitsDetailComponent,
+    MonitoringVisitsCreateComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
@@ -264,6 +289,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     ObjectService,
     ApiGeomService,
     VisitsService,
+    ObservationsService,
     SitesGroupsResolver,
     CreateSiteResolver,
     CreateSitesGroupsResolver,

@@ -238,11 +238,26 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   addNewVisit($event: SelectObject) {
     const moduleCode = $event.id;
-    //create_object/cheveches_sites_group/visit?id_base_site=47
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-    this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+    this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {
       queryParams: { id_base_site: this.site.id_base_site, parents_path: parents_path },
+    });
+  }
+
+  navigateToAddObj($event) {
+    const type = $event;
+
+    const parentsPath = [...this.parentsPath];
+    if (!parentsPath.includes('site')) {
+      parentsPath.push('site');
+    }
+    const queryParams = {
+      parents_path: parentsPath,
+      id_base_site: this.site.id_base_site,
+    };
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
+      queryParams: queryParams,
     });
   }
 
@@ -252,12 +267,13 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       parentsPath.push('site');
     }
     this.router.navigate(
-      [
-        `monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`,
-        { edit: true },
-      ],
+      [`monitorings/object/${$event.module.module_code}/visit/${$event.id_base_visit}`],
       {
-        queryParams: { id_base_site: this.site.id_base_site, parents_path: parentsPath },
+        queryParams: {
+          id_base_site: this.site.id_base_site,
+          parents_path: parentsPath,
+          edit: true,
+        },
       }
     );
   }
