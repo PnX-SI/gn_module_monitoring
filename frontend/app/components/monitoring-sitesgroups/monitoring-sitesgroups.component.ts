@@ -48,7 +48,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   // Configuration du module
   public moduleConfig;
 
-  colsname: {};
   objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
@@ -106,6 +105,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       console.log('bEdit', bEdit, this.bEdit);
       this.bEdit = bEdit;
     });
+    this._sitesService.initConfig();
+    this._sites_group_service.initConfig();
     this.initObject();
   }
 
@@ -231,7 +232,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
           page: processedPaginatedData.page - 1,
         };
         this.rows = processedPaginatedData.items;
-        this.colsname = _service.objectObs.dataTable.colNameObj;
         this.dataTableObjData[object_type].rows = processedPaginatedData.items;
         this.dataTableObjData[object_type].page = {
           count: processedPaginatedData.count,
