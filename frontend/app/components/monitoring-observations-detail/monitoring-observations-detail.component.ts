@@ -6,7 +6,7 @@ import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import { VisitsService, ObservationsService } from '../../services/api-geom.service';
+import { ObservationsService, ObservationDetailsService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { SelectObject } from '../../interfaces/object';
 import { FormService } from '../../services/form.service';
@@ -15,6 +15,7 @@ import { PermissionService } from '../../services/permission.service';
 import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
 import { IObservation } from '../../interfaces/observation';
+import { IObservationDetail } from '../../interfaces/observationdetail';
 
 @Component({
   selector: 'monitoring-observations-detail',
@@ -44,6 +45,7 @@ export class MonitoringObservationsDetailComponent
     private router: Router,
 
     public _observationsService: ObservationsService,
+    public _observationsDetailService: ObservationDetailsService,
     private _objService: ObjectService,
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
@@ -71,7 +73,7 @@ export class MonitoringObservationsDetailComponent
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
-    this._observationsService.initConfig();
+    this._observationsDetailService.initConfig();
     this._permissionService.setPermissionMonitorings(this.moduleCode);
 
     // Récupération des paramètres de la route
@@ -117,20 +119,20 @@ export class MonitoringObservationsDetailComponent
       });
     });
     // Initialisation du datatable
-    // this._observationsService
-    //   .getResolved(1, this.limit, { id_observation: this.dataId })
-    //   .subscribe((data: IPaginated<ISite>) => {
-    //     // Configuration du datatable
-    //     this.rows = data.items;
-    //     let dataTableData = {
-    //       observations: {
-    //         data: data,
-    //         objType: 'observation',
-    //         childType: 'observation_detail',
-    //       },
-    //     };
-    //     this.setDataTableObjData(dataTableData, this.moduleCode, ['observation']);
-    //   });
+    this._observationsDetailService
+      .getResolved(1, this.limit, { id_observation: this.dataId })
+      .subscribe((data: IPaginated<IObservationDetail>) => {
+        // Configuration du datatable
+        this.rows = data.items;
+        let dataTableData = {
+          observations: {
+            data: data,
+            objType: 'observation_detail',
+            childType: null,
+          },
+        };
+        this.setDataTableObjData(dataTableData, this.moduleCode, ['observation_detail']);
+      });
   }
 
   onbEditChange(event: boolean) {
@@ -161,7 +163,7 @@ export class MonitoringObservationsDetailComponent
       parents_path: [...this.parentPath, this.objectType],
     };
     this.router.navigate(
-      [`/monitorings/object/${this.moduleCode}/${this.objectType}/${$event[$event.id]}`],
+      [`/monitorings/object/${this.moduleCode}/observation_detail/${$event[$event.id]}`],
       { queryParams: queryParams }
     );
   }
@@ -173,7 +175,7 @@ export class MonitoringObservationsDetailComponent
       id_observation: this.dataId,
     };
     this.router.navigate(
-      [`/monitorings/object/${this.moduleCode}/${this.objectType}/${$event[$event.id]}`],
+      [`/monitorings/object/${this.moduleCode}/observation_detail/${$event[$event.id]}`],
       { queryParams: queryParams }
     );
   }
