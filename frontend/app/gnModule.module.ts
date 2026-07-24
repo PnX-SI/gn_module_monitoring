@@ -62,6 +62,7 @@ import {
   ObservationsService,
   IndividualsService,
   ModuleService,
+  ObservationDetailsService,
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
@@ -82,6 +83,9 @@ import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
 import { ModuleConfigResolver } from './resolver/config.resolver';
 import { ImportButtonComponent } from '@geonature/shared/importButton/import-button.component';
+import { MonitoringObservationsDetailCreateComponent } from './components/monitoring-observationsdetails-create/monitoring-observationsdetail-create.component';
+import { MonitoringObservationsDetailDetailComponent } from './components/monitoring-observationsdetail-detail/monitoring-observationsdetail-detail.component';
+import { DetailObservationsDetailResolver } from './resolver/detail-observationsdetail-resolver';
 
 const routes: Routes = [
   { path: '', component: ModulesComponent },
@@ -207,6 +211,26 @@ const routes: Routes = [
         ],
       },
       {
+        path: 'observation_detail',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: 'create',
+            component: MonitoringObservationsDetailCreateComponent,
+            resolve: {
+              createSite: DetailObservationsDetailResolver,
+            },
+          },
+          {
+            path: ':id',
+            component: MonitoringObservationsDetailDetailComponent,
+            resolve: {
+              detailSites: DetailObservationsDetailResolver,
+            },
+          },
+        ],
+      },
+      {
         path: 'individual',
         component: MonitoringMapListComponent,
         children: [
@@ -262,6 +286,8 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringVisitsCreateComponent,
     MonitoringObservationsDetailComponent,
     MonitoringObservationsCreateComponent,
+    MonitoringObservationsDetailCreateComponent,
+    MonitoringObservationsDetailDetailComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
@@ -315,6 +341,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     ApiGeomService,
     VisitsService,
     ObservationsService,
+    ObservationDetailsService,
     SitesGroupsResolver,
     CreateSiteResolver,
     CreateSitesGroupsResolver,
