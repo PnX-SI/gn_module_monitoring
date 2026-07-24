@@ -300,7 +300,7 @@ export class MonitoringSitesgroupsDetailComponent
     const moduleCode = this.modulSelected.id;
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-    this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
+    this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {
       queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
     });
   }

@@ -1,5 +1,4 @@
 import pytest
-import pytest
 import shutil
 
 from uuid import uuid4

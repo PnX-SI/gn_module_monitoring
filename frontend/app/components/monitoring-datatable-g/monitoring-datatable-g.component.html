@@ -66,8 +66,9 @@
               [objectType]="objectType"
               [properties]="getImportProperties()"
             ></pnx-import-button>
+            <!-- Si c'est une visite et que le module est générique alors affichage d'un template spécifique -->
             <ng-template
-              [ngIf]="activetabType != 'visit'"
+              [ngIf]="!(activetabType === 'visit' && moduleCode === 'generic')"
               [ngIfElse]="chooseProtocol"
             >
               <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
@@ -138,7 +139,7 @@
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
 
                   <ng-template
-                    [ngIf]="!(dataTableConfig[i].childType == 'visit')"
+                    [ngIf]="!(dataTableConfig[i].childType == 'visit') && moduleCode !== 'generic'"
                     [ngIfElse]="chooseProtocolPopup"
                   >
                     <ng-container *ngIf="!(dataTableConfig[i].childType == 'observation')">

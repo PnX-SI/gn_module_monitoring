@@ -179,7 +179,6 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
 
     id_base_visit = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
-        nullable=False,
         primary_key=True,
     )
 
@@ -200,6 +199,7 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         primaryjoin=(TObservations.id_base_visit == TBaseVisits.id_base_visit),
         foreign_keys=[TObservations.id_base_visit],
         cascade="all,delete",
+        overlaps="visit",
     )
 
     nb_observations = column_property(
@@ -256,6 +256,15 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
                 return True
         elif scope == 3:
             return True
+
+
+TObservations.visit = DB.relationship(
+    TMonitoringVisits,
+    lazy="select",
+    primaryjoin=(TMonitoringVisits.id_base_visit == TObservations.id_base_visit),
+    foreign_keys=[TObservations.id_base_visit],
+    uselist=False,
+)
 
 
 @geoserializable(geoCol="geom", idCol="id_base_site")

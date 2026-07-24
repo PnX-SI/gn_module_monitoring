@@ -458,7 +458,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   addNewVisit(idSite) {
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-    this.router.navigate([`monitorings/create_object/${this.moduleCode}/visit`], {
+    this.router.navigate([`monitorings/object/${this.moduleCode}/visit/create`], {
       queryParams: { id_base_site: idSite, parents_path: parents_path },
     });
   }

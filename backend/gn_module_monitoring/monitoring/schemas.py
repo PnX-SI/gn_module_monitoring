@@ -68,8 +68,7 @@ def add_specific_attributes(schema, object_type, module_code):
 
     model_class = MonitoringModels_dict[object_type]
 
-    config = get_config(module_code)
-
+    config = get_config(module_code, force=True)
     specific_properties = get_specific_properties(model_class, config, object_type).keys()
 
     def create_getter(key):
@@ -266,11 +265,13 @@ class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSc
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringVisits
-        include_fk = True
+        load_instance = True
         load_relationships = True
+        include_fk = True
 
+    id_base_visit = auto_field(required=False, allow_none=True)
     pk = fields.Method("set_pk", dump_only=True)
-    module = MA.Nested(ModuleSchema)
+    module = MA.Nested(ModuleSchema, data_key="module", dump_only=True)
     medias = MA.Nested(MediaSchema, many=True)
     visit_date_min = MA.Date()
     visit_date_max = MA.Date()
@@ -279,6 +280,14 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return "id_base_visit"
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+        data["visit_date_max"] = data.get("visit_date_max") or data.get("visit_date_min")
+        data["id_module"] = data.get("id_module") or g.current_module.id_module
+
+        return data
 
 
 class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
@@ -292,6 +301,10 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
         load_relationships = True
 
     medias = MA.Nested(MediaSchema, many=True)
+    pk = fields.Method("set_pk", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_observation"
 
 
 class MonitoringObservationsSchemaCruved(
