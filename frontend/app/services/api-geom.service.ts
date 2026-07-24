@@ -376,3 +376,26 @@ export class IndividualsService extends ApiService<IIndividual> {
     super.init(endPoint, objectObs);
   }
 }
+
+@Injectable()
+export class ObservationsService extends ApiService<IVisit> {
+  constructor(
+    _cacheService: CacheService,
+    protected _configServiceG: ConfigServiceG,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configServiceG, _monitoringObjectService);
+    this.init();
+  }
+  init(): void {
+    const endPoint = endPoints.visits;
+    const objectObs: IobjObs<IVisit> = {
+      endPoint: endPoints.observations,
+      objectType: 'observation',
+      label: 'observation',
+      childType: 'observation_detail',
+      moduleCode: 'generic',
+    };
+    super.init(endPoint, objectObs);
+  }
+}

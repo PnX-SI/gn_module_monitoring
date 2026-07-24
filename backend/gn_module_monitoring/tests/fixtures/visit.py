@@ -22,7 +22,6 @@ def visits(sites, datasets, monitoring_module):
         )
     with db.session.begin_nested():
         db.session.add_all(db_visits)
-
     return db_visits
 
 

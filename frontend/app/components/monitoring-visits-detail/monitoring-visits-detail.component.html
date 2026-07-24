@@ -1,0 +1,37 @@
+
+<div>
+  <span class="obj-title" *ngIf="bEdit">
+    {{ 'Actions.Edit' | translate }}
+  </span>
+  <span class="obj-title" *ngIf="!bEdit">
+    {{ 'Detail' | translate }}
+  </span>
+  <span *ngIf="visitDataResolved" class="obj-description">
+    {{ visitDataResolved.visit_date_min }}
+  </span>
+</div>
+<pnx-monitoring-properties-g *ngIf="visitDataResolved && !bEdit" id="nav-properties" [obj]="visitDataResolved"
+  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
+  objectType="visit"></pnx-monitoring-properties-g>
+<pnx-monitoring-form-g *ngIf="visitData && bEdit" [object]="visitData" objectType="visit"
+  [form]="form" [(bEdit)]="bEdit" [apiService]="_visitsService" [config]="moduleConfig['visit']"
+  [currentUser]="currentUser">
+</pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g *ngIf="!bEdit"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
+  [rows]="rows"
+  [obj]="rows"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [moduleCode]="moduleCode"
+  (onDetailsRow)="seeDetails($event)"
+  (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
+  (saveOptionChildren)="onSaveAddChildren($event)"
+  (onAddObj)="navigateToAddObj($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
+  parentPath="sites_group"></pnx-monitoring-datatable-g>
+

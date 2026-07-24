@@ -6,6 +6,7 @@ export interface IVisit extends IObject {
   comments: string;
   data: JsonData;
   id_base_visit: number;
+  id_base_site: number;
   id_module: number;
   id_nomenclature_grp_typ: number;
   id_nomenclature_tech_collect_campanule: number;

@@ -1,3 +1,5 @@
+import { forkJoin, Observable, of } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { ApiService } from '../../services/api-geom.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
@@ -5,11 +7,13 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
 import { Location } from '@angular/common';
+import { Utils } from '../../utils/utils';
 import { FormService } from '../../services/form.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -45,7 +49,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _location: Location,
     private _geojsonService: GeoJSONService,
     private _navigationService: NavigationService,
-    private _route: ActivatedRoute
+    private _route: ActivatedRoute,
+    private _formUtils: MonitoringObjectService
   ) {}
 
   ngAfterViewInit() {
@@ -208,7 +213,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     let actionLabel = '';
     let action;
-    if (this.object) {
+    if (this.object && (this.object || [])[this.object.pk] !== undefined) {
       action = this.apiService.patch(
         this.object[this.object.pk],
         this.formatForApi(formValueGroup)
@@ -259,10 +264,12 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     let fields = this.config.fields;
     for (const attribut_name of Object.keys(fields)) {
       const elem = fields[attribut_name];
-      if (!elem.type_widget) {
+      if (!elem?.type_widget) {
         continue;
       }
-      data[attribut_name] = formValue[attribut_name];
+
+      data[attribut_name] = this._formUtils.fromForm(elem, formValue[attribut_name]);
+      // data[attribut_name] = formValue[attribut_name];
     }
     if (formValue['geometry'] !== null) {
       data['geometry'] = formValue['geometry'];
