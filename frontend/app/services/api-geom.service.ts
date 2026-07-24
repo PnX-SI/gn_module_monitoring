@@ -142,9 +142,13 @@ export class ApiService<T = IObject> implements IService<T> {
 
   delete(id: number, params: JsonData = {}): Observable<T> {
     // module_code
-    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`, {
-      queryParams: params,
-    });
+    return this._cacheService.request(
+      'delete',
+      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}/${id}`,
+      {
+        queryParams: params,
+      }
+    );
   }
 
   setModuleCode(moduleCode: string) {
@@ -394,6 +398,28 @@ export class ObservationsService extends ApiService<IVisit> {
       objectType: 'observation',
       label: 'observation',
       childType: 'observation_detail',
+      moduleCode: 'generic',
+    };
+    super.init(endPoint, objectObs);
+  }
+}
+@Injectable()
+export class ObservationDetailsService extends ApiService<IVisit> {
+  constructor(
+    _cacheService: CacheService,
+    protected _configServiceG: ConfigServiceG,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configServiceG, _monitoringObjectService);
+    this.init();
+  }
+  init(): void {
+    const endPoint = endPoints.visits;
+    const objectObs: IobjObs<IVisit> = {
+      endPoint: endPoints.observations,
+      objectType: 'observation_detail',
+      label: 'observation detail',
+      childType: undefined,
       moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);

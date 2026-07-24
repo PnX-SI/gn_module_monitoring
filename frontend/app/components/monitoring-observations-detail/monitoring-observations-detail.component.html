@@ -14,7 +14,7 @@
   [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
   [objectType]="objectType"></pnx-monitoring-properties-g>
 <pnx-monitoring-form-g *ngIf="objectData && bEdit" [object]="objectData" [objectType]="objectType"
-  [form]="form" [(bEdit)]="bEdit" [apiService]="_visitsService" [config]="moduleConfig[objectType]"
+  [form]="form" [(bEdit)]="bEdit" [apiService]="_observationsService" [config]="moduleConfig[objectType]"
   [currentUser]="currentUser">
 </pnx-monitoring-form-g>
 <pnx-monitoring-datatable-g *ngIf="!bEdit"

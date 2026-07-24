@@ -17,15 +17,18 @@ import { CacheService } from '../../services/cache.service';
 import { IObservation } from '../../interfaces/observation';
 
 @Component({
-  selector: 'monitoring-visits-detail',
-  templateUrl: './monitoring-visits-detail.component.html',
-  styleUrls: ['./monitoring-visits-detail.component.css'],
+  selector: 'monitoring-observations-detail',
+  templateUrl: './monitoring-observations-detail.component.html',
+  styleUrls: ['./monitoring-observations-detail.component.css'],
 })
-export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringObservationsDetailComponent
+  extends MonitoringGeomComponent
+  implements OnInit
+{
   private moduleCode: string;
   public moduleConfig;
   public currentUser;
-  public objectType: string = 'visit';
+  public objectType: string = 'observation';
   private checkEditParam: boolean = false;
   public form: FormGroup;
   private dataId: number;
@@ -35,10 +38,11 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
+
   constructor(
     private _auth: AuthService,
     private router: Router,
-    public _visitsService: VisitsService,
+
     public _observationsService: ObservationsService,
     private _objService: ObjectService,
     private _Activatedroute: ActivatedRoute,
@@ -67,14 +71,13 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
-    this._visitsService.initConfig();
     this._observationsService.initConfig();
     this._permissionService.setPermissionMonitorings(this.moduleCode);
 
     // Récupération des paramètres de la route
     this._Activatedroute.params.subscribe((params) => {
       this.dataId = params['id'];
-      this.baseFilters = { id_base_visit: this.dataId };
+      this.baseFilters = { id_observation: this.dataId };
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -84,7 +87,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
         this.bEdit = true;
         this._formService.changeCurrentEditMode(this.bEdit);
       }
-      // Initialisation des visites
+      // Initialisation des données
       this.initData();
       this._objService.loadBreadCrumb(this.moduleCode, this.objectType, this.dataId, queryParams);
 
@@ -93,9 +96,9 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   }
 
   initData() {
-    // Get visit detail data
+    // Get data detail
     const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
-    this._visitsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
+    this._observationsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
       this.objectData = detailData;
 
       // Get site geometries
@@ -103,7 +106,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
         id_base_site: this.objectData.id_base_site,
       });
 
-      // Resolve visit data
+      // Resolve data
       resolveObjectProperties(
         detailData,
         fieldsConfig,
@@ -114,20 +117,20 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       });
     });
     // Initialisation du datatable
-    this._observationsService
-      .getResolved(1, this.limit, { id_base_visit: this.dataId })
-      .subscribe((data: IPaginated<ISite>) => {
-        // Configuration du datatable
-        this.rows = data.items;
-        let dataTableData = {
-          observations: {
-            data: data,
-            objType: 'observation',
-            childType: 'observation_detail',
-          },
-        };
-        this.setDataTableObjData(dataTableData, this.moduleCode, ['observation']);
-      });
+    // this._observationsService
+    //   .getResolved(1, this.limit, { id_observation: this.dataId })
+    //   .subscribe((data: IPaginated<ISite>) => {
+    //     // Configuration du datatable
+    //     this.rows = data.items;
+    //     let dataTableData = {
+    //       observations: {
+    //         data: data,
+    //         objType: 'observation',
+    //         childType: 'observation_detail',
+    //       },
+    //     };
+    //     this.setDataTableObjData(dataTableData, this.moduleCode, ['observation']);
+    //   });
   }
 
   onbEditChange(event: boolean) {
@@ -158,7 +161,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       parents_path: [...this.parentPath, this.objectType],
     };
     this.router.navigate(
-      [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
+      [`/monitorings/object/${this.moduleCode}/${this.objectType}/${$event[$event.id]}`],
       { queryParams: queryParams }
     );
   }
@@ -167,10 +170,10 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     const queryParams = {
       parents_path: [...this.parentPath, this.objectType],
       edit: true,
-      id_base_visit: this.dataId,
+      id_observation: this.dataId,
     };
     this.router.navigate(
-      [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
+      [`/monitorings/object/${this.moduleCode}/${this.objectType}/${$event[$event.id]}`],
       { queryParams: queryParams }
     );
   }
@@ -186,7 +189,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     const type = $event;
     const queryParams = {
       parents_path: [...this.parentPath, this.objectType],
-      id_base_visit: this.dataId,
+      id_observation: this.dataId,
     };
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,

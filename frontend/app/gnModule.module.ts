@@ -47,6 +47,8 @@ import { GeoJSONService } from './services/geojson.service';
 import { MonitoringSitesgroupsDetailComponent } from './components/monitoring-sitesgroups-detail/monitoring-sitesgroups-detail.component';
 import { MonitoringVisitsDetailComponent } from './components/monitoring-visits-detail/monitoring-visits-detail.component';
 import { MonitoringVisitsCreateComponent } from './components/monitoring-visits-create/monitoring-visits-create.component';
+import { MonitoringObservationsDetailComponent } from './components/monitoring-observations-detail/monitoring-observations-detail.component';
+import { MonitoringObservationsCreateComponent } from './components/monitoring-observations-create/monitoring-observations-create.component';
 
 import { MonitoringMapListComponent } from './components/monitoring-map-list/monitoring-map-list.component';
 import { FormService } from './services/form.service';
@@ -75,6 +77,7 @@ import { ListService } from './services/list.service';
 import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolver';
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
 import { DetailVisitsResolver } from './resolver/detail-visits-resolver';
+import { DetailObservationsResolver } from './resolver/detail-observations-resolver';
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
 import { ModuleConfigResolver } from './resolver/config.resolver';
@@ -184,6 +187,26 @@ const routes: Routes = [
         ],
       },
       {
+        path: 'observation',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: 'create',
+            component: MonitoringObservationsCreateComponent,
+            resolve: {
+              createSite: DetailObservationsResolver,
+            },
+          },
+          {
+            path: ':id',
+            component: MonitoringObservationsDetailComponent,
+            resolve: {
+              detailSites: DetailObservationsResolver,
+            },
+          },
+        ],
+      },
+      {
         path: 'individual',
         component: MonitoringMapListComponent,
         children: [
@@ -237,6 +260,8 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringSitesgroupsDetailComponent,
     MonitoringVisitsDetailComponent,
     MonitoringVisitsCreateComponent,
+    MonitoringObservationsDetailComponent,
+    MonitoringObservationsCreateComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
