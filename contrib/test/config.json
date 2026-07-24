@@ -4,7 +4,9 @@
       "sites_group": {
         "site": {
           "visit": {
-            "observation": null
+            "observation": { 
+              "observation_detail": null
+            }
           }
         }
       },
