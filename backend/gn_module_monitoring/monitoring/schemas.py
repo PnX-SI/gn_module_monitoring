@@ -297,14 +297,26 @@ class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisits
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringObservations
-        include_fk = True
+        load_instance = True
         load_relationships = True
+        include_fk = True
 
+    id_observation = auto_field(required=False, allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
+    id_base_site = fields.Method("set_id_base_site", dump_only=True)
 
     def set_pk(self, obj):
         return "id_observation"
+
+    def set_id_base_site(self, obj):
+        return obj.visit.id_base_site
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+
+        return data
 
 
 class MonitoringObservationsSchemaCruved(

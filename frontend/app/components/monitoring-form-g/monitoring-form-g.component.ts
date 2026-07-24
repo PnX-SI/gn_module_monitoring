@@ -54,16 +54,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngAfterViewInit() {
-    if (this.object) {
-      this.form.patchValue(this.object);
-    }
-    this.setDefaultFormValue();
-    if (this.config['geometry_type']) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form.controls['geometry'] as FormControl,
-        geometry_type: this.config['geometry_type'],
-      });
-    }
+    this.formValues(this.object).subscribe((formValue) => {
+      if (this.object) {
+        this.form.patchValue(formValue);
+      }
+      this.setDefaultFormValue();
+      if (this.config['geometry_type']) {
+        this._formService.changeFormMapObj({
+          frmGp: this.form.controls['geometry'] as FormControl,
+          geometry_type: this.config['geometry_type'],
+        });
+      }
+    });
   }
 
   initForm() {
@@ -257,6 +259,33 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       });
     }
     return formDef;
+  }
+  formValues(objData): Observable<any> {
+    let schema = this.config['fields'];
+
+    const properties = Utils.copy(objData);
+    const observables = {};
+
+    for (const attribut_name of Object.keys(schema)) {
+      const elem = schema[attribut_name];
+      if (!(elem || [])['type_widget']) {
+        continue;
+      }
+      observables[attribut_name] = this._formUtils.toForm(elem, properties[attribut_name]);
+    }
+
+    return forkJoin(observables).pipe(
+      concatMap((formValues_in) => {
+        const formValues = Utils.copy(formValues_in);
+        // geometry
+        // if ('config' in obj && obj.config['geometry_type']) {
+        //   // TODO: change null by the geometry load from the object (if edit) or null if create
+        //   // formValues["geometry"] = this.geometry; // copy???
+        //   formValues['geometry'] = obj.geometry; // copy???
+        // }
+        return of(formValues);
+      })
+    );
   }
 
   formatForApi(formValue: any) {
