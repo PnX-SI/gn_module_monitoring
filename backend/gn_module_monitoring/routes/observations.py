@@ -35,9 +35,6 @@ default_route_object_type = "observation"
 
 
 @blueprint.route(
-    "/observations", methods=["GET"], defaults={"object_type": default_route_object_type}
-)
-@blueprint.route(
     "/refacto/<string:module_code>/observations",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
@@ -62,15 +59,7 @@ def get_observations(object_type: str, module_code: str = None):
 
     query = filter_params(TMonitoringObservations, query=query, params=params)
 
-    # PATCH order by modules
-    if sort_label == "modules":
-        query = query.join(TMonitoringObservations.visits).join(TMonitoringVisits.module)
-        module_order = TMonitoringModules.module_label
-        if sort_dir == "desc":
-            module_order = module_order.desc()
-        query = query.order_by(module_order)
-    else:
-        query = sort(TMonitoringObservations, query=query, sort=sort_label, sort_dir=sort_dir)
+    query = sort(TMonitoringObservations, query=query, sort=sort_label, sort_dir=sort_dir)
 
     query_allowed = TMonitoringObservations.filter_by_readable(
         query=query,
@@ -85,10 +74,8 @@ def get_observations(object_type: str, module_code: str = None):
         params=params,
         specific_properties=specific_properties,
     )
-    if module_code:
-        schema = add_specific_attributes(MonitoringObservationsSchema, object_type, module_code)
-    else:
-        schema = MonitoringObservationsSchema
+
+    schema = MonitoringObservationsSchema
 
     return paginate_scope(
         query=query_allowed,
