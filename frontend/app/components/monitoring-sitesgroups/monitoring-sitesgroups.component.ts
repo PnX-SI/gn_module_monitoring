@@ -89,12 +89,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     private _formService: FormService,
     private _location: Location,
-    private _popup: Popup,
+    public _popup: Popup,
     public _permissionService: PermissionService,
     public _moduleService: ModuleService,
     private _cacheService: CacheService
   ) {
-    super(_permissionService);
+    super(_permissionService, _popup);
     this.getAllItemsCallback = this.getData;
   }
 
@@ -258,13 +258,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   getGeometriesSite() {
     this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite());
-  }
-
-  onEachFeatureSite() {
-    return (feature, layer) => {
-      const popup = this._popup.setSitePopup(this.moduleCode, feature, {});
-      layer.bindPopup(popup);
-    };
   }
 
   seeDetails($event) {

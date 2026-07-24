@@ -5,6 +5,7 @@ import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
 import { inject } from '@angular/core';
 import { ObjectType } from '../enum/objecttype';
+import { Popup } from '../utils/popup';
 
 const LIMIT = 10;
 
@@ -30,7 +31,12 @@ export class MonitoringGeomComponent {
 
   protected _configServiceG: ConfigServiceG;
 
-  constructor(public _permissionService: PermissionService) {
+  public parentPath: [];
+
+  constructor(
+    public _permissionService: PermissionService,
+    public _popup: Popup
+  ) {
     this._configServiceG = inject(ConfigServiceG);
   }
 
@@ -190,5 +196,12 @@ export class MonitoringGeomComponent {
       exportPDF: [],
     };
     return this.templateSpecificData;
+  }
+
+  onEachFeatureSite() {
+    return (feature, layer) => {
+      const popup = this._popup.setSitePopup(this._configServiceG.moduleCode(), feature, {});
+      layer.bindPopup(popup);
+    };
   }
 }
