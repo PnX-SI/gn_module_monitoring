@@ -58,6 +58,7 @@ export class MonitoringDatatableGComponent implements OnInit {
       config: any;
       canCreateObj?: boolean;
       canCreateChild?: boolean;
+      description_field_name?: string;
     },
   ];
   @Input() currentUser;
@@ -245,6 +246,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   saveOptionChild($event: SelectObject) {
+    // Uniquement pour les visites ?
+    // Voir si possiblement factorisable
     this.saveOptionChildren.emit($event);
   }
 
@@ -341,7 +344,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   alertMessage(row) {
     row['id'] = row[row.pk];
     this.rowDeleted = row;
-    const varNameObjet = this.dataTableConfig[this.activetabIndex].config.description_field_name;
+
+    const varNameObjet = this.dataTableConfig[this.activetabIndex].description_field_name;
 
     this.rowDeleted['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
@@ -351,7 +355,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
   isImportDestinationAvailable() {
     // TODO removed when 2.17.1 is released
-    console.log(this.moduleCode);
     this.httpClient
       .get(this._configService.backendUrl() + '/import/destinations/C')
       .subscribe((data: any) => {
