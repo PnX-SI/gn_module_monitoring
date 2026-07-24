@@ -70,10 +70,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     public _permissionService: PermissionService,
-    private _popup: Popup,
+    public _popup: Popup,
     private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
-    super(_permissionService);
+    super(_permissionService, _popup);
     this.getAllItemsCallback = this.getVisits;
   }
 

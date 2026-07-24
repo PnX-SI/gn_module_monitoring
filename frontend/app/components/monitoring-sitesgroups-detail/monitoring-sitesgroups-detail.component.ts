@@ -68,10 +68,10 @@ export class MonitoringSitesgroupsDetailComponent
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     public _permissionService: PermissionService,
-    private _popup: Popup,
+    public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService);
+    super(_permissionService, _popup);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
