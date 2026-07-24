@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ISite } from '../../interfaces/geom';
 import { IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
@@ -35,6 +35,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   public rows: Array<any> = [];
   constructor(
     private _auth: AuthService,
+    private router: Router,
     public _visitsService: VisitsService,
     public _observationsService: ObservationsService,
     private _objService: ObjectService,
@@ -43,12 +44,13 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     private _formBuilder: FormBuilder,
     private _formService: FormService,
     public _permissionService: PermissionService,
-    private _popup: Popup,
+    public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService);
+    super(_permissionService, _popup);
     this.getAllItemsCallback = this.getChild;
   }
+
   ngOnInit() {
     this._formService.currentEditMode.subscribe((bEdit: boolean) => {
       // Permet d'identifier si l'objet est passé en mode édition
@@ -60,7 +62,6 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
     this.currentUser = this._auth.getCurrentUser();
-
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
@@ -75,6 +76,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
+      this.parentPath = queryParams['parents_path'];
       this.checkEditParam = JSON.parse(queryParams?.edit || 'false');
       if (this.checkEditParam === true) {
         this.bEdit = true;
@@ -98,6 +100,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
         id_base_site: this.visitData.id_base_site,
       });
+
       // Resolve visit data
       resolveObjectProperties(
         visit,
@@ -149,28 +152,41 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   }
 
   seeDetails($event) {
-    console.log('seeDetails', $event);
+    const queryParams = {
+      parents_path: [...this.parentPath, 'visit'],
+    };
+    this.router.navigate(
+      [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
+      { queryParams: queryParams }
+    );
   }
 
   editChild($event) {
-    console.log('editChild', $event);
+    const queryParams = {
+      parents_path: [...this.parentPath, 'visit'],
+      edit: true,
+      id_base_visit: this.visitId,
+    };
+    this.router.navigate(
+      [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
+      { queryParams: queryParams }
+    );
   }
 
   onDelete($event) {
-    console.log('onDelete', $event);
+    this._observationsService.delete($event.rowSelected.id_observation).subscribe((del) => {
+      this.initVisit();
+    });
   }
+
   navigateToAddObj($event) {
-    console.log('navigateToAddObj', $event);
-  }
-
-  onSaveAddChildren($event: SelectObject) {
-    console.log('onSaveAddChildren', $event);
-  }
-
-  onEachFeatureSite() {
-    return (feature, layer) => {
-      const popup = this._popup.setSitePopup(this.moduleCode, feature, {});
-      layer.bindPopup(popup);
+    const type = $event;
+    const queryParams = {
+      parents_path: [...this.parentPath, 'visit'],
+      id_base_visit: this.visitId,
     };
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
+      queryParams: queryParams,
+    });
   }
 }
