@@ -113,13 +113,13 @@ def obs_geometries(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/observations/<string:module_code>/<int:id>",
+    "/observations/<string:module_code>/<int:_id>",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
-def get_observation_by_id(scope, module_code, id, object_type):
-    observation = db.get_or_404(TMonitoringObservations, id)
+def get_observation_by_id(scope, module_code, _id, object_type):
+    observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read observation {observation.id_observation}"
@@ -188,11 +188,8 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
 
-    try:
-        observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
-    except Exception as e:
-        print(e.__dict__)
-        raise e
+    observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
+
     db.session.add(observation)
     db.session.commit()
 

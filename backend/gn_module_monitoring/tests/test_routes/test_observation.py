@@ -139,9 +139,131 @@ class TestObservations:
             url_for(
                 "monitorings.get_observation_by_id",
                 module_code="test",
-                id=observation.id_observation,
+                _id=observation.id_observation,
             )
         )
 
         assert r.status_code == 200
         assert r.json["id_observation"] == observation.id_observation
+
+    def test_get_observation_by_id_not_found(self, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_observation_by_id",
+                module_code="test",
+                _id=999999999,
+            )
+        )
+
+        assert r.status_code == 404
+
+    def test_post_observation(self, observation_data, sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        visit = observation_data[0].visit
+
+        data = {
+            "id_base_visit": visit.id_base_visit,
+            "id_digitiser": users["admin_user"].id_role,
+            "cd_nom": 114114,
+        }
+
+        r = self.client.post(
+            url_for(
+                "monitorings.post_observation",
+                module_code="test",
+            ),
+            json=data,
+        )
+        assert r.status_code == 200
+        assert r.json["id_base_visit"] == visit.id_base_visit
+        assert r.json["cd_nom"] == data["cd_nom"]
+
+    def test_patch_observation(self, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        data = {
+            "cd_nom": 85740,
+        }
+
+        r = self.client.patch(
+            url_for(
+                "monitorings.patch_observation",
+                module_code="test",
+                _id=observation_data[0].id_observation,
+            ),
+            json=data,
+        )
+        assert r.status_code == 200
+        assert r.json["cd_nom"] == data["cd_nom"]
+
+    def test_patch_observation_not_found(self, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        module_code = "test"
+
+        r = self.client.patch(
+            url_for(
+                "monitorings.patch_observation",
+                module_code=module_code,
+                _id=999999999,
+            ),
+            json={},
+        )
+
+        assert r.status_code == 404
+
+    def test_delete_observation(self, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        observation = observation_data[-1]
+
+        r = self.client.delete(
+            url_for(
+                "monitorings.delete_observation",
+                _id=observation.id_observation,
+                module_code="test",
+            )
+        )
+
+        assert r.status_code == 200
+        assert r.json == {"success": "Item is successfully deleted"}
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_observation_by_id",
+                module_code="test",
+                _id=observation.id_observation,
+            )
+        )
+        assert r.status_code == 404
+
+    def test_delete_observation_not_found(self, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        r = self.client.delete(
+            url_for("monitorings.delete_observation", _id=999999999, module_code="test")
+        )
+
+        assert r.status_code == 404
+
+    @pytest.mark.parametrize(
+        "route, method",
+        [
+            ("monitorings.delete_observation", "DELETE"),
+            ("monitorings.get_observation_by_id", "GET"),
+            ("monitorings.patch_observation", "PATCH"),
+        ],
+    )  # TODO remove when new config API is official
+    def test_forbidden(self, route, method, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        observation = observation_data[-1]
+
+        r = getattr(self.client, method.lower())(
+            url_for(
+                route,
+                _id=observation.id_observation,
+                module_code="MONITORINGS",
+            ),
+            json={},
+        )
+        assert r.status_code == 403
