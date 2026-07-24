@@ -139,7 +139,7 @@ class TestObservations:
             url_for(
                 "monitorings.get_observation_by_id",
                 module_code="test",
-                id=observation.id_observation,
+                _id=observation.id_observation,
             )
         )
 
@@ -153,7 +153,7 @@ class TestObservations:
             url_for(
                 "monitorings.get_observation_by_id",
                 module_code="test",
-                id=999999999,
+                _id=999999999,
             )
         )
 
@@ -232,7 +232,7 @@ class TestObservations:
             url_for(
                 "monitorings.get_observation_by_id",
                 module_code="test",
-                id=observation.id_observation,
+                _id=observation.id_observation,
             )
         )
         assert r.status_code == 404
@@ -245,3 +245,25 @@ class TestObservations:
         )
 
         assert r.status_code == 404
+
+    @pytest.mark.parametrize(
+        "route, method",
+        [
+            ("monitorings.delete_observation", "DELETE"),
+            ("monitorings.get_observation_by_id", "GET"),
+            ("monitorings.patch_observation", "PATCH"),
+        ],
+    )  # TODO remove when new config API is official
+    def test_forbidden(self, route, method, observation_data, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        observation = observation_data[-1]
+
+        r = getattr(self.client, method.lower())(
+            url_for(
+                route,
+                _id=observation.id_observation,
+                module_code="MONITORINGS",
+            ),
+            json={},
+        )
+        assert r.status_code == 403
