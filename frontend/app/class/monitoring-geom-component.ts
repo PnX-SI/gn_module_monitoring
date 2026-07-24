@@ -55,7 +55,7 @@ export class MonitoringGeomComponent {
       [key: string]: {
         data: { items: any[]; count: number; limit: number; page: number };
         objType: string;
-        childType: string;
+        childType: string | null;
       };
     },
 
@@ -81,6 +81,11 @@ export class MonitoringGeomComponent {
       let canCreateChild =
         this._permissionService.modulePermission[data[dataType].childType]?.C > 0 || false;
 
+      if (config['children_types'].length == 0) {
+        // Si l'objet n'a pas d'enfant
+        canCreateChild = false;
+        data[dataType].childType = null;
+      }
       if (moduleCode == 'generic' && data[dataType].childType == 'visit') {
         // Pour le module généric les permissions des visites sont toujours vrai
         //  car ce sont les sous modules qui vont déterminer les permissions
@@ -144,8 +149,8 @@ export class MonitoringGeomComponent {
      * @returns {void}
      */
     const config = this._configServiceG.config()[objectType];
-    (this.templateData.fieldNames = config['display_properties']),
-      (this.templateData.childType = config['children_type']);
+    this.templateData.fieldNames = config['display_properties'];
+    this.templateData.childType = config['children_type'];
     this.templateData.exportPDF = config?.export_pdf;
     this.templateData.exportCSV = this._configServiceG.config()['module']?.export_csv;
 

@@ -67,6 +67,7 @@
               [properties]="getImportProperties()"
             ></pnx-import-button>
             <!-- Si c'est une visite et que le module est générique alors affichage d'un template spécifique -->
+
             <ng-template
               [ngIf]="!(activetabType === 'visit' && moduleCode === 'generic')"
               [ngIfElse]="chooseProtocol"
@@ -137,7 +138,9 @@
                     ></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
-
+                  <span
+                    *ngIf="dataTableConfig[i].childType !== null"
+                    >
                   <ng-template
                     [ngIf]="!(dataTableConfig[i].childType == 'visit') && moduleCode !== 'generic'"
                     [ngIfElse]="chooseProtocolPopup"
@@ -170,6 +173,7 @@
                       (onSaved)="saveOptionChild($event)"
                     ></option-list-btn>
                   </ng-template>
+                  </span>
                   <!--  -->
                   <a
                     [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
