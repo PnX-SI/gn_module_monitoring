@@ -330,8 +330,14 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
         model = TMonitoringObservationDetails
         include_fk = True
         load_relationships = True
+        load_instance = True
 
+    id_observation_detail = auto_field(required=False, allow_none=True)
+    pk = fields.Method("set_pk", dump_only=True)
     medias = MA.Nested(MediaSchema, many=True)
+
+    def set_pk(self, obj):
+        return "id_observation_detail"
 
 
 class MonitoringObservationsDetailsSchemaCruved(
