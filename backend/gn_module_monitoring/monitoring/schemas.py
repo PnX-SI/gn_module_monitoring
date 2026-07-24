@@ -330,8 +330,28 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
         model = TMonitoringObservationDetails
         include_fk = True
         load_relationships = True
+        load_instance = True
 
+    id_observation_detail = auto_field(required=False, allow_none=True)
+    pk = fields.Method("set_pk", dump_only=True)
     medias = MA.Nested(MediaSchema, many=True)
+    id_base_site = fields.Method("set_id_base_site", dump_only=True)
+    id_base_visit = fields.Method("set_id_base_visit", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_observation_detail"
+
+    def set_id_base_site(self, obj):
+        return obj.observation.visit.id_base_site
+
+    def set_id_base_visit(self, obj):
+        return obj.observation.visit.id_base_visit
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+
+        return data
 
 
 class MonitoringObservationsDetailsSchemaCruved(

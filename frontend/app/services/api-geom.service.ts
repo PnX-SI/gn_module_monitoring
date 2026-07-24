@@ -22,6 +22,8 @@ import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
 import { MonitoringObjectService } from './monitoring-object.service';
 import { ConfigServiceG } from './config-g.service';
+import { IObservation } from '../interfaces/observation';
+import { IObservationDetail } from '../interfaces/observationdetail';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -382,7 +384,7 @@ export class IndividualsService extends ApiService<IIndividual> {
 }
 
 @Injectable()
-export class ObservationsService extends ApiService<IVisit> {
+export class ObservationsService extends ApiService<IObservation> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
@@ -392,8 +394,8 @@ export class ObservationsService extends ApiService<IVisit> {
     this.init();
   }
   init(): void {
-    const endPoint = endPoints.visits;
-    const objectObs: IobjObs<IVisit> = {
+    const endPoint = endPoints.observations;
+    const objectObs: IobjObs<IObservation> = {
       endPoint: endPoints.observations,
       objectType: 'observation',
       label: 'observation',
@@ -404,7 +406,7 @@ export class ObservationsService extends ApiService<IVisit> {
   }
 }
 @Injectable()
-export class ObservationDetailsService extends ApiService<IVisit> {
+export class ObservationDetailsService extends ApiService<IObservationDetail> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
@@ -414,9 +416,9 @@ export class ObservationDetailsService extends ApiService<IVisit> {
     this.init();
   }
   init(): void {
-    const endPoint = endPoints.visits;
-    const objectObs: IobjObs<IVisit> = {
-      endPoint: endPoints.observations,
+    const endPoint = endPoints.observation_details;
+    const objectObs: IobjObs<IObservationDetail> = {
+      endPoint: endPoints.observation_details,
       objectType: 'observation_detail',
       label: 'observation detail',
       childType: undefined,

@@ -40,6 +40,7 @@ from pypnusershub.db.models import User
 
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
+    ObservationDetailsQuery,
     SitesQuery,
     SitesGroupsQuery,
     VisitQuery,
@@ -81,7 +82,7 @@ cor_sites_group_module = DB.Table(
 
 
 @serializable
-class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
+class TMonitoringObservationDetails(DB.Model, PermissionModel, ObservationDetailsQuery):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
@@ -167,6 +168,16 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
                 ).has_instance_permission(scope)
         elif scope == 3:
             return True
+
+
+TMonitoringObservationDetails.observation = DB.relationship(
+    TMonitoringObservations,
+    primaryjoin=(
+        TMonitoringObservations.id_observation == TMonitoringObservationDetails.id_observation
+    ),
+    foreign_keys=[TMonitoringObservationDetails.id_observation],
+    overlaps="observation_details",
+)
 
 
 @serializable

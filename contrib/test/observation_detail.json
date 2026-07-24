@@ -1,0 +1,12 @@
+{
+    "specific": {
+        "nom_contact": {
+            "type_widget": "text",
+            "attribut_label": "Nom du contact"
+        },
+        "prenom_contact": {
+            "type_widget": "text",
+            "attribut_label": "Prénom du contact"
+        }
+    }
+}
