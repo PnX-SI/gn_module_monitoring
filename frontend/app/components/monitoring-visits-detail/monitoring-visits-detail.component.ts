@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ISite } from '../../interfaces/geom';
 import { IPaginated } from '../../interfaces/page';
@@ -24,15 +24,17 @@ import { IObservation } from '../../interfaces/observation';
 export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent implements OnInit {
   private moduleCode: string;
   public moduleConfig;
-  private visitId: number;
   public currentUser;
-
+  public objectType: string = 'visit';
   private checkEditParam: boolean = false;
   public form: FormGroup;
-  public visitData: any;
-  public visitDataResolved: any;
+  private dataId: number;
+  public objectData: any;
+  public objectDataResolved: any;
   public bEdit: boolean = false;
   public rows: Array<any> = [];
+
+  bDeleteModalEmitter = new EventEmitter<boolean>();
   constructor(
     private _auth: AuthService,
     private router: Router,
@@ -71,8 +73,8 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
 
     // Récupération des paramètres de la route
     this._Activatedroute.params.subscribe((params) => {
-      this.visitId = params['id'];
-      this.baseFilters = { id_base_visit: this.visitId };
+      this.dataId = params['id'];
+      this.baseFilters = { id_base_visit: this.dataId };
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -83,37 +85,37 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
         this._formService.changeCurrentEditMode(this.bEdit);
       }
       // Initialisation des visites
-      this.initVisit();
-      this._objService.loadBreadCrumb(this.moduleCode, 'visit', this.visitId, queryParams);
+      this.initData();
+      this._objService.loadBreadCrumb(this.moduleCode, this.objectType, this.dataId, queryParams);
 
-      this.setTemplateData('visit');
+      this.setTemplateData(this.objectType);
     });
   }
 
-  initVisit() {
+  initData() {
     // Get visit detail data
-    const fieldsConfig = this._configServiceG.config()['visit']['fields'];
-    this._visitsService.getById(this.visitId, this.moduleCode).subscribe((visit) => {
-      this.visitData = visit;
+    const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
+    this._visitsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
+      this.objectData = detailData;
 
       // Get site geometries
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-        id_base_site: this.visitData.id_base_site,
+        id_base_site: this.objectData.id_base_site,
       });
 
       // Resolve visit data
       resolveObjectProperties(
-        visit,
+        detailData,
         fieldsConfig,
         this._configServiceG,
         this._cacheService
       ).subscribe((data) => {
-        this.visitDataResolved = data;
+        this.objectDataResolved = data;
       });
     });
     // Initialisation du datatable
     this._observationsService
-      .getResolved(1, this.limit, { id_base_visit: this.visitId })
+      .getResolved(1, this.limit, { id_base_visit: this.dataId })
       .subscribe((data: IPaginated<ISite>) => {
         // Configuration du datatable
         this.rows = data.items;
@@ -133,7 +135,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initVisit();
+      this.initData();
     }
   }
   getChild(page: number, params) {
@@ -153,7 +155,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
 
   seeDetails($event) {
     const queryParams = {
-      parents_path: [...this.parentPath, 'visit'],
+      parents_path: [...this.parentPath, this.objectType],
     };
     this.router.navigate(
       [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
@@ -163,9 +165,9 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
 
   editChild($event) {
     const queryParams = {
-      parents_path: [...this.parentPath, 'visit'],
+      parents_path: [...this.parentPath, this.objectType],
       edit: true,
-      id_base_visit: this.visitId,
+      id_base_visit: this.dataId,
     };
     this.router.navigate(
       [`/monitorings/object/${this.moduleCode}/observation/${$event[$event.id]}`],
@@ -175,15 +177,16 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
 
   onDelete($event) {
     this._observationsService.delete($event.rowSelected.id_observation).subscribe((del) => {
-      this.initVisit();
+      this.bDeleteModalEmitter.emit(false);
+      this.initData();
     });
   }
 
   navigateToAddObj($event) {
     const type = $event;
     const queryParams = {
-      parents_path: [...this.parentPath, 'visit'],
-      id_base_visit: this.visitId,
+      parents_path: [...this.parentPath, this.objectType],
+      id_base_visit: this.dataId,
     };
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
