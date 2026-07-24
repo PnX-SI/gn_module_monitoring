@@ -22,6 +22,12 @@ blueprint = Blueprint(
 )
 
 
+@blueprint.teardown_request
+def clear_current_module(exc=None):
+    g.pop("current_module", None)
+    g.pop("current_object", None)
+
+
 @blueprint.before_request
 def set_current_module():
     values = {**request.view_args, **request.args} if request.view_args else {**request.args}
