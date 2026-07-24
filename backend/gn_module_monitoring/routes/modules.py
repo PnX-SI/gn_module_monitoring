@@ -38,7 +38,7 @@ def get_module_api(value):
     on peut preciser field_name en parametre de requete GET
     ?field_name=module_code pour avoir unmodule depuis son champs module_code
     """
-
+    # A voir si cette possibilité est réellement utilisée
     field_name = request.args.get("field_name", "id_module")
 
     module = get_module(field_name, value)
@@ -111,7 +111,8 @@ def create_or_update_module(post_data: dict, module_code: str):
     """
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, "module")
-    sites_group = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data)
-    db.session.add(sites_group)
+    module = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data)
+
+    db.session.add(module)
     db.session.commit()
-    return MonitoringModuleSchema().dump(sites_group)
+    return MonitoringModuleSchema().dump(module)
