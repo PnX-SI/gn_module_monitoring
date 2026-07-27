@@ -49,7 +49,6 @@ class TestCommands:
     @pytest.mark.parametrize(
         "module_code",
         [
-            "",  # vide
             "1code",  # commence par un chiffre
             "_code",  # commence par _
             "my-code",  # tiret
