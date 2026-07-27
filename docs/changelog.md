@@ -2,11 +2,15 @@
 
 ## 1.3.2 (27-07-2026)
 
+**🚀 Nouveautés**
+ - Test de la validité d'un code de module à l'installation (#635, #659). Un code est considéré comme valide si : 
+ 	- Ne contient que des lettres ou chiffres et le caractère `_`
+    - Son premier caractère est une lettre
+    - Fait moins de 64 caractère
+      
 **🐛 Corrections**
 - Ajout de sites_group dans les type_util autorisé (#639 par @jacquesfize)
-- Import :
-  - Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `TTaxref` (#637, #640 par @jacquesfize)
-  - Suppression des caractères spéciaux d'un module lors de la création de la table temporaire d'import (#641 par @jacquesfize)
+- Import : Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `TTaxref` (#637, #640 par @jacquesfize) 
 
 ## 1.3.1 (03-07-2026)
 
