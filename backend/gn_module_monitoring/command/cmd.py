@@ -67,9 +67,9 @@ def cmd_install_monitoring_module(module_code):
 
     # Check module code_name
 
-    if not check_module_code_name(module_code):
+    if module_code and not check_module_code_name(module_code):
         click.secho(
-            f"Le nom du module {module_code} n'est pas valide",
+            f"Le nom du module {module_code} n'est pas valide !",
             fg="red",
         )
         return
