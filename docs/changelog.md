@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.3.2 (27-07-2026)
+
+**🐛 Corrections**
+- Ajout de sites_group dans les type_util autorisé (#639 par @jacquesfize)
+- Import :
+  - Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `TTaxref` (#637, #640 par @jacquesfize)
+  - Suppression des caractères spéciaux d'un module lors de la création de la table temporaire d'import (#641 par @jacquesfize)
+
 ## 1.3.1 (03-07-2026)
 
 **🚀 Nouveautés**
