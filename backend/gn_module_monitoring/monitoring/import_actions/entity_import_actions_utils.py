@@ -103,7 +103,10 @@ class EntityImportActionsUtils:
         config = get_config(imprt.destination.code)
 
         for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
-            if field.type_field == "taxonomy":
+            if field.type_field == "taxonomy" or (
+                field.type_field_params is not None
+                and field.type_field_params.get("type_util", "") == "taxonomy"
+            ):
                 check_cd_nom(
                     imprt,
                     entity,
