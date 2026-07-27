@@ -10,7 +10,7 @@
       
 **🐛 Corrections**
 - Ajout de sites_group dans les type_util autorisé (#639 par @jacquesfize)
-- Import : Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `TTaxref` (#637, #640 par @jacquesfize) 
+- Import : Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize) 
 
 ## 1.3.1 (03-07-2026)
 
