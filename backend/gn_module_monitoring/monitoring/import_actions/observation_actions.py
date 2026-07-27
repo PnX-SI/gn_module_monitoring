@@ -15,6 +15,7 @@ from geonature.core.imports.checks.sql.extra import (
     set_parent_id_from_line_no,
 )
 
+
 from geonature.core.imports.checks.sql import (
     check_duplicate_uuid,
     check_erroneous_parent_entities,
@@ -22,6 +23,7 @@ from geonature.core.imports.checks.sql import (
     check_no_parent_entity,
     set_id_parent_from_destination,
     do_nomenclatures_mapping,
+    check_cd_nom,
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
@@ -46,6 +48,10 @@ class ObservationImportActions:
 
         # How to default ?
         do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+
+        EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
 
         # Check existing uuid
         if ObservationImportActions.UUID_FIELD in fieldmapped_fields:

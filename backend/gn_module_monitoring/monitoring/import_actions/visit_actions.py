@@ -54,6 +54,10 @@ class VisitImportActions:
         entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
         entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
+        EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
+            imprt, VisitImportActions.ENTITY_CODE
+        )
+
         # Check existing uuid
         if VisitImportActions.UUID_FIELD in fieldmapped_fields:
             check_existing_uuid(

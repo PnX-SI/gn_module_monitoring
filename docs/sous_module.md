@@ -25,6 +25,13 @@ title: 'Création d''un sous-module'
 
 # Structure d'un module
 
+>[!IMPORTANT]
+> Lors de la création d'un sous-module, le nom du dossier (resp. le code du sous-module) doit respecter [les normes de nommages des tables dans une base de données PostgreSQL](https://www.postgresql.org/docs/current/sql-syntax-lexical.html). Les règles sont les suivantes :
+> - contient moins de 63 caractéres
+> - doit commencer par une lettre
+> - ne doit contenir que des lettres, des chiffres, ou des underscores `_`.
+
+
 ## La configuration
 
 * `config.json` (configuration-générale)
@@ -39,7 +46,7 @@ title: 'Création d''un sous-module'
 
 S'ajoute à ces fichiers,  des fichiers de config de `types de site` que l'on devra associer aux sous modules installés.
 
-Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux imags ci dessous) .
+Pour cela , il faut créer les types de sites via l'interface administrateur (voir les deux images ci dessous) .
 
 <details><summary> Images représentant l'interface administrateur au niveau du menu "Types de site"</summary>
 

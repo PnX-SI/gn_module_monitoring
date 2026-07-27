@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from typing import Tuple
 
@@ -331,3 +332,22 @@ def is_module_configured(module_code: str):
         click.secho(f"Le module {module_code} n'est pas configuré !", fg="red")
         return False
     return True
+
+
+def check_module_code_name(module_code: str) -> bool:
+    """
+    Check if the module code name is valid.
+    Valid if :
+        - less than 63 characters
+        - starts with a letter
+        - contains only letters, numbers, $ or _
+
+    Args:
+        module_code (str): The module code name to be checked.
+
+    Returns:
+        bool: True if the module code name is valid, False otherwise.
+    """
+    if re.fullmatch(r"^[a-zA-Z][a-zA-Z0-9_$]{0,62}$", module_code):
+        return True
+    return False

@@ -104,6 +104,10 @@ class SiteImportActions:
         if SiteImportActions.ID_INVENTOR_FIELD in fieldmapped_fields:
             map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
 
+        EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
+            imprt, SiteImportActions.ENTITY_CODE
+        )
+
     @staticmethod
     def check_dataframe(imprt: TImports, config):
         """

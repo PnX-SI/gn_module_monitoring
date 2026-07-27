@@ -1,6 +1,9 @@
 from geonature.core.imports.models import Entity, TImports
 from geonature.core.imports.checks.dataframe.cast import check_types
 from geonature.core.imports.checks.dataframe.core import check_required_values
+from geonature.core.imports.checks.sql import (
+    check_cd_nom,
+)
 import re
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -28,7 +31,7 @@ class EntityImportActionsUtils:
         return updated_cols
 
     @staticmethod
-    def get_destination_fields(imprt: TImports, entity: Entity) -> None:
+    def get_destination_fields(imprt: TImports, entity: Entity):
         fields = {
             ef.field.name_field: ef.field for ef in entity.fields if ef.field.dest_field != None
         }
@@ -91,3 +94,22 @@ class EntityImportActionsUtils:
                     if default_value is not None:
                         default_values[field] = default_value
         return default_values
+
+    @staticmethod
+    def check_cd_nom_on_taxonomy_field(imprt: TImports, entity_code: str):
+        from gn_module_monitoring.config.repositories import get_config
+
+        entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
+        config = get_config(imprt.destination.code)
+
+        for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
+            if field.type_field == "taxonomy" or (
+                field.type_field_params is not None
+                and field.type_field_params.get("type_util", "") == "taxonomy"
+            ):
+                check_cd_nom(
+                    imprt,
+                    entity,
+                    field,
+                    config["custom"].get("__MODULE.ID_LIST_TAXONOMY"),
+                )

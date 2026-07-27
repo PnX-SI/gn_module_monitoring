@@ -22,6 +22,7 @@ from gn_module_monitoring.command.cmd import (
     cmd_add_module_nomenclature_cli,
     synchronize_synthese,
     cmd_add_update_import_on_protocole,
+    cmd_install_monitoring_module,
 )
 from gn_module_monitoring.command.imports.protocol import get_protocol_data
 from gn_module_monitoring.monitoring.models import TMonitoringModules
@@ -44,6 +45,53 @@ class TestCommands:
             select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
         ).scalar_one()
         assert result.module_code == "test"
+
+    @pytest.mark.parametrize(
+        "module_code",
+        [
+            "1code",  # commence par un chiffre
+            "_code",  # commence par _
+            "my-code",  # tiret
+            "my code",  # espace
+            "my.code",  # point
+            "my/code",  # slash
+            "my\\code",  # antislash
+            "my@code",  # caractère spécial
+            "my#code",
+            "my%code",
+            "my,code",
+            "my:code",
+            "my;code",
+            "my(code)",
+            "àcode",  # accent
+            "codeé",
+            "cöde",
+            "😀code",  # emoji
+            "code😀",
+            "a" * 64,  # > 63 caractères
+        ],
+    )
+    def test_install_monitoring_module_false_modulecode(self, module_code):
+        print(module_code)
+        # Installation du module
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_install_monitoring_module, [module_code])
+        assert result.exit_code == 0
+        assert result.output.startswith(f"Le nom du module {module_code} n'est pas valide")
+
+    @pytest.mark.parametrize(
+        "module_code",
+        ["code", "CODE", "my_code", "code_1234", "code_"],
+    )
+    def test_install_monitoring_module_ok_modulecode(self, module_code):
+        print(module_code)
+        # Installation du module
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_install_monitoring_module, [module_code])
+        assert result.exit_code == 0
+        assert result.output.startswith(
+            f"Le module {module_code} n'est pas présent dans le dossier"
+        )
 
     def test_remove_monitoring_module(self, install_module_test):
         runner = current_app.test_cli_runner()
@@ -187,9 +235,9 @@ class TestCommands:
 
         # Test de la table de destination
         query = text(f"""
-            SELECT column_name, data_type 
-            FROM information_schema."columns" c 
-            WHERE 
+            SELECT column_name, data_type
+            FROM information_schema."columns" c
+            WHERE
                 table_schema = 'gn_imports'
                 AND table_name = '{destination.table_name}';
             """)

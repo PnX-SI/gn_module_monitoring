@@ -25,6 +25,7 @@ from gn_module_monitoring.command.utils import (
     process_update_module_import,
     remove_monitoring_module,
     validate_json_file_protocol,
+    check_module_code_name,
 )
 
 
@@ -49,7 +50,7 @@ def cmd_process_sql(module_code):
 
 
 @click.command("install")
-@click.argument("module_code", type=str, required=False, default="")
+@click.argument("module_code", type=str, required=False, default=None)
 @with_appcontext
 def cmd_install_monitoring_module(module_code):
     """
@@ -64,10 +65,20 @@ def cmd_install_monitoring_module(module_code):
     # module_config_dir_path = Path(module_config_dir_path)
     # module_code = module_code or module_config_dir_path.name
 
+    # Check module code_name
+    is_module_code_given = module_code != ""
+
+    if is_module_code_given and not check_module_code_name(module_code):
+        click.secho(
+            f"Le nom du module {module_code} n'est pas valide !",
+            fg="red",
+        )
+        return
+
     module_config_dir_path = monitoring_module_config_path(module_code)
 
-    if not (module_code and (module_config_dir_path / "module.json").is_file()):
-        if module_code:
+    if not (is_module_code_given and (module_config_dir_path / "module.json").is_file()):
+        if is_module_code_given:
             click.secho(
                 f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
                 fg="red",

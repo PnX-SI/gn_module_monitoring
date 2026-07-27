@@ -1,33 +1,46 @@
 # CHANGELOG
+
+## 1.3.2 (27-07-2026)
+
+**🚀 Nouveautés**
+ - Test de la validité d'un code de sous-module à l'installation (#635, #659). Un code est maintenant considéré comme valide si : 
+ 	  - Ne contient que des lettres ou des chiffres ou le caractère `_`
+    - Son premier caractère est une lettre
+    - Fait moins de 63 caractères
+      
+**🐛 Corrections**
+- Ajout de `sites_group` dans les `type_util` autorisés (#639 par @jacquesfize)
+- [Import]  Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize) 
+
 ## 1.3.1 (03-07-2026)
 
 **🚀 Nouveautés**
 
- - Doc : Complément de la documentation de configuration d'un sous-module (#624 par @pierre56, #627)
- - Import :
-    - Champ considéré comme non obligatoire si la valeur n'est pas un booléen (condition javascript) (#596, #597 par @edelclaux)
-    - Possibilité de supprimer les données contenues dans la table temporaire d'import en cas de mise à jour de la configuration de l'import du sous-module (#622 @jacquesfize)
+- Doc : Complément de la documentation de configuration d'un sous-module (#624 par @pierre56, #627)
+- Import :
+   - Champ considéré comme non obligatoire si son caractère obligatoire n'est pas un booléen mais basé sur une condition javascript (#596, #597 par @edelclaux)
+   - Possibilité de supprimer les données contenues dans la table temporaire d'import en cas de mise à jour de la configuration de l'import du sous-module (#622 par @jacquesfize)
 
 **🐛 Corrections**
 
- - Import :
-    - Prise en compte des propriétés specifiques des sous-modules et des types de sites (#617  par @amandine-sahl)
-    - Correction de l'erreur lors de l'activation de l'import sur un sous-module avec des groupes de sites (#591 #592 @jacquesfize)
-    - Mise à jour du label du module dans la table destination (#631  par @amandine-sahl)
-    - Refactoring et test (#626 par @amandine-sahl)
+- Import :
+   - Prise en compte des propriétés spécifiques des sous-modules et des types de sites (#617 par @amandine-sahl)
+   - Correction de l'erreur lors de l'activation de l'import sur un sous-module avec des groupes de sites (#591, #592 par @jacquesfize)
+   - La mise à jour du label du sous-module dans la table "destination" est maintenant fonctionnelle (#631  par @amandine-sahl)
+   - Refactoring et test (#626 par @amandine-sahl)
 
- - Backend :
-    - Considération du SRID local pour la géometrie des groupes de sites (#589, #619 #630  par @amandine-sahl)
-    - Suppression de la route "util/user" et factorisation du code (#604, #605  par @amandine-sahl)
+- Backend :
+   - Considération du SRID local pour la géométrie des groupes de sites (#589, #619, #630 par @amandine-sahl)
+   - Suppression de la route "util/user" et factorisation du code (#604, #605 par @amandine-sahl)
 
- - Frontend :
-    - Prise en compte de la valeur par défaut 0 dans les champs numériques des formulaires (#595, #616 par @Pierre-Narcisi)
-    - Formulaire de création des sites : initialisation du contexte du sous-module (#628  par @amandine-sahl)
+- Frontend :
+   - Prise en compte de la valeur par défaut 0 dans les champs numériques des formulaires (#595, #616 par @Pierre-Narcisi)
+   - Formulaire de création des sites : initialisation du contexte du sous-module (#628 par @amandine-sahl)
 
- - Config :
-    - Par défaut les champs `nb_visits`, `nb_sites`, `nb_individus`, `nb_observations`, `altitude_min` et `altitude_max` ne sont plus visibles dans les formulaires ni importables. (#608, #620  par @amandine-sahl)
+- Config :
+   - Par défaut les champs `nb_visits`, `nb_sites`, `nb_individus`, `nb_observations`, `altitude_min` et `altitude_max` ne sont plus visibles dans les formulaires ni importables. (#608, #620 par @amandine-sahl)
 
- - Le taux de couverture de code par des test automatisés (Codecov) est de nouveau mesuré sur l'ensemble du code du module gn_module_monitoring (#623 par @amandine-sahl)
+- Le taux de couverture de code par des test automatisés (Codecov) est de nouveau mesuré sur l'ensemble du code du module gn_module_monitoring (#623 par @amandine-sahl)
 
 ## 1.3.0 (13-03-2026)
 

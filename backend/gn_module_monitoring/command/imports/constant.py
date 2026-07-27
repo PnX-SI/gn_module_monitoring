@@ -43,6 +43,7 @@ INT_TYPE_UTILS = [
     "dataset",
     "site",
     "habitat",
+    "sites_group",
 ]
 
 OTHER_TYPE_UTILS = [

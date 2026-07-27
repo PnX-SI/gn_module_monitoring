@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 import sqlalchemy as sa
-from apptax.taxonomie.models import BibListes
+from apptax.taxonomie.models import BibListes, cor_nom_liste
 from flask import current_app, g
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_monitoring.models import TBaseSites, TBaseVisits, TObservations
@@ -14,6 +14,7 @@ from pypnusershub.db.models import UserList
 from gn_module_monitoring.command.cmd import cmd_add_update_import_on_protocole
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.command.imports.protocol import update_protocol
+import sqlalchemy as sa
 
 occhab = pytest.importorskip("gn_module_occhab")
 
@@ -149,11 +150,23 @@ def autogenerate():
 def override_in_importfile(
     import_datasets,
 ):
+    module_test = db.session.execute(
+        sa.select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
+    ).scalar_one_or_none()
+    biblist_ = db.session.execute(
+        sa.select(BibListes).where(BibListes.id_liste == module_test.id_list_taxonomy)
+    ).scalar_one_or_none()
+    with db.session.begin_nested():
+        db.session.execute(
+            sa.insert(cor_nom_liste).values(id_liste=biblist_.id_liste, cd_nom=655844)
+        )
+
     return {
         "@FORBIDDEN_DATASET_UUID@": str(import_datasets["admin"].unique_dataset_id),
         "@INACTIVE_DATASET_UUID@": str(import_datasets["user--inactive"].unique_dataset_id),
         "@DATASET_NOT_FOUND@": "03905a03-c7fa-4642-b143-5005fa805377",
         "@VALID_DATASET_UUID@": str(import_datasets["user"].unique_dataset_id),
+        "@VALID_CDNOM@": str(655844),
     }
 
 
@@ -207,11 +220,11 @@ class TestImportMonitoring:
             set([]),
         )
         assert imported_import.statistics == {
+            "import_count": 13,
             "site_count": 3,
             "visit_count": 4,
             "observation_count": 6,
-            "taxa_count": 6,
-            "import_count": 13,
+            "taxa_count": 1,
             "nb_line_valid": 6,
         }
         assert (
@@ -230,12 +243,42 @@ class TestImportMonitoring:
         )
         assert (
             db.session.scalar(
-                sa.select(sa.func.count(sa.distinct(TObservations.cd_nom))).where(
+                sa.select(sa.func.count(sa.distinct(TObservations.id_observation))).where(
                     TObservations.id_import == imported_import.id_import
                 )
             )
             == imported_import.statistics["observation_count"]
         )
+        assert (
+            db.session.scalar(
+                sa.select(sa.func.count(sa.distinct(TObservations.cd_nom))).where(
+                    TObservations.id_import == imported_import.id_import
+                )
+            )
+            == imported_import.statistics["taxa_count"]
+        )
+
+    @pytest.mark.parametrize(
+        "autogenerate, import_file_name,fieldmapping_preset_name",
+        [(False, "bad_cdnom.csv", None)],
+    )
+    def test_import_bad_cdnom_file(self, datasets, imported_import):
+        errors = {
+            (
+                error.type.name,
+                error.entity.code if error.entity else None,
+                error.column,
+                frozenset(error.rows or []),
+            )
+            for error in imported_import.errors
+        }
+
+        assert (
+            "CD_NOM_NOT_FOUND",
+            "observation",
+            "o__cd_nom",
+            frozenset({7, 8}),
+        ) in errors
 
     def test_update_module_label(self, import_destination, module_code):
         new_label = "test_change"
