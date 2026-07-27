@@ -338,7 +338,7 @@ def check_module_code_name(module_code: str) -> bool:
     """
     Check if the module code name is valid.
     Valid if :
-        - lether than 63 characters
+        - less than 63 characters
         - starts with a letter
         - contains only letters, numbers, $ or _
 
