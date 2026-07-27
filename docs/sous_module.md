@@ -29,7 +29,7 @@ title: 'Création d''un sous-module'
 > Lors de la création d'un sous-module, le nom du dossier (resp. le code du sous-module) doit respecter [les normes de nommages des tables dans une base de données PostgreSQL](https://www.postgresql.org/docs/current/sql-syntax-lexical.html). Les règles sont les suivantes :
 > - contient moins de 63 caractéres
 > - doit commencer par une lettre
-> - ne doit contenir que des lettres, des chiffres, des underscores `_`, ou le symbole `$`
+> - ne doit contenir que des lettres, des chiffres, ou des underscores `_`.
 
 
 ## La configuration
