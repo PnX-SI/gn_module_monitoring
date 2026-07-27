@@ -25,6 +25,7 @@ from gn_module_monitoring.command.utils import (
     process_update_module_import,
     remove_monitoring_module,
     validate_json_file_protocol,
+    check_module_code_name,
 )
 
 
@@ -63,6 +64,15 @@ def cmd_install_monitoring_module(module_code):
     """
     # module_config_dir_path = Path(module_config_dir_path)
     # module_code = module_code or module_config_dir_path.name
+
+    # Check module code_name
+
+    if not check_module_code_name(module_code):
+        click.secho(
+            f"Le nom du module {module_code} n'est pas valide",
+            fg="red",
+        )
+        return
 
     module_config_dir_path = monitoring_module_config_path(module_code)
 
