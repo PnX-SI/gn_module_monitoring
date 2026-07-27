@@ -3,14 +3,14 @@
 ## 1.3.2 (27-07-2026)
 
 **🚀 Nouveautés**
- - Test de la validité d'un code de module à l'installation (#635, #659). Un code est considéré comme valide si : 
- 	- Ne contient que des lettres ou chiffres et le caractère `_`
+ - Test de la validité d'un code de sous-module à l'installation (#635, #659). Un code est maintenant considéré comme valide si : 
+ 	  - Ne contient que des lettres ou des chiffres ou le caractère `_`
     - Son premier caractère est une lettre
-    - Fait moins de 64 caractère
+    - Fait moins de 63 caractères
       
 **🐛 Corrections**
-- Ajout de sites_group dans les type_util autorisé (#639 par @jacquesfize)
-- Import : Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize) 
+- Ajout de `sites_group` dans les `type_util` autorisés (#639 par @jacquesfize)
+- [Import]  Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize) 
 
 ## 1.3.1 (03-07-2026)
 
