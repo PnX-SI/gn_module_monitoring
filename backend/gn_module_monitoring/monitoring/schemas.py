@@ -368,11 +368,19 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
     medias = MA.Nested(MediaSchema, many=True)
+    id_individual = auto_field(required=False, allow_none=True)
+    uuid_individual = fields.String(required=False, allow_none=True)
 
     pk = fields.Method("set_pk", dump_only=True)
 
     def set_pk(self, obj):
         return "id_individual"
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+
+        return data
 
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):

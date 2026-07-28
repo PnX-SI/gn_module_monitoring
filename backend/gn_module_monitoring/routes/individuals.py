@@ -1,5 +1,5 @@
 from flask import g, request
-from gn_module_monitoring.config.utils import get_specific_properties
+from gn_module_monitoring.config.utils import get_module, get_specific_properties
 from marshmallow import EXCLUDE
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
@@ -118,6 +118,7 @@ def patch_individual(scope, object_type: str, module_code: str, _id: int):
             f"User {g.current_user} cannot update individual {individual.id_individual}"
         )
     post_data = dict(request.get_json())
+    print(post_data)
     if not "id_individual" in post_data:
         post_data["id_individual"] = _id
     return create_or_update_individual(post_data, module_code=module_code)
@@ -148,9 +149,10 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
     """
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
-
-    individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
-
+    try:
+        individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
+    except Exception as e:
+        raise Exception(f"create_or_update_individual : {str(e)}")
     db.session.add(individual)
     db.session.commit()
 
