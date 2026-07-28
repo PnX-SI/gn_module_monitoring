@@ -132,7 +132,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
 
-
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
       this._objService.loadBreadCrumb(this.moduleCode, 'module', null, queryParams);
