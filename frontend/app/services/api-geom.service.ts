@@ -41,7 +41,7 @@ export class ApiService<T = IObject> implements IService<T> {
     this.objectObs = objectObjs;
   }
 
-  protected _getModuleCode(): string {
+  public _getModuleCode(): string {
     const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
     return this._configServiceG.moduleCode();
   }
@@ -53,7 +53,7 @@ export class ApiService<T = IObject> implements IService<T> {
 
     return this._cacheService.request<Observable<IPaginated<T>>>(
       'get',
-      `${module}${this.objectObs.endPoint}`,
+      `${module}${this.endPoint}`,
       {
         queryParams: { page, limit, ...params },
       }
@@ -90,10 +90,7 @@ export class ApiService<T = IObject> implements IService<T> {
   }
 
   getById(id: number, moduleCode: string = 'generic'): Observable<T> {
-    return this._cacheService.request<Observable<T>>(
-      'get',
-      `${this.objectObs.endPoint}/${moduleCode}/${id}`
-    );
+    return this._cacheService.request<Observable<T>>('get', `${this.endPoint}/${moduleCode}/${id}`);
   }
 
   getByIdResolved(id: number, moduleCode: string = 'generic'): Observable<any> {
@@ -122,7 +119,7 @@ export class ApiService<T = IObject> implements IService<T> {
   patch(id: number, updatedData): Observable<T> {
     return this._cacheService.request(
       'patch',
-      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}/${id}`,
+      `${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`,
       {
         postData: updatedData as {},
       }
@@ -132,7 +129,7 @@ export class ApiService<T = IObject> implements IService<T> {
   create(postData): Observable<T> {
     return this._cacheService.request(
       'post',
-      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}`,
+      `${this._configServiceG.moduleCode()}/${this.endPoint}`,
       {
         postData: postData as {},
       }
@@ -143,16 +140,12 @@ export class ApiService<T = IObject> implements IService<T> {
     // module_code
     return this._cacheService.request(
       'delete',
-      `${this._configServiceG.moduleCode()}/${this.objectObs.endPoint}/${id}`,
+      `${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`,
       {
         queryParams: params,
       }
     );
   }
-
-  // setModuleCode(moduleCode: string) {
-  //   this._getModuleCode() = moduleCode;
-  // }
 }
 
 @Injectable()
@@ -182,7 +175,7 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
   }
 
   getConfig(): Observable<T> {
-    return this._cacheService.request('get', `${this.objectObs.endPoint}/config`);
+    return this._cacheService.request('get', `${this.endPoint}/config`);
   }
 }
 
@@ -199,10 +192,8 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   init(): void {
     const endPoint = endPoints.sites_groups;
     const objectObs: IobjObs<ISitesGroup> = {
-      endPoint: endPoints.sites_groups,
       objectType: 'sites_group',
       childType: 'site',
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
@@ -268,11 +259,8 @@ export class SitesService extends ApiGeomService<ISite> {
   init(): void {
     const endPoint = endPoints.sites;
     const objectObs: IobjObs<ISite> = {
-      endPoint: endPoints.sites,
       objectType: 'site',
-
       childType: 'visit',
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
@@ -316,11 +304,8 @@ export class ModuleService extends ApiService<any> {
   }
   init() {
     const objectObs: IobjObs<any> = {
-      endPoint: endPoints.modules,
       objectType: 'module',
-
       childType: 'sites_group',
-      moduleCode: 'generic',
     };
     super.init(endPoints.modules, objectObs);
   }
@@ -346,11 +331,8 @@ export class VisitsService extends ApiService<IVisit> {
   init(): void {
     const endPoint = endPoints.visits;
     const objectObs: IobjObs<IVisit> = {
-      endPoint: endPoints.visits,
       objectType: 'visit',
-
       childType: 'observation',
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
@@ -369,11 +351,8 @@ export class IndividualsService extends ApiService<IIndividual> {
   init(): void {
     const endPoint = endPoints.individuals;
     const objectObs: IobjObs<IIndividual> = {
-      endPoint: endPoints.individuals,
       objectType: 'individual',
-
       childType: 'marking',
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
@@ -392,11 +371,8 @@ export class ObservationsService extends ApiService<IObservation> {
   init(): void {
     const endPoint = endPoints.observations;
     const objectObs: IobjObs<IObservation> = {
-      endPoint: endPoints.observations,
       objectType: 'observation',
-
       childType: 'observation_detail',
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
@@ -414,11 +390,8 @@ export class ObservationDetailsService extends ApiService<IObservationDetail> {
   init(): void {
     const endPoint = endPoints.observation_details;
     const objectObs: IobjObs<IObservationDetail> = {
-      endPoint: endPoints.observation_details,
       objectType: 'observation_detail',
-
       childType: undefined,
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
