@@ -1,8 +1,5 @@
 import { Component, OnInit, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { ISite } from '../../interfaces/geom';
-import { IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
@@ -35,11 +32,9 @@ export class MonitoringObservationsDetailDetailComponent
   private dataId: number;
   public objectData: any;
   public objectDataResolved: any;
-  public bEdit: boolean = false;
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
-  private currentEditModeSubscription?: Subscription;
 
   constructor(
     private _auth: AuthService,
@@ -50,24 +45,17 @@ export class MonitoringObservationsDetailDetailComponent
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
-    private _formService: FormService,
+    public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup);
+    super(_permissionService, _popup, _formService);
     this.getAllItemsCallback = undefined;
   }
 
   ngOnInit() {
-    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
-      (bEdit: boolean) => {
-        // Permet d'identifier si l'objet est passé en mode édition
-        // si c'est le cas, on refresh les données de l'objet
-        this.onbEditChange(bEdit);
-        this.bEdit = bEdit;
-      }
-    );
+    super.ngOnInit();
     // Initialisation des variables config
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -139,9 +127,5 @@ export class MonitoringObservationsDetailDetailComponent
         this.bDeleteModalEmitter.emit(false);
         this.initData();
       });
-  }
-
-  ngOnDestroy() {
-    this.currentEditModeSubscription.unsubscribe();
   }
 }

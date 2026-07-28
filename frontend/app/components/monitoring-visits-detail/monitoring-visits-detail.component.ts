@@ -1,6 +1,5 @@
 import { Component, OnInit, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { ISite } from '../../interfaces/geom';
 import { IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
@@ -32,11 +31,9 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   private dataId: number;
   public objectData: any;
   public objectDataResolved: any;
-  public bEdit: boolean = false;
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
-  private currentEditModeSubscription: Subscription;
 
   constructor(
     private _auth: AuthService,
@@ -47,24 +44,17 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
-    private _formService: FormService,
+    public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup);
+    super(_permissionService, _popup, _formService);
     this.getAllItemsCallback = this.getChild;
   }
 
   ngOnInit() {
-    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
-      (bEdit: boolean) => {
-        // Permet d'identifier si l'objet est passé en mode édition
-        // si c'est le cas, on refresh les données de l'objet
-        this.onbEditChange(bEdit);
-        this.bEdit = bEdit;
-      }
-    );
+    super.ngOnInit();
     // Initialisation des variables config
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -194,9 +184,5 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
-  }
-
-  ngOnDestroy() {
-    this.currentEditModeSubscription.unsubscribe();
   }
 }

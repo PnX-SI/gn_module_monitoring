@@ -33,7 +33,6 @@ export class MonitoringSitesgroupsDetailComponent
   sitesGroup: ISitesGroup;
   page: IPage;
   filters = {};
-  @Input() bEdit: boolean;
   form: FormGroup;
   objectType: IobjObs<ISite>;
 
@@ -56,7 +55,6 @@ export class MonitoringSitesgroupsDetailComponent
   public moduleConfig;
 
   moduleCode: string;
-  private currentEditModeSubscription;
 
   constructor(
     private _auth: AuthService,
@@ -67,22 +65,17 @@ export class MonitoringSitesgroupsDetailComponent
     private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
     private _formBuilder: FormBuilder,
-    private _formService: FormService,
+    public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup);
+    super(_permissionService, _popup, _formService);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
   ngOnInit() {
-    this.currentEditModeSubscription = this._formService.currentEditMode
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe((bEdit) => {
-        this.onbEditChange(bEdit);
-        this.bEdit = bEdit;
-      });
+    super.ngOnInit();
 
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -170,7 +163,7 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnDestroy() {
-    this.currentEditModeSubscription.unsubscribe();
+    super.ngOnDestroy();
     this._geojsonService.removeAllFeatureGroup();
     this.destroyed$.next(true);
     this.destroyed$.complete();

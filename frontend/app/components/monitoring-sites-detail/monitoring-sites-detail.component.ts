@@ -34,7 +34,6 @@ import { MonitoringObject } from '../../class/monitoring-object';
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IPaginated<IVisit>;
   @Input() page: IPage;
-  @Input() bEdit: boolean;
   form: FormGroup;
   modules: SelectObject[];
   site: ISite;
@@ -64,7 +63,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private router: Router,
     private _Activatedroute: ActivatedRoute,
     private _formBuilder: FormBuilder,
-    private _formService: FormService,
+    public _formService: FormService,
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public siteService: SitesService,
@@ -73,11 +72,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public _popup: Popup,
     private _monitoringObjServiceMonitoring: MonitoringObjectService
   ) {
-    super(_permissionService, _popup);
+    super(_permissionService, _popup, _formService);
     this.getAllItemsCallback = this.getVisits;
   }
 
   ngOnInit() {
+    super.ngOnInit();
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     const idSite = this._Activatedroute.snapshot.params.id;
     this.currentUser = this._auth.getCurrentUser();
@@ -299,6 +299,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   ngOnDestroy() {
+    super.ngOnDestroy();
     this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
     this._formService.changeCurrentEditMode(false);
   }

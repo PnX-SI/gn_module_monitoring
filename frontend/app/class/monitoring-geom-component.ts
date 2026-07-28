@@ -1,21 +1,26 @@
+import { inject, OnInit, Directive } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { IdataTableObjData } from '../interfaces/geom';
 import { PermissionService } from '../services/permission.service';
 import { TemplateData } from '../interfaces/template';
 import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
-import { inject } from '@angular/core';
 import { ObjectType } from '../enum/objecttype';
 import { Popup } from '../utils/popup';
+import { FormService } from '../services/form.service';
 
 const LIMIT = 10;
 
 type callbackFunction = (pageNumber: number, filters: JsonData, tabObj: string) => void;
-
-export class MonitoringGeomComponent {
+@Directive()
+export class MonitoringGeomComponent implements OnInit {
   protected getAllItemsCallback: callbackFunction;
   protected limit = LIMIT;
   public filters = {};
   public baseFilters = {};
+
+  protected bEdit: boolean = false;
+  protected currentEditModeSubscription: Subscription;
 
   public dataTableObjData: IdataTableObjData;
   public dataTableConfig: {}[] = [];
@@ -35,11 +40,26 @@ export class MonitoringGeomComponent {
 
   constructor(
     public _permissionService: PermissionService,
-    public _popup: Popup
+    public _popup: Popup,
+    public _formService: FormService
   ) {
     this._configServiceG = inject(ConfigServiceG);
   }
 
+  ngOnInit() {
+    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
+      (value: boolean) => {
+        // Permet d'identifier si l'objet est passé en mode édition
+        // si c'est le cas, on refresh les données de l'objet
+        this.onbEditChange(value);
+        this.bEdit = value;
+      }
+    );
+  }
+
+  onbEditChange(event: boolean) {
+    console.log('Not implemented');
+  }
   setPage({ page, filters, tabObj = '' }) {
     this.filters = { ...this.baseFilters, ...filters };
     this.getAllItemsCallback(page.offset + 1, this.filters, tabObj);
@@ -203,5 +223,9 @@ export class MonitoringGeomComponent {
       const popup = this._popup.setSitePopup(this._configServiceG.moduleCode(), feature, {});
       layer.bindPopup(popup);
     };
+  }
+
+  ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
   }
 }
