@@ -356,6 +356,12 @@ export class IndividualsService extends ApiService<IIndividual> {
     };
     super.init(endPoint, objectObs);
   }
+
+  delete(id: number, params: JsonData = {}): Observable<IIndividual> {
+    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`, {
+      queryParams: params,
+    });
+  }
 }
 
 @Injectable()
