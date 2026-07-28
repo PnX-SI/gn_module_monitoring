@@ -296,17 +296,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     const queryParams = {
       parents_path: ['module'],
     };
-    if (type == 'individual') {
-      // Patch individual tant que la page détail des individus est générique
-      queryParams['parents_path'] = ['module', 'individual'];
-      this.router.navigate([`/monitorings/create_object/${this.moduleCode}/`, type], {
-        queryParams: queryParams,
-      });
-    } else {
-      this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
-        queryParams: queryParams,
-      });
-    }
+
+    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
+      queryParams: queryParams,
+    });
   }
 
   onDelete(event) {
