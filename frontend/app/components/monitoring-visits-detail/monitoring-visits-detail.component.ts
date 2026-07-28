@@ -67,8 +67,6 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
-    this._visitsService.initConfig();
-    this._observationsService.initConfig();
     this._permissionService.setPermissionMonitorings(this.moduleCode);
 
     // Récupération des paramètres de la route

@@ -10,7 +10,7 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 })
 export class ConfigServiceG {
   protected _config: any;
-  protected _moduleCode: string | null = null;
+  protected _moduleCode: string = "generic";
 
   constructor(
     protected _http: HttpClient,

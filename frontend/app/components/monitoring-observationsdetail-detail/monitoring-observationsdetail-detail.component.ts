@@ -71,7 +71,6 @@ export class MonitoringObservationsDetailDetailComponent
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
-    this._observationsDetailService.initConfig();
     this._permissionService.setPermissionMonitorings(this.moduleCode);
 
     // Récupération des paramètres de la route

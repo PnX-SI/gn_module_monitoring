@@ -105,8 +105,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       console.log('bEdit', bEdit, this.bEdit);
       this.bEdit = bEdit;
     });
-    this._sitesService.initConfig();
-    this._sites_group_service.initConfig();
     this.initObject();
   }
 
@@ -134,7 +132,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
 
-      this._geojsonService.setModuleCode(this.moduleCode);
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;

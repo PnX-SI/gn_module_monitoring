@@ -41,17 +41,14 @@ export class ApiService<T = IObject> implements IService<T> {
     this.objectObs = objectObjs;
   }
 
-  public initConfig(): IobjObs<T> {
+  protected _getModuleCode(): string {
     const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
-    this.objectObs.moduleCode = this._configServiceG.moduleCode();
-    if (!config) return null;
-    this.objectObs['label'] = config['label'];
-    return this.objectObs;
+    return this._configServiceG.moduleCode();
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
-    const module = !(this.objectObs.moduleCode === 'generic')
-      ? 'refacto/' + this.objectObs.moduleCode + '/'
+    const module = !(this._getModuleCode() === 'generic')
+      ? 'refacto/' + this._getModuleCode() + '/'
       : '';
 
     return this._cacheService.request<Observable<IPaginated<T>>>(
@@ -153,9 +150,9 @@ export class ApiService<T = IObject> implements IService<T> {
     );
   }
 
-  setModuleCode(moduleCode: string) {
-    this.objectObs.moduleCode = moduleCode;
-  }
+  // setModuleCode(moduleCode: string) {
+  //   this._getModuleCode() = moduleCode;
+  // }
 }
 
 @Injectable()
@@ -175,8 +172,8 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
       Object.entries(params).filter(([, v]) => v !== '' && v !== null)
     );
 
-    const endPoint = !(this.objectObs.moduleCode === 'generic')
-      ? `refacto/${this.objectObs.moduleCode}/${this.endPoint}/geometries`
+    const endPoint = !(this._getModuleCode() === 'generic')
+      ? `refacto/${this._getModuleCode()}/${this.endPoint}/geometries`
       : `${this.endPoint}/geometries`;
 
     return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>('get', endPoint, {
@@ -204,7 +201,6 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
     const objectObs: IobjObs<ISitesGroup> = {
       endPoint: endPoints.sites_groups,
       objectType: 'sites_group',
-      label: 'groupe de site',
       childType: 'site',
       moduleCode: 'generic',
     };
@@ -216,8 +212,8 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
     limit: number = 10,
     params: JsonData = {}
   ): Observable<IPaginated<ISite>> {
-    const module = !(this.objectObs.moduleCode === 'generic')
-      ? 'refacto/' + this.objectObs.moduleCode + '/'
+    const module = !(this._getModuleCode() === 'generic')
+      ? 'refacto/' + this._getModuleCode() + '/'
       : '';
     return this._cacheService.request<Observable<IPaginated<ISite>>>(
       'get',
@@ -274,7 +270,7 @@ export class SitesService extends ApiGeomService<ISite> {
     const objectObs: IobjObs<ISite> = {
       endPoint: endPoints.sites,
       objectType: 'site',
-      label: 'site',
+
       childType: 'visit',
       moduleCode: 'generic',
     };
@@ -322,7 +318,7 @@ export class ModuleService extends ApiService<any> {
     const objectObs: IobjObs<any> = {
       endPoint: endPoints.modules,
       objectType: 'module',
-      label: 'module',
+
       childType: 'sites_group',
       moduleCode: 'generic',
     };
@@ -352,7 +348,7 @@ export class VisitsService extends ApiService<IVisit> {
     const objectObs: IobjObs<IVisit> = {
       endPoint: endPoints.visits,
       objectType: 'visit',
-      label: 'visite',
+
       childType: 'observation',
       moduleCode: 'generic',
     };
@@ -375,7 +371,7 @@ export class IndividualsService extends ApiService<IIndividual> {
     const objectObs: IobjObs<IIndividual> = {
       endPoint: endPoints.individuals,
       objectType: 'individual',
-      label: 'individu',
+
       childType: 'marking',
       moduleCode: 'generic',
     };
@@ -398,7 +394,7 @@ export class ObservationsService extends ApiService<IObservation> {
     const objectObs: IobjObs<IObservation> = {
       endPoint: endPoints.observations,
       objectType: 'observation',
-      label: 'observation',
+
       childType: 'observation_detail',
       moduleCode: 'generic',
     };
@@ -420,7 +416,7 @@ export class ObservationDetailsService extends ApiService<IObservationDetail> {
     const objectObs: IobjObs<IObservationDetail> = {
       endPoint: endPoints.observation_details,
       objectType: 'observation_detail',
-      label: 'observation detail',
+
       childType: undefined,
       moduleCode: 'generic',
     };

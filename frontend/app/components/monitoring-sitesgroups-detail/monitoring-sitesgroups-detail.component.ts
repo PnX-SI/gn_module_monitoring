@@ -100,8 +100,6 @@ export class MonitoringSitesgroupsDetailComponent
         queryParams
       );
 
-      this._siteService.initConfig();
-      this._sitesGroupService.initConfig();
       this._permissionService.setPermissionMonitorings(this.moduleCode);
 
       this.initSite();

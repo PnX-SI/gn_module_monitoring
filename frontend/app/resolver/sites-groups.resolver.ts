@@ -59,9 +59,6 @@ export class SitesGroupsResolver
     this._permissionService.setPermissionMonitorings(moduleCode);
     const currentPermission = this._permissionService.modulePermission;
 
-    this.serviceSitesGroup.initConfig();
-    this.serviceSite.initConfig();
-    this.serviceIndividual.initConfig();
     const tree = this._configServiceG.config()['tree'];
 
     // Si le module n'est pas le module générique affichage des objets

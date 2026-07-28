@@ -15,7 +15,6 @@ export interface IobjObs<T> {
     | 'observation'
     | 'observation_detail'
     | 'marking';
-  label: string;
   childType?: string;
   moduleCode: string; // Voir si utilisé
 }

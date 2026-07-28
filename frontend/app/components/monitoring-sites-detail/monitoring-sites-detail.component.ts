@@ -80,10 +80,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.data.detailSites.moduleCode;
     const idSite = this._Activatedroute.snapshot.params.id;
-    this.siteService.initConfig();
-    this._visits_service.initConfig();
-    this._sitesGroupService.initConfig();
-
     this.currentUser = this._auth.getCurrentUser();
     this.form = this._formBuilder.group({});
 
