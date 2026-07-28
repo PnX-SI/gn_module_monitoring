@@ -17,6 +17,7 @@ from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
 from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
+    TMonitoringMarkingEvent,
     TMonitoringModules,
     TMonitoringObservationDetails,
     TMonitoringObservations,
@@ -384,4 +385,31 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
+    pass
+
+
+class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
+    class Meta:
+        model = TMonitoringMarkingEvent
+        include_fk = True
+        load_relationships = True
+        load_instance = True
+
+    id_marking = auto_field(required=False, allow_none=True)
+    # marking_date is stored as a Date column in db despite TMarkingEvent
+    # declaring it as DateTime, so we override the auto-inferred field here.
+    marking_date = fields.Date(required=True)
+    medias = MA.Nested(MediaSchema, many=True)
+    pk = fields.Method("set_pk", dump_only=True)
+
+    def set_pk(self, obj):
+        return "id_marking"
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+        return data
+
+
+class MonitoringMarkingSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringMarkingSchema):
     pass
