@@ -63,6 +63,7 @@ import {
   IndividualsService,
   ModuleService,
   ObservationDetailsService,
+  MarkingsService,
 } from './services/api-geom.service';
 import { MonitoringSitesGroupsCreateComponent } from './components/monitoring-sitesgroups-create/monitoring-sitesgroups-create.component';
 import { MonitoringSitesCreateComponent } from './components/monitoring-sites-create/monitoring-sites-create.component';
@@ -89,6 +90,9 @@ import { DetailObservationsDetailResolver } from './resolver/detail-observations
 import { MonitoringIndividualsCreateComponent } from './components/monitoring-individuals-create/monitoring-individuals-create.component';
 import { MonitoringIndividualsDetailComponent } from './components/monitoring-individuals-detail/monitoring-individuals-detail.component';
 import { DetailIndividualsResolver } from './resolver/detail-individuals-resolver';
+import { MonitoringMarkingsCreateComponent } from './components/monitoring-markings-create/monitoring-markings-create.component';
+import { MonitoringMarkingsDetailComponent } from './components/monitoring-markings-detail/monitoring-markings-detail.component';
+import { DetailMarkingsResolver } from './resolver/detail-markings-resolver';
 
 const routes: Routes = [
   { path: '', component: ModulesComponent },
@@ -261,6 +265,26 @@ const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'marking',
+        component: MonitoringMapListComponent,
+        children: [
+          {
+            path: 'create',
+            component: MonitoringMarkingsCreateComponent,
+            resolve: {
+              createSite: DetailMarkingsResolver,
+            },
+          },
+          {
+            path: ':id',
+            component: MonitoringMarkingsDetailComponent,
+            resolve: {
+              detailSites: DetailMarkingsResolver,
+            },
+          },
+        ],
+      },
     ],
   },
   // Patch permettant d'éviter la redirection vers la page de détail d'un module
@@ -307,6 +331,8 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringObservationsDetailDetailComponent,
     MonitoringIndividualsCreateComponent,
     MonitoringIndividualsDetailComponent,
+    MonitoringMarkingsCreateComponent,
+    MonitoringMarkingsDetailComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
@@ -361,6 +387,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     VisitsService,
     ObservationsService,
     ObservationDetailsService,
+    MarkingsService,
     SitesGroupsResolver,
     CreateSiteResolver,
     CreateSitesGroupsResolver,

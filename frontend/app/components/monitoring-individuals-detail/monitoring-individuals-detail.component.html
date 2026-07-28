@@ -37,3 +37,21 @@
   [config]="moduleConfig[objectType]"
   [currentUser]="currentUser"
 ></pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
+  [rows]="rows"
+  [obj]="rows"
+  (onSort)="setSort($event)"
+  [page]="page"
+  (onFilter)="setFilter($event)"
+  (onSetPage)="setPage($event)"
+  [moduleCode]="moduleCode"
+  (onDetailsRow)="seeDetails($event)"
+  (onEditEvent)="editChild($event)"
+  (onDeleteEvent)="onDelete($event)"
+  (onAddObj)="navigateToAddObj($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
+  parentPath="individual"
+></pnx-monitoring-datatable-g>
