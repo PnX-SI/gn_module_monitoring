@@ -1,11 +1,13 @@
 from flask import g, request
 from gn_module_monitoring.config.utils import get_specific_properties
+from marshmallow import EXCLUDE
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
 from geonature.utils.env import db
 
+from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
@@ -23,9 +25,13 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate,
     paginate_scope,
+    process_json_data_for_db_upsert,
     sort,
     sort_according_to_column_type_for_site,
 )
+
+default_route_object_type = "individual"
+OBJECT_CODE = "MONITORINGS_INDIVIDUALS"
 
 
 @blueprint.route("/refacto/individuals", methods=["GET"], defaults={"object_type": "individual"})
@@ -74,6 +80,50 @@ def get_individuals(object_type, module_code=None):
 
 
 @blueprint.route(
+    "/individuals/<string:module_code>/<int:id>",
+    methods=["GET"],
+    defaults={"object_type": default_route_object_type},
+)
+@permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
+def get_individual_by_id(scope: int, module_code: str, id: int, object_type: str):
+    individual = db.get_or_404(TMonitoringIndividuals, id)
+    if not individual.has_instance_permission(scope=scope):
+        raise Forbidden(f"User {g.current_user} cannot read individual {individual.id_individual}")
+    data = MonitoringIndividualsSchema().dump(individual)
+
+    return data
+
+
+@blueprint.route(
+    "/<string:module_code>/individuals",
+    methods=["POST"],
+    defaults={"object_type": default_route_object_type},
+)
+@permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
+def post_individual(object_type: str, module_code: str):
+    post_data = dict(request.get_json())
+    return create_or_update_individual(post_data, module_code=module_code)
+
+
+@blueprint.route(
+    "/<string:module_code>/individuals/<int:_id>",
+    methods=["PATCH"],
+    defaults={"object_type": default_route_object_type},
+)
+@permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
+def patch_individual(scope, object_type: str, module_code: str, _id: int):
+    individual = db.get_or_404(TMonitoringIndividuals, _id)
+    if not individual.has_instance_permission(scope=scope):
+        raise Forbidden(
+            f"User {g.current_user} cannot update individual {individual.id_individual}"
+        )
+    post_data = dict(request.get_json())
+    if not "id_individual" in post_data:
+        post_data["id_individual"] = _id
+    return create_or_update_individual(post_data, module_code=module_code)
+
+
+@blueprint.route(
     "/individuals/<int:_id>", methods=["DELETE"], defaults={"object_type": "individual"}
 )
 @check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_INDIVIDUALS")
@@ -86,3 +136,22 @@ def delete_individual(scope, _id: int, object_type: str):
     db.session.delete(individual)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
+
+
+def create_or_update_individual(post_data: dict, module_code: str = "generic"):
+    """
+    Create or update an individual.
+
+    :param post_data: dict containing data to create or update an individual
+    :param module_code: str, module code, default is "generic"
+    :return: dict, serialized individual
+    """
+    config = get_config(module_code, force=True)
+    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+
+    individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
+
+    db.session.add(individual)
+    db.session.commit()
+
+    return MonitoringIndividualsSchema().dump(individual)

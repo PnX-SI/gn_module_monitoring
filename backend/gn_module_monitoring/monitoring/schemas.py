@@ -365,6 +365,7 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
         model = TMonitoringIndividuals
         include_fk = True
         load_relationships = True
+        load_instance = True
 
     medias = MA.Nested(MediaSchema, many=True)
 
