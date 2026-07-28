@@ -118,6 +118,12 @@ def get_visits(object_type, module_code=None):
         limit=limit,
         page=page,
         object_code=OBJECT_CODE,
+        schema_extra_args={
+            "exclude": (
+                "items.parents",
+                "items.medias",
+            )
+        },
     )
 
 

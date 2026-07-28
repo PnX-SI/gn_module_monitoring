@@ -27,3 +27,19 @@ def test_paginate(sites):
     )
 
     assert res.json["page"] == page
+
+
+def test_paginate_args(sites):
+    limit = 1
+    page = 1
+    schema_extra_args = {"exclude": ("items.medias", "items.parents")}
+    res = paginate(
+        query=select(TMonitoringSites),
+        schema=MonitoringSitesSchema,
+        limit=limit,
+        page=page,
+        schema_extra_args=schema_extra_args,
+    )
+
+    items_keys = set(res.json["items"][0].keys())
+    assert set(("medias", "parents")).isdisjoint(items_keys)

@@ -293,10 +293,13 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     id_sites_group = DB.Column(
         DB.ForeignKey(
             "gn_monitoring.t_sites_groups.id_sites_group",
-            # ondelete='SET NULL'
         ),
     )
-
+    sites_group = DB.relationship(
+        "TMonitoringSitesGroups",
+        back_populates="sites",
+        uselist=False,
+    )
     data = DB.Column(JSONB)
 
     modules = DB.relationship(
@@ -438,6 +441,15 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         return False
 
 
+# TMonitoringVisits.site = DB.relationship(
+#     TMonitoringSites,
+#     lazy="select",
+#     primaryjoin=(TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site),
+#     foreign_keys=[TMonitoringVisits.id_base_site],
+#     uselist=False,
+# )
+
+
 @geoserializable(geoCol="geom", idCol="id_sites_group")
 class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     __tablename__ = "t_sites_groups"
@@ -472,7 +484,9 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
+        back_populates="sites_group",
     )
+
     modules = DB.relationship(
         "TMonitoringModules",
         secondary=cor_sites_group_module,
@@ -667,3 +681,13 @@ class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
         TMonitoringMarkingEvent,
         primaryjoin=(TIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
     )
+
+
+TMonitoringVisits.site = DB.relationship(
+    TMonitoringSites,
+    lazy="select",
+    primaryjoin=(TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site),
+    foreign_keys=[TMonitoringVisits.id_base_site],
+    uselist=False,
+    viewonly=True,
+)
