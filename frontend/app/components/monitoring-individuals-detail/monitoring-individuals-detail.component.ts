@@ -16,7 +16,10 @@ import { CacheService } from '../../services/cache.service';
   templateUrl: './monitoring-individuals-detail.component.html',
   styleUrls: ['./monitoring-individuals-detail.component.css'],
 })
-export class MonitoringIndividualsDetailComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringIndividualsDetailComponent
+  extends MonitoringGeomComponent
+  implements OnInit
+{
   private moduleCode: string;
   public moduleConfig;
   public currentUser;
