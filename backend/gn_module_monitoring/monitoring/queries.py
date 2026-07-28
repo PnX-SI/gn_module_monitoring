@@ -388,6 +388,28 @@ class IndividualsQuery(GnMonitoringGenericFilter):
         return query
 
 
+class MarkingsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
+        if user is None:
+            user = g.current_user
+        if scope == 0:
+            query = query.where(false())
+        elif scope in (1, 2):
+            ors = [
+                Models.TMonitoringMarkingEvent.id_digitiser == user.id_role,
+                Models.TMonitoringMarkingEvent.id_operator == user.id_role,
+            ]
+            # if organism is None => do not filter on id_organism even if level = 2
+            if scope == 2 and user.id_organisme is not None:
+                ors += [
+                    Models.TMonitoringMarkingEvent.digitiser.has(id_organisme=user.id_organisme),
+                    Models.TMonitoringMarkingEvent.operator.has(id_organisme=user.id_organisme),
+                ]
+            query = query.where(or_(*ors))
+        return query
+
+
 class ObservationDetailsQuery(GnMonitoringGenericFilter):
     @classmethod
     def filter_by_scope(cls, query: Select, scope, user=None):
