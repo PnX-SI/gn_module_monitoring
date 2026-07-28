@@ -10,7 +10,7 @@ import { ConfigService as GnConfigService } from '@geonature/services/config.ser
 })
 export class ConfigServiceG {
   protected _config: any;
-  protected _moduleCode: string | null = null;
+  protected _moduleCode: string = 'generic';
 
   constructor(
     protected _http: HttpClient,
@@ -107,6 +107,26 @@ export class ConfigServiceG {
     const configObject = this._config[objectType];
     const change = configObject.change;
     return this.toFunction(change);
+  }
+
+  getChildsByObjectType(objectType) {
+    const tree = this._config['tree'];
+    function search(node) {
+      if (!node || typeof node !== 'object') return null;
+      for (const [key, value] of Object.entries(node)) {
+        if (key === objectType) {
+          return value && typeof value === 'object' ? Object.keys(value) : [];
+        }
+        const result = search(value);
+        if (result !== null) {
+          return result;
+        }
+      }
+
+      return null;
+    }
+
+    return search(tree);
   }
 
   /**

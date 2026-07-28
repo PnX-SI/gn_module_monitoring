@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
@@ -19,7 +20,7 @@ export class DrawFormComponent implements OnInit {
   public parentFormControl: FormControl;
   /** Type de geomtrie parmi : 'Point', 'Polygon', 'LineString' */
   public geometryType: string[] = [];
-
+  private currentEditModeSubscription: Subscription;
   // search bar default to true
 
   @Output() onChange = new EventEmitter<any>();
@@ -49,10 +50,12 @@ export class DrawFormComponent implements OnInit {
     // choix du type de geometrie
     this.initDrawConfig();
 
-    this._formService.currentEditMode.subscribe((editMode: boolean) => {
-      this.bEdit = editMode;
-      this.initForm();
-    });
+    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
+      (editMode: boolean) => {
+        this.bEdit = editMode;
+        this.initForm();
+      }
+    );
   }
 
   initForm() {
@@ -123,5 +126,8 @@ export class DrawFormComponent implements OnInit {
         this.initForm();
       }
     }
+  }
+  ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
   }
 }

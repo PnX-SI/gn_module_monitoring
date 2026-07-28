@@ -44,7 +44,6 @@ export class MonitoringVisitsCreateComponent implements OnInit {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this._visitsService.initConfig();
     this.visit = {} as IVisit;
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
