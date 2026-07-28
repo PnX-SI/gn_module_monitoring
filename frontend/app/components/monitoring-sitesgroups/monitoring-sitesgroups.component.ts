@@ -67,7 +67,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   public moduleCode: string;
 
-  public bEdit: boolean = false;
   public bIsInitialized: boolean;
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
@@ -86,27 +85,22 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     private _objService: ObjectService,
     private _formBuilder: FormBuilder,
     private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
-    private _formService: FormService,
+    public _formService: FormService,
     private _location: Location,
     public _popup: Popup,
     public _permissionService: PermissionService,
     public _moduleService: ModuleService,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup);
+    super(_permissionService, _popup, _formService);
     this.getAllItemsCallback = this.getData;
   }
 
   ngOnInit() {
+    super.ngOnInit();
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-    this._formService.currentEditMode.pipe(takeUntil(this.destroyed$)).subscribe((bEdit) => {
-      console.log('bEdit', bEdit, this.bEdit);
-      this.bEdit = bEdit;
-    });
-    this._sitesService.initConfig();
-    this._sites_group_service.initConfig();
     this.initObject();
   }
 
@@ -133,8 +127,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
       this.currentUser = this._auth.getCurrentUser();
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
-
-      this._geojsonService.setModuleCode(this.moduleCode);
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -185,6 +177,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   }
 
   ngOnDestroy() {
+    super.ngOnDestroy();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.destroyed$.next(true);

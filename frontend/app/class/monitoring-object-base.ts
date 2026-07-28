@@ -392,8 +392,6 @@ export class MonitoringObjectBase {
   }
 
   navigateToDetail(id: number | null = null, extraParams: { [key: string]: any } = {}) {
-    console.log('navigateToDetail', this.parentsPath);
-
     const queryParams = {
       parents_path: extraParams.parents_path ?? this.parentsPath,
       ...extraParams,

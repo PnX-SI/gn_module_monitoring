@@ -45,7 +45,6 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this._observationsDetailService.initConfig();
     this.observation_detail = {} as IObservationDetail;
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;

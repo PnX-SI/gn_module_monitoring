@@ -317,7 +317,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this._navigationService.navigateToAddChildren(
       this.object[this.object.pk],
       this.object['siteId'],
-      this.apiService.objectObs.moduleCode,
+      this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
       this.apiService.objectObs.childType,
       this.queryParams['parents_path']
@@ -335,7 +335,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this._navigationService.navigateToDetail(
       this.object[this.object.pk],
       false,
-      this.apiService.objectObs.moduleCode,
+      this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
       this.queryParams['parents_path']
     );
@@ -351,7 +351,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const parentFieldId = (this.config[parentType] || [])['id_field_name'];
 
     this._navigationService.navigateToParent(
-      this.apiService.objectObs.moduleCode,
+      this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
       this.object[parentFieldId],
       this.queryParams['parents_path']

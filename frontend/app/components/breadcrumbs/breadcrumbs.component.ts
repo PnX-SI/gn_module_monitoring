@@ -1,3 +1,4 @@
+import { Subscription } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@angular/core';
 
@@ -15,7 +16,7 @@ import { FormService } from '../../services/form.service';
 })
 export class BreadcrumbsComponent implements OnInit {
   public breadcrumbs: IBreadCrumb[] = [];
-  private breadCrumbSubscription;
+  private breadCrumbSubscription: Subscription;
 
   constructor(
     private _configService: ConfigService,
