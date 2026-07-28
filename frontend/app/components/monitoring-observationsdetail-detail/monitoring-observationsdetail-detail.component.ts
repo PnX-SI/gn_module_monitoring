@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ISite } from '../../interfaces/geom';
 import { IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
@@ -38,6 +39,7 @@ export class MonitoringObservationsDetailDetailComponent
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
+  private currentEditModeSubscription?: Subscription;
 
   constructor(
     private _auth: AuthService,
@@ -58,12 +60,14 @@ export class MonitoringObservationsDetailDetailComponent
   }
 
   ngOnInit() {
-    this._formService.currentEditMode.subscribe((bEdit: boolean) => {
-      // Permet d'identifier si l'objet est passé en mode édition
-      // si c'est le cas, on refresh les données de l'objet
-      this.onbEditChange(bEdit);
-      this.bEdit = bEdit;
-    });
+    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
+      (bEdit: boolean) => {
+        // Permet d'identifier si l'objet est passé en mode édition
+        // si c'est le cas, on refresh les données de l'objet
+        this.onbEditChange(bEdit);
+        this.bEdit = bEdit;
+      }
+    );
     // Initialisation des variables config
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -135,5 +139,9 @@ export class MonitoringObservationsDetailDetailComponent
         this.bDeleteModalEmitter.emit(false);
         this.initData();
       });
+  }
+
+  ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
   }
 }

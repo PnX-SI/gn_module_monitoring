@@ -1,5 +1,6 @@
 import { Component, OnInit, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ISite } from '../../interfaces/geom';
 import { IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
@@ -39,6 +40,7 @@ export class MonitoringObservationsDetailComponent
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
+  private currentEditModeSubscription: Subscription;
 
   constructor(
     private _auth: AuthService,
@@ -60,12 +62,14 @@ export class MonitoringObservationsDetailComponent
   }
 
   ngOnInit() {
-    this._formService.currentEditMode.subscribe((bEdit: boolean) => {
-      // Permet d'identifier si l'objet est passé en mode édition
-      // si c'est le cas, on refresh les données de l'objet
-      this.onbEditChange(bEdit);
-      this.bEdit = bEdit;
-    });
+    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
+      (bEdit: boolean) => {
+        // Permet d'identifier si l'objet est passé en mode édition
+        // si c'est le cas, on refresh les données de l'objet
+        this.onbEditChange(bEdit);
+        this.bEdit = bEdit;
+      }
+    );
     // Initialisation des variables config
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -118,6 +122,10 @@ export class MonitoringObservationsDetailComponent
       });
     });
     // Initialisation du datatable
+    const childs_tree = this._configServiceG.getChildsByObjectType('observation');
+    if (childs_tree.length == 0) {
+      return;
+    }
     this._observationsDetailService
       .getResolved(1, this.limit, { id_observation: this.dataId })
       .subscribe((data: IPaginated<IObservationDetail>) => {
@@ -195,5 +203,9 @@ export class MonitoringObservationsDetailComponent
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
+  }
+
+  ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
   }
 }

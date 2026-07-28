@@ -56,6 +56,7 @@ export class MonitoringSitesgroupsDetailComponent
   public moduleConfig;
 
   moduleCode: string;
+  private currentEditModeSubscription;
 
   constructor(
     private _auth: AuthService,
@@ -76,10 +77,12 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnInit() {
-    this._formService.currentEditMode.pipe(takeUntil(this.destroyed$)).subscribe((bEdit) => {
-      this.onbEditChange(bEdit);
-      this.bEdit = bEdit;
-    });
+    this.currentEditModeSubscription = this._formService.currentEditMode
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((bEdit) => {
+        this.onbEditChange(bEdit);
+        this.bEdit = bEdit;
+      });
 
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
@@ -167,6 +170,7 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
     this._geojsonService.removeAllFeatureGroup();
     this.destroyed$.next(true);
     this.destroyed$.complete();

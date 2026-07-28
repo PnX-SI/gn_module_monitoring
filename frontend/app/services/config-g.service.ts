@@ -109,6 +109,26 @@ export class ConfigServiceG {
     return this.toFunction(change);
   }
 
+  getChildsByObjectType(objectType) {
+    const tree = this._config['tree'];
+    function search(node) {
+      if (!node || typeof node !== 'object') return null;
+      for (const [key, value] of Object.entries(node)) {
+        if (key === objectType) {
+          return value && typeof value === 'object' ? Object.keys(value) : [];
+        }
+        const result = search(value);
+        if (result !== null) {
+          return result;
+        }
+      }
+
+      return null;
+    }
+
+    return search(tree);
+  }
+
   /**
    * Converti une chaine de caractère en une fonction JS
    *

@@ -69,6 +69,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   public bEdit: boolean = false;
   public bIsInitialized: boolean;
+  private currentEditModeSubscription;
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
     site: 'visit',
@@ -101,10 +102,11 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     this.moduleCode = this._configServiceG.moduleCode();
     this.moduleConfig = this._configServiceG.config();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-    this._formService.currentEditMode.pipe(takeUntil(this.destroyed$)).subscribe((bEdit) => {
-      console.log('bEdit', bEdit, this.bEdit);
-      this.bEdit = bEdit;
-    });
+    this.currentEditModeSubscription = this._formService.currentEditMode
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((bEdit) => {
+        this.bEdit = bEdit;
+      });
     this.initObject();
   }
 
@@ -183,6 +185,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   ngOnDestroy() {
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
+    this.currentEditModeSubscription.unsubscribe();
     this.destroyed$.next(true);
     this.destroyed$.complete();
   }
