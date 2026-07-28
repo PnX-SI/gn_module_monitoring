@@ -1,6 +1,7 @@
 import { JsonData } from '../types/jsondata';
 import { IColumn } from './column';
 import { IIndividual } from './individual';
+import { IMarking } from './marking';
 import { IObservation } from './observation';
 import { IObject, IService } from './object';
 import { IPage } from './page';
@@ -68,4 +69,5 @@ export interface IdataTableObjData {
   sites_group: { columns: IColumn[]; rows: ISitesGroup[]; page: IPage };
   individual: { columns: IColumn[]; rows: IIndividual[]; page: IPage };
   observation: { columns: IColumn[]; rows: IObservation[]; page: IPage };
+  marking: { columns: IColumn[]; rows: IMarking[]; page: IPage };
 }

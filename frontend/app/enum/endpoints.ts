@@ -6,4 +6,5 @@ export enum endPoints {
   modules = 'module',
   observations = 'observations',
   observation_details = 'observation_details',
+  markings = 'markings',
 }
