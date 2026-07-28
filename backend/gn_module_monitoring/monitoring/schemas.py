@@ -1,5 +1,5 @@
 import geojson
-
+from operator import attrgetter
 from flask import g
 import marshmallow
 from geoalchemy2.shape import from_shape, to_shape
@@ -34,23 +34,6 @@ def paginate_schema(schema):
         items = fields.Nested(schema, many=True, dump_only=True)
 
     return PaginationSchema
-
-
-class AdditionalFieldsMixin:
-
-    @post_dump
-    def add_additional_fields(self, data, **kwargs):
-        additional_fields_data = data.pop("data", {})
-        if additional_fields_data is None:
-            return data
-        for key, value in additional_fields_data.items():
-            if key not in data:
-                data[key] = value
-            if not data.get("additional_data_keys"):
-                data["additional_data_keys"] = []
-            if key not in data["additional_data_keys"]:
-                data["additional_data_keys"].append(key)
-        return data
 
 
 def add_specific_attributes(schema, object_type, module_code):
@@ -95,6 +78,32 @@ def add_specific_attributes(schema, object_type, module_code):
     return schema_with_specifics
 
 
+def generate_parents_schema(object_type):
+    from gn_module_monitoring.monitoring.serializer import MonitoringSerializer_dict
+
+    schema = MonitoringSerializer_dict[object_type]
+    if g.current_module:
+        schema = add_specific_attributes(schema, object_type, g.current_module.module_code)
+    return schema
+
+
+def generate_parents_data(hierarchy_list: [], obj) -> dict:
+    parents = {}
+    for element in hierarchy_list:
+        obj_type = element.split(".")[-1]
+
+        getter = attrgetter(element)
+        attr = getter(obj)
+
+        if attr:
+            parent_schema = generate_parents_schema(obj_type)
+            exclude = ("parents", "medias")
+            valid_exclude = tuple(f for f in exclude if f in parent_schema._declared_fields)
+
+            parents[obj_type] = generate_parents_schema(obj_type)(exclude=valid_exclude).dump(attr)
+    return parents
+
+
 class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
 
     @property
@@ -131,7 +140,7 @@ class MonitoringBibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
+class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringModules
         load_instance = True
@@ -172,7 +181,7 @@ class GeojsonSerializationField(fields.Field):
             raise ValidationError("Geometry error") from error
 
 
-class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
+class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
     class Meta:
         model = TMonitoringSitesGroups
@@ -227,10 +236,10 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
+class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringSites
-        exclude = ("geom_geojson", "geom", "geom_local")
+        exclude = ("geom_geojson", "geom", "geom_local", "parents")
         include_fk = True
         load_relationships = True
 
@@ -244,6 +253,13 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
     last_visit = fields.Date(dump_only=True)
     first_use_date = fields.Date(dump_only=True)
 
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        hierarchy_list = ["sites_group"]
+        parents = generate_parents_data(hierarchy_list, obj)
+        return parents
+
     def serialize_geojson(self, obj):
         if obj.geom is not None:
             return geojson.dumps(obj.as_geofeature().get("geometry"))
@@ -256,6 +272,23 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema, AdditionalFieldsMixin):
 
     def get_id_inventor(self, obj):
         return obj.id_inventor
+
+    @post_dump
+    def add_additional_fields(self, data, **kwargs):
+        # Cas des propriétés renseignées dans d'autre module
+        #  Ajout manuel des propriétés manquantes
+        # TODO AJOUTER DES TESTS
+        additional_fields_data = data.pop("data", {})
+        if additional_fields_data is None:
+            return data
+        for key, value in additional_fields_data.items():
+            if key not in data:
+                data[key] = value
+            if not data.get("additional_data_keys"):
+                data["additional_data_keys"] = []
+            if key not in data["additional_data_keys"]:
+                data["additional_data_keys"].append(key)
+        return data
 
 
 class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
@@ -277,6 +310,14 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
     visit_date_max = MA.Date()
 
     observers = MA.Pluck(ObserverSchema, "id_role", many=True)
+
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        parents = {}
+        hierarchy_list = ["site", "site.sites_group"]
+        parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
     def set_pk(self, obj):
         return "id_base_visit"
@@ -318,6 +359,13 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
 
         return data
 
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        parents = {}
+        hierarchy_list = ["visit", "visit.site", "visit.site.sites_group"]
+        parents = generate_parents_data(hierarchy_list, obj)
+
 
 class MonitoringObservationsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
@@ -337,6 +385,18 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
     medias = MA.Nested(MediaSchema, many=True)
     id_base_site = fields.Method("set_id_base_site", dump_only=True)
     id_base_visit = fields.Method("set_id_base_visit", dump_only=True)
+
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        parents = {}
+        hierarchy_list = [
+            "observation",
+            "observation.visit",
+            "observation.visit.site",
+            "observation.visit.site.sites_group",
+        ]
+        parents = generate_parents_data(hierarchy_list, obj)
 
     def set_pk(self, obj):
         return "id_observation_detail"

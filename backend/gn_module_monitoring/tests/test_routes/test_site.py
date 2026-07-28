@@ -44,7 +44,7 @@ class TestSite:
 
     def test_get_sites(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        schema = MonitoringSitesSchemaCruved()
+        schema = MonitoringSitesSchemaCruved(exclude=("medias", "parents"))
 
         r = self.client.get(url_for("monitorings.get_sites"))
         assert r.status_code == 200

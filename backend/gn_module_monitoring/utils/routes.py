@@ -48,23 +48,38 @@ def get_sort(params: MultiDict, default_sort: str, default_direction) -> Tuple[s
     return params.pop("sort", default_sort), params.pop("sort_dir", default_direction)
 
 
-def paginate(query: Select, schema: Schema, limit: int, page: int) -> Response:
+def paginate(
+    query: Select,
+    schema: Schema,
+    limit: int,
+    page: int,
+    schema_extra_args: dict = None,
+) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
     pagination_schema = paginate_schema(schema)
-    data = pagination_schema().dump(
+    if schema_extra_args is None:
+        instance_schema = pagination_schema()
+    else:
+        instance_schema = pagination_schema(**schema_extra_args)
+    data = instance_schema.dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
     return jsonify(data)
 
 
 def paginate_scope(
-    query: Select, schema: Schema, limit: int, page: int, object_code=None
+    query: Select,
+    schema: Schema,
+    limit: int,
+    page: int,
+    object_code=None,
+    schema_extra_args: dict = None,
 ) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
 
     pagination_schema = paginate_schema(schema)
 
-    datas_allowed = pagination_schema().dump(
+    datas_allowed = pagination_schema(**schema_extra_args).dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
 
