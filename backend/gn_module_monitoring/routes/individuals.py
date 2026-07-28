@@ -70,6 +70,7 @@ def get_individuals(object_type, module_code=None):
         limit=limit,
         page=page,
         object_code=object_code,
+        schema_extra_args={"exclude": ("items.medias",)},
     )
 
 
