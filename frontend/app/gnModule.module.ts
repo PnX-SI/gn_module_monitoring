@@ -86,6 +86,9 @@ import { ImportButtonComponent } from '@geonature/shared/importButton/import-but
 import { MonitoringObservationsDetailCreateComponent } from './components/monitoring-observationsdetails-create/monitoring-observationsdetail-create.component';
 import { MonitoringObservationsDetailDetailComponent } from './components/monitoring-observationsdetail-detail/monitoring-observationsdetail-detail.component';
 import { DetailObservationsDetailResolver } from './resolver/detail-observationsdetail-resolver';
+import { MonitoringIndividualsCreateComponent } from './components/monitoring-individuals-create/monitoring-individuals-create.component';
+import { MonitoringIndividualsDetailComponent } from './components/monitoring-individuals-detail/monitoring-individuals-detail.component';
+import { DetailIndividualsResolver } from './resolver/detail-individuals-resolver';
 
 const routes: Routes = [
   { path: '', component: ModulesComponent },
@@ -242,6 +245,20 @@ const routes: Routes = [
             },
             runGuardsAndResolvers: 'always',
           },
+          {
+            path: 'create',
+            component: MonitoringIndividualsCreateComponent,
+            resolve: {
+              createSite: DetailIndividualsResolver,
+            },
+          },
+          {
+            path: ':id',
+            component: MonitoringIndividualsDetailComponent,
+            resolve: {
+              detailSites: DetailIndividualsResolver,
+            },
+          },
         ],
       },
     ],
@@ -288,6 +305,8 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringObservationsCreateComponent,
     MonitoringObservationsDetailCreateComponent,
     MonitoringObservationsDetailDetailComponent,
+    MonitoringIndividualsCreateComponent,
+    MonitoringIndividualsDetailComponent,
     MonitoringDatatableGComponent,
     MonitoringPropertiesGComponent,
     MonitoringSitesGroupsCreateComponent,
