@@ -256,7 +256,7 @@ export class MonitoringSitesgroupsDetailComponent
     // Tableau
     const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
     this._sitesGroupService
-      .getSitesChildResolved(1, this.limit, sitesParams, fieldsConfig)
+      .getSitesChildResolved(page, this.limit, sitesParams, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
         const siteList = data.items;
         this.rows = siteList;
