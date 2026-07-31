@@ -325,7 +325,7 @@ def delete_site(scope, _id, object_type):
 @permissions.check_cruved_scope(
     "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
 )
-def patch_sites(scope, _id, object_type):
+def patch_site(scope, _id, object_type):
     site = db.get_or_404(TMonitoringSites, _id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update site {site.id_base_site}")
@@ -346,11 +346,9 @@ def create_or_update_site(post_data: dict, module_code: str = "generic"):
     """
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
-    try:
-        site = MonitoringSitesSchema(unknown=EXCLUDE).load(process_data)
-    except Exception as e:
-        print(e.__dict__)
-        raise e
+
+    site = MonitoringSitesSchema(unknown=EXCLUDE).load(process_data)
+
     db.session.add(site)
     db.session.commit()
 
