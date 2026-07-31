@@ -215,7 +215,7 @@ def patch(scope, object_type: str, module_code: str = "generic", _id: int = None
     defaults={"object_type": "sites_group"},
 )
 @check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-def post(object_type: str, module_code: str = "generic"):
+def post_sites_group(object_type: str, module_code: str = "generic"):
     post_data = dict(request.get_json())
     sites_group = create_or_update_site_group(post_data, module_code)
     return sites_group
