@@ -47,7 +47,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   public objectType: string = 'module';
 
-  objForm: FormGroup;
   objInitForm: Object = {};
   rows;
   dataTableConfig: {}[] = [];
@@ -62,7 +61,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   currentPermission: TPermission;
 
-  public bIsInitialized: boolean;
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
     site: 'visit',
@@ -117,7 +115,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
         page: currentData.page - 1,
       };
 
-      this.currentUser = this._auth.getCurrentUser();
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
 
@@ -152,18 +149,14 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
       if (this.moduleCode != 'generic') {
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
-        this._moduleService.getById(99, this.moduleCode).subscribe((data) => {
-          this.obj = data;
+        this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
+          this.objectData = data;
           this.resolvedObj = resolveObjectProperties(
-            this.obj,
+            this.objectData,
             this._configServiceG.config()['module']['fields'],
             this._configServiceG,
             this._cacheService
           );
-          this.setTemplateData('module');
-
-          this.objForm = this._formBuilder.group({});
-          this.bIsInitialized = true;
         });
       }
     });

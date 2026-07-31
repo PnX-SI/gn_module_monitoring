@@ -57,7 +57,12 @@ export class MonitoringObservationsDetailComponent
     // Initialisation des données
     this.initData();
     // breadcrumb
-    this._objService.loadBreadCrumb(this.moduleCode, this.objectType, this.dataId, this.parentPath);
+    this._objService.loadBreadCrumb(
+      this.moduleCode,
+      this.objectType,
+      this.dataId,
+      this.queryParams
+    );
   }
 
   initData() {

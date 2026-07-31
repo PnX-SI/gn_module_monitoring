@@ -25,7 +25,7 @@ export class MonitoringGeomComponent implements OnInit {
   public moduleConfig: any;
   public moduleCode: string;
   public parentPath: string[] = [];
-  public queryParams: {};
+  public queryParams: {} = {};
   public checkEditParam: boolean = false;
   public currentUser;
 
@@ -73,7 +73,7 @@ export class MonitoringGeomComponent implements OnInit {
 
     // Récupération des paramètres de la route
     this.dataId = this._Activatedroute.snapshot.params.id;
-    this.checkEditParam = this._Activatedroute.snapshot.queryParams?.edit || false;
+    this.checkEditParam = JSON.parse(this._Activatedroute.snapshot.queryParams?.edit || 'false');
     this.parentPath = this._Activatedroute.snapshot.queryParamMap.getAll('parents_path');
     this.queryParams = this._Activatedroute.snapshot.queryParams;
 
@@ -82,6 +82,7 @@ export class MonitoringGeomComponent implements OnInit {
     this.form = this._formBuilder.group({});
     this.setTemplateData(this.objectType);
 
+    // Passage en mode édition si paramètre 'edit' est true
     if (this.checkEditParam === true) {
       this.bEdit = true;
       this._formService.changeCurrentEditMode(this.bEdit);

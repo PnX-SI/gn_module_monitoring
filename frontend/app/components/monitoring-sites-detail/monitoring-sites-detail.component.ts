@@ -138,12 +138,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         },
       };
       this.setDataTableObjData(dataTableData, this.moduleCode, ['visit']);
-
-      if (this.checkEditParam) {
-        // Si mode édition demandé via le paramètre d'URL "edit"
-        this.bEdit = true;
-        this._formService.changeCurrentEditMode(this.bEdit);
-      }
     });
   }
 

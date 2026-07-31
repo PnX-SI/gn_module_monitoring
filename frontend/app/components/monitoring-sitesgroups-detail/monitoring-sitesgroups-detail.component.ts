@@ -7,15 +7,13 @@ import { IPage, IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
-import { IobjObs } from '../../interfaces/objObs';
 import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
 import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
@@ -38,15 +36,11 @@ export class MonitoringSitesgroupsDetailComponent
   siteSelectedId: number;
   rows;
   siteResolvedProperties;
-  checkEditParam: boolean;
 
   sitesGroupResolved;
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
-
-  currentPermission: TPermission;
-  bIsInitialized: boolean = false;
 
   constructor(
     protected _Activatedroute: ActivatedRoute,
@@ -123,13 +117,6 @@ export class MonitoringSitesgroupsDetailComponent
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
-
-        this.bIsInitialized = true;
-
-        if (this.checkEditParam) {
-          this.bEdit = true;
-        }
-        this._formService.changeCurrentEditMode(this.bEdit);
       });
   }
 
