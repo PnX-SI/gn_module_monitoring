@@ -14,6 +14,7 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
+import { MonitoringObjectService } from '../../services/monitoring-object.service';
 
 @Component({
   selector: 'pnx-monitoring-site-form-g',
@@ -38,6 +39,7 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     _geojsonService: GeoJSONService,
     _navigationService: NavigationService,
     _route: ActivatedRoute,
+    _formUtils: MonitoringObjectService,
     translate: TranslateService
   ) {
     super(
@@ -50,6 +52,7 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       _geojsonService,
       _navigationService,
       _route,
+      _formUtils,
       translate
     );
   }

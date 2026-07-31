@@ -61,11 +61,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngAfterViewInit() {
-    this.formValues(this.object).subscribe((formValue) => {
-      if (this.object) {
-        this.form.patchValue(formValue);
-      }
-      this.setDefaultFormValue();
+    if (this.object) {
+      this.form.patchValue(this.object);
+    }
+    this.setDefaultFormValue();
+
+    this.formValues(this.form.value).subscribe((formValue) => {
+      this.form.patchValue(formValue);
       if (this.config['geometry_type']) {
         this._formService.changeFormMapObj({
           frmGp: this.form.controls['geometry'] as FormControl,
@@ -106,7 +108,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
           this.object.geometry = null;
         } else {
           // TODO pourquoi la conversion en JSON ici ?
-          this.object.geometry = JSON.parse(this.object.geometry);
+          this.object.geometry = this.object.geometry;
         }
       }
     }
@@ -126,14 +128,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   setDefaultFormValue() {
     const value = this.form.value;
     const date = new Date();
+    const isoDate =
+      date.getFullYear() +
+      '-' +
+      String(date.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(date.getDate()).padStart(2, '0');
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
       id_inventor: value['id_inventor'] || this.currentUser.id_role,
-      first_use_date: value['first_use_date'] || {
-        year: date.getUTCFullYear(),
-        month: date.getUTCMonth() + 1,
-        day: date.getUTCDate(),
-      },
+      first_use_date: value['first_use_date'] || isoDate,
     };
     this.form.patchValue(defaultValue);
   }
@@ -225,14 +229,19 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     return formDef;
   }
   formValues(objData): Observable<any> {
+    if (!objData) {
+      return of(true);
+    }
     let schema = this.config['fields'];
-
     const properties = Utils.copy(objData);
     const observables = {};
 
     for (const attribut_name of Object.keys(schema)) {
       const elem = schema[attribut_name];
       if (!(elem || [])['type_widget']) {
+        continue;
+      }
+      if (!(attribut_name in properties)) {
         continue;
       }
       observables[attribut_name] = this._formUtils.toForm(elem, properties[attribut_name]);

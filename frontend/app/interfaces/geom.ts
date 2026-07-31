@@ -44,7 +44,7 @@ export interface ISite extends IGeomObject {
   types_site: JsonData[];
   medias: JsonData[];
   id_sites_group: number;
-  id_inventor: string[];
+  id_inventor: number;
   inventor: string[];
 }
 

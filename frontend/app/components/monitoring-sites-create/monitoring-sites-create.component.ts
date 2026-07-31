@@ -37,11 +37,11 @@ export class MonitoringSitesCreateComponent implements OnInit {
 
   ngOnInit() {
     this.moduleCode = this._route.snapshot.data.createSite.moduleCode;
-    this.siteService.setModuleCode(this.moduleCode);
 
+    this.currentUser = this._auth.getCurrentUser();
     this.moduleConfig = this._configServiceG.config();
     this.form = this._formBuilder.group({});
-    this.currentUser = this._auth.getCurrentUser();
+
     // Création d'un nouveau site
     this.site = null;
 
