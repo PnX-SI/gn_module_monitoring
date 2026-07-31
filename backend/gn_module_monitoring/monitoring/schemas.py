@@ -1,4 +1,6 @@
 import geojson
+import json
+
 from operator import attrgetter
 from flask import g
 import marshmallow
@@ -174,6 +176,8 @@ class GeojsonSerializationField(fields.Field):
         if not value:
             return None
         try:
+            if isinstance(value, str):
+                value = json.loads(value)
             shape_ = shape(value)
             two_dimension_geom = remove_third_dimension(shape_)
             return from_shape(two_dimension_geom, srid=4326)
@@ -239,12 +243,12 @@ class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     class Meta:
         model = TMonitoringSites
-        exclude = ("geom_geojson", "geom", "geom_local", "parents")
+        exclude = ("geom_geojson", "geom_local", "parents")
         include_fk = True
         load_relationships = True
+        load_instance = True
 
     id_base_site = auto_field(allow_none=True, required=False)
-    geometry = fields.Method("serialize_geojson", dump_only=True)
     pk = fields.Method("set_pk", dump_only=True)
     types_site = RelatedList(Related(["id_nomenclature_type_site"]))
     id_sites_group = fields.Method("get_id_sites_group")
@@ -253,6 +257,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     nb_visits = fields.Integer(dump_only=True)
     last_visit = fields.Date(dump_only=True)
     first_use_date = fields.Date(dump_only=True)
+    geom = GeojsonSerializationField()
 
     parents = fields.Method("get_parents", dump_only=True)
 
@@ -260,10 +265,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         hierarchy_list = ["sites_group"]
         parents = generate_parents_data(hierarchy_list, obj)
         return parents
-
-    def serialize_geojson(self, obj):
-        if obj.geom is not None:
-            return geojson.dumps(obj.as_geofeature().get("geometry"))
 
     def set_pk(self, obj):
         return "id_base_site"
@@ -273,6 +274,11 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def get_id_inventor(self, obj):
         return obj.id_inventor
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+        return data
 
     @post_dump
     def add_additional_fields(self, data, **kwargs):

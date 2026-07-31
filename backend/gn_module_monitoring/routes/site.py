@@ -166,7 +166,7 @@ def get_sites(object_type, module_code=None):
         schema=schema,
         limit=limit,
         page=page,
-        object_code=object_code,
+        object_code=OBJECT_CODE,
         schema_extra_args={
             "exclude": (
                 "items.parents",
@@ -351,7 +351,6 @@ def create_or_update_site(post_data: dict, module_code: str = "generic"):
     except Exception as e:
         print(e.__dict__)
         raise e
-    print("js suis un site", site)
     db.session.add(site)
     db.session.commit()
 

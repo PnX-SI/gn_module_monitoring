@@ -464,7 +464,7 @@ class TestSite:
         assert response.status_code == 201
 
         obj_created = response.json
-        res = db.get_or_404(TMonitoringSites, obj_created["id"])
+        res = db.get_or_404(TMonitoringSites, obj_created["id_base_site"])
         assert res.as_dict()["base_site_name"] == site_to_post_with_types["base_site_name"]
 
         assert set(res.types_site) == set([ts for k, ts in types_site.items()])
