@@ -22,67 +22,41 @@ import { IObservation } from '../../interfaces/observation';
   styleUrls: ['./monitoring-visits-detail.component.css'],
 })
 export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent implements OnInit {
-  private moduleCode: string;
-  public moduleConfig;
-  public currentUser;
   public objectType: string = 'visit';
-  private checkEditParam: boolean = false;
-  public form: FormGroup;
-  private dataId: number;
-  public objectData: any;
-  public objectDataResolved: any;
   public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     private router: Router,
     public _visitsService: VisitsService,
     public _observationsService: ObservationsService,
     private _objService: ObjectService,
-    private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
-    private _formBuilder: FormBuilder,
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getChild;
   }
 
   ngOnInit() {
     super.ngOnInit();
-    // Initialisation des variables config
-    this.moduleCode = this._configServiceG.moduleCode();
-    this.moduleConfig = this._configServiceG.config();
-    this.currentUser = this._auth.getCurrentUser();
-    // Création d'un objet form
-    this.form = this._formBuilder.group({});
-
-    this._permissionService.setPermissionMonitorings(this.moduleCode);
-
-    // Récupération des paramètres de la route
-    this._Activatedroute.params.subscribe((params) => {
-      this.dataId = params['id'];
-      this.baseFilters = { id_base_visit: this.dataId };
-
-      // breadcrumb
-      const queryParams = this._Activatedroute.snapshot.queryParams;
-      this.parentPath = queryParams['parents_path'];
-      this.checkEditParam = JSON.parse(queryParams?.edit || 'false');
-      if (this.checkEditParam === true) {
-        this.bEdit = true;
-        this._formService.changeCurrentEditMode(this.bEdit);
-      }
-      // Initialisation des visites
-      this.initData();
-      this._objService.loadBreadCrumb(this.moduleCode, this.objectType, this.dataId, queryParams);
-
-      this.setTemplateData(this.objectType);
-    });
+    this.baseFilters = { id_base_visit: this.dataId };
+    // Initialisation des visites
+    this.initData();
+    // breadcrumb
+    this._objService.loadBreadCrumb(
+      this.moduleCode,
+      this.objectType,
+      this.dataId,
+      this.queryParams
+    );
   }
 
   initData() {

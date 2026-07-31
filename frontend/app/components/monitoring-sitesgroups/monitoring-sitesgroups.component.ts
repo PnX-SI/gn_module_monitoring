@@ -45,10 +45,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   public bDeleteModalEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
   public page: IPage;
 
-  // Configuration du module
-  public moduleConfig;
+  public objectType: string = 'module';
 
-  objectType: IobjObs<ISitesGroup>;
   objForm: FormGroup;
   objInitForm: Object = {};
   rows;
@@ -62,10 +60,7 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   siteResolvedProperties;
 
-  currentUser: User;
   currentPermission: TPermission;
-
-  public moduleCode: string;
 
   public bIsInitialized: boolean;
   // TODO: move to a common file
@@ -76,15 +71,15 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   };
 
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     private _sites_group_service: SitesGroupService,
     private _sitesService: SitesService,
     private _individualService: IndividualsService,
     public _geojsonService: GeoJSONService,
     private router: Router,
     private _objService: ObjectService,
-    private _formBuilder: FormBuilder,
-    private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     public _formService: FormService,
     private _location: Location,
     public _popup: Popup,
@@ -92,14 +87,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     public _moduleService: ModuleService,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getData;
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.moduleCode = this._configServiceG.moduleCode();
-    this.moduleConfig = this._configServiceG.config();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.initObject();
   }
