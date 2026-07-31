@@ -301,10 +301,27 @@ def get_module_sites(module_code: str):
 
 
 @blueprint.route("/sites", methods=["POST"], defaults={"object_type": "site"})
-@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_SITES")
-def post_sites(object_type):
+@blueprint.route("/<string:module_code>/sites", methods=["POST"], defaults={"object_type": "site"})
+@check_cruved_scope("C", object_code="MONITORINGS_SITES")
+def post_sites(module_code: str, object_type):
     module_code = "generic"
     post_data = dict(request.get_json())
+    return create_or_update_site(post_data, module_code=module_code), 201
+
+
+@blueprint.route("/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"})
+@blueprint.route(
+    "/<string:module_code>/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"}
+)
+@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_SITES")
+def patch_site(scope, module_code, _id, object_type):
+    site = db.get_or_404(TMonitoringSites, _id)
+    if not site.has_instance_permission(scope=scope):
+        raise Forbidden(f"User {g.current_user} cannot update site {site.id_base_site}")
+    module_code = "generic"
+    post_data = dict(request.get_json())
+    if "id_base_site" not in post_data:
+        post_data["id_base_site"] = _id
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
@@ -319,21 +336,6 @@ def delete_site(scope, _id, object_type):
     db.session.delete(site)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
-
-
-@blueprint.route("/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"})
-@permissions.check_cruved_scope(
-    "U", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
-)
-def patch_site(scope, _id, object_type):
-    site = db.get_or_404(TMonitoringSites, _id)
-    if not site.has_instance_permission(scope=scope):
-        raise Forbidden(f"User {g.current_user} cannot update site {site.id_base_site}")
-    module_code = "generic"
-    post_data = dict(request.get_json())
-    if "id_base_site" not in post_data:
-        post_data["id_base_site"] = _id
-    return create_or_update_site(post_data, module_code=module_code), 201
 
 
 def create_or_update_site(post_data: dict, module_code: str = "generic"):

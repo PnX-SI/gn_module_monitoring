@@ -36,7 +36,7 @@ export class MonitoringGeomComponent implements OnInit {
 
   protected _configServiceG: ConfigServiceG;
 
-  public parentPath: [];
+  public parentPath: string[] = [];
 
   constructor(
     public _permissionService: PermissionService,

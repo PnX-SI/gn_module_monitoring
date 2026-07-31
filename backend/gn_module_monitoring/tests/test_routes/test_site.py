@@ -459,7 +459,7 @@ class TestSite:
     ):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.post(
-            url_for("monitorings.post_sites"), data=site_to_post_with_types
+            url_for("monitorings.post_sites", module_code="generic"), data=site_to_post_with_types
         )
         assert response.status_code == 201
 
@@ -477,7 +477,8 @@ class TestSite:
             "base_site_name": "Test_Grotte_updated",
         }
         response = self.client.patch(
-            url_for("monitorings.patch_site", _id=_id_site), data=update_data
+            url_for("monitorings.patch_site", module_code="generic", _id=_id_site),
+            data=update_data,
         )
         assert response.status_code == 201
 
