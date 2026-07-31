@@ -9,16 +9,22 @@
     {{ site.base_site_name }}
   </span>
 </div>
-<pnx-monitoring-form [obj]="obj" [objForm]="form" *ngIf="bEdit" [(bEdit)]="bEdit" [apiService]="siteService"
-  [isExtraForm]="true" [currentUser]="currentUser" (bEditChange)="onbEditChange($event)"></pnx-monitoring-form>
-<pnx-monitoring-properties-g *ngIf="obj && !bEdit && obj.bIsInitialized" id="nav-properties" [obj]="site"
-  [(bEdit)]="bEdit" [currentUser]="currentUser" [templateData]="obj['template']"
-  [templateSpecific]="obj['template_specific']" objectType="site"></pnx-monitoring-properties-g>
+
+<pnx-monitoring-site-form-g *ngIf="objectDataResolved && bEdit"  [object]="objectData" objectType="site" [form]="form" [currentUser]="currentUser"
+    [apiService]="_siteService" [config]="moduleConfig['site']"></pnx-monitoring-site-form-g>
+
+<pnx-monitoring-properties-g *ngIf="objectDataResolved && !bEdit" id="nav-properties" [obj]="objectDataResolved"
+  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
+  [objectType]="objectType"></pnx-monitoring-properties-g>
 
 <pnx-monitoring-datatable-g *ngIf="!bEdit" [dataTableConfig]="dataTableConfig" [dataTableObjData]="dataTableObjData"
   [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page" (onFilter)="setFilter($event)"
-  (onSetPage)="setPage($event)" [obj]="visits" [moduleCode]="moduleCode" (onDetailsRow)="seeDetails($event)"
-  (onEditEvent)="editChild($event)" (onAddObj)="navigateToAddObj($event)" (onDeleteEvent)="onDelete($event)" [bDeleteModalEmitter]="bDeleteModalEmitter"
+  (onSetPage)="setPage($event)" [obj]="visits" [moduleCode]="moduleCode"
+  (onDetailsRow)="seeDetails($event)"
+  (onEditEvent)="editChild($event)"
+  (onAddObj)="navigateToAddObj($event)"
+  (onDeleteEvent)="onDelete($event)"
+  [bDeleteModalEmitter]="bDeleteModalEmitter"
   parentPath="site">
   <!-- Bouton pour ajouter une visite
       dans le module generic le bouton est toujours actif c'est la liste des modules disponibles à l'utilisateur qui determinera les permissions

@@ -1,13 +1,15 @@
 import { forkJoin, Observable, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
-import { ApiService } from '../../services/api-geom.service';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
-import { Location } from '@angular/common';
 import { Utils } from '../../utils/utils';
+import { ApiService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
@@ -37,6 +39,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public canDelete: boolean = true;
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
+
+  public deleteSpinner = false;
+  public deleteModal = false;
+
   private queryParams: {};
   private pendingKeepValues: JsonData | null = null;
 
@@ -50,15 +56,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _geojsonService: GeoJSONService,
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
-    private _formUtils: MonitoringObjectService
+    private _formUtils: MonitoringObjectService,
+    private translate: TranslateService
   ) {}
 
   ngAfterViewInit() {
-    this.formValues(this.object).subscribe((formValue) => {
-      if (this.object) {
-        this.form.patchValue(formValue);
-      }
-      this.setDefaultFormValue();
+    if (this.object) {
+      this.form.patchValue(this.object);
+    }
+    this.setDefaultFormValue();
+
+    this.formValues(this.form.value).subscribe((formValue) => {
+      this.form.patchValue(formValue);
       if (this.config['geometry_type']) {
         this._formService.changeFormMapObj({
           frmGp: this.form.controls['geometry'] as FormControl,
@@ -99,7 +108,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
           this.object.geometry = null;
         } else {
           // TODO pourquoi la conversion en JSON ici ?
-          this.object.geometry = JSON.parse(this.object.geometry);
+          this.object.geometry = this.object.geometry;
         }
       }
     }
@@ -107,69 +116,28 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    // Initialisation des variables
-    // this.initializeVariables(this.obj);
+    this.initForm();
 
-    // Initialisation des permissions de l'utilisateur courant
-    // this.initPermission();
-
-    // // Initialisation des paramètres par défaut du formulaire
-    this.queryParams = this._route.snapshot.queryParams || {};
-
-    this.meta = {
-      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
-      dataset: this._dataUtilsService.getDataUtil('dataset'),
-      id_role: this.currentUser.id_role,
-      bChainInput: this.chainInput,
-      // parents: this.object.parents
-    };
-
-    // Récupération de la définition du formulaire
-    this.formsDefinition = this.initFormDefiniton(this.config.fields, this.meta);
-    // Tri des proprités en fonction de la variable display_properties
     let displayProperties = [...(this.config.display_properties || [])];
-    this.formsDefinition = this.sortFormDefinition(displayProperties, this.formsDefinition);
-
-    if (this.config['geometry_type']) {
-      const validatorRequired =
-        this.objectType == 'sites_group'
-          ? this._formBuilder.control('')
-          : this._formBuilder.control('', Validators.required);
-
-      let frmCtrlGeom = {
-        frmCtrl: validatorRequired,
-        frmName: 'geometry',
-      };
-
-      this.form = this._formService.addFormCtrlToObjForm(frmCtrlGeom, this.form);
-      if (this.object) {
-        const geomCalculated = this.object.hasOwnProperty('is_geom_from_child')
-          ? this.object['is_geom_from_child']
-          : false;
-        if (geomCalculated) {
-          this.object.geometry = null;
-        } else {
-          // TODO pourquoi la conversion en JSON ici ?
-          this.object.geometry = JSON.parse(this.object.geometry);
-        }
-      }
-    }
-    // // Conversion des query params de type entier mais en string en int
-    // //  ??? A comprendre
-    // this.obj = this.setQueryParams(this.obj);
+    this.formsDefinition = this.sortFormDefinition(
+      displayProperties,
+      this.initFormDefiniton(this.config.fields, this.meta)
+    );
   }
 
   setDefaultFormValue() {
     const value = this.form.value;
     const date = new Date();
+    const isoDate =
+      date.getFullYear() +
+      '-' +
+      String(date.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(date.getDate()).padStart(2, '0');
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
       id_inventor: value['id_inventor'] || this.currentUser.id_role,
-      first_use_date: value['first_use_date'] || {
-        year: date.getUTCFullYear(),
-        month: date.getUTCMonth() + 1,
-        day: date.getUTCDate(),
-      },
+      first_use_date: value['first_use_date'] || isoDate,
     };
     this.form.patchValue(defaultValue);
   }
@@ -261,14 +229,19 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     return formDef;
   }
   formValues(objData): Observable<any> {
+    if (!objData) {
+      return of(true);
+    }
     let schema = this.config['fields'];
-
     const properties = Utils.copy(objData);
     const observables = {};
 
     for (const attribut_name of Object.keys(schema)) {
       const elem = schema[attribut_name];
       if (!(elem || [])['type_widget']) {
+        continue;
+      }
+      if (!(attribut_name in properties)) {
         continue;
       }
       observables[attribut_name] = this._formUtils.toForm(elem, properties[attribut_name]);
@@ -278,11 +251,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        // if ('config' in obj && obj.config['geometry_type']) {
-        //   // TODO: change null by the geometry load from the object (if edit) or null if create
-        //   // formValues["geometry"] = this.geometry; // copy???
-        //   formValues['geometry'] = obj.geometry; // copy???
-        // }
+        if (this.config['geometry_type'] && this.object.geom) {
+          formValues['geometry'] = this.object.geom;
+        }
         return of(formValues);
       })
     );
@@ -301,7 +272,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       // data[attribut_name] = formValue[attribut_name];
     }
     if (formValue['geometry'] !== null) {
-      data['geometry'] = formValue['geometry'];
+      data['geom'] = formValue['geometry']?.geometry;
     }
     return data;
   }
@@ -395,6 +366,21 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         : this._geojsonService.setMapBeforeEdit(this.object.geometry);
     }
     this.navigateToDetail();
+  }
+
+  onDelete() {
+    this.deleteSpinner = true;
+    this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
+      this.deleteSpinner = this.deleteModal = false;
+      this.object.deleted = true;
+      this._commonService.regularToaster(
+        'info',
+        this.translate.instant('Monitoring.Actions.Deleted')
+      );
+      setTimeout(() => {
+        this.navigateToParent();
+      }, 100);
+    });
   }
 
   ngOnDestroy() {

@@ -236,7 +236,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   editChild($event) {
     this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
-      queryParams: { parents_path: ['module', 'sites_group'] },
+      queryParams: { parents_path: ['module', 'sites_group'], edit: true },
     });
   }
 
