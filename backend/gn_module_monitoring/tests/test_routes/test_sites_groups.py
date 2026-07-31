@@ -150,6 +150,19 @@ class TestSitesGroups:
 
     def test_get_post_groups(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])
+        geom_sites_group = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [3.535269, 44.242648],
+                    [3.532821, 44.247625],
+                    [3.538272, 44.245986],
+                    [3.538398, 44.244186],
+                    [3.537732, 44.243658],
+                    [3.535269, 44.242648],
+                ]
+            ],
+        }
         site_group = {
             "altitude_max": None,
             "altitude_min": None,
@@ -159,14 +172,15 @@ class TestSitesGroups:
             "sites_group_code": "Cros_du_Lac",
             "sites_group_description": "Site test",
             "sites_group_name": "Cros du Lac",
-            "geometry": '{"type": "Polygon", "coordinates": [[[3.535269, 44.242648], [3.532821, 44.247625], [3.538272, 44.245986], [3.538398, 44.244186], [3.537732, 44.243658], [3.535269, 44.242648]]]}',
+            "geom": geom_sites_group,
         }
         r = self.client.post(
-            url_for("monitorings.post"),
+            url_for("monitorings.post_sites_group"),
             data=site_group,
         )
         assert r.status_code == 200
         assert r.json["sites_group_name"] == "Cros du Lac"
+        assert r.json["geom"] == geom_sites_group
 
 
 # TODO: ajouter tests sur tri

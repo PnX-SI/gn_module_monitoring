@@ -464,13 +464,25 @@ class TestSite:
         assert response.status_code == 201
 
         obj_created = response.json
-        res = db.get_or_404(TMonitoringSites, obj_created["id"])
-        assert (
-            res.as_dict()["base_site_name"]
-            == site_to_post_with_types["properties"]["base_site_name"]
-        )
+        res = db.get_or_404(TMonitoringSites, obj_created["id_base_site"])
+        assert res.as_dict()["base_site_name"] == site_to_post_with_types["base_site_name"]
 
         assert set(res.types_site) == set([ts for k, ts in types_site.items()])
+
+    def test_patch_sites(self, sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        _id_site = sites["Test_Grotte"].id_base_site
+
+        update_data = {
+            "base_site_name": "Test_Grotte_updated",
+        }
+        response = self.client.patch(
+            url_for("monitorings.patch_site", _id=_id_site), data=update_data
+        )
+        assert response.status_code == 201
+
+        obj_created = response.json
+        assert obj_created["base_site_name"] == update_data["base_site_name"]
 
     def test_delete_site(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
