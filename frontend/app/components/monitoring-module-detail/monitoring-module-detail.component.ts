@@ -35,11 +35,11 @@ import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
 
 @Component({
-  selector: 'monitoring-sitesgroups',
-  templateUrl: './monitoring-sitesgroups.component.html',
-  styleUrls: ['./monitoring-sitesgroups.component.css'],
+  selector: 'monitoring-module-detail',
+  templateUrl: './monitoring-module-detail.component.html',
+  styleUrls: ['./monitoring-module-detail.component.css'],
 })
-export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringModuleDetailComponent extends MonitoringGeomComponent implements OnInit {
   obj;
   resolvedObj;
   public bDeleteModalEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
