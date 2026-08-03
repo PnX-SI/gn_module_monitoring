@@ -7,15 +7,13 @@ import { IPage, IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
-import { IobjObs } from '../../interfaces/objObs';
 import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
 import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
@@ -29,83 +27,50 @@ export class MonitoringSitesgroupsDetailComponent
   extends MonitoringGeomComponent
   implements OnInit
 {
-  siteGroupId: number;
   sitesGroup: ISitesGroup;
   page: IPage;
-  filters = {};
-  form: FormGroup;
-  objectType: IobjObs<ISite>;
+
+  public objectType: string = 'site';
 
   modules: SelectObject[];
-  modulSelected;
   siteSelectedId: number;
   rows;
   siteResolvedProperties;
-  dataTableConfig: {}[] = [];
-  checkEditParam: boolean;
 
   sitesGroupResolved;
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
-  currentUser: User;
-  currentPermission: TPermission;
-  bIsInitialized: boolean = false;
-  public moduleConfig;
-
-  moduleCode: string;
-
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
     private _objService: ObjectService,
     private router: Router,
-    private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
-    private _formBuilder: FormBuilder,
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.moduleCode = this._configServiceG.moduleCode();
-    this.moduleConfig = this._configServiceG.config();
-    this.currentUser = this._auth.getCurrentUser();
-    this.form = this._formBuilder.group({});
-
-    this._Activatedroute.params.subscribe((params) => {
-      this.checkEditParam = params['edit'];
-      this.siteGroupId = params['id'];
-      this.baseFilters = { id_sites_group: this.siteGroupId };
-
-      // breadcrumb
-      const queryParams = this._Activatedroute.snapshot.queryParams;
-      this._objService.loadBreadCrumb(
-        this.moduleCode,
-        'sites_group',
-        this.siteGroupId,
-        queryParams
-      );
-
-      this._permissionService.setPermissionMonitorings(this.moduleCode);
-
-      this.initSite();
-      this.setTemplateData('sites_group');
-    });
+    this.baseFilters = { id_sites_group: this.dataId };
+    // breadcrumb
+    this._objService.loadBreadCrumb(this.moduleCode, 'sites_group', this.dataId, this.queryParams);
+    this.initSite();
   }
 
   initSite() {
     const fieldsConfig = this._configServiceG.config()['site']['fields'];
-    const siteGroupdata$ = this._sitesGroupService.getById(this.siteGroupId);
+    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId);
 
     siteGroupdata$
       .pipe(
@@ -152,13 +117,6 @@ export class MonitoringSitesgroupsDetailComponent
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
-
-        this.bIsInitialized = true;
-
-        if (this.checkEditParam) {
-          this.bEdit = true;
-        }
-        this._formService.changeCurrentEditMode(this.bEdit);
       });
   }
 
@@ -246,7 +204,7 @@ export class MonitoringSitesgroupsDetailComponent
       parents_path: ['module', 'sites_group'],
     };
 
-    queryParams['id_sites_group'] = this.siteGroupId;
+    queryParams['id_sites_group'] = this.dataId;
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
@@ -291,8 +249,7 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   addNewVisit(event) {
-    this.modulSelected = event;
-    const moduleCode = this.modulSelected.id;
+    const moduleCode = event.id;
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
     this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {

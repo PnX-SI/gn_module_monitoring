@@ -41,7 +41,6 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
   ngOnInit() {
     // Initialisation des variables
     this.moduleConfig = this._configServiceG.config();
-    console.log(this.moduleConfig);
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
@@ -52,7 +51,6 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
     // this.observation_detail.id_base_visit = JSON.parse(queryParams?.id_base_visit);
     // this.observation_detail.id_base_site = JSON.parse(queryParams?.id_base_site);
     this.observation_detail.id_observation = JSON.parse(queryParams?.id_observation);
-    console.log('queryParams', queryParams);
     this._objService.loadBreadCrumb(moduleCode, 'observation_detail', null, queryParams);
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);
