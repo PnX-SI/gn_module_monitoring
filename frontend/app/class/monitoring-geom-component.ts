@@ -1,4 +1,6 @@
 import { inject, OnInit, Directive } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '@geonature/components/auth/auth.service';
 import { Subscription } from 'rxjs';
 import { IdataTableObjData } from '../interfaces/geom';
 import { PermissionService } from '../services/permission.service';
@@ -6,6 +8,7 @@ import { TemplateData } from '../interfaces/template';
 import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
 import { ObjectType } from '../enum/objecttype';
+import { FormGroup, FormBuilder } from '@angular/forms';
 import { Popup } from '../utils/popup';
 import { FormService } from '../services/form.service';
 
@@ -18,6 +21,21 @@ export class MonitoringGeomComponent implements OnInit {
   protected limit = LIMIT;
   public filters = {};
   public baseFilters = {};
+
+  public moduleConfig: any;
+  public moduleCode: string;
+  public parentPath: string[] = [];
+  public queryParams: {} = {};
+  public checkEditParam: boolean = false;
+  public currentUser;
+
+  public objectType: string;
+
+  public form: FormGroup;
+
+  public dataId: number;
+  public objectData: any;
+  public objectDataResolved: any;
 
   protected bEdit: boolean = false;
   protected currentEditModeSubscription: Subscription;
@@ -36,17 +54,40 @@ export class MonitoringGeomComponent implements OnInit {
 
   protected _configServiceG: ConfigServiceG;
 
-  public parentPath: string[] = [];
-
   constructor(
     public _permissionService: PermissionService,
     public _popup: Popup,
-    public _formService: FormService
+    public _formService: FormService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService
   ) {
     this._configServiceG = inject(ConfigServiceG);
   }
 
   ngOnInit() {
+    // Récupération de la configuration du module
+    this.moduleCode = this._configServiceG.moduleCode();
+    this.moduleConfig = this._configServiceG.config();
+    this.currentUser = this._auth.getCurrentUser();
+
+    // Récupération des paramètres de la route
+    this.dataId = this._Activatedroute.snapshot.params.id;
+    this.checkEditParam = JSON.parse(this._Activatedroute.snapshot.queryParams?.edit || 'false');
+    this.parentPath = this._Activatedroute.snapshot.queryParamMap.getAll('parents_path');
+    this.queryParams = this._Activatedroute.snapshot.queryParams;
+
+    // Initialisation des formulaires et templates
+    this._permissionService.setPermissionMonitorings(this.moduleCode);
+    this.form = this._formBuilder.group({});
+    this.setTemplateData(this.objectType);
+
+    // Passage en mode édition si paramètre 'edit' est true
+    if (this.checkEditParam === true) {
+      this.bEdit = true;
+      this._formService.changeCurrentEditMode(this.bEdit);
+    }
+
     this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
       (value: boolean) => {
         // Permet d'identifier si l'objet est passé en mode édition
@@ -60,6 +101,7 @@ export class MonitoringGeomComponent implements OnInit {
   onbEditChange(event: boolean) {
     console.log('Not implemented');
   }
+
   setPage({ page, filters, tabObj = '' }) {
     this.filters = { ...this.baseFilters, ...filters };
     this.getAllItemsCallback(page.offset + 1, this.filters, tabObj);

@@ -310,7 +310,7 @@ export class ModuleService extends ApiService<any> {
     super.init(endPoints.modules, objectObs);
   }
 
-  getById(id: number, moduleCode?: string) {
+  getByModuleCode(moduleCode?: string) {
     return this._cacheService.request<Observable<any>>(
       'get',
       `module/${moduleCode}?field_name=module_code`

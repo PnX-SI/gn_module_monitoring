@@ -32,34 +32,28 @@ import { CacheService } from '../../services/cache.service';
 export class MonitoringSitesDetailComponent extends MonitoringGeomComponent implements OnInit {
   @Input() visits: IPaginated<IVisit>;
   @Input() page: IPage;
-  form: FormGroup;
+  // form: FormGroup;
   modules: SelectObject[];
 
   public objectType: string = 'site';
-  private dataId: number;
-  public objectData: any;
-  public objectDataResolved: any;
-  public moduleConfig: any;
-  public moduleCode: string;
 
   site: ISite;
 
   siteGroupIdParent: number;
   rows;
-  checkEditParam: boolean;
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   currentUser: User;
 
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     private _visits_service: VisitsService,
     private _objService: ObjectService,
     public geojsonService: GeoJSONService,
     private router: Router,
-    private _Activatedroute: ActivatedRoute,
-    private _formBuilder: FormBuilder,
     public _formService: FormService,
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
@@ -69,31 +63,22 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getVisits;
+    this.objectType = 'site';
   }
 
   ngOnInit() {
     super.ngOnInit();
-    // Initialisation des variables config
-    this.moduleCode = this._configServiceG.moduleCode();
-    this.moduleConfig = this._configServiceG.config();
-    this.currentUser = this._auth.getCurrentUser();
-    this.dataId = this._Activatedroute.snapshot.params.id;
-    this.checkEditParam = this._Activatedroute.snapshot.queryParams?.edit || false;
-    this.parentPath = this._Activatedroute.snapshot.queryParamMap.getAll('parents_path');
-
-    this.currentUser = this._auth.getCurrentUser();
-    this.form = this._formBuilder.group({});
-    this.setTemplateData(this.objectType);
-
     // breadcrumb
-    const queryParams = this._Activatedroute.snapshot.queryParams;
-    this._objService.loadBreadCrumb(this.moduleCode, 'site', this.dataId, queryParams);
-    // initialisation de la configuration du fait de l'utilisation de Obj
-    this._configService.init(this.moduleCode).subscribe(() => {
-      this.initSiteVisit();
-    });
+    this._objService.loadBreadCrumb(
+      this.moduleCode,
+      this.objectType,
+      this.dataId,
+      this.queryParams
+    );
+    // initialisation des données
+    this.initSiteVisit();
   }
 
   initSiteVisit() {
@@ -153,12 +138,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
         },
       };
       this.setDataTableObjData(dataTableData, this.moduleCode, ['visit']);
-
-      if (this.checkEditParam) {
-        // Si mode édition demandé via le paramètre d'URL "edit"
-        this.bEdit = true;
-        this._formService.changeCurrentEditMode(this.bEdit);
-      }
     });
   }
 

@@ -35,21 +35,18 @@ import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
 
 @Component({
-  selector: 'monitoring-sitesgroups',
-  templateUrl: './monitoring-sitesgroups.component.html',
-  styleUrls: ['./monitoring-sitesgroups.component.css'],
+  selector: 'monitoring-module-detail',
+  templateUrl: './monitoring-module-detail.component.html',
+  styleUrls: ['./monitoring-module-detail.component.css'],
 })
-export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent implements OnInit {
+export class MonitoringModuleDetailComponent extends MonitoringGeomComponent implements OnInit {
   obj;
   resolvedObj;
   public bDeleteModalEmitter: EventEmitter<boolean> = new EventEmitter<boolean>();
   public page: IPage;
 
-  // Configuration du module
-  public moduleConfig;
+  public objectType: string = 'module';
 
-  objectType: IobjObs<ISitesGroup>;
-  objForm: FormGroup;
   objInitForm: Object = {};
   rows;
   dataTableConfig: {}[] = [];
@@ -62,12 +59,8 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
   siteResolvedProperties;
 
-  currentUser: User;
   currentPermission: TPermission;
 
-  public moduleCode: string;
-
-  public bIsInitialized: boolean;
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
     site: 'visit',
@@ -76,15 +69,15 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
   };
 
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     private _sites_group_service: SitesGroupService,
     private _sitesService: SitesService,
     private _individualService: IndividualsService,
     public _geojsonService: GeoJSONService,
     private router: Router,
     private _objService: ObjectService,
-    private _formBuilder: FormBuilder,
-    private _Activatedroute: ActivatedRoute, // private _routingService: RoutingService
     public _formService: FormService,
     private _location: Location,
     public _popup: Popup,
@@ -92,14 +85,12 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
     public _moduleService: ModuleService,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getData;
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.moduleCode = this._configServiceG.moduleCode();
-    this.moduleConfig = this._configServiceG.config();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this.initObject();
   }
@@ -124,7 +115,6 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
         page: currentData.page - 1,
       };
 
-      this.currentUser = this._auth.getCurrentUser();
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
 
@@ -159,18 +149,14 @@ export class MonitoringSitesGroupsComponent extends MonitoringGeomComponent impl
 
       if (this.moduleCode != 'generic') {
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
-        this._moduleService.getById(99, this.moduleCode).subscribe((data) => {
-          this.obj = data;
+        this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
+          this.objectData = data;
           this.resolvedObj = resolveObjectProperties(
-            this.obj,
+            this.objectData,
             this._configServiceG.config()['module']['fields'],
             this._configServiceG,
             this._cacheService
           );
-          this.setTemplateData('module');
-
-          this.objForm = this._formBuilder.group({});
-          this.bIsInitialized = true;
         });
       }
     });
