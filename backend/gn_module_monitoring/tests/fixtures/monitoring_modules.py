@@ -1,4 +1,5 @@
 import pytest
+import pytest
 import shutil
 
 from uuid import uuid4
@@ -101,7 +102,7 @@ def install_monitoring_module(module_code, type_site, users):
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
-        "INDIVIDUALS",
+        "MONITORINGS_INDIVIDUALS",
         "MONITORINGS_MARKINGS",
         "ALL",
     ]

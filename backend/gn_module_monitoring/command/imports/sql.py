@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     PrimaryKeyConstraint,
+    text,
 )
 
 from geonature.utils.env import DB
@@ -35,7 +36,8 @@ def check_rows_exist_in_import_table(module_code: str) -> bool:
     table_name = f"t_imports_{module_code.lower()}"
     query = f"SELECT * FROM gn_imports.{table_name} LIMIT 1;"
     try:
-        result = DB.session.execute(query).fetchone()
+        with DB.session.begin_nested():
+            result = DB.session.execute(text(query)).fetchone()
         return result is not None
     except Exception as e:
         print(f"Erreur lors de la vérification de l'existence de la table : {str(e)}")
@@ -47,7 +49,7 @@ def create_sql_import_table_protocol(module_code: str, protocol_data):
     Create import table using SQLAlchemy metadata
     """
     table = get_imports_table_metadata(module_code, protocol_data)
-    table.metadata.create_all(DB.engine)
+    table.metadata.create_all(DB.session.connection())
     print(f"La table transitoire d'importation pour {module_code} a été créée.")
 
 

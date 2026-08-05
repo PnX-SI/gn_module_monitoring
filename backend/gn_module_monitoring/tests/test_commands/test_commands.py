@@ -1,3 +1,6 @@
+from gn_module_monitoring.tests.fixtures.monitoring_modules import (
+    install_monitoring_module,
+)
 import pytest
 import json
 from pathlib import Path
@@ -33,8 +36,6 @@ from gn_module_monitoring.command.imports.entity import (
 from gn_module_monitoring.command.imports.fields import delete_bib_fields, insert_bib_field
 from sqlalchemy import insert
 from geonature.core.imports.models import TImports
-
-from gn_module_monitoring.tests.fixtures.module import install_monitoring_module
 
 
 class TestCommands:
@@ -209,7 +210,7 @@ class TestCommands:
         assert "observation" in entities
         assert "visit" in entities
 
-        inspector = inspect(DB.engine)
+        inspector = inspect(DB.session.connection())
         result = inspector.has_table(destination.table_name, schema="gn_imports")
 
         assert result == True

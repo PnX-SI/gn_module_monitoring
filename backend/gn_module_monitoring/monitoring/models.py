@@ -35,7 +35,7 @@ from geonature.core.gn_monitoring.models import (
     corIndividualModule,
 )
 from geonature.core.gn_meta.models import TDatasets
-from geonature.core.gn_commons.models import TModules, cor_module_dataset
+from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
 from pypnusershub.db.models import User
@@ -639,12 +639,6 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         # viewonly=True,
     )
 
-    datasets = DB.relationship(
-        "TDatasets",
-        secondary=cor_module_dataset,
-        join_depth=0,
-        overlaps="modules",
-    )
     types_site = DB.relationship(
         "BibTypeSite",
         secondary=cor_module_type,

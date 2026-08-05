@@ -45,9 +45,9 @@ def install_test_module_with_import(install_module_test):
     site_fields = db.session.scalars(
         sa.select(BibFields).where(
             BibFields.id_destination
-            == sa.select(Destination.id_destination).where(
-                Destination.module.has(TModules.module_code == "test")
-            )
+            == sa.select(Destination.id_destination)
+            .where(Destination.module.has(TModules.module_code == "test"))
+            .scalar_subquery()
         )
     ).all()
 
@@ -214,7 +214,7 @@ class TestImportMonitoring:
         "autogenerate, import_file_name,fieldmapping_preset_name",
         [(False, "valid_hierarchy_comma.csv", None)],
     )
-    def test_import_valid_file(self, datasets, imported_import):
+    def test_import_valid_file(self, imported_import):
         assert_import_errors(
             imported_import,
             set([]),
@@ -262,7 +262,7 @@ class TestImportMonitoring:
         "autogenerate, import_file_name,fieldmapping_preset_name",
         [(False, "bad_cdnom.csv", None)],
     )
-    def test_import_bad_cdnom_file(self, datasets, imported_import):
+    def test_import_bad_cdnom_file(self, imported_import):
         errors = {
             (
                 error.type.name,

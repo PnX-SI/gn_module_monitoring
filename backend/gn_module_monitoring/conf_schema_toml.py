@@ -14,7 +14,7 @@ PERMISSION_LEVEL_DEFAULT = {
     "visit": "MONITORINGS_VISITES",
     "observation": "MONITORINGS_VISITES",
     "observation_detail": "MONITORINGS_VISITES",
-    "individual": "MONITORINGS_INDIVIDUALS",
+    "individual": "INDIVIDUALS",
     "marking": "MONITORINGS_MARKINGS",
 }
 
