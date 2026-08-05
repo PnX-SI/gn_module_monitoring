@@ -258,7 +258,7 @@ export class MonitoringDatatableGComponent implements OnInit {
         if (this.moduleCode === 'generic') this.canCreateChild = true;
         break;
       case 'individual':
-        objectType = ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS;
+        objectType = ObjectsPermissionMonitorings.INDIVIDUALS;
         objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_MARKINGS;
         this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         break;
