@@ -20,7 +20,7 @@ export class PermissionService {
       canUpdate: false,
       canDelete: false,
     },
-    [typePerm.MONITORINGS_INDIVIDUALS]: {
+    [typePerm.INDIVIDUALS]: {
       canCreate: false,
       canRead: false,
       canUpdate: false,

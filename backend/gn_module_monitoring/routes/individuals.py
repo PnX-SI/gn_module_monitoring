@@ -33,9 +33,9 @@ from gn_module_monitoring.utils.routes import (
     methods=["GET"],
     defaults={"object_type": "individual"},
 )
-@check_cruved_scope("R", object_code="MONITORINGS_INDIVIDUALS")
+@check_cruved_scope("R", object_code="INDIVIDUALS")
 def get_individuals(object_type, module_code=None):
-    object_code = "MONITORINGS_INDIVIDUALS"
+    object_code = "INDIVIDUALS"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -73,7 +73,7 @@ def get_individuals(object_type, module_code=None):
 @blueprint.route(
     "/individuals/<int:_id>", methods=["DELETE"], defaults={"object_type": "individual"}
 )
-@check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_INDIVIDUALS")
+@check_cruved_scope("D", get_scope=True, object_code="INDIVIDUALS")
 def delete_individual(scope, _id: int, object_type: str):
     individual = db.get_or_404(TMonitoringIndividuals, _id)
     if not individual.has_instance_permission(scope=scope):
