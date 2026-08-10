@@ -257,6 +257,16 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     }
   }
 
+  get canCreateVisit() {
+    if (this.obj.properties.active === false) {
+      // is the site inactive?
+      return false;
+    }
+    return this.moduleCode === 'generic'
+      ? true
+      : !!this.currentPermission?.MONITORINGS_VISITES?.canCreate === true; // check permission
+  }
+
   addNewVisit($event: SelectObject) {
     const moduleCode = $event.id;
     //create_object/cheveches_sites_group/visit?id_base_site=47

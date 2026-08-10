@@ -252,9 +252,10 @@ export class MonitoringDatatableGComponent implements OnInit {
         this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
         // Cas du module générique (moduleCode = 'generic')
         //  Il n'y a pas de permissions pour les visites,
-        //  elles sont créées dans le contexte d'un module
-        // Par défaut : création autorisée mais seul les modules où l'utilisateur a le droit de créer des visites
-        //  seront afficher dans le menu déroulant
+        //  elles sont créées dans le contexte d'un module.
+        // Par défaut : création autorisée sauf pour les sites inactifs
+        //  mais seuls les modules où l'utilisateur a le droit de créer des visites*
+        //  seront affichés dans le menu déroulant
         if (this.moduleCode === 'generic') this.canCreateChild = true;
         break;
       case 'individual':

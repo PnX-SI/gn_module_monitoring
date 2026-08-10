@@ -46,7 +46,8 @@
             "NoModules" : "Aucun protocole n'est disponible pour ce type de site"
         },
         "Sites" : {
-            "addVisit" : "Ajouter une visite" 
+            "addVisit" : "Ajouter une visite",
+            "inactiveSite" : "Site inactif"
         },
         "Actions" : {
             "Done" : " effectuée",

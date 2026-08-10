@@ -5,6 +5,9 @@
   "label": "Site",
   "label_list": "Sites",
   "genre": "M",
+  "filters": {
+    "active": true
+  },
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
   "geometry_type": [
@@ -19,6 +22,7 @@
     "id_inventor",
     "first_use_date",
     "last_visit",
+    "active",
     "nb_visits",
     "altitude_min",
     "altitude_max",
@@ -29,6 +33,7 @@
     "base_site_code",
     "last_visit",
     "id_inventor",
+    "active",
     "nb_visits",
     "types_site",
     "nb_individuals"
@@ -128,6 +133,13 @@
       "nullDefault": true,
       "definition": "Permet de n'avoir que les types de site lié au module",
       "designStyle": "bootstrap"
+    },
+    "active": {
+      "type_widget": "bool_checkbox",
+      "attribut_label": "Actif",
+      "required": true,
+      "default": true,
+      "value": true
     }
   }
 }

@@ -24,8 +24,10 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
 from geonature.core.gn_permissions.models import TObjects
 from geonature.core.imports.models import Destination
+from gn_module_monitoring.monitoring.models import TBaseSites
 
 from geonature.utils.env import DB, ROOT_DIR
+from geonature.utils.errors import GeoNatureError
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring.blueprint import blueprint
@@ -236,6 +238,20 @@ def update_object_api(scope, module_code, object_type, id):
 @json_resp
 def create_object_api(module_code, object_type, id):
     post_data = dict(request.get_json())
+
+    # prevent visit creation if site is inactive
+    if object_type == "visit":
+        id_base_site = post_data["properties"]["id_base_site"]
+        query = select(TBaseSites.active).where(TBaseSites.id_base_site == id_base_site)
+        is_active = DB.session.scalar(query)
+
+        if not is_active:
+            raise GeoNatureError(
+                "MONITORING: create_object_api {} : site n°{} is inactive".format(
+                    object_type, str(id_base_site)
+                )
+            )
+
     # get_config(module_code, force=True)
     return create_or_update_object_api(module_code, object_type, id)
 
