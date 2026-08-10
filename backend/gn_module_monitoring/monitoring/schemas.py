@@ -309,6 +309,31 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         data["medias"] = data.get("medias") or []
         return data
 
+    @post_dump
+    def add_additional_fields(self, data, **kwargs):
+        # Cas des propriétés renseignées dans d'autre module
+        #  Ajout manuel des propriétés manquantes
+        # TODO AJOUTER DES TESTS
+        additional_fields_data = data.pop("data", {})
+        if additional_fields_data is None:
+            return data
+        for key, value in additional_fields_data.items():
+            # exclusion des propriétés générées par les champs
+            # de type nomenclature
+            if key.startswith("_label_"):
+                continue
+
+            # Ajout de la valeur à data
+            if key not in data:
+                data[key] = value
+
+            # Ajout du nom de la propriété aux clés additionnelles
+            if key not in data.get("additional_data_keys", []):
+                if not data.get("additional_data_keys"):
+                    data["additional_data_keys"] = []
+                data["additional_data_keys"].append(key)
+        return data
+
 
 class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
     pass
