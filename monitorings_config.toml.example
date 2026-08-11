@@ -6,3 +6,16 @@
 
 # code of the observator list -- utilisateurs.t_listes
 #CODE_OBSERVERS_LIST = "obsocctax"
+
+# Possibilité d'afficher les filtres avancées , liés aux champs additionnel, dans la synthese
+# SHOW_ADVANCED_FILTERS = false
+
+# Possibilité de configurer plus finement les filtres avancées à afficher et en définissant également les champs que l'on veut filtrer
+# Penser à bien remplacer le MODULE_CODE par le code du sous module . Par exemple CHIROPTERES . Et également penser à définir les champs pour lequels on veut filtrer dans la synthese . 
+# Pour les champs s'appuyer sur les champs spécifiques au sous module (protocole) liés au formulaire d'observation.
+[DYNAMIC_FORM_DEF_MONITORING.<MODULE_CODE>]
+fields_form = [
+    { attribut_name = "key_field_of_nomenclature", keyValue ="label_fr"},
+    { attribut_name = "key_field_of_radio_button" }
+]
+show_advanced_filters = true
