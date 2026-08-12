@@ -18,6 +18,7 @@ from gn_module_monitoring.routes.data_utils import id_field_name_dict
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
 from gn_module_monitoring.monitoring.base import MonitoringObjectBase, monitoring_definitions
+from gn_module_monitoring.utils.routes import process_json_data_nomenclature
 from gn_module_monitoring.monitoring.schemas import (
     MonitoringModuleSchema,
     MonitoringSitesSchema,
@@ -106,6 +107,15 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             properties["data"] = data
         else:
             properties["data"] = {}
+
+        # Cas des nomenclatures
+        # On ajoute la propriété _label_mon_champ
+        # Modification réalisé ici pour des questions de legacy avec l'application mobile
+        properties = process_json_data_nomenclature(
+            self.config().get(self._object_type).get("specific"),
+            properties,
+        )
+
         # On ajoute les propriétés associées aux types de site qui ne sont ni dans le schema specific ni dans generic ou appartenant au modèle
         prop_remaining_to_check = list(properties.keys())
 
