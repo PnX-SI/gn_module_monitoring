@@ -298,6 +298,10 @@ class TestSitesGroupsWithModule:
             "sites_group_name": "Cros du Lac",
             "geom": geom_sites_group,
             "group_specific_meteo": self._get_meteo_value("Beau").id_nomenclature,
+            "group_specific_meteo_multi": [
+                self._get_meteo_value("Beau").id_nomenclature,
+                self._get_meteo_value("Mauvais").id_nomenclature,
+            ],
         }
         r = self.client.post(
             url_for("monitorings.post_sites_group", module_code="test"),
@@ -310,10 +314,13 @@ class TestSitesGroupsWithModule:
             )
         ).scalar()
         assert r.status_code == 200
+
         assert set(r.json["data"].keys()).issubset(
             (
                 "group_specific_meteo",
                 "_label_group_specific_meteo",
+                "group_specific_meteo_multi",
+                "_label_group_specific_meteo_multi",
             )
         )
         assert (
@@ -322,6 +329,12 @@ class TestSitesGroupsWithModule:
         assert (
             r.json["data"]["_label_group_specific_meteo"]
             == self._get_meteo_value("Beau").label_default
+        )
+        assert set(r.json["data"]["_label_group_specific_meteo_multi"].split("|")) == set(
+            (
+                self._get_meteo_value("Beau").label_default,
+                self._get_meteo_value("Mauvais").label_default,
+            )
         )
 
     @staticmethod
