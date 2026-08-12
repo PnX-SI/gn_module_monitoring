@@ -35,7 +35,7 @@ from geonature.core.gn_monitoring.models import (
     corIndividualModule,
 )
 from geonature.core.gn_meta.models import TDatasets
-from geonature.core.gn_commons.models import TModules, cor_module_dataset
+from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
 from pypnusershub.db.models import User
@@ -383,7 +383,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def organism_actors(self):
@@ -603,12 +603,6 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         # viewonly=True,
     )
 
-    datasets = DB.relationship(
-        "TDatasets",
-        secondary=cor_module_dataset,
-        join_depth=0,
-        overlaps="modules",
-    )
     types_site = DB.relationship(
         "BibTypeSite",
         secondary=cor_module_type,

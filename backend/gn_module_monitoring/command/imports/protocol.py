@@ -329,7 +329,6 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
         Booléen indiquant si la mise à jour a réussi.
     """
     try:
-        DB.session.rollback()
         module_label = module_data["module"].get("module_label")
 
         destination = DB.session.execute(
