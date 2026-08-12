@@ -289,11 +289,19 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
         if additional_fields_data is None:
             return data
         for key, value in additional_fields_data.items():
+            # exclusion des propriétés générées par les champs
+            # de type nomenclature
+            if key.startswith("_label_"):
+                continue
+
+            # Ajout de la valeur à data
             if key not in data:
                 data[key] = value
-            if not data.get("additional_data_keys"):
-                data["additional_data_keys"] = []
-            if key not in data["additional_data_keys"]:
+
+            # Ajout du nom de la propriété aux clés additionnelles
+            if key not in data.get("additional_data_keys", []):
+                if not data.get("additional_data_keys"):
+                    data["additional_data_keys"] = []
                 data["additional_data_keys"].append(key)
         return data
 

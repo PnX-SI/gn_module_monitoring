@@ -272,6 +272,71 @@ class TestSitesGroupsWithModule:
         groups_ids = [s["id_sites_group"] for s in groups_response]
         assert group.id_sites_group in groups_ids
 
+    def test_post_groups(self, test_module_user, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        geom_sites_group = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [3.535269, 44.242648],
+                    [3.532821, 44.247625],
+                    [3.538272, 44.245986],
+                    [3.538398, 44.244186],
+                    [3.537732, 44.243658],
+                    [3.535269, 44.242648],
+                ]
+            ],
+        }
+        site_group = {
+            "altitude_max": None,
+            "altitude_min": None,
+            "comments": "dfgdfg",
+            "id_digitiser": users["admin_user"].id_role,
+            "id_sites_group": None,
+            "sites_group_code": "Cros_du_Lac",
+            "sites_group_description": "Site test",
+            "sites_group_name": "Cros du Lac",
+            "geom": geom_sites_group,
+            "group_specific_meteo": self._get_meteo_value("Beau").id_nomenclature,
+            "group_specific_meteo_multi": [
+                self._get_meteo_value("Beau").id_nomenclature,
+                self._get_meteo_value("Mauvais").id_nomenclature,
+            ],
+        }
+        r = self.client.post(
+            url_for("monitorings.post_sites_group", module_code="test"),
+            data=site_group,
+        )
+
+        site_group = db.session.execute(
+            select(TMonitoringSitesGroups).where(
+                TMonitoringSitesGroups.id_sites_group == r.json["id_sites_group"]
+            )
+        ).scalar()
+        assert r.status_code == 200
+
+        assert set(r.json["data"].keys()).issubset(
+            (
+                "group_specific_meteo",
+                "_label_group_specific_meteo",
+                "group_specific_meteo_multi",
+                "_label_group_specific_meteo_multi",
+            )
+        )
+        assert (
+            r.json["data"]["group_specific_meteo"] == self._get_meteo_value("Beau").id_nomenclature
+        )
+        assert (
+            r.json["data"]["_label_group_specific_meteo"]
+            == self._get_meteo_value("Beau").label_default
+        )
+        assert set(r.json["data"]["_label_group_specific_meteo_multi"].split("|")) == set(
+            (
+                self._get_meteo_value("Beau").label_default,
+                self._get_meteo_value("Mauvais").label_default,
+            )
+        )
+
     @staticmethod
     def _get_meteo_value(mnemonique):
         return db.session.execute(
