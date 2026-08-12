@@ -65,7 +65,7 @@ def execute_sql_file(dir, file, module_code, forbidden_instruction=[]):
         with DB.engine.begin() as conn:
             conn.execute(
                 text(sql_content),
-                module_code=module_code,
+                {"module_code": module_code},
             )
     except Exception as e:
         raise Exception("{} - erreur dans le script {} : {}".format(module_code, file, e))

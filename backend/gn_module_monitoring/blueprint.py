@@ -20,4 +20,4 @@ blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORI
 for cmd in commands:
     blueprint.cli.add_command(cmd)
 
-flask_admin.add_view(BibTypeSiteView(DB.session, name="Types de site", category="Monitorings"))
+flask_admin.add_view(BibTypeSiteView(DB, name="Types de site", category="Monitorings"))

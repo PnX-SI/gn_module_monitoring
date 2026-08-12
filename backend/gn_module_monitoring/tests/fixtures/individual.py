@@ -9,8 +9,6 @@ from apptax.taxonomie.models import Taxref
 from geonature.core.gn_monitoring.models import corIndividualModule
 from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
 
-from geonature.tests.fixtures import users
-
 SPECIES = "Athene noctua"
 
 

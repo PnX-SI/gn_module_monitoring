@@ -329,7 +329,6 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
         Booléen indiquant si la mise à jour a réussi.
     """
     try:
-        DB.session.rollback()
         module_label = module_data["module"].get("module_label")
 
         destination = DB.session.execute(
@@ -365,7 +364,7 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
                 delete_bib_fields(fields_to_delete)
 
             table_name = f"t_imports_{module_code.lower()}"
-            DB.engine.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
+            DB.session.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
 
             create_sql_import_table_protocol(module_code, protocol_data)
 

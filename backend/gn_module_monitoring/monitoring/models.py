@@ -2,6 +2,8 @@
 Modèles SQLAlchemy pour les modules de suivi
 """
 
+from typing import Any, Optional
+
 import geoalchemy2
 
 from flask import g
@@ -9,7 +11,7 @@ from flask import g
 from uuid import uuid4
 
 from sqlalchemy import join, select, func, and_
-from sqlalchemy.orm import column_property, aliased
+from sqlalchemy.orm import Mapped, column_property, aliased, mapped_column
 
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -33,7 +35,7 @@ from geonature.core.gn_monitoring.models import (
     corIndividualModule,
 )
 from geonature.core.gn_meta.models import TDatasets
-from geonature.core.gn_commons.models import TModules, cor_module_dataset
+from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
 from pypnusershub.db.models import User
@@ -85,11 +87,15 @@ class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
-    id_observation_detail = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
+    id_observation_detail: Mapped[int] = mapped_column(DB.Integer, primary_key=True, unique=True)
 
-    id_observation = DB.Column(DB.ForeignKey("gn_monitoring.t_observations.id_observation"))
-    data = DB.Column(JSONB)
-    uuid_observation_detail = DB.Column(UUID(as_uuid=True), default=uuid4)
+    id_observation: Mapped[Optional[int]] = mapped_column(
+        DB.ForeignKey("gn_monitoring.t_observations.id_observation")
+    )
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
+    uuid_observation_detail: Mapped[Optional[Any]] = mapped_column(
+        UUID(as_uuid=True), default=uuid4
+    )
 
     medias = DB.relationship(
         TMedias,
@@ -116,12 +122,11 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
         "polymorphic_identity": "monitoring_observation",
     }
 
-    data = DB.Column(JSONB)
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
 
-    id_observation = DB.Column(
+    id_observation: Mapped[int] = mapped_column(
         DB.ForeignKey("gn_monitoring.t_observations.id_observation"),
         primary_key=True,
-        nullable=False,
     )
 
     medias = DB.relationship(
@@ -177,13 +182,12 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         "polymorphic_identity": "monitoring_visit",
     }
 
-    id_base_visit = DB.Column(
+    id_base_visit: Mapped[int] = mapped_column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
-        nullable=False,
         primary_key=True,
     )
 
-    data = DB.Column(JSONB)
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
 
     medias = DB.relationship(
         TMedias,
@@ -266,18 +270,18 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         "polymorphic_identity": "monitoring_site",
     }
 
-    id_base_site = DB.Column(
-        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
+    id_base_site: Mapped[int] = mapped_column(
+        DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), primary_key=True
     )
 
-    id_sites_group = DB.Column(
+    id_sites_group: Mapped[Optional[int]] = mapped_column(
         DB.ForeignKey(
             "gn_monitoring.t_sites_groups.id_sites_group",
             # ondelete='SET NULL'
         ),
     )
 
-    data = DB.Column(JSONB)
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
 
     modules = DB.relationship(
         "TMonitoringModules",
@@ -323,7 +327,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     nb_individuals = column_property(
-        select([func.count(func.distinct(TIndividuals.id_individual))])
+        select(func.count(func.distinct(TIndividuals.id_individual)))
         .join_from(
             TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
@@ -379,7 +383,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def organism_actors(self):
@@ -423,21 +427,25 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     __tablename__ = "t_sites_groups"
     __table_args__ = {"schema": "gn_monitoring"}
 
-    id_sites_group = DB.Column(DB.Integer, primary_key=True, nullable=False, unique=True)
-    id_digitiser = DB.Column(DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role"))
+    id_sites_group: Mapped[int] = mapped_column(DB.Integer, primary_key=True, unique=True)
+    id_digitiser: Mapped[Optional[int]] = mapped_column(
+        DB.Integer, DB.ForeignKey("utilisateurs.t_roles.id_role")
+    )
 
     digitiser = DB.relationship(
         User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
     )
-    uuid_sites_group = DB.Column(UUID(as_uuid=True), default=uuid4)
+    uuid_sites_group: Mapped[Optional[Any]] = mapped_column(UUID(as_uuid=True), default=uuid4)
 
-    sites_group_name = DB.Column(DB.Unicode)
-    sites_group_code = DB.Column(DB.Unicode)
-    sites_group_description = DB.Column(DB.Unicode)
+    sites_group_name: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    sites_group_code: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    sites_group_description: Mapped[Optional[str]] = mapped_column(DB.Unicode)
 
-    comments = DB.Column(DB.Unicode)
-    geom = DB.Column(geoalchemy2.types.Geometry("GEOMETRY", 4326, nullable=True))
-    data = DB.Column(JSONB)
+    comments: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    geom: Mapped[Optional[Any]] = mapped_column(
+        geoalchemy2.types.Geometry("GEOMETRY", 4326, nullable=True)
+    )
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
 
     medias = DB.relationship(
         TMedias,
@@ -466,8 +474,8 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         .scalar_subquery()
     )
 
-    altitude_min = DB.Column(DB.Integer)
-    altitude_max = DB.Column(DB.Integer)
+    altitude_min: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    altitude_max: Mapped[Optional[int]] = mapped_column(DB.Integer)
 
     geom_geojson = column_property(
         select(func.st_asgeojson(func.st_convexHull(func.st_collect(TMonitoringSites.geom))))
@@ -539,22 +547,23 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
     __import_actions__ = MonitoringImportActions
 
-    id_module = DB.Column(
+    id_module: Mapped[int] = mapped_column(
         DB.ForeignKey("gn_commons.t_modules.id_module"),
         primary_key=True,
-        nullable=False,
         unique=True,
     )
 
-    uuid_module_complement = DB.Column(UUID(as_uuid=True), default=uuid4)
+    uuid_module_complement: Mapped[Optional[Any]] = mapped_column(
+        UUID(as_uuid=True), default=uuid4
+    )
 
-    id_list_observer = DB.Column(DB.Integer)
-    id_list_taxonomy = DB.Column(DB.Integer)
-    cd_nom = DB.Column(DB.Integer)
+    id_list_observer: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    id_list_taxonomy: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    cd_nom: Mapped[Optional[int]] = mapped_column(DB.Integer)
 
-    taxonomy_display_field_name = DB.Column(DB.Unicode)
-    b_synthese = DB.Column(DB.Boolean)
-    b_draw_sites_group = DB.Column(DB.Boolean)
+    taxonomy_display_field_name: Mapped[Optional[str]] = mapped_column(DB.Unicode)
+    b_synthese: Mapped[Optional[bool]] = mapped_column(DB.Boolean)
+    b_draw_sites_group: Mapped[Optional[bool]] = mapped_column(DB.Boolean)
 
     medias = DB.relationship(
         TMedias,
@@ -594,17 +603,11 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         # viewonly=True,
     )
 
-    datasets = DB.relationship(
-        "TDatasets",
-        secondary=cor_module_dataset,
-        join_depth=0,
-        overlaps="modules",
-    )
     types_site = DB.relationship(
         "BibTypeSite",
         secondary=cor_module_type,
     )
-    data = DB.Column(JSONB)
+    data: Mapped[Optional[Any]] = mapped_column(JSONB)
 
     # visits = DB.relationship(
     #     TMonitoringVisits,
@@ -632,7 +635,7 @@ class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
 class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
 
     nb_sites = column_property(
-        select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+        select(func.count(func.distinct(TMonitoringSites.id_base_site)))
         .join_from(
             TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
