@@ -90,7 +90,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         table_name = "v_synthese_{}".format(self._module_code.lower())
 
         # Test de l'existance de la colonne de synchronisation sur la vue synthese
-        column_exist = DB.engine.execute(
+        column_exist = DB.session.execute(
             text("""
                 SELECT count(*)
                 FROM information_schema.columns
@@ -98,9 +98,11 @@ class MonitoringObject(MonitoringObjectSerializer):
                     AND table_name=:table_name
                     AND column_name=:column_name;
                 """),
-            table_schema="gn_monitoring",
-            table_name=table_name,
-            column_name=self.config_param("id_field_name"),
+            params={
+                "table_schema": "gn_monitoring",
+                "table_name": table_name,
+                "column_name": self.config_param("id_field_name"),
+            },
         ).fetchone()
 
         if column_exist[0] == 0:

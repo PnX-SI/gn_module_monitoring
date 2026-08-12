@@ -57,9 +57,9 @@ class BibTypeSiteView(CruvedProtectedMixin, ModelView):
     module_code = "MONITORINGS"
     object_code = "TYPES_SITES"
 
-    def __init__(self, session, **kwargs):
+    def __init__(self, db, **kwargs):
         # Référence au model utilisé
-        super(BibTypeSiteView, self).__init__(BibTypeSite, session, **kwargs)
+        super(BibTypeSiteView, self).__init__(BibTypeSite, db, **kwargs)
 
     def get_only_nomenclature_asc():
         return (
