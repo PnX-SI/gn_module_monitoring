@@ -41,9 +41,7 @@ def set_current_module():
     values = {**request.view_args, **request.args} if request.view_args else {**request.args}
 
     # recherche du sous-module courant
-    requested_module_code = (
-        values.get("module_code") or values.get("module_context") or MODULE_CODE
-    )
+    requested_module_code = values.get("module_code") or values.get("module_context") or MODULE_CODE
     if requested_module_code == "generic":
         requested_module_code = "MONITORINGS"
 

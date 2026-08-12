@@ -319,7 +319,9 @@ def is_module_configured(module_code: str):
     config = get_config(module_code, force=True)
 
     # Check for configuration
-    required_keys = "__MODULE.TYPES_SITE __MODULE.TAXONOMY_DISPLAY_FIELD_NAME __MODULE.ID_LIST_TAXONOMY".split()
+    required_keys = (
+        "__MODULE.TYPES_SITE __MODULE.TAXONOMY_DISPLAY_FIELD_NAME __MODULE.ID_LIST_TAXONOMY".split()
+    )
     try:
         for key in required_keys:
             if (

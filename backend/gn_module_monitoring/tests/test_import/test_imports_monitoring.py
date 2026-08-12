@@ -235,9 +235,7 @@ class TestImportMonitoring:
         )
         assert (
             db.session.scalar(
-                sa.select(sa.func.count()).where(
-                    TBaseVisits.id_import == imported_import.id_import
-                )
+                sa.select(sa.func.count()).where(TBaseVisits.id_import == imported_import.id_import)
             )
             == imported_import.statistics["visit_count"]
         )

@@ -76,9 +76,7 @@ class TestSite:
 
         set_logged_user_cookie(self.client, users["admin_user"])
 
-        r = self.client.get(
-            url_for("monitorings.get_sites", sort="unknown_field", sort_dir="desc")
-        )
+        r = self.client.get(url_for("monitorings.get_sites", sort="unknown_field", sort_dir="desc"))
         assert r.json["count"] >= len(sites)
 
         r = self.client.get(
@@ -452,13 +450,9 @@ class TestSite:
         )
         assert all([type not in r.json["items"] for type in mock_db_type_site])
 
-    def test_post_sites(
-        self, site_to_post_with_types, types_site, site_group_without_sites, users
-    ):
+    def test_post_sites(self, site_to_post_with_types, types_site, site_group_without_sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        response = self.client.post(
-            url_for("monitorings.post_sites"), data=site_to_post_with_types
-        )
+        response = self.client.post(url_for("monitorings.post_sites"), data=site_to_post_with_types)
         assert response.status_code == 201
 
         obj_created = response.json

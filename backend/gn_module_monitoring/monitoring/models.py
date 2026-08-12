@@ -87,9 +87,7 @@ class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
-    id_observation_detail: Mapped[int] = mapped_column(
-        DB.Integer, primary_key=True, unique=True
-    )
+    id_observation_detail: Mapped[int] = mapped_column(DB.Integer, primary_key=True, unique=True)
 
     id_observation: Mapped[Optional[int]] = mapped_column(
         DB.ForeignKey("gn_monitoring.t_observations.id_observation")

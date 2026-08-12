@@ -256,9 +256,7 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
             ]
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringSitesGroups.digitiser.has(id_organisme=user.id_organisme)
-                ]
+                ors += [Models.TMonitoringSitesGroups.digitiser.has(id_organisme=user.id_organisme)]
             query = query.where(or_(*ors))
         return query
 
@@ -339,9 +337,7 @@ class IndividualsQuery(GnMonitoringGenericFilter):
             ]
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringIndividuals.digitiser.has(id_organisme=user.id_organisme)
-                ]
+                ors += [Models.TMonitoringIndividuals.digitiser.has(id_organisme=user.id_organisme)]
             query = query.where(or_(*ors))
         return query
 
