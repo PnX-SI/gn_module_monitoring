@@ -24,7 +24,6 @@ def upgrade():
     from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
     from gn_module_monitoring.config.utils import get_specific_properties
 
-    modules = [module["module_code"] for module in installed_modules()]
     monitoring_object = [
         "module",
         "sites_group",
@@ -35,8 +34,18 @@ def upgrade():
         "marking",
         "observation_detail",
     ]
+    conn = op.get_bind()
 
-    for module in installed_modules():
+    # Get all monitoring modules
+    rows = conn.execute(text("""
+        SELECT tm.id_module , tm.module_code
+        FROM gn_commons.t_modules tm
+        JOIN gn_monitoring.t_module_complements tmc
+        ON tm.id_module = tmc.id_module
+    """)).fetchall()
+
+    for module in rows:
+        log.info(f"upgrade module {module['module_code']}")
         # Get config
         config = get_config(module["module_code"], force=True)
         if not config:
@@ -111,8 +120,7 @@ def downgrade():
 
 
 def upgrade_module(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
     WITH final_data AS (
         SELECT tsc.id_module , tsc.DATA  || jsonb_object_agg(json_key, json_content) as data
         FROM gn_monitoring.t_module_complements tsc
@@ -136,14 +144,12 @@ def upgrade_module(fields_list, id_module):
     SET data = final_data.data
     FROM final_data
     WHERE tsc.id_module = final_data.id_module;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_sites_group(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
      with s as (
         SELECT distinct sg.id_sites_group
         FROM gn_monitoring.t_sites_groups sg
@@ -173,14 +179,12 @@ def upgrade_sites_group(fields_list, id_module):
     SET data = final_data.data
     FROM final_data
     WHERE tsc.id_sites_group = final_data.id_sites_group;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_site(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
     with s as (
         SELECT distinct cst.id_base_site
         FROM gn_monitoring.t_base_sites tbs
@@ -212,14 +216,12 @@ def upgrade_site(fields_list, id_module):
     SET data = final_data.data
     FROM final_data
     WHERE tsc.id_base_site = final_data.id_base_site
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_visit(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
         WITH final_data AS (
             SELECT tvc.id_base_visit , tvc.DATA || jsonb_object_agg(json_key, json_content) as data
             FROM gn_monitoring.t_base_visits tsc
@@ -244,14 +246,12 @@ def upgrade_visit(fields_list, id_module):
         SET data = final_data.data
         FROM final_data
         WHERE tsc.id_base_visit = final_data.id_base_visit;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_observation(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
           with s as (
                 SELECT distinct t.id_observation
                 FROM gn_monitoring.t_observations t
@@ -281,14 +281,12 @@ def upgrade_observation(fields_list, id_module):
         SET data = final_data.data
         FROM final_data
         WHERE tsc.id_observation = final_data.id_observation;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_observation_detail(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
     with s as (
         SELECT distinct t.id_observation
         FROM gn_monitoring.t_observations t
@@ -318,14 +316,12 @@ def upgrade_observation_detail(fields_list, id_module):
     SET data = final_data.data
     FROM final_data
     WHERE tsc.id_observation_detail = final_data.id_observation_detail;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def upgrade_marking(fields_list, id_module):
-    sql = text(
-        """
+    sql = text("""
     with final_data AS (
         SELECT tsc.id_marking , tsc.DATA || jsonb_object_agg(json_key, json_content) AS data
         FROM gn_monitoring.t_marking_events  tsc
@@ -349,20 +345,17 @@ def upgrade_marking(fields_list, id_module):
     SET data = final_data.data
     FROM final_data
     WHERE tsc.id_marking = final_data.id_marking;
-    """
-    ).bindparams(fields_list=fields_list, id_module=id_module)
+    """).bindparams(fields_list=fields_list, id_module=id_module)
     return sql
 
 
 def generate_downgrade(table_name):
-    sql = text(
-        f"""
+    sql = text(f"""
         UPDATE gn_monitoring.{table_name}
         SET data = data - ARRAY(
         SELECT k
         FROM jsonb_object_keys(data) AS k
         WHERE left(k, 7) = '_label_'
         );
-        """
-    )
+        """)
     return sql
