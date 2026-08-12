@@ -139,7 +139,9 @@ def get_sites(object_type, module_code=None):
     specific_properties = config.get("site", {}).get("specific", {})
 
     query = filter_params(TMonitoringSites, query=query, params=params)
-    query = sort_according_to_column_type_for_site(query, sort_label, sort_dir, specific_properties)
+    query = sort_according_to_column_type_for_site(
+        query, sort_label, sort_dir, specific_properties
+    )
 
     query_allowed = TMonitoringSites.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
@@ -175,9 +177,9 @@ def get_site_by_id(scope, module_code, id, object_type):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
     schema = MonitoringSitesSchema()
     response = schema.dump(site)
-    response["cruved"] = get_objet_with_permission_boolean([site], object_code="MONITORINGS_SITES")[
-        0
-    ]["cruved"]
+    response["cruved"] = get_objet_with_permission_boolean(
+        [site], object_code="MONITORINGS_SITES"
+    )[0]["cruved"]
     response["geometry"] = json.loads(response["geometry"])
     return response
 

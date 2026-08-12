@@ -288,7 +288,9 @@ class TestCommands:
         with DB.session.begin_nested():
             insert_bib_field(protocol_data)
 
-            insert_entities(protocol_data, destination.id_destination, entity_hierarchy_map, "test")
+            insert_entities(
+                protocol_data, destination.id_destination, entity_hierarchy_map, "test"
+            )
 
             insert_entity_field_relations(
                 protocol_data, destination.id_destination, entity_hierarchy_map
@@ -378,7 +380,9 @@ class TestCommands:
                 DB.session.add(imprt)
                 DB.session.flush()
                 transient_table = destination.get_transient_table()
-                query = insert(transient_table).values({"id_import": imprt.id_import, "line_no": 3})
+                query = insert(transient_table).values(
+                    {"id_import": imprt.id_import, "line_no": 3}
+                )
                 DB.session.execute(query)
 
             monkeypatch.setattr(
@@ -429,7 +433,9 @@ class ModificationProtocolContext:
             path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
             self.site_config_file = path_gn_monitoring / Path(f"contrib/{module_code}/site.json")
         else:
-            self.site_config_file = BACKEND_DIR / Path(f"media/monitorings/{module_code}/site.json")
+            self.site_config_file = BACKEND_DIR / Path(
+                f"media/monitorings/{module_code}/site.json"
+            )
 
         self.init_site_content = self.site_config_file.read_text()
 

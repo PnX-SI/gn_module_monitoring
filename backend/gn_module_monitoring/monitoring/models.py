@@ -553,7 +553,9 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         unique=True,
     )
 
-    uuid_module_complement: Mapped[Optional[Any]] = mapped_column(UUID(as_uuid=True), default=uuid4)
+    uuid_module_complement: Mapped[Optional[Any]] = mapped_column(
+        UUID(as_uuid=True), default=uuid4
+    )
 
     id_list_observer: Mapped[Optional[int]] = mapped_column(DB.Integer)
     id_list_taxonomy: Mapped[Optional[int]] = mapped_column(DB.Integer)
