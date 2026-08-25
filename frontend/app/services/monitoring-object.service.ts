@@ -1,12 +1,12 @@
 import { MonitoringObject } from './../class/monitoring-object';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { DataMonitoringObjectService } from './data-monitoring-object.service';
 import { DataUtilsService } from './data-utils.service';
 import { Utils } from '../utils/utils';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 @Injectable()
@@ -213,17 +213,22 @@ export class MonitoringObjectService {
           ));
     } else if (elem.type_widget === 'taxonomy') {
       x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
-    } else if (
-      elem.type_util === 'nomenclature' &&
-      Utils.isObject(x) &&
-      x.code_nomenclature_type &&
-      x.cd_nomenclature
-    ) {
-      x = this._dataUtilsService.getNomenclature(x.code_nomenclature_type, x.cd_nomenclature).pipe(
-        mergeMap((nomenclature) => {
-          return of(nomenclature['id_nomenclature']);
-        })
-      );
+    } else if (elem.type_util === 'nomenclature') {
+      let deFaultValue = x;
+      if(typeof x === "object" && !Array.isArray(x) ) {
+        deFaultValue = [x]
+      } 
+      if (Array.isArray(deFaultValue)) {
+        const subs: Array<any> = [];
+        deFaultValue.forEach((el) => {
+          console.log("default value", el);
+          
+          subs.push(this._dataUtilsService.getNomenclature(el.code_nomenclature_type, el.cd_nomenclature));
+        });
+        x = forkJoin(subs).pipe(
+          map((nomenclatures: any[]) => nomenclatures.map((el: any) => el['id_nomenclature']))
+        );
+      }
     }
 
     x = x instanceof Observable ? x : of(x);
