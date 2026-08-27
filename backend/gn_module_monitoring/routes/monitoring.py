@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import NoSuchTableError
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp
+from utils_flask_sqla.response import to_csv_resp, to_json_resp
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from geonature.core.gn_permissions import decorators as permissions
@@ -345,7 +345,6 @@ def export_all_observations(module_code, method):
     """
     Export all data in csv of a custom module view
 
-
     :params module_code: Code of the module
     :type module_code: str
     :param method: Name of the view without module code prefix
@@ -353,13 +352,12 @@ def export_all_observations(module_code, method):
 
     :returns: Array of dict
     """
-    id_dataset = request.args.get("id_dataset", None, int)
     try:
         export = GenericQueryGeo(
             DB=DB,
             tableName=f"v_export_{module_code.lower()}_{method}",
             schemaName="gn_monitoring",
-            filters=[],
+            filters=request.args,
             limit=50000,
             offset=0,
             geometry_field=None,
@@ -368,21 +366,21 @@ def export_all_observations(module_code, method):
     except (KeyError, NoSuchTableError):
         return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
-    model = export.get_model()
     columns = export.view.tableDef.columns
     schema = export.get_marshmallow_schema()
 
-    q = select(export.view.tableDef)
-    #  Filter with dataset if is set
-    if hasattr(model, "id_dataset") and id_dataset:
-        q = q.where(getattr(model, "id_dataset") == id_dataset)
+    data = export.raw_query().all()
+    serialized_data = schema().dump(data, many=True)
 
-    data = DB.session.execute(q).all()
+    export_format = request.args.get("format", "csv")
+    if export_format == "json":
+        return to_json_resp(serialized_data)
+
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
     return to_csv_resp(
         filename,
-        data=schema().dump(data, many=True),
+        data=serialized_data,
         separator=";",
         columns=[
             db_col.key for db_col in columns if db_col.key != "geom"

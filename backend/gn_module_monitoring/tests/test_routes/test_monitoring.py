@@ -69,3 +69,55 @@ class TestModules:
 
         # test data is not empty
         assert csv_content.empty == False
+
+    def test_get_export_json(self, install_module_test, users, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        # Add user permission for export
+        add_user_permission(
+            "test",
+            users["admin_user"],
+            scope=3,
+            type_code_object="MONITORINGS_MODULES",
+            code_action="E",
+        )
+
+        response = self.client.get(
+            url_for(
+                "monitorings.export_all_observations",
+                module_code="test",
+                method="sites",
+                format="json",
+            )
+        )
+
+        assert response.status_code == 200
+        expected_headers_content_type = "application/json"
+        assert response.headers.get("content-type") == expected_headers_content_type
+
+        expected_columns = {"base_site_code", "longitude", "latitude"}
+        json_content = response.json
+
+        # test data is not empty
+        assert json_content
+
+        # test columns
+        assert set(json_content[0].keys()) == expected_columns
+
+        # test filter on a column value
+        filtered_response = self.client.get(
+            url_for(
+                "monitorings.export_all_observations",
+                module_code="test",
+                method="sites",
+                format="json",
+                base_site_code="Code-no-type",
+            )
+        )
+
+        assert filtered_response.status_code == 200
+        filtered_content = filtered_response.json
+
+        # the filter must only return the matching site
+        assert len(filtered_content) == 1
+        assert filtered_content[0]["base_site_code"] == "Code-no-type"
