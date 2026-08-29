@@ -16,6 +16,10 @@ import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { ConfigServiceG } from '../../services/config-g.service';
+import { PermissionService } from '../../services/permission.service';
+import { ObjectService } from '../../services/object.service';
+import { TOOLTIPMESSAGEALERT, TOOLTIPMESSAGEALERT_CHILD } from '../../constants/guard';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -35,16 +39,19 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public saveAndAddChildrenSpinner: boolean = false;
   public saveSpinner: boolean = false;
   public chainInput: boolean = false;
-  public canUpdate: boolean = true;
-  public canDelete: boolean = true;
+  public canUpdate: boolean = false;
+  public canDelete: boolean = false;
   public addChildren: boolean = false;
   public formsDefinition: JsonData;
+  public userPermission: any;
+  public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   public deleteSpinner = false;
   public deleteModal = false;
 
-  private queryParams: {};
+  private queryParams: any;
   private pendingKeepValues: JsonData | null = null;
+  private fetchedParents: JsonData | null = null;
 
   constructor(
     public _commonService: CommonService,
@@ -57,8 +64,47 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
     private _formUtils: MonitoringObjectService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private _configServiceG: ConfigServiceG,
+    private _permissionService: PermissionService,
+    private _objectService: ObjectService
   ) {}
+
+  private buildParentsMeta(): JsonData {
+    return this.object?.parents || this.fetchedParents || {};
+  }
+
+  private loadParentsForCreation() {
+    if (this.object) {
+      return;
+    }
+
+    const rawParentsPath = this.queryParams['parents_path'] || [];
+    const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
+    const parentType = parentsPath[parentsPath.length - 1];
+    if (!parentType || parentType === 'module') {
+      return;
+    }
+
+    const parentService = this._objectService.getService(parentType);
+    const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
+    const rawParentId = parentFieldId ? this.queryParams[parentFieldId] : null;
+    const parentId = Number(rawParentId);
+    if (!parentService || !parentFieldId || rawParentId == null || Number.isNaN(parentId)) {
+      return;
+    }
+
+    parentService.getById(parentId, this.apiService._getModuleCode()).subscribe((parent: any) => {
+      if (!parent) {
+        return;
+      }
+      const { parents: ancestors, ...parentProperties } = parent;
+      this.fetchedParents = { ...(ancestors || {}), [parentType]: parentProperties };
+      this.meta.parents = this.buildParentsMeta();
+      // Rejoue le `change` du sous-module avec les parents désormais connus.
+      this.onFormValueChange(null);
+    });
+  }
 
   ngAfterViewInit() {
     if (this.object) {
@@ -66,14 +112,15 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     }
     this.setDefaultFormValue();
 
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
+    }
+
     this.formValues(this.form.value).subscribe((formValue) => {
       this.form.patchValue(formValue);
-      if (this.config['geometry_type']) {
-        this._formService.changeFormMapObj({
-          frmGp: this.form.controls['geometry'] as FormControl,
-          geometry_type: this.config['geometry_type'],
-        });
-      }
     });
   }
 
@@ -85,7 +132,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       dataset: this._dataUtilsService.getDataUtil('dataset'),
       id_role: this.currentUser.id_role,
       bChainInput: this.chainInput,
-      // parents: this.object.parents
+      parents: this.buildParentsMeta(),
     };
 
     if (this.config['geometry_type']) {
@@ -112,11 +159,63 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         }
       }
     }
+
+    if (!this.object) {
+      this.prefillParentFormValue();
+    }
+
     this.setDefaultFormValue();
+  }
+
+  prefillParentFormValue() {
+    const parentsPath = this.queryParams['parents_path'] || [];
+    const parentType = parentsPath[parentsPath.length - 1];
+    if (!parentType) {
+      return;
+    }
+
+    const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
+    if (parentFieldId && this.queryParams[parentFieldId] != null) {
+      const rawValue = this.queryParams[parentFieldId];
+      const numericValue = Number(rawValue);
+      this.form.patchValue({
+        [parentFieldId]: Number.isNaN(numericValue) ? rawValue : numericValue,
+      });
+    }
+  }
+
+  initPermission() {
+    this.userPermission =
+      this.currentUser?.moduleCruved ||
+      this._permissionService.setModulePermissions(this._configServiceG.moduleCode() || 'generic');
+
+    const objectPermission = this.userPermission[this.objectType.toString()] || {};
+    const isCreate = !this.object;
+
+    this.canUpdate = isCreate ? objectPermission['C'] > 0 : objectPermission['U'] > 0;
+
+    if (isCreate || this.objectType == 'module') {
+      this.canDelete = false;
+      return;
+    }
+
+    const nbChildren =
+      (this.object['nb_sites'] || 0) +
+      (this.object['nb_visits'] || 0) +
+      (this.object['nb_observations'] || 0);
+
+    if (nbChildren > 0) {
+      this.canDelete = false;
+      this.toolTipNotAllowed = TOOLTIPMESSAGEALERT_CHILD;
+    } else {
+      this.canDelete = objectPermission['D'] > 0;
+    }
   }
 
   ngOnInit() {
     this.initForm();
+    this.initPermission();
+    this.loadParentsForCreation();
 
     let displayProperties = [...(this.config.display_properties || [])];
     this.formsDefinition = this.sortFormDefinition(
@@ -251,7 +350,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       concatMap((formValues_in) => {
         const formValues = Utils.copy(formValues_in);
         // geometry
-        if (this.config['geometry_type'] && this.object.geom) {
+        if (this.config['geometry_type'] && this.object?.geom) {
           formValues['geometry'] = this.object.geom;
         }
         return of(formValues);
@@ -317,15 +416,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    */
   navigateToParent() {
     this.EditChange.emit(false); // patch bug navigation
-    // this.object.navigateToParent();
-    const parentType = (this.queryParams['parents_path'] || []).pop();
-    const parentFieldId = (this.config[parentType] || [])['id_field_name'];
+
+    const rawParentsPath = this.queryParams['parents_path'] || [];
+    const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
+
+    const parentType = parentsPath[parentsPath.length - 1];
+    const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
 
     this._navigationService.navigateToParent(
       this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
-      this.object[parentFieldId],
-      this.queryParams['parents_path']
+      this.object?.[parentFieldId],
+      [...parentsPath]
     );
   }
 

@@ -3,6 +3,16 @@ import { ReplaySubject, Observable } from 'rxjs';
 import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { IBreadCrumb, SelectObject } from '../interfaces/object';
 import { DataMonitoringObjectService } from './data-monitoring-object.service';
+import {
+  ApiService,
+  IndividualsService,
+  ModuleService,
+  ObservationDetailsService,
+  ObservationsService,
+  SitesGroupService,
+  SitesService,
+  VisitsService,
+} from './api-geom.service';
 
 @Injectable()
 export class ObjectService {
@@ -15,10 +25,39 @@ export class ObjectService {
   private dataListOption = new ReplaySubject<SelectObject[]>(1);
   currentListOption = this.dataListOption.asObservable();
 
-  constructor(private _dataMonitoringObjectService: DataMonitoringObjectService) {
+  private _servicesByType: { [objectType: string]: ApiService<any> };
+
+  constructor(
+    private _dataMonitoringObjectService: DataMonitoringObjectService,
+    _moduleService: ModuleService,
+    _sitesGroupService: SitesGroupService,
+    _sitesService: SitesService,
+    _visitsService: VisitsService,
+    _observationsService: ObservationsService,
+    _observationDetailsService: ObservationDetailsService,
+    _individualsService: IndividualsService
+  ) {
+    this._servicesByType = {
+      module: _moduleService,
+      sites_group: _sitesGroupService,
+      site: _sitesService,
+      visit: _visitsService,
+      observation: _observationsService,
+      observation_detail: _observationDetailsService,
+      individual: _individualsService,
+    };
+
     let storedDataBreadCrumb = localStorage.getItem('storedDataBreadCrumb');
 
     if (storedDataBreadCrumb) this.changeBreadCrumb(JSON.parse(storedDataBreadCrumb), false);
+  }
+
+  /**
+   * Retourne le service API associé à un type d'objet monitoring, ou `null`
+   * si le type est inconnu.
+   */
+  getService(objectType: string): ApiService<any> | null {
+    return this._servicesByType[objectType] || null;
   }
 
   loadBreadCrumb(
