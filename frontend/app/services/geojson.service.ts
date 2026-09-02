@@ -54,14 +54,20 @@ const selectedSiteStyle = {
 };
 
 const NAME_LAYER_SITE: string = 'Sites';
-const NAME_LAYER_GRP_SITE: string = 'Groupe de sites';
+const NAME_LAYER_GRP_SITE: string = 'Groupes de sites';
 
-export type DisplayMode = 'main' | 'info' | 'info_zoom';
+export type DisplayMode = 'main' | 'info' | 'info_zoom' | 'info_hidden';
+
+/** entités déjà dessinées par la couche principale, à ne pas redessiner en "info" */
+export interface ExcludedFeatures {
+  property: string;
+  value?: number | string;
+}
 
 interface LayerModeConfig {
   layerName: string | null;
   zoom: boolean;
-  clearExisting: boolean;
+  visible: boolean;
 }
 
 @Injectable()
@@ -70,6 +76,12 @@ export class GeoJSONService {
   geojsonSites: GeoJSON.FeatureCollection;
   sitesGroupFeatureGroup: L.FeatureGroup;
   sitesFeatureGroup: L.FeatureGroup;
+  infoFeatureGroups: { [layerName: string]: L.FeatureGroup } = {};
+  // cases cochées par l'utilisateur, captées sur les événements du layer Control ;
+  // l'état de la carte ne suffit pas, il change aussi quand la page change
+  private userLayerVisibility: { [layerName: string]: boolean } = {};
+  private watchedMap: L.Map;
+  private ownLayerChanges = 0;
   currentLayer: any = null;
 
   constructor(
@@ -87,6 +99,14 @@ export class GeoJSONService {
   removeAllLayers() {
     this.removeFeatureGroup(this.sitesGroupFeatureGroup);
     this.removeFeatureGroup(this.sitesFeatureGroup);
+    this.forgetInfoFeatureGroups();
+  }
+
+  private forgetInfoFeatureGroups() {
+    Object.values(this.infoFeatureGroups).forEach((featureGroup) =>
+      this.removeFeatureGroup(featureGroup)
+    );
+    this.infoFeatureGroups = {};
   }
 
   /*
@@ -105,11 +125,9 @@ export class GeoJSONService {
     const cfgSite = this.resolveMode(mode, NAME_LAYER_SITE);
 
     const effectiveGroupStyle =
-      sitesGroupstyle ??
-      (mode === 'info' || mode === 'info_zoom' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
+      sitesGroupstyle ?? (mode !== 'main' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
 
-    const effectiveSiteStyle =
-      sitesStyle ?? (mode === 'info' || mode === 'info_zoom' ? defaultSiteStyleInfo : undefined);
+    const effectiveSiteStyle = sitesStyle ?? (mode !== 'main' ? defaultSiteStyleInfo : undefined);
 
     return forkJoin({
       sitesGroup: this._sites_group_service.get_geometries(paramsSitesGroup),
@@ -117,22 +135,34 @@ export class GeoJSONService {
     }).subscribe((data) => {
       this.geojsonSitesGroups = data['sitesGroup'];
 
-      if (cfgGroup.clearExisting) this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-      if (cfgSite.clearExisting) this.removeFeatureGroup(this.sitesFeatureGroup);
+      this.replaceFeatureGroup(mode, 'sitesGroupFeatureGroup', cfgGroup.layerName);
+      this.replaceFeatureGroup(mode, 'sitesFeatureGroup', cfgSite.layerName);
 
-      this.sitesGroupFeatureGroup = this.setMapData(
-        data['sitesGroup'],
-        sitesGroupOnEachFeature,
-        cfgGroup.layerName,
-        cfgGroup.zoom,
-        effectiveGroupStyle
+      this.storeFeatureGroup(
+        this.setMapData(
+          data['sitesGroup'],
+          sitesGroupOnEachFeature,
+          cfgGroup.layerName,
+          cfgGroup.zoom,
+          effectiveGroupStyle,
+          cfgGroup.visible
+        ),
+        mode,
+        'sitesGroupFeatureGroup',
+        cfgGroup.layerName
       );
-      this.sitesFeatureGroup = this.setMapData(
-        data['sites'],
-        sitesOnEachFeature,
-        cfgSite.layerName,
-        false, // Toujours false car on zoom sur le groupe de site
-        effectiveSiteStyle
+      this.storeFeatureGroup(
+        this.setMapData(
+          data['sites'],
+          sitesOnEachFeature,
+          cfgSite.layerName,
+          false, // Toujours false car on zoom sur le groupe de site
+          effectiveSiteStyle,
+          cfgSite.visible
+        ),
+        mode,
+        'sitesFeatureGroup',
+        cfgSite.layerName
       );
     });
   }
@@ -141,27 +171,31 @@ export class GeoJSONService {
     onEachFeature: Function,
     params = {},
     mode: DisplayMode = 'main',
-    style?
+    style?,
+    exclude?: ExcludedFeatures
   ) {
     const cfg = this.resolveMode(mode, NAME_LAYER_GRP_SITE);
     const effectiveStyle =
-      style ??
-      (mode === 'info' || mode === 'info_zoom' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
+      style ?? (mode !== 'main' ? defaultSiteGroupStyleInfo : defaultSiteGroupStyle);
 
     this._sites_group_service
       .get_geometries(params)
       .subscribe((data: GeoJSON.FeatureCollection) => {
         this.geojsonSitesGroups = data;
-        if (cfg.clearExisting) {
-          this.removeFeatureGroup(this.sitesGroupFeatureGroup);
-        }
+        this.replaceFeatureGroup(mode, 'sitesGroupFeatureGroup', cfg.layerName);
 
-        this.sitesGroupFeatureGroup = this.setMapData(
-          data,
-          onEachFeature,
-          cfg.layerName,
-          cfg.zoom,
-          effectiveStyle
+        this.storeFeatureGroup(
+          this.setMapData(
+            this.excludeFeatures(data, exclude),
+            onEachFeature,
+            cfg.layerName,
+            cfg.zoom,
+            effectiveStyle,
+            cfg.visible
+          ),
+          mode,
+          'sitesGroupFeatureGroup',
+          cfg.layerName
         );
       });
   }
@@ -170,23 +204,27 @@ export class GeoJSONService {
     onEachFeature: Function,
     params = {},
     mode: DisplayMode = 'main',
-    style?
+    style?,
+    exclude?: ExcludedFeatures
   ) {
     const cfg = this.resolveMode(mode, NAME_LAYER_SITE);
-    const effectiveStyle =
-      style ?? (mode === 'info' || mode === 'info_zoom' ? defaultSiteStyleInfo : undefined);
+    const effectiveStyle = style ?? (mode !== 'main' ? defaultSiteStyleInfo : undefined);
 
     this._sites_service.get_geometries(params).subscribe((data: GeoJSON.FeatureCollection) => {
-      if (cfg.clearExisting) {
-        this.removeFeatureGroup(this.sitesFeatureGroup);
-      }
+      this.replaceFeatureGroup(mode, 'sitesFeatureGroup', cfg.layerName);
 
-      this.sitesFeatureGroup = this.setMapData(
-        data,
-        onEachFeature,
-        cfg.layerName,
-        cfg.zoom,
-        effectiveStyle
+      this.storeFeatureGroup(
+        this.setMapData(
+          this.excludeFeatures(data, exclude),
+          onEachFeature,
+          cfg.layerName,
+          cfg.zoom,
+          effectiveStyle,
+          cfg.visible
+        ),
+        mode,
+        'sitesFeatureGroup',
+        cfg.layerName
       );
     });
   }
@@ -200,22 +238,36 @@ export class GeoJSONService {
     onEachFeature: Function,
     layerName: string | null,
     zoom: boolean = true,
-    style?
+    style?,
+    visible: boolean = true
   ): L.FeatureGroup | undefined {
     const map = this._mapService.getMap();
     if (geojson['features'] == null) {
       return undefined;
     }
 
+    this.watchLayerControl();
     const featureGroup: L.FeatureGroup = this._mapService.createOrderedGeojson(
       geojson,
       false,
       onEachFeature,
       style
     );
-    if (layerName) {
-      this._mapService.layerControl.addOverlay(featureGroup, layerName);
+    if (featureGroup.getLayers().length == 0) {
+      // pas d'entrée dans le gestionnaire pour une couche sans entité
+      map.removeLayer(featureGroup);
+      return undefined;
     }
+    this.asOurOwnChange(() => {
+      if (layerName) {
+        this._mapService.layerControl.addOverlay(featureGroup, layerName);
+      }
+      if (!visible) {
+        // createOrderedGeojson l'a déjà ajoutée à la carte, la retirer pour la
+        // laisser à cocher
+        map.removeLayer(featureGroup);
+      }
+    });
     if (zoom) {
       map.fitBounds(featureGroup.getBounds());
     }
@@ -242,9 +294,85 @@ export class GeoJSONService {
   }
 
   removeFeatureGroup(feature: L.FeatureGroup) {
-    if (feature && this._mapService.map?.hasLayer(feature)) {
-      this._mapService.map.removeLayer(feature);
-      this._mapService.layerControl.removeLayer(feature);
+    if (!feature || !this._mapService.map) {
+      return;
+    }
+    this.asOurOwnChange(() => {
+      if (this._mapService.map.hasLayer(feature)) {
+        this._mapService.map.removeLayer(feature);
+      }
+      // couche "info_hidden" : déclarée mais pas affichée, son overlay est à retirer
+      // même absente de la carte
+      this._mapService.layerControl?.removeLayer(feature);
+    });
+  }
+
+  /** cocher ou décocher est un événement du layer Control : le capter plutôt que de
+      le déduire de l'état de la carte, remplacée quand la page change */
+  private watchLayerControl() {
+    const map = this._mapService.map;
+    if (!map || this.watchedMap === map) {
+      return;
+    }
+    this.watchedMap = map;
+    map.on('overlayadd overlayremove', (e: any) => {
+      if (!this.ownLayerChanges && e.name) {
+        this.userLayerVisibility[e.name] = e.type === 'overlayadd';
+      }
+    });
+  }
+
+  /** nos ajouts et retraits émettent les mêmes événements qu'un clic, les taire */
+  private asOurOwnChange(action: () => void) {
+    this.ownLayerChanges++;
+    try {
+      action();
+    } finally {
+      this.ownLayerChanges--;
+    }
+  }
+
+  private excludeFeatures(
+    data: GeoJSON.FeatureCollection,
+    exclude?: ExcludedFeatures
+  ): GeoJSON.FeatureCollection {
+    if (exclude?.value == null || data?.features == null) {
+      return data;
+    }
+    // comparaison souple : id de l'URL en chaîne, propriété GeoJSON en entier
+    return {
+      ...data,
+      features: data.features.filter((f) => f.properties[exclude.property] != exclude.value),
+    };
+  }
+
+  /** retire la couche que le nouvel appel remplace : donnée principale de la carte,
+      ou couche "info" de même nom */
+  private replaceFeatureGroup(
+    mode: DisplayMode,
+    mainProperty: 'sitesFeatureGroup' | 'sitesGroupFeatureGroup',
+    layerName: string | null
+  ) {
+    if (mode === 'main') {
+      this.removeFeatureGroup(this[mainProperty]);
+      return;
+    }
+    this.removeFeatureGroup(this.infoFeatureGroups[layerName]);
+    delete this.infoFeatureGroups[layerName];
+  }
+
+  private storeFeatureGroup(
+    featureGroup: L.FeatureGroup | undefined,
+    mode: DisplayMode,
+    mainProperty: 'sitesFeatureGroup' | 'sitesGroupFeatureGroup',
+    layerName: string | null
+  ) {
+    if (mode === 'main') {
+      this[mainProperty] = featureGroup;
+    } else if (featureGroup) {
+      this.infoFeatureGroups[layerName] = featureGroup;
+    } else {
+      delete this.infoFeatureGroups[layerName];
     }
   }
 
@@ -311,6 +439,7 @@ export class GeoJSONService {
     if (!this._mapService.map) {
       return;
     }
+    this.forgetInfoFeatureGroups();
     this._mapService.map.eachLayer(function (layer) {
       if (layer instanceof L.FeatureGroup) {
         listFeatureGroup.push(layer);
@@ -318,7 +447,6 @@ export class GeoJSONService {
     });
     for (const featureGroup of listFeatureGroup) {
       this.removeFeatureGroup(featureGroup);
-      this._mapService.layerControl.removeLayer(featureGroup);
     }
   }
 
@@ -329,7 +457,7 @@ export class GeoJSONService {
   /**
    * Détermine la configuration du mode d'affichage d'un layer.
    *
-   * @param mode - Type d'affichage demandé ("info", "info_zoom" ou "main")
+   * @param mode - Type d'affichage demandé ("info", "info_zoom", "info_hidden" ou "main")
    * @param layerName - Nom du layer concerné (utilisé uniquement pour les modes info)
    * @returns Un objet LayerModeConfig décrivant le comportement attendu
    */
@@ -338,34 +466,21 @@ export class GeoJSONService {
     // Modes "info" :
     // - "info"      : Affichage dans le layer Control pas de zoom automatique
     // - "info_zoom" : Affichage dans le layer Control zoom forcé sur l'entité cliquée
+    // - "info_hidden" : Ajout au layer Control sans affichage, à cocher par l'utilisateur
     // - "main"      : Affichage en tant qu'élement principal de la carte zoom forcé sur l'entité cliquée
-    if (mode === 'info' || mode === 'info_zoom') {
+    if (mode !== 'main') {
       return {
         layerName: layerName,
         zoom: mode === 'info_zoom',
-        clearExisting: this.testLayerControlExists(layerName), // test si le layer est déjà présent dans Layercontrol
+        // seule la couche "à cocher" garde le choix de l'utilisateur ; en "info" et
+        // "info_zoom" la couche est un repère que le formulaire attend à l'écran
+        visible: mode !== 'info_hidden' || (this.userLayerVisibility[layerName] ?? false),
       };
     }
     return {
       layerName: null,
       zoom: true,
-      clearExisting: true, // en "main", on nettoye les données à chaque appel
+      visible: true,
     };
-  }
-
-  /**
-   * Vérifie si un layer  (défini par son nom)  existe déjà
-   * dans le LayerControl de la carte.
-   *
-   * @param layerName - Nom du layer à rechercher
-   * @returns true si un overlay du LayerControl possède ce nom, sinon false
-   */
-  private testLayerControlExists(layerName: string): boolean {
-    const layers = this._mapService.layerControl?.['_layers'] ?? [];
-    const overlayNames = new Set(layers.filter((o: any) => o?.overlay).map((o: any) => o?.name));
-    if (overlayNames.has(layerName)) {
-      return true;
-    }
-    return false;
   }
 }

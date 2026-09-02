@@ -414,7 +414,9 @@ export class MonitoringObjectBase {
       this.parentsPath.pop();
       const parent = new this.myClass(this.moduleCode, parentType, null, this._objService);
       const parentId = this.properties[parent.idFieldName()];
-      if (parentType === 'module') {
+      // pas de parent renseigné (un site hors groupe) : retour sur la liste du
+      // type courant, pas sur celle d'un parent que l'objet n'avait pas
+      if (parentType === 'module' || !parentId) {
         this._objService.navigate('object', this.moduleCode, this.objectType, null, {
           parents_path: this.parentsPath,
         });

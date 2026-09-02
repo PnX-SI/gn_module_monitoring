@@ -570,7 +570,11 @@ export class MonitoringFormComponent implements OnInit {
 
   onCancelEdit() {
     this.bEditChange.emit(false);
-    this._location.back();
+    // reculer n'a de sens que si l'édition vient d'une navigation ; sur une fiche
+    // détail elle n'est qu'un changement d'état
+    if (!this.obj.id || this._route.snapshot.params['edit'] === 'true') {
+      this._location.back();
+    }
     if (this.obj.id) {
       this.obj.geometry == null
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])

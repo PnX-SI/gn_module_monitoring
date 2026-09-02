@@ -222,6 +222,7 @@ export class MonitoringSitesgroupsDetailComponent
         this.baseFilters,
         sitesParams
       );
+      this.displayOtherObjects();
     }
 
     this.bEdit = event;
@@ -272,6 +273,27 @@ export class MonitoringSitesgroupsDetailComponent
       this.onEachFeatureSite(),
       this.baseFilters,
       sitesParams
+    );
+    this.displayOtherObjects();
+  }
+
+  /** autres groupes du sous-module et sites hors du groupe, en couches "info" : la
+      couche principale dessine déjà le groupe courant et ses sites */
+  displayOtherObjects() {
+    const exclude = { property: 'id_sites_group', value: this.siteGroupId };
+    this._geojsonService.getSitesGroupsGeometries(
+      this.onEachFeatureGroupSite(),
+      {},
+      'info_hidden',
+      undefined,
+      exclude
+    );
+    this._geojsonService.getSitesGroupsChildGeometries(
+      this.onEachFeatureSite(),
+      { types_site: this._configService.moduleTypesSite(this.moduleCode) },
+      'info_hidden',
+      undefined,
+      exclude
     );
   }
 

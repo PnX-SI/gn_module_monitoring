@@ -131,6 +131,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
           this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
             id_base_site: siteId,
           });
+          this.displayOtherObjects(siteId);
 
           // Récupération des données et des configurations
           //  pour le site et les visites associées
@@ -214,6 +215,26 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       const popup = this._popup.setSitePopup(this.moduleCode, feature, {});
       layer.bindPopup(popup);
     };
+  }
+
+  onEachFeatureGroupSite() {
+    return (feature, layer) => {
+      const popup = this._popup.setSiteGroupPopup(this.moduleCode, feature, {});
+      layer.bindPopup(popup);
+    };
+  }
+
+  /** sites et groupes du sous-module en couches "info" : leur popup passe d'un site
+      à l'autre sans repasser par la liste, qui réinitialise le zoom */
+  displayOtherObjects(idBaseSite: number) {
+    this.geojsonService.getSitesGroupsChildGeometries(
+      this.onEachFeatureSite(),
+      { types_site: this._configService.moduleTypesSite(this.moduleCode) },
+      'info_hidden',
+      undefined,
+      { property: 'id_base_site', value: idBaseSite }
+    );
+    this.geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), {}, 'info_hidden');
   }
 
   getVisits(page: number, filters: JsonData) {
@@ -303,6 +324,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
         id_base_site: this.site.id_base_site,
       });
+      this.displayOtherObjects(this.site.id_base_site);
     }
     this.bEdit = event;
     if (this.bEdit) {
@@ -315,7 +337,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   ngOnDestroy() {
-    this.geojsonService.removeFeatureGroup(this.geojsonService.sitesFeatureGroup);
+    this.geojsonService.removeAllFeatureGroup();
     this._formService.changeCurrentEditMode(false);
     this._formService.changeFormMapObj({
       frmGp: null,

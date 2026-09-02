@@ -229,6 +229,13 @@ export class ConfigService {
     return this._config;
   }
 
+  /** identifiants des types de site du sous-module, seul filtre que la route
+   * geometries n'applique pas d'elle-même à partir du module de l'URL */
+  moduleTypesSite(moduleCode: string): string[] {
+    moduleCode = moduleCode || 'generic';
+    return Object.keys(this._config[moduleCode]?.['module']?.['types_site'] ?? {});
+  }
+
   cache() {
     return this._config;
   }
