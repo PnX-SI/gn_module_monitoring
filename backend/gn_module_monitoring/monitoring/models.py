@@ -346,7 +346,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     nb_individuals = column_property(
-        select([func.count(func.distinct(TIndividuals.id_individual))])
+        select(func.count(func.distinct(TIndividuals.id_individual)))
         .join_from(
             TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
@@ -659,7 +659,7 @@ class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
 class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
 
     nb_sites = column_property(
-        select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+        select(func.count(func.distinct(TMonitoringSites.id_base_site)))
         .join_from(
             TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )

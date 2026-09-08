@@ -57,7 +57,7 @@ export class NavigationService {
     moduleCode: string,
     objectType: string,
     parentId: number | null,
-    parentsPath = null
+    parentsPath: any[] | null = null
   ) {
     // cas module il n'y a pas de parent
     if (objectType.includes('module')) {

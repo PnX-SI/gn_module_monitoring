@@ -251,7 +251,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     id_base_site = auto_field(allow_none=True, required=False)
     pk = fields.Method("set_pk", dump_only=True)
     types_site = RelatedList(Related(["id_nomenclature_type_site"]))
-    id_sites_group = fields.Method("get_id_sites_group")
+    id_sites_group = auto_field(allow_none=True)
     id_inventor = fields.Method("get_id_inventor")
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
@@ -268,9 +268,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return "id_base_site"
-
-    def get_id_sites_group(self, obj):
-        return obj.id_sites_group
 
     def get_id_inventor(self, obj):
         return obj.id_inventor

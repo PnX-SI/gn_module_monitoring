@@ -15,6 +15,9 @@ import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { ConfigServiceG } from '../../services/config-g.service';
+import { PermissionService } from '../../services/permission.service';
+import { ObjectService } from '../../services/object.service';
 
 @Component({
   selector: 'pnx-monitoring-site-form-g',
@@ -40,7 +43,10 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     _navigationService: NavigationService,
     _route: ActivatedRoute,
     _formUtils: MonitoringObjectService,
-    translate: TranslateService
+    translate: TranslateService,
+    _configServiceG: ConfigServiceG,
+    _permissionService: PermissionService,
+    _objectService: ObjectService
   ) {
     super(
       _commonService,
@@ -53,7 +59,10 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       _navigationService,
       _route,
       _formUtils,
-      translate
+      translate,
+      _configServiceG,
+      _permissionService,
+      _objectService
     );
   }
 
@@ -100,6 +109,21 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
         name: typesSiteConfig[idType]['name'],
         fields: this.getTypeSiteFields(idType),
       }));
+  }
+
+  /**
+   * Déclenché quand un sous-formulaire "type de site" vient de (re)créer ses
+   * contrôles. En édition, `monitoring-form-g` n'a pas pu pré-remplir ces
+   * champs (ils n'existaient pas encore lors de son `formValues()` initial) :
+   * on rejoue la résolution des valeurs depuis l'objet courant.
+   */
+  onTypeSiteFormGroupChange() {
+    if (!this.object) {
+      return;
+    }
+    this.formValues(this.object).subscribe((formValue) => {
+      this.form.patchValue(formValue);
+    });
   }
 
   resetDynamicForm() {

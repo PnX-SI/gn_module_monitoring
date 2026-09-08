@@ -30,6 +30,7 @@ import { MonitoringMapComponent } from './components/monitoring-map/monitoring-m
 import { MonitoringFormComponent } from './components/monitoring-form/monitoring-form.component';
 import { MonitoringFormGComponent } from './components/monitoring-form-g/monitoring-form-g.component';
 import { MonitoringSiteFormGComponent } from './components/monitoring-site-form-g/monitoring-site-form-g.component';
+import { MonitoringFormGLayoutComponent } from './components/monitoring-form-g-layout/monitoring-form-g-layout.component';
 import { MonitoringListComponent } from './components/monitoring-lists/monitoring-lists.component';
 import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
 import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
@@ -278,6 +279,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     MonitoringFormComponent,
     MonitoringFormGComponent,
     MonitoringSiteFormGComponent,
+    MonitoringFormGLayoutComponent,
     MonitoringListComponent,
     MonitoringPropertiesComponent,
     MonitoringDatatableComponent,
