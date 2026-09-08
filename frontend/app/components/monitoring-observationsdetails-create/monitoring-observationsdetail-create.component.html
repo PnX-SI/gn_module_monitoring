@@ -1,0 +1,14 @@
+<!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
+<div>
+  <span class="obj-title">{{ 'Actions.Add' | translate }}</span>
+</div>
+<div>
+  <pnx-monitoring-form-g
+    [object]="observation_detail"
+    objectType="observation_detail"
+    [form]="form"
+    [apiService]="_observationsDetailService"
+    [config]="moduleConfig['observation_detail']"
+    [currentUser]="currentUser"
+  ></pnx-monitoring-form-g>
+</div>

@@ -22,8 +22,6 @@ import { DataTableService } from '../../services/data-table.service';
 import { Utils } from '../../utils/utils';
 import { SelectObject } from '../../interfaces/object';
 import { CommonService } from '@geonature_common/service/common.service';
-import { TPermission } from '../../types/permission';
-import { ObjectsPermissionMonitorings } from '../../enum/objectPermission';
 import { IdataTableObjData } from '../../interfaces/geom';
 import { getImportProperties } from '../../utils/import';
 import { HttpClient } from '@angular/common/http';
@@ -44,16 +42,24 @@ type ItemsObjectTable = { [key: string]: ItemObjectTable[] };
 })
 export class MonitoringDatatableGComponent implements OnInit {
   @Input() rows;
-  @Input() colsname: IColumn[];
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
   @Input() moduleCode: string = 'generic'; // Code du module courant
   // Objet contenant les données des éléments à afficher dans les tableaux
   @Input() dataTableObjData: IdataTableObjData;
   // Array d'objets contenant la configuration éléments à afficher dans les tableaux
-  @Input() dataTableConfig: [{ objectType: string; childType: string; label: string; config: any }];
+  @Input() dataTableConfig: [
+    {
+      objectType: string;
+      childType: string;
+      label: string;
+      config: any;
+      canCreateObj?: boolean;
+      canCreateChild?: boolean;
+      description_field_name?: string;
+    },
+  ];
   @Input() currentUser;
-  @Input() permission: TPermission;
   @Input() bDeleteModalEmitter: EventEmitter<boolean>;
   @Input() parentPath: string;
   @Input() activetabIndex: number = 0;
@@ -92,12 +98,13 @@ export class MonitoringDatatableGComponent implements OnInit {
   // Selected rows in the table for deletion
   rowDeleted;
 
-  canCreateObj: boolean;
-  canCreateChild: boolean;
-
   toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
 
   activetabType: string;
+
+  labelEdit: string;
+  labelDelete: string;
+  labelAdd: string;
   public importAvailable = false;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
@@ -108,11 +115,15 @@ export class MonitoringDatatableGComponent implements OnInit {
     private _dataTableService: DataTableService,
     private _commonService: CommonService,
     private _configService: ConfigService,
-    private translate: TranslateService,
+    public _translate: TranslateService,
     private httpClient: HttpClient
   ) {}
 
   ngOnInit() {
+    this.labelEdit = this._translate.instant('Actions.Edit');
+    this.labelDelete = this._translate.instant('Actions.Delete');
+    this.labelAdd = this._translate.instant('Actions.Add');
+
     this.subscribeToParentEmitter();
     this.initDatatable();
     this.isImportDestinationAvailable();
@@ -142,15 +153,13 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.activetabIndex = tab.index;
     // Réinitialisation des données selectés
     this.activetabType = this.dataTableConfig[tab.index].objectType;
-    this.columns =
-      this.dataTableObjData[this.activetabType].rows.length > 0
-        ? this._dataTableService.colsTable(this.dataTableObjData[this.activetabType].columns)
-        : null;
+    this.columns = this._dataTableService.colsTable(
+      this.dataTableObjData[this.activetabType].columns
+    );
     this.rows = this.dataTableObjData[this.activetabType].rows;
     this.page = this.dataTableObjData[this.activetabType].page;
     this.objectsStatusChange.emit(this.reInitStatut());
     this.tabChanged.emit(this.activetabType);
-    this.initPermissionAction();
   }
 
   initSort() {
@@ -234,50 +243,9 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   saveOptionChild($event: SelectObject) {
+    // Uniquement pour les visites ?
+    // Voir si possiblement factorisable
     this.saveOptionChildren.emit($event);
-  }
-
-  initPermissionAction() {
-    let objectType: ObjectsPermissionMonitorings | string;
-    let objectTypeChild: ObjectsPermissionMonitorings | string;
-    switch (this.activetabType) {
-      case 'sites_group':
-        objectType = ObjectsPermissionMonitorings.MONITORINGS_GRP_SITES;
-        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_SITES;
-        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
-        break;
-      case 'site':
-        objectType = ObjectsPermissionMonitorings.MONITORINGS_SITES;
-        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
-        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
-        // Cas du module générique (moduleCode = 'generic')
-        //  Il n'y a pas de permissions pour les visites,
-        //  elles sont créées dans le contexte d'un module
-        // Par défaut : création autorisée mais seul les modules où l'utilisateur a le droit de créer des visites
-        //  seront afficher dans le menu déroulant
-        if (this.moduleCode === 'generic') this.canCreateChild = true;
-        break;
-      case 'individual':
-        objectType = ObjectsPermissionMonitorings.MONITORINGS_INDIVIDUALS;
-        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_MARKINGS;
-        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
-        break;
-      case 'visit':
-        objectType = 'visit';
-        objectTypeChild = ObjectsPermissionMonitorings.MONITORINGS_VISITES;
-        this.canCreateObj = true;
-        this.canCreateChild = this.permission[objectTypeChild].canCreate ? true : false;
-        break;
-      default:
-        objectType = 'undefined';
-        objectTypeChild = 'undefined';
-        this.canCreateObj = false;
-        this.canCreateChild = false;
-    }
-
-    if (!['undefined', 'visit'].includes(objectType)) {
-      this.canCreateObj = this.permission[objectType].canCreate ? true : false;
-    }
   }
 
   ngOnDestroy() {
@@ -286,12 +254,6 @@ export class MonitoringDatatableGComponent implements OnInit {
       this.subscription.unsubscribe();
     }
   }
-
-  // tooltip(column) {
-  //   return this.child0.template.fieldDefinitions[column.prop]
-  //     ? column.name + " : " + this.child0.template.fieldDefinitions[column.prop]
-  //     : column.name;
-  // }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.activetabIndex) {
@@ -325,12 +287,10 @@ export class MonitoringDatatableGComponent implements OnInit {
 
       this.activetabType = this.dataTableConfig[this.activetabIndex].objectType;
       const dataTable = this.dataTableObjData[this.activetabType];
-      this.columns =
-        dataTable.rows.length > 0 ? this._dataTableService.colsTable(dataTable.columns) : null;
+      this.columns = this._dataTableService.colsTable(dataTable.columns);
 
       this.rows = dataTable.rows;
       this.page = dataTable.page;
-      this.initPermissionAction();
     }
   }
 
@@ -341,7 +301,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     const dataTable = this.dataTableObjData[this.activetabType];
     this.rows = dataTable.rows || [];
     this.page = dataTable.page;
-    this.initPermissionAction();
   }
 
   addChildrenVisit(selected) {
@@ -368,7 +327,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   msgToaster(action) {
-    // return `${action} ${this.obj.labelDu()} ${this.obj.description()} effectuée`.trim();
     return `${action}  effectuée`.trim();
   }
 
@@ -382,7 +340,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   alertMessage(row) {
     row['id'] = row[row.pk];
     this.rowDeleted = row;
-    const varNameObjet = this.dataTableConfig[this.activetabIndex].config.description_field_name;
+
+    const varNameObjet = this.dataTableConfig[this.activetabIndex].description_field_name;
 
     this.rowDeleted['name_object'] = row[varNameObjet];
     this.bDeleteModal = true;
@@ -392,7 +351,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
   isImportDestinationAvailable() {
     // TODO removed when 2.17.1 is released
-    console.log(this.moduleCode);
     this.httpClient
       .get(this._configService.backendUrl() + '/import/destinations/C')
       .subscribe((data: any) => {

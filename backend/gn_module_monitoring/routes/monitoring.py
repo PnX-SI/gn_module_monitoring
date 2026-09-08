@@ -12,8 +12,6 @@ from flask import request, url_for, g, current_app
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import NoSuchTableError
-from sqlalchemy.orm import joinedload
-from sqlalchemy.exc import NoSuchTableError
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp
@@ -21,64 +19,16 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
-from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects
 from geonature.core.imports.models import Destination
 
-from geonature.utils.env import DB, ROOT_DIR
+from geonature.utils.env import DB
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.utils import to_int
-from gn_module_monitoring.config.repositories import get_config
-
-
-@blueprint.before_request
-def set_current_module():
-    values = {**request.view_args, **request.args} if request.view_args else {**request.args}
-
-    # recherche du sous-module courant
-    requested_module_code = (
-        values.get("module_code") or values.get("module_context") or MODULE_CODE
-    )
-    if requested_module_code == "generic":
-        requested_module_code = "MONITORINGS"
-
-    current_module = DB.first_or_404(
-        statement=select(TModules)
-        .options(joinedload(TModules.objects))
-        .where(TModules.module_code == requested_module_code),
-        description=f"No module with code {requested_module_code} ",
-    )
-    g.current_module = current_module
-
-    # recherche de l'object de permission courant
-    object_type = values.get("object_type")
-
-    if object_type:
-        permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
-        requested_permission_object_code = permission_level.get(object_type)
-
-        if requested_permission_object_code is None:
-            # error ?
-            return
-
-        # Test si l'object de permission existe
-        requested_permission_object = DB.first_or_404(
-            statement=select(TObjects).where(
-                TObjects.code_object == requested_permission_object_code
-            ),
-            description=f"No permission object with code {requested_permission_object_code} ",
-        )
-        # si l'object de permission est associé au module => il devient l'objet courant
-        # - sinon se sera 'ALL' par defaut
-        for module_perm_object in current_module.objects:
-            if module_perm_object == requested_permission_object:
-                g.current_object = requested_permission_object
-                return
+from gn_module_monitoring.config.repositories import get_config_old
 
 
 @blueprint.route("/object/<string:module_code>/<string:object_type>/<int:id>", methods=["GET"])
@@ -110,7 +60,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
 
     depth = to_int(request.args.get("depth", 1))
 
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     monitoring_obj = monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config, id=id
@@ -158,7 +108,7 @@ def create_or_update_object_api(module_code, object_type, id=None):
         query = update(Destination).where(Destination.code == module_code).values(active=True)
         DB.session.execute(query)
 
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
     return (
         monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id
@@ -185,7 +135,7 @@ def get_serialized_object(module_code, object_type, id):
 
     # field_name = param.get('field_name')
     # value = module_code if object_type == 'module'
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
 
@@ -212,7 +162,7 @@ def update_object_api(scope, module_code, object_type, id):
     depth = to_int(request.args.get("depth", 1))
     if id != None:
 
-        config = get_config(module_code, force=True)
+        config = get_config_old(module_code, force=True)
         object = monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id
         ).get(depth=depth)
@@ -260,7 +210,7 @@ def delete_object_api(scope, module_code, object_type, id):
     #         f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
     #     )
 
-    config = get_config(module_code=module_code, force=True)
+    config = get_config_old(module_code=module_code, force=True)
     monitoring_obj = monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config, id=id
     )
@@ -288,7 +238,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
 
-    config = get_config(module_code=module_code, force=True)
+    config = get_config_old(module_code=module_code, force=True)
     # PATCH si module_code == "MONITORINGS" et object_type == "module"
     #  alors réponse en dur car le module monitoring n'est pas de type TModuleMonitoring
     if g.current_module.module_code.upper() == "MONITORINGS" and object_type == "module":
@@ -316,7 +266,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
 @check_cruved_scope("R")
 @json_resp_accept_empty_list
 def list_object_api(module_code, object_type):
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     return monitoring_definitions.monitoring_object_instance(
         module_code, object_type, config=config
@@ -328,7 +278,7 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
 
     return (
         monitoring_definitions.monitoring_object_instance(module_code, "module", config=config)
@@ -400,7 +350,7 @@ def post_export_pdf(module_code, object_type, id):
     """
 
     depth = to_int(request.args.get("depth", 0))
-    config = get_config(module_code, force=True)
+    config = get_config_old(module_code, force=True)
     monitoring_object = (
         monitoring_definitions.monitoring_object_instance(
             module_code, object_type, config=config, id=id

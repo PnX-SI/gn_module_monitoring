@@ -1,6 +1,7 @@
 import { JsonData } from '../types/jsondata';
 import { IColumn } from './column';
 import { IIndividual } from './individual';
+import { IObservation } from './observation';
 import { IObject, IService } from './object';
 import { IPage } from './page';
 import { IVisit } from './visit';
@@ -43,7 +44,7 @@ export interface ISite extends IGeomObject {
   types_site: JsonData[];
   medias: JsonData[];
   id_sites_group: number;
-  id_inventor: string[];
+  id_inventor: number;
   inventor: string[];
 }
 
@@ -66,4 +67,5 @@ export interface IdataTableObjData {
   visit: { columns: IColumn[]; rows: IVisit[]; page: IPage };
   sites_group: { columns: IColumn[]; rows: ISitesGroup[]; page: IPage };
   individual: { columns: IColumn[]; rows: IIndividual[]; page: IPage };
+  observation: { columns: IColumn[]; rows: IObservation[]; page: IPage };
 }

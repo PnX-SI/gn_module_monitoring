@@ -10,7 +10,11 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from geonature.utils.env import db
-from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.monitoring.schemas import (
+    BibTypeSiteSchema,
+    MonitoringSitesSchema,
+    MonitoringSitesSchemaCruved,
+)
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
     TMonitoringVisits,
@@ -40,15 +44,13 @@ class TestSite:
 
     def test_get_sites(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        schema = MonitoringSitesSchema()
+        schema = MonitoringSitesSchemaCruved(exclude=("medias", "parents"))
 
         r = self.client.get(url_for("monitorings.get_sites"))
         assert r.status_code == 200
         assert r.json["count"] >= len(sites)
 
         sites_response = r.json["items"]
-        for s in sites_response:
-            s.pop("cruved")
 
         assert any([schema.dump(site) in sites_response for site in sites.values()])
 
@@ -457,18 +459,31 @@ class TestSite:
     ):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.post(
-            url_for("monitorings.post_sites"), data=site_to_post_with_types
+            url_for("monitorings.post_sites", module_code="generic"), data=site_to_post_with_types
         )
         assert response.status_code == 201
 
         obj_created = response.json
-        res = db.get_or_404(TMonitoringSites, obj_created["id"])
-        assert (
-            res.as_dict()["base_site_name"]
-            == site_to_post_with_types["properties"]["base_site_name"]
-        )
+        res = db.get_or_404(TMonitoringSites, obj_created["id_base_site"])
+        assert res.as_dict()["base_site_name"] == site_to_post_with_types["base_site_name"]
 
         assert set(res.types_site) == set([ts for k, ts in types_site.items()])
+
+    def test_patch_sites(self, sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        _id_site = sites["Test_Grotte"].id_base_site
+
+        update_data = {
+            "base_site_name": "Test_Grotte_updated",
+        }
+        response = self.client.patch(
+            url_for("monitorings.patch_site", module_code="generic", _id=_id_site),
+            data=update_data,
+        )
+        assert response.status_code == 201
+
+        obj_created = response.json
+        assert obj_created["base_site_name"] == update_data["base_site_name"]
 
     def test_delete_site(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])

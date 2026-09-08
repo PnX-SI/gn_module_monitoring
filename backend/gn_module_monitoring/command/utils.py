@@ -271,8 +271,7 @@ def validate_protocol_changes(module_code: str, module_data) -> Tuple[set, list,
 
         all_new_fields = []
         for entity_fields in protocol_data.values():
-            for field_type in ["generic", "specific"]:
-                all_new_fields.extend(entity_fields[field_type])
+            all_new_fields.extend(entity_fields["fields"])
 
         fields_to_add, fields_to_update, fields_to_delete = compare_protocol_fields(
             existing_data["fields"], all_new_fields
@@ -319,7 +318,7 @@ def is_module_configured(module_code: str):
     config = get_config(module_code, force=True)
 
     # Check for configuration
-    required_keys = "__MODULE.TYPES_SITE __MODULE.TAXONOMY_DISPLAY_FIELD_NAME __MODULE.ID_LIST_TAXONOMY".split()
+    required_keys = "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME __MODULE.ID_LIST_TAXONOMY".split()
     try:
         for key in required_keys:
             if (

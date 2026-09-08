@@ -4,10 +4,13 @@
       "sites_group": {
         "site": {
           "visit": {
-            "observation": null
+            "observation": {
+              "observation_detail":null
+            }
           }
         }
-      }
+      },
+      "site": null
     }
   },
   "synthese": "__MODULE.B_SYNTHESE",

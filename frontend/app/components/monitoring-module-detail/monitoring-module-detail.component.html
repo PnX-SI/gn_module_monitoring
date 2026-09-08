@@ -1,26 +1,26 @@
 <!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
 <div>
-  <pnx-monitoring-properties
-    *ngIf="moduleCode !== 'generic' && obj && !bEdit && obj.bIsInitialized"
+
+  <pnx-monitoring-properties-g
+    *ngIf="objectData && !bEdit"
     id="nav-properties"
-    [obj]="obj"
+    [obj]="objectData"
+    [templateData]="templateData"
     [(bEdit)]="bEdit"
     [currentUser]="currentUser"
-  ></pnx-monitoring-properties>
-  <pnx-monitoring-form
-    [obj]="obj"
-    [objForm]="objForm"
-    [currentUser]="currentUser"
-    *ngIf="bEdit && obj?.bIsInitialized"
-    [(bEdit)]="bEdit"
-    [addChildren]="false"
-  ></pnx-monitoring-form>
+    objectType="module"
+    [bSynthese]="objectData.b_synthese"
+  ></pnx-monitoring-properties-g>
+
+  <pnx-monitoring-form-g  *ngIf="objectData && bEdit" [object]="objectData" objectType="module" [form]="form" [apiService]="_moduleService"
+    [config]="moduleConfig['module']" [currentUser]="currentUser">
+  </pnx-monitoring-form-g>
+
   <pnx-monitoring-datatable-g
     *ngIf="!bEdit"
     [dataTableConfig]="dataTableConfig"
     [dataTableObjData]="dataTableObjData"
     [rows]="siteResolvedProperties"
-    [colsname]="colsname"
     (onSort)="setSort($event)"
     [page]="page"
     (onFilter)="setFilter($event)"

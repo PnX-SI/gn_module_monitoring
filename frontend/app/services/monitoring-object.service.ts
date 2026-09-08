@@ -237,7 +237,10 @@ export class MonitoringObjectService {
     }
     switch (elem.type_widget) {
       case 'date': {
-        x = x && x.year && x.month && x.day ? `${x.year}-${x.month}-${x.day}` : null;
+        x =
+          x && x.year && x.month && x.day
+            ? `${x.year}-${String(x.month).padStart(2, '0')}-${String(x.day).padStart(2, '0')}`
+            : null;
         break;
       }
       case 'observers': {

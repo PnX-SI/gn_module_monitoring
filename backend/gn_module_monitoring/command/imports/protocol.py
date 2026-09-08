@@ -1,5 +1,5 @@
 import os
-from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE
+from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE, ID_FIELD_NAME
 
 from sqlalchemy import text
 
@@ -56,58 +56,32 @@ def get_protocol_data(module_code: str, id_destination: int):
     """
     protocol_data = {}
     entity_hierarchy_map = {}
-    module_config_dir_path = monitoring_module_config_path(module_code)
     entities = get_entities_protocol(module_code)
-    config_module = get_config(module_code)
-    type_site_confs = []
-    if "custom" in config_module:
-        if "__MODULE.TYPES_SITE" in config_module["custom"]:
-            type_site_confs = config_module["custom"]["__MODULE.TYPES_SITE"]
+    config_module = get_config(module_code, force=True)
 
+    module_config_dir_path = monitoring_module_config_path(module_code)
     module_config_path = module_config_dir_path / "config.json"
     module_config = json_from_file(module_config_path)
 
     tree = module_config.get("tree", {}).get("module", {})
 
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-    entity_confs = {}
-    # Ensure all confs are loaded in a dict
-    for entity_code in entities:
-        file_path = module_config_dir_path / f"{entity_code}.json"
-        specific_data = json_from_file(file_path)
-
-        if entity_code == "site":
-            for type_site_conf in type_site_confs:
-                if type_site_conf.get("config", None):
-                    specific_data.get("specific", {}).update(
-                        type_site_conf["config"].get("specific", {})
-                    )
-
-        generic_data = json_config_from_file("generic", entity_code)
-
-        entity_confs[entity_code] = {
-            "specific_data": specific_data,
-            "generic_data": generic_data,
-        }
+    # Ensure all configurations are loaded in a dict
+    entity_confs = {entity_code: config_module.get(entity_code, {}) for entity_code in entities}
 
     # Now we can iterate safetly over confs
     for entity_code in entity_confs:
         entity_conf = entity_confs[entity_code]
         parent_entity = get_entity_parent(tree, entity_code)
-        specific_data = entity_conf["specific_data"]
-        generic_data = entity_conf["generic_data"]
-        id_field_name = generic_data.get("id_field_name")
 
         entity_hierarchy_map[entity_code] = {
-            "id_field_name": id_field_name,
+            "id_field_name": ID_FIELD_NAME.get(entity_code),
             "parent_entity": (
                 parent_entity if parent_entity not in ENTITIES_NOT_AVAILABLE else None
             ),
         }
         parent_data = entity_confs.get(parent_entity, None)
         protocol_data[entity_code] = prepare_fields(
-            specific_data, generic_data, entity_code, id_destination, parent_data
+            entity_confs[entity_code], entity_code, id_destination, parent_data
         )
 
     entities_with_geom = ["site"]
@@ -116,16 +90,14 @@ def get_protocol_data(module_code: str, id_destination: int):
 
     for entity_code in entities_with_geom:
         entity_conf = entity_confs[entity_code]
-        generic_data = entity_conf.get("generic_data")
-        specific_data = entity_conf.get("specific_data")
-        geom_field_name = specific_data.get("geom_field_name", generic_data.get("geom_field_name"))
+        geom_field_name = entity_conf.get("geom_field_name", None)
         protocol_data[entity_code]["display_properties"] = config_module[entity_code].get(
             "display_properties", []
         )
         if geom_field_name is not None:
             name_field = get_field_name(entity_code, geom_field_name)
 
-            protocol_data[entity_code]["generic"].extend(
+            protocol_data[entity_code]["fields"].extend(
                 [
                     {
                         "name_field": name_field,
@@ -197,7 +169,7 @@ def get_protocol_data(module_code: str, id_destination: int):
         if name not in entities:
             continue
         suffix = name if name == "observation" else f"base_{name}"
-        protocol_data[name]["generic"].extend(
+        protocol_data[name]["fields"].extend(
             [
                 {
                     "name_field": f"id_{suffix}_origin",
@@ -241,7 +213,7 @@ def get_protocol_data(module_code: str, id_destination: int):
         )
 
     if "visit" in entities:
-        protocol_data["visit"]["generic"].extend(
+        protocol_data["visit"]["fields"].extend(
             [
                 {
                     "name_field": "id_dataset",
@@ -273,22 +245,15 @@ def get_protocol_data(module_code: str, id_destination: int):
 
     # Add observation_detail the file exists
     if "observation_detail" in entities:
-        observation_detail_specific_path = module_config_dir_path / "observation_detail.json"
-        observation_detail_generic_path = os.path.join(
-            project_root, "config", "generic", "observation_detail.json"
-        )
 
-        if observation_detail_specific_path.exists():
-            specific_data = json_from_file(observation_detail_specific_path)
-            generic_data = json_from_file(observation_detail_generic_path, result_default={})
-            entity_hierarchy_map["observation_detail"] = {
-                "id_field_name": generic_data.get("id_field_name"),
-                "parent_entity": "observation",
-            }
-            parent_data = entity_confs.get("observation", None)
-            protocol_data["observation_detail"] = prepare_fields(
-                specific_data, generic_data, "observation_detail", id_destination, parent_data
-            )
+        entity_hierarchy_map["observation_detail"] = {
+            "id_field_name": ID_FIELD_NAME.get("observation_detail"),
+            "parent_entity": "observation",
+        }
+        parent_data = entity_confs.get("observation", None)
+        protocol_data["observation_detail"] = prepare_fields(
+            entity_confs["observation_detail"], "observation_detail", id_destination, parent_data
+        )
 
     return protocol_data, entity_hierarchy_map
 

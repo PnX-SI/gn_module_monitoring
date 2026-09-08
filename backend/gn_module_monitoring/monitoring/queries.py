@@ -117,9 +117,9 @@ class GnMonitoringGenericFilter:
         """
         for param, value in params.items():
             if param in specific_properties:
-                type = "text"
+                field_type = "text"
                 if "type_util" in specific_properties[param]:
-                    type = specific_properties[param]["type_util"]
+                    field_type = specific_properties[param]["type_util"]
                 multiple = False
                 if "multiple" in specific_properties[param]:
                     multiple_value = specific_properties[param]["multiple"]
@@ -128,8 +128,10 @@ class GnMonitoringGenericFilter:
                     else:
                         multiple = json.loads(multiple_value)
 
-                if type in ("nomenclature", "taxonomy", "user", "area"):
-                    join_table, join_column, filter_column = cls._get_relationship_clause(type)
+                if field_type in ("nomenclature", "taxonomy", "user", "area"):
+                    join_table, join_column, filter_column = cls._get_relationship_clause(
+                        field_type
+                    )
                     if multiple:
                         # Si la propriété est de type multiple
                         # Alors jointure sur chaque element de data->'params'
@@ -325,6 +327,27 @@ class ObservationsQuery(GnMonitoringGenericFilter):
             query = query.where(or_(*ors))
         return query
 
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "cd_nom" in params:
+            value = params.pop("cd_nom")
+            # Cas ou le filtre provient du front
+            # La valeur est passée en chaine de caractère
+            if value.isdigit():
+                query = query.where(Models.TMonitoringObservations.cd_nom == value)
+            else:
+                join_table = aliased(Taxref)
+                join_column = join_table.cd_nom
+                filter_column = join_table.nom_vern_or_lb_nom
+                query = query.join(
+                    join_table, Models.TMonitoringObservations.cd_nom == join_column
+                )
+                # Filtre sur la valeur de la table de jointure
+                query = query.where(filter_column.ilike(f"{value}%"))
+
+        query = super().filter_by_params(query, params)
+        return query
+
 
 class IndividualsQuery(GnMonitoringGenericFilter):
     @classmethod
@@ -362,4 +385,26 @@ class IndividualsQuery(GnMonitoringGenericFilter):
                 query = query.where(filter_column.ilike(f"{value}%"))
 
         query = super().filter_by_params(query, params)
+        return query
+
+
+class ObservationDetailsQuery(GnMonitoringGenericFilter):
+    @classmethod
+    def filter_by_scope(cls, query: Select, scope, user=None):
+        if user is None:
+            user = g.current_user
+        if scope == 0:
+            query = query.where(false())
+        elif scope in (1, 2):
+            ors = [
+                Models.TMonitoringObservationDetails.observation.id_digitiser == user.id_role,
+            ]
+            # if organism is None => do not filter on id_organism even if level = 2
+            if scope == 2 and user.id_organisme is not None:
+                ors += [
+                    Models.TMonitoringObservationDetails.observation.id_digitiser.has(
+                        id_organisme=user.id_organisme
+                    )
+                ]
+            query = query.where(or_(*ors))
         return query

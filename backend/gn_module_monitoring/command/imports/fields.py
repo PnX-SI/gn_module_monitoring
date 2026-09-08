@@ -10,6 +10,7 @@ from geonature.core.imports.models import (
 from utils_flask_sqla.utils import strtobool
 
 from gn_module_monitoring.command.imports.constant import (
+    ID_FIELD_NAME,
     TYPE_WIDGET,
     INT_TYPE_UTILS,
     OTHER_TYPE_UTILS,
@@ -18,8 +19,7 @@ from gn_module_monitoring.command.imports.constant import (
 
 
 def prepare_fields(
-    specific_data: dict,
-    generic_data: dict,
+    entity_config: dict,
     entity_code: str,
     id_destination: int,
     parent_data: dict,
@@ -47,9 +47,8 @@ def prepare_fields(
     """
 
     entity_fields = {
-        "generic": [],
-        "specific": [],
-        "label": specific_data.get("label", generic_data.get("label", entity_code)),
+        "fields": [],
+        "label": entity_config.get("label", entity_code),
     }
 
     ignored_fields = [
@@ -71,45 +70,13 @@ def prepare_fields(
         "id_sites_group",  # ignored for now
     ]
 
-    field_set_manually = []
-
-    generic_fields = generic_data.get("generic", {})
-    for field_name, generic_field_data in generic_fields.items():
-        field_data = {}
+    for field_name in entity_config.get("fields", {}):
         if field_name in ignored_fields:
             continue
-
-        elif field_name in specific_data.get("specific", {}):
-            field_data = {**generic_field_data, **specific_data["specific"][field_name]}
-            if field_name in field_set_manually:
-                field_data["required"] = False
-                field_data["display"] = False
-            entity_fields["specific"].append(
-                monitoring_field_to_bib_field(
-                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
-                )
-            )
-        else:
-            field_data = generic_field_data
-            if field_name in field_set_manually:
-                field_data["required"] = False
-                field_data["display"] = False
-            entity_fields["generic"].append(
-                monitoring_field_to_bib_field(
-                    field_data, entity_code, field_name, id_destination, generic_data, parent_data
-                )
-            )
-
-    additional_fields = set(specific_data.get("specific", {}).keys()).difference(
-        generic_fields.keys()
-    )
-    for field_name in additional_fields:
-        if field_name in ignored_fields:
-            continue
-        field_data = specific_data["specific"][field_name]
-        entity_fields["specific"].append(
+        field_data = entity_config["fields"][field_name]
+        entity_fields["fields"].append(
             monitoring_field_to_bib_field(
-                field_data, entity_code, field_name, id_destination, generic_data, parent_data
+                field_data, entity_code, field_name, id_destination, parent_data
             )
         )
 
@@ -177,7 +144,6 @@ def monitoring_field_to_bib_field(
     entity_code: str,
     field_name: str,
     id_destination: int,
-    generic_data: dict,
     parent_data: dict,
 ):
     """
@@ -223,7 +189,7 @@ def monitoring_field_to_bib_field(
     name_field = field_name
     parent_id_field_name = parent_data.get("id_field_name") if parent_data else None
 
-    if name_field not in [generic_data.get("id_field_name"), parent_id_field_name]:
+    if name_field not in [ID_FIELD_NAME.get(entity_code), parent_id_field_name]:
         name_field = get_field_name(entity_code, field_name)
 
     type_field_params = {
@@ -259,8 +225,7 @@ def insert_bib_field(protocol_data: dict):
     all_fields = []
 
     for entity_fields in protocol_data.values():
-        for field_type in ["generic", "specific"]:
-            all_fields.extend(entity_fields[field_type])
+        all_fields.extend(entity_fields["fields"])
 
     def upsert_field(field):
         values = {**field}

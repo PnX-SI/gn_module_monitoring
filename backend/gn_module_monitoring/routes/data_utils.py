@@ -33,9 +33,6 @@ from pypn_habref_api.models import Habref
 from ref_geo.models import LAreas, LiMunicipalities
 
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.utils.routes import get_sites_groups_from_module_id
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
     TMonitoringSitesGroups,

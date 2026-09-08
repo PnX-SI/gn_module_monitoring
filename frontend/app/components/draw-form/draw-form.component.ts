@@ -1,10 +1,12 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormControl } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
 import { FormService } from '../../services/form.service';
-import { GeoJSONService } from '../../services/geojson.service';
+import { IFormMap } from '../../interfaces/object';
 
 @Component({
   selector: 'pnx-draw-form',
@@ -15,12 +17,10 @@ export class DrawFormComponent implements OnInit {
   public geojson;
   public leafletDrawOptions: any;
 
-  public displayed = false;
-
-  @Input() parentFormControl: FormControl;
+  public parentFormControl: FormControl;
   /** Type de geomtrie parmi : 'Point', 'Polygon', 'LineString' */
-  @Input() geometryType: string;
-
+  public geometryType: string[] = [];
+  private currentEditModeSubscription: Subscription;
   // search bar default to true
 
   @Output() onChange = new EventEmitter<any>();
@@ -29,29 +29,42 @@ export class DrawFormComponent implements OnInit {
   @Input() bZoomOnPoint = true;
   @Input() zoomLevelOnPoint = 8;
 
-  @Input() bEdit;
+  // TODO supprimer input quand monitoring-objet n'est plus utilisé
+  @Input() bEdit: boolean = false;
 
   @Input() geomFromProtocol: boolean = true;
 
-  constructor(
-    private _formService: FormService,
-    public geoJsonService: GeoJSONService
-  ) {}
+  constructor(private _formService: FormService) {}
 
   ngOnInit() {
+    this._formService.currentFormMap
+      .pipe(distinctUntilChanged((prev, curr) => prev.frmGp === curr.frmGp))
+      .subscribe((formMapObj: IFormMap) => {
+        if (!formMapObj || !formMapObj.frmGp) {
+          return;
+        }
+        this.geometryType = formMapObj.geometry_type;
+        this.parentFormControl = formMapObj.frmGp;
+        this.initForm();
+      });
     // choix du type de geometrie
     this.initDrawConfig();
-    this.initForm();
+
+    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
+      (editMode: boolean) => {
+        this.bEdit = editMode;
+        this.initForm();
+      }
+    );
   }
 
   initForm() {
     if (!(this.geometryType && this.parentFormControl)) {
-      // on cache
-      this.displayed = false;
       return;
     }
-
-    this.displayed = true;
+    if (this.bEdit === false) {
+      return;
+    }
     this.initDrawConfig();
     if (this.geometryType.includes('Point')) {
       this.leafletDrawOptions.draw.marker = {
@@ -82,7 +95,6 @@ export class DrawFormComponent implements OnInit {
     }
 
     this.leafletDrawOptions = { ...this.leafletDrawOptions };
-
     if (this.parentFormControl && this.parentFormControl.value) {
       // init geometry from parentFormControl
       this.setGeojson(this.parentFormControl.value);
@@ -93,26 +105,29 @@ export class DrawFormComponent implements OnInit {
     this.leafletDrawOptions = JSON.parse(JSON.stringify(leafletDrawOptions));
   }
 
-  setGeojson(geometry) {
-    setTimeout(() => {
-      this.geojson = { geometry: geometry };
-    });
+  setGeojson(geometry: JSON) {
+    this.geojson = geometry;
   }
 
   // suivi composant => formControl
-  bindGeojsonForm(geojson) {
-    this.manageGeometryChange(geojson.geometry);
+  bindGeojsonForm(geojson: JSON) {
+    this.manageGeometryChange(geojson);
   }
 
-  manageGeometryChange(geometry) {
+  manageGeometryChange(geometry: JSON) {
     if (!isEqual(geometry, this.parentFormControl.value)) {
       this.parentFormControl.setValue(geometry);
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.parentFormControl && changes.parentFormControl.currentValue) {
-      this.initForm();
+    if (changes.parentFormControl) {
+      if (changes.parentFormControl.currentValue) {
+        this.initForm();
+      }
     }
+  }
+  ngOnDestroy() {
+    this.currentEditModeSubscription.unsubscribe();
   }
 }

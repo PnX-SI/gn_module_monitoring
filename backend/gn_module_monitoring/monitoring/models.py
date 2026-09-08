@@ -40,6 +40,7 @@ from pypnusershub.db.models import User
 
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
+    ObservationDetailsQuery,
     SitesQuery,
     SitesGroupsQuery,
     VisitQuery,
@@ -81,7 +82,7 @@ cor_sites_group_module = DB.Table(
 
 
 @serializable
-class TMonitoringObservationDetails(DB.Model, MonitoringQuery, PermissionModel):
+class TMonitoringObservationDetails(DB.Model, PermissionModel, ObservationDetailsQuery):
     __tablename__ = "t_observation_details"
     __table_args__ = {"schema": "gn_monitoring"}
 
@@ -169,6 +170,16 @@ class TMonitoringObservations(TObservations, PermissionModel, ObservationsQuery)
             return True
 
 
+TMonitoringObservationDetails.observation = DB.relationship(
+    TMonitoringObservations,
+    primaryjoin=(
+        TMonitoringObservations.id_observation == TMonitoringObservationDetails.id_observation
+    ),
+    foreign_keys=[TMonitoringObservationDetails.id_observation],
+    overlaps="observation_details",
+)
+
+
 @serializable
 class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
     __tablename__ = "t_visit_complements"
@@ -179,7 +190,6 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
 
     id_base_visit = DB.Column(
         DB.ForeignKey("gn_monitoring.t_base_visits.id_base_visit"),
-        nullable=False,
         primary_key=True,
     )
 
@@ -200,6 +210,7 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
         primaryjoin=(TObservations.id_base_visit == TBaseVisits.id_base_visit),
         foreign_keys=[TObservations.id_base_visit],
         cascade="all,delete",
+        overlaps="visit",
     )
 
     nb_observations = column_property(
@@ -258,6 +269,15 @@ class TMonitoringVisits(TBaseVisits, PermissionModel, VisitQuery):
             return True
 
 
+TObservations.visit = DB.relationship(
+    TMonitoringVisits,
+    lazy="select",
+    primaryjoin=(TMonitoringVisits.id_base_visit == TObservations.id_base_visit),
+    foreign_keys=[TObservations.id_base_visit],
+    uselist=False,
+)
+
+
 @geoserializable(geoCol="geom", idCol="id_base_site")
 class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     __tablename__ = "t_site_complements"
@@ -273,10 +293,13 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     id_sites_group = DB.Column(
         DB.ForeignKey(
             "gn_monitoring.t_sites_groups.id_sites_group",
-            # ondelete='SET NULL'
         ),
     )
-
+    sites_group = DB.relationship(
+        "TMonitoringSitesGroups",
+        back_populates="sites",
+        uselist=False,
+    )
     data = DB.Column(JSONB)
 
     modules = DB.relationship(
@@ -323,7 +346,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
     types_site = DB.relationship("BibTypeSite", secondary=cor_site_type, overlaps="sites")
 
     nb_individuals = column_property(
-        select([func.count(func.distinct(TIndividuals.id_individual))])
+        select(func.count(func.distinct(TIndividuals.id_individual)))
         .join_from(
             TBaseVisits, TObservations, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
@@ -357,7 +380,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def nb_visits(self):
@@ -379,7 +402,7 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         if getattr(g, "current_module", None):
             if not g.current_module.module_code == "MONITORINGS":
                 query = query.where(TMonitoringVisits.id_module == g.current_module.id_module)
-        return query.as_scalar()
+        return query.scalar_subquery()
 
     @hybrid_property
     def organism_actors(self):
@@ -418,6 +441,15 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         return False
 
 
+# TMonitoringVisits.site = DB.relationship(
+#     TMonitoringSites,
+#     lazy="select",
+#     primaryjoin=(TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site),
+#     foreign_keys=[TMonitoringVisits.id_base_site],
+#     uselist=False,
+# )
+
+
 @geoserializable(geoCol="geom", idCol="id_sites_group")
 class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     __tablename__ = "t_sites_groups"
@@ -452,7 +484,9 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
         foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
+        back_populates="sites_group",
     )
+
     modules = DB.relationship(
         "TMonitoringModules",
         secondary=cor_sites_group_module,
@@ -606,13 +640,6 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
     )
     data = DB.Column(JSONB)
 
-    # visits = DB.relationship(
-    #     TMonitoringVisits,
-    #     lazy="select",
-    #     primaryjoin=(TModules.id_module == TBaseVisits.id_module),
-    #     foreign_keys=[TBaseVisits.id_module],
-    #     cascade="all,delete"
-    # )
     visits = DB.relationship(
         TMonitoringVisits,
         lazy="select",
@@ -632,7 +659,7 @@ class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
 class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
 
     nb_sites = column_property(
-        select([func.count(func.distinct(TMonitoringSites.id_base_site))])
+        select(func.count(func.distinct(TMonitoringSites.id_base_site)))
         .join_from(
             TObservations, TBaseVisits, TBaseVisits.id_base_visit == TObservations.id_base_visit
         )
@@ -654,3 +681,13 @@ class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
         TMonitoringMarkingEvent,
         primaryjoin=(TIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
     )
+
+
+TMonitoringVisits.site = DB.relationship(
+    TMonitoringSites,
+    lazy="select",
+    primaryjoin=(TMonitoringSites.id_base_site == TMonitoringVisits.id_base_site),
+    foreign_keys=[TMonitoringVisits.id_base_site],
+    uselist=False,
+    viewonly=True,
+)

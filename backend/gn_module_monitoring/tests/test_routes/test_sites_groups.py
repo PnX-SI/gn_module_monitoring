@@ -10,7 +10,11 @@ from geonature.utils.env import db
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups, TMonitoringModules
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringSitesGroupsSchema,
+    MonitoringSitesGroupsSchemaCruved,
+)
+from gn_module_monitoring.tests.fixtures.generic import *
 
 
 @pytest.mark.usefixtures("client_class")
@@ -38,12 +42,11 @@ class TestSitesGroups:
         assert r.json["count"] >= len(sites_groups)
 
         sites_group_response = r.json["items"]
-        for s in sites_group_response:
-            s.pop("cruved")
 
         assert all(
             [
-                MonitoringSitesGroupsSchema().dump(group) in sites_group_response
+                MonitoringSitesGroupsSchemaCruved(exclude=("medias",)).dump(group)
+                in sites_group_response
                 for group in sites_groups.values()
             ]
         )
@@ -51,7 +54,7 @@ class TestSitesGroups:
     def test_get_sites_groups_filter_name(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         name, name_not_present = list(sites_groups.keys())
-        schema = MonitoringSitesGroupsSchema()
+        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias",))
 
         r = self.client.get(
             url_for("monitorings.get_sites_groups"), query_string={"sites_group_name": name}
@@ -59,10 +62,6 @@ class TestSitesGroups:
 
         assert r.json["count"] >= 1
         json_sites_groups = r.json["items"]
-
-        # Suppression du cruved
-        for s in json_sites_groups:
-            s.pop("cruved")
 
         assert schema.dump(sites_groups[name]) in json_sites_groups
         assert schema.dump(sites_groups[name_not_present]) not in json_sites_groups
@@ -93,6 +92,95 @@ class TestSitesGroups:
             if obj["properties"]["sites_group_name"] == site_group_with_sites.sites_group_name
         ][0]["id_sites_group"]
         assert id_ == site_group_with_sites.id_sites_group
+
+    @pytest.mark.parametrize(
+        ("geom", "status_code"),
+        [
+            (None, 200),
+            ("", 200),
+            ("abc", 422),
+            ({"type": "Point"}, 422),
+            ([1, 2, 3], 422),
+            (
+                {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [3.405955, 44.23842],
+                            [3.410139, 44.241925],
+                            [3.420503, 44.238666],
+                            [3.405955, 44.23842],
+                        ]
+                    ],
+                },
+                200,
+            ),
+        ],
+    )
+    def test_get_patch_groups(self, sites_groups, users, geom, status_code):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        first_site = sites_groups["Site_eolien"]
+        data = self.client.get(
+            url_for(
+                "monitorings.get_sites_group_by_id",
+                module_code="generic",
+                id_sites_group=first_site.id_sites_group,
+            )
+        )
+        site_group = data.json
+
+        # Pop variable supplémentaires
+        for k in ["nb_sites", "nb_visits", "cruved"]:
+            site_group.pop(k)
+
+        site_group["sites_group_code"] = "NEW_CODE"
+        site_group["sites_group_name"] = "update name"
+        site_group["geom"] = geom
+        r = self.client.patch(
+            url_for("monitorings.patch", _id=first_site.id_sites_group),
+            data=site_group,
+        )
+        assert r.status_code == status_code
+        if status_code == 200:
+            assert r.json["id_sites_group"] == first_site.id_sites_group
+            assert r.json["sites_group_name"] == "update name"
+            if geom == "":
+                geom = None
+            assert r.json["geom"] == geom if not "" else None
+
+    def test_get_post_groups(self, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        geom_sites_group = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [3.535269, 44.242648],
+                    [3.532821, 44.247625],
+                    [3.538272, 44.245986],
+                    [3.538398, 44.244186],
+                    [3.537732, 44.243658],
+                    [3.535269, 44.242648],
+                ]
+            ],
+        }
+        site_group = {
+            "altitude_max": None,
+            "altitude_min": None,
+            "comments": "dfgdfg",
+            "id_digitiser": users["admin_user"].id_role,
+            "id_sites_group": None,
+            "sites_group_code": "Cros_du_Lac",
+            "sites_group_description": "Site test",
+            "sites_group_name": "Cros du Lac",
+            "geom": geom_sites_group,
+        }
+        r = self.client.post(
+            url_for("monitorings.post_sites_group"),
+            data=site_group,
+        )
+        assert r.status_code == 200
+        assert r.json["sites_group_name"] == "Cros du Lac"
+        assert r.json["geom"] == geom_sites_group
 
 
 # TODO: ajouter tests sur tri

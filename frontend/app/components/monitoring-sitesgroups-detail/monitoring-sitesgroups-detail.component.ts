@@ -1,29 +1,22 @@
 import { Component, OnInit, Input, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReplaySubject, forkJoin, of } from 'rxjs';
-import { tap, map, mergeMap, takeUntil, switchMap, concatMap } from 'rxjs/operators';
-import * as L from 'leaflet';
-import { IdataTableObjData, ISite, ISiteField, ISitesGroup } from '../../interfaces/geom';
+import { mergeMap, takeUntil } from 'rxjs/operators';
+import { ISite, ISitesGroup } from '../../interfaces/geom';
 import { IPage, IPaginated } from '../../interfaces/page';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { GeoJSONService } from '../../services/geojson.service';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { SitesService, SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
-import { IobjObs } from '../../interfaces/objObs';
 import { SelectObject } from '../../interfaces/object';
-import { ConfigService } from '../../services/config.service';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
-import { MonitoringObject } from '../../class/monitoring-object';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
+import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
-
-const LIMIT = 10;
 
 @Component({
   selector: 'monitoring-sitesgroups-detail',
@@ -34,180 +27,105 @@ export class MonitoringSitesgroupsDetailComponent
   extends MonitoringGeomComponent
   implements OnInit
 {
-  siteGroupId: number;
   sitesGroup: ISitesGroup;
-  colsname: {};
   page: IPage;
-  filters = {};
-  @Input() bEdit: boolean;
-  form: FormGroup;
-  objectType: IobjObs<ISite>;
-  objParent: any;
+
+  public objectType: string = 'site';
 
   modules: SelectObject[];
-  modulSelected;
   siteSelectedId: number;
   rows;
   siteResolvedProperties;
-  dataTableConfig: {}[] = [];
-  checkEditParam: boolean;
 
+  sitesGroupResolved;
   private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
-  currentUser: User;
-  currentPermission: TPermission;
-
-  obj: MonitoringObject;
-
-  moduleCode: string;
-
   constructor(
-    private _auth: AuthService,
+    protected _Activatedroute: ActivatedRoute,
+    protected _formBuilder: FormBuilder,
+    protected _auth: AuthService,
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
     private _objService: ObjectService,
     private router: Router,
-    private _Activatedroute: ActivatedRoute,
     private _geojsonService: GeoJSONService,
-    private _formBuilder: FormBuilder,
-    private _configService: ConfigService,
-    private _formService: FormService,
-    private _permissionService: PermissionService,
-    private _popup: Popup,
-    private _monitoringObjectService: MonitoringObjectService,
+    public _formService: FormService,
+    public _permissionService: PermissionService,
+    public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super();
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
   ngOnInit() {
-    this.moduleCode = this._Activatedroute.snapshot.data.detailSitesGroups.moduleCode;
-
-    this.currentUser = this._auth.getCurrentUser();
-    this.form = this._formBuilder.group({});
-    this._configService.init(this.moduleCode).subscribe(() => {
-      this.initSite();
-    });
+    super.ngOnInit();
+    this.baseFilters = { id_sites_group: this.dataId };
+    // breadcrumb
+    this._objService.loadBreadCrumb(this.moduleCode, 'sites_group', this.dataId, this.queryParams);
+    this.initSite();
   }
 
   initSite() {
-    this._permissionService.setPermissionMonitorings(this.moduleCode);
-    this.currentPermission = this._permissionService.getPermissionUser();
+    const fieldsConfig = this._configServiceG.config()['site']['fields'];
+    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId);
 
-    this._Activatedroute.params
+    siteGroupdata$
       .pipe(
-        map((params) => {
-          this.checkEditParam = params['edit'];
-          this.siteGroupId = params['id'];
-          this.baseFilters = { id_sites_group: this.siteGroupId };
-
-          // breadcrumb
-          const queryParams = this._Activatedroute.snapshot.queryParams;
-          this._objService.loadBreadCrumb(
-            this.moduleCode,
-            'sites_group',
-            this.siteGroupId,
-            queryParams
+        mergeMap((sitesGroupData) => {
+          this.sitesGroup = sitesGroupData;
+          const siteGroupDataResolved$ = resolveObjectProperties(
+            this.sitesGroup,
+            fieldsConfig,
+            this._configServiceG,
+            this._cacheService
           );
-
-          this.obj = new MonitoringObject(
-            this.moduleCode,
-            'sites_group',
-            this.siteGroupId,
-            this._monitoringObjectService
-          );
-          return this.siteGroupId as number;
-        }),
-        mergeMap((id: number) => {
-          this._siteService.setModuleCode(`${this.moduleCode}`);
-          this._sitesGroupService.setModuleCode(`${this.moduleCode}`);
-
-          const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
-          // Récupération des sites et résolution des propriétés
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
             this.limit,
             this.baseFilters,
             fieldsConfig
           );
-
           return forkJoin({
-            sitesGroup: this._sitesGroupService.getById(id, this.moduleCode).catch((err) => {
-              if (err.status == 404) {
-                this.router.navigate(['/not-found'], { skipLocationChange: true });
-                return of(null);
-              }
-            }),
+            sitesGroupResolved: siteGroupDataResolved$,
             sites: sitedata$,
-            objObsSite: this._siteService.initConfig(),
-            objObsSiteGp: this._sitesGroupService.initConfig(),
-            obj: this.obj.get(0),
-          }).pipe(
-            map((data) => {
-              this.obj.initTemplate();
-              this.obj.bIsInitialized = true;
-              return data;
-            })
-          );
+          });
         })
       )
       .subscribe((data) => {
-        this.sitesGroup = data.sitesGroup;
+        this.sitesGroupResolved = data.sitesGroupResolved;
         const sites = data.sites;
-
         this.page = {
           count: sites.count,
           page: sites.page,
           limit: sites.limit,
         };
 
-        this.colsname = data.objObsSite.dataTable.colNameObj;
-        this.objParent = data.objObsSiteGp;
-
         this.setDataTableObjData(
           {
             sites: {
               data: sites,
-              objConfig: data.objObsSite,
+              objType: 'site',
+              childType: 'visit',
             },
           },
-          this._configService,
           this.moduleCode,
           ['site', 'individual']
         );
 
         this.rows = this.dataTableObjData.site.rows;
         this.getSitesFromSiteGroupId(this.page.page, {});
-        if (this.checkEditParam) {
-          this._formService.changeFormMapObj({
-            frmGp: this.form,
-            obj: this.obj,
-          });
-
-          this.bEdit = true;
-        }
-
-        this.obj.bIsInitialized = true;
-        this._formService.changeFormMapObj({
-          frmGp: this.form,
-          obj: this.obj,
-        });
-        this._formService.changeCurrentEditMode(this.bEdit);
       });
   }
 
   ngOnDestroy() {
+    super.ngOnDestroy();
     this._geojsonService.removeAllFeatureGroup();
     this.destroyed$.next(true);
     this.destroyed$.complete();
     this._formService.changeCurrentEditMode(false);
-    this._formService.changeFormMapObj({
-      frmGp: null,
-      obj: {},
-    });
   }
 
   onbEditChange(event: boolean) {
@@ -215,6 +133,7 @@ export class MonitoringSitesgroupsDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
+      this.initSite();
       const sitesParams = { ...{}, ...this.baseFilters };
       this._geojsonService.getSitesGroupsGeometriesWithSites(
         this.onEachFeatureGroupSite(),
@@ -223,14 +142,6 @@ export class MonitoringSitesgroupsDetailComponent
         sitesParams
       );
     }
-
-    this.bEdit = event;
-
-    this._formService.changeFormMapObj({
-      frmGp: this.form,
-      obj: this.obj,
-    });
-    this._formService.changeCurrentEditMode(this.bEdit);
   }
 
   onEachFeatureSite() {
@@ -254,7 +165,7 @@ export class MonitoringSitesgroupsDetailComponent
   getSitesFromSiteGroupId(page, params) {
     const sitesParams = { ...params, ...this.baseFilters };
     // Tableau
-    const fieldsConfig = this._configService.schema(this.moduleCode, 'site');
+    const fieldsConfig = this._configServiceG.config()['site']['fields'];
     this._sitesGroupService
       .getSitesChildResolved(1, this.limit, sitesParams, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
@@ -283,7 +194,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   editChild($event) {
     this.router.navigate([`/monitorings/object/${this.moduleCode}/site/${$event.id_base_site}`], {
-      queryParams: { parents_path: ['module', 'sites_group'] },
+      queryParams: { parents_path: ['module', 'sites_group'], edit: true },
     });
   }
 
@@ -293,7 +204,7 @@ export class MonitoringSitesgroupsDetailComponent
       parents_path: ['module', 'sites_group'],
     };
 
-    queryParams['id_sites_group'] = this.obj.id;
+    queryParams['id_sites_group'] = this.dataId;
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
@@ -338,14 +249,11 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   addNewVisit(event) {
-    this.modulSelected = event;
-    this._configService.init(this.modulSelected.id).subscribe(() => {
-      const moduleCode = this.modulSelected.id;
-      const keys = Object.keys(this._configService.config()[moduleCode]);
-      const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-      this.router.navigate([`monitorings/create_object/${moduleCode}/visit`], {
-        queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
-      });
+    const moduleCode = event.id;
+    const keys = Object.keys(this._configServiceG.config());
+    const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
+    this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {
+      queryParams: { id_base_site: this.siteSelectedId, parents_path: parents_path },
     });
   }
 }

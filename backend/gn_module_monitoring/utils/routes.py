@@ -4,6 +4,7 @@ from flask import Response, g
 from flask.json import jsonify
 
 from typing import Tuple, Optional
+
 from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
 
@@ -47,23 +48,38 @@ def get_sort(params: MultiDict, default_sort: str, default_direction) -> Tuple[s
     return params.pop("sort", default_sort), params.pop("sort_dir", default_direction)
 
 
-def paginate(query: Select, schema: Schema, limit: int, page: int) -> Response:
+def paginate(
+    query: Select,
+    schema: Schema,
+    limit: int,
+    page: int,
+    schema_extra_args: dict = None,
+) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
     pagination_schema = paginate_schema(schema)
-    data = pagination_schema().dump(
+    if schema_extra_args is None:
+        instance_schema = pagination_schema()
+    else:
+        instance_schema = pagination_schema(**schema_extra_args)
+    data = instance_schema.dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
     return jsonify(data)
 
 
 def paginate_scope(
-    query: Select, schema: Schema, limit: int, page: int, object_code=None
+    query: Select,
+    schema: Schema,
+    limit: int,
+    page: int,
+    object_code=None,
+    schema_extra_args: dict = None,
 ) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
 
     pagination_schema = paginate_schema(schema)
 
-    datas_allowed = pagination_schema().dump(
+    datas_allowed = pagination_schema(**schema_extra_args).dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
 
@@ -267,3 +283,48 @@ def get_objet_with_permission_boolean(
             object_out["cruved"] = object.has_permission(cruved_object=cruved_object)
         objects_out.append(object_out)
     return objects_out
+
+
+def process_json_data_for_db_upsert(config, properties, object_type):
+    """
+    Process json data for db upsert.
+
+    This function takes a configuration for a site group and a dictionary of properties.
+    It checks which properties are specific to the site group type and adds them to the "data" key in the properties dictionary.
+    It also checks which properties are not in the site group type schema, the generic schema or the module schema and adds them to the "data" key in the properties dictionary.
+    Finally, it returns the processed properties dictionary.
+
+    :param config: dict, configuration for a site group
+    :param properties: dict, dictionary of properties
+    :return: dict, processed properties dictionary
+    """
+    from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
+    from gn_module_monitoring.config.utils import get_specific_properties
+
+    data = {}
+    class_object_type = MonitoringModels_dict[object_type]
+    specific_properties = get_specific_properties(class_object_type, config, object_type)
+    for attribut_name, attribut_value in specific_properties.items():
+        if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
+            if attribut_name in properties:
+                val = properties.pop(attribut_name)
+                data[attribut_name] = val
+
+    if data:
+        properties["data"] = data
+    else:
+        properties["data"] = {}
+
+    # On ajoute les propriétés associées aux types de sites_group qui ne sont ni dans le schema specific
+    # ni dans generic ou appartenant au modèle
+    prop_remaining_to_check = list(properties.keys())
+    for prop in prop_remaining_to_check:
+        is_in_model = hasattr(class_object_type, prop)
+        if (
+            not is_in_model
+            and prop not in config[object_type]["fields"].keys()
+            and prop != "id_module"
+            and prop != "data"
+        ):
+            properties["data"][prop] = properties.pop(prop)
+    return properties

@@ -6,18 +6,14 @@
       [geolocation]="true"
     >
       <pnx-draw-form
-        [parentFormControl]="objForm && objForm.controls && objForm.controls['geometry']"
-        [geometryType]="obj && obj.config && obj.config['geometry_type']"
         [bZoomOnPoint]="false"
-        [bEdit]="bEdit"
         [geomFromProtocol]="false"
       ></pnx-draw-form>
     </pnx-map>
   </div>
   <div id="monitoring-elem-container" class="cadre scroll">
     <div>
-      <pnx-monitoring-breadcrumbs
-        [(bEdit)]="bEdit">
+      <pnx-monitoring-breadcrumbs>
       </pnx-monitoring-breadcrumbs>
     </div>
 

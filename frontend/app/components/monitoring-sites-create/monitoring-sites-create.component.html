@@ -1,7 +1,7 @@
 <div>
-  <span class="obj-title">{{ siteService.objectObs.addObjLabel }}</span>
+  <span class="obj-title">{{ "Actions.Add" | translate }}</span>
 </div>
 <div>
-  <pnx-monitoring-form [obj]="obj" [objForm]="objForm" [currentUser]="currentUser" *ngIf="bEdit && obj?.bIsInitialized"
-    [(bEdit)]="bEdit" [addChildren]=false></pnx-monitoring-form>
+  <pnx-monitoring-site-form-g [object]="site" objectType="site" [form]="form" [currentUser]="currentUser"
+    [apiService]="siteService" [config]="moduleConfig['site']"></pnx-monitoring-site-form-g>
 </div>

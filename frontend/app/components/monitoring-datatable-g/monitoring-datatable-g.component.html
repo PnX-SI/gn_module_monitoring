@@ -41,7 +41,7 @@
   >
     <mat-tab
       *ngFor="let objType of dataTableObjData | keyvalue; let i = index"
-      label="{{ dataTableConfig[i].template['labelList'] }} {{
+      label="{{ dataTableConfig[i].labelList}} {{
         displayNumber(dataTableConfig[i].objectType)
       }}"
     >
@@ -66,25 +66,23 @@
               [objectType]="objectType"
               [properties]="getImportProperties()"
             ></pnx-import-button>
+            <!-- Si c'est une visite et que le module est générique alors affichage d'un template spécifique -->
+
             <ng-template
-              [ngIf]="activetabType != 'visit'"
+              [ngIf]="!(activetabType === 'visit' && moduleCode === 'generic')"
               [ngIfElse]="chooseProtocol"
             >
               <!-- TODO Revoir pour les droits pour pouvoir créer un groupe de site avec anciennement:  *ngIf=obj.moduleCode && (currentUser['cruved_object'][child0.objectType] || currentUser['cruved']).C >= child0.cruved('C')" -->
               <button
                 mat-raised-button
-                [disabled]="!canCreateObj"
+                [disabled]="!dataTableConfig[i].canCreateObj"
                 color="primary"
-                [ngClass]="{ isDisableBtn: !canCreateObj }"
+                [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateObj }"
                 class="btn btn-success float-right"
-                (click)="canCreateObj ? navigateToAddObj() : null"
-                [matTooltip]="canCreateObj ? null : toolTipNotAllowed"
+                (click)="dataTableConfig[i].canCreateObj ? navigateToAddObj() : null"
+                [matTooltip]="dataTableConfig[i].canCreateObj ? null : toolTipNotAllowed"
               >
-                <i
-                  class="fa fa-plus"
-                  aria-hidden="true"
-                ></i>
-                {{ dataTableConfig[i].addObjLabel }}
+                <i class="fa fa-plus" aria-hidden="true"></i> {{ "Actions.Add" | translate }}
               </button>
             </ng-template>
 
@@ -132,7 +130,7 @@
                   <a
                     class="nav-link link cell-link"
                     (click)="navigateToDetail(row)"
-                    matTooltip="{{ dataTableConfig[i].seeObjLabel }}"
+                    matTooltip="{{ 'Detail' | translate }}"
                   >
                     <i
                       class="fa fa-eye"
@@ -140,24 +138,24 @@
                     ></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
-
+                  <span
+                    *ngIf="dataTableConfig[i].childType !== null"
+                    >
                   <ng-template
-                    [ngIf]="!(dataTableConfig[i].childType == 'visit')"
+                    [ngIf]="!(dataTableConfig[i].childType == 'visit') && moduleCode !== 'generic'"
                     [ngIfElse]="chooseProtocolPopup"
                   >
                     <ng-container *ngIf="!(dataTableConfig[i].childType == 'observation')">
                       <a
-                        [ngClass]="{ isDisableBtn: !canCreateChild }"
+                        [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
                         class="nav-link link cell-link"
-                        (click)="
-                          canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null
-                        "
+                        (click)="dataTableConfig[i].canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
                         [matTooltip]="
-                          canCreateChild ? dataTableConfig[i].addChildLabel : toolTipNotAllowed
+                          dataTableConfig[i].canCreateChild ? labelAdd : toolTipNotAllowed
                         "
                       >
                         <i
-                          [ngClass]="{ isDisableIcon: !canCreateChild }"
+                          [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild }"
                           class="fa fa-plus"
                           aria-hidden="true"
                         ></i>
@@ -169,19 +167,20 @@
                       placeholder="Sélectionner le protocole"
                       label="{{ 'Monitoring.Sites.addVisit' | translate }}"
                       [iconOrButton]="icon"
-                      [canCreateChild]="canCreateChild"
+                      [canCreateChild]="dataTableConfig[i].canCreateChild"
                       [item]="row"
                       (onDeployed)="addChildrenVisit(row)"
                       (onSaved)="saveOptionChild($event)"
                     ></option-list-btn>
                   </ng-template>
+                  </span>
                   <!--  -->
                   <a
                     [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
                     class="nav-link link cell-link"
                     (click)="row.cruved['U'] ? editSelectedItem(row) : null"
                     [matTooltip]="
-                      row.cruved['U'] ? dataTableConfig[i].editObjLabel : toolTipNotAllowed
+                      row.cruved['U'] ? labelEdit  : toolTipNotAllowed
                     "
                   >
                     <i
@@ -205,7 +204,7 @@
                       class="nav-link link cell-link"
                       (click)="row.cruved['D'] ? alertMessage(row) : null"
                       [matTooltip]="
-                        row.cruved['D'] ? dataTableConfig[i].deleteObjLabel : toolTipNotAllowed
+                        row.cruved['D'] ? labelDelete : toolTipNotAllowed
                       "
                     >
                       <i
