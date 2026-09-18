@@ -23,7 +23,6 @@ from geonature.core.gn_monitoring.models import CorVisitObserver
 
 from geonature.utils.env import db
 
-from bokeh.embed.standalone import StandaloneEmbedJson
 from flask import current_app
 
 import typing
@@ -416,7 +415,7 @@ class MonitoringImportActions(ImportActions):
             imprt.statistics.pop(key)
 
     @staticmethod
-    def report_plot(imprt: TImports) -> StandaloneEmbedJson:
+    def report_plot(imprt: TImports):
         return None
 
     @staticmethod
