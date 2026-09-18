@@ -15,7 +15,7 @@ TYPE_WIDGET = {
     "radio": "varchar",
     "html": "text",
     "bool_checkbox": "boolean",
-    "number": "integer",
+    "number": "number",
     "multiselect": "varchar",
     "observers": "integer",
     "observers-text": "varchar",
