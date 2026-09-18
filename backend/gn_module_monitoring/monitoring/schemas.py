@@ -95,7 +95,10 @@ def generate_parents_data(hierarchy_list: [], obj) -> dict:
         obj_type = element.split(".")[-1]
 
         getter = attrgetter(element)
-        attr = getter(obj)
+        try:
+            attr = getter(obj)
+        except AttributeError:
+            attr = None
 
         if attr:
             parent_schema = generate_parents_schema(obj_type)
