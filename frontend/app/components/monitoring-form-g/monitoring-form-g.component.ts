@@ -54,6 +54,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   private queryParams: any;
   private pendingKeepValues: JsonData | null = null;
+  private initialFormValue: JsonData | null = null;
 
   constructor(
     public _commonService: CommonService,
@@ -91,6 +92,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     this.formValues(this.form.value).subscribe((formValue) => {
       this.form.patchValue(formValue);
+      this.initialFormValue = this.form.value;
     });
   }
 
@@ -184,16 +186,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.queryParams = this._route.snapshot.queryParams || {};
     this.initForm();
     this.initPermission();
-
+    if (this.fetchedParents) {
+      this.meta.parents = this.buildParentsMeta();
+    }
     let displayProperties = [...(this.config.display_properties || [])];
     this.formsDefinition = this.sortFormDefinition(
       displayProperties,
       this.initFormDefiniton(this.config.fields, this.meta)
     );
-
-    if (this.fetchedParents) {
-      this.meta.parents = this.buildParentsMeta();
-    }
   }
 
   setDefaultFormValue() {
@@ -406,12 +406,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   resetForm() {
     const keep = this.config['keep'] || [];
     const currentValue = this.form.value;
-    this.pendingKeepValues = keep.reduce((acc: JsonData, key: string) => {
+    const keepValues = keep.reduce((acc: JsonData, key: string) => {
       if (key in currentValue) {
         acc[key] = currentValue[key];
       }
       return acc;
     }, {});
+    // Restauration des valeurs par défaut du formulaire
+    this.pendingKeepValues = { ...this.initialFormValue, ...keepValues };
 
     this.object = null;
 
