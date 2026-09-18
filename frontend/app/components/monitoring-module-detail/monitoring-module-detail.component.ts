@@ -255,12 +255,12 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       parents_path: ['module'],
       edit: true,
     };
-    this.router.navigate([
-      `/monitorings/object/${this.moduleCode}/`,
-      this.currentRoute,
-      $event[$event.id],
-      queryParams,
-    ]);
+    this.router.navigate(
+      [`/monitorings/object/${this.moduleCode}/`, this.currentRoute, $event[$event.id]],
+      {
+        queryParams: queryParams,
+      }
+    );
   }
 
   navigateToAddChildren($event) {

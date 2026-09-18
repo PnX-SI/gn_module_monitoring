@@ -249,6 +249,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
         id_base_site: this.objectData.id_base_site,
       });
+      this.initSiteVisit();
     }
     this.bEdit = event;
   }
