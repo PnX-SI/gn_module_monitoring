@@ -46,20 +46,18 @@ export class MonitoringVisitsCreateComponent implements OnInit {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this.visit = {} as IVisit;
     this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
 
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
-    this.visit.id_base_site = JSON.parse(queryParams?.id_base_site);
     this._objService.loadBreadCrumb(moduleCode, 'visit', null, queryParams);
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);
-
+    const id_base_site = JSON.parse(queryParams?.id_base_site);
     // Récupération et affichage de la géométrie du site
     this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-      id_base_site: this.visit.id_base_site,
+      id_base_site: id_base_site,
     });
   }
 
