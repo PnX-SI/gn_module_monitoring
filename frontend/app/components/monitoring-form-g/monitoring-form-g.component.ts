@@ -1,5 +1,5 @@
 import { forkJoin, Observable, of, EMPTY } from 'rxjs';
-import { concatMap, switchMap } from 'rxjs/operators';
+import { concatMap } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -33,6 +33,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() config: any;
   @Input() currentUser: any;
   @Input() objectType: string;
+  // Dans le cas de création, la liste des parents est fournie par le resolver du composant parent
+  // Dans le cas de mise à jour, la liste des parents est fournie via l'objet
+  @Input() fetchedParents: JsonData | null = null;
   @Output() EditChange = new EventEmitter<boolean>();
 
   public meta: any;
@@ -51,7 +54,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   private queryParams: any;
   private pendingKeepValues: JsonData | null = null;
-  private fetchedParents: JsonData | null = null;
 
   constructor(
     public _commonService: CommonService,
@@ -72,48 +74,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   private buildParentsMeta(): JsonData {
     return this.object?.parents || this.fetchedParents || {};
-  }
-
-  private loadParentsForCreation(): Observable<any> {
-    // Si c'est une nouvelle entité, on récupère les parents
-    // pour pouvoir les utiliser dans l'objet meta du formulaire
-    // Si c'est une modification, les parents sont récupérés via le détail de l'objet
-
-    // Identification si c'est ou non une nouvelle entité
-    // Test si la clé primaire est renseignée
-    const idFieldName = this.config['id_field_name'];
-    if (this.object?.[idFieldName] !== undefined) {
-      return EMPTY;
-    }
-
-    // Récupération de la liste des parents
-    const rawParentsPath = this.queryParams['parents_path'] || [];
-    const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
-    const parentType = parentsPath[parentsPath.length - 1];
-    if (!parentType || parentType === 'module') {
-      return EMPTY;
-    }
-
-    // Récupération des objets parents
-    const parentService = this._objectService.getService(parentType);
-    const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
-    const rawParentId = parentFieldId ? this.queryParams[parentFieldId] : null;
-    const parentId = Number(rawParentId);
-    if (!parentService || !parentFieldId || rawParentId == null || Number.isNaN(parentId)) {
-      return EMPTY;
-    }
-
-    return parentService.getById(parentId, this.apiService._getModuleCode()).pipe(
-      switchMap((parent: any) => {
-        if (!parent) {
-          return EMPTY;
-        }
-        const { parents: ancestors, ...parentProperties } = parent;
-        this.fetchedParents = { ...(ancestors || {}), [parentType]: parentProperties };
-        this.meta.parents = this.buildParentsMeta();
-        return of(parent);
-      })
-    );
   }
 
   ngAfterViewInit() {
@@ -222,20 +182,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.queryParams = this._route.snapshot.queryParams || {};
+    this.initForm();
+    this.initPermission();
 
-    // Initialisation des parents en amont de l'initialisation du formulaire
-    //  car des meta.parents peuvent se trouver dans des propriétés des fields
-    //    ainsi que dans la fonction change
-    this.loadParentsForCreation().subscribe(() => {
-      this.initForm();
-      this.initPermission();
+    let displayProperties = [...(this.config.display_properties || [])];
+    this.formsDefinition = this.sortFormDefinition(
+      displayProperties,
+      this.initFormDefiniton(this.config.fields, this.meta)
+    );
 
-      let displayProperties = [...(this.config.display_properties || [])];
-      this.formsDefinition = this.sortFormDefinition(
-        displayProperties,
-        this.initFormDefiniton(this.config.fields, this.meta)
-      );
-    });
+    if (this.fetchedParents) {
+      this.meta.parents = this.buildParentsMeta();
+    }
   }
 
   setDefaultFormValue() {

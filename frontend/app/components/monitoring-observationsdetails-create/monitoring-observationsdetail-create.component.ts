@@ -10,6 +10,7 @@ import { ConfigServiceG } from '../../services/config-g.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { Popup } from '../../utils/popup';
 import { IObservationDetail } from '../../interfaces/observationdetail';
+import { JsonData } from '../../types/jsondata';
 
 @Component({
   selector: 'monitoring-observationsdetail-create',
@@ -24,6 +25,7 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
   public moduleConfig;
   public moduleCode;
   public form: FormGroup;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -45,6 +47,8 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
     this.observation_detail = {} as IObservationDetail;
+    this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
+
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
