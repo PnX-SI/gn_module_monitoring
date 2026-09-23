@@ -96,6 +96,12 @@ def config_object_from_files(module_code, object_type, custom=None):
 
     if object_type == "site":
         db_config_object = json_config_from_db(module_code)
+        # Suppression de l'information id_types_site
+        # des champs qui sont déjà présent dans le fichier specifique du module
+        for key in specific_config_object.get("specific", {}):
+            if key in db_config_object.get("specific", {}):
+                del db_config_object["specific"][key]["id_types_site"]
+
         # Mise a jour des configurations de façon récursive
         dict_deep_update(
             specific_config_object.get("specific", {}), db_config_object.get("specific", {})
