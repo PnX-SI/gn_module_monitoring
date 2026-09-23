@@ -255,11 +255,10 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     pk = fields.Method("set_pk", dump_only=True)
     types_site = RelatedList(Related(["id_nomenclature_type_site"]))
     id_sites_group = auto_field(allow_none=True)
-    id_inventor = fields.Method("get_id_inventor")
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
     last_visit = fields.Date(dump_only=True)
-    first_use_date = fields.Date(dump_only=True)
+    first_use_date = fields.Date()
     geom = GeojsonSerializationField()
 
     parents = fields.Method("get_parents", dump_only=True)
@@ -271,9 +270,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return "id_base_site"
-
-    def get_id_inventor(self, obj):
-        return obj.id_inventor
 
     @pre_load
     def normalize(self, data, **kwargs):
