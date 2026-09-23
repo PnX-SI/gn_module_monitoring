@@ -205,10 +205,12 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       String(date.getMonth() + 1).padStart(2, '0') +
       '-' +
       String(date.getDate()).padStart(2, '0');
+
     const defaultValue = {
       id_digitiser: value['id_digitiser'] || this.currentUser.id_role,
       id_inventor: value['id_inventor'] || this.currentUser.id_role,
       first_use_date: value['first_use_date'] || isoDate,
+      medias: value['medias'] || [],
     };
     this.form.patchValue(defaultValue);
   }
