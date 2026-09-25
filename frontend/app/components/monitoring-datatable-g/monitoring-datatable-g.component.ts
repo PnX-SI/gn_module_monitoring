@@ -57,6 +57,7 @@ export class MonitoringDatatableGComponent implements OnInit {
       canCreateObj?: boolean;
       canCreateChild?: boolean;
       description_field_name?: string;
+      defaultFilters?: { [key: string]: string };
     },
   ];
   @Input() currentUser;
@@ -128,6 +129,7 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.initDatatable();
     this.isImportDestinationAvailable();
   }
+
   subscribeToParentEmitter(): void {
     if (this.bDeleteModalEmitter) {
       this.subscription = this.bDeleteModalEmitter.subscribe((data: boolean) => {
@@ -137,11 +139,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   initDatatable() {
-    // IF prefered  observable compare to ngOnChanges   uncomment this:
-    // this._dataTableService.currentCols.subscribe(newCols => { this.columns = newCols })
-    // this._objService.currentObjectType.subscribe((newObjType) => {
-    //   this.objectType = newObjType;
-    // });
     // Initialisation des filtres
     this.clearFilters();
     this.filterSubject.pipe(debounceTime(500)).subscribe(() => {
@@ -272,7 +269,11 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   private clearFilters() {
-    this.filters = {};
+    // S'il n'y a pas de config pour la tab actuelle, on ne fait rien
+    if (this.dataTableConfig[this.activetabIndex] === undefined) {
+      return;
+    }
+    this.filters = this.dataTableConfig[this.activetabIndex].defaultFilters || {};
     this.initSort();
   }
 

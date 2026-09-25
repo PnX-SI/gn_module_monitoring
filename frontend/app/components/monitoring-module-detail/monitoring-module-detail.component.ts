@@ -46,6 +46,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
   public page: IPage;
 
   public objectType: string = 'module';
+  public allowedObjectTypes: string[] = ['site', 'sites_group', 'individual'];
 
   objInitForm: Object = {};
   rows;
@@ -76,7 +77,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     private _sitesService: SitesService,
     private _individualService: IndividualsService,
     public _geojsonService: GeoJSONService,
-    private router: Router,
+    protected router: Router,
     private _objService: ObjectService,
     public _formService: FormService,
     private _location: Location,
@@ -85,7 +86,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     public _moduleService: ModuleService,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getData;
   }
 
@@ -140,10 +141,15 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       this.activetabIndex = this.getdataTableIndex(data.route);
 
       if (data.route == ObjectType.site) {
-        this.currentPermission.site.R > 0 ? this.getGeometriesSite() : null;
+        this.currentPermission.site.R > 0
+          ? this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters'])
+          : null;
       } else {
         this.currentPermission.sites_group.R > 0
-          ? this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups())
+          ? this._geojsonService.getSitesGroupsGeometries(
+              this.onEachFeatureSiteGroups(),
+              this.dataTableConfig[this.activetabIndex]['defaultFilters']
+            )
           : null;
       }
 
@@ -235,8 +241,8 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
-  getGeometriesSite() {
-    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite());
+  getGeometriesSite(params = {}) {
+    this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), params);
   }
 
   seeDetails($event) {
@@ -356,7 +362,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
           });
 
           this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-          this.getGeometriesSite();
+          this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters']);
         }, 100);
       });
     }

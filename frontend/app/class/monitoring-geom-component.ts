@@ -1,5 +1,5 @@
 import { inject, OnInit, Directive } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@geonature/components/auth/auth.service';
 import { Subscription } from 'rxjs';
 import { IdataTableObjData } from '../interfaces/geom';
@@ -30,6 +30,7 @@ export class MonitoringGeomComponent implements OnInit {
   public currentUser;
 
   public objectType: string;
+  public allowedObjectTypes: string[] = [];
 
   public form: FormGroup;
 
@@ -60,7 +61,8 @@ export class MonitoringGeomComponent implements OnInit {
     public _formService: FormService,
     protected _Activatedroute: ActivatedRoute,
     protected _formBuilder: FormBuilder,
-    protected _auth: AuthService
+    protected _auth: AuthService,
+    protected router: Router
   ) {
     this._configServiceG = inject(ConfigServiceG);
   }
@@ -81,6 +83,9 @@ export class MonitoringGeomComponent implements OnInit {
     this._permissionService.setPermissionMonitorings(this.moduleCode);
     this.form = this._formBuilder.group({});
     this.setTemplateData(this.objectType);
+
+    // Initialisation de la config du datatable
+    this.setDataTableConfig(this.moduleCode, this.allowedObjectTypes);
 
     // Passage en mode édition si paramètre 'edit' est true
     if (this.checkEditParam === true) {
@@ -117,49 +122,57 @@ export class MonitoringGeomComponent implements OnInit {
     this.filters = { ...this.baseFilters, ...filters };
     this.getAllItemsCallback(1, this.filters, tabObj);
   }
-
-  setDataTableObjData(
-    data: {
-      [key: string]: {
-        data: { items: any[]; count: number; limit: number; page: number };
-        objType: string;
-        childType: string | null;
+  navigateToAddChildren($event) {
+    const row = $event;
+    if (row) {
+      row['id'] = row[row.pk];
+      const id_base_site = row?.id_base_site;
+      const routeParams = this._Activatedroute.snapshot.queryParams;
+      let queryParams: any = {
+        parents_path: [...routeParams['parents_path'], this.objectType],
+        id_base_site: id_base_site,
       };
-    },
+      queryParams[row.pk] = row[row.pk];
 
-    moduleCode: any,
-    allowedObjectType: string[] = []
-  ) {
+      this.router.navigate(
+        [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
+        {
+          queryParams: queryParams,
+        }
+      );
+    }
+  }
+
+  setDataTableConfig(moduleCode: any, allowedObjectType: string[] = []) {
     /**
      * Initialisation des données et de leur configuration pour ngx-datatable
      *
      * @param {any} data data to set the data table config and data
      * @returns {void}
      */
+    const dataTableTypes = this._configServiceG.getChildsByObjectType(this.objectType);
+    let dataTableConfig = [];
 
-    const dataTableObjData: IdataTableObjData = {} as IdataTableObjData;
-    const dataTableConfig = [];
-    for (const dataType in data) {
-      const objType = data[dataType].objType;
+    for (const dataType of dataTableTypes) {
+      let objTypeChild = this._configServiceG.getChildsByObjectType(dataType)[0];
+      const objType = `${dataType}`;
       if (!allowedObjectType.includes(objType)) {
         continue;
       }
       const config = this._configServiceG.config()[objType];
 
-      let canCreateChild =
-        this._permissionService.modulePermission[data[dataType].childType]?.C > 0 || false;
+      let canCreateChild = this._permissionService.modulePermission[objTypeChild]?.C > 0 || false;
 
       if (config['children_types'].length == 0) {
         // Si l'objet n'a pas d'enfant
         canCreateChild = false;
-        data[dataType].childType = null;
+        objTypeChild = null;
       }
-      if (moduleCode == 'generic' && data[dataType].childType == 'visit') {
+      if (moduleCode == 'generic' && objTypeChild == 'visit') {
         // Pour le module généric les permissions des visites sont toujours vrai
         //  car ce sont les sous modules qui vont déterminer les permissions
         canCreateChild = true;
       }
-
       const fieldNamesList = config['display_list'];
       let colNameObj: { [index: string]: any } = {};
       const labelList = config['label_list'];
@@ -169,7 +182,7 @@ export class MonitoringGeomComponent implements OnInit {
       let currentDataTableConfig = {
         labelList: labelList,
         description_field_name: config['description_field_name'],
-        childType: data[dataType].childType,
+        childType: objTypeChild,
         sorts:
           'sorts' in config
             ? {
@@ -182,8 +195,44 @@ export class MonitoringGeomComponent implements OnInit {
         moduleCode: moduleCode,
         canCreateObj: this._permissionService.modulePermission[objType]?.C > 0 || false,
         canCreateChild: canCreateChild,
+        defaultFilters: config?.filters || {},
       };
       dataTableConfig.push(currentDataTableConfig);
+    }
+    this.dataTableConfig = dataTableConfig;
+  }
+
+  setDataTableObjData(
+    data: {
+      [key: string]: {
+        data: { items: any[]; count: number; limit: number; page: number };
+        objType: string;
+      };
+    },
+    moduleCode: any,
+    allowedObjectType: string[] = []
+  ) {
+    /**
+     * Initialisation des données et de leur configuration pour ngx-datatable
+     *
+     * @param {any} data data to set the data table config and data
+     * @returns {void}
+     */
+
+    const dataTableObjData: IdataTableObjData = {} as IdataTableObjData;
+
+    for (const dataType in data) {
+      const objType = data[dataType].objType;
+      if (!allowedObjectType.includes(objType)) {
+        continue;
+      }
+      const config = this._configServiceG.config()[objType];
+
+      const fieldNamesList = config['display_list'];
+      let colNameObj: { [index: string]: any } = {};
+      for (const key of fieldNamesList) {
+        colNameObj[key] = (config['fields'][key] || [])['attribut_label'];
+      }
       dataTableObjData[objType] = {
         columns: colNameObj,
         rows: data[dataType].data.items,
@@ -196,7 +245,6 @@ export class MonitoringGeomComponent implements OnInit {
       };
     }
     this.dataTableObjData = dataTableObjData;
-    this.dataTableConfig = dataTableConfig;
   }
 
   fetchFieldsProperty(fields: any, property: string) {

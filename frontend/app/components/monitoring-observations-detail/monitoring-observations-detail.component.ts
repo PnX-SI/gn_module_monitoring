@@ -28,6 +28,7 @@ export class MonitoringObservationsDetailComponent
   implements OnInit
 {
   public objectType: string = 'observation';
+  public allowedObjectTypes: string[] = ['observation_detail'];
 
   public rows: Array<any> = [];
 
@@ -37,7 +38,7 @@ export class MonitoringObservationsDetailComponent
     protected _Activatedroute: ActivatedRoute,
     protected _formBuilder: FormBuilder,
     protected _auth: AuthService,
-    private router: Router,
+    protected router: Router,
     public _observationsService: ObservationsService,
     public _observationsDetailService: ObservationDetailsService,
     private _objService: ObjectService,
@@ -47,7 +48,7 @@ export class MonitoringObservationsDetailComponent
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getChild;
   }
 
@@ -68,6 +69,7 @@ export class MonitoringObservationsDetailComponent
   initData() {
     // Get data detail
     const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
+
     this._observationsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
       this.objectData = detailData;
 
@@ -91,8 +93,14 @@ export class MonitoringObservationsDetailComponent
     if (childs_tree.length == 0) {
       return;
     }
+    const defaultFilters = {
+      ...this._configServiceG.config()['observation_detail']['filters'],
+      ...{
+        id_observation: this.dataId,
+      },
+    };
     this._observationsDetailService
-      .getResolved(1, this.limit, { id_observation: this.dataId })
+      .getResolved(1, this.limit, defaultFilters)
       .subscribe((data: IPaginated<IObservationDetail>) => {
         // Configuration du datatable
         this.rows = data.items;
@@ -119,14 +127,14 @@ export class MonitoringObservationsDetailComponent
     const visitsParams = { ...params, ...this.baseFilters };
 
     // Mise à jour du datatable
-    this._observationsService
+    this._observationsDetailService
       .getResolved(page, this.limit, visitsParams)
-      .subscribe((data: IPaginated<IObservation>) => {
+      .subscribe((data: IPaginated<IObservationDetail>) => {
         this.rows = data.items;
-        this.dataTableObjData.observation.rows = data.items;
-        this.dataTableObjData.observation.page.count = data.count;
-        this.dataTableObjData.observation.page.limit = data.limit;
-        this.dataTableObjData.observation.page.page = data.page - 1;
+        this.dataTableObjData.observation_detail.rows = data.items;
+        this.dataTableObjData.observation_detail.page.count = data.count;
+        this.dataTableObjData.observation_detail.page.limit = data.limit;
+        this.dataTableObjData.observation_detail.page.page = data.page - 1;
       });
   }
 
