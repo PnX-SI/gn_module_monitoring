@@ -372,10 +372,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    * Valider et aller à la page de l'objet
    */
   navigateToDetail() {
-    // TODO CHANGE action=> Rafraichir les données si l'enregistrement c'est bien passé
-    // notament pour la carte
-    this._formService.changeCurrentEditMode(false);
+    // Si l'objet est vide, c-a-d une création on retourne vers le parent
+    if (!this.object) {
+      this.navigateToParent();
+      return;
+    }
 
+    this._formService.changeCurrentEditMode(false);
     this._navigationService.navigateToDetail(
       this.object[this.object.pk],
       false,
