@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ReplaySubject, Observable } from 'rxjs';
+import { ReplaySubject, Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
 import { IobjObs, ObjDataType } from '../interfaces/objObs';
 import { IBreadCrumb, SelectObject } from '../interfaces/object';
 import { DataMonitoringObjectService } from './data-monitoring-object.service';
@@ -13,6 +15,7 @@ import {
   SitesService,
   VisitsService,
 } from './api-geom.service';
+import { JsonData } from '../types/jsondata';
 
 @Injectable()
 export class ObjectService {
@@ -123,5 +126,44 @@ export class ObjectService {
 
   changeListOption(newListOption: SelectObject[]) {
     this.dataListOption.next(newListOption);
+  }
+
+  loadParentsForCreation(
+    queryParams: JsonData,
+    moduleCode: string,
+    config: JsonData
+  ): Observable<any> {
+    // Si c'est une nouvelle entité, on récupère les parents
+    // pour pouvoir les utiliser dans l'objet meta du formulaire
+    // Si c'est une modification, les parents sont récupérés via le détail de l'objet
+
+    // Identification si c'est ou non une nouvelle entité
+    // Récupération de la liste des parents
+    const rawParentsPath = queryParams['parents_path'] || [];
+    const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
+    const parentType = parentsPath[parentsPath.length - 1];
+    if (!parentType || parentType === 'module') {
+      return of(null);
+    }
+
+    // Récupération des objets parents
+    const parentService = this.getService(parentType);
+    const parentFieldId = (config?.[parentType] || {})['id_field_name'];
+    const rawParentId = parentFieldId ? queryParams[parentFieldId] : null;
+    const parentId = Number(rawParentId);
+    if (!parentService || !parentFieldId || rawParentId == null || Number.isNaN(parentId)) {
+      return of(null);
+    }
+
+    return parentService.getById(parentId, moduleCode).pipe(
+      switchMap((parent: any) => {
+        if (!parent) {
+          return of(null);
+        }
+        const { parents: ancestors, ...parentProperties } = parent;
+        const parentList = { ...(ancestors || {}), [parentType]: parentProperties };
+        return of(parentList);
+      })
+    );
   }
 }

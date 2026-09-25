@@ -10,6 +10,7 @@ import { ConfigServiceG } from '../../services/config-g.service';
 import { IObservation } from '../../interfaces/observation';
 import { GeoJSONService } from '../../services/geojson.service';
 import { Popup } from '../../utils/popup';
+import { JsonData } from '../../types/jsondata';
 
 @Component({
   selector: 'monitoring-observations-create',
@@ -24,6 +25,7 @@ export class MonitoringObservationsCreateComponent implements OnInit {
   public moduleConfig;
   public moduleCode;
   public form: FormGroup;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -44,19 +46,19 @@ export class MonitoringObservationsCreateComponent implements OnInit {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this.observation = {} as IObservation;
+    this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
+
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
-    this.observation.id_base_visit = JSON.parse(queryParams?.id_base_visit);
-    this.observation.id_base_site = JSON.parse(queryParams?.id_base_site);
     this._objService.loadBreadCrumb(moduleCode, 'observation', null, queryParams);
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);
 
+    const id_base_site = this.fetchedParents?.site.id_base_site;
     // Récupération et affichage de la géométrie du site
     this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-      id_base_site: this.observation.id_base_site,
+      id_base_site: id_base_site,
     });
   }
 
@@ -66,6 +68,7 @@ export class MonitoringObservationsCreateComponent implements OnInit {
       layer.bindPopup(popup);
     };
   }
+
   ngOnDestroy() {
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
     this._formService.changeCurrentEditMode(false);
