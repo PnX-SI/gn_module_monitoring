@@ -469,7 +469,7 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     digitiser = DB.relationship(
         User, primaryjoin=(User.id_role == id_digitiser), foreign_keys=[id_digitiser]
     )
-    uuid_sites_group: Mapped[Optional[Any]] = mapped_column(UUID(as_uuid=True), default=uuid4)
+    uuid_sites_group: Mapped[Any] = mapped_column(UUID(as_uuid=True), default=uuid4)
 
     sites_group_name: Mapped[Optional[str]] = mapped_column(DB.Unicode)
     sites_group_code: Mapped[Optional[str]] = mapped_column(DB.Unicode)
@@ -589,9 +589,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         unique=True,
     )
 
-    uuid_module_complement: Mapped[Optional[Any]] = mapped_column(
-        UUID(as_uuid=True), default=uuid4
-    )
+    uuid_module_complement: Mapped[Any] = mapped_column(UUID(as_uuid=True), default=uuid4)
 
     id_list_observer: Mapped[Optional[int]] = mapped_column(DB.Integer)
     id_list_taxonomy: Mapped[Optional[int]] = mapped_column(DB.Integer)
