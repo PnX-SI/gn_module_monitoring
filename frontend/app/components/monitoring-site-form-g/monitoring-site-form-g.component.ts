@@ -18,6 +18,7 @@ import { MonitoringObjectService } from '../../services/monitoring-object.servic
 import { ConfigServiceG } from '../../services/config-g.service';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectService } from '../../services/object.service';
+import { Popup } from '../../utils/popup';
 
 @Component({
   selector: 'pnx-monitoring-site-form-g',
@@ -46,7 +47,8 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     translate: TranslateService,
     _configServiceG: ConfigServiceG,
     _permissionService: PermissionService,
-    _objectService: ObjectService
+    _objectService: ObjectService,
+    _popup: Popup
   ) {
     super(
       _commonService,
@@ -62,7 +64,8 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       translate,
       _configServiceG,
       _permissionService,
-      _objectService
+      _objectService,
+      _popup
     );
   }
 
