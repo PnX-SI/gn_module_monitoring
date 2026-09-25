@@ -102,7 +102,7 @@ def install_monitoring_module(module_code, type_site, users):
         "MONITORINGS_GRP_SITES",
         "MONITORINGS_SITES",
         "MONITORINGS_VISITES",
-        "MONITORINGS_INDIVIDUALS",
+        "INDIVIDUALS",
         "MONITORINGS_MARKINGS",
         "ALL",
     ]
