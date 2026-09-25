@@ -33,7 +33,7 @@ export class MonitoringObservationsDetailDetailComponent
     protected _Activatedroute: ActivatedRoute,
     protected _formBuilder: FormBuilder,
     protected _auth: AuthService,
-    private router: Router,
+    protected router: Router,
 
     public _observationsDetailService: ObservationDetailsService,
     private _objService: ObjectService,
@@ -43,7 +43,7 @@ export class MonitoringObservationsDetailDetailComponent
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = undefined;
   }
 

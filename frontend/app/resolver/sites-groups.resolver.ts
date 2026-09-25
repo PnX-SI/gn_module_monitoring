@@ -4,11 +4,8 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { ISite, ISitesGroup } from '../interfaces/geom';
 import { IPaginated } from '../interfaces/page';
-import { IobjObs } from '../interfaces/objObs';
-import { concatMap, map, mergeMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { PermissionService } from '../services/permission.service';
-import { TPermission } from '../types/permission';
-import { MonitoringObjectService } from '../services/monitoring-object.service';
 import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
@@ -126,9 +123,13 @@ export class SitesGroupsResolver
             }
           : {};
 
+      const query_params = {
+        ...sortObjetTypeInit,
+        ...(configSchemaObjetType?.filters || {}),
+      };
       $getObjetTypes =
         permission > 0
-          ? objectService.getResolved(1, LIMIT, sortObjetTypeInit)
+          ? objectService.getResolved(1, LIMIT, query_params)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }
     return $getObjetTypes;

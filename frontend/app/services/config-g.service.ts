@@ -110,23 +110,22 @@ export class ConfigServiceG {
   }
 
   getChildsByObjectType(objectType) {
-    const tree = this._config['tree'];
-    function search(node) {
-      if (!node || typeof node !== 'object') return null;
-      for (const [key, value] of Object.entries(node)) {
-        if (key === objectType) {
-          return value && typeof value === 'object' ? Object.keys(value) : [];
-        }
-        const result = search(value);
-        if (result !== null) {
-          return result;
+    let resultats: string[] = [];
+    function findKeyValues(obj, cleRecherchee) {
+      for (const cle in obj) {
+        if (obj.hasOwnProperty(cle)) {
+          if (cle === cleRecherchee && obj[cle] !== null) {
+            resultats.push(...Object.keys(obj[cle]));
+          }
+          if (typeof obj[cle] === 'object' && obj[cle] !== null) {
+            findKeyValues(obj[cle], cleRecherchee);
+          }
         }
       }
-
-      return null;
     }
-
-    return search(tree);
+    const tree = this._config['tree'];
+    findKeyValues(tree, objectType);
+    return resultats;
   }
 
   /**

@@ -142,10 +142,21 @@
                     *ngIf="dataTableConfig[i].childType !== null"
                     >
                   <ng-template
-                    [ngIf]="!(dataTableConfig[i].childType == 'visit') && moduleCode !== 'generic'"
-                    [ngIfElse]="chooseProtocolPopup"
+                    [ngIf]="(dataTableConfig[i].childType == 'visit' && moduleCode == 'generic')"
+                    [ngIfElse]="addChildrenTemplate"
                   >
-                    <ng-container *ngIf="!(dataTableConfig[i].childType == 'observation')">
+                    <option-list-btn
+                      placeholder="{{dataTableConfig[i].childType}}"
+                      label="{{ 'Monitoring.Sites.addVisit' | translate }}"
+                      [iconOrButton]="icon"
+                      [canCreateChild]="dataTableConfig[i].canCreateChild"
+                      [item]="row"
+                      (onDeployed)="addChildrenVisit(row)"
+                      (onSaved)="saveOptionChild($event)"
+                    ></option-list-btn>
+                  </ng-template>
+                  <ng-template #addChildrenTemplate>
+                    <ng-container >
                       <a
                         [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
                         class="nav-link link cell-link"
@@ -161,17 +172,6 @@
                         ></i>
                       </a>
                     </ng-container>
-                  </ng-template>
-                  <ng-template #chooseProtocolPopup>
-                    <option-list-btn
-                      placeholder="Sélectionner le protocole"
-                      label="{{ 'Monitoring.Sites.addVisit' | translate }}"
-                      [iconOrButton]="icon"
-                      [canCreateChild]="dataTableConfig[i].canCreateChild"
-                      [item]="row"
-                      (onDeployed)="addChildrenVisit(row)"
-                      (onSaved)="saveOptionChild($event)"
-                    ></option-list-btn>
                   </ng-template>
                   </span>
                   <!--  -->

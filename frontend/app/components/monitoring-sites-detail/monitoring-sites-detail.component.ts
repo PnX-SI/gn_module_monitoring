@@ -36,6 +36,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   modules: SelectObject[];
 
   public objectType: string = 'site';
+  public allowedObjectTypes: string[] = ['visit'];
 
   site: ISite;
 
@@ -53,7 +54,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _visits_service: VisitsService,
     private _objService: ObjectService,
     public geojsonService: GeoJSONService,
-    private router: Router,
+    protected router: Router,
     public _formService: FormService,
     private _configService: ConfigService,
     protected _moduleService: ModuleService,
@@ -63,7 +64,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getVisits;
     this.objectType = 'site';
   }
@@ -82,12 +83,24 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   }
 
   initSiteVisit() {
+    // Configuration du datatable
+    let dataTableDataConfig = {
+      visits: {
+        data: { items: [], count: 0, limit: 0, page: 0 },
+        objType: 'visit',
+        childType: 'observation',
+      },
+    };
+    const defaultFilters = {
+      ...this._configServiceG.config()['visit']['filters'],
+      ...{
+        id_base_site: this.dataId,
+      },
+    };
     this._permissionService.setPermissionMonitorings(this.moduleCode);
     forkJoin({
       site: this._siteService.getById(this.dataId, this.moduleCode),
-      visits: this._visits_service.getResolved(1, this.limit, {
-        id_base_site: this.dataId,
-      }),
+      visits: this._visits_service.getResolved(1, this.limit, defaultFilters),
     }).subscribe((data) => {
       this.objectData = data.site;
       const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];

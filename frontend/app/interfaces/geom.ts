@@ -7,6 +7,7 @@ import { IPage } from './page';
 import { IVisit } from './visit';
 import { GeoJSON } from 'geojson';
 import { Observable } from 'rxjs';
+import { IObservationDetail } from './observationdetail';
 
 export interface IGeomObject extends IObject {
   geometry: GeoJSON.Geometry;
@@ -68,4 +69,5 @@ export interface IdataTableObjData {
   sites_group: { columns: IColumn[]; rows: ISitesGroup[]; page: IPage };
   individual: { columns: IColumn[]; rows: IIndividual[]; page: IPage };
   observation: { columns: IColumn[]; rows: IObservation[]; page: IPage };
+  observation_detail: { columns: IColumn[]; rows: IObservationDetail[]; page: IPage };
 }
