@@ -48,6 +48,7 @@ from gn_module_monitoring.monitoring.queries import (
     VisitQuery,
     ObservationsQuery,
     IndividualsQuery,
+    MarkingsQuery,
 )
 
 
@@ -654,7 +655,7 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
 
 @serializable
-class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
+class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MarkingsQuery):
     pass
 
 

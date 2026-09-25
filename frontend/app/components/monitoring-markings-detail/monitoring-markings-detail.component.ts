@@ -3,43 +3,36 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
 import { Popup } from '../../utils/popup';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import { IndividualsService, MarkingsService } from '../../services/api-geom.service';
+import { MarkingsService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { FormService } from '../../services/form.service';
 import { AuthService } from '@geonature/components/auth/auth.service';
 import { PermissionService } from '../../services/permission.service';
 import { resolveObjectProperties } from '../../utils/utils';
 import { CacheService } from '../../services/cache.service';
-import { IPaginated } from '../../interfaces/page';
-import { IMarking } from '../../interfaces/marking';
 
 @Component({
-  selector: 'monitoring-individuals-detail',
-  templateUrl: './monitoring-individuals-detail.component.html',
-  styleUrls: ['./monitoring-individuals-detail.component.css'],
+  selector: 'monitoring-markings-detail',
+  templateUrl: './monitoring-markings-detail.component.html',
+  styleUrls: ['./monitoring-markings-detail.component.css'],
 })
-export class MonitoringIndividualsDetailComponent
-  extends MonitoringGeomComponent
-  implements OnInit
-{
+export class MonitoringMarkingsDetailComponent extends MonitoringGeomComponent implements OnInit {
   private moduleCode: string;
   public moduleConfig;
   public currentUser;
-  public objectType: string = 'individual';
+  public objectType: string = 'marking';
   private checkEditParam: boolean = false;
   public form: FormGroup;
   private dataId: number;
   public objectData: any;
   public objectDataResolved: any;
   public bEdit: boolean = false;
-  public rows: Array<any> = [];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   constructor(
     private _auth: AuthService,
     private router: Router,
-    public _individualsService: IndividualsService,
     public _markingsService: MarkingsService,
     private _objService: ObjectService,
     private _Activatedroute: ActivatedRoute,
@@ -50,7 +43,7 @@ export class MonitoringIndividualsDetailComponent
     private _cacheService: CacheService
   ) {
     super(_permissionService, _popup);
-    this.getAllItemsCallback = this.getChild;
+    this.getAllItemsCallback = undefined;
   }
 
   ngOnInit() {
@@ -67,14 +60,13 @@ export class MonitoringIndividualsDetailComponent
     // Création d'un objet form
     this.form = this._formBuilder.group({});
 
-    this._individualsService.initConfig();
     this._markingsService.initConfig();
     this._permissionService.setPermissionMonitorings(this.moduleCode);
 
     // Récupération des paramètres de la route
     this._Activatedroute.params.subscribe((params) => {
       this.dataId = params['id'];
-      this.baseFilters = { id_individual: this.dataId };
+      this.baseFilters = { id_marking: this.dataId };
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -95,7 +87,7 @@ export class MonitoringIndividualsDetailComponent
   initData() {
     // Get data detail
     const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
-    this._individualsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
+    this._markingsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
       this.objectData = detailData;
 
       // Resolve data
@@ -108,20 +100,6 @@ export class MonitoringIndividualsDetailComponent
         this.objectDataResolved = data;
       });
     });
-    // Initialisation du datatable des marquages
-    this._markingsService
-      .getResolved(1, this.limit, { id_individual: this.dataId })
-      .subscribe((data: IPaginated<IMarking>) => {
-        this.rows = data.items;
-        let dataTableData = {
-          marking: {
-            data: data,
-            objType: 'marking',
-            childType: null,
-          },
-        };
-        this.setDataTableObjData(dataTableData, this.moduleCode, ['marking']);
-      });
   }
 
   onbEditChange(event: boolean) {
@@ -131,56 +109,10 @@ export class MonitoringIndividualsDetailComponent
     }
   }
 
-  getChild(page: number, params) {
-    const markingsParams = { ...params, ...this.baseFilters };
-
-    // Mise à jour du datatable
-    this._markingsService
-      .getResolved(page, this.limit, markingsParams)
-      .subscribe((data: IPaginated<IMarking>) => {
-        this.rows = data.items;
-        this.dataTableObjData.marking.rows = data.items;
-        this.dataTableObjData.marking.page.count = data.count;
-        this.dataTableObjData.marking.page.limit = data.limit;
-        this.dataTableObjData.marking.page.page = data.page - 1;
-      });
-  }
-
-  seeDetails($event) {
-    const queryParams = {
-      parents_path: [...this.parentPath, this.objectType],
-    };
-    this.router.navigate([`/monitorings/object/${this.moduleCode}/marking/${$event[$event.id]}`], {
-      queryParams: queryParams,
-    });
-  }
-
-  editChild($event) {
-    const queryParams = {
-      parents_path: [...this.parentPath, this.objectType],
-      edit: true,
-      id_individual: this.dataId,
-    };
-    this.router.navigate([`/monitorings/object/${this.moduleCode}/marking/${$event[$event.id]}`], {
-      queryParams: queryParams,
-    });
-  }
-
   onDelete($event) {
     this._markingsService.delete($event.rowSelected.id_marking).subscribe((del) => {
       this.bDeleteModalEmitter.emit(false);
       this.initData();
-    });
-  }
-
-  navigateToAddObj($event) {
-    const type = $event;
-    const queryParams = {
-      parents_path: [...this.parentPath, this.objectType],
-      id_individual: this.dataId,
-    };
-    this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
-      queryParams: queryParams,
     });
   }
 }
