@@ -1,0 +1,13 @@
+<div>
+  <span class="obj-title">{{ 'Actions.Add' | translate }}</span>
+</div>
+<div>
+  <pnx-monitoring-form-g
+    [object]="marking"
+    objectType="marking"
+    [form]="form"
+    [apiService]="_markingsService"
+    [config]="moduleConfig['marking']"
+    [currentUser]="currentUser"
+  ></pnx-monitoring-form-g>
+</div>
