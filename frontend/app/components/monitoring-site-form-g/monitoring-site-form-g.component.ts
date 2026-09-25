@@ -121,7 +121,10 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     if (!this.object) {
       return;
     }
+
     this.formValues(this.object).subscribe((formValue) => {
+      // Supprimer la clé 'types_site' sinon la valeur est réinitialisée à celle de l'objet
+      delete formValue.types_site;
       this.form.patchValue(formValue);
     });
   }

@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 import { ISite } from '../../interfaces/geom';
+import { JsonData } from '../../types/jsondata';
 import { FormService } from '../../services/form.service';
 import { SitesService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
@@ -23,6 +24,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
   public moduleConfig: any;
   public form: FormGroup;
   public moduleCode: string;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -40,6 +42,7 @@ export class MonitoringSitesCreateComponent implements OnInit {
 
     this.currentUser = this._auth.getCurrentUser();
     this.moduleConfig = this._configServiceG.config();
+    this.fetchedParents = this._route.snapshot.data.createSite.parents;
     this.form = this._formBuilder.group({});
 
     // Création d'un nouveau site

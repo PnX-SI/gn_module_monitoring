@@ -77,7 +77,7 @@ import { CreateSiteResolver } from './resolver/create-site.resolver';
 
 import { Popup } from './utils/popup';
 import { ListService } from './services/list.service';
-import { CreateSitesGroupsResolver } from './resolver/create-sites-groups-resolver';
+import { CreateFormResolver } from './resolver/create-form-resolver';
 import { DetailSitesGroupsResolver } from './resolver/detail-sites-groups-resolver';
 import { DetailVisitsResolver } from './resolver/detail-visits-resolver';
 import { DetailObservationsResolver } from './resolver/detail-observations-resolver';
@@ -113,7 +113,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringSitesGroupsCreateComponent,
             resolve: {
-              createSitesGroups: CreateSitesGroupsResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
@@ -180,7 +180,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringVisitsCreateComponent,
             resolve: {
-              createSite: DetailVisitsResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
@@ -200,7 +200,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringObservationsCreateComponent,
             resolve: {
-              createSite: DetailObservationsResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
@@ -220,7 +220,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringObservationsDetailCreateComponent,
             resolve: {
-              createSite: DetailObservationsDetailResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
@@ -348,7 +348,7 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     ObservationDetailsService,
     SitesGroupsResolver,
     CreateSiteResolver,
-    CreateSitesGroupsResolver,
+    CreateFormResolver,
     DetailSitesGroupsResolver,
     PermissionService,
     Popup,

@@ -9,6 +9,7 @@ import { SitesGroupService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { GeoJSONService } from '../../services/geojson.service';
 import { ConfigServiceG } from '../../services/config-g.service';
+import { JsonData } from '../../types/jsondata';
 
 @Component({
   selector: 'monitoring-sitesgroups-create',
@@ -22,6 +23,7 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
 
   public moduleConfig;
   public form: FormGroup;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -39,6 +41,8 @@ export class MonitoringSitesGroupsCreateComponent implements OnInit {
     this.moduleConfig = this._configServiceG.config();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
+    this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
+
     // Création d'un nouvel objet site group
     this.sitesGroup = null;
 
