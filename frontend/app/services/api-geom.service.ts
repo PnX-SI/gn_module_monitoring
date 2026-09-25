@@ -24,6 +24,7 @@ import { MonitoringObjectService } from './monitoring-object.service';
 import { ConfigServiceG } from './config-g.service';
 import { IObservation } from '../interfaces/observation';
 import { IObservationDetail } from '../interfaces/observationdetail';
+import { IMarking } from '../interfaces/marking';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -356,6 +357,12 @@ export class IndividualsService extends ApiService<IIndividual> {
     };
     super.init(endPoint, objectObs);
   }
+
+  delete(id: number, params: JsonData = {}): Observable<IIndividual> {
+    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`, {
+      queryParams: params,
+    });
+  }
 }
 
 @Injectable()
@@ -394,5 +401,34 @@ export class ObservationDetailsService extends ApiService<IObservationDetail> {
       childType: undefined,
     };
     super.init(endPoint, objectObs);
+  }
+}
+
+@Injectable()
+export class MarkingsService extends ApiService<IMarking> {
+  constructor(
+    _cacheService: CacheService,
+    protected _configServiceG: ConfigServiceG,
+    _monitoringObjectService: MonitoringObjectService
+  ) {
+    super(_cacheService, _configServiceG, _monitoringObjectService);
+    this.init();
+  }
+  init(): void {
+    const endPoint = endPoints.markings;
+    const objectObs: IobjObs<IMarking> = {
+      endPoint: endPoints.markings,
+      objectType: 'marking',
+      label: 'marquage',
+      childType: undefined,
+      moduleCode: 'generic',
+    };
+    super.init(endPoint, objectObs);
+  }
+
+  delete(id: number, params: JsonData = {}): Observable<IMarking> {
+    return this._cacheService.request('delete', `refacto/${this.objectObs.endPoint}/${id}`, {
+      queryParams: params,
+    });
   }
 }
