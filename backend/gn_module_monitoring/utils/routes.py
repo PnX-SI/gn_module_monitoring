@@ -73,13 +73,13 @@ def paginate_scope(
     limit: int,
     page: int,
     object_code=None,
-    schema_extra_args: dict = None,
+    schema_extra_args: dict = {},
 ) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
 
     pagination_schema = paginate_schema(schema)
 
-    datas_allowed = pagination_schema(**schema_extra_args).dump(
+    datas_allowed = pagination_schema(**(schema_extra_args)).dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
 
