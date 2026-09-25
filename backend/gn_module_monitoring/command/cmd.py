@@ -66,19 +66,20 @@ def cmd_install_monitoring_module(module_code):
     # module_code = module_code or module_config_dir_path.name
 
     # Check module code_name
-    is_module_code_given = module_code != ""
-
-    if is_module_code_given and not check_module_code_name(module_code):
+    module_code = None if module_code in ("", None) else module_code
+    module_config_dir_path = ""
+    if module_code and not check_module_code_name(module_code):
         click.secho(
             f"Le nom du module {module_code} n'est pas valide !",
             fg="red",
         )
         return
 
-    module_config_dir_path = monitoring_module_config_path(module_code)
+    if module_code:
+        module_config_dir_path = monitoring_module_config_path(module_code)
 
-    if not (is_module_code_given and (module_config_dir_path / "module.json").is_file()):
-        if is_module_code_given:
+    if not (module_code and (module_config_dir_path / "module.json").is_file()):
+        if module_code:
             click.secho(
                 f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
                 fg="red",
