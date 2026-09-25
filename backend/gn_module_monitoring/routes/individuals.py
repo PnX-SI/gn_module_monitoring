@@ -31,7 +31,7 @@ from gn_module_monitoring.utils.routes import (
 )
 
 default_route_object_type = "individual"
-OBJECT_CODE = "MONITORINGS_INDIVIDUALS"
+OBJECT_CODE = "INDIVIDUALS"
 
 
 @blueprint.route("/refacto/individuals", methods=["GET"], defaults={"object_type": "individual"})
@@ -40,9 +40,9 @@ OBJECT_CODE = "MONITORINGS_INDIVIDUALS"
     methods=["GET"],
     defaults={"object_type": "individual"},
 )
-@check_cruved_scope("R", object_code="INDIVIDUALS")
+@check_cruved_scope("R", object_code=OBJECT_CODE)
 def get_individuals(object_type, module_code=None):
-    object_code = "INDIVIDUALS"
+    object_code = OBJECT_CODE
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -128,7 +128,7 @@ def patch_individual(scope, object_type: str, module_code: str, _id: int):
 @blueprint.route(
     "/individuals/<int:_id>", methods=["DELETE"], defaults={"object_type": "individual"}
 )
-@check_cruved_scope("D", get_scope=True, object_code="INDIVIDUALS")
+@check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_individual(scope, _id: int, object_type: str):
     individual = db.get_or_404(TMonitoringIndividuals, _id)
     if not individual.has_instance_permission(scope=scope):
