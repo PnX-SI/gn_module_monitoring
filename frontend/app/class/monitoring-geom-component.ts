@@ -7,7 +7,6 @@ import { PermissionService } from '../services/permission.service';
 import { TemplateData } from '../interfaces/template';
 import { ConfigServiceG } from '../services/config-g.service';
 import { JsonData } from '../types/jsondata';
-import { ObjectType } from '../enum/objecttype';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { Popup } from '../utils/popup';
 import { FormService } from '../services/form.service';
@@ -85,7 +84,7 @@ export class MonitoringGeomComponent implements OnInit {
     this.setTemplateData(this.objectType);
 
     // Initialisation de la config du datatable
-    this.setDataTableConfig(this.moduleCode, this.allowedObjectTypes);
+    this.setDataTableConfig();
 
     // Passage en mode édition si paramètre 'edit' est true
     if (this.checkEditParam === true) {
@@ -143,9 +142,9 @@ export class MonitoringGeomComponent implements OnInit {
     }
   }
 
-  setDataTableConfig(moduleCode: any, allowedObjectType: string[] = []) {
+  setDataTableConfig() {
     /**
-     * Initialisation des données et de leur configuration pour ngx-datatable
+     * Initialisation de la configuration pour ngx-datatable
      *
      * @param {any} data data to set the data table config and data
      * @returns {void}
@@ -156,7 +155,7 @@ export class MonitoringGeomComponent implements OnInit {
     for (const dataType of dataTableTypes) {
       let objTypeChild = this._configServiceG.getChildsByObjectType(dataType)[0];
       const objType = `${dataType}`;
-      if (!allowedObjectType.includes(objType)) {
+      if (!this.allowedObjectTypes.includes(objType)) {
         continue;
       }
       const config = this._configServiceG.config()[objType];
@@ -168,7 +167,7 @@ export class MonitoringGeomComponent implements OnInit {
         canCreateChild = false;
         objTypeChild = null;
       }
-      if (moduleCode == 'generic' && objTypeChild == 'visit') {
+      if (this.moduleCode == 'generic' && objTypeChild == 'visit') {
         // Pour le module généric les permissions des visites sont toujours vrai
         //  car ce sont les sous modules qui vont déterminer les permissions
         canCreateChild = true;
@@ -192,7 +191,7 @@ export class MonitoringGeomComponent implements OnInit {
             : {},
         colNameObj: colNameObj,
         objectType: objType,
-        moduleCode: moduleCode,
+        moduleCode: this.moduleCode,
         canCreateObj: this._permissionService.modulePermission[objType]?.C > 0 || false,
         canCreateChild: canCreateChild,
         defaultFilters: config?.filters || {},
