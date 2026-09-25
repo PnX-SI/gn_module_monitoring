@@ -102,6 +102,7 @@ def remove_monitoring_module(module_code):
 def installed_modules(session=None):
     return [
         {
+            "id_module": module.id_module,
             "module_code": module.module_code,
             "module_label": module.module_label,
             "module_desc": module.module_desc,

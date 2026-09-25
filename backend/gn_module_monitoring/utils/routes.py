@@ -289,12 +289,12 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     """
     Process json data for db upsert.
 
-    This function takes a configuration for a site group and a dictionary of properties.
-    It checks which properties are specific to the site group type and adds them to the "data" key in the properties dictionary.
-    It also checks which properties are not in the site group type schema, the generic schema or the module schema and adds them to the "data" key in the properties dictionary.
+    This function takes a configuration for a object and a dictionary of properties.
+    It checks which properties are specific to the object type and adds them to the "data" key in the properties dictionary.
+    It also checks which properties are not in the object type schema, the generic schema or the module schema and adds them to the "data" key in the properties dictionary.
     Finally, it returns the processed properties dictionary.
 
-    :param config: dict, configuration for a site group
+    :param config: dict, configuration for a object
     :param properties: dict, dictionary of properties
     :return: dict, processed properties dictionary
     """
@@ -315,7 +315,7 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     else:
         properties["data"] = {}
 
-    # On ajoute les propriétés associées aux types de sites_group qui ne sont ni dans le schema specific
+    # On ajoute les propriétés associées aux types de l'objet qui ne sont ni dans le schema specific
     # ni dans generic ou appartenant au modèle
     prop_remaining_to_check = list(properties.keys())
     for prop in prop_remaining_to_check:
@@ -327,4 +327,34 @@ def process_json_data_for_db_upsert(config, properties, object_type):
             and prop != "data"
         ):
             properties["data"][prop] = properties.pop(prop)
+
+    # Traitement des champs de type nomenclature
+    # doublement du stockage : id et label
+    properties = process_json_data_nomenclature(specific_properties, properties)
+
+    return properties
+
+
+def process_json_data_nomenclature(specific_properties, properties):
+    # Cas particulier des champs de type nomenclature
+    #  On ajoute la propriété _label_mon_champ avec le label_defaut de la nomenclature
+
+    for attribut_name, attribut_value in specific_properties.items():
+
+        if attribut_value.get("type_util", None) == "nomenclature":
+            if not attribut_name in properties["data"]:
+                continue
+            value = properties["data"][attribut_name]
+            if isinstance(value, (list, tuple)):
+                value = list(value)
+            else:
+                value = [value]
+
+            labels = DB.session.scalars(
+                select(TNomenclatures.label_default).where(
+                    TNomenclatures.id_nomenclature.in_(value)
+                )
+            ).all()
+            properties["data"][f"_label_{attribut_name}"] = "|".join(labels)
+
     return properties
