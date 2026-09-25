@@ -18,13 +18,15 @@
   [objectType]="objectType"></pnx-monitoring-properties-g>
 
 <pnx-monitoring-datatable-g *ngIf="!bEdit" [dataTableConfig]="dataTableConfig" [dataTableObjData]="dataTableObjData"
-  [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page" (onFilter)="setFilter($event)"
+  [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
+  (onFilter)="setFilter($event)"
   (onSetPage)="setPage($event)" [obj]="visits" [moduleCode]="moduleCode"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
   (onAddObj)="navigateToAddObj($event)"
   (onDeleteEvent)="onDelete($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
+  (onAddChildren)="navigateToAddChildren($event)"
   parentPath="site">
   <!-- Bouton pour ajouter une visite
       dans le module generic le bouton est toujours actif c'est la liste des modules disponibles à l'utilisateur qui determinera les permissions

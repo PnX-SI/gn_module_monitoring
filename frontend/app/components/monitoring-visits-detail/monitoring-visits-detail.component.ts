@@ -24,6 +24,8 @@ import { IObservation } from '../../interfaces/observation';
 export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent implements OnInit {
   public objectType: string = 'visit';
   public rows: Array<any> = [];
+  public objecType = 'visit';
+  public allowedObjectTypes: string[] = ['observation'];
 
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
@@ -31,7 +33,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     protected _Activatedroute: ActivatedRoute,
     protected _formBuilder: FormBuilder,
     protected _auth: AuthService,
-    private router: Router,
+    protected router: Router,
     public _visitsService: VisitsService,
     public _observationsService: ObservationsService,
     private _objService: ObjectService,
@@ -41,7 +43,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getChild;
   }
 
@@ -62,6 +64,7 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
   initData() {
     // Get visit detail data
     const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
+
     this._visitsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
       this.objectData = detailData;
 
@@ -81,8 +84,14 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       });
     });
     // Initialisation du datatable
+    const defaultFilters = {
+      ...this._configServiceG.config()['observation']['filters'],
+      ...{
+        id_base_visit: this.dataId,
+      },
+    };
     this._observationsService
-      .getResolved(1, this.limit, { id_base_visit: this.dataId })
+      .getResolved(1, this.limit, defaultFilters)
       .subscribe((data: IPaginated<ISite>) => {
         // Configuration du datatable
         this.rows = data.items;
