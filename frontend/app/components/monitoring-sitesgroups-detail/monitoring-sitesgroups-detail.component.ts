@@ -30,7 +30,8 @@ export class MonitoringSitesgroupsDetailComponent
   sitesGroup: ISitesGroup;
   page: IPage;
 
-  public objectType: string = 'site';
+  public objectType: string = 'sites_group';
+  public allowedObjectTypes: string[] = ['site'];
 
   modules: SelectObject[];
   siteSelectedId: number;
@@ -49,14 +50,14 @@ export class MonitoringSitesgroupsDetailComponent
     public _sitesGroupService: SitesGroupService,
     private _siteService: SitesService,
     private _objService: ObjectService,
-    private router: Router,
+    protected router: Router,
     private _geojsonService: GeoJSONService,
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
     private _cacheService: CacheService
   ) {
-    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth);
+    super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
   }
 
@@ -108,7 +109,6 @@ export class MonitoringSitesgroupsDetailComponent
             sites: {
               data: sites,
               objType: 'site',
-              childType: 'visit',
             },
           },
           this.moduleCode,
