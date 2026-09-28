@@ -81,10 +81,30 @@
         "choix_3"
       ]
     },
+    "cd_nom_taxonomy": {
+      "type_widget": "taxonomy",
+      "attribut_label": "Taxonomy",
+      "id_list": "100",
+      "type_util": "taxonomy"
+    },
     "uuid_test": {
       "attribut_label": "uuid test",
       "type_widget": "text",
       "type_util": "uuid"
+    },
+    "determiner": {
+      "type_widget": "observers",
+      "attribut_label": "Observateur",
+      "type_util": "user",
+      "code_list": "CODE_OBSERVERS_LIST",
+      "multi_select": false
+    },
+    "determiner_mutiple": {
+      "type_widget": "observers",
+      "attribut_label": "Observateur",
+      "type_util": "user",
+      "code_list": "CODE_OBSERVERS_LIST",
+      "multi_select": true
     }
   }
 }

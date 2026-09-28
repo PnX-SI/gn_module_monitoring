@@ -702,6 +702,49 @@ class TestSiteWithModule:
         sites_ids = [s["id_base_site"] for s in sites_response]
         assert site.id_base_site in sites_ids
 
+    def test_get_module_sites_with_filter_on_site_type_specific_taxonomique_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"cd_nom_taxonomy": 103536})  # match cd_nom
+        add_site(data={"cd_nom_taxonomy": 97947})  # no match cd_nom
+        add_site()  # empty "cd_nom_taxonomy" => no match
+        filter_params = {"cd_nom_taxonomy": "ill"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+    def test_get_module_sites_with_filter_on_site_type_specific_user_mutiple_attribute(
+        self, test_module_user, add_site, users
+    ):
+        # TODO
+        pass
+
+    def test_get_module_sites_with_filter_on_site_type_specific_user_attribute(
+        self, test_module_user, add_site, users
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"determiner": users["user"].id_role})  # match cd_nom
+        add_site()  # empty "cd_nom_taxonomy" => no match
+        filter_params = {"determiner": "Bob"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+        filter_params = {"determiner": "Bobnotfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == 0
+
     def test_get_module_sites_with_filter_on_site_nb_visits(
         self, test_module_user, add_site, datasets
     ):
