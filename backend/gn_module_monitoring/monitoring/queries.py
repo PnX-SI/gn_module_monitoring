@@ -138,14 +138,18 @@ class GnMonitoringGenericFilter:
                         # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
                         # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
                         #       soient de nouveau dans la clause from
+
+                        # Sous-requête pour vérifier si cls.data[param] est un tableau
+                        is_array = func.jsonb_typeof(cls.data[param]) == "array"
+
+                        # Sous-requête principale
                         subquery_select = (
                             select(
-                                [
-                                    func.jsonb_array_elements_text(cls.data[param])
-                                    .cast(db.Integer)
-                                    .label("id")
-                                ]
+                                func.jsonb_array_elements_text(cls.data[param])
+                                .cast(db.Integer)
+                                .label("id")
                             )
+                            .where(is_array)
                             .correlate_except()
                             .lateral()
                         )

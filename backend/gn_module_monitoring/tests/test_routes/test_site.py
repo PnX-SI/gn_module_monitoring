@@ -656,6 +656,31 @@ class TestSiteWithModule:
         sites_ids = [s["id_base_site"] for s in sites_response]
         assert site.id_base_site in sites_ids
 
+    def test_get_module_sites_with_filter_on_site_specific_nomenclature_mutiple_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        beau = self._get_meteo_value("Beau")
+        mauvais = self._get_meteo_value("Mauvais")
+        filter_params = {"meteo_multiple": "mauv"}
+        site = add_site(
+            data={"meteo_multiple": [mauvais.id_nomenclature, beau.id_nomenclature]}
+        )  # match
+        site_2 = add_site(data={"meteo_multiple": [mauvais.id_nomenclature]})  # match
+        add_site(data={"meteo_multiple": [beau.id_nomenclature]})  # no match
+        add_site()  # empty "meteo_multiple" => no match
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site.id_base_site in sites_ids
+        assert site_2.id_base_site in sites_ids
+
     def test_get_module_sites_with_filter_on_site_type_specific_nomenclature_attribute(
         self, test_module_user, add_site
     ):
