@@ -73,7 +73,16 @@ def set_current_module():
                 return
 
 
-from .routes import *  # noqa
+import gn_module_monitoring.routes.config
+import gn_module_monitoring.routes.data_utils
+import gn_module_monitoring.routes.individuals
+import gn_module_monitoring.routes.monitoring
+import gn_module_monitoring.routes.modules
+import gn_module_monitoring.routes.sites_groups
+import gn_module_monitoring.routes.site
+import gn_module_monitoring.routes.visit
+import gn_module_monitoring.routes.observations
+import gn_module_monitoring.routes.obs_detail
 
 blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORINGS"
 for cmd in commands:
