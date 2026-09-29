@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnusershub.tests.utils import set_logged_user_cookie
+from ref_geo.models import LAreas
 
 from geonature.utils.env import db
 from gn_module_monitoring.monitoring.schemas import (
@@ -745,25 +746,47 @@ class TestSiteWithModule:
         sites_response = response.json["items"]
         assert len(sites_response) == 0
 
+    def test_get_module_sites_with_filter_on_site_type_specific_habitat_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"cd_hab": 650})  # not match cd_hab
+        add_site(data={"cd_hab": 645})  # match cd_hab
+        add_site()  # empty "cd_hab" => no match
+        filter_params = {"cd_hab": "Dép"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+        filter_params = {"cd_hab": "notfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == 0
+
     @pytest.mark.parametrize(
-        "extra_params,filter_name,filter_value,expected_nb,expected_not_found",
+        "column_value,filter_name,filter_value,expected_nb,expected_not_found",
         [
             (
-                [{"commune_aa": [31714, 663]}, {"commune_aa": [31714]}, {}],
+                "id_area",
                 "commune_aa",
                 "flo",
                 2,
                 0,
             ),
             (
-                [{"commune_areas": [31714, 663]}, {"commune_areas": [31714]}, {}],
+                "id_area",
                 "commune_areas",
                 "flo",
                 2,
                 0,
             ),
             (
-                [{"commune_area_code": ["31714", "663"]}, {"commune_area_code": ["31714"]}, {}],
+                "area_code",
                 "commune_area_code",
                 "flo",
                 3,
@@ -775,15 +798,25 @@ class TestSiteWithModule:
         self,
         test_module_user,
         add_site,
-        extra_params,
+        column_value,
         filter_name,
         filter_value,
         expected_nb,
         expected_not_found,
     ):
         set_logged_user_cookie(self.client, test_module_user)
-        for site_data in extra_params:
-            add_site(data=site_data)
+
+        # 48075	Ispagnac
+        # 48061	Florac Trois Rivières
+        florac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48061"))
+        ispagnac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48075"))
+        generate_sites = [
+            [getattr(florac, column_value), getattr(ispagnac, column_value)],
+            [getattr(florac, column_value)],
+            [],
+        ]
+        for site_data in generate_sites:
+            add_site(data={filter_name: site_data})
         filter_params = {filter_name: filter_value}
         response = self.client.get(
             url_for("monitorings.get_sites", module_code="test", **filter_params)

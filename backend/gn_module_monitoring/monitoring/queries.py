@@ -7,6 +7,7 @@ from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
+from pypn_habref_api.models import Habref
 from ref_geo.models import LAreas
 from sqlalchemy import Unicode, and_, false, func, or_, select, true
 from sqlalchemy.orm import aliased, class_mapper
@@ -127,12 +128,15 @@ class GnMonitoringGenericFilter:
                         multiple = multiple_value
                     else:
                         multiple = json.loads(multiple_value)
-                if field_type in ("nomenclature", "taxonomy", "user", "area"):
+                if field_type in ("nomenclature", "taxonomy", "user", "area", "habitat"):
 
                     join_table, join_column, filter_column = cls._get_relationship_clause(
                         field_type
                     )
-                    if not specific_properties[param].get("value_field_name", None) in [
+                    if not (
+                        specific_properties[param].get("value_field_name", None)
+                        or specific_properties[param].get("keyValue", None)
+                    ) in [
                         None,
                         join_column.name,
                     ]:
@@ -198,7 +202,9 @@ class GnMonitoringGenericFilter:
             join_column = join_table.id_area
             filter_column = join_table.area_name
         elif type_util == "habitat":
-            pass
+            join_table = aliased(Habref)
+            join_column = join_table.cd_hab
+            filter_column = join_table.lb_hab_fr
 
         return join_table, join_column, filter_column
 
