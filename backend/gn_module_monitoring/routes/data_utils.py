@@ -13,7 +13,6 @@ from sqlalchemy import and_, inspect, cast, select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
-from geonature.core.users.models import VUserslistForallMenu
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_monitoring.models import BibTypeSite
@@ -22,7 +21,6 @@ from geonature.core.gn_commons.models import TModules
 from pypnusershub.db.models import User, UserList
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
-from pypnnomenclature.repository import get_nomenclature_list
 
 from apptax.taxonomie.models import Taxref, BibListes
 
