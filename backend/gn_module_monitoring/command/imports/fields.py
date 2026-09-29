@@ -110,7 +110,6 @@ def determine_field_type(field_data: dict) -> str:
     multiple = field_data.get("multiple", field_data.get("multi_select", False))
 
     # Si le champ est de type checkbox ou multiselect, on considère qu'il permet plusieurs valeurs
-    # TODO Devrait être forcé dans la configuration
     if type_widget in MULTI_TYPE_WIDGET:
         multiple = True
 

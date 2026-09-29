@@ -745,6 +745,60 @@ class TestSiteWithModule:
         sites_response = response.json["items"]
         assert len(sites_response) == 0
 
+    @pytest.mark.parametrize(
+        "extra_params,filter_name,filter_value,expected_nb,expected_not_found",
+        [
+            (
+                [{"commune_aa": [31714, 663]}, {"commune_aa": [31714]}, {}],
+                "commune_aa",
+                "flo",
+                2,
+                0,
+            ),
+            (
+                [{"commune_areas": [31714, 663]}, {"commune_areas": [31714]}, {}],
+                "commune_areas",
+                "flo",
+                2,
+                0,
+            ),
+            (
+                [{"commune_area_code": ["31714", "663"]}, {"commune_area_code": ["31714"]}, {}],
+                "commune_area_code",
+                "flo",
+                3,
+                3,
+            ),
+        ],
+    )
+    def test_get_module_sites_with_filter_on_site_type_specific_area_attribute(
+        self,
+        test_module_user,
+        add_site,
+        extra_params,
+        filter_name,
+        filter_value,
+        expected_nb,
+        expected_not_found,
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        for site_data in extra_params:
+            add_site(data=site_data)
+        filter_params = {filter_name: filter_value}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == expected_nb
+
+        filter_params = {filter_name: "notfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == expected_not_found
+
     def test_get_module_sites_with_filter_on_site_nb_visits(
         self, test_module_user, add_site, datasets
     ):

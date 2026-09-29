@@ -127,11 +127,17 @@ class GnMonitoringGenericFilter:
                         multiple = multiple_value
                     else:
                         multiple = json.loads(multiple_value)
-
                 if field_type in ("nomenclature", "taxonomy", "user", "area"):
+
                     join_table, join_column, filter_column = cls._get_relationship_clause(
                         field_type
                     )
+                    if not specific_properties[param].get("value_field_name", None) in [
+                        None,
+                        join_column.name,
+                    ]:
+                        # Pas de filtre si le champ stocké est exotique
+                        continue
                     if multiple:
                         # Si la propriété est de type multiple
                         # Alors jointure sur chaque element de data->'params'
@@ -168,31 +174,30 @@ class GnMonitoringGenericFilter:
                 else:
                     # Sinon filtre texte simple
                     query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
-
         return query
 
     @staticmethod
-    def _get_relationship_clause(type):
+    def _get_relationship_clause(type_util):
         join_table = None  # alias de la table de jointure
         join_column = None  # nom de la colonne permettant la jointure entre data et la table
         filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
-        if type == "nomenclature":
+        if type_util == "nomenclature":
             join_table = aliased(TNomenclatures)
             join_column = join_table.id_nomenclature
             filter_column = join_table.label_default
-        elif type == "taxonomy":
+        elif type_util == "taxonomy":
             join_table = aliased(Taxref)
             join_column = join_table.cd_nom
             filter_column = join_table.nom_vern_or_lb_nom
-        elif type == "user":
+        elif type_util == "user":
             join_table = aliased(User)
             join_column = join_table.id_role
             filter_column = join_table.nom_complet
-        elif type == "area":
+        elif type_util == "area":
             join_table = aliased(LAreas)
             join_column = join_table.id_area
             filter_column = join_table.area_name
-        elif type == "habitat":
+        elif type_util == "habitat":
             pass
 
         return join_table, join_column, filter_column

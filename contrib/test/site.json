@@ -11,6 +11,12 @@
     "last_visit",
     "nb_visits"
   ],
+  "display_list": [
+    "base_site_name",
+    "commune_areas",
+    "commune_area_code",
+    "commune"
+  ],
   "export_pdf": [
     {
         "template": "fiche_site.html",
@@ -105,6 +111,30 @@
       "type_util": "user",
       "code_list": "CODE_OBSERVERS_LIST",
       "multi_select": true
+    },
+    "commune_areas": {
+      "type_widget": "areas",
+      "attribut_label": "Commune area",
+      "type_util": "area",
+      "type_codes": ["COM"],
+      "multiple": false,
+      "required": false
+  },
+    "commune_aa": {
+      "type_widget": "municipalities",
+      "attribut_label": "Commune municipality",
+      "type_util": "area",
+      "type_codes": ["COM"],
+      "multiple": false,
+      "required": false
+  },
+  "commune_area_code": {
+      "type_widget": "municipalities",
+      "attribut_label": "Commune area code",
+      "value_field_name": "area_code",
+      "type_util": "area",
+      "multiple": false,
+      "required": false
     }
   }
 }
