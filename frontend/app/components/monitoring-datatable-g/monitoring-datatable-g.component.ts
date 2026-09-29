@@ -225,6 +225,9 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.onFilter.emit({ filters: this.filters, tabObj: this.activetabType });
   }
 
+  filterCount() {
+    return Object.keys(this.filters || {}).length;
+  }
   onRowClick(event) {
     if (!(event && event.type === 'click')) {
       return;

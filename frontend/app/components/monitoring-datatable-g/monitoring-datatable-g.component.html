@@ -41,17 +41,19 @@
   >
     <mat-tab
       *ngFor="let objType of dataTableObjData | keyvalue; let i = index"
-      label="{{ dataTableConfig[i].labelList}} {{
-        displayNumber(dataTableConfig[i].objectType)
-      }}"
+      label="{{ dataTableConfig[i].labelList }} {{ displayNumber(dataTableConfig[i].objectType) }}"
     >
       <ng-template matTabContent>
         <div class="btn-height">
           <div class="btn-float-right">
             <button
               mat-mini-fab
+              [matBadge]="filterCount()"
+              [matBadgeHidden]="filterCount() === 0"
+              matBadgePosition="after"
+              matBadgeColor="danger"
               color="accent"
-              class="ml-2 mb-2"
+              class="ml-2 mb-2 mt-2"
               (click)="displayFilter = !displayFilter"
               matTooltip="{{ displayFilter ? 'Cacher' : 'Afficher' }} les filtres"
             >
@@ -82,7 +84,11 @@
                 (click)="dataTableConfig[i].canCreateObj ? navigateToAddObj() : null"
                 [matTooltip]="dataTableConfig[i].canCreateObj ? null : toolTipNotAllowed"
               >
-                <i class="fa fa-plus" aria-hidden="true"></i> {{ "Actions.Add" | translate }}
+                <i
+                  class="fa fa-plus"
+                  aria-hidden="true"
+                ></i>
+                {{ 'Actions.Add' | translate }}
               </button>
             </ng-template>
 
@@ -138,50 +144,50 @@
                     ></i>
                   </a>
                   <!-- TODO Action Column :  Changer ngIf, click function, matTooltip // voir comment adapter à ce qu'il y avait avant :  *ngIf="child0.child0()"" et dans la function `child0.child0().labelArtUndef(true)` -->
-                  <span
-                    *ngIf="dataTableConfig[i].childType !== null"
+                  <span *ngIf="dataTableConfig[i].childType !== null">
+                    <ng-template
+                      [ngIf]="dataTableConfig[i].childType == 'visit' && moduleCode == 'generic'"
+                      [ngIfElse]="addChildrenTemplate"
                     >
-                  <ng-template
-                    [ngIf]="(dataTableConfig[i].childType == 'visit' && moduleCode == 'generic')"
-                    [ngIfElse]="addChildrenTemplate"
-                  >
-                    <option-list-btn
-                      placeholder="{{dataTableConfig[i].childType}}"
-                      label="{{ 'Monitoring.Sites.addVisit' | translate }}"
-                      [iconOrButton]="icon"
-                      [canCreateChild]="dataTableConfig[i].canCreateChild"
-                      [item]="row"
-                      (onDeployed)="addChildrenVisit(row)"
-                      (onSaved)="saveOptionChild($event)"
-                    ></option-list-btn>
-                  </ng-template>
-                  <ng-template #addChildrenTemplate>
-                    <ng-container >
-                      <a
-                        [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
-                        class="nav-link link cell-link"
-                        (click)="dataTableConfig[i].canCreateChild ? navigateToAddChildren(null, row, obj?.siteId) : null"
-                        [matTooltip]="
-                          dataTableConfig[i].canCreateChild ? labelAdd : toolTipNotAllowed
-                        "
-                      >
-                        <i
-                          [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild }"
-                          class="fa fa-plus"
-                          aria-hidden="true"
-                        ></i>
-                      </a>
-                    </ng-container>
-                  </ng-template>
+                      <option-list-btn
+                        placeholder="{{ dataTableConfig[i].childType }}"
+                        label="{{ 'Monitoring.Sites.addVisit' | translate }}"
+                        [iconOrButton]="icon"
+                        [canCreateChild]="dataTableConfig[i].canCreateChild"
+                        [item]="row"
+                        (onDeployed)="addChildrenVisit(row)"
+                        (onSaved)="saveOptionChild($event)"
+                      ></option-list-btn>
+                    </ng-template>
+                    <ng-template #addChildrenTemplate>
+                      <ng-container>
+                        <a
+                          [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
+                          class="nav-link link cell-link"
+                          (click)="
+                            dataTableConfig[i].canCreateChild
+                              ? navigateToAddChildren(null, row, obj?.siteId)
+                              : null
+                          "
+                          [matTooltip]="
+                            dataTableConfig[i].canCreateChild ? labelAdd : toolTipNotAllowed
+                          "
+                        >
+                          <i
+                            [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild }"
+                            class="fa fa-plus"
+                            aria-hidden="true"
+                          ></i>
+                        </a>
+                      </ng-container>
+                    </ng-template>
                   </span>
                   <!--  -->
                   <a
                     [ngClass]="{ isDisableBtn: !row.cruved['U'] }"
                     class="nav-link link cell-link"
                     (click)="row.cruved['U'] ? editSelectedItem(row) : null"
-                    [matTooltip]="
-                      row.cruved['U'] ? labelEdit  : toolTipNotAllowed
-                    "
+                    [matTooltip]="row.cruved['U'] ? labelEdit : toolTipNotAllowed"
                   >
                     <i
                       [ngClass]="{ isDisableIcon: !row.cruved['U'] }"
@@ -203,9 +209,7 @@
                       [ngClass]="{ isDisableBtn: !row.cruved['D'] }"
                       class="nav-link link cell-link"
                       (click)="row.cruved['D'] ? alertMessage(row) : null"
-                      [matTooltip]="
-                        row.cruved['D'] ? labelDelete : toolTipNotAllowed
-                      "
+                      [matTooltip]="row.cruved['D'] ? labelDelete : toolTipNotAllowed"
                     >
                       <i
                         [ngClass]="{ isDisableIcon: !row.cruved['D'] }"
