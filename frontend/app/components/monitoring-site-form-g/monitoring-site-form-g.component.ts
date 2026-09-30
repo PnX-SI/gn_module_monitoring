@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { Location } from '@angular/common';
 
@@ -31,6 +31,9 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
   private typeSiteFieldsCache: { [idType: number]: JsonData[] } = {};
 
   private typesSiteValueChangesSub: Subscription;
+
+  private hiddenTypesSite: number[] = [];
+  private hiddenProperties: JsonData = {};
 
   constructor(
     _commonService: CommonService,
@@ -64,6 +67,70 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       _permissionService,
       _objectService
     );
+  }
+
+  ngOnInit() {
+    this.setAsideHiddenTypesSite();
+    super.ngOnInit();
+  }
+
+  private setAsideHiddenTypesSite() {
+    this.hiddenTypesSite = [];
+    this.hiddenProperties = {};
+    let idsTypeSiteModule = this._configServiceG.config()?.['custom']?.['__MODULE.IDS_TYPE_SITE'];
+    if (!this.object || !Array.isArray(idsTypeSiteModule)) {
+      return;
+    }
+    idsTypeSiteModule = idsTypeSiteModule.map((t) => t.id_nomenclature_type_site);
+    const idsTypeSite: number[] = this.object.types_site || [];
+    this.hiddenTypesSite = idsTypeSite.filter((id) => !idsTypeSiteModule.includes(id));
+    console.log('this.object : ', this.object);
+    console.log('this._configServiceG.config() : ', this._configServiceG.config());
+    if (!this.hiddenTypesSite.length) {
+      return;
+    }
+
+    this.object = {
+      ...this.object,
+      types_site: idsTypeSite.filter((id) => idsTypeSiteModule.includes(id)),
+    };
+
+    const idSite = this.object.id_base_site;
+    const siteService = this.apiService as any;
+    forkJoin([
+      siteService.getTypesSiteByIdSite(idSite),
+      siteService.getById(idSite, 'generic'),
+    ]).subscribe(([typesSite, fullSite]: [JsonData[], JsonData]) => {
+      for (const typeSite of typesSite) {
+        if (!this.hiddenTypesSite.includes(typeSite.id_nomenclature_type_site)) {
+          continue;
+        }
+        for (const key of Object.keys(typeSite.config?.specific || {})) {
+          if (key in fullSite) {
+            this.hiddenProperties[key] = fullSite[key];
+          }
+        }
+      }
+    });
+  }
+
+  formatForApi(formValue: any) {
+    const data = super.formatForApi(formValue);
+    if (!this.hiddenTypesSite.length) {
+      return data;
+    }
+    data['types_site'] = [...new Set([...(data['types_site'] || []), ...this.hiddenTypesSite])];
+
+    const displayedFields = [
+      ...(this.formsDefinition as any[]),
+      ...this.typeSiteFormsDefinition.flatMap((typeSite) => typeSite.fields as any[]),
+    ].map((formDef) => formDef.attribut_name);
+    for (const [key, value] of Object.entries(this.hiddenProperties)) {
+      if (!displayedFields.includes(key)) {
+        data[key] = value;
+      }
+    }
+    return data;
   }
 
   initFormDefiniton(schema: JsonData, meta: JsonData) {
