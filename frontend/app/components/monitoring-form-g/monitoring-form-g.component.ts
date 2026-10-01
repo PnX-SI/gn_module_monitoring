@@ -68,7 +68,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _route: ActivatedRoute,
     private _formUtils: MonitoringObjectService,
     private translate: TranslateService,
-    private _configServiceG: ConfigServiceG,
+    public _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
     private _objectService: ObjectService
   ) {}
