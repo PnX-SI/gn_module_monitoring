@@ -1,8 +1,3 @@
-"""
-module definissant les routes d'accès de modification des objects
-    site, visit, observation, ...
-"""
-
 import datetime as dt
 
 
@@ -10,21 +5,20 @@ from werkzeug.exceptions import BadRequest, Forbidden
 
 from flask import request, url_for, g, current_app
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.exc import NoSuchTableError
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
 from utils_flask_sqla.response import to_csv_resp
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
-from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
-from geonature.core.imports.models import Destination
 
 from geonature.utils.env import DB
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.routes.legacy import blueprint_legacy
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.monitoring.object_utils import (
     get_breadcrumbs,
@@ -36,195 +30,8 @@ from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.config.repositories import get_config, get_config_old
 
-
-@blueprint.route("/object/<string:module_code>/<string:object_type>/<int:id>", methods=["GET"])
-@blueprint.route("/object/<string:module_code>/<string:object_type>", methods=["GET"])
-@blueprint.route(
-    "/object/module",
-    methods=["GET"],
-)
-@check_cruved_scope("R")
-@json_resp
-@permissions.check_cruved_scope("R", get_scope=True)
-def get_monitoring_object_api(scope, module_code=None, object_type="module", id=None):
-    """
-    renvoie un object, à partir de type de l'object et de son id
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-
-    :return: renvoie l'object requis
-    :rtype: dict
-    """
-
-    # field_name = param.get('field_name')
-    # value = module_code if object_type == 'module'
-
-    depth = to_int(request.args.get("depth", 1))
-
-    config = get_config_old(module_code, force=True)
-
-    monitoring_obj = monitoring_definitions.monitoring_object_instance(
-        module_code, object_type, config=config, id=id
-    )
-    if id != None:
-        object = monitoring_obj.get(depth=depth)
-        if not object._model.has_instance_permission(scope=scope):
-            raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
-
-    return (
-        monitoring_obj.get(depth=depth)
-        # .get(value=value, field_name = field_name)
-        .serialize(depth)
-    )
-
-
-def create_or_update_object_api(module_code, object_type, id=None):
-    """
-    route pour la création ou la modification d'un objet
-    si id est renseigné, c'est une création (PATCH)
-    sinon c'est une modification (POST)
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-    :return: renvoie l'object crée ou modifié
-    :rtype: dict
-    """
-    depth = to_int(request.args.get("depth", 1))
-
-    # recupération des données post
-    post_data = dict(request.get_json())
-
-    # on rajoute id_module s'il n'est pas renseigné par défaut
-    post_data["properties"].setdefault("id_module", None)
-    if not post_data["properties"]["id_module"]:
-        if module_code != "generic":
-            post_data["properties"]["id_module"] = get_module("module_code", module_code).id_module
-        else:
-            post_data["properties"]["id_module"] = "generic"
-    if object_type == "module":
-        query = update(Destination).where(Destination.code == module_code).values(active=True)
-        DB.session.execute(query)
-
-    config = get_config_old(module_code, force=True)
-    return (
-        monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, config=config, id=id
-        )
-        .create_or_update(post_data)
-        .serialize(depth)
-    )
-
-
-def get_serialized_object(module_code, object_type, id):
-    """
-    renvoie un object, à partir de type de l'object et de son id
-
-    :param module_code: reference le module concerne
-    :param object_type: le type d'object (site, visit, obervation)
-    :param id : l'identifiant de l'object (de id_base_site pour site)
-    :type module_code: str
-    :type object_type: str
-    :type id: int
-
-    :return: renvoie l'object requis
-    :rtype: dict
-    """
-
-    # field_name = param.get('field_name')
-    # value = module_code if object_type == 'module'
-    config = get_config_old(module_code, force=True)
-
-    depth = to_int(request.args.get("depth", 1))
-
-    return (
-        monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, config=config, id=id
-        ).get(depth=depth)
-        # .get(value=value, field_name = field_name)
-        .serialize(depth)
-    )
-
-
-# update object
-@blueprint.route("object/<string:module_code>/<object_type>/<int:id>", methods=["PATCH"])
-@blueprint.route(
-    "/object/<string:module_code>/module",
-    defaults={"id": None, "object_type": "module"},
-    methods=["PATCH"],
-)
-@check_cruved_scope("U")
-@json_resp
-@permissions.check_cruved_scope("U", get_scope=True)
-def update_object_api(scope, module_code, object_type, id):
-    depth = to_int(request.args.get("depth", 1))
-    if id != None:
-
-        config = get_config_old(module_code, force=True)
-        object = monitoring_definitions.monitoring_object_instance(
-            module_code, object_type, config=config, id=id
-        ).get(depth=depth)
-        if not object._model.has_instance_permission(scope=scope):
-            raise Forbidden(f"User {g.current_user} cannot update {object_type} {object._id}")
-
-    post_data = dict(request.get_json())
-    return create_or_update_object_api(module_code, object_type, id)
-
-
-# create object
-@blueprint.route(
-    "object/<string:module_code>/<object_type>", defaults={"id": None}, methods=["POST"]
-)
-@blueprint.route(
-    "/object/module",
-    defaults={"module_code": None, "object_type": "module", "id": None},
-    methods=["POST"],
-)
-@check_cruved_scope("C")
-@json_resp
-def create_object_api(module_code, object_type, id):
-    post_data = dict(request.get_json())
-    # get_config(module_code, force=True)
-    return create_or_update_object_api(module_code, object_type, id)
-
-
-# delete
-@blueprint.route("object/<string:module_code>/<object_type>/<int:id>", methods=["DELETE"])
-@blueprint.route(
-    "/object/<string:module_code>/module",
-    defaults={"id": None, "object_type": "module"},
-    methods=["DELETE"],
-)
-@check_cruved_scope("D")
-@json_resp
-@permissions.check_cruved_scope("D", get_scope=True)
-def delete_object_api(scope, module_code, object_type, id):
-    # ??? PLUS VALABLE
-    # NOTE: normalement on ne peut plus supprimer les groupes de site / sites par l'entrée protocoles
-    # if object_type in ("site", "sites_group"):
-    #     raise Exception(
-    #         f"No right to delete {object_type} from protocol. The {object_type} with id: {id} could be linked with others protocols"
-    #     )
-
-    if id is None:
-        raise BadRequest(f"Monitoring : delete {object_type} has no id")
-
-    config = get_config(module_code)
-    model = get_object_model(module_code, object_type, id, config)
-    if not model.has_instance_permission(scope=scope):
-        raise Forbidden(f"User {g.current_user} cannot delete {object_type} {id}")
-
-    DB.session.delete(model)
-    DB.session.commit()
-    return {"success": "Item is successfully deleted"}
+# Legacy routes for backward compatibility with old modules
+blueprint.register_blueprint(blueprint_legacy)
 
 
 # breadcrumbs
