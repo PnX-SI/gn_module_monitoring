@@ -51,10 +51,19 @@ def add_specific_attributes(schema, object_type, module_code):
         MonitoringObjects_dict,
     )
     from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
+    from gn_module_monitoring.config.utils import get_specific_properties
 
     model_class = MonitoringModels_dict[object_type]
 
     config = get_config(module_code, force=True)
+    specific_properties = get_specific_properties(model_class, config, object_type).keys()
+
+    def create_getter(key):
+        return lambda obj: (obj.data or {}).get(key)
+
+    attrs = {}
+    for property_ in specific_properties:
+        attrs[property_] = marshmallow.fields.Function(create_getter(property_))
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
@@ -64,13 +73,11 @@ def add_specific_attributes(schema, object_type, module_code):
         parameters["exclude"].extend(["geom_local"])
 
     Meta = type("Meta", (), parameters)
-
+    attrs.update({"Meta": Meta})
     schema_with_specifics = type(
         f"{object_type.capitalize()}SchemaWithSpecifics",
         (schema, GenericAdditionalSchema),
-        {
-            "Meta": Meta,
-        },
+        attrs,
     )
     return schema_with_specifics
 
@@ -111,8 +118,9 @@ class GenericAdditionalSchema(Schema):
         # Cas des propriétés renseignées dans d'autre module
         #  Ajout manuel des propriétés manquantes
 
-        additional_fields_data: Dict[str, Any] = data.pop("data", {})
-
+        additional_fields_data: dict[str, Any] = data.pop("data", {})
+        if not additional_fields_data:
+            return data
         # Initialiser `additional_data_keys` si absent
         if "additional_data_keys" not in data:
             data["additional_data_keys"] = []
