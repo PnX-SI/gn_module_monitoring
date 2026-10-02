@@ -91,7 +91,8 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
 
     // Récupération des types de site non définis dans
     // le module pour les mettre de coté
-    let idsTypeSiteModule = this._configServiceG.config()?.['custom']?.['__MODULE.IDS_TYPE_SITE'];
+    let idsTypeSiteModule =
+      this._configServiceG.config()?.['custom']?.['__MODULE.IDS_TYPE_SITE'] || [];
     this.hiddenTypesSite = [];
     idsTypeSiteModule = idsTypeSiteModule.map((t) => t.id_nomenclature_type_site);
     const idsTypeSite: number[] = this.object.types_site || [];
@@ -123,9 +124,7 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     }
 
     // Rajout des types de site n'appartenant pas au module
-    if (!this.hiddenTypesSite.length) {
-      return data;
-    }
+
     data['types_site'] = [...new Set([...(data['types_site'] || []), ...this.hiddenTypesSite])];
 
     // Rajout des propriétés n'appartenant pas au module
