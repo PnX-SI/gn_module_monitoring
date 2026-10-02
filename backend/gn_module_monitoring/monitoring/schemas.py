@@ -208,6 +208,8 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
     nb_visits = fields.Integer(dump_only=True)
     geom = GeojsonSerializationField(required=False, allow_none=True)
 
+    uuid_sites_group = fields.UUID(allow_none=True, load_default=None)  # ou omit=True
+
     def set_pk(self, obj):
         return "id_sites_group"
 

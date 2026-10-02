@@ -160,6 +160,7 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
     try:
         visit = MonitoringVisitsSchema(unknown=EXCLUDE).load(process_data)
     except Exception as e:
+        # TODO REMOVE DEV MODE
         print(e.__dict__)
         raise e
     db.session.add(visit)

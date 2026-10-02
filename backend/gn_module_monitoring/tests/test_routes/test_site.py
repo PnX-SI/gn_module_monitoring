@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnusershub.tests.utils import set_logged_user_cookie
+from ref_geo.models import LAreas
 
 from geonature.utils.env import db
 from gn_module_monitoring.monitoring.schemas import (
@@ -656,6 +657,31 @@ class TestSiteWithModule:
         sites_ids = [s["id_base_site"] for s in sites_response]
         assert site.id_base_site in sites_ids
 
+    def test_get_module_sites_with_filter_on_site_specific_nomenclature_mutiple_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        beau = self._get_meteo_value("Beau")
+        mauvais = self._get_meteo_value("Mauvais")
+        filter_params = {"meteo_multiple": "mauv"}
+        site = add_site(
+            data={"meteo_multiple": [mauvais.id_nomenclature, beau.id_nomenclature]}
+        )  # match
+        site_2 = add_site(data={"meteo_multiple": [mauvais.id_nomenclature]})  # match
+        add_site(data={"meteo_multiple": [beau.id_nomenclature]})  # no match
+        add_site()  # empty "meteo_multiple" => no match
+
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+        sites_ids = [s["id_base_site"] for s in sites_response]
+        assert site.id_base_site in sites_ids
+        assert site_2.id_base_site in sites_ids
+
     def test_get_module_sites_with_filter_on_site_type_specific_nomenclature_attribute(
         self, test_module_user, add_site
     ):
@@ -676,6 +702,135 @@ class TestSiteWithModule:
         assert len(sites_response) == 1
         sites_ids = [s["id_base_site"] for s in sites_response]
         assert site.id_base_site in sites_ids
+
+    def test_get_module_sites_with_filter_on_site_type_specific_taxonomique_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"cd_nom_taxonomy": 103536})  # match cd_nom
+        add_site(data={"cd_nom_taxonomy": 97947})  # no match cd_nom
+        add_site()  # empty "cd_nom_taxonomy" => no match
+        filter_params = {"cd_nom_taxonomy": "ill"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+    def test_get_module_sites_with_filter_on_site_type_specific_user_mutiple_attribute(
+        self, test_module_user, add_site, users
+    ):
+        # TODO
+        pass
+
+    def test_get_module_sites_with_filter_on_site_type_specific_user_attribute(
+        self, test_module_user, add_site, users
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"determiner": users["user"].id_role})  # match cd_nom
+        add_site()  # empty "cd_nom_taxonomy" => no match
+        filter_params = {"determiner": "Bob"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+        filter_params = {"determiner": "Bobnotfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == 0
+
+    def test_get_module_sites_with_filter_on_site_type_specific_habitat_attribute(
+        self, test_module_user, add_site
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"cd_hab": 650})  # not match cd_hab
+        add_site(data={"cd_hab": 645})  # match cd_hab
+        add_site()  # empty "cd_hab" => no match
+        filter_params = {"cd_hab": "Dép"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 1
+
+        filter_params = {"cd_hab": "notfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == 0
+
+    @pytest.mark.parametrize(
+        "column_value,filter_name,filter_value,expected_nb,expected_not_found",
+        [
+            (
+                "id_area",
+                "commune_aa",
+                "flo",
+                2,
+                0,
+            ),
+            (
+                "id_area",
+                "commune_areas",
+                "flo",
+                2,
+                0,
+            ),
+            (
+                "area_code",
+                "commune_area_code",
+                "flo",
+                3,
+                3,
+            ),
+        ],
+    )
+    def test_get_module_sites_with_filter_on_site_type_specific_area_attribute(
+        self,
+        test_module_user,
+        add_site,
+        column_value,
+        filter_name,
+        filter_value,
+        expected_nb,
+        expected_not_found,
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+
+        # 48075	Ispagnac
+        # 48061	Florac Trois Rivières
+        florac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48061"))
+        ispagnac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48075"))
+        generate_sites = [
+            [getattr(florac, column_value), getattr(ispagnac, column_value)],
+            [getattr(florac, column_value)],
+            [],
+        ]
+        for site_data in generate_sites:
+            add_site(data={filter_name: site_data})
+        filter_params = {filter_name: filter_value}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == expected_nb
+
+        filter_params = {filter_name: "notfound"}
+        response = self.client.get(
+            url_for("monitorings.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == expected_not_found
 
     def test_get_module_sites_with_filter_on_site_nb_visits(
         self, test_module_user, add_site, datasets

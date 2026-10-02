@@ -32,6 +32,8 @@ TYPE_WIDGET = {
     "site": "integer",
     "individuals": "integer",
     "dataset": "integer",
+    "municipalities": "integer",
+    "areas": "integer",
 }
 
 INT_TYPE_UTILS = [
@@ -44,6 +46,7 @@ INT_TYPE_UTILS = [
     "site",
     "habitat",
     "sites_group",
+    "area",
 ]
 
 OTHER_TYPE_UTILS = [
@@ -52,7 +55,7 @@ OTHER_TYPE_UTILS = [
 ]
 
 # Type de widget qui implique que multiple soit à true
-MULTI_TYPE_WIDGET = ["multiselect", "checkbox"]
+MULTI_TYPE_WIDGET = ["multiselect", "checkbox", "municipalities", "areas"]
 
 SQL_DATA_TYPE_MAPPING = {
     "varchar": String,

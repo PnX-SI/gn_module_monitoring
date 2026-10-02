@@ -22,6 +22,7 @@ from gn_module_monitoring.command.imports.constant import (
     TYPE_WIDGET,
     INT_TYPE_UTILS,
     OTHER_TYPE_UTILS,
+    MULTI_TYPE_WIDGET,
 )
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
@@ -228,6 +229,8 @@ def process_display_element(element):
     # Ajout propriétés essentielles en fonction du type de widget
     if not "type_widget" in element:
         return element
+    if element["type_widget"] in MULTI_TYPE_WIDGET:
+        element["multiple"] = True
 
     if element["type_widget"] == "datalist":
         element["designStyle"] = "bootstrap"

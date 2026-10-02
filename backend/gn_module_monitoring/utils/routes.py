@@ -120,7 +120,7 @@ def sort(
         # TODO: implémenter les autres type_util
         if field.get("type_util") == "nomenclature":
             join_table, join_column, filter_column = model._get_relationship_clause(
-                type="nomenclature"
+                type_util="nomenclature"
             )
             query = query.join(join_table, model.data[sort].astext.cast(Integer) == join_column)
             order_by = filter_column

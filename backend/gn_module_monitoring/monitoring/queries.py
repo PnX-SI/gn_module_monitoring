@@ -7,6 +7,7 @@ from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
+from pypn_habref_api.models import Habref
 from ref_geo.models import LAreas
 from sqlalchemy import Unicode, and_, false, func, or_, select, true
 from sqlalchemy.orm import aliased, class_mapper
@@ -127,25 +128,38 @@ class GnMonitoringGenericFilter:
                         multiple = multiple_value
                     else:
                         multiple = json.loads(multiple_value)
+                if field_type in ("nomenclature", "taxonomy", "user", "area", "habitat"):
 
-                if field_type in ("nomenclature", "taxonomy", "user", "area"):
                     join_table, join_column, filter_column = cls._get_relationship_clause(
                         field_type
                     )
+                    if not (
+                        specific_properties[param].get("value_field_name", None)
+                        or specific_properties[param].get("keyValue", None)
+                    ) in [
+                        None,
+                        join_column.name,
+                    ]:
+                        # Pas de filtre si le champ stocké est exotique
+                        continue
                     if multiple:
                         # Si la propriété est de type multiple
                         # Alors jointure sur chaque element de data->'params'
                         # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
                         # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
                         #       soient de nouveau dans la clause from
+
+                        # Sous-requête pour vérifier si cls.data[param] est un tableau
+                        is_array = func.jsonb_typeof(cls.data[param]) == "array"
+
+                        # Sous-requête principale
                         subquery_select = (
                             select(
-                                [
-                                    func.jsonb_array_elements_text(cls.data[param])
-                                    .cast(db.Integer)
-                                    .label("id")
-                                ]
+                                func.jsonb_array_elements_text(cls.data[param])
+                                .cast(db.Integer)
+                                .label("id")
                             )
+                            .where(is_array)
                             .correlate_except()
                             .lateral()
                         )
@@ -164,32 +178,33 @@ class GnMonitoringGenericFilter:
                 else:
                     # Sinon filtre texte simple
                     query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
-
         return query
 
     @staticmethod
-    def _get_relationship_clause(type):
+    def _get_relationship_clause(type_util):
         join_table = None  # alias de la table de jointure
         join_column = None  # nom de la colonne permettant la jointure entre data et la table
         filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
-        if type == "nomenclature":
+        if type_util == "nomenclature":
             join_table = aliased(TNomenclatures)
             join_column = join_table.id_nomenclature
             filter_column = join_table.label_default
-        elif type == "taxonomy":
+        elif type_util == "taxonomy":
             join_table = aliased(Taxref)
             join_column = join_table.cd_nom
             filter_column = join_table.nom_vern_or_lb_nom
-        elif type == "user":
+        elif type_util == "user":
             join_table = aliased(User)
             join_column = join_table.id_role
             filter_column = join_table.nom_complet
-        elif type == "area":
+        elif type_util == "area":
             join_table = aliased(LAreas)
             join_column = join_table.id_area
             filter_column = join_table.area_name
-        elif type == "habitat":
-            pass
+        elif type_util == "habitat":
+            join_table = aliased(Habref)
+            join_column = join_table.cd_hab
+            filter_column = join_table.lb_hab_fr
 
         return join_table, join_column, filter_column
 

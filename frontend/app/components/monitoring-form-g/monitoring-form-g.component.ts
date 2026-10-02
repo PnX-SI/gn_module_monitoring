@@ -98,13 +98,12 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   initForm() {
     this.meta = {
-      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature'),
+      nomenclatures: this._dataUtilsService.getDataUtil('nomenclature') || {},
       dataset: this._dataUtilsService.getDataUtil('dataset'),
       id_role: this.currentUser.id_role,
       bChainInput: this.chainInput,
       parents: this.buildParentsMeta(),
     };
-
     if (this.config['geometry_type']) {
       const validatorRequired =
         this.objectType == 'sites_group'
