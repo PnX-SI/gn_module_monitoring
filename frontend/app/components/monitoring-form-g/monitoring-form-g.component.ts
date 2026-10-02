@@ -369,7 +369,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     if (this.objectType == 'site') {
       // Get id_sites_group
       const id_sites_group =
-        this.queryParams['id_sites_group'] || (this.object || [])['id_sites_group'];
+        (this.queryParams || [])['id_sites_group'] || (this.object || [])['id_sites_group'];
 
       // S'il y a un id_site group
       // et qu'il est spécifié dans les parents_path

@@ -290,9 +290,10 @@ def get_config(module_code=None, force=False):
 
             config["default_display_field_names"].update(config.get("display_field_names", {}))
 
-        config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
-            {"id_nomenclature_type_site": t.id_nomenclature_type_site} for t in module.types_site
-        ]
+    config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
+        {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
+    ]
+
     # Get the list of observers
     config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
     # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....

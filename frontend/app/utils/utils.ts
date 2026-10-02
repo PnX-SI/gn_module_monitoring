@@ -220,12 +220,13 @@ export function resolveProperty(_configService, _cacheService, elem, val): Obser
     val = Utils.formatDate(val);
   }
   if (elem.type_util === 'types_site') {
+    const typesSite = (_configService.config()['module'] || [])['types_site'];
     val = val.map((item) => {
-      return item.label;
+      return typesSite[item]?.name;
     });
   }
-
   const fieldName = (_configService.config()['display_field_names'] || [])[elem.type_util];
+
   if (val && fieldName && elem.type_widget) {
     return getUtil(_cacheService, elem.type_util, val, fieldName, elem.value_field_name);
   }
