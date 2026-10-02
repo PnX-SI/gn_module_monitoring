@@ -13,13 +13,14 @@ import { ApiService } from '../../services/api-geom.service';
 import { FormService } from '../../services/form.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
-import { GeoJSONService } from '../../services/geojson.service';
+import { GeoJSONService, DisplayMode } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
 import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectService } from '../../services/object.service';
 import { TOOLTIPMESSAGEALERT, TOOLTIPMESSAGEALERT_CHILD } from '../../constants/guard';
+import { Popup } from '../../utils/popup';
 
 @Component({
   selector: 'pnx-monitoring-form-g',
@@ -70,7 +71,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private translate: TranslateService,
     private _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
-    private _objectService: ObjectService
+    private _objectService: ObjectService,
+    private _popup: Popup
   ) {}
 
   private buildParentsMeta(): JsonData {
@@ -94,6 +96,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.form.patchValue(formValue);
       this.initialFormValue = this.form.value;
     });
+
+    // Affichage de la geometrie des sites et groupes de sites du module
+    this.display_geometry();
   }
 
   initForm() {
@@ -349,6 +354,66 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     return data;
   }
 
+  display_geometry() {
+    // Affichage des
+    let displayType: DisplayMode = 'info';
+    if (!this.object) {
+      displayType = 'info_zoom';
+    }
+    if (!['sites_group', 'site'].includes(this.objectType)) {
+      return;
+    }
+    if (this.objectType == 'sites_group') {
+      this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureGroupSite(), {}, displayType);
+    }
+    if (this.objectType == 'site') {
+      // Get id_sites_group
+      const id_sites_group =
+        this.queryParams['id_sites_group'] || (this.object || [])['id_sites_group'];
+
+      // S'il y a un id_site group
+      // et qu'il est spécifié dans les parents_path
+      // Affichage
+      if (
+        id_sites_group &&
+        ('id_sites_group' in this.queryParams ||
+          (this.queryParams['parents_path'] || []).includes('sites_group'))
+      ) {
+        // Display sites group and sites
+        this._geojsonService.getSitesGroupsGeometriesWithSites(
+          this.onEachFeatureGroupSite(),
+          this.onEachFeatureSite(),
+          { id_sites_group: id_sites_group },
+          { id_sites_group: id_sites_group },
+          displayType
+        );
+      } else {
+        // Display site
+        this._geojsonService.getSitesGroupsChildGeometries(
+          this.onEachFeatureSite(),
+          {},
+          displayType
+        );
+      }
+    }
+  }
+  onEachFeatureSite() {
+    return (feature, layer) => {
+      const popup = this._popup.setSitePopup(this._configServiceG.moduleCode(), feature, {
+        parents_path: ['module', 'sites_group'],
+      });
+      layer.bindPopup(popup);
+    };
+  }
+  onEachFeatureGroupSite() {
+    return (feature, layer) => {
+      const popup = this._popup.setSiteGroupPopup(this._configServiceG.moduleCode(), feature, {
+        parents_path: ['module', 'sites_group'],
+      });
+      layer.bindPopup(popup);
+    };
+  }
+
   /**
    * Valider et renseigner les enfants
    */
@@ -371,10 +436,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    * Valider et aller à la page de l'objet
    */
   navigateToDetail() {
-    // TODO CHANGE action=> Rafraichir les données si l'enregistrement c'est bien passé
-    // notament pour la carte
-    this._formService.changeCurrentEditMode(false);
+    // Si l'objet est vide, c-a-d une création on retourne vers le parent
+    if (!this.object) {
+      this.navigateToParent();
+      return;
+    }
 
+    this._formService.changeCurrentEditMode(false);
     this._navigationService.navigateToDetail(
       this.object[this.object.pk],
       false,
@@ -419,7 +487,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.object = null;
 
     this.form.patchValue({ geometry: null });
+
     this.resetDynamicForm();
+    // Force le rafraichissement des géométries de façon à ammender le layer avec la dernière données saisie
+    this.display_geometry();
   }
 
   resetDynamicForm() {
@@ -461,6 +532,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this._geojsonService.removeAllFeatureGroup();
     this.form.patchValue({ geometry: null });
     this._formService.changeFormMapObj({
       frmGp: null,
