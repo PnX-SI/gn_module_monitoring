@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { Location } from '@angular/common';
 
@@ -32,6 +32,9 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
   private typeSiteFieldsCache: { [idType: number]: JsonData[] } = {};
 
   private typesSiteValueChangesSub: Subscription;
+
+  private hiddenTypesSite: number[] = [];
+  private hiddenProperties: JsonData = {};
 
   constructor(
     _commonService: CommonService,
@@ -67,6 +70,52 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       _objectService,
       _popup
     );
+  }
+
+  ngOnInit() {
+    this.setAsideHiddenTypesSite();
+    super.ngOnInit();
+  }
+
+  private setAsideHiddenTypesSite() {
+    if (!this.object) {
+      return;
+    }
+
+    // Récupération des propriétés supplémentaires
+    // au module pour les mettre de coté
+    this.hiddenProperties = {};
+    this.object.additional_data_keys.forEach((key: string) => {
+      this.hiddenProperties[key] = this.object[key];
+    });
+
+    // Récupération des types de site non définis dans
+    // le module pour les mettre de coté
+    let idsTypeSiteModule = this._configServiceG.config()?.['custom']?.['__MODULE.IDS_TYPE_SITE'];
+    this.hiddenTypesSite = [];
+    idsTypeSiteModule = idsTypeSiteModule.map((t) => t.id_nomenclature_type_site);
+    const idsTypeSite: number[] = this.object.types_site || [];
+    this.hiddenTypesSite = idsTypeSite.filter((id) => !idsTypeSiteModule.includes(id));
+    this.object.types_site = idsTypeSite.filter((id) => idsTypeSiteModule.includes(id));
+  }
+
+  formatForApi(formValue: any) {
+    const data = super.formatForApi(formValue);
+    if (!this.hiddenTypesSite.length) {
+      return data;
+    }
+    data['types_site'] = [...new Set([...(data['types_site'] || []), ...this.hiddenTypesSite])];
+
+    const displayedFields = [
+      ...(this.formsDefinition as any[]),
+      ...this.typeSiteFormsDefinition.flatMap((typeSite) => typeSite.fields as any[]),
+    ].map((formDef) => formDef.attribut_name);
+    for (const [key, value] of Object.entries(this.hiddenProperties)) {
+      if (!displayedFields.includes(key)) {
+        data[key] = value;
+      }
+    }
+    return data;
   }
 
   initFormDefiniton(schema: JsonData, meta: JsonData) {

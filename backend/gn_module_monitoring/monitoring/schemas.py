@@ -3,6 +3,8 @@ import json
 
 from operator import attrgetter
 from flask import g
+
+from typing import Dict, Any
 import marshmallow
 from geoalchemy2.shape import from_shape, to_shape
 from geojson import Feature
@@ -64,17 +66,17 @@ def add_specific_attributes(schema, object_type, module_code):
         attrs[property_] = marshmallow.fields.Function(create_getter(property_))
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
-    parameters = {"model": model_class, "exclude": ["data"], "include_fk": True}
+    parameters = {"model": model_class, "exclude": [], "include_fk": True}
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
         parameters["exclude"].extend(["geom_local"])
-    Meta = type("Meta", (), parameters)
 
+    Meta = type("Meta", (), parameters)
     attrs.update({"Meta": Meta})
     schema_with_specifics = type(
         f"{object_type.capitalize()}SchemaWithSpecifics",
-        (schema,),
+        (schema, GenericAdditionalSchema),
         attrs,
     )
     return schema_with_specifics
@@ -107,6 +109,33 @@ def generate_parents_data(hierarchy_list: [], obj) -> dict:
 
             parents[obj_type] = generate_parents_schema(obj_type)(exclude=valid_exclude).dump(attr)
     return parents
+
+
+class GenericAdditionalSchema(Schema):
+
+    @post_dump
+    def add_additional_fields(self, data, **kwargs) -> Dict[str, Any]:
+        # Cas des propriétés renseignées dans d'autre module
+        #  Ajout manuel des propriétés manquantes
+
+        additional_fields_data: dict[str, Any] = data.pop("data", {})
+        if not additional_fields_data:
+            return data
+        # Initialiser `additional_data_keys` si absent
+        if "additional_data_keys" not in data:
+            data["additional_data_keys"] = []
+
+        # Parcourir les champs supplémentaires
+        for key, value in additional_fields_data.items():
+            # Ajouter le champ s'il n'existe pas déjà dans `data`
+            if key not in data:
+                data[key] = value
+
+            # Mettre à jour `additional_data_keys` si la clé n'y est pas
+            if key not in data["additional_data_keys"] and not key in self._declared_fields:
+                data["additional_data_keys"].append(key)
+
+        return data
 
 
 class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
@@ -276,23 +305,6 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     @pre_load
     def normalize(self, data, **kwargs):
         data["medias"] = data.get("medias") or []
-        return data
-
-    @post_dump
-    def add_additional_fields(self, data, **kwargs):
-        # Cas des propriétés renseignées dans d'autre module
-        #  Ajout manuel des propriétés manquantes
-        # TODO AJOUTER DES TESTS
-        additional_fields_data = data.pop("data", {})
-        if additional_fields_data is None:
-            return data
-        for key, value in additional_fields_data.items():
-            if key not in data:
-                data[key] = value
-            if not data.get("additional_data_keys"):
-                data["additional_data_keys"] = []
-            if key not in data["additional_data_keys"]:
-                data["additional_data_keys"].append(key)
         return data
 
 
