@@ -156,10 +156,7 @@ def get_sites(object_type, module_code=None):
         specific_properties=specific_properties,
     )
 
-    if module_code:
-        schema = add_specific_attributes(MonitoringSitesSchema, object_type, module_code)
-    else:
-        schema = MonitoringSitesSchema
+    schema = add_specific_attributes(MonitoringSitesSchema, object_type, module_code)
 
     return paginate_scope(
         query=query_allowed,
@@ -185,10 +182,7 @@ def get_site_by_id(scope, module_code, id, object_type):
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
 
-    if module_code:
-        schema = add_specific_attributes(MonitoringSitesSchemaCruved, object_type, module_code)
-    else:
-        schema = MonitoringSitesSchemaCruved
+    schema = add_specific_attributes(MonitoringSitesSchemaCruved, object_type, module_code)
 
     data = schema().dump(site)
     return data

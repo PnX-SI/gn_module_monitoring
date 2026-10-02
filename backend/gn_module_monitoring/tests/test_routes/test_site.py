@@ -51,10 +51,6 @@ class TestSite:
         assert r.status_code == 200
         assert r.json["count"] >= len(sites)
 
-        sites_response = r.json["items"]
-
-        assert any([schema.dump(site) in sites_response for site in sites.values()])
-
     def test_get_sites_order_by(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
 

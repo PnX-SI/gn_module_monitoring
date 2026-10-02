@@ -147,12 +147,12 @@ def json_config_from_db(module_code):
         types = query_all_types_site_from_module_id(module.id_module)
 
     for t in types:
+        site_type_config["types_site"][t.id_nomenclature_type_site] = {
+            "name": t.nomenclature.label_default,
+        }
+
         if "specific" in (t.config or {}):
             site_type_config["specific"].update(t.config["specific"])
-            site_type_config["types_site"][t.id_nomenclature_type_site] = {
-                "name": t.nomenclature.label_default,
-            }
-
             for field in t.config["specific"]:
                 if not field in field_to_types_sites:
                     field_to_types_sites[field] = []
