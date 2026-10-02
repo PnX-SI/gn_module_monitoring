@@ -99,13 +99,36 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     this.object.types_site = idsTypeSite.filter((id) => idsTypeSiteModule.includes(id));
   }
 
-  formatForApi(formValue: any) {
-    const data = super.formatForApi(formValue);
+  formatForApi(formValue: any): { [key: string]: any } {
+    const data: { [key: string]: any } = super.formatForApi(formValue);
+
+    // Suppression des propriétés appartenant aux types de site qui ont été supprimés
+    // lors de la saisie utilisateur
+    const deletedTypeSite: [number] = this.object.types_site.filter(
+      (value: number) => !formValue.types_site.includes(value)
+    );
+    if (deletedTypeSite.length > 0) {
+      const specificFields = (this.allSiteFormsDefinition as any[])
+        .filter(
+          (formDef) =>
+            JSON.stringify((formDef.id_types_site || []).sort()) ===
+            JSON.stringify(deletedTypeSite.sort())
+        )
+        .map((formDef) => formDef.attribut_name);
+      specificFields.forEach((fieldName) => {
+        if (fieldName in data) {
+          delete data[fieldName];
+        }
+      });
+    }
+
+    // Rajout des types de site n'appartenant pas au module
     if (!this.hiddenTypesSite.length) {
       return data;
     }
     data['types_site'] = [...new Set([...(data['types_site'] || []), ...this.hiddenTypesSite])];
 
+    // Rajout des propriétés n'appartenant pas au module
     const displayedFields = [
       ...(this.formsDefinition as any[]),
       ...this.typeSiteFormsDefinition.flatMap((typeSite) => typeSite.fields as any[]),
