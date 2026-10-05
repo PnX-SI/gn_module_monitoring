@@ -296,7 +296,7 @@ class MonitoringObject(MonitoringObjectSerializer):
 
         # TODO page etc...
 
-        res = DB.session.scalars(req.limit(limit)).all()
+        res = DB.session.scalars(req.limit(limit)).unique().all()
 
         # patch order by number
         out = [r.as_dict(fields=fields_list) for r in res]
