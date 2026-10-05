@@ -346,7 +346,7 @@ def create_or_update_site(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized site
     """
-    config = get_config(module_code, force=True)
+    config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
 
     site = MonitoringSitesSchema(unknown=EXCLUDE).load(process_data)

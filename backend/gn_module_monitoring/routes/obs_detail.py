@@ -113,7 +113,7 @@ def get_obs_details(object_type: str, module_code: str):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservationDetails, get_config(module_code, force=True), "observation_detail"
+        TMonitoringObservationDetails, get_config(module_code), "observation_detail"
     )
     query_allowed = TMonitoringObservationDetails.filter_by_specific(
         query=query_allowed,
@@ -164,7 +164,7 @@ def create_or_update_obs_detail(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized observation detail
     """
-    config = get_config(module_code, force=True)
+    config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
 
     obs_detail = MonitoringObservationsDetailsSchema(unknown=EXCLUDE).load(process_data)

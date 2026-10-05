@@ -67,7 +67,7 @@ def get_observations(object_type: str, module_code: str = None):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservations, get_config(module_code, force=True), "observation"
+        TMonitoringObservations, get_config(module_code), "observation"
     )
     query_allowed = TMonitoringObservations.filter_by_specific(
         query=query_allowed,
@@ -178,7 +178,7 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized observation
     """
-    config = get_config(module_code, force=True)
+    config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
 
     observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)

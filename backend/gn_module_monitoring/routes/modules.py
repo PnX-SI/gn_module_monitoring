@@ -109,10 +109,12 @@ def create_or_update_module(post_data: dict, module_code: str):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized module
     """
-    config = get_config(module_code, force=True)
+    config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, "module")
     module = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data, partial=True)
 
     db.session.add(module)
     db.session.commit()
+    # Les attributs du module alimentent config["custom"] : rafraîchissement du cache
+    get_config(module.module_code, force=True)
     return MonitoringModuleSchema().dump(module)

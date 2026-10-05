@@ -25,7 +25,9 @@ from gn_module_monitoring.utils.utils import dict_deep_update
 from werkzeug.datastructures import ImmutableDict
 
 # pour stocker la config dans current_app.config
-CONFIG_CACHE_NAME = config_cache_name = "MONITORINGS_CONFIG"
+# Clés distinctes : get_config et get_config_old ne produisent pas le même format de config
+CONFIG_CACHE_NAME = "MONITORINGS_CONFIG_V2"  # get_config
+config_cache_name = "MONITORINGS_CONFIG"  # get_config_old
 
 
 def get_config_objects(module_code, config, tree=None, parent_type=None):

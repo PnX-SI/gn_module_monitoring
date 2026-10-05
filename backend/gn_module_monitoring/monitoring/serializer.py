@@ -226,17 +226,11 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             # Si l'objet est un enfant on ne serialize que les attributs utilisés dans les data list
             display_properties = module_config[self._object_type]["display_list"]
             # liste des propriétés "génériques"
-            display_generic = [
-                k
-                for k in display_properties
-                if k in module_config[self._object_type]["generic"].keys()
-            ]
+            schema_generic = self.config_schema("generic")
+            display_generic = [k for k in display_properties if k in schema_generic]
             # liste des propriétés "spécifique"
-            display_specific = [
-                k
-                for k in display_properties
-                if k in module_config[self._object_type]["specific"].keys()
-            ]
+            schema_specific = self.config_schema("specific")
+            display_specific = [k for k in display_properties if k in schema_specific]
             if hasattr(self._model, "data"):
                 display_generic.append("data")
             display_generic.append(self.config_param("id_field_name"))
