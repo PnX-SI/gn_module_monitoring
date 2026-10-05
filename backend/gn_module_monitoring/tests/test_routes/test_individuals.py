@@ -140,6 +140,11 @@ class TestIndividuals:
         assert r.json["cd_nom"] == data["cd_nom"]
         assert r.json["comment"] == data["comment"]
 
+        # L'individu créé doit être associé au module et donc apparaitre dans sa liste
+        r = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        assert r.status_code == 200
+        assert data["individual_name"] in [i["individual_name"] for i in r.json["items"]]
+
     def test_patch_individual(self, install_module_test_indi, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         individual_instance = install_module_test_indi[0]
