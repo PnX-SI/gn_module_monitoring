@@ -152,6 +152,13 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
 
     individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
 
+    # Association de l'individu au module courant (cor_individual_module)
+    module = db.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+    ).scalar_one_or_none()
+    if module and module not in individual.modules:
+        individual.modules.append(module)
+
     db.session.add(individual)
     db.session.commit()
 
