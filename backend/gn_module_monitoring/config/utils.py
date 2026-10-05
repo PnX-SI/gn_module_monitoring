@@ -232,6 +232,13 @@ def process_display_element(element):
     if element["type_widget"] in MULTI_TYPE_WIDGET:
         element["multiple"] = True
 
+    # Ajout de la propriété multiple si le champ permet plusieurs valeurs
+    # Quelque soit la propriété reseignée multiple ou multi_select
+    # PATCH lié à une hétérogénéité des composants du dynamic form
+    if element.get("multiple", element.get("multi_select", False)):
+        element["multiple"] = True
+        element["multi_select"] = True
+
     if element["type_widget"] == "datalist":
         element["designStyle"] = "bootstrap"
     return element

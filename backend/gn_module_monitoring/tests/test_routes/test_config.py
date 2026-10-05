@@ -72,6 +72,10 @@ class TestRouteConfig:
             "CODE_OBSERVERS_LIST", {}
         )
 
+        # Test fields multiple
+        assert data["module"]["fields"]["datasets"]["multiple"] == True
+        assert data["module"]["fields"]["datasets"]["multi_select"] == True
+
     @pytest.mark.parametrize(
         "route", ["monitorings.get_config_api", "monitorings.get_config_apiV2"]
     )  # TODO remove when new config API is official
@@ -101,4 +105,3 @@ class TestRouteConfig:
         type_site_name = [v["name"] for k, v in module_type_site.items()]
 
         assert set(type_site_name) == set(["Test_Grotte", "Test_Mine"])
-        print("aaa")
