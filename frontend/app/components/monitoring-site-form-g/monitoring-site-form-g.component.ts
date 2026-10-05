@@ -103,6 +103,10 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
   formatForApi(formValue: any): { [key: string]: any } {
     const data: { [key: string]: any } = super.formatForApi(formValue);
 
+    if (!this.object) {
+      return data;
+    }
+
     // Suppression des propriétés appartenant aux types de site qui ont été supprimés
     // lors de la saisie utilisateur
     const deletedTypeSite: [number] = this.object.types_site.filter(
