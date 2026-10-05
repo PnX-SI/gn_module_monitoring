@@ -1,5 +1,3 @@
-import json
-
 from flask import g, request
 from flask.json import jsonify
 from geonature.core.gn_commons.schemas import ModuleSchema
@@ -11,8 +9,7 @@ from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
-from sqlalchemy.orm import Load, joinedload
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Load
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
@@ -32,7 +29,6 @@ from gn_module_monitoring.monitoring.schemas import (
     add_specific_attributes,
 )
 from gn_module_monitoring.routes.modules import get_modules
-from gn_module_monitoring.routes.monitoring import get_serialized_object
 from gn_module_monitoring.utils.routes import (
     filter_params,
     geojson_query,
@@ -48,13 +44,6 @@ from gn_module_monitoring.utils.routes import (
 )
 
 default_route_object_type = "site"
-
-
-@blueprint.route("/sites/config", methods=["GET"])
-def get_config_sites(id=None, module_code="generic", object_type="site"):
-    # A QUOI SERT CETTE ROUTE ?
-    obj = get_serialized_object(module_code, object_type, id)
-    return obj["properties"]
 
 
 @blueprint.route("/sites/types", methods=["GET"])
