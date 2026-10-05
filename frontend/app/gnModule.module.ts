@@ -255,7 +255,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringIndividualsCreateComponent,
             resolve: {
-              createSite: DetailIndividualsResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
@@ -275,7 +275,7 @@ const routes: Routes = [
             path: 'create',
             component: MonitoringMarkingsCreateComponent,
             resolve: {
-              createSite: DetailMarkingsResolver,
+              resolvedData: CreateFormResolver,
             },
           },
           {
