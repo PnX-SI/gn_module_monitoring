@@ -687,6 +687,15 @@ class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
     )
 
 
+TMonitoringMarkingEvent.individual = DB.relationship(
+    TMonitoringIndividuals,
+    lazy="select",
+    primaryjoin=(TMonitoringIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
+    foreign_keys=[TMonitoringMarkingEvent.id_individual],
+    uselist=False,
+    viewonly=True,
+)
+
 TMonitoringVisits.site = DB.relationship(
     TMonitoringSites,
     lazy="select",

@@ -142,6 +142,12 @@ def get_markings(object_type: str, module_code: str):
         limit=limit,
         page=page,
         object_code=object_code,
+        schema_extra_args={
+            "exclude": (
+                "items.parents",
+                "items.medias",
+            )
+        },
     )
 
 
