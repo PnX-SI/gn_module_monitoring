@@ -48,7 +48,7 @@ class TestRouteDataUtils:
                 id="4",
             ),
         )
-        assert user_response.status_code == 200
+        assert user_response.status_code == 204
 
         taxonomy_response = self.client.get(
             url_for(

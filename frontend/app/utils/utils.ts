@@ -246,13 +246,19 @@ function getUtil(
 
   var urlRelative = `util/${typeUtil}/${id}`;
 
+  var isGN2Route = false;
+  if (typeUtil == 'user') {
+    var urlRelative = `users/role/${id}`;
+    var isGN2Route = true;
+  }
+
   if (idFieldName) {
     urlRelative += `?id_field_name=${idFieldName}`;
   }
 
   const sCachePaths = `util|${typeUtil}|${id}`;
 
-  return _cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
+  return _cacheService.cache_or_request('get', urlRelative, sCachePaths, isGN2Route).pipe(
     mergeMap((value) => {
       let out;
       if (fieldName === 'all') {

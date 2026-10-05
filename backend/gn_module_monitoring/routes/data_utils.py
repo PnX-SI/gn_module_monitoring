@@ -41,7 +41,6 @@ from gn_module_monitoring.monitoring.models import (
 model_dict = {
     "habitat": Habref,
     "nomenclature": TNomenclatures,
-    "user": User,
     "taxonomy": Taxref,
     "dataset": TDatasets,
     "types_site": BibTypeSite,
