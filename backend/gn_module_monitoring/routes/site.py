@@ -1,5 +1,3 @@
-import json
-
 from flask import g, request
 from flask.json import jsonify
 from geonature.core.gn_commons.schemas import ModuleSchema
@@ -11,8 +9,7 @@ from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
-from sqlalchemy.orm import Load, joinedload
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Load
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 

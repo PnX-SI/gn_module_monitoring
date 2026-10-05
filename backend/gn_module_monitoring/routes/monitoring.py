@@ -1,8 +1,5 @@
 import datetime as dt
 
-
-from werkzeug.exceptions import BadRequest, Forbidden
-
 from flask import request, url_for, g, current_app
 
 from sqlalchemy import select
@@ -26,8 +23,6 @@ from gn_module_monitoring.monitoring.object_utils import (
     process_synthese,
     serialize_object,
 )
-from gn_module_monitoring.modules.repositories import get_module
-from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.config.repositories import get_config, get_config_old
 
 # Legacy routes for backward compatibility with old modules

@@ -1,5 +1,3 @@
-import json
-
 from flask import jsonify, request, g
 
 from gn_module_monitoring.config.utils import get_specific_properties
@@ -37,7 +35,6 @@ from gn_module_monitoring.utils.routes import (
     sort,
     process_json_data_for_db_upsert,
 )
-from gn_module_monitoring.utils.utils import to_int
 
 
 @blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
