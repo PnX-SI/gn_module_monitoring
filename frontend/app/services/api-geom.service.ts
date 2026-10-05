@@ -359,7 +359,7 @@ export class IndividualsService extends ApiService<IIndividual> {
   }
 
   delete(id: number, params: JsonData = {}): Observable<IIndividual> {
-    return this._cacheService.request('delete', `${this.objectObs.endPoint}/${id}`, {
+    return this._cacheService.request('delete', `${this.endPoint}/${id}`, {
       queryParams: params,
     });
   }
@@ -417,17 +417,14 @@ export class MarkingsService extends ApiService<IMarking> {
   init(): void {
     const endPoint = endPoints.markings;
     const objectObs: IobjObs<IMarking> = {
-      endPoint: endPoints.markings,
       objectType: 'marking',
-      label: 'marquage',
       childType: undefined,
-      moduleCode: 'generic',
     };
     super.init(endPoint, objectObs);
   }
 
   delete(id: number, params: JsonData = {}): Observable<IMarking> {
-    return this._cacheService.request('delete', `refacto/${this.objectObs.endPoint}/${id}`, {
+    return this._cacheService.request('delete', `refacto/${this.endPoint}/${id}`, {
       queryParams: params,
     });
   }

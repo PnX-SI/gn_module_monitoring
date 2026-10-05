@@ -8,6 +8,7 @@ import { DataMonitoringObjectService } from './data-monitoring-object.service';
 import {
   ApiService,
   IndividualsService,
+  MarkingsService,
   ModuleService,
   ObservationDetailsService,
   ObservationsService,
@@ -38,7 +39,8 @@ export class ObjectService {
     _visitsService: VisitsService,
     _observationsService: ObservationsService,
     _observationDetailsService: ObservationDetailsService,
-    _individualsService: IndividualsService
+    _individualsService: IndividualsService,
+    _markingsService: MarkingsService
   ) {
     this._servicesByType = {
       module: _moduleService,
@@ -48,6 +50,7 @@ export class ObjectService {
       observation: _observationsService,
       observation_detail: _observationDetailsService,
       individual: _individualsService,
+      marking: _markingsService,
     };
 
     let storedDataBreadCrumb = localStorage.getItem('storedDataBreadCrumb');
