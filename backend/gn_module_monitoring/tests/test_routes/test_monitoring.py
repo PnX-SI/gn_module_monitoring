@@ -2,11 +2,6 @@ import pytest
 from flask import url_for
 
 from geonature.utils.env import db
-from geonature.core.gn_permissions.models import (
-    PermAction,
-    PermObject,
-    Permission,
-)
 
 from io import StringIO
 import pandas as pd
@@ -132,7 +127,7 @@ class TestOldApiWithNewConfig:
         id_visit = visit_module_test.id_base_visit
         r = self.client.delete(
             url_for(
-                "monitorings.delete_object_api",
+                "monitorings.legacy.delete_object_api",
                 module_code="test",
                 object_type="visit",
                 id=id_visit,
