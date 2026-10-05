@@ -68,6 +68,9 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
+    # Certains modèles (ex: individus) n'ont pas de colonne data
+    if hasattr(model_class, "data"):
+        parameters["exclude"].append("data")
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
@@ -478,6 +481,13 @@ class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
     marking_date = fields.Date(required=True)
     medias = MA.Nested(MediaSchema, many=True)
     pk = fields.Method("set_pk", dump_only=True)
+
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        hierarchy_list = ["individual"]
+        parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
     def set_pk(self, obj):
         return "id_marking"
