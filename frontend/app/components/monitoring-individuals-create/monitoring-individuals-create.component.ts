@@ -8,6 +8,7 @@ import { IndividualsService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { IIndividual } from '../../interfaces/individual';
+import { JsonData } from '../../types/jsondata';
 
 @Component({
   selector: 'monitoring-individuals-create',
@@ -22,6 +23,7 @@ export class MonitoringIndividualsCreateComponent implements OnInit, OnDestroy {
   public moduleConfig;
   public moduleCode;
   public form: FormGroup;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -39,8 +41,7 @@ export class MonitoringIndividualsCreateComponent implements OnInit, OnDestroy {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this._individualsService.initConfig();
-    this.individual = {} as IIndividual;
+    this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
 
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;

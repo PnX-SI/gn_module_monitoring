@@ -8,6 +8,7 @@ import { MarkingsService } from '../../services/api-geom.service';
 import { ObjectService } from '../../services/object.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { IMarking } from '../../interfaces/marking';
+import { JsonData } from '../../types/jsondata';
 
 @Component({
   selector: 'monitoring-markings-create',
@@ -22,6 +23,7 @@ export class MonitoringMarkingsCreateComponent implements OnInit, OnDestroy {
   public moduleConfig;
   public moduleCode;
   public form: FormGroup;
+  public fetchedParents: JsonData | null;
 
   constructor(
     private _auth: AuthService,
@@ -39,12 +41,10 @@ export class MonitoringMarkingsCreateComponent implements OnInit, OnDestroy {
     this.moduleCode = this._configServiceG.moduleCode();
     this.form = this._formBuilder.group({});
     this.currentUser = this._auth.getCurrentUser();
-    this._markingsService.initConfig();
-    this.marking = {} as IMarking;
+    this.fetchedParents = this._route.snapshot.data.resolvedData.parents;
 
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
-    this.marking.id_individual = JSON.parse(queryParams?.id_individual);
     this._objService.loadBreadCrumb(this.moduleCode, 'marking', null, queryParams);
 
     // Passage en mode édition
