@@ -42,6 +42,26 @@ OBJECT_CODE = "INDIVIDUALS"
 )
 @check_cruved_scope("R", object_code=OBJECT_CODE)
 def get_individuals(object_type, module_code=None):
+    """
+    List the individuals readable by the current user.
+
+    Query string parameters handle pagination (`limit`, `page`), sorting
+    (`sort`, `sort_dir`, default by `id_individual` descending), and filtering
+    on individual columns.
+
+    Parameters
+    ----------
+    object_type : str
+        Object type, by default "individual".
+    module_code : str, optional
+        If given, only individuals associated with this module are returned.
+
+    Returns
+    -------
+    flask.Response
+        JSON response with the paginated serialized individuals (`items`,
+        `count`, `limit`, `page`), each item including its `cruved` permissions.
+    """
     object_code = OBJECT_CODE
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -87,6 +107,32 @@ def get_individuals(object_type, module_code=None):
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
 def get_individual_by_id(scope: int, module_code: str, id: int, object_type: str):
+    """
+    Retrieve a single individual.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "R" (read) action.
+    module_code : str
+        Code of the current module.
+    id : int
+        Identifier of the individual.
+    object_type : str
+        Object type, by default "individual".
+
+    Returns
+    -------
+    dict
+        Serialized individual.
+
+    Raises
+    ------
+    NotFound
+        If the individual does not exist.
+    Forbidden
+        If the user is not allowed to read the individual.
+    """
     individual = db.get_or_404(TMonitoringIndividuals, id)
     if not individual.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read individual {individual.id_individual}")
@@ -102,6 +148,21 @@ def get_individual_by_id(scope: int, module_code: str, id: int, object_type: str
 )
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_individual(object_type: str, module_code: str):
+    """
+    Create an individual from the request JSON body.
+
+    Parameters
+    ----------
+    object_type : str
+        Object type, by default "individual".
+    module_code : str
+        Code of the module the individual is associated with.
+
+    Returns
+    -------
+    dict
+        Serialized created individual.
+    """
     post_data = dict(request.get_json())
     return create_or_update_individual(post_data, module_code=module_code)
 
@@ -113,6 +174,34 @@ def post_individual(object_type: str, module_code: str):
 )
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
 def patch_individual(scope, object_type: str, module_code: str, _id: int):
+    """
+    Update an individual from the request JSON body.
+
+    If `id_individual` is missing from the body, it is filled with `_id`.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "U" (update) action.
+    object_type : str
+        Object type, by default "individual".
+    module_code : str
+        Code of the module the individual is associated with.
+    _id : int
+        Identifier of the individual to update.
+
+    Returns
+    -------
+    dict
+        Serialized updated individual.
+
+    Raises
+    ------
+    NotFound
+        If the individual does not exist.
+    Forbidden
+        If the user is not allowed to update the individual.
+    """
     individual = db.get_or_404(TMonitoringIndividuals, _id)
     if not individual.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -129,6 +218,30 @@ def patch_individual(scope, object_type: str, module_code: str, _id: int):
 )
 @check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_individual(scope, _id: int, object_type: str):
+    """
+    Delete an individual.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "D" (delete) action.
+    _id : int
+        Identifier of the individual to delete.
+    object_type : str
+        Object type, by default "individual".
+
+    Returns
+    -------
+    tuple of (dict, int)
+        Success message and HTTP status code.
+
+    Raises
+    ------
+    NotFound
+        If the individual does not exist.
+    Forbidden
+        If the user is not allowed to delete the individual.
+    """
     individual = db.get_or_404(TMonitoringIndividuals, _id)
     if not individual.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -143,9 +256,20 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
     """
     Create or update an individual.
 
-    :param post_data: dict containing data to create or update an individual
-    :param module_code: str, module code, default is "generic"
-    :return: dict, serialized individual
+    The individual is also associated with the module `module_code` if it
+    exists and is not already linked.
+
+    Parameters
+    ----------
+    post_data : dict
+        Data used to create or update an individual.
+    module_code : str, optional
+        Module code, by default "generic".
+
+    Returns
+    -------
+    dict
+        Serialized individual.
     """
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)

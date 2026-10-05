@@ -34,6 +34,26 @@ OBJECT_CODE = "MONITORINGS_MARKINGS"
 
 
 def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEvent:
+    """
+    Retrieve a marking from its id and module id, or raise a 404 error.
+
+    Parameters
+    ----------
+    id_marking : int
+        Identifier of the marking.
+    id_module : int
+        Identifier of the module the marking belongs to.
+
+    Returns
+    -------
+    TMonitoringMarkingEvent
+        The matching marking.
+
+    Raises
+    ------
+    NotFound
+        If no marking matches `id_marking` in module `id_module`.
+    """
     # `id_marking` est utilisé directement plutôt que `db.get_or_404` car la clé primaire
     # de TMarkingEvent est composite (id_marking, id_module) : `id_marking` reste néanmoins
     # unique et suffisant pour identifier une ligne.
@@ -59,6 +79,30 @@ def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEve
 )
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_marking(scope, _id: int, object_type: str):
+    """
+    Delete a marking.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "D" (delete) action.
+    _id : int
+        Identifier of the marking to delete.
+    object_type : str
+        Object type, by default "marking".
+
+    Returns
+    -------
+    tuple of (dict, int)
+        Success message and HTTP status code.
+
+    Raises
+    ------
+    NotFound
+        If the marking does not exist in the current module.
+    Forbidden
+        If the user is not allowed to delete the marking.
+    """
     marking = get_marking_or_404(_id, id_module=g.get("current_module").id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete marking {marking.id_marking}")
@@ -74,6 +118,23 @@ def delete_marking(scope, _id: int, object_type: str):
 )
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_marking(object_type: str, module_code: str):
+    """
+    Create a marking from the request JSON body.
+
+    If `id_module` is missing from the body, the current module's id is used.
+
+    Parameters
+    ----------
+    object_type : str
+        Object type, by default "marking".
+    module_code : str
+        Code of the module the marking belongs to.
+
+    Returns
+    -------
+    dict
+        Serialized created marking.
+    """
     post_data = dict(request.get_json())
     if not "id_module" in post_data:
         post_data["id_module"] = g.get("current_module").id_module
@@ -87,6 +148,35 @@ def post_marking(object_type: str, module_code: str):
 )
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
 def patch_marking(scope, object_type: str, module_code: str, _id: int):
+    """
+    Update a marking from the request JSON body.
+
+    If `id_marking` or `id_module` are missing from the body, they are filled
+    with `_id` and the current module's id respectively.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "U" (update) action.
+    object_type : str
+        Object type, by default "marking".
+    module_code : str
+        Code of the module the marking belongs to.
+    _id : int
+        Identifier of the marking to update.
+
+    Returns
+    -------
+    dict
+        Serialized updated marking.
+
+    Raises
+    ------
+    NotFound
+        If the marking does not exist in the current module.
+    Forbidden
+        If the user is not allowed to update the marking.
+    """
     marking = get_marking_or_404(_id, id_module=g.get("current_module").id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update marking {marking.id_marking}")
@@ -104,6 +194,26 @@ def patch_marking(scope, object_type: str, module_code: str, _id: int):
     defaults={"object_type": default_route_object_type},
 )
 def get_markings(object_type: str, module_code: str):
+    """
+    List the markings of a module readable by the current user.
+
+    Query string parameters handle pagination (`limit`, `page`), sorting
+    (`sort`, `sort_dir`, default by `id_marking` descending), and filtering on
+    marking columns and module-specific properties.
+
+    Parameters
+    ----------
+    object_type : str
+        Object type, by default "marking".
+    module_code : str
+        Code of the module the markings belong to.
+
+    Returns
+    -------
+    flask.Response
+        JSON response with the paginated serialized markings (`items`,
+        `count`, `limit`, `page`), each item including its `cruved` permissions.
+    """
     object_code = OBJECT_CODE
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -158,6 +268,32 @@ def get_markings(object_type: str, module_code: str):
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
 def get_marking_by_id(scope: int, module_code: str, id: int, object_type: str):
+    """
+    Retrieve a single marking.
+
+    Parameters
+    ----------
+    scope : int
+        User scope for the "R" (read) action.
+    module_code : str
+        Code of the module the marking belongs to.
+    id : int
+        Identifier of the marking.
+    object_type : str
+        Object type, by default "marking".
+
+    Returns
+    -------
+    dict
+        Serialized marking.
+
+    Raises
+    ------
+    NotFound
+        If the marking does not exist in the current module.
+    Forbidden
+        If the user is not allowed to read the marking.
+    """
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
@@ -172,9 +308,17 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     """
     Create or update a marking.
 
-    :param post_data: dict containing data to create or update a marking
-    :param module_code: str, module code, default is "generic"
-    :return: dict, serialized marking
+    Parameters
+    ----------
+    post_data : dict
+        Data used to create or update a marking.
+    module_code : str, optional
+        Module code, by default "generic".
+
+    Returns
+    -------
+    dict
+        Serialized marking.
     """
     config = get_config(module_code, force=True)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
