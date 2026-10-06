@@ -33,8 +33,7 @@ export class ApiService<T = IObject> implements IService<T> {
 
   constructor(
     protected _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-    protected _monitoringObjectService: MonitoringObjectService
+    protected _configServiceG: ConfigServiceG
   ) {}
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
@@ -154,9 +153,8 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
   constructor(
     protected _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    protected _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -185,9 +183,8 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
   }
 
   init(): void {
@@ -252,9 +249,8 @@ export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
   }
 
   init(): void {
@@ -298,9 +294,9 @@ export class ModuleService extends ApiService<any> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init();
   }
   init() {
@@ -323,10 +319,9 @@ export class ModuleService extends ApiService<any> {
 export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _configServiceG: ConfigServiceG
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init();
   }
   init(): void {
@@ -343,10 +338,9 @@ export class VisitsService extends ApiService<IVisit> {
 export class IndividualsService extends ApiService<IIndividual> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _configServiceG: ConfigServiceG
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init();
   }
   init(): void {
@@ -369,10 +363,9 @@ export class IndividualsService extends ApiService<IIndividual> {
 export class ObservationsService extends ApiService<IObservation> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _configServiceG: ConfigServiceG
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init();
   }
   init(): void {
@@ -388,10 +381,9 @@ export class ObservationsService extends ApiService<IObservation> {
 export class ObservationDetailsService extends ApiService<IObservationDetail> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _configServiceG: ConfigServiceG
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG);
     this.init();
   }
   init(): void {

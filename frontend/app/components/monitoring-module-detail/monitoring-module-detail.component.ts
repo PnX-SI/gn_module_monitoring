@@ -4,11 +4,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { MonitoringObject } from '../../class/monitoring-object';
-import { ISitesGroup } from '../../interfaces/geom';
+
 import { Module } from '../../interfaces/module';
 import { SelectObject } from '../../interfaces/object';
-import { IobjObs } from '../../interfaces/objObs';
+
 import { IPage, IPaginated } from '../../interfaces/page';
 
 import {
@@ -17,10 +16,9 @@ import {
   SitesGroupService,
   SitesService,
 } from '../../services/api-geom.service';
-import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { GeoJSONService } from '../../services/geojson.service';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
+
 import { ObjectService } from '../../services/object.service';
 import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
