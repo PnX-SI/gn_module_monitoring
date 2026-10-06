@@ -14,6 +14,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_simple_module
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.command.check import run_check
 from gn_module_monitoring.command.nomenclature import add_nomenclature
 from gn_module_monitoring.command.permissions import process_available_permissions
 from gn_module_monitoring.command.sql import process_sql_files
@@ -311,12 +312,76 @@ def synchronize_synthese(module_code, offset):
     click.secho("DONE", fg="green")
 
 
+def check_filter_options(option_name, param_name, description):
+    def decorator(func):
+        func = click.option(
+            option_name,
+            param_name,
+            is_flag=True,
+            help=f"Contrôle les {description}",
+        )(func)
+        func = click.option(
+            f"{option_name}-pk",
+            f"{param_name}_pks",
+            type=int,
+            multiple=True,
+            help=f"Contrôle uniquement certains enregistrements (répétable) ({description})",
+        )(func)
+        func = click.option(
+            f"{option_name}-field",
+            f"{param_name}_fields",
+            multiple=True,
+            help=f"Contrôle uniquement certains champs (répétable) ({description})",
+        )(func)
+        return func
+
+    return decorator
+
+
+@click.command("check")
+@click.argument(
+    "module_code",
+    type=str,
+    required=False,
+)
+@click.option("--data/--no-data", "check_data", default=False, help="Vérifie les données")
+@check_filter_options("--site-group", "site_group", "groupes de sites")
+@check_filter_options("--site", "site", "sites")
+@check_filter_options("--visit", "visit", "visites")
+@check_filter_options("--observation", "observation", "observations")
+@check_filter_options("--observation-detail", "observation_detail", "détails d’observation")
+@click.option(
+    "--fix",
+    is_flag=True,
+    default=False,
+    help="Propose de corriger les anomalies détectées",
+)
+@with_appcontext
+def cmd_check(module_code, fix, check_data, **data_filters):
+    """
+    Contrôle la configuration, les nomenclatures et les données des
+    protocoles de suivi.
+
+    Les fichiers de configuration de tous les protocoles (installés ou non)
+    sont contrôlés. Les nomenclatures et les données ne sont contrôlées que
+    pour les protocoles installés.
+
+    Les contrôles de données peuvent être limité à une catégorie de données :
+    groupe de site, site, visite, observation, détails d’observation
+
+    Pour chaque catégorie, il est possible de limiter le contrôle de données à
+    certains enregistrements (--<category>-pk) ou à certains champs (--<category>-field).
+    """
+    run_check(module_code, check_data, data_filters, fix)
+
+
 commands = [
     cmd_install_monitoring_module,
     cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
     cmd_process_sql,
+    cmd_check,
     synchronize_synthese,
     cmd_add_update_import_on_protocole,
 ]
