@@ -11,7 +11,7 @@ from flask import g
 from uuid import uuid4
 
 from sqlalchemy import join, select, func, and_
-from sqlalchemy.orm import Mapped, column_property, aliased, mapped_column
+from sqlalchemy.orm import Mapped, column_property, aliased, mapped_column, synonym
 
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -661,7 +661,7 @@ class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MarkingsQuery):
 
 @serializable
 class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
-
+    data = synonym("additional_data")
     nb_sites = column_property(
         select(func.count(func.distinct(TMonitoringSites.id_base_site)))
         .join_from(

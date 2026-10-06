@@ -447,11 +447,12 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
         include_fk = True
         load_relationships = True
         load_instance = True
+        exclude = ("additional_data",)
 
     medias = MA.Nested(MediaSchema, many=True)
     id_individual = auto_field(required=False, allow_none=True)
     uuid_individual = fields.String(required=False, allow_none=True)
-
+    data = auto_field()
     pk = fields.Method("set_pk", dump_only=True)
 
     def set_pk(self, obj):
