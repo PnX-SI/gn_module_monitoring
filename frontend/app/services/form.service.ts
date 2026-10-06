@@ -8,7 +8,7 @@ import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
 import { FormBuilder, FormControl, FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { IExtraForm, IFormMap } from '../interfaces/object';
-import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
 import { DataUtilsService } from './data-utils.service';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class FormService {
 
   constructor(
     private _formBuilder: FormBuilder,
-    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     private _dataUtilsService: DataUtilsService
   ) {}
 
@@ -50,7 +50,7 @@ export class FormService {
           }
         : null;
     } else if (elem.type_widget === 'observers') {
-      const codeListObservers = this._configService.codeListObservers();
+      const codeListObservers = this._configServiceG.codeListObservers();
       // Gestion des observateurs multiples
       if (!Array.isArray(val)) val = [val];
 
@@ -125,49 +125,6 @@ export class FormService {
       }
     }
     return x;
-  }
-
-  formValues(obj, schemaUpdate = {}): Observable<any> {
-    let schema;
-    // const {properties ,remainaing} = obj
-    const properties = Utils.copy(obj.properties);
-    const observables = {};
-    if (obj.moduleCode && Object.keys(schemaUpdate).length != 0) {
-      schema = schemaUpdate;
-    } else if (obj.moduleCode) {
-      schema = this._configService.schema(obj.moduleCode, obj.objectType, 'all');
-    } else {
-      schema = obj[obj.moduleCode];
-    }
-
-    // ADD specific properties if exist
-    if (obj.specific != undefined) {
-      for (const attribut_name of Object.keys(obj.specific)) {
-        properties[attribut_name] = obj[attribut_name];
-      }
-    }
-
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      // NOTES: [dev-suivi-eol] ici le formValues possédant uniquement des propriétés sans type_widget ne surcouchent pas les champs specific au type de site
-      if (!(elem || [])['type_widget']) {
-        continue;
-      }
-      observables[attribut_name] = this.toForm(elem, properties[attribut_name]);
-    }
-
-    return forkJoin(observables).pipe(
-      concatMap((formValues_in) => {
-        const formValues = Utils.copy(formValues_in);
-        // geometry
-        if ('config' in obj && obj.config['geometry_type']) {
-          // TODO: change null by the geometry load from the object (if edit) or null if create
-          // formValues["geometry"] = this.geometry; // copy???
-          formValues['geometry'] = obj.geometry; // copy???
-        }
-        return of(formValues);
-      })
-    );
   }
 
   /**

@@ -5,7 +5,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, Subject } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
-import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
@@ -18,7 +18,7 @@ export class CacheService {
 
   constructor(
     private _http: HttpClient,
-    private _config: ConfigService
+    private _configServiceG: ConfigServiceG
   ) {}
 
   /** http request */
@@ -55,9 +55,9 @@ export class CacheService {
 
     let url: string;
     if (isGN2Route === true) {
-      url = this._config.backendUrl() + '/' + urlRelative + url_params;
+      url = this._configServiceG.backendUrl() + '/' + urlRelative + url_params;
     } else {
-      url = this._config.backendModuleUrl() + '/' + urlRelative + url_params;
+      url = this._configServiceG.backendModuleUrl() + '/' + urlRelative + url_params;
     }
 
     // requete
@@ -200,7 +200,7 @@ export class CacheService {
       )
       .join('&');
 
-    const url = this._config.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
+    const url = this._configServiceG.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
 
     // requete
     window.open(url);
@@ -215,7 +215,7 @@ export class CacheService {
     const httpHeaders: HttpHeaders = new HttpHeaders({
       Accept: 'application/pdf',
     });
-    const url = this._config.backendModuleUrl() + '/' + urlRelative;
+    const url = this._configServiceG.backendModuleUrl() + '/' + urlRelative;
 
     return this._http[requestType]<any>(url, postData, {
       responseType: 'arraybuffer',

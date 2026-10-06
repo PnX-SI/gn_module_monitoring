@@ -6,7 +6,7 @@ import { concatMap, mergeMap, map } from 'rxjs/operators';
 import { Utils } from './../utils/utils';
 
 import { CacheService } from './cache.service';
-import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
 import { DataFormService } from '@geonature_common/form/data-form.service';
 
 /**
@@ -17,7 +17,7 @@ import { DataFormService } from '@geonature_common/form/data-form.service';
 export class DataUtilsService {
   constructor(
     private _cacheService: CacheService,
-    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     private _commonsDataFormService: DataFormService
   ) {}
 
@@ -100,7 +100,7 @@ export class DataUtilsService {
 
     // Récupération des types de nomenclatures utilisées dans le module
     const nomenclatureTypes =
-      this._configService.configModuleObject(moduleCode, 'data')['nomenclature'] || [];
+      this._configServiceG.config()[moduleCode]['data']['nomenclature'] || [];
     // Récupération des nomenclatures mise en forme et stockage en cache
     return this._commonsDataFormService.getNomenclatures(nomenclatureTypes).pipe(
       map((nomenclatures) => {

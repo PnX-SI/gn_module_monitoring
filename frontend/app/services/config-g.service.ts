@@ -66,6 +66,34 @@ export class ConfigServiceG {
     return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 
+  backendUrl() {
+    return `${this.geonatureConfig.API_ENDPOINT}`;
+  }
+
+  descriptionModule() {
+    return this.geonatureConfig.MONITORINGS.DESCRIPTION_MODULE;
+  }
+  titleModule() {
+    return this.geonatureConfig.MONITORINGS.TITLE_MODULE;
+  }
+
+  codeListObservers() {
+    if (this._config['custom']['CODE_OBSERVERS_LIST']) {
+      return this._config['custom']['CODE_OBSERVERS_LIST'];
+    }
+    return this.geonatureConfig.MONITORINGS.CODE_OBSERVERS_LIST;
+  }
+
+  /** Frontend Module Monitoring Url */
+  frontendModuleMonitoringUrl() {
+    return this._moduleService.currentModule.module_path;
+  }
+
+  configModuleObject(moduleCode: string, objectType: string) {
+    moduleCode = moduleCode || 'generic';
+    return this._config[moduleCode][objectType];
+  }
+
   processConfig() {
     for (const keys of Object.keys(this._config)) {
       if (this._config[keys] && Object.keys(this._config[keys]).includes('fields')) {

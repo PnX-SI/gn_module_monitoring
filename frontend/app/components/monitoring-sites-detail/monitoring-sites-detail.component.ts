@@ -15,7 +15,6 @@ import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
-import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
@@ -56,7 +55,6 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public geojsonService: GeoJSONService,
     protected router: Router,
     public _formService: FormService,
-    private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public _siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,

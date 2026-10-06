@@ -3,7 +3,7 @@ import { Observable, of } from 'rxjs';
 import { Injectable } from '@angular/core';
 
 import { CacheService } from './cache.service';
-import { ConfigService } from './config.service';
+
 import { HttpClient } from '@angular/common/http';
 
 /**
@@ -14,8 +14,7 @@ import { HttpClient } from '@angular/common/http';
 export class DataMonitoringObjectService {
   constructor(
     private _cacheService: CacheService,
-    private _http: HttpClient,
-    private _config: ConfigService
+    private _http: HttpClient
   ) {}
 
   /** Modules */

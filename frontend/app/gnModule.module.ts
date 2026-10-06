@@ -16,7 +16,7 @@ import { DataMonitoringObjectService } from './services/data-monitoring-object.s
 import { NavigationService } from './services/navigation.service';
 import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
-import { ConfigService } from './services/config.service';
+
 import { ConfigServiceG } from './services/config-g.service';
 
 // Component
@@ -356,7 +356,6 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     DataMonitoringObjectService,
     NavigationService,
     DataUtilsService,
-    ConfigService,
     DataTableService,
     SitesGroupService,
     SitesService,
