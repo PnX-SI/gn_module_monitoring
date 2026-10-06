@@ -1,7 +1,7 @@
 import { MonitoringFormGComponent } from './monitoring-form-g.component';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-describe('MonitoringFormComponent', () => {
+describe('MonitoringFormGComponent', () => {
   let component: MonitoringFormGComponent;
   let fixture: ComponentFixture<MonitoringFormGComponent>;
 
