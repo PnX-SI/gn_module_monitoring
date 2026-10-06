@@ -20,7 +20,6 @@ import { IIndividual } from '../interfaces/individual';
 import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
-import { MonitoringObjectService } from './monitoring-object.service';
 import { ConfigServiceG } from './config-g.service';
 import { IObservation } from '../interfaces/observation';
 import { IObservationDetail } from '../interfaces/observationdetail';
@@ -152,7 +151,7 @@ export class ApiService<T = IObject> implements IService<T> {
 export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IGeomService<T> {
   constructor(
     protected _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG
   ) {
     super(_cacheService, _configServiceG);
     this.init(this.endPoint, this.objectObs);
@@ -182,7 +181,7 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
 export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG
   ) {
     super(_cacheService, _configServiceG);
   }
@@ -248,7 +247,7 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
 export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG
   ) {
     super(_cacheService, _configServiceG);
   }
@@ -293,8 +292,7 @@ export class SitesService extends ApiGeomService<ISite> {
 export class ModuleService extends ApiService<any> {
   constructor(
     _cacheService: CacheService,
-    protected _configServiceG: ConfigServiceG,
-
+    protected _configServiceG: ConfigServiceG
   ) {
     super(_cacheService, _configServiceG);
     this.init();

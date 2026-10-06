@@ -16,7 +16,6 @@ import { DataMonitoringObjectService } from './services/data-monitoring-object.s
 import { NavigationService } from './services/navigation.service';
 import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
-import { MonitoringObjectService } from './services/monitoring-object.service';
 import { ConfigService } from './services/config.service';
 import { ConfigServiceG } from './services/config-g.service';
 
@@ -289,7 +288,6 @@ const routes: Routes = [
   // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
   // car le nom des routes sera potentiellement à nouveau modifié dans le futur
   { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
-
 ];
 
 export function createTranslateLoader(http: HttpClient, config: cs) {
@@ -359,7 +357,6 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     NavigationService,
     DataUtilsService,
     ConfigService,
-    MonitoringObjectService,
     DataTableService,
     SitesGroupService,
     SitesService,
