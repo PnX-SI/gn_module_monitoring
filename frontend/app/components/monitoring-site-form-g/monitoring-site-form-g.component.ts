@@ -85,7 +85,7 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     // Récupération des propriétés supplémentaires
     // au module pour les mettre de coté
     this.hiddenProperties = {};
-    this.object.additional_data_keys.forEach((key: string) => {
+    (this.object.additional_data_keys || []).forEach((key: string) => {
       this.hiddenProperties[key] = this.object[key];
     });
 
