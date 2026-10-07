@@ -234,6 +234,9 @@ def process_display_element(element):
 
     if element["type_widget"] == "datalist":
         element["designStyle"] = "bootstrap"
+
+    if element["type_widget"] == "individual" and "module_code" not in element:
+        element["module_code"] = "__MODULE.MODULE_CODE"
     return element
 
 
@@ -434,7 +437,8 @@ import warnings
 
 
 def get_specific_properties(monitoringClass: object, config: dict, object_type: str):
-
+    if not object_type in config:
+        return {}
     return get_specific_properties_from_object_config(monitoringClass, config[object_type])
 
 
