@@ -240,12 +240,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
   onDelete($event) {
-    this._objServiceMonitoring
-      .deleteObject($event.rowSelected.module.module_code, $event.objectType, $event.rowSelected.id)
-      .subscribe((del) => {
-        this.bDeleteModalEmitter.emit(false);
-        this.initSiteVisit();
-      });
+    this._visits_service.delete($event.rowSelected.id).subscribe((del) => {
+      this.bDeleteModalEmitter.emit(false);
+      this.initSiteVisit();
+    });
   }
 
   onbEditChange(event) {

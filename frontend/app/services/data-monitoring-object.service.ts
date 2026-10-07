@@ -3,8 +3,6 @@ import { Injectable } from '@angular/core';
 
 import { CacheService } from './cache.service';
 
-import { HttpClient } from '@angular/common/http';
-
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
  *  Les requêtes pour les objects de type nomenclature, utilisateurs, taxonomie ,sont mise en cache
@@ -35,28 +33,6 @@ export class DataMonitoringObjectService {
     }
 
     return url;
-  }
-
-  paramsMonitoring(objectType, queryParams = {}) {
-    if (objectType.includes('module')) {
-      queryParams['field_name'] = 'module_code';
-    }
-    return queryParams;
-  }
-
-  /**
-   * Supprime un objet pour un module, un type d'objet et un identifiant donnés
-   *
-   * @param moduleCode le champ module_code du module
-   * @param objectType le type de l'objet (site, visit, observation, ...)
-   * @param id l'identifiant de l'objet
-   */
-  deleteObject(moduleCode, objectType, id): Observable<any> {
-    // TODO : a déplacer
-    // Utilisé dans monitoring-sites-detail.component uniquement
-    const url = this.urlMonitoring('object', moduleCode, objectType, id);
-
-    return this._cacheService.request('delete', url);
   }
 
   /** breadcrumbs */
