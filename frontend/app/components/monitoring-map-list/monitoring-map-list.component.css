@@ -14,7 +14,19 @@
 }
 
 .scroll {
-  overflow-y: scroll;
+  overflow-y: auto;
+}
+
+:host ::ng-deep #monitoring-elem-container:has(.form-scroll),
+:host ::ng-deep #monitoring-elem-container :has(.form-scroll) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:host ::ng-deep #monitoring-elem-container:has(.form-scroll) > :not(:has(.form-scroll)):not(.form-scroll),
+:host ::ng-deep #monitoring-elem-container :has(.form-scroll) > :not(:has(.form-scroll)):not(.form-scroll) {
+  flex-shrink: 0;
 }
 
 :host ::ng-deep .cadre {
