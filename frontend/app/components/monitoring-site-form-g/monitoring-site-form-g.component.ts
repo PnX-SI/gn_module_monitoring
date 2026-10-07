@@ -3,6 +3,7 @@ import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { NgSelectConfig } from '@ng-select/ng-select';
 import { Location } from '@angular/common';
 
 import { CommonService } from '@geonature_common/service/common.service';
@@ -24,6 +25,13 @@ import { Popup } from '../../utils/popup';
   selector: 'pnx-monitoring-site-form-g',
   templateUrl: './monitoring-site-form-g.component.html',
   styleUrls: ['./monitoring-site-form-g.component.css'],
+  // Listes déroulantes ng-select rattachées au body pour ne pas être coupées par le scroll du formulaire
+  providers: [
+    {
+      provide: NgSelectConfig,
+      useFactory: () => Object.assign(new NgSelectConfig(), { appendTo: 'body' }),
+    },
+  ],
 })
 export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
   private allSiteFormsDefinition: JsonData = [];
