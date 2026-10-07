@@ -1,4 +1,3 @@
-import { mergeMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Injectable } from '@angular/core';
 
@@ -12,10 +11,7 @@ import { HttpClient } from '@angular/common/http';
  */
 @Injectable()
 export class DataMonitoringObjectService {
-  constructor(
-    private _cacheService: CacheService,
-    private _http: HttpClient
-  ) {}
+  constructor(private _cacheService: CacheService) {}
 
   /** Modules */
 
@@ -23,22 +19,13 @@ export class DataMonitoringObjectService {
    * Renvoie la liste des modules
    */
   getModules(): Observable<any> {
+    // Utilisé dans modules.component
     return this._cacheService.request('get', `modules`);
   }
-
-  // /**
-  //  * Renvoie un module référencé par le champ module_code
-  //  *
-  //  * @param moduleCode le champ module_code du module
-  //  */
-  // getModule(moduleCode) {
-  //   return this._cacheService.request('get', `module/${moduleCode}`)
-  // }
 
   /** Object */
   urlMonitoring(apiType, moduleCode, objectType, id = null) {
     let url: string;
-    const params = [];
     if (objectType.includes('module')) {
       url = moduleCode ? `${apiType}/${moduleCode}/${objectType}` : `${apiType}/module`;
     } else {
@@ -58,43 +45,6 @@ export class DataMonitoringObjectService {
   }
 
   /**
-   * Renvoie un objet pour un module, un type d'objet et un identifiant donnés
-   *
-   * @param moduleCode le champ module_code du module
-   * @param objectType le type de l'objet (site, visit, observation, ...)
-   * @param id l'identifiant de l'objet
-   */
-  getObject(moduleCode, objectType, id = null, depth = null) {
-    const url = this.urlMonitoring('object', moduleCode, objectType, id);
-    const queryParams = this.paramsMonitoring(objectType, { depth });
-    return this._cacheService.request('get', url, { queryParams });
-  }
-
-  /**
-   * Modifie un objet pour un module, un type d'objet et un identifiant donnés
-   *
-   * @param moduleCode le champ module_code du module
-   * @param objectType le type de l'objet (site, visit, observation, ...)
-   * @param id l'identifiant de l'objet
-   */
-  patchObject(moduleCode, objectType, id, postData) {
-    const url = this.urlMonitoring('object', moduleCode, objectType, id);
-    return this._cacheService.request('patch', url, { postData });
-  }
-
-  /**
-   *  Créé un objet pour un module, un type d'objet
-   *
-   * @param moduleCode le champ module_code du module
-   * @param objectType le type de l'objet (site, visit, observation, ...)
-   * @param id l'identifiant de l'objet
-   */
-  postObject(moduleCode, objectType, postData) {
-    const url = this.urlMonitoring('object', moduleCode, objectType);
-    return this._cacheService.request('post', url, { postData });
-  }
-
-  /**
    * Supprime un objet pour un module, un type d'objet et un identifiant donnés
    *
    * @param moduleCode le champ module_code du module
@@ -102,6 +52,8 @@ export class DataMonitoringObjectService {
    * @param id l'identifiant de l'objet
    */
   deleteObject(moduleCode, objectType, id): Observable<any> {
+    // TODO : a déplacer
+    // Utilisé dans monitoring-sites-detail.component uniquement
     const url = this.urlMonitoring('object', moduleCode, objectType, id);
 
     return this._cacheService.request('delete', url);
@@ -117,6 +69,7 @@ export class DataMonitoringObjectService {
    * @param queryParams paramètre supplémentaire permettant d'indiquer les parents souhaités
    */
   getBreadcrumbs(moduleCode, objectType, id, queryParams) {
+    // Utilisé dans object.service
     const url = this.urlMonitoring('breadcrumbs', moduleCode, objectType, id);
     return this._cacheService.request('get', url, { queryParams });
   }
