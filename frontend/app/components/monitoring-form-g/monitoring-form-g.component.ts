@@ -5,6 +5,7 @@ import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { NgSelectConfig } from '@ng-select/ng-select';
 
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -26,6 +27,13 @@ import { Popup } from '../../utils/popup';
   selector: 'pnx-monitoring-form-g',
   templateUrl: './monitoring-form-g.component.html',
   styleUrls: ['./monitoring-form-g.component.css'],
+  // Listes déroulantes ng-select rattachées au body pour ne pas être coupées par le scroll du formulaire
+  providers: [
+    {
+      provide: NgSelectConfig,
+      useFactory: () => Object.assign(new NgSelectConfig(), { appendTo: 'body' }),
+    },
+  ],
 })
 export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() apiService: ApiService;
@@ -69,7 +77,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _route: ActivatedRoute,
     private _formUtils: MonitoringObjectService,
     private translate: TranslateService,
-    public _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
     private _objectService: ObjectService,
     private _popup: Popup

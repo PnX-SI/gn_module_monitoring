@@ -35,4 +35,10 @@ export class MonitoringFormGLayoutComponent {
   @Output() notAllowed = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
   @Output() confirmDelete = new EventEmitter<void>();
+
+  closeDropdowns() {
+    if (document.querySelector('body > .ng-dropdown-panel')) {
+      document.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  }
 }
