@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
 import { of, Observable } from 'rxjs';
-import { mergeMap, map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 
 @Injectable({
@@ -70,13 +70,6 @@ export class ConfigServiceG {
     return `${this.geonatureConfig.API_ENDPOINT}`;
   }
 
-  descriptionModule() {
-    return this.geonatureConfig.MONITORINGS.DESCRIPTION_MODULE;
-  }
-  titleModule() {
-    return this.geonatureConfig.MONITORINGS.TITLE_MODULE;
-  }
-
   codeListObservers() {
     if (this._config['custom']['CODE_OBSERVERS_LIST']) {
       return this._config['custom']['CODE_OBSERVERS_LIST'];
@@ -87,11 +80,6 @@ export class ConfigServiceG {
   /** Frontend Module Monitoring Url */
   frontendModuleMonitoringUrl() {
     return this._moduleService.currentModule.module_path;
-  }
-
-  configModuleObject(moduleCode: string, objectType: string) {
-    moduleCode = moduleCode || 'generic';
-    return this._config[moduleCode][objectType];
   }
 
   processConfig() {
@@ -189,21 +177,5 @@ export class ConfigServiceG {
     }
 
     return func;
-  }
-
-  fieldLabels(schema): Object {
-    const fieldLabels = {};
-    for (const key of Object.keys(schema)) {
-      fieldLabels[key] = schema[key]['attribut_label'];
-    }
-    return fieldLabels;
-  }
-
-  fieldDefinitions(schema) {
-    const fieldDefinitions = {};
-    for (const key of Object.keys(schema)) {
-      fieldDefinitions[key] = schema[key]['definition'];
-    }
-    return fieldDefinitions;
   }
 }
