@@ -386,6 +386,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
         parents = {}
         hierarchy_list = ["visit", "visit.site", "visit.site.sites_group"]
         parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
 
 class MonitoringObservationsSchemaCruved(
@@ -418,6 +419,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
             "observation.visit.site.sites_group",
         ]
         parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
     def set_pk(self, obj):
         return "id_observation_detail"

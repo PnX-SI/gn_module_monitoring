@@ -10,6 +10,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringObservations,
     TMonitoringVisits,
+    TMonitoringIndividuals,
 )
 
 from gn_module_monitoring.monitoring.schemas import (
@@ -180,6 +181,18 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     """
     config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+
+    # Cas des individus, s'il y a un id_individual
+    # Récupération du cd_nom de l'individu
+    if process_data.get("id_individual", None):
+        # Get individual cd_nom
+        individual = db.session.scalar(
+            select(TMonitoringIndividuals).where(
+                TMonitoringIndividuals.id_individual == process_data["id_individual"]
+            )
+        )
+        if individual:
+            process_data["cd_nom"] = individual.cd_nom
 
     observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
 

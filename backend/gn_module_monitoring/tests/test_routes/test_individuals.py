@@ -1,10 +1,47 @@
 import pytest
+
+from datetime import datetime
 from flask import url_for
 
+from sqlalchemy import select
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from geonature.utils.env import db
-from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringIndividuals,
+    TMonitoringModules,
+    TMonitoringVisits,
+)
+
+
+@pytest.fixture
+def module_test_observation_individuals(install_module_test_indi, types_site, users):
+    module_test = db.session.execute(
+        select(TMonitoringModules).where(TMonitoringModules.module_code == "test_indi")
+    ).scalar_one_or_none()
+
+    return module_test
+
+
+@pytest.fixture
+def visit_data(sites, datasets, module_test_observation_individuals, users):
+    visit_date_min = datetime.strptime("2025-01-01", "%Y-%m-%d").date()
+    dataset = datasets["orphan_dataset"]
+
+    db_visits = []
+    for site in sites.values():
+        db_visits.append(
+            TMonitoringVisits(
+                id_base_site=site.id_base_site,
+                id_module=module_test_observation_individuals.id_module,
+                id_dataset=dataset.id_dataset,
+                visit_date_min=visit_date_min,
+            )
+        )
+    with db.session.begin_nested():
+        db.session.add_all(db_visits)
+    db.session.flush()
+    return db_visits
 
 
 @pytest.mark.usefixtures("client_class")
@@ -216,3 +253,39 @@ class TestIndividuals:
         )
 
         assert r.status_code == 404
+
+    def test_post_observation_with_individual(self, visit_data, install_module_test_indi, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        individual_instance = install_module_test_indi[-1]
+
+        data = {
+            "id_individual": individual_instance.id_individual,
+            "id_base_visit": visit_data[0].id_base_visit,
+            "comments": "new_comment",
+            "id_digitiser": users["admin_user"].id_role,
+        }
+
+        r = self.client.post(
+            url_for(
+                "monitorings.post_observation",
+                module_code="test_indi",
+            ),
+            json=data,
+        )
+        assert r.status_code == 200
+        assert r.json["id_individual"] == individual_instance.id_individual
+        assert r.json["cd_nom"] == individual_instance.cd_nom
+        assert r.json["comments"] == data["comments"]
+
+        # Test with false cd_nom
+        # Le cd_nom doit toujours correspondre au cd_nom de l'individu
+        data["cd_nom"] = 999999999
+        r = self.client.post(
+            url_for(
+                "monitorings.post_observation",
+                module_code="test_indi",
+            ),
+            json=data,
+        )
+        assert r.json["cd_nom"] == individual_instance.cd_nom
