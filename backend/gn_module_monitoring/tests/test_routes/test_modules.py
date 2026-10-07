@@ -7,7 +7,7 @@ from pypnusershub.tests.utils import set_logged_user_cookie
 from apptax.taxonomie.models import BibListes
 from pypnusershub.db.models import UserList
 from gn_module_monitoring.tests.fixtures.generic import add_user_permission
-from gn_module_monitoring.tests.fixtures.module import install_monitoring_module
+from gn_module_monitoring.tests.fixtures.monitoring_modules import install_monitoring_module
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules, TMonitoringVisits
 
