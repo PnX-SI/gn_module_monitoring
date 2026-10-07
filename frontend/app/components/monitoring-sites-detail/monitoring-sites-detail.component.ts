@@ -19,9 +19,8 @@ import { FormService } from '../../services/form.service';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
 
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-sites-detail',
@@ -60,7 +59,7 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     private _objServiceMonitoring: DataMonitoringObjectService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getVisits;
@@ -103,14 +102,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       this.objectData = data.site;
       const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
       // Resolve site data
-      resolveObjectProperties(
-        this.objectData,
-        fieldsConfig,
-        this._configServiceG,
-        this._cacheService
-      ).subscribe((data) => {
-        this.objectDataResolved = data;
-      });
+      this._dataUtilsService
+        .resolveObjectProperties(this.objectData, fieldsConfig)
+        .subscribe((data) => {
+          this.objectDataResolved = data;
+        });
 
       if (this.parentPath.includes('sites_group')) {
         this.siteGroupIdParent = this.objectData.id_sites_group;

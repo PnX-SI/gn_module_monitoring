@@ -29,8 +29,7 @@ import { ReplaySubject } from 'rxjs';
 import { mergeMap, takeUntil } from 'rxjs/operators';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectType } from '../../enum/objecttype';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-module-detail',
@@ -82,7 +81,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     public _popup: Popup,
     public _permissionService: PermissionService,
     public _moduleService: ModuleService,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getData;
@@ -155,11 +154,9 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
         this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
           this.objectData = data;
-          this.resolvedObj = resolveObjectProperties(
+          this.resolvedObj = this._dataUtilsService.resolveObjectProperties(
             this.objectData,
-            this._configServiceG.config()['module']['fields'],
-            this._configServiceG,
-            this._cacheService
+            this._configServiceG.config()['module']['fields']
           );
         });
       }

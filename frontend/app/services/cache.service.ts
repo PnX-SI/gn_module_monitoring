@@ -117,6 +117,7 @@ export class CacheService {
   }
 
   removeCacheValue(sCachePaths: string, cache = null) {
+    // UNUSED
     cache = cache || this._cache;
 
     const cachePaths = sCachePaths.split('|');
@@ -182,6 +183,7 @@ export class CacheService {
   }
 
   cache() {
+    // UNUSED
     return this._cache;
   }
 

@@ -30,28 +30,36 @@ export class DataUtilsService {
    * @param id identifiant de l'objet
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtil(typeUtil: string, id, fieldName: string, idFieldName: string = null) {
+  getUtil(
+    typeUtil: string,
+    id,
+    fieldName: string,
+    idFieldName: string | null = null
+  ): Observable<any> {
     if (Array.isArray(id)) {
       return this.getUtils(typeUtil, id, fieldName, idFieldName);
     }
 
-    // url relative
     var urlRelative = `util/${typeUtil}/${id}`;
+
+    var isGN2Route = false;
+    if (typeUtil == 'user') {
+      var urlRelative = `users/role/${id}`;
+      var isGN2Route = true;
+    }
 
     if (idFieldName) {
       urlRelative += `?id_field_name=${idFieldName}`;
     }
 
-    // parametre pour le stockage dans le cache
     const sCachePaths = `util|${typeUtil}|${id}`;
-    // récupération dans le cache ou requête si besoin
-    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths).pipe(
+
+    return this._cacheService.cache_or_request('get', urlRelative, sCachePaths, isGN2Route).pipe(
       mergeMap((value) => {
         let out;
         if (fieldName === 'all') {
           out = value;
         } else if (fieldName.split(',').length >= 2) {
-          // plusieurs champs par ex 'nom_vern,lb_nom' si nom_vern null alors lb_nom
           for (const fieldNameInter of fieldName.split(',')) {
             if (value[fieldNameInter]) {
               out = value[fieldNameInter];
@@ -73,14 +81,19 @@ export class DataUtilsService {
    * @param ids tableau d'identifiant des objets
    * @param fieldName nom du champ requis, renvoie l'objet entier si 'all'
    */
-  getUtils(typeUtilObject, ids, fieldName, idFieldName = null) {
+  getUtils(
+    typeUtil: string,
+    ids: any[],
+    fieldName: string,
+    idFieldName: string | null = null
+  ): Observable<any> {
     if (!ids.length) {
       return of(null);
     }
     const observables = [];
     // applique getUtil pour chaque id de ids
     for (const id of ids) {
-      observables.push(this.getUtil(typeUtilObject, id, fieldName, idFieldName));
+      observables.push(this.getUtil(typeUtil, id, fieldName, idFieldName));
     }
     // renvoie un forkJoin du tableau d'observables
     return forkJoin(observables).pipe(
@@ -133,5 +146,102 @@ export class DataUtilsService {
     const urlRelative = `users/menu_from_code/${codeMenu}`;
     const sCachePaths = `users|menu_from_code|${codeMenu}`;
     return this._cacheService.cache_or_request('get', urlRelative, sCachePaths, true);
+  }
+
+  resolveProperty(elem, val): Observable<any> {
+    if (elem.type_widget === 'date' || (elem.type_util === 'date' && val)) {
+      val = Utils.formatDate(val);
+    }
+    if (elem.type_util === 'types_site') {
+      const typesSite = (this._configServiceG.config()['module'] || [])['types_site'];
+      val = val.map((item) => {
+        return typesSite[item]?.name;
+      });
+    }
+    const fieldName = (this._configServiceG.config()['display_field_names'] || [])[elem.type_util];
+
+    if (val && fieldName && elem.type_widget) {
+      return this.getUtil(elem.type_util, val, fieldName, elem.value_field_name);
+    }
+
+    return of(val);
+  }
+
+  resolveObjectProperties(data, fieldsConfig): Observable<any> {
+    /**
+     * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+     *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+     *
+     *
+     * @param data - Données à traiter.
+     * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+     * @param moduleCode - Le code de module courant
+     * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+     */
+    if ((!data || !fieldsConfig) && Object.keys(fieldsConfig).length > 0) {
+      return of(data);
+    }
+
+    const propertyObservables = {};
+    // si des données sont contenues dans dataItem.data merge avec dataItem
+    // cas des propriétés supplémentaires des visites
+    // TODO reflechir si on garde cette propriété ou si on met tout à plat dans dataItem
+    if (data.data) {
+      data = { ...data, ...data.data };
+    }
+
+    for (const attribut_name of Object.keys(fieldsConfig)) {
+      if (data.hasOwnProperty(attribut_name)) {
+        propertyObservables[attribut_name] = this.resolveProperty(
+          fieldsConfig[attribut_name],
+          data[attribut_name]
+        );
+      }
+    }
+    if (Object.keys(propertyObservables).length === 0) {
+      return of(data);
+    }
+    return forkJoin(propertyObservables).pipe(
+      map((resolvedProperties) => {
+        const updatedSiteGroupItem = { ...data };
+        for (const attribut_name of Object.keys(resolvedProperties)) {
+          updatedSiteGroupItem[attribut_name] = resolvedProperties[attribut_name];
+        }
+        return updatedSiteGroupItem;
+      })
+    );
+  }
+
+  buildObjectResolvePropertyProcessing(data, fieldsConfig): Observable<any> {
+    /**
+     * Traite et résout les propriétés d'un ensemble de données en fonction des types de champs définis dans la configuration.
+     *   La résolution consiste à transformer la valeur retournée par l'api par celle d'affichage
+     *
+     *
+     * @param data - Données à traiter.
+     * @param fieldsConfig - Configuration des champs permettant la résolution de chaque propriété.
+     * @param _configService - Service utilisé pour la résolution des propriétés d'objet.
+     * @param _cacheService - Service utilisé pour la mise en cache des propriétés résolues.
+     * @returns Un observable émettant l'objet de données avec les propriétés résolues.
+     */
+
+    const dataProcessing$ =
+      data &&
+      data.items &&
+      data.items.length > 0 &&
+      fieldsConfig &&
+      Object.keys(fieldsConfig).length > 0
+        ? forkJoin(
+            data.items.map((dataItem: {}) => {
+              return this.resolveObjectProperties(dataItem, fieldsConfig);
+            })
+          ).pipe(
+            map((resolvedSiteGroupItems) => ({
+              ...data,
+              items: resolvedSiteGroupItems,
+            }))
+          )
+        : of(data);
+    return dataProcessing$;
   }
 }
