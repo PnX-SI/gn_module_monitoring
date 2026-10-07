@@ -13,10 +13,9 @@ import { SelectObject } from '../../interfaces/object';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
 import { IObservation } from '../../interfaces/observation';
 import { IObservationDetail } from '../../interfaces/observationdetail';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-observations-detail',
@@ -46,7 +45,7 @@ export class MonitoringObservationsDetailComponent
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getChild;
@@ -79,12 +78,7 @@ export class MonitoringObservationsDetailComponent
       });
 
       // Resolve data
-      resolveObjectProperties(
-        detailData,
-        fieldsConfig,
-        this._configServiceG,
-        this._cacheService
-      ).subscribe((data) => {
+      this._dataUtilsService.resolveObjectProperties(detailData, fieldsConfig).subscribe((data) => {
         this.objectDataResolved = data;
       });
     });

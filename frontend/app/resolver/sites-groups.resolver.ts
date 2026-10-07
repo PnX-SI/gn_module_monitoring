@@ -7,7 +7,6 @@ import { IPaginated } from '../interfaces/page';
 import { map } from 'rxjs/operators';
 import { PermissionService } from '../services/permission.service';
 import { CacheService } from '../services/cache.service';
-import { ConfigService } from '../services/config.service';
 import { IIndividual } from '../interfaces/individual';
 import { ObjectService } from '../services/object.service';
 import { ConfigServiceG } from '../services/config-g.service';
@@ -36,7 +35,6 @@ export class SitesGroupsResolver
     private router: Router,
     private _objectService: ObjectService,
     private _cacheService: CacheService,
-    private _configService: ConfigService,
     private _configServiceG: ConfigServiceG
   ) {}
 

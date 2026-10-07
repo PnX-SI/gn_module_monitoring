@@ -15,7 +15,6 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
 import { GeoJSONService, DisplayMode } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectService } from '../../services/object.service';
@@ -67,7 +66,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _geojsonService: GeoJSONService,
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
-    private _formUtils: MonitoringObjectService,
     private translate: TranslateService,
     public _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
@@ -321,7 +319,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       if (!(attribut_name in properties)) {
         continue;
       }
-      observables[attribut_name] = this._formUtils.toForm(elem, properties[attribut_name]);
+      observables[attribut_name] = this._formService.toForm(elem, properties[attribut_name]);
     }
 
     return forkJoin(observables).pipe(
@@ -345,7 +343,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         continue;
       }
 
-      data[attribut_name] = this._formUtils.fromForm(elem, formValue[attribut_name]);
+      data[attribut_name] = this._formService.fromForm(elem, formValue[attribut_name]);
       // data[attribut_name] = formValue[attribut_name];
     }
     if (formValue['geometry'] !== null) {

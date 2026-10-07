@@ -25,7 +25,7 @@ import { CommonService } from '@geonature_common/service/common.service';
 import { IdataTableObjData } from '../../interfaces/geom';
 import { getImportProperties } from '../../utils/import';
 import { HttpClient } from '@angular/common/http';
-import { ConfigService } from '../../services/config.service';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 interface ItemObjectTable {
   id: number | null;
@@ -115,7 +115,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   constructor(
     private _dataTableService: DataTableService,
     private _commonService: CommonService,
-    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     public _translate: TranslateService,
     private httpClient: HttpClient
   ) {}
@@ -356,7 +356,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   isImportDestinationAvailable() {
     // TODO removed when 2.17.1 is released
     this.httpClient
-      .get(this._configService.backendUrl() + '/import/destinations/C')
+      .get(this._configServiceG.backendUrl() + '/import/destinations/C')
       .subscribe((data: any) => {
         this.importAvailable =
           data.filter((destination: any) => destination.code == this.moduleCode).length > 0;

@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, ReplaySubject, Observable, forkJoin, of } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
+
+import { concatMap, mergeMap } from 'rxjs/operators';
 
 import { ISite, ISitesGroup } from '../interfaces/geom';
 import { JsonData } from '../types/jsondata';
 import { Utils } from '../utils/utils';
-import { MonitoringObjectService } from './monitoring-object.service';
 import { FormBuilder, FormControl, FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { IExtraForm, IFormMap } from '../interfaces/object';
-import { ConfigService } from './config.service';
+import { ConfigServiceG } from './config-g.service';
+import { DataUtilsService } from './data-utils.service';
 
 @Injectable()
 export class FormService {
@@ -22,9 +23,9 @@ export class FormService {
   currentEditMode = this.currentEdit.asObservable();
 
   constructor(
-    private _objService: MonitoringObjectService,
     private _formBuilder: FormBuilder,
-    private _configService: ConfigService
+    private _configServiceG: ConfigServiceG,
+    private _dataUtilsService: DataUtilsService
   ) {}
 
   changeFormMapObj(formMapObj: IFormMap) {
@@ -35,47 +36,95 @@ export class FormService {
     this.currentEdit.next(editMode);
   }
 
-  formValues(obj, schemaUpdate = {}): Observable<any> {
-    let schema;
-    // const {properties ,remainaing} = obj
-    const properties = Utils.copy(obj.properties);
-    const observables = {};
-    if (obj.moduleCode && Object.keys(schemaUpdate).length != 0) {
-      schema = schemaUpdate;
-    } else if (obj.moduleCode) {
-      schema = this._configService.schema(obj.moduleCode, obj.objectType, 'all');
-    } else {
-      schema = obj[obj.moduleCode];
+  toForm(elem, val): Observable<any> {
+    let x = val;
+    // valeur par default depuis la config schema
+    x = [undefined, null].includes(x) ? (elem.value === '' ? null : elem.value) : x;
+    if (elem.type_widget == 'date') {
+      const date = new Date(x);
+      x = x
+        ? {
+            year: date.getUTCFullYear(),
+            month: date.getUTCMonth() + 1,
+            day: date.getUTCDate(),
+          }
+        : null;
+    } else if (elem.type_widget === 'observers') {
+      const codeListObservers = this._configServiceG.codeListObservers();
+      // Gestion des observateurs multiples
+      if (!Array.isArray(val)) val = [val];
+
+      x == null
+        ? (x = [])
+        : (x = this._dataUtilsService.getUsersByCodeList(codeListObservers).pipe(
+            // Cas des observateurs multiples à gérer
+            mergeMap((users: any) => {
+              let currentUser = [];
+              if (!Array.isArray(users)) {
+                return of(null);
+              }
+              for (const user of users) {
+                for (const obs of val) {
+                  if (user.id_role == obs) {
+                    currentUser.push(user);
+                  }
+                }
+              }
+              //Si non multiple on renvoie le premier élément ou null
+              if (!elem.multi_select) {
+                currentUser = currentUser.length ? currentUser[0] : null;
+              }
+              return of(currentUser);
+            })
+          ));
+    } else if (elem.type_widget === 'taxonomy') {
+      x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
+    } else if (
+      elem.type_util === 'nomenclature' &&
+      Utils.isObject(x) &&
+      x.code_nomenclature_type &&
+      x.cd_nomenclature
+    ) {
+      x = this._dataUtilsService.getNomenclature(x.code_nomenclature_type, x.cd_nomenclature).pipe(
+        mergeMap((nomenclature) => {
+          return of(nomenclature['id_nomenclature']);
+        })
+      );
     }
 
-    // ADD specific properties if exist
-    if (obj.specific != undefined) {
-      for (const attribut_name of Object.keys(obj.specific)) {
-        properties[attribut_name] = obj[attribut_name];
+    x = x instanceof Observable ? x : of(x);
+    return x;
+  }
+
+  fromForm(elem, val) {
+    let x = val;
+    if (x == undefined) {
+      return x;
+    }
+    switch (elem.type_widget) {
+      case 'date': {
+        x =
+          x && x.year && x.month && x.day
+            ? `${x.year}-${String(x.month).padStart(2, '0')}-${String(x.day).padStart(2, '0')}`
+            : null;
+        break;
       }
-    }
-
-    for (const attribut_name of Object.keys(schema)) {
-      const elem = schema[attribut_name];
-      // NOTES: [dev-suivi-eol] ici le formValues possédant uniquement des propriétés sans type_widget ne surcouchent pas les champs specific au type de site
-      if (!(elem || [])['type_widget']) {
-        continue;
-      }
-      observables[attribut_name] = this._objService.toForm(elem, properties[attribut_name]);
-    }
-
-    return forkJoin(observables).pipe(
-      concatMap((formValues_in) => {
-        const formValues = Utils.copy(formValues_in);
-        // geometry
-        if ('config' in obj && obj.config['geometry_type']) {
-          // TODO: change null by the geometry load from the object (if edit) or null if create
-          // formValues["geometry"] = this.geometry; // copy???
-          formValues['geometry'] = obj.geometry; // copy???
+      case 'observers': {
+        if ('multi_select' in elem && elem.multi_select) {
+          x = x.map((item) => {
+            return item.id_role;
+          });
+        } else {
+          x = x instanceof Array && x.length === 1 ? x[0].id_role : x.id_role;
         }
-        return of(formValues);
-      })
-    );
+        break;
+      }
+      case 'taxonomy': {
+        x = x instanceof Object ? x.cd_nom : x;
+        break;
+      }
+    }
+    return x;
   }
 
   /**

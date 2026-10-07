@@ -11,32 +11,10 @@ interface ItemObjectTable {
 
 type ItemsObjectTable = { [key: string]: ItemObjectTable };
 
+// A voir si c'est utile de garder un service qui n'est utilisé que par un composant datatable-g
 @Injectable()
 export class DataTableService {
-  obj: ItemsObjectTable;
-  objectsStatus: ItemsObjectTable;
-  rowStatus: ItemObjectTable;
-  idObj: number;
-
-  // IF prefered observable compare to ngOnChanges uncomment this:
-  // dataCol:IColumn[] =[{prop:"",name:"",description:""}]
-  // private dataCols = new BehaviorSubject<object>(this.dataCol);
-  // currentCols = this.dataCols.asObservable();
-
   constructor() {}
-
-  // IF prefered observable compare to ngOnChanges uncomment this:
-  // changeColsTable(newCols:IColumn[],newRows){
-  //   const arr = Object.keys(newCols);
-  //   const allColumn: IColumn[] = arr
-  //     .filter((item) => Object.keys(newRows).includes(item))
-  //     .map((elm) => ({
-  //       name: newCols[elm],
-  //       prop: elm,
-  //       description: elm,
-  //     }));
-  //   this.dataCols.next(allColumn)
-  // }
 
   colsTable(colName: {}): IColumn[] {
     const arr = Object.keys(colName);

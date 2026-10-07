@@ -2,7 +2,7 @@ import { Subscription } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Component, OnInit, Input, Output, SimpleChanges, EventEmitter } from '@angular/core';
 
-import { ConfigService } from '../../services/config.service';
+import { ConfigServiceG } from '../../services/config-g.service';
 
 import { Router } from '@angular/router';
 import { ObjectService } from '../../services/object.service';
@@ -19,7 +19,7 @@ export class BreadcrumbsComponent implements OnInit {
   private breadCrumbSubscription: Subscription;
 
   constructor(
-    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
     private _router: Router,
     private _objectService: ObjectService,
     private _formService: FormService
@@ -51,7 +51,7 @@ export class BreadcrumbsComponent implements OnInit {
           queryParams: elem.params,
         });
       } else {
-        this._router.navigate([this._configService.frontendModuleMonitoringUrl()]);
+        this._router.navigate([this._configServiceG.frontendModuleMonitoringUrl()]);
       }
     }, 100);
   }
