@@ -103,7 +103,7 @@ export class MonitoringGeomComponent implements OnInit {
   }
 
   onbEditChange(event: boolean) {
-    console.log('Not implemented');
+    console.warn('Not implemented');
   }
 
   setPage({ page, filters, tabObj = '' }) {

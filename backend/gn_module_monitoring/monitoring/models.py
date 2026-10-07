@@ -11,7 +11,7 @@ from flask import g
 from uuid import uuid4
 
 from sqlalchemy import join, select, func, and_
-from sqlalchemy.orm import Mapped, column_property, aliased, mapped_column
+from sqlalchemy.orm import Mapped, column_property, aliased, mapped_column, synonym
 
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -48,6 +48,7 @@ from gn_module_monitoring.monitoring.queries import (
     VisitQuery,
     ObservationsQuery,
     IndividualsQuery,
+    MarkingsQuery,
 )
 
 
@@ -654,13 +655,13 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
 
 @serializable
-class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MonitoringQuery):
+class TMonitoringMarkingEvent(TMarkingEvent, PermissionModel, MarkingsQuery):
     pass
 
 
 @serializable
 class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
-
+    data = synonym("additional_data")
     nb_sites = column_property(
         select(func.count(func.distinct(TMonitoringSites.id_base_site)))
         .join_from(
@@ -685,6 +686,15 @@ class TMonitoringIndividuals(TIndividuals, PermissionModel, IndividualsQuery):
         primaryjoin=(TIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
     )
 
+
+TMonitoringMarkingEvent.individual = DB.relationship(
+    TMonitoringIndividuals,
+    lazy="select",
+    primaryjoin=(TMonitoringIndividuals.id_individual == TMonitoringMarkingEvent.id_individual),
+    foreign_keys=[TMonitoringMarkingEvent.id_individual],
+    uselist=False,
+    viewonly=True,
+)
 
 TMonitoringVisits.site = DB.relationship(
     TMonitoringSites,

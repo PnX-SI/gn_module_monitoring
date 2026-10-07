@@ -355,7 +355,6 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.httpClient
       .get(this._configService.backendUrl() + '/import/destinations/C')
       .subscribe((data: any) => {
-        console.log(data);
         this.importAvailable =
           data.filter((destination: any) => destination.code == this.moduleCode).length > 0;
       });

@@ -1,0 +1,14 @@
+<div>
+  <span class="obj-title">{{ 'Actions.Add' | translate }}</span>
+</div>
+<div>
+  <pnx-monitoring-form-g
+    [object]="individual"
+    objectType="individual"
+    [form]="form"
+    [apiService]="_individualsService"
+    [config]="moduleConfig['individual']"
+    [currentUser]="currentUser"
+    [fetchedParents]="fetchedParents"
+  ></pnx-monitoring-form-g>
+</div>

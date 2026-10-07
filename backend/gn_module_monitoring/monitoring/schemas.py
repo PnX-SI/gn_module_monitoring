@@ -21,6 +21,7 @@ from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
 from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
+    TMonitoringMarkingEvent,
     TMonitoringModules,
     TMonitoringObservationDetails,
     TMonitoringObservations,
@@ -67,6 +68,9 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
+    # Certains modèles (ex: individus) n'ont pas de colonne data
+    if hasattr(model_class, "data"):
+        parameters["exclude"].append("data")
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
@@ -382,6 +386,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
         parents = {}
         hierarchy_list = ["visit", "visit.site", "visit.site.sites_group"]
         parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
 
 class MonitoringObservationsSchemaCruved(
@@ -414,6 +419,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
             "observation.visit.site.sites_group",
         ]
         parents = generate_parents_data(hierarchy_list, obj)
+        return parents
 
     def set_pk(self, obj):
         return "id_observation_detail"
@@ -442,14 +448,58 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
         model = TMonitoringIndividuals
         include_fk = True
         load_relationships = True
+        load_instance = True
+        exclude = ("additional_data",)
 
     medias = MA.Nested(MediaSchema, many=True)
-
+    id_individual = auto_field(required=False, allow_none=True)
+    uuid_individual = fields.String(required=False, allow_none=True)
+    data = auto_field()
     pk = fields.Method("set_pk", dump_only=True)
 
     def set_pk(self, obj):
         return "id_individual"
 
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+
+        return data
+
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
+    pass
+
+
+class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
+    class Meta:
+        model = TMonitoringMarkingEvent
+        include_fk = True
+        load_relationships = True
+        load_instance = True
+
+    id_marking = auto_field(required=False, allow_none=True)
+    # marking_date is stored as a Date column in db despite TMarkingEvent
+    # declaring it as DateTime, so we override the auto-inferred field here.
+    marking_date = fields.Date(required=True)
+    medias = MA.Nested(MediaSchema, many=True)
+    pk = fields.Method("set_pk", dump_only=True)
+
+    parents = fields.Method("get_parents", dump_only=True)
+
+    def get_parents(self, obj):
+        hierarchy_list = ["individual"]
+        parents = generate_parents_data(hierarchy_list, obj)
+        return parents
+
+    def set_pk(self, obj):
+        return "id_marking"
+
+    @pre_load
+    def normalize(self, data, **kwargs):
+        data["medias"] = data.get("medias") or []
+        return data
+
+
+class MonitoringMarkingSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringMarkingSchema):
     pass

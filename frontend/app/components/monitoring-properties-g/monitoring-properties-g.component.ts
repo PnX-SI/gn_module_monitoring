@@ -47,7 +47,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   ngOnInit() {
     this.moduleCode = this._configServiceG.moduleCode() ?? '';
-    console.log(this.templateData.exportCSV, 'eeeee');
     // Si les permissions n'ont pas été initialisées
     this.userPermission =
       this.currentUser.moduleCruved ||

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from gn_module_monitoring.tests.fixtures.module import install_monitoring_module
+from gn_module_monitoring.tests.fixtures.monitoring_modules import install_monitoring_module
 import pytest
 
 from flask import current_app, url_for

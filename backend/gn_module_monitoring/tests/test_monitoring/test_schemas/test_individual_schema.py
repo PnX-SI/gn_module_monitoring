@@ -35,10 +35,10 @@ class TestMonitoringIndividuals:
         deserialized_data = schema.load(input_data)
 
         # Vérifications
-        assert deserialized_data["individual_name"] == input_data["individual_name"]
-        assert deserialized_data["cd_nom"] == input_data["cd_nom"]
-        assert deserialized_data["active"] == input_data["active"]
-        assert deserialized_data["id_digitiser"] == input_data["id_digitiser"]
+        assert deserialized_data.individual_name == input_data["individual_name"]
+        assert deserialized_data.cd_nom == input_data["cd_nom"]
+        assert deserialized_data.active == input_data["active"]
+        assert deserialized_data.id_digitiser == input_data["id_digitiser"]
 
     def test_monitoring_individuals_schema_validation(self):
         # Données d'entrée invalides
