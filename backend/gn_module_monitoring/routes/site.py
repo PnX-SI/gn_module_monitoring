@@ -308,11 +308,16 @@ def patch_site(scope, module_code, _id, object_type):
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
-@blueprint.route("/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": "site"})
-@permissions.check_cruved_scope(
-    "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_SITES"
+@blueprint.route(
+    "/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": default_route_object_type}
 )
-def delete_site(scope, _id, object_type):
+@blueprint.route(
+    "/<string:module_code>/sites/<int:_id>",
+    methods=["DELETE"],
+    defaults={"object_type": default_route_object_type},
+)
+@permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_SITES")
+def delete_site(scope, _id, object_type, module_code=None):
     site = db.get_or_404(TMonitoringSites, _id)
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete site {site.id_base_site}")
