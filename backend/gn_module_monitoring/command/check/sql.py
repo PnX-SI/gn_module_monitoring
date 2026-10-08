@@ -109,9 +109,8 @@ def check_module_sql_files(module_code, check_data, fix):
     for sql_file_path in find_sql_files(module_path):
         if not sql_file_path.exists():
             continue
-        error_count, _ = wrap_errors(
+        total_error_count += wrap_errors(
             f"Fichier SQL '{sql_file_path.relative_to(module_path)}'",
             check_module_sql_file(module_code, check_data, fix, sql_file_path.read_text()),
         )
-        total_error_count += error_count
     return total_error_count
