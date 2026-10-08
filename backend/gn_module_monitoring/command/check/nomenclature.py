@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 import json
 
 import click
@@ -12,18 +12,19 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 
 
-@lru_cache
+@cache
 def get_nomenclature_type(mnemonique):
     return db.session.execute(
         select(BibNomenclaturesTypes).where(BibNomenclaturesTypes.mnemonique == mnemonique)
     ).scalar_one_or_none()
 
 
-@lru_cache
+@cache
 def get_nomenclature(nomenclature_type, *whereclauses, **kwargs):
+    if nomenclature_type is not None:
+        whereclauses = (TNomenclatures.nomenclature_type == nomenclature_type, *whereclauses)
     return db.session.execute(
         select(TNomenclatures).where(
-            TNomenclatures.nomenclature_type == nomenclature_type,
             *whereclauses,
             *[getattr(TNomenclatures, k) == v for k, v in kwargs.items()],
         )
@@ -97,6 +98,7 @@ def check_module_nomenclatures(module_code: str, check_data: bool, fix: bool):
             if fix and click.confirm("Ajouter ?"):
                 db.session.add(BibNomenclaturesTypes(**nomenclature_type))
                 db.session.commit()
+                get_nomenclature_type.cache_clear()
             continue
         for k, v in nomenclature_type.items():
             if getattr(db_nomenclature_type, k) != v:
