@@ -3,7 +3,6 @@ import json
 from marshmallow import Schema, ValidationError, fields, validate, RAISE, validates_schema
 
 from gn_module_monitoring.config.utils import monitoring_module_config_path
-from gn_module_monitoring.config.repositories import get_config
 
 
 class ObservationDetailTreeSchema(Schema):
@@ -26,14 +25,23 @@ class SiteGroupTreeSchema(Schema):
     site = fields.Nested(SiteTreeSchema, allow_none=True)
 
 
+class MarkingTreeSchema(Schema):
+    pass
+
+
+class IndividualTreeSchema(Schema):
+    marking = fields.Nested(MarkingTreeSchema, allow_none=True)
+
+
 class ModuleTreeSchema(Schema):
     sites_group = fields.Nested(SiteGroupTreeSchema)
     site = fields.Nested(SiteTreeSchema, allow_none=True)
+    individual = fields.Nested(IndividualTreeSchema, allow_none=True)
 
     @validates_schema
     def validate_schema(self, data, **kwarsg):
-        if not data.get("site") and not data.get("sites_group"):
-            raise ValidationError("At least one of site or sites_group is required.")
+        if not data.get("site") and not data.get("sites_group") and not data.get("individual"):
+            raise ValidationError("At least one of site or sites_group or individual required.")
 
 
 class TreeSchema(Schema):
@@ -41,6 +49,7 @@ class TreeSchema(Schema):
 
 
 class DataSchema(Schema):
+    # TODO: complete
     pass
 
 
@@ -59,6 +68,7 @@ class ModuleConfigSchema(Schema):
 
 
 def check_module_config(module_code):
+    # Validation marshmallow
     config_path = monitoring_module_config_path(module_code) / "config.json"
     config = json.loads(config_path.read_text())
     try:
@@ -68,12 +78,4 @@ def check_module_config(module_code):
         )
     except ValidationError as e:
         yield e
-
-    # La fonction get_config va également enrichir celle-ci pour obtenir une configuration opérationelle
-    # Cependant, le chargement du fichier n’est pas validé par un schéma, d’où notre contrôle précédent.
-    try:
-        config = get_config(module_code, force=True)
-    except Exception as e:  # FIXME: revoir get_config pour éviter les exceptions
-        yield e
-        return
     return config

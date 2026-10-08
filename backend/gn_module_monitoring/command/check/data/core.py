@@ -12,33 +12,14 @@ from gn_module_monitoring.command.check.utils import (
 )
 from gn_module_monitoring.command.imports.constant import MULTI_TYPE_WIDGET
 
+from gn_module_monitoring.command.check.utils import get_object_types
+
 
 def is_multiple(field_conf: dict) -> bool:
     multiple = field_conf.get("multiple", field_conf.get("multi_select", False))
     if isinstance(multiple, str):
         multiple = multiple.strip().lower() in ["true", "vrai", "oui", "yes", "1"]
     return bool(multiple) or field_conf.get("type_widget") in MULTI_TYPE_WIDGET
-
-
-def get_object_types(config: dict):
-    """
-    Retourne la liste des objets du protocole (sites, visites, observations...)
-    pour lesquels des données spécifiques sont stockées, en parcourant
-    l'arbre des objets défini dans la configuration.
-    """
-
-    def iter_tree(tree):
-        for object_type, children in (tree or {}).items():
-            yield object_type
-            if children is not None:
-                yield from iter_tree(children)
-
-    object_types = ["module"]
-    for object_type in iter_tree(config.get("tree")):
-        if object_type not in object_types:
-            object_types.append(object_type)
-
-    return object_types
 
 
 def get_fields_config(config: dict, object_type: str):
@@ -154,70 +135,7 @@ def update_row(object_type, row_id, data):
     yield "\n" + click.style(f"Enregistrement {row_id} mis à jour", fg="green")
 
 
-def check_nomenclature_value(row_id, field_name, field_conf, value, fix):
-    updated_value = None
-
-    mnemonique = field_conf.get("code_nomenclature_type")
-    if mnemonique is None:
-        yield f"Missing mnemonique in field '{field_name}' config"
-        return
-    nomenclature_type = get_nomenclature_type(mnemonique)
-    if nomenclature_type is None:
-        yield f"Nomenclature type not found for mnemonique '{mnemonique}'"
-        return
-
-    if type(value) != int:
-        yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - valeur '{value}' : pas un entier"
-        if type(value) == str:
-            nomenclature = get_nomenclature(
-                nomenclature_type, TNomenclatures.cd_nomenclature.ilike(value)
-            )
-            if nomenclature is not None:
-                yield f"\nLa nomenclature {nomenclature.id_nomenclature} a été trouvée par cd_nomenclature"
-            else:
-                nomenclature = get_nomenclature(
-                    nomenclature_type, TNomenclatures.mnemonique.ilike(value)
-                )
-                if nomenclature is not None:
-                    yield f"\nLa nomenclature '{nomenclature.id_nomenclature}' a été trouvée par mnemonique"
-            if nomenclature is not None:
-                yield f"\n  mnemonique: {nomenclature.mnemonique}"
-                yield f"\n  cd_nomenclature: {nomenclature.cd_nomenclature}"
-                yield f"\n  label_default: {nomenclature.label_default}"
-                yield f"\n  label_fr: {nomenclature.label_fr}"
-                yield f"\n  definition_default: {nomenclature.definition_default}"
-                yield f"\n  definition_fr: {nomenclature.definition_fr}"
-                if fix and click.confirm("Utiliser ?"):
-                    updated_value = nomenclature.id_nomenclature
-                else:
-                    return
-        else:
-            return
-    else:
-        nomenclature = get_nomenclature(nomenclature_type, id_nomenclature=value)
-        if nomenclature is None:
-            yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - valeur '{value}' : non trouvée"
-            return
-
-    if nomenclature is None:
-        return
-
-    cd_nomenclatures = field_conf.get("cd_nomenclatures")
-    if cd_nomenclatures and nomenclature.cd_nomenclature not in cd_nomenclatures:
-        yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - cd_nomenclature '{nomenclature.cd_nomenclature}' : non autorisée"
-        yield "\nValeurs admises :"
-        for cd_nomenclature in cd_nomenclatures:
-            yield f"\n  {cd_nomenclature}"
-
-    return updated_value
-
-
-def check_datalist_value(field_conf, value):
-    # TODO: check allowed values…
-    pass
-
-
-def check_field(row_id, field_name: str, field_conf: dict, value, fix):
+def check_field(row_id, field_name: str, field_config: dict, value, fix):
     """
     Vérifie la valeur d'un champ par rapport à sa configuration.
     """
@@ -230,11 +148,9 @@ def check_field(row_id, field_name: str, field_conf: dict, value, fix):
         if fix and click.confirm("Applatir ?"):
             updated_value = value[0]
             value = updated_value
-    if field_conf.get("type_util") == "nomenclature":
-        updated_value = yield from check_nomenclature_value(
-            row_id, field_name, field_conf, value, fix
-        )
-        value = updated_value
+    adapter = field_config["adapter"]
+    updated_value = yield from adapter.check_value(row_id, field_name, field_config, value, fix)
+    value = updated_value
 
     return updated_value
     # TODO: other types…
@@ -250,6 +166,7 @@ def check_row(row_id, config, data):
 
 
 def check_module_data_type(config, fix, data_filters, id_module, object_type):
+    # Excluded by CLI filters?
     if any(data_filters.values()) and not (
         data_filters.get(object_type)
         or data_filters.get(f"{object_type}_pks")
@@ -257,7 +174,7 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
     ):
         return CheckResult("[SKIP]", bold=True)
 
-    fields_config = get_fields_config(config, object_type)
+    fields_config = config[object_type].get("fields", {})
     rows = get_data_rows(object_type, id_module, data_filters.get(f"{object_type}_pks"))
     if not rows:
         return CheckResult("[NO DATA]", bold=True)
@@ -291,13 +208,14 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
         yield from check_row(row_id, config, data)
 
 
-def check_module_data(config: dict, fix: bool, data_filters: None | dict = None):
+def check_module_data(
+    config: dict, legacy_config: dict, fix: bool, data_filters: None | dict = None
+):
     total_error_count = 0
-    id_module = config["module"]["id_module"]
-    for object_type in get_object_types(config):
-        error_count, _ = wrap_errors(
+    id_module = legacy_config["module"]["id_module"]
+    for object_type in get_object_types(config["tree"]):
+        total_error_count += wrap_errors(
             f"Données - {object_type}",
             check_module_data_type(config, fix, data_filters, id_module, object_type),
         )
-        total_error_count += error_count
     return total_error_count

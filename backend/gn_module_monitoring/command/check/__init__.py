@@ -1,11 +1,13 @@
 import click
 
+from gn_module_monitoring.config.repositories import get_config
+
 from gn_module_monitoring.command.check.protocol import check_module_protocol
 from gn_module_monitoring.command.check.config import check_module_config
 from gn_module_monitoring.command.check.data import check_module_data
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
 from gn_module_monitoring.command.check.sql import check_module_sql_files
-
+from gn_module_monitoring.command.check.permissions import check_module_permissions
 from gn_module_monitoring.command.check.utils import wrap_errors
 from gn_module_monitoring.command.utils import (
     available_modules,
@@ -13,36 +15,40 @@ from gn_module_monitoring.command.utils import (
 )
 
 
-def check_module_permissions(module_code):
-    return
-    yield
+def load_legacy_config(module_code):
+    try:
+        config = get_config(module_code, force=True)
+    except Exception as e:  # FIXME: revoir get_config pour éviter les exceptions
+        yield e
+        return
+    return config
 
 
 def run_module_check(module_code, check_data, data_filters, fix):
     total_error_count = 0
 
-    error_count, _ = wrap_errors(
-        "Fichiers de définition du protocole", check_module_protocol(module_code)
+    error_count, config = wrap_errors(
+        "Fichier de configuration du module", check_module_config(module_code), return_result=True
     )
     total_error_count += error_count
 
-    error_count, _ = wrap_errors(
+    total_error_count += check_module_protocol(module_code, config)
+
+    total_error_count += wrap_errors(
         "Nomenclatures", check_module_nomenclatures(module_code, check_data, fix)
     )
-    total_error_count += error_count
 
     total_error_count += check_module_sql_files(module_code, check_data, fix)
 
-    error_count, config = wrap_errors("Configuration", check_module_config(module_code))
+    error_count, legacy_config = wrap_errors(
+        "Assemblage des configurations", load_legacy_config(module_code), return_result=True
+    )
     total_error_count += error_count
-    if not config:  # can not run data checks without valid config
-        return total_error_count
 
-    if check_data:
-        error_count, _ = wrap_errors("Permissions", check_module_permissions(module_code))
-        total_error_count += error_count
+    if config and check_data:
+        total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
 
-        total_error_count += check_module_data(config, fix, data_filters)
+        total_error_count += check_module_data(config, legacy_config, fix, data_filters)
 
     return total_error_count
 
