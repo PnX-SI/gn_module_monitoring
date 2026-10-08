@@ -135,25 +135,24 @@ def update_row(object_type, row_id, data):
     yield "\n" + click.style(f"Enregistrement {row_id} mis à jour", fg="green")
 
 
-def check_field(row_id, field_name: str, field_config: dict, value, fix):
+def check_field(entity: str, row_id: int, field_name: str, field_config: dict, value, fix: bool):
     """
     Vérifie la valeur d'un champ par rapport à sa configuration.
     """
     # TODO: check required value
     if value is None:
         return
-    updated_value = None
-    if not is_multiple(field_conf) and type(value) is list and len(value) == 1:
-        yield f"[{row_id}] {field_name} : champs non-multi mais une liste de longueur 1 a été trouvée"
-        if fix and click.confirm("Applatir ?"):
-            updated_value = value[0]
-            value = updated_value
+    # FIXME: is_multiple is currently based on old field_config definition
+    # if not is_multiple(field_config) and type(value) is list and len(value) == 1:
+    #     yield f"[{row_id}] {field_name} : champs non-multi mais une liste de longueur 1 a été trouvée"
+    #     if fix and click.confirm("Applatir ?"):
+    #         updated_value = value[0]
+    #         value = updated_value
     adapter = field_config["adapter"]
-    updated_value = yield from adapter.check_value(row_id, field_name, field_config, value, fix)
-    value = updated_value
-
+    updated_value = yield from adapter.check_stored_value(
+        entity, row_id, field_name, field_config, value, fix
+    )
     return updated_value
-    # TODO: other types…
 
 
 def check_row(row_id, config, data):
@@ -198,8 +197,11 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
                 yield f"[{row_id}] Le champs '{field_name}'' n’est pas défini dans la configuration du protocole"
                 continue
 
-            updated_value = yield from check_field(row_id, field_name, field_config, value, fix)
-            if updated_value is not None:
+            updated_value = yield from check_field(
+                object_type, row_id, field_name, field_config, value, fix
+            )
+            # attention au cas 1 == True !
+            if updated_value != value or type(updated_value) != type(value):
                 data[field_name] = updated_value
                 modified_row = True
         if modified_row:

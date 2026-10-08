@@ -15,13 +15,39 @@ class BaseAdapter:
         self.config = self.ConfigSchema().load(data or {}, **kwargs)
 
     def get_default_widget(self, data, **kwargs):
+        """
+        Widget par défaut pour cet adapteur. Si l’utilisateur ne définie pas de widget dans la config,
+        alors ce widget sera utilisé.
+        """
         raise NotImplementedError
 
-    def wire_to_storage(self):
-        pass
+    def wire_to_storage(self, value: Any) -> Any:
+        """
+        Fonction de validation des données reçu par l’API.
+        En cas d’erreur(s), lever une exception ValidationError.
+        Retourne la valeur qui doit être stocké en base.
+        """
+        raise NotImplementedError
 
-    def storage_to_wire(self):
-        pass
+    def storage_to_wire(self, value: Any) -> Any:
+        """
+        Fonction de déserialisation des données depuis la base avant l’envoi à l’API.
+        Sauf cas particulier, la données peut être envoyé telle quelle à l’API.
+        """
+        return value
+
+    def check_stored_value(self, entity, row_id, field_name, value: Any, fix: bool):
+        """
+        Cette fonction permet de contrôler les données stockées en base.
+        Cela doit être un générateur. Chaque valeur qui est yield est comptabilisé comme une erreur.
+        Note : il est possible de yield des strings qui commence par "\n", auquel cas il s’agit d’un
+               commentaire sur l’erreur précédente et non une nouvelle erreur.
+        Si fix est vrai, la fonction est encouragé à proposer des corrections à l’utilisateur.
+        Si la fonction retourne une valeur différente de celle reçu en entrée, cela est considéré comme
+        une correction et la base sera mise à jour avec la donnée renvoyé.
+        """
+        yield
+        return value
 
     def __str__(self):
         return self.__class__.__name__
@@ -169,7 +195,7 @@ class NomenclatureAdapter(BaseAdapter):
     def get_wire_type(self):
         return int
 
-    def check_value(self, row_id, field_name, value, fix):
+    def check_stored_value(self, row_id, field_name, value, fix):
         from .nomenclature import get_nomenclature_type, get_nomenclature
 
         updated_value = None
