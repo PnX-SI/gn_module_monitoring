@@ -95,6 +95,19 @@ class ValueLabelField(fields.Field):
         raise ValidationError("Must be a string or a dict.")
 
 
+class StrOrListStr(fields.Field):
+    """
+    Ce champs accepte une string ou une liste de string.
+    """
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if isinstance(value, str):
+            return value
+        if isinstance(value, list):
+            return fields.List(fields.String()).deserialize(value)
+        raise ValidationError("Must be a string or a list.")
+
+
 class MultilineStr(fields.Field):
     """
     Ce champs accepte une string, ou une liste de string qu’il va alors joindre par des fins de ligne.
