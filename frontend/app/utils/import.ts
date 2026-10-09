@@ -1,6 +1,6 @@
-export function getImportProperties(obj: any) {
-  const objectType = obj?.objectType;
-  const properties = obj?.properties;
+import { ObjectType } from '../enum/objecttype';
+
+export function getImportProperties(objectType: ObjectType, properties: any) {
   if ('visit' == objectType) {
     return {
       uuid_base_site: properties['uuid_base_site'], // todo: is it useful ?

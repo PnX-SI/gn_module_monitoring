@@ -63,13 +63,12 @@
               ></i>
             </button>
             <pnx-import-button
-              *ngIf="importAvailable"
+              *ngIf="isEntityAvailableToImport(activetabType)"
               [moduleCode]="moduleCode"
-              [objectType]="objectType"
+              [objectType]="getPermissionCode(activetabType)"
               [properties]="getImportProperties()"
             ></pnx-import-button>
             <!-- Si c'est une visite et que le module est générique alors affichage d'un template spécifique -->
-
             <ng-template
               [ngIf]="!(activetabType === 'visit' && moduleCode === 'generic')"
               [ngIfElse]="chooseProtocol"
