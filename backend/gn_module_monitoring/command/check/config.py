@@ -6,34 +6,54 @@ from gn_module_monitoring.config.utils import monitoring_module_config_path
 
 
 class ObservationDetailTreeSchema(Schema):
-    pass
+    class Meta:
+        unknown = RAISE
 
 
 class ObservationTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     observation_detail = fields.Nested(ObservationDetailTreeSchema, allow_none=True)
 
 
 class VisitTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     observation = fields.Nested(ObservationTreeSchema, allow_none=True)
 
 
 class SiteTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     visit = fields.Nested(VisitTreeSchema, allow_none=True)
 
 
 class SiteGroupTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     site = fields.Nested(SiteTreeSchema, allow_none=True)
 
 
 class MarkingTreeSchema(Schema):
-    pass
+    class Meta:
+        unknown = RAISE
 
 
 class IndividualTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     marking = fields.Nested(MarkingTreeSchema, allow_none=True)
 
 
 class ModuleTreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     sites_group = fields.Nested(SiteGroupTreeSchema)
     site = fields.Nested(SiteTreeSchema, allow_none=True)
     individual = fields.Nested(IndividualTreeSchema, allow_none=True)
@@ -45,6 +65,9 @@ class ModuleTreeSchema(Schema):
 
 
 class TreeSchema(Schema):
+    class Meta:
+        unknown = RAISE
+
     module = fields.Nested(ModuleTreeSchema, required=True)
 
 
@@ -54,9 +77,17 @@ class DataSchema(Schema):
 
 
 class ModuleConfigSchema(Schema):
-    tree = fields.Nested(TreeSchema)
+    tree = fields.Nested(
+        TreeSchema,
+        load_default={
+            "module": {
+                "sites_group": {"site": {"visit": {"observation": {"observation_detail": None}}}},
+                "site": None,
+            }
+        },
+    )
     synthese_object = fields.String(validate=validate.OneOf(["observation"]))
-    permission_objects = fields.List(  # FIXME: Legacy
+    permission_objects = fields.List(  # FIXME: Legacy?
         fields.String(
             validate=validate.OneOf(
                 ["GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]
