@@ -2,6 +2,7 @@ import os, datetime, time
 import importlib
 import json
 from pathlib import Path
+import copy
 
 from flask import current_app
 from sqlalchemy import and_, select
@@ -93,10 +94,6 @@ def get_id_table_location(object_type):
         pass
 
     return id_table_location
-
-
-def copy_dict(dict_in):
-    return json.loads(json.dumps(dict_in))
 
 
 def json_from_file(file_path, result_default={}):
@@ -217,9 +214,9 @@ def process_schema(object_type, config):
         type_widget_g = generic[key].get("type_widget")
 
         if type_widget_s and type_widget_s == type_widget_g:
-            generic[key] = copy_dict(specific[key])
+            generic[key] = copy.deepcopy(specific[key])
         else:
-            generic[key].update(copy_dict(specific[key]))
+            generic[key].update(copy.deepcopy(specific[key]))
         generic[key].update(process_display_element(generic[key]))
 
         del specific[key]
