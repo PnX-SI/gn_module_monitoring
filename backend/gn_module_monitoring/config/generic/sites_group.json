@@ -65,12 +65,16 @@
         "schema_dot_table": "gn_monitoring.t_sites_groups"
       },
       "altitude_min": {
-        "type_widget": "integer",
-        "attribut_label": "Altitude (min)"
+        "type_widget": "number",
+        "step": 1,
+        "attribut_label": "Altitude (min)",
+        "hidden": true
         },
       "altitude_max": {
-        "type_widget": "integer",
-        "attribut_label": "Altitude (max)"
+        "type_widget": "number",
+        "step": 1,
+        "attribut_label": "Altitude (max)",
+        "hidden": true
         },
       "id_digitiser": {
         "type_widget": "text",
