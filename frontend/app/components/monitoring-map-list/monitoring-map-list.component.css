@@ -3,6 +3,12 @@
   display: flex;
 }
 
+/* Hauteur disponible sous la barre d'outils de GeoNature (--gn-content-height) moins les marges.
+   Se recalcule automatiquement au redimensionnement de la fenêtre. */
+#object {
+  height: max(310px, calc(var(--gn-content-height) - 40px));
+}
+
 .flex-container > div {
   width: 50%;
   padding: 10px;
