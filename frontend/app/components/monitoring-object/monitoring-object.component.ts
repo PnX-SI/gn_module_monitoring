@@ -21,7 +21,6 @@ import { MonitoringObjectService } from '../../services/monitoring-object.servic
 import { ConfigService } from '../../services/config.service';
 import { DataUtilsService } from '../../services/data-utils.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
-import { CommonService } from '@geonature_common/service/common.service';
 import { MapService } from '@geonature_common/map/map.service';
 import { ObjectService } from '../../services/object.service';
 
@@ -51,7 +50,8 @@ export class MonitoringObjectComponent implements OnInit {
 
   currentUser: User;
 
-  heightMap;
+  // Hauteur de la carte : hauteur du conteneur #object (voir CSS) moins ses marges
+  heightMap: string = 'max(270px, calc(var(--gn-content-height) - 80px))';
 
   moduleSet = false;
   bDeleteModal = false;
@@ -65,20 +65,10 @@ export class MonitoringObjectComponent implements OnInit {
     private _formBuilder: FormBuilder,
     public mapservice: MapService,
     private _auth: AuthService,
-    private _commonService: CommonService,
     private _evtObjService: ObjectService,
     private _geojsonService: GeoJSONService,
     public _listService: ListService
   ) {}
-
-  ngAfterViewInit() {
-    const container = document.getElementById('object');
-    const height = this._commonService.calcCardContentHeight();
-    container.style.height = height - 40 + 'px';
-    setTimeout(() => {
-      this.heightMap = height - 80 + 'px';
-    });
-  }
 
   ngOnInit() {
     const elements = document.getElementsByClassName('monitoring-map-container');
