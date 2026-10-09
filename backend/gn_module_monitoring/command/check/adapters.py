@@ -28,13 +28,35 @@ class BaseAdapter:
         return cls.ConfigSchema
 
     def __init__(self, data=None, **kwargs):
-        self.config = self.get_config_schema_class()().load(data or {}, **kwargs)
+        data = data or {}
+        if "type_util" in data:
+            self.extra_data = data
+            # retro-compat.
+            kwargs["unknown"] = ma.EXCLUDE
+        else:
+            self.extra_data = None
+        self.config = self.get_config_schema_class()().load(data, **kwargs)
 
-    def get_default_widget(self, data, **kwargs):
+    def get_default_widget(self, data=None, **kwargs):
+        # Gestion de la rétro-compat: si l’adapter a été initialisé en mode retro-compat.,
+        # on initialise le widget en mode retro-compat.
+        data = data or {}
+        if self.extra_data:
+            return self._get_default_widget(
+                {**self.extra_data, **data},
+                **{**kwargs, "unknown": ma.EXCLUDE},
+            )
+        else:
+            return self._get_default_widget(data, **kwargs)
+
+    def _get_default_widget(self, data, **kwargs):
         """
         Widget par défaut pour cet adapteur. Si l’utilisateur ne définie pas de widget dans la config,
         alors ce widget sera utilisé.
         """
+        raise NotImplementedError
+
+    def get_wire_type(self) -> type:
         raise NotImplementedError
 
     def wire_to_storage(self, value: Any) -> Any:
@@ -117,7 +139,7 @@ class ListAdapter(BaseAdapter):
 
 
 class StringAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import TextWidget
 
         return TextWidget(data, **kwargs)
@@ -127,7 +149,7 @@ class StringAdapter(BaseAdapter):
 
 
 class BooleanAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import CheckboxWidget
 
         return CheckboxWidget(data, **kwargs)
@@ -136,17 +158,20 @@ class BooleanAdapter(BaseAdapter):
         return bool
 
 
-class IntAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
-        # TODO: créer un widget integer
-        raise NotImplementedError
+class IntegerAdapter(BaseAdapter):
+    key = "integer"
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import NumberWidget
+
+        return NumberWidget({"step": 1}, **kwargs)
 
     def get_wire_type(self):
         return int
 
 
 class FloatAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import NumberWidget
 
         return NumberWidget(data, **kwargs)
@@ -156,7 +181,7 @@ class FloatAdapter(BaseAdapter):
 
 
 class DateAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import DateWidget
 
         return DateWidget(data, **kwargs)
@@ -166,10 +191,28 @@ class DateAdapter(BaseAdapter):
 
 
 class TimeAdapter(BaseAdapter):
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import TimeWidget
 
         return TimeWidget(data, **kwargs)
+
+    def get_wire_type(self):
+        return str
+
+
+class UUIDAdapter(BaseAdapter):
+    key = "uuid"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("uuid"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import TextWidget
+
+        return TextWidget(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -183,15 +226,37 @@ class UserAdapter(BaseAdapter):
             unknown = ma.RAISE
 
         type = fields.Str(validate=validate.Equal("user"))
+        multiple = fields.Bool(load_default=False)
 
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import DatalistWidget
 
         # TODO: instancier DatalistWidget avec les bon paramètres
         raise NotImplementedError("Missing default widget for adapter 'user'")
 
     def get_wire_type(self):
+        if self.config["multiple"]:
+            return list[int]
         return int
+
+
+class ObserverListAdapter(BaseAdapter):
+    key = "observer_list"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("observer_list"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import DatalistWidget
+
+        # TODO: instancier DatalistWidget avec les bon paramètres
+        raise NotImplementedError("Missing default widget for adapter 'observer_list'")
+
+    def get_wire_type(self):
+        return list[int]
 
 
 class NomenclatureAdapter(BaseAdapter):
@@ -271,7 +336,7 @@ class NomenclatureAdapter(BaseAdapter):
 
         return ConfigSchema
 
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import NomenclatureWidget
 
         return NomenclatureWidget(data, **kwargs)
@@ -399,7 +464,7 @@ class TaxonomyAdapter(BaseAdapter):
 
         type = fields.Str(validate=validate.Equal("taxonomy"))
 
-    def get_default_widget(self, data, **kwargs):
+    def _get_default_widget(self, data, **kwargs):
         from .widgets import TaxonomyWidget
 
         return TaxonomyWidget(data, **kwargs)
@@ -408,5 +473,122 @@ class TaxonomyAdapter(BaseAdapter):
         return int
 
 
-# TODO: uuid, date, types_site, module, dataset, site, habitat, sites_group, area
+class TaxonomyListAdapter(BaseAdapter):
+    key = "taxonomy_list"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("taxonomy_list"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import DatalistWidget
+
+        return DatalistWidget(
+            {
+                "attribut_label": "Liste des taxons",
+                "keyValue": "id_liste",
+                "keyLabel": "nom_liste",
+                "multiple": False,
+                "api": "biblistes/",
+            },
+            **kwargs,
+        )
+
+    def get_wire_type(self):
+        return int
+
+
+class DatasetAdapter(BaseAdapter):
+    key = "dataset"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknow = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("dataset"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import DatasetWidget
+
+        return DatasetWidget(data, **kwargs)
+
+    def get_wire_type(self) -> type:
+        return int
+
+
+class HabitatAdapter(BaseAdapter):
+    key = "habitat"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("habitat"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import HabitatWidget
+
+        return HabitatWidget(data, **kwargs)
+
+    def get_wire_type(self) -> type:
+        return int
+
+
+class TypesSiteAdapter(BaseAdapter):
+    key = "types_site"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("types_site"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import DatalistWidget
+
+        return DatalistWidget(
+            {
+                "attribut_label": "Type(s) de site",
+                "keyValue": "id_nomenclature_type_site",
+                "keyLabel": "label",
+                "multiple": True,
+                "api": "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
+            },
+            **kwargs,
+        )
+
+    def get_wire_type(self) -> type:
+        return int
+
+
+class ModuleAdapter(BaseAdapter):
+    key = "module"
+
+    class ConfigSchema(ma.Schema):
+        class Meta:
+            unknown = ma.RAISE
+
+        type = fields.Str(validate=validate.Equal("module"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from .widgets import DatalistWidget
+
+        return DatalistWidget(
+            {
+                "attribut_label": "Modules",
+                "keyValue": "id_module",
+                "keyLabel": "module_label",
+                "multiple": True,
+                "api": "monitorings/modules",
+            },
+            **kwargs,
+        )
+
+    def get_wire_type(self) -> type:
+        return list[int]
+
+
+# TODO: date, site, sites_group, area
 # TODO: observer_list, taxonomy_list, municipality? accepté par la route util/<type_util>/
