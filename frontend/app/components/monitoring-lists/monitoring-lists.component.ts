@@ -151,7 +151,7 @@ export class MonitoringListComponent implements OnInit {
     }
   }
   getImportProperties() {
-    return getImportProperties(this.obj);
+    // return getImportProperties(this.obj);
   }
   isImportDestinationAvailable() {
     // TODO removed when 2.17.1 is released

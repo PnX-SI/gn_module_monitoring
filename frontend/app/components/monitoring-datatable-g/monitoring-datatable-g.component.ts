@@ -26,6 +26,8 @@ import { IdataTableObjData } from '../../interfaces/geom';
 import { getImportProperties } from '../../utils/import';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from '../../services/config.service';
+import { ObjectType } from '../../enum/objecttype';
+import { ObjectPermission } from '../../enum/objectPermission';
 
 interface ItemObjectTable {
   id: number | null;
@@ -44,6 +46,8 @@ export class MonitoringDatatableGComponent implements OnInit {
   @Input() rows;
   @Input() page: IPage = { count: 0, limit: 0, page: 0 };
   @Input() obj;
+  @Input() parentPath: ObjectType;
+  @Input() parentObject = {};
   @Input() moduleCode: string = 'generic'; // Code du module courant
   // Objet contenant les données des éléments à afficher dans les tableaux
   @Input() dataTableObjData: IdataTableObjData;
@@ -62,7 +66,7 @@ export class MonitoringDatatableGComponent implements OnInit {
   ];
   @Input() currentUser;
   @Input() bDeleteModalEmitter: EventEmitter<boolean>;
-  @Input() parentPath: string;
+
   @Input() activetabIndex: number = 0;
 
   @Output() rowStatusChange = new EventEmitter<Object>();
@@ -106,7 +110,6 @@ export class MonitoringDatatableGComponent implements OnInit {
   labelEdit: string;
   labelDelete: string;
   labelAdd: string;
-  public importAvailable = false;
 
   @ViewChild(DatatableComponent) table: DatatableComponent;
   @ViewChild('actionsTemplate') actionsTemplate: TemplateRef<any>;
@@ -127,7 +130,6 @@ export class MonitoringDatatableGComponent implements OnInit {
 
     this.subscribeToParentEmitter();
     this.initDatatable();
-    this.isImportDestinationAvailable();
   }
 
   subscribeToParentEmitter(): void {
@@ -351,15 +353,13 @@ export class MonitoringDatatableGComponent implements OnInit {
     this.bDeleteModal = true;
   }
   getImportProperties() {
-    return getImportProperties(this.obj);
+    return getImportProperties(this.parentPath, this.parentObject);
   }
-  isImportDestinationAvailable() {
-    // TODO removed when 2.17.1 is released
-    this.httpClient
-      .get(this._configService.backendUrl() + '/import/destinations/C')
-      .subscribe((data: any) => {
-        this.importAvailable =
-          data.filter((destination: any) => destination.code == this.moduleCode).length > 0;
-      });
+  isEntityAvailableToImport(entity: string) {
+    return ['site', 'visit', 'observation'].includes(entity);
+  }
+
+  getPermissionCode(type_: string): string {
+    return ObjectPermission[type_ as keyof typeof ObjectPermission];
   }
 }

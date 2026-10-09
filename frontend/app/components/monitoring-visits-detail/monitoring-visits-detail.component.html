@@ -1,23 +1,44 @@
-
 <div>
-  <span class="obj-title" *ngIf="bEdit">
+  <span
+    class="obj-title"
+    *ngIf="bEdit"
+  >
     {{ 'Actions.Edit' | translate }}
   </span>
-  <span class="obj-title" *ngIf="!bEdit">
+  <span
+    class="obj-title"
+    *ngIf="!bEdit"
+  >
     {{ 'Detail' | translate }}
   </span>
-  <span *ngIf="objectDataResolved" class="obj-description">
+  <span
+    *ngIf="objectDataResolved"
+    class="obj-description"
+  >
     {{ objectDataResolved.visit_date_min }}
   </span>
 </div>
-<pnx-monitoring-properties-g *ngIf="objectDataResolved && !bEdit" id="nav-properties" [obj]="objectDataResolved"
-  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
-  [objectType]="objectType"></pnx-monitoring-properties-g>
-<pnx-monitoring-form-g *ngIf="objectData && bEdit" [object]="objectData" [objectType]="objectType"
-  [form]="form" [(bEdit)]="bEdit" [apiService]="_visitsService" [config]="moduleConfig[objectType]"
-  [currentUser]="currentUser">
-</pnx-monitoring-form-g>
-<pnx-monitoring-datatable-g *ngIf="!bEdit"
+<pnx-monitoring-properties-g
+  *ngIf="objectDataResolved && !bEdit"
+  id="nav-properties"
+  [obj]="objectDataResolved"
+  [templateData]="templateData"
+  [(bEdit)]="bEdit"
+  [currentUser]="currentUser"
+  [objectType]="objectType"
+></pnx-monitoring-properties-g>
+<pnx-monitoring-form-g
+  *ngIf="objectData && bEdit"
+  [object]="objectData"
+  [objectType]="objectType"
+  [form]="form"
+  [(bEdit)]="bEdit"
+  [apiService]="_visitsService"
+  [config]="moduleConfig[objectType]"
+  [currentUser]="currentUser"
+></pnx-monitoring-form-g>
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
   [dataTableConfig]="dataTableConfig"
   [dataTableObjData]="dataTableObjData"
   [rows]="rows"
@@ -33,5 +54,6 @@
   (onAddObj)="navigateToAddObj($event)"
   (onAddChildren)="navigateToAddChildren($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
-  parentPath="sites_group"></pnx-monitoring-datatable-g>
-
+  parentPath="visit"
+  [parentObject]="objectData"
+></pnx-monitoring-datatable-g>
