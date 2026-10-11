@@ -86,18 +86,12 @@ def remove_monitoring_module(module_code):
         print("Impossible de supprimer le module")
         raise (e)
 
-    # suppression source pour la synthese
-    try:
-        print("Remove source {}".format("MONITORING_" + module_code.upper()))
-        source = get_source_by_code("MONITORING_" + module_code.upper())
-        DB.session.delete(source)
-        DB.session.commit()
-    except Exception as e:
-        print("Impossible de supprimer la source {}".format(str(e)))
-        # return
+    print("Remove source {}".format("MONITORING_" + module_code.upper()))
+    source = get_source_by_code("MONITORING_" + module_code.upper())
+    DB.session.delete(source)
+    DB.session.commit()
     # run specific sql TODO
     # remove nomenclature TODO
-    return
 
 
 def installed_modules(session=None):

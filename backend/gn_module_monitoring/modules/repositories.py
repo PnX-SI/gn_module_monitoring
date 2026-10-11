@@ -57,24 +57,15 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
         return None
 
     try:
-        module = DB.session.execute(
+        return DB.session.execute(
             select(moduleCls).where(getattr(moduleCls, field_name) == value)
         ).scalar_one()
-
-        return module
-
-    except NoResultFound as e:
-        raise e
     except MultipleResultsFound:
         raise GeoNatureError(
             "get_module : multiple results found for field_name {} and value {}".format(
                 field_name, value
             )
         )
-    except Exception as e:
-        raise GeoNatureError("get_module : {}".format(str(e)))
-        # dans ce case on renvoie None
-        pass
 
 
 def get_modules(session=None):
@@ -87,16 +78,9 @@ def get_modules(session=None):
 
     if not session:
         session = DB.session
-    try:
-        res = session.scalars(
-            select(TMonitoringModules).order_by(TMonitoringModules.module_label)
-        ).all()
-
-        return res
-
-    except Exception as e:
-        raise GeoNatureError("MONITORINGS - get_modules : {}".format(str(e)))
-        # en cas d'erreur on revoie []
+    return session.scalars(
+        select(TMonitoringModules).order_by(TMonitoringModules.module_label)
+    ).all()
 
 
 def get_source_by_code(value):
@@ -111,7 +95,3 @@ def get_source_by_code(value):
         raise GeoNatureError("get_source : multiple results found for  {}".format(value))
     except NoResultFound:
         raise GeoNatureError("get_source : no results found for  {}".format(value))
-    except Exception as e:
-        raise GeoNatureError("get_source : {}".format(str(e)))
-        # dans ce case on renvoie None
-        pass
