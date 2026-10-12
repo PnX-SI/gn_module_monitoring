@@ -22,9 +22,7 @@ export class MonitoringMapListComponent {
   apiService: ApiGeomService;
   moduleCode: string;
 
-  constructor(
-    private _Activatedroute: ActivatedRoute
-  ) {}
+  constructor(private _Activatedroute: ActivatedRoute) {}
 
   ngOnInit() {
     this.moduleCode = this._Activatedroute.snapshot.params.moduleCode;
