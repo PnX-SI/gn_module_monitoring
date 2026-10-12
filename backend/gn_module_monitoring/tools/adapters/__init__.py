@@ -17,6 +17,7 @@ from .core import (
     HabitatAdapter,
     TypesSiteAdapter,
     ModuleAdapter,
+    AreasAdapter,
     UUIDAdapter,
 )
 from .nomenclature import NomenclatureAdapter

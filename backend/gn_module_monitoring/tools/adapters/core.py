@@ -100,10 +100,7 @@ class ValueAdapter(BaseAdapter):
     Cet adapter est utilisé pour vérifier qu’une valeur appartient à une liste.
     """
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
     # TODO: default widget
@@ -117,10 +114,7 @@ class ListAdapter(BaseAdapter):
     Idem que ValueAdapter, mais pour une liste de données.
     """
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
     # TODO: default widget
@@ -194,10 +188,7 @@ class TimeAdapter(BaseAdapter):
 class UUIDAdapter(BaseAdapter):
     key = "uuid"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("uuid"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -212,18 +203,14 @@ class UUIDAdapter(BaseAdapter):
 class UserAdapter(BaseAdapter):
     key = "user"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("user"))
         multiple = fields.Bool(load_default=False)
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatalistWidget
+        from ..widgets import UserWidget
 
-        # TODO: instancier DatalistWidget avec les bon paramètres
-        raise NotImplementedError("Missing default widget for adapter 'user'")
+        return UserWidget(data, **kwargs)
 
     def get_wire_type(self):
         if self.config["multiple"]:
@@ -234,10 +221,7 @@ class UserAdapter(BaseAdapter):
 class ObserverListAdapter(BaseAdapter):
     key = "observer_list"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("observer_list"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -253,10 +237,7 @@ class ObserverListAdapter(BaseAdapter):
 class TaxonomyAdapter(BaseAdapter):
     key = "taxonomy"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("taxonomy"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -271,10 +252,7 @@ class TaxonomyAdapter(BaseAdapter):
 class TaxonomyListAdapter(BaseAdapter):
     key = "taxonomy_list"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("taxonomy_list"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -298,10 +276,7 @@ class TaxonomyListAdapter(BaseAdapter):
 class DatasetAdapter(BaseAdapter):
     key = "dataset"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknow = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("dataset"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -316,10 +291,7 @@ class DatasetAdapter(BaseAdapter):
 class HabitatAdapter(BaseAdapter):
     key = "habitat"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("habitat"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -331,13 +303,29 @@ class HabitatAdapter(BaseAdapter):
         return int
 
 
+class AreasAdapter(BaseAdapter):
+    key = "areas"
+
+    class ConfigSchema(BaseAdapter.ConfigSchema):
+        type = fields.Str(validate=validate.OneOf(["area", "areas"]))
+        many = fields.Boolean(load_default=True)
+
+    def _get_default_widget(self, data, **kwargs):
+        from ..widgets import AreasWidget
+
+        return AreasWidget(data, **kwargs)
+
+    def get_wire_type(self) -> type:
+        if self.config.many:
+            return list[int]
+        else:
+            return int
+
+
 class TypesSiteAdapter(BaseAdapter):
     key = "types_site"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("types_site"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -361,10 +349,7 @@ class TypesSiteAdapter(BaseAdapter):
 class ModuleAdapter(BaseAdapter):
     key = "module"
 
-    class ConfigSchema(ma.Schema):
-        class Meta:
-            unknown = ma.RAISE
-
+    class ConfigSchema(BaseAdapter.ConfigSchema):
         type = fields.Str(validate=validate.Equal("module"))
 
     def _get_default_widget(self, data, **kwargs):

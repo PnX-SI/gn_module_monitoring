@@ -22,8 +22,10 @@ from gn_module_monitoring.tools.widgets import (
     TaxonomyWidget,
     HabitatWidget,
     MediaWidget,
+    UserWidget,
     ObserversWidget,
     ObserversTextWidget,
+    AreasWidget,
 )
 from gn_module_monitoring.tools.adapters import (
     StringAdapter,
@@ -37,6 +39,7 @@ from gn_module_monitoring.tools.adapters import (
     TypesSiteAdapter,
     ModuleAdapter,
     UUIDAdapter,
+    AreasAdapter,
 )
 from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
@@ -54,12 +57,14 @@ class WidgetProtocolSchema(ma.Schema):
         DatalistWidget.key: DatalistWidget,
         NomenclatureWidget.key: NomenclatureWidget,
         TaxonomyWidget.key: TaxonomyWidget,
+        UserWidget.key: UserWidget,
         ObserversWidget.key: ObserversWidget,
         ObserversTextWidget.key: ObserversTextWidget,
         DatasetWidget.key: DatasetWidget,
         HabitatWidget.key: HabitatWidget,
         MediaWidget.key: MediaWidget,
         ObserversTextWidget.key: ObserversTextWidget,
+        AreasWidget.key: AreasWidget,
     }
 
     type = fields.Str(required=True)
@@ -89,6 +94,8 @@ class AdapterProtocolSchema(ma.Schema):
         TypesSiteAdapter.key: TypesSiteAdapter,
         ModuleAdapter.key: ModuleAdapter,
         UUIDAdapter.key: UUIDAdapter,
+        AreasAdapter.key: AreasAdapter,
+        "area": (AreasAdapter, {"many": True}),
     }
 
     type = fields.Str(required=True)
@@ -97,7 +104,11 @@ class AdapterProtocolSchema(ma.Schema):
         data = super().load(data, unknown=ma.INCLUDE)
         if data["type"] in self.adapter_map:
             adapter = self.adapter_map[data["type"]]
-            return adapter(data, **kwargs)
+            if type(adapter) == tuple:
+                adapter, default_params = adapter
+            else:
+                default_params = {}
+            return adapter(data, **{**default_params, **kwargs})
         else:
             raise ValidationError(
                 {
@@ -120,6 +131,11 @@ class FieldProtocolSchema(ma.Schema):
     required_js = MultilineStr()
     hidden = fields.Boolean(load_default=False)
     hidden_js = MultilineStr()
+
+    def load(self, data, **kwargs):
+        name = self.fields["name"].deserialize(data.get("name"), "name", data)
+        with schema_context(field_name=name):
+            super().load(data, **kwargs)
 
     @pre_load
     def pre_load(self, data, **kwargs):
@@ -193,6 +209,7 @@ class BaseProtocolSchema(ma.Schema):
         """
         Ce hook s’occupe de merger la config generic avec la config specific.
         """
+        entity = schema_context.get()["entity"]
         # retro.compat
         if "specific" in data:
             data["fields"] = data.pop("specific")
@@ -202,9 +219,7 @@ class BaseProtocolSchema(ma.Schema):
         # TODO: plutôt que charger la config par défaut depuis un fichier par défaut, la mettre directement
         # dans les schémas afin de centraliser les infos de la config.
         default_data = json.loads(
-            importlib.resources.read_text(
-                "gn_module_monitoring.config.generic", f"{self.entity}.json"
-            )
+            importlib.resources.read_text("gn_module_monitoring.config.generic", f"{entity}.json")
         )
         # retro-compat.
         if "generic" in default_data:
@@ -224,7 +239,7 @@ class BaseProtocolSchema(ma.Schema):
                 full_data["fields"][field_name].update(field_def)
             else:  # nouveau field, on l’ajoute
                 full_data["fields"][field_name] = field_def
-        # On transforme le dict de fields en list, pour que chaque field est connaissance de sa clé
+        # On rajoute à chaque field une clé "name" pour que chaque field est connaissance de son nom
         full_data["fields"] = {k: {**v, "name": k} for k, v in full_data["fields"].items()}
         return full_data
 
@@ -241,29 +256,29 @@ class BaseProtocolSchema(ma.Schema):
 
 
 class ModuleProtocolSchema(BaseProtocolSchema):
-    entity = "module"
+    pass
 
 
 class SitesGroupProtocolSchema(BaseProtocolSchema):
-    entity = "sites_group"
+    pass
 
 
 class SiteProtocolSchema(BaseProtocolSchema):
     # TODO: si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
     # voir SITES_GROUP_CONFIG et process_schema dans config/utils.py
-    entity = "site"
+    pass
 
 
 class VisitProtocolSchema(BaseProtocolSchema):
-    entity = "visit"
+    pass
 
 
 class ObservationProtocolSchema(BaseProtocolSchema):
-    entity = "observation"
+    pass
 
 
 class ObservationDetailProtocolSchema(BaseProtocolSchema):
-    entity = "observation"
+    pass
 
 
 def load_protocol_entity_config(module_code, entity):
