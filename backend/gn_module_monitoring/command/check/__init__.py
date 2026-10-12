@@ -8,11 +8,9 @@ from gn_module_monitoring.command.check.data import check_module_data
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
 from gn_module_monitoring.command.check.sql import check_module_sql_files
 from gn_module_monitoring.command.check.permissions import check_module_permissions
-from gn_module_monitoring.command.check.utils import wrap_errors, get_object_types
-from gn_module_monitoring.command.utils import (
-    available_modules,
-    installed_modules,
-)
+from gn_module_monitoring.command.check.utils import wrap_errors
+from gn_module_monitoring.command.utils import available_modules, installed_modules
+from gn_module_monitoring.tools.utils import schema_context
 
 
 def load_legacy_config(module_code):
@@ -24,8 +22,10 @@ def load_legacy_config(module_code):
     return config
 
 
-def run_module_check(module_code, check_data, data_filters, fix):
+def run_module_check(module_code, installed, check_data, data_filters, fix):
     total_error_count = 0
+
+    schema_context.set({"protocol_installed": installed})
 
     error_count, config = wrap_errors(
         "Fichier de configuration du module", check_module_config(module_code), return_result=True
@@ -46,7 +46,7 @@ def run_module_check(module_code, check_data, data_filters, fix):
     )
     total_error_count += error_count
 
-    if config and check_data:
+    if config and installed and check_data:
         total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
 
         total_error_count += check_module_data(config, legacy_config, fix, data_filters)
@@ -72,9 +72,10 @@ def run_check(module_code, check_data, data_filters, fix):
     error_count = 0
     for module_code in module_codes:
         click.secho(f"===== {module_code} =====", bold=True)
-        _check_data = check_data and module_code in installed_module_codes
 
-        error_count += run_module_check(module_code, _check_data, data_filters, fix)
+        error_count += run_module_check(
+            module_code, module_code in installed_module_codes, check_data, data_filters, fix
+        )
 
     click.echo("")
     if error_count:

@@ -29,6 +29,7 @@ from gn_module_monitoring.tools.adapters import BaseAdapter
 from gn_module_monitoring.tools.widgets import BaseWidget
 from gn_module_monitoring.config.module import load_module_config
 from gn_module_monitoring.config.protocol import load_protocol_entity_config
+from gn_module_monitoring.tools.utils import schema_context
 
 log = logging.getLogger()
 
@@ -53,9 +54,10 @@ def load_modues_config(state):
     for module in get_modules():
         module_code = module.module_code
         try:
+            schema_context.set({"protocol_installed": True})
             protocol_config = load_module_config(module_code)
             for entity in get_object_types(protocol_config["tree"]):
-                protocol_config[entity] = load_protocol_entity_config(module_code, entity)
+                protocol_config[entity] = load_protocol_entity_config(module_code, entity=entity)
             monitoring_config["protocols"][module_code] = protocol_config
         except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
             ctx = click.get_current_context(silent=True)

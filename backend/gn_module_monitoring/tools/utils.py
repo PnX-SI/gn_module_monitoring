@@ -1,5 +1,9 @@
+from contextvars import ContextVar
+
 import marshmallow as ma
 from marshmallow import ValidationError, fields
+
+schema_context: ContextVar[None | dict] = ContextVar("schema_context", default=None)
 
 
 class ValueLabelSchema(ma.Schema):
