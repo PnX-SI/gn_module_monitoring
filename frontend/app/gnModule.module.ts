@@ -16,24 +16,17 @@ import { DataMonitoringObjectService } from './services/data-monitoring-object.s
 import { NavigationService } from './services/navigation.service';
 import { DataUtilsService } from './services/data-utils.service';
 import { CacheService } from './services/cache.service';
-import { MonitoringObjectService } from './services/monitoring-object.service';
-import { ConfigService } from './services/config.service';
+
 import { ConfigServiceG } from './services/config-g.service';
 
 // Component
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { ModulesComponent } from './components/modules/modules.component';
-import { MonitoringObjectComponent } from './components/monitoring-object/monitoring-object.component';
 import { DrawFormComponent } from './components/draw-form/draw-form.component';
 import { ModalMsgComponent } from './components/modal-msg/modal-msg.component';
-import { MonitoringMapComponent } from './components/monitoring-map/monitoring-map.component';
-import { MonitoringFormComponent } from './components/monitoring-form/monitoring-form.component';
 import { MonitoringFormGComponent } from './components/monitoring-form-g/monitoring-form-g.component';
 import { MonitoringSiteFormGComponent } from './components/monitoring-site-form-g/monitoring-site-form-g.component';
 import { MonitoringFormGLayoutComponent } from './components/monitoring-form-g-layout/monitoring-form-g-layout.component';
-import { MonitoringListComponent } from './components/monitoring-lists/monitoring-lists.component';
-import { MonitoringPropertiesComponent } from './components/monitoring-properties/monitoring-properties.component';
-import { MonitoringDatatableComponent } from './components/monitoring-datatable/monitoring-datatable.component';
 import { MonitoringDatatableGComponent } from './components/monitoring-datatable-g/monitoring-datatable-g.component';
 
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -295,14 +288,6 @@ const routes: Routes = [
   // solution préférée à un changement des routes coté base de données gn_modules.module_path (migration alembic)
   // car le nom des routes sera potentiellement à nouveau modifié dans le futur
   { path: 'module/:moduleCode', redirectTo: 'object/:moduleCode/sites_group' },
-  {
-    path: 'object/:moduleCode/:objectType/:id',
-    component: MonitoringObjectComponent,
-  },
-  {
-    path: 'create_object/:moduleCode/:objectType',
-    component: MonitoringObjectComponent,
-  },
 ];
 
 export function createTranslateLoader(http: HttpClient, config: cs) {
@@ -313,17 +298,11 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
   declarations: [
     BreadcrumbsComponent,
     ModulesComponent,
-    MonitoringObjectComponent,
     DrawFormComponent,
     ModalMsgComponent,
-    MonitoringMapComponent,
-    MonitoringFormComponent,
     MonitoringFormGComponent,
     MonitoringSiteFormGComponent,
     MonitoringFormGLayoutComponent,
-    MonitoringListComponent,
-    MonitoringPropertiesComponent,
-    MonitoringDatatableComponent,
     MonitoringMapListComponent,
     MonitoringModuleDetailComponent,
     MonitoringSitesgroupsDetailComponent,
@@ -377,8 +356,6 @@ export function createTranslateLoader(http: HttpClient, config: cs) {
     DataMonitoringObjectService,
     NavigationService,
     DataUtilsService,
-    ConfigService,
-    MonitoringObjectService,
     DataTableService,
     SitesGroupService,
     SitesService,

@@ -4,11 +4,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { MonitoringGeomComponent } from '../../class/monitoring-geom-component';
-import { MonitoringObject } from '../../class/monitoring-object';
-import { ISitesGroup } from '../../interfaces/geom';
+
 import { Module } from '../../interfaces/module';
 import { SelectObject } from '../../interfaces/object';
-import { IobjObs } from '../../interfaces/objObs';
+
 import { IPage, IPaginated } from '../../interfaces/page';
 
 import {
@@ -17,10 +16,9 @@ import {
   SitesGroupService,
   SitesService,
 } from '../../services/api-geom.service';
-import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { GeoJSONService } from '../../services/geojson.service';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
+
 import { ObjectService } from '../../services/object.service';
 import { TPermission } from '../../types/permission';
 import { Popup } from '../../utils/popup';
@@ -31,8 +29,7 @@ import { ReplaySubject } from 'rxjs';
 import { mergeMap, takeUntil } from 'rxjs/operators';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectType } from '../../enum/objecttype';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-module-detail',
@@ -84,7 +81,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     public _popup: Popup,
     public _permissionService: PermissionService,
     public _moduleService: ModuleService,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getData;
@@ -157,11 +154,9 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
         this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
           this.objectData = data;
-          this.resolvedObj = resolveObjectProperties(
+          this.resolvedObj = this._dataUtilsService.resolveObjectProperties(
             this.objectData,
-            this._configServiceG.config()['module']['fields'],
-            this._configServiceG,
-            this._cacheService
+            this._configServiceG.config()['module']['fields']
           );
         });
       }

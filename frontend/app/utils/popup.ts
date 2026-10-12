@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { ConfigService } from '../services/config.service';
+import { ConfigServiceG } from '../services/config-g.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Popup {
-  constructor(private _configService: ConfigService) {}
+  constructor(private _configServiceG: ConfigServiceG) {}
 
   setPopup(
     moduleCode: string,
@@ -18,7 +18,7 @@ export class Popup {
     queryParams = queryParams || { parents_path: 'module' };
     const url = ['object', moduleCode, objectType, feature.properties[fieldId]].join('/');
 
-    const fullurl = ['#', this._configService.frontendModuleMonitoringUrl(), url].join('/');
+    const fullurl = ['#', this._configServiceG.frontendModuleMonitoringUrl(), url].join('/');
     const url_params = Object.keys(queryParams).length
       ? '?' +
         Object.keys(queryParams)

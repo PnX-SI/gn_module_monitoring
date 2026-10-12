@@ -3,7 +3,8 @@ import { concatMap, map } from 'rxjs/operators';
 
 /** services */
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
-import { ConfigService } from '../../services/config.service';
+import { ConfigServiceG } from '../../services/config-g.service';
+import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 import { TPermission } from '../../types/permission';
 import { PermissionService } from '../../services/permission.service';
 import { TOOLTIPMESSAGEALERT } from '../../constants/guard';
@@ -28,7 +29,8 @@ export class ModulesComponent implements OnInit {
 
   constructor(
     private _dataMonitoringObjectService: DataMonitoringObjectService,
-    private _configService: ConfigService,
+    private _configServiceG: ConfigServiceG,
+    private _geonatureConfig: GnConfigService,
     private _permissionService: PermissionService
   ) {}
 
@@ -36,11 +38,11 @@ export class ModulesComponent implements OnInit {
     this.bLoading = true;
 
     // Paramètre d'affichage
-    this.assetsDirectory = `${this._configService.backendUrl()}/${
-      this._configService.appConfig.MEDIA_URL
+    this.assetsDirectory = `${this._configServiceG.backendUrl()}/${
+      this._geonatureConfig.MEDIA_URL
     }/monitorings/`;
-    this.description = this._configService.descriptionModule();
-    this.titleModule = this._configService.titleModule();
+    this.description = this._geonatureConfig.MONITORINGS.DESCRIPTION_MODULE;
+    this.titleModule = this._geonatureConfig.MONITORINGS.TITLE_MODULE;
 
     this._permissionService.setPermissionMonitorings('generic');
 

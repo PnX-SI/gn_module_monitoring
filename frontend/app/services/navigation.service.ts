@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ConfigService } from './config.service';
 import { ConfigServiceG } from './config-g.service';
 
 @Injectable()
 export class NavigationService {
   constructor(
-    private _configService: ConfigService, // Utilisé uniquement pour récupérer l'url du frontend
     private _configServiceG: ConfigServiceG,
     private _router: Router
   ) {}
@@ -91,7 +89,7 @@ export class NavigationService {
     }
     this._router.navigate(
       [
-        this._configService.frontendModuleMonitoringUrl(),
+        this._configServiceG.frontendModuleMonitoringUrl(),
         routeType,
         moduleCode,
         objectType,
@@ -113,7 +111,7 @@ export class NavigationService {
 
     this._router.navigate(
       [
-        this._configService.frontendModuleMonitoringUrl(),
+        this._configServiceG.frontendModuleMonitoringUrl(),
         routeType,
         moduleCode,
         objectType,

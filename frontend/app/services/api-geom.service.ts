@@ -13,18 +13,18 @@ import {
 import { IobjObs } from '../interfaces/objObs';
 import { IPaginated } from '../interfaces/page';
 import { JsonData } from '../types/jsondata';
-import { buildObjectResolvePropertyProcessing, Utils } from '../utils/utils';
+
 import { CacheService } from './cache.service';
 import { IVisit } from '../interfaces/visit';
 import { IIndividual } from '../interfaces/individual';
 import { IObject, IObjectProperties, IService } from '../interfaces/object';
 import { LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
-import { MonitoringObjectService } from './monitoring-object.service';
 import { ConfigServiceG } from './config-g.service';
 import { IObservation } from '../interfaces/observation';
 import { IObservationDetail } from '../interfaces/observationdetail';
 import { IMarking } from '../interfaces/marking';
+import { DataUtilsService } from './data-utils.service';
 
 @Injectable()
 export class ApiService<T = IObject> implements IService<T> {
@@ -34,7 +34,7 @@ export class ApiService<T = IObject> implements IService<T> {
   constructor(
     protected _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    protected _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {}
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
@@ -79,12 +79,11 @@ export class ApiService<T = IObject> implements IService<T> {
     }
     return this.get(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
-        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
-          paginatedData,
-          config['fields'] || {},
-          this._configServiceG,
-          this._cacheService
-        );
+        const dataProcessingObservables =
+          this._dataUtilsService.buildObjectResolvePropertyProcessing(
+            paginatedData,
+            config['fields'] || {}
+          );
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
       })
     );
@@ -102,12 +101,11 @@ export class ApiService<T = IObject> implements IService<T> {
     return this.getById(id, moduleCode).pipe(
       mergeMap((data: any) => {
         const dataToResolve = { items: [data] };
-        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
-          dataToResolve,
-          config['fields'] || {},
-          this._configServiceG,
-          this._cacheService
-        );
+        const dataProcessingObservables =
+          this._dataUtilsService.buildObjectResolvePropertyProcessing(
+            dataToResolve,
+            config['fields'] || {}
+          );
         return forkJoin(dataProcessingObservables).pipe(
           map(([resolvedItems]) => {
             return resolvedItems.items[0];
@@ -154,9 +152,9 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
   constructor(
     protected _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    protected _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init(this.endPoint, this.objectObs);
   }
 
@@ -185,9 +183,9 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
   }
 
   init(): void {
@@ -235,12 +233,8 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
      */
     return this.getSitesChild(page, limit, params).pipe(
       mergeMap((paginatedData: IPaginated<any>) => {
-        const dataProcessingObservables = buildObjectResolvePropertyProcessing(
-          paginatedData,
-          fieldsConfig,
-          this._configServiceG,
-          this._cacheService
-        );
+        const dataProcessingObservables =
+          this._dataUtilsService.buildObjectResolvePropertyProcessing(paginatedData, fieldsConfig);
         return forkJoin(dataProcessingObservables).pipe(map(([resolvedItems]) => resolvedItems));
       })
     );
@@ -252,9 +246,9 @@ export class SitesService extends ApiGeomService<ISite> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
   }
 
   init(): void {
@@ -298,9 +292,9 @@ export class ModuleService extends ApiService<any> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init() {
@@ -324,9 +318,9 @@ export class VisitsService extends ApiService<IVisit> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init(): void {
@@ -344,9 +338,9 @@ export class IndividualsService extends ApiService<IIndividual> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init(): void {
@@ -370,9 +364,9 @@ export class ObservationsService extends ApiService<IObservation> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init(): void {
@@ -389,9 +383,9 @@ export class ObservationDetailsService extends ApiService<IObservationDetail> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init(): void {
@@ -409,9 +403,9 @@ export class MarkingsService extends ApiService<IMarking> {
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
-    _monitoringObjectService: MonitoringObjectService
+    protected _dataUtilsService: DataUtilsService
   ) {
-    super(_cacheService, _configServiceG, _monitoringObjectService);
+    super(_cacheService, _configServiceG, _dataUtilsService);
     this.init();
   }
   init(): void {

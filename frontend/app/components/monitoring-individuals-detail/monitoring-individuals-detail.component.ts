@@ -8,10 +8,9 @@ import { ObjectService } from '../../services/object.service';
 import { FormService } from '../../services/form.service';
 import { AuthService } from '@geonature/components/auth/auth.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
 import { IPaginated } from '../../interfaces/page';
 import { IMarking } from '../../interfaces/marking';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-individuals-detail',
@@ -39,7 +38,7 @@ export class MonitoringIndividualsDetailComponent
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    protected _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getChild;
@@ -66,12 +65,7 @@ export class MonitoringIndividualsDetailComponent
       this.objectData = detailData;
 
       // Resolve data
-      resolveObjectProperties(
-        detailData,
-        fieldsConfig,
-        this._configServiceG,
-        this._cacheService
-      ).subscribe((data) => {
+      this._dataUtilsService.resolveObjectProperties(detailData, fieldsConfig).subscribe((data) => {
         this.objectDataResolved = data;
       });
     });

@@ -4,6 +4,7 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { SelectObject } from '../../interfaces/object';
 import { ObjectService } from '../../services/object.service';
 
+// UNUSED !!!
 @Component({
   selector: 'option-list-btn',
   templateUrl: './option-list-btn.component.html',

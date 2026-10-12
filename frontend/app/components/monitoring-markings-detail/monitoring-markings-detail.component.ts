@@ -8,8 +8,7 @@ import { ObjectService } from '../../services/object.service';
 import { FormService } from '../../services/form.service';
 import { AuthService } from '@geonature/components/auth/auth.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-markings-detail',
@@ -31,7 +30,7 @@ export class MonitoringMarkingsDetailComponent extends MonitoringGeomComponent i
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    protected _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = undefined;
@@ -58,12 +57,7 @@ export class MonitoringMarkingsDetailComponent extends MonitoringGeomComponent i
       this.objectData = detailData;
 
       // Resolve data
-      resolveObjectProperties(
-        detailData,
-        fieldsConfig,
-        this._configServiceG,
-        this._cacheService
-      ).subscribe((data) => {
+      this._dataUtilsService.resolveObjectProperties(detailData, fieldsConfig).subscribe((data) => {
         this.objectDataResolved = data;
       });
     });

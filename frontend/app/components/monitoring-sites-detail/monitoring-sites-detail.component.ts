@@ -15,14 +15,12 @@ import { ObjectService } from '../../services/object.service';
 import { JsonData } from '../../types/jsondata';
 import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
-import { ConfigService } from '../../services/config.service';
 import { FormService } from '../../services/form.service';
 import { Popup } from '../../utils/popup';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
 
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-sites-detail',
@@ -56,13 +54,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     public geojsonService: GeoJSONService,
     protected router: Router,
     public _formService: FormService,
-    private _configService: ConfigService,
     protected _moduleService: ModuleService,
     public _siteService: SitesService,
     private _objServiceMonitoring: DataMonitoringObjectService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getVisits;
@@ -105,14 +102,11 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       this.objectData = data.site;
       const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
       // Resolve site data
-      resolveObjectProperties(
-        this.objectData,
-        fieldsConfig,
-        this._configServiceG,
-        this._cacheService
-      ).subscribe((data) => {
-        this.objectDataResolved = data;
-      });
+      this._dataUtilsService
+        .resolveObjectProperties(this.objectData, fieldsConfig)
+        .subscribe((data) => {
+          this.objectDataResolved = data;
+        });
 
       if (this.parentPath.includes('sites_group')) {
         this.siteGroupIdParent = this.objectData.id_sites_group;
@@ -246,12 +240,10 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
 
   // TODO: voir s'il faut pouvoir supprimer les visites depuis l'entrée par sites
   onDelete($event) {
-    this._objServiceMonitoring
-      .deleteObject($event.rowSelected.module.module_code, $event.objectType, $event.rowSelected.id)
-      .subscribe((del) => {
-        this.bDeleteModalEmitter.emit(false);
-        this.initSiteVisit();
-      });
+    this._visits_service.delete($event.rowSelected.id).subscribe((del) => {
+      this.bDeleteModalEmitter.emit(false);
+      this.initSiteVisit();
+    });
   }
 
   onbEditChange(event) {

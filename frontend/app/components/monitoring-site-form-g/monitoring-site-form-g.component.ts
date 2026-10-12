@@ -14,7 +14,6 @@ import { DataUtilsService } from '../../services/data-utils.service';
 import { JsonData } from '../../types/jsondata';
 import { GeoJSONService } from '../../services/geojson.service';
 import { NavigationService } from '../../services/navigation.service';
-import { MonitoringObjectService } from '../../services/monitoring-object.service';
 import { ConfigServiceG } from '../../services/config-g.service';
 import { PermissionService } from '../../services/permission.service';
 import { ObjectService } from '../../services/object.service';
@@ -46,7 +45,6 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     _geojsonService: GeoJSONService,
     _navigationService: NavigationService,
     _route: ActivatedRoute,
-    _formUtils: MonitoringObjectService,
     translate: TranslateService,
     _configServiceG: ConfigServiceG,
     _permissionService: PermissionService,
@@ -63,7 +61,6 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
       _geojsonService,
       _navigationService,
       _route,
-      _formUtils,
       translate,
       _configServiceG,
       _permissionService,

@@ -15,8 +15,7 @@ import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { PermissionService } from '../../services/permission.service';
-import { resolveObjectProperties } from '../../utils/utils';
-import { CacheService } from '../../services/cache.service';
+import { DataUtilsService } from '../../services/data-utils.service';
 
 @Component({
   selector: 'monitoring-sitesgroups-detail',
@@ -55,7 +54,7 @@ export class MonitoringSitesgroupsDetailComponent
     public _formService: FormService,
     public _permissionService: PermissionService,
     public _popup: Popup,
-    private _cacheService: CacheService
+    private _dataUtilsService: DataUtilsService
   ) {
     super(_permissionService, _popup, _formService, _Activatedroute, _formBuilder, _auth, router);
     this.getAllItemsCallback = this.getSitesFromSiteGroupId;
@@ -77,11 +76,9 @@ export class MonitoringSitesgroupsDetailComponent
       .pipe(
         mergeMap((sitesGroupData) => {
           this.sitesGroup = sitesGroupData;
-          const siteGroupDataResolved$ = resolveObjectProperties(
+          const siteGroupDataResolved$ = this._dataUtilsService.resolveObjectProperties(
             this.sitesGroup,
-            fieldsConfig,
-            this._configServiceG,
-            this._cacheService
+            fieldsConfig
           );
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
