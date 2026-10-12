@@ -31,11 +31,13 @@ def check_protocol_entities_config(module_code, config):
 
     for entity in get_object_types(config["tree"]):
         # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
-        error_count, config[entity] = wrap_errors(
+        error_count, entity_config = wrap_errors(
             f"Définition du protocole - {entity}",
             check_protocol_entity_config(module_code, entity),
             return_result=True,
         )
+        if entity_config is not None:
+            config[entity] = entity_config
         total_error_count += error_count
 
     return total_error_count
