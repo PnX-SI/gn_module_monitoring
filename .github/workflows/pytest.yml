@@ -16,7 +16,7 @@ on:
       - main
       - hotfixes
       - develop
-      - refact-config
+      - refact-hotfixes
 
 jobs:
   build:
