@@ -12,7 +12,7 @@ export class Popup {
     objectType: string,
     feature,
     fieldId: string,
-    fieldName: string,
+    name: string,
     queryParams: {}
   ): string {
     queryParams = queryParams || { parents_path: 'module' };
@@ -32,7 +32,7 @@ export class Popup {
 
     const popup = `
     <div>
-      <h4>  <a href=${fullurl}${url_params}>${feature.properties[fieldName]}</a></h4>
+      <h4>  <a href=${fullurl}${url_params}>${name}</a></h4>
       ${feature.properties['description'] || ''}
     </div>
     `;
@@ -45,7 +45,7 @@ export class Popup {
       'site',
       feature,
       'id_base_site',
-      'base_site_name',
+      feature.properties['base_site_name'] || feature.properties['id_base_site'],
       queryParams
     );
   }
@@ -56,7 +56,7 @@ export class Popup {
       'sites_group',
       feature,
       'id_sites_group',
-      'sites_group_name',
+      feature.properties['sites_group_name'] || feature.properties['id_sites_group'],
       queryParams
     );
   }
