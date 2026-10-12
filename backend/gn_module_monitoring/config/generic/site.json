@@ -68,7 +68,6 @@
       "multi_select": false
     },
     "id_digitiser": {
-      "type_widget": "text",
       "attribut_label": "Digitiser",
       "type_util": "user",
       "required": true,
