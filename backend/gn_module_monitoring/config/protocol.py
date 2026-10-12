@@ -38,7 +38,7 @@ from gn_module_monitoring.tools.adapters import (
     ModuleAdapter,
     UUIDAdapter,
 )
-from gn_module_monitoring.tools.utils import MultilineStr
+from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
 
 class WidgetProtocolSchema(ma.Schema):
@@ -289,12 +289,13 @@ def load_protocol_entity_config(module_code, entity):
     else:
         raise NotImplementedError
 
-    config_path = monitoring_module_config_path(module_code) / f"{entity}.json"
-    if config_path.is_file():
-        with config_path.open() as f:
-            entity_config = json.load(f)
-    else:
-        entity_config = {}
+    with schema_context(entity=entity):
+        config_path = monitoring_module_config_path(module_code) / f"{entity}.json"
+        if config_path.is_file():
+            with config_path.open() as f:
+                entity_config = json.load(f)
+        else:
+            entity_config = {}
 
-    #     # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
-    return schema.load(entity_config)
+        #     # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
+        return schema.load(entity_config)

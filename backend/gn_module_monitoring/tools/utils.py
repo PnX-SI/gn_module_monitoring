@@ -1,9 +1,38 @@
 from contextvars import ContextVar
+from contextlib import contextmanager
 
 import marshmallow as ma
 from marshmallow import ValidationError, fields
 
-schema_context: ContextVar[None | dict] = ContextVar("schema_context", default=None)
+
+class ContextManagedContextVar:
+    def __init__(self, name: str, default=None):
+        self._var = ContextVar(name, default=default)
+
+    def get(self):
+        return self._var.get()
+
+    def set(self, value):
+        return self._var.set(value)
+
+    def reset(self, token):
+        self._var.reset(token)
+
+    @contextmanager
+    def __call__(self, **kwargs):
+        # def manager():
+        current = self.get() or {}
+        new = {**current, **kwargs}
+        token = self.set(new)
+        try:
+            yield new
+        finally:
+            self.reset(token)
+
+        # return manager()
+
+
+schema_context = ContextManagedContextVar("schema_context", default=None)
 
 
 class ValueLabelSchema(ma.Schema):

@@ -1,4 +1,4 @@
-from typing import Any, Literal, Never, Any
+from typing import Any, Literal, Never
 
 import marshmallow as ma
 from marshmallow import fields, validates_schema, ValidationError
@@ -53,7 +53,7 @@ class BaseWidget:
         raise NotImplementedError
 
     def get_wire_type(self) -> Any:
-        return Never
+        raise NotImplementedError
 
     def __str__(self):
         return self.__class__.__name__
@@ -239,67 +239,6 @@ class DatalistWidget(BaseWidget):
         return Any
 
 
-class NomenclatureWidget(BaseWidget):
-    key = "nomenclature"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import NomenclatureAdapter
-
-        return NomenclatureAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
-class TaxonomyWidget(BaseWidget):
-    key = "taxonomy"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import TaxonomyAdapter
-
-        return TaxonomyAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
-class DatasetWidget(BaseWidget):
-    key = "dataset"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import DatasetAdapter
-
-        return DatasetAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
-class HabitatWidget(BaseWidget):
-    key = "habitat"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import HabitatAdapter
-
-        return HabitatAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
-class ObserversWidget(BaseWidget):
-    key = "observers"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import UserAdapter
-
-        # TODO: pass some parameters like the observer list or multiple
-        return UserAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
 class ObserversTextWidget(BaseWidget):
     key = "observers-text"
 
@@ -312,17 +251,5 @@ class ObserversTextWidget(BaseWidget):
         return str
 
 
-class MediaWidget(BaseWidget):
-    key = "medias"
-
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import DummyAdapter
-
-        return DummyAdapter(data, **kwargs)
-
-    def get_wire_type(self):
-        return Never
-
-
-# TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers, observers-text, media, medias, date, nomenclature, datalist, text, textarea, jsonb, time, taxonomy, site, individuals, dataset, municipalities, areas
+# TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas
 # Multiple: multiselect, checkbox, municipalities, areas
