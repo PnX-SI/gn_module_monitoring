@@ -3,23 +3,62 @@ blueprint
 charge les routes présentes dans le dossier route
 """
 
+import json
+import logging
+
+import click
 from flask import Blueprint, current_app, g, request
-from urllib.parse import urlparse, parse_qs
+from sqlalchemy.orm import joinedload
+from sqlalchemy import select
+from marshmallow import ValidationError
 
 from geonature.utils.env import DB
+from geonature.utils.config import config
+from geonature.utils.json import register_json_provider
 from geonature.core.admin.admin import admin as flask_admin
+from geonature.core.gn_permissions.models import TObjects
+from geonature.core.gn_commons.models.base import TModules
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.monitoring.admin import BibTypeSiteView
 from gn_module_monitoring.command.cmd import commands  # noqa: E402
-from geonature.core.gn_permissions.models import TObjects
-from geonature.core.gn_commons.models.base import TModules
-from sqlalchemy.orm import joinedload
-from sqlalchemy import select
+from gn_module_monitoring.command.utils import get_modules
+from gn_module_monitoring.command.check.utils import get_object_types
+from gn_module_monitoring.tools.adapters import BaseAdapter
+from gn_module_monitoring.tools.widgets import BaseWidget
+from gn_module_monitoring.config.module import load_module_config
+from gn_module_monitoring.config.protocol import load_protocol_entity_config
+
+log = logging.getLogger()
 
 blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
+
+
+@blueprint.record_once
+def register_serializer(state):
+    register_json_provider(BaseAdapter, lambda o: o.dump_config())
+    register_json_provider(BaseWidget, lambda o: o.dump_config())
+
+
+@blueprint.record
+def load_modues_config(state):
+    monitoring_config = config[MODULE_CODE]
+    monitoring_config["protocols"] = dict()
+    for module in get_modules():
+        module_code = module.module_code
+        try:
+            protocol_config = load_module_config(module_code)
+            for entity in get_object_types(protocol_config["tree"]):
+                protocol_config[entity] = load_protocol_entity_config(module_code, entity)
+            monitoring_config["protocols"][module_code] = protocol_config
+        except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
+            ctx = click.get_current_context(silent=True)
+            # Avoid printing errors when using the CLI
+            if ctx is None:
+                log.exception(e)
+            log.warning(f"Unable to load protocol '{module_code}', skipping…")
 
 
 @blueprint.teardown_request
