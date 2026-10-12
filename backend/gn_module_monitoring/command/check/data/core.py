@@ -173,6 +173,9 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
     ):
         return CheckResult("[SKIP]", bold=True)
 
+    if object_type not in config:
+        return CheckResult("[INVALID CONFIG]", fg="yellow")
+
     fields_config = config[object_type].get("fields", {})
     rows = get_data_rows(object_type, id_module, data_filters.get(f"{object_type}_pks"))
     if not rows:
