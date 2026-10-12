@@ -2,13 +2,13 @@ import click
 
 from gn_module_monitoring.config.repositories import get_config
 
-from gn_module_monitoring.command.check.protocol import check_module_protocol
-from gn_module_monitoring.command.check.config import check_module_config
+from gn_module_monitoring.command.check.module import check_module_config
+from gn_module_monitoring.command.check.protocol import check_protocol_entities_config
 from gn_module_monitoring.command.check.data import check_module_data
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
 from gn_module_monitoring.command.check.sql import check_module_sql_files
 from gn_module_monitoring.command.check.permissions import check_module_permissions
-from gn_module_monitoring.command.check.utils import wrap_errors
+from gn_module_monitoring.command.check.utils import wrap_errors, get_object_types
 from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
@@ -32,7 +32,8 @@ def run_module_check(module_code, check_data, data_filters, fix):
     )
     total_error_count += error_count
 
-    total_error_count += check_module_protocol(module_code, config)
+    if config is not None:
+        total_error_count += check_protocol_entities_config(module_code, config)
 
     total_error_count += wrap_errors(
         "Nomenclatures", check_module_nomenclatures(module_code, check_data, fix)

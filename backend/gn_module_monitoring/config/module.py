@@ -1,6 +1,6 @@
 import json
 
-from marshmallow import Schema, ValidationError, fields, validate, RAISE, validates_schema
+from marshmallow import Schema, ValidationError, fields, validate, RAISE, EXCLUDE, validates_schema
 
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 
@@ -77,6 +77,9 @@ class DataSchema(Schema):
 
 
 class ModuleConfigSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE  # TODO: switch to RAISE
+
     tree = fields.Nested(
         TreeSchema,
         load_default={
@@ -98,15 +101,19 @@ class ModuleConfigSchema(Schema):
     data = fields.Nested(DataSchema)
 
 
-def check_module_config(module_code):
+def load_module_config(module_code):
+    """
+    Raises:
+        UnicodeDecodeError
+        JSONDecodeError
+        ValidationError
+    """
     # Validation marshmallow
     config_path = monitoring_module_config_path(module_code) / "config.json"
     config = json.loads(config_path.read_text())
-    try:
-        ModuleConfigSchema().load(
-            config,
-            unknown=RAISE,
-        )
-    except ValidationError as e:
-        yield e
+    config = ModuleConfigSchema().load(
+        config,
+        unknown=RAISE,
+    )
+    # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
     return config

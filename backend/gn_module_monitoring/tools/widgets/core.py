@@ -1,11 +1,9 @@
 from typing import Any, Literal, Never, Any
 
-from numpy import require
-
 import marshmallow as ma
 from marshmallow import fields, validates_schema, ValidationError
 
-from .utils import ValueLabelField
+from ..utils import ValueLabelField
 
 
 class BaseWidget:
@@ -14,6 +12,13 @@ class BaseWidget:
             unknown = ma.RAISE
 
         attribut_label = fields.String()  # FIXME: required?
+
+        def get_attribute(self, obj, attr, default):
+            # default function is based on getattr, which fail
+            # for dict when accessing for instance keys or values attr.
+            if isinstance(obj, dict):
+                return obj.get(attr, default)
+            return super().get_attribute(obj, attr, default)
 
     @classmethod
     def get_config_schema_class(cls):
@@ -28,6 +33,9 @@ class BaseWidget:
         else:
             self.extra_data = None
         self.config = self.get_config_schema_class()().load(data, **kwargs)
+
+    def dump_config(self):
+        return self.get_config_schema_class()().dump(self.config)
 
     def get_default_adapter(self, data=None, **kwargs):
         # Gestion de la rétro-compat: si le widget a été initialisé en mode retro-compat.,
@@ -58,7 +66,7 @@ class TextWidget(BaseWidget):
     key = "text"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import StringAdapter
+        from ..adapters import StringAdapter
 
         return StringAdapter(data, **kwargs)
 
@@ -70,7 +78,7 @@ class TextareaWidget(BaseWidget):
     key = "textarea"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import StringAdapter
+        from ..adapters import StringAdapter
 
         return StringAdapter(data, **kwargs)
 
@@ -82,7 +90,7 @@ class CheckboxWidget(BaseWidget):
     key = "bool_checkbox"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import BooleanAdapter
+        from ..adapters import BooleanAdapter
 
         return BooleanAdapter(data, **kwargs)
 
@@ -94,7 +102,7 @@ class RadioWidget(BaseWidget):
     key = "radio"
 
     def _get_default_adapter(self, data=None, **kwargs):
-        from .adapters import StringAdapter
+        from ..adapters import StringAdapter
 
         return StringAdapter(data, **kwargs)
 
@@ -117,11 +125,11 @@ class NumberWidget(BaseWidget):
 
     def _get_default_adapter(self, data=None, **kwargs):
         if self.is_integer:
-            from .adapters import IntegerAdapter
+            from ..adapters import IntegerAdapter
 
             return IntegerAdapter(data, **kwargs)
         else:
-            from .adapters import FloatAdapter
+            from ..adapters import FloatAdapter
 
             return FloatAdapter(data, **kwargs)
 
@@ -136,7 +144,7 @@ class DateWidget(BaseWidget):
     key = "date"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import DateAdapter
+        from ..adapters import DateAdapter
 
         return DateAdapter(data, **kwargs)
 
@@ -148,7 +156,7 @@ class TimeWidget(BaseWidget):
     key = "time"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import TimeAdapter
+        from ..adapters import TimeAdapter
 
         return TimeAdapter(data, **kwargs)
 
@@ -159,14 +167,14 @@ class TimeWidget(BaseWidget):
 class SelectWidget(BaseWidget):
     key = "select"
 
-    class ConfigSchema(ma.Schema):
+    class ConfigSchema(BaseWidget.ConfigSchema):
         class Meta:
             unknown = ma.RAISE
 
         values = fields.List(ValueLabelField(), required=True)
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import ValueAdapter
+        from ..adapters import ValueAdapter
 
         return ValueAdapter({"values": self.config["values"], **(data or {})}, **kwargs)
 
@@ -181,7 +189,7 @@ class MultiselectWidget(BaseWidget):
         values = fields.List(ValueLabelField(), required=True)
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import ListAdapter
+        from ..adapters import ListAdapter
 
         return ListAdapter({"values": self.config["values"], **(data or {})}, **kwargs)
 
@@ -221,7 +229,7 @@ class DatalistWidget(BaseWidget):
                     )
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import StringAdapter
+        from ..adapters import StringAdapter
 
         # This is pure guessing as we do not know the API return type
         return StringAdapter(data, **kwargs)
@@ -235,7 +243,7 @@ class NomenclatureWidget(BaseWidget):
     key = "nomenclature"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import NomenclatureAdapter
+        from ..adapters import NomenclatureAdapter
 
         return NomenclatureAdapter(data, **kwargs)
 
@@ -247,7 +255,7 @@ class TaxonomyWidget(BaseWidget):
     key = "taxonomy"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import TaxonomyAdapter
+        from ..adapters import TaxonomyAdapter
 
         return TaxonomyAdapter(data, **kwargs)
 
@@ -259,7 +267,7 @@ class DatasetWidget(BaseWidget):
     key = "dataset"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import DatasetAdapter
+        from ..adapters import DatasetAdapter
 
         return DatasetAdapter(data, **kwargs)
 
@@ -271,7 +279,7 @@ class HabitatWidget(BaseWidget):
     key = "habitat"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import HabitatAdapter
+        from ..adapters import HabitatAdapter
 
         return HabitatAdapter(data, **kwargs)
 
@@ -283,7 +291,7 @@ class ObserversWidget(BaseWidget):
     key = "observers"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import UserAdapter
+        from ..adapters import UserAdapter
 
         # TODO: pass some parameters like the observer list or multiple
         return UserAdapter(data, **kwargs)
@@ -296,7 +304,7 @@ class ObserversTextWidget(BaseWidget):
     key = "observers-text"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import StringAdapter
+        from ..adapters import StringAdapter
 
         return StringAdapter(data, **kwargs)
 
@@ -308,7 +316,7 @@ class MediaWidget(BaseWidget):
     key = "medias"
 
     def _get_default_adapter(self, data, **kwargs):
-        from .adapters import DummyAdapter
+        from ..adapters import DummyAdapter
 
         return DummyAdapter(data, **kwargs)
 
