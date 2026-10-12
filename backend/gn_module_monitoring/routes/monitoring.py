@@ -45,6 +45,12 @@ def breadcrumbs_object_api(module_code, object_type, id):
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
 
+    # Force module in parents_path
+    parents_path = query_params["parents_path"]
+    if "module" in parents_path:
+        parents_path.remove("module")
+    query_params["parents_path"] = ["module"] + parents_path
+
     config = get_config(module_code)
     # PATCH si module_code == "MONITORINGS" et object_type == "module"
     #  alors réponse en dur car le module monitoring n'est pas de type TModuleMonitoring
