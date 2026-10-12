@@ -77,8 +77,14 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
         this.objectDataResolved = data;
       });
     });
+
     // Initialisation du datatable
+    // Check if observations exist
+    if (!('observation' in this._configServiceG.config())) {
+      return;
+    }
     const defaultFilters = {
+      ...(this._configServiceG.config()['observation'] || {})['filters'],
       ...this._configServiceG.config()['observation']['filters'],
       ...{
         id_base_visit: this.dataId,
