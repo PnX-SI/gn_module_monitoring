@@ -77,7 +77,7 @@ class TestRouteConfig:
         assert data["module"]["fields"]["datasets"]["multi_select"] == True
 
     @pytest.mark.parametrize(
-        "route", ["monitorings.get_config_api", "monitorings.get_config_apiV2"]
+        "route", ["monitorings.legacy.get_config_api", "monitorings.get_config_apiV2"]
     )  # TODO remove when new config API is official
     def test_get_config(self, route):
         response = self.client.get(url_for(route))
@@ -85,7 +85,10 @@ class TestRouteConfig:
 
     @pytest.mark.parametrize(
         "route,fields_key",
-        [("monitorings.get_config_api", "specific"), ("monitorings.get_config_apiV2", "fields")],
+        [
+            ("monitorings.legacy.get_config_api", "specific"),
+            ("monitorings.get_config_apiV2", "fields"),
+        ],
     )  # TODO remove when new config API is official
     def test_get_config_module(self, module_list, users, route, fields_key):
         set_logged_user_cookie(self.client, users["admin_user"])

@@ -11,7 +11,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -37,12 +37,12 @@ OBJECT_CODE = "MONITORINGS_VISITES"
 
 
 @blueprint.route(
-    "/refacto/observation_details/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>",
     methods=["DELETE"],
     defaults={"object_type": default_route_object_type},
 )
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_obs_detail(scope, _id: int, object_type: str):
+def delete_obs_detail(scope, _id: int, object_type: str, module_code: str):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, _id)
     if not obs_detail.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -54,7 +54,7 @@ def delete_obs_detail(scope, _id: int, object_type: str):
 
 
 @blueprint.route(
-    "/<string:module_code>/observation_details",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details",
     methods=["POST"],
     defaults={"object_type": default_route_object_type},
 )
@@ -65,7 +65,7 @@ def post_obs_detail(object_type: str, module_code: str):
 
 
 @blueprint.route(
-    "/<string:module_code>/observation_details/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>",
     methods=["PATCH"],
     defaults={"object_type": default_route_object_type},
 )
@@ -83,7 +83,7 @@ def patch_obs_detail(scope, object_type: str, module_code: str, _id: int):
 
 
 @blueprint.route(
-    "/refacto/<string:module_code>/observation_details",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -138,7 +138,7 @@ def get_obs_details(object_type: str, module_code: str):
 
 
 @blueprint.route(
-    "/observation_details/<string:module_code>/<int:id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:id>",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )

@@ -14,7 +14,7 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -107,9 +107,9 @@ def get_all_types_site_from_site_id(id_site, object_type):
     return schema.dump(types_site)
 
 
-@blueprint.route("/sites", methods=["GET"], defaults={"object_type": "site"})
+@blueprint.route(f"{ROUTE_PREFIX}/sites", methods=["GET"], defaults={"object_type": "site"})
 @blueprint.route(
-    "/refacto/<string:module_code>/sites", methods=["GET"], defaults={"object_type": "site"}
+    f"{ROUTE_PREFIX}/<string:module_code>/sites", methods=["GET"], defaults={"object_type": "site"}
 )
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_sites(object_type, module_code=None):
@@ -163,7 +163,9 @@ def get_sites(object_type, module_code=None):
 
 
 @blueprint.route(
-    "/sites/<string:module_code>/<int:id>", methods=["GET"], defaults={"object_type": "site"}
+    f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:id>",
+    methods=["GET"],
+    defaults={"object_type": "site"},
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_SITES")
 def get_site_by_id(scope, module_code, id, object_type):
@@ -177,14 +179,16 @@ def get_site_by_id(scope, module_code, id, object_type):
     return data
 
 
-@blueprint.route("/sites/geometries", methods=["GET"], defaults={"object_type": "site"})
+@blueprint.route(
+    f"{ROUTE_PREFIX}/sites/geometries", methods=["GET"], defaults={"object_type": "site"}
+)
 @check_cruved_scope("R")
 def get_all_site_geometries(object_type):
     return _get_site_geometries()
 
 
 @blueprint.route(
-    "/refacto/<string:module_code>/sites/geometries",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites/geometries",
     methods=["GET"],
     defaults={"object_type": "site"},
 )
@@ -245,7 +249,9 @@ def _get_site_geometries(module_code=None):
     return jsonify(result)
 
 
-@blueprint.route("/sites/<string:module_code>/<int:id_base_site>/modules", methods=["GET"])
+@blueprint.route(
+    f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:id_base_site>/modules", methods=["GET"]
+)
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_module_by_id_base_site(module_code: str, id_base_site: int):
     modules_object = get_modules()
@@ -277,14 +283,18 @@ def get_module_by_id_base_site(module_code: str, id_base_site: int):
 
 
 # TODO: vérfier si c'est utilisé
-@blueprint.route("/sites/module/<string:module_code>", methods=["GET"])
+@blueprint.route(f"{ROUTE_PREFIX}/sites/module/<string:module_code>", methods=["GET"])
 def get_module_sites(module_code: str):
     # TODO: load with site_categories.json API
     return jsonify({"module_code": module_code})
 
 
-@blueprint.route("/sites", methods=["POST"], defaults={"object_type": "site"})
-@blueprint.route("/<string:module_code>/sites", methods=["POST"], defaults={"object_type": "site"})
+@blueprint.route(f"{ROUTE_PREFIX}/sites", methods=["POST"], defaults={"object_type": "site"})
+@blueprint.route(
+    f"{ROUTE_PREFIX}/<string:module_code>/sites",
+    methods=["POST"],
+    defaults={"object_type": "site"},
+)
 @check_cruved_scope("C", object_code="MONITORINGS_SITES")
 def post_sites(module_code: str, object_type):
     module_code = "generic"
@@ -292,9 +302,13 @@ def post_sites(module_code: str, object_type):
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
-@blueprint.route("/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"})
 @blueprint.route(
-    "/<string:module_code>/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"}
+    f"{ROUTE_PREFIX}/sites/<int:_id>", methods=["PATCH"], defaults={"object_type": "site"}
+)
+@blueprint.route(
+    f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:_id>",
+    methods=["PATCH"],
+    defaults={"object_type": "site"},
 )
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_SITES")
 def patch_site(scope, module_code, _id, object_type):
@@ -309,10 +323,12 @@ def patch_site(scope, module_code, _id, object_type):
 
 
 @blueprint.route(
-    "/sites/<int:_id>", methods=["DELETE"], defaults={"object_type": default_route_object_type}
+    f"{ROUTE_PREFIX}/sites/<int:_id>",
+    methods=["DELETE"],
+    defaults={"object_type": default_route_object_type},
 )
 @blueprint.route(
-    "/<string:module_code>/sites/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:_id>",
     methods=["DELETE"],
     defaults={"object_type": default_route_object_type},
 )

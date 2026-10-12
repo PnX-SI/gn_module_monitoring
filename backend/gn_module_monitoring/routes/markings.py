@@ -10,7 +10,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -73,12 +73,12 @@ def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEve
 
 
 @blueprint.route(
-    "/refacto/markings/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>",
     methods=["DELETE"],
     defaults={"object_type": default_route_object_type},
 )
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_marking(scope, _id: int, object_type: str):
+def delete_marking(scope, _id: int, object_type: str, module_code: str):
     """
     Delete a marking.
 
@@ -90,6 +90,8 @@ def delete_marking(scope, _id: int, object_type: str):
         Identifier of the marking to delete.
     object_type : str
         Object type, by default "marking".
+    module_code : str
+        Code of the monitoring module.
 
     Returns
     -------
@@ -112,7 +114,7 @@ def delete_marking(scope, _id: int, object_type: str):
 
 
 @blueprint.route(
-    "/<string:module_code>/markings",
+    f"{ROUTE_PREFIX}/<string:module_code>/markings",
     methods=["POST"],
     defaults={"object_type": default_route_object_type},
 )
@@ -142,7 +144,7 @@ def post_marking(object_type: str, module_code: str):
 
 
 @blueprint.route(
-    "/<string:module_code>/markings/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>",
     methods=["PATCH"],
     defaults={"object_type": default_route_object_type},
 )
@@ -189,7 +191,7 @@ def patch_marking(scope, object_type: str, module_code: str, _id: int):
 
 
 @blueprint.route(
-    "/refacto/<string:module_code>/markings",
+    f"{ROUTE_PREFIX}/<string:module_code>/markings",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -262,7 +264,7 @@ def get_markings(object_type: str, module_code: str):
 
 
 @blueprint.route(
-    "/markings/<string:module_code>/<int:id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:id>",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )

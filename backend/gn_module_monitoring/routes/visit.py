@@ -10,7 +10,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
 from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
@@ -34,12 +34,12 @@ default_route_object_type = "visit"
 
 
 @blueprint.route(
-    "/refacto/visits/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>",
     methods=["DELETE"],
     defaults={"object_type": default_route_object_type},
 )
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
-def delete_visit(scope, _id, object_type):
+def delete_visit(scope, _id, object_type, module_code):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete visit {visit.id_base_visit}")
@@ -49,7 +49,7 @@ def delete_visit(scope, _id, object_type):
 
 
 @blueprint.route(
-    "/<string:module_code>/visits",
+    f"{ROUTE_PREFIX}/<string:module_code>/visits",
     methods=["POST"],
     defaults={"object_type": default_route_object_type},
 )
@@ -60,7 +60,7 @@ def post_visit(object_type, module_code):
 
 
 @blueprint.route(
-    "/<string:module_code>/visits/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>",
     methods=["PATCH"],
     defaults={"object_type": default_route_object_type},
 )
@@ -75,9 +75,11 @@ def patch_visit(scope, object_type: str, module_code: str, _id: int):
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route("/visits", methods=["GET"], defaults={"object_type": default_route_object_type})
 @blueprint.route(
-    "/refacto/<string:module_code>/visits",
+    f"{ROUTE_PREFIX}/visits", methods=["GET"], defaults={"object_type": default_route_object_type}
+)
+@blueprint.route(
+    f"{ROUTE_PREFIX}/<string:module_code>/visits",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -128,7 +130,7 @@ def get_visits(object_type, module_code=None):
 
 
 @blueprint.route(
-    "/visits/<string:module_code>/<int:id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:id>",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )

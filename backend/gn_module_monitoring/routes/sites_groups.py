@@ -13,7 +13,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
@@ -37,9 +37,11 @@ from gn_module_monitoring.utils.routes import (
 )
 
 
-@blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
 @blueprint.route(
-    "/refacto/<string:module_code>/sites_groups",
+    f"{ROUTE_PREFIX}/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"}
+)
+@blueprint.route(
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups",
     methods=["GET"],
     defaults={"object_type": "sites_group"},
 )
@@ -99,7 +101,7 @@ def get_sites_groups(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/sites_groups/<string:module_code>/<int:id_sites_group>",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:id_sites_group>",
     methods=["GET"],
     defaults={"object_type": "sites_group"},
 )
@@ -116,10 +118,12 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: 
 
 
 @blueprint.route(
-    "/sites_groups/geometries", methods=["GET"], defaults={"object_type": "sites_group"}
+    f"{ROUTE_PREFIX}/sites_groups/geometries",
+    methods=["GET"],
+    defaults={"object_type": "sites_group"},
 )
 @blueprint.route(
-    "/refacto/<string:module_code>/sites_groups/geometries",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/geometries",
     methods=["GET"],
     defaults={"object_type": "site"},
 )
@@ -172,10 +176,12 @@ def get_sites_group_geometries(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/sites_groups/<int:_id>", methods=["PATCH"], defaults={"object_type": "sites_group"}
+    f"{ROUTE_PREFIX}/sites_groups/<int:_id>",
+    methods=["PATCH"],
+    defaults={"object_type": "sites_group"},
 )
 @blueprint.route(
-    "/<string:module_code>/sites_groups/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:_id>",
     methods=["PATCH"],
     defaults={"object_type": "sites_group"},
 )
@@ -192,12 +198,12 @@ def patch(scope, object_type: str, module_code: str = "generic", _id: int = None
 
 
 @blueprint.route(
-    "/sites_groups",
+    f"{ROUTE_PREFIX}/sites_groups",
     methods=["POST"],
     defaults={"object_type": "sites_group"},
 )
 @blueprint.route(
-    "/<string:module_code>/sites_groups",
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups",
     methods=["POST"],
     defaults={"object_type": "sites_group"},
 )
@@ -209,12 +215,14 @@ def post_sites_group(object_type: str, module_code: str = "generic"):
 
 
 @blueprint.route(
-    "/sites_groups/<int:_id>", methods=["DELETE"], defaults={"object_type": "sites_group"}
+    f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:_id>",
+    methods=["DELETE"],
+    defaults={"object_type": "sites_group"},
 )
 @permissions.check_cruved_scope(
     "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
-def delete(scope, _id: int, object_type: str):
+def delete(scope, _id: int, object_type: str, module_code: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(

@@ -21,6 +21,9 @@ blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
 
+# Préfixe des routes de la nouvelle API (les routes legacy sont dans blueprint_legacy)
+ROUTE_PREFIX = "/refacto"
+
 
 @blueprint.teardown_request
 def clear_current_module(exc=None):

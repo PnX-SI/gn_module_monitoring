@@ -2,7 +2,7 @@ from marshmallow import EXCLUDE
 from geonature.utils.env import db
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import get_specific_properties
@@ -27,6 +27,7 @@ from gn_module_monitoring.utils.routes import (
 from sqlalchemy import select
 from gn_module_monitoring.utils.routes import sort
 from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import Forbidden
 
 from geonature.core.gn_permissions import decorators as permissions
 
@@ -36,7 +37,7 @@ default_route_object_type = "observation"
 
 
 @blueprint.route(
-    "/refacto/<string:module_code>/observations",
+    f"{ROUTE_PREFIX}/<string:module_code>/observations",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -94,10 +95,12 @@ def get_observations(object_type: str, module_code: str = None):
 
 
 @blueprint.route(
-    "/observation/geometries", methods=["GET"], defaults={"object_type": default_route_object_type}
+    f"{ROUTE_PREFIX}/observation/geometries",
+    methods=["GET"],
+    defaults={"object_type": default_route_object_type},
 )
 @blueprint.route(
-    "/refacto/<string:module_code>/observation/geometries",
+    f"{ROUTE_PREFIX}/<string:module_code>/observation/geometries",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -107,7 +110,7 @@ def obs_geometries(object_type: str, module_code=None):
 
 
 @blueprint.route(
-    "/observations/<string:module_code>/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>",
     methods=["GET"],
     defaults={"object_type": default_route_object_type},
 )
@@ -126,7 +129,7 @@ def get_observation_by_id(scope, module_code, _id, object_type):
 
 
 @blueprint.route(
-    "/<string:module_code>/observations/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>",
     methods=["DELETE"],
     defaults={"object_type": default_route_object_type},
 )
@@ -143,7 +146,7 @@ def delete_observation(scope, _id, module_code, object_type):
 
 
 @blueprint.route(
-    "/<string:module_code>/observations",
+    f"{ROUTE_PREFIX}/<string:module_code>/observations",
     methods=["POST"],
     defaults={"object_type": default_route_object_type},
 )
@@ -154,7 +157,7 @@ def post_observation(object_type, module_code):
 
 
 @blueprint.route(
-    "/<string:module_code>/observations/<int:_id>",
+    f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>",
     methods=["PATCH"],
     defaults={"object_type": default_route_object_type},
 )
