@@ -18,6 +18,8 @@ from marshmallow import (
 from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
+from gn_module_monitoring.tools.utils import schema_context
+
 from .core import BaseAdapter
 
 
@@ -45,14 +47,16 @@ class NomenclatureAdapter(BaseAdapter):
 
     @cache
     @staticmethod
+    def get_types_mnemoniques():
+        return list(db.session.execute(sa.select(BibNomenclaturesTypes.mnemonique)).scalars())
+
+    @cache
+    @staticmethod
     def get_nomenclature_columns():
         return sa.inspect(TNomenclatures).columns
 
     @classmethod
     def get_config_schema_class(cls):
-        types_mnemoniques = list(
-            db.session.execute(sa.select(BibNomenclaturesTypes.mnemonique)).scalars()
-        )
         columns = NomenclatureAdapter.get_nomenclature_columns()
 
         class ConfigSchema(ma.Schema):
@@ -60,10 +64,7 @@ class NomenclatureAdapter(BaseAdapter):
                 unknown = ma.RAISE
 
             type = fields.Str(validate=validate.Equal("nomenclature"))
-            nomenclature_type = fields.Str(
-                validate=validate.OneOf(types_mnemoniques),
-                required=True,  # TODO: à confirmer
-            )
+            nomenclature_type = fields.Str(required=True)  # TODO: required à confirmer
             cd_nomenclatures = fields.List(fields.Str())
             # Stock cette propriété des nomenclatures
             storage_col = fields.Str(validate=validate.OneOf(columns.values()))
@@ -104,11 +105,14 @@ class NomenclatureAdapter(BaseAdapter):
 
             @post_load
             def load_nomenclature_type(self, data, **kwargs):
-                from .nomenclature import get_nomenclature_type
-
-                if "nomenclature_type" in data:
-                    # should not fail thanks to field validator
-                    data["nomenclature_type"] = get_nomenclature_type(data["nomenclature_type"])
+                ctx = schema_context.get()
+                if "nomenlature_type" in data and ctx and ctx.get("protocol_installed", False):
+                    nomenclature_type = get_nomenclature_type(data["nomenclature_type"])
+                    if nomenclature_type is None:
+                        raise ValidationError(
+                            f"'{data["nomenclature_type"]}' is not a valid nomenclature type mnemonique"
+                        )
+                    data["nomenclature_type"] = nomenclature_type
                 return data
 
         return ConfigSchema
