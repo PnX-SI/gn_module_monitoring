@@ -114,7 +114,7 @@ def sort(
         order_by = getattr(model, sort)
         if sort_dir == "desc":
             order_by = desc(order_by)
-        return query.order_by(order_by)
+        return query.order_by(order_by.nullslast())
     elif specific_properties and sort in specific_properties:
         field = specific_properties.get(sort)
         # TODO: implémenter les autres type_util
