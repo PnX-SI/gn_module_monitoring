@@ -22,10 +22,8 @@ def load_legacy_config(module_code):
     return config
 
 
-def run_module_check(module_code, installed, check_data, data_filters, fix):
+def run_module_check(module_code, check_data, data_filters, fix):
     total_error_count = 0
-
-    schema_context.set({"protocol_installed": installed})
 
     error_count, config = wrap_errors(
         "Fichier de configuration du module", check_module_config(module_code), return_result=True
@@ -46,7 +44,7 @@ def run_module_check(module_code, installed, check_data, data_filters, fix):
     )
     total_error_count += error_count
 
-    if config and installed and check_data:
+    if config and check_data:
         total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
 
         total_error_count += check_module_data(config, legacy_config, fix, data_filters)
@@ -73,9 +71,13 @@ def run_check(module_code, check_data, data_filters, fix):
     for module_code in module_codes:
         click.secho(f"===== {module_code} =====", bold=True)
 
-        error_count += run_module_check(
-            module_code, module_code in installed_module_codes, check_data, data_filters, fix
-        )
+        with schema_context(protocol_installed=module_code in installed_module_codes):
+            error_count += run_module_check(
+                module_code,
+                check_data and module_code in installed_module_codes,
+                data_filters,
+                fix,
+            )
 
     click.echo("")
     if error_count:

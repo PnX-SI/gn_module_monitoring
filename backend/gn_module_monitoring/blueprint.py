@@ -54,11 +54,13 @@ def load_modues_config(state):
     for module in get_modules():
         module_code = module.module_code
         try:
-            schema_context.set({"protocol_installed": True})
-            protocol_config = load_module_config(module_code)
-            for entity in get_object_types(protocol_config["tree"]):
-                protocol_config[entity] = load_protocol_entity_config(module_code, entity=entity)
-            monitoring_config["protocols"][module_code] = protocol_config
+            with schema_context(protocol_installed=True):
+                protocol_config = load_module_config(module_code)
+                for entity in get_object_types(protocol_config["tree"]):
+                    protocol_config[entity] = load_protocol_entity_config(
+                        module_code, entity=entity
+                    )
+                monitoring_config["protocols"][module_code] = protocol_config
         except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
             ctx = click.get_current_context(silent=True)
             # Avoid printing errors when using the CLI

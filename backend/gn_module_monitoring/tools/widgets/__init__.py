@@ -1,6 +1,5 @@
 from .core import (
     BaseWidget,
-    DatasetWidget,
     TextWidget,
     TextareaWidget,
     CheckboxWidget,
@@ -10,10 +9,13 @@ from .core import (
     TimeWidget,
     MultiselectWidget,
     DatalistWidget,
+    ObserversTextWidget,
+)
+from .relationships import (
     NomenclatureWidget,
+    DatasetWidget,
     TaxonomyWidget,
     HabitatWidget,
     MediaWidget,
     ObserversWidget,
-    ObserversTextWidget,
 )
