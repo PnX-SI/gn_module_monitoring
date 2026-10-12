@@ -14,8 +14,8 @@
       "hidden": true
     },
     "id_observation": {
-      "type_widget": "text",
       "attribut_label": "Id visite",
+      "type_util": "user",
       "hidden": true
     },
     "uuid_observation_detail": {
