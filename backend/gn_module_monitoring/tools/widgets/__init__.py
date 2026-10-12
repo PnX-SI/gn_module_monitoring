@@ -17,5 +17,7 @@ from .relationships import (
     TaxonomyWidget,
     HabitatWidget,
     MediaWidget,
+    UserWidget,
     ObserversWidget,
+    AreasWidget,
 )

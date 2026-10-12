@@ -1,5 +1,7 @@
 from typing import Never
 
+from marshmallow import fields, validate
+
 from .core import BaseWidget
 
 
@@ -51,6 +53,19 @@ class HabitatWidget(BaseWidget):
         return int
 
 
+class UserWidget(BaseWidget):
+    key = "user"
+
+    def _get_default_adapter(self, data, **kwargs):
+        from ..adapters import UserAdapter
+
+        return UserAdapter(data, **kwargs)
+
+    def get_wire_type(self):
+        return int
+
+
+# TODO: observers is a spetial case of user
 class ObserversWidget(BaseWidget):
     key = "observers"
 
@@ -74,3 +89,26 @@ class MediaWidget(BaseWidget):
 
     def get_wire_type(self):
         return Never
+
+
+class AreasWidget(BaseWidget):
+    key = "areas"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        type = fields.Str(validate=validate.OneOf(["area", "areas"]))
+        many = fields.Boolean(load_default=True)
+
+    def _get_default_adapter(self, data, **kwargs):
+        from ..adapters import AreasAdapter
+
+        return AreasAdapter(data, **kwargs)
+
+    def get_wire_type(self):
+        if self.config.many:
+            return list[int]
+        else:
+            return int
+
+
+# TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas
+# Multiple: multiselect, checkbox, municipalities, areas

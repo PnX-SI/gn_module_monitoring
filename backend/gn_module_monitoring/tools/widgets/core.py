@@ -218,6 +218,8 @@ class DatalistWidget(BaseWidget):
 
         @validates_schema
         def validates_schema(self, data, **kwargs):
+            if "api" in data and "values" in data:
+                raise ValidationError("'api' et 'values' sont mutuellement exclusif")
             if "api" in data:
                 if "keyValue" not in data:
                     raise ValidationError(
@@ -229,16 +231,25 @@ class DatalistWidget(BaseWidget):
                     )
 
     def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import StringAdapter
+        if "values" in self.config:
+            from ..adapters import ValueAdapter
 
-        # This is pure guessing as we do not know the API return type
-        return StringAdapter(data, **kwargs)
+            return ValueAdapter({"values": self.config["values"], **data}, **kwargs)
+        else:
+            from ..adapters import StringAdapter
+
+            # This is pure guessing as we do not know the API return type
+            return StringAdapter(data, **kwargs)
 
     def get_wire_type(self):
-        # We do not know the type returned by the API…
-        return Any
+        if "values" in self.config:
+            return Literal[tuple(value["value"] for value in self.config["values"])]
+        else:
+            # We do not know the type returned by the API…
+            return Any
 
 
+# FIXME: what difference with text widget?
 class ObserversTextWidget(BaseWidget):
     key = "observers-text"
 
