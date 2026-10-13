@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class SitesGroupProtocolSchema(BaseProtocolSchema):
+class SitesGroupConfigSchema(BaseEntityConfigSchema):
     base_data: ClassVar = {
         "id_field_name": "id_sites_group",
         "chained": True,
@@ -94,9 +94,3 @@ class SitesGroupProtocolSchema(BaseProtocolSchema):
             },
         },
     }
-
-
-class SitesGroupService:
-    model = TMonitoringSitesGroups
-    model_schema = MonitoringSitesGroupsSchema
-    config_schema = SitesGroupProtocolSchema
