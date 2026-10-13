@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class SiteProtocolSchema(BaseProtocolSchema):
+class SiteConfigSchema(BaseEntityConfigSchema):
     # TODO: si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
     # voir SITES_GROUP_CONFIG et process_schema dans config/utils.py
     base_data: ClassVar = {
@@ -117,9 +117,3 @@ class SiteProtocolSchema(BaseProtocolSchema):
             },
         },
     }
-
-
-class SiteService:
-    model = TMonitoringSites
-    model_schema = MonitoringSitesSchema
-    config_schema = SiteProtocolSchema
