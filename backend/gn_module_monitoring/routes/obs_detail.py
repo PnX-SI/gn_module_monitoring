@@ -12,7 +12,6 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
@@ -34,7 +33,7 @@ from gn_module_monitoring.utils.routes import (
     sort,
 )
 
-OBJECT_CODE = get_permission_object_code(ObjectType.OBSERVATION_DETAIL)
+OBJECT_CODE = "MONITORINGS_VISITES"
 
 
 @blueprint.route(
@@ -77,7 +76,7 @@ def patch_obs_detail(scope, module_code: str, _id: int):
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation_details", methods=["GET"])
 def get_obs_details(module_code: str):
-    object_code = get_permission_object_code(ObjectType.OBSERVATION_DETAIL)
+    object_code = "MONITORINGS_VISITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
 

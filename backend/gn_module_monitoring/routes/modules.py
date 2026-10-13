@@ -15,8 +15,6 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
-from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.modules.repositories import (
     get_module,
@@ -48,8 +46,7 @@ def get_module_api(value):
     if module:
         module_out = MonitoringModuleSchema().dump(module)
         module_out["cruved"] = get_scopes_by_action(
-            module_code=module.module_code,
-            object_code=get_permission_object_code(ObjectType.MODULE),
+            module_code=module.module_code, object_code="MONITORINGS_MODULES"
         )
 
     return module_out
@@ -70,8 +67,7 @@ def get_modules_api():
     for module in modules:
         module_out = module.as_dict(depth=depth)
         module_out["cruved"] = get_scopes_by_action(
-            module_code=module.module_code,
-            object_code=get_permission_object_code(ObjectType.MODULE),
+            module_code=module.module_code, object_code="MONITORINGS_MODULES"
         )
 
         modules_out.append(module_out)
@@ -93,9 +89,7 @@ def get_all_types_site_from_module_id(module_code):
 
 @blueprint.route("/module/<int:_id>", methods=["PATCH"])
 @blueprint.route("/<string:module_code>/module/<int:_id>", methods=["PATCH"])
-@permissions.check_cruved_scope(
-    "U", get_scope=True, object_code=get_permission_object_code(ObjectType.MODULE)
-)
+@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_MODULES")
 def patch_module(scope, module_code: str = "generic", _id: int = None):
     module = db.get_or_404(TMonitoringModules, _id)
     post_data = dict(request.get_json())
