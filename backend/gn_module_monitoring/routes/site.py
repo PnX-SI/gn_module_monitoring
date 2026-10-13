@@ -178,13 +178,13 @@ def get_site_by_id(scope, module_code, id):
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/sites/geometries", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_all_site_geometries():
     return _get_site_geometries()
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites/geometries", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_module_site_geometries(module_code):
     return _get_site_geometries(module_code)
 
