@@ -1,5 +1,8 @@
 from typing import ClassVar
 
+from gn_module_monitoring.monitoring.models import TMonitoringSites
+from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
+
 from .base import BaseProtocolSchema
 
 
@@ -114,3 +117,9 @@ class SiteProtocolSchema(BaseProtocolSchema):
             },
         },
     }
+
+
+class SiteService:
+    model = TMonitoringSites
+    model_schema = MonitoringSitesSchema
+    config_schema = SiteProtocolSchema

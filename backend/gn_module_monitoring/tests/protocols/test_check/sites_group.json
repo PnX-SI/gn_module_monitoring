@@ -1,0 +1,8 @@
+{
+    "specific": {
+        "group_field": {
+            "type_widget": "text",
+            "attribut_label": "Champ spécifique aux groupes de sites"
+        }
+    }
+}

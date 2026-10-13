@@ -1,5 +1,8 @@
 from typing import ClassVar
 
+from gn_module_monitoring.monitoring.models import TMonitoringMarkingEvent
+from gn_module_monitoring.monitoring.schemas import MonitoringMarkingSchema
+
 from .base import BaseProtocolSchema
 
 
@@ -80,3 +83,9 @@ class MarkingProtocolSchema(BaseProtocolSchema):
             },
         },
     }
+
+
+class MarkingService:
+    model = TMonitoringMarkingEvent
+    model_schema = MonitoringMarkingSchema
+    config_schema = MarkingProtocolSchema

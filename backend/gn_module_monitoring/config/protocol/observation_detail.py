@@ -1,5 +1,8 @@
 from typing import ClassVar
 
+from gn_module_monitoring.monitoring.models import TMonitoringObservations
+from gn_module_monitoring.monitoring.schemas import MonitoringObservationsSchema
+
 from .base import BaseProtocolSchema
 
 
@@ -33,3 +36,9 @@ class ObservationDetailProtocolSchema(BaseProtocolSchema):
             },
         },
     }
+
+
+class ObservationDetailService:
+    model = TMonitoringObservations
+    model_schema = MonitoringObservationsSchema
+    config_schema = ObservationDetailProtocolSchema
