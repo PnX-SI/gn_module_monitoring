@@ -228,7 +228,10 @@ export class MonitoringDatatableGComponent implements OnInit {
   }
 
   filterCount() {
-    return Object.keys(this.filters || {}).length;
+    const countFilters = Object.keys(this.filters || {}).filter(
+      (k) => k !== 'sort' && k !== 'sort_dir'
+    ).length;
+    return countFilters;
   }
   onRowClick(event) {
     if (!(event && event.type === 'click')) {
