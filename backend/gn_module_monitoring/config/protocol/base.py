@@ -1,12 +1,9 @@
 from copy import deepcopy
-import json
-import importlib
 from typing import Any
 
 import marshmallow as ma
 from marshmallow import fields, pre_load, post_load, validates_schema, ValidationError
 
-from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.tools.widgets import (
     DatasetWidget,
     TextWidget,
@@ -209,39 +206,27 @@ class BaseProtocolSchema(ma.Schema):
         """
         Ce hook s’occupe de merger la config generic avec la config specific.
         """
-        entity = schema_context.get()["entity"]
-        # retro.compat
-        if "specific" in data:
-            data["fields"] = data.pop("specific")
         # Permet de valider de manière minimale les fields pour les manipuler
-        fields_field = fields.Dict(keys=fields.Str(), values=fields.Dict())
-        data["fields"] = fields_field.deserialize(data.get("fields", {}))
-        # TODO: plutôt que charger la config par défaut depuis un fichier par défaut, la mettre directement
-        # dans les schémas afin de centraliser les infos de la config.
-        default_data = json.loads(
-            importlib.resources.read_text("gn_module_monitoring.config.generic", f"{entity}.json")
-        )
-        # retro-compat.
-        if "generic" in default_data:
-            default_data["fields"] = default_data.pop("generic")
-        default_data["fields"] = fields_field.deserialize(default_data.get("fields", {}))
-        # On écrase tous les champs, sauf "fields"
-        # TODO: veut-on vraiment permettre de tous écraser ???
-        full_data = {**default_data, **{k: v for k, v in data.items() if k != "fields"}}
+        fields_field = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Dict())
+        # specific is a retro.compat key
+        fields = data.pop("fields", data.pop("specific", {}))
+        fields = fields_field.deserialize(fields)
+        # On écrase tous les champs, sauf "fields" qui a été sortie
+        data = {**self.base_data, **data}
         # Maintenant, pour les fields, on permet :
         #   - de définir de nouveau fields
         #   - d’override, pour les fields existant dans default_data, uniquement :
         #     - le widget
         #     - required, seulement si c’est pour le forcer à True
-        for field_name, field_def in data["fields"].items():
-            if field_name in default_data["fields"]:  # field existant
+        for field_name, field_def in fields.items():
+            if field_name in data["fields"]:  # field existant
                 # TODO: Comportement legacy, adopter le comportement strict décrit ci-dessus
-                full_data["fields"][field_name].update(field_def)
+                data["fields"][field_name].update(field_def)
             else:  # nouveau field, on l’ajoute
-                full_data["fields"][field_name] = field_def
+                data["fields"][field_name] = field_def
         # On rajoute à chaque field une clé "name" pour que chaque field est connaissance de son nom
-        full_data["fields"] = {k: {**v, "name": k} for k, v in full_data["fields"].items()}
-        return full_data
+        data["fields"] = {k: {**v, "name": k} for k, v in data["fields"].items()}
+        return data
 
     @validates_schema
     def validates_schema(self, data, **kwargs):
@@ -253,64 +238,3 @@ class BaseProtocolSchema(ma.Schema):
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )
-
-
-class ModuleProtocolSchema(BaseProtocolSchema):
-    pass
-
-
-class SitesGroupProtocolSchema(BaseProtocolSchema):
-    pass
-
-
-class SiteProtocolSchema(BaseProtocolSchema):
-    # TODO: si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
-    # voir SITES_GROUP_CONFIG et process_schema dans config/utils.py
-    pass
-
-
-class VisitProtocolSchema(BaseProtocolSchema):
-    pass
-
-
-class ObservationProtocolSchema(BaseProtocolSchema):
-    pass
-
-
-class ObservationDetailProtocolSchema(BaseProtocolSchema):
-    pass
-
-
-def load_protocol_entity_config(module_code, entity):
-    """
-    Raises:
-        UnicodeDecodeError
-        JSONDecodeError
-        ValidationError
-    """
-    if entity == "module":
-        schema = ModuleProtocolSchema()
-    elif entity == "sites_group":
-        schema = SitesGroupProtocolSchema()
-    elif entity == "site":
-        schema = SiteProtocolSchema()
-    elif entity == "visit":
-        schema = VisitProtocolSchema()
-    elif entity == "observation":
-        schema = ObservationProtocolSchema()
-    elif entity == "observation_detail":
-        schema = ObservationDetailProtocolSchema()
-    # TODO: individual, marking
-    else:
-        raise NotImplementedError
-
-    with schema_context(entity=entity):
-        config_path = monitoring_module_config_path(module_code) / f"{entity}.json"
-        if config_path.is_file():
-            with config_path.open() as f:
-                entity_config = json.load(f)
-        else:
-            entity_config = {}
-
-        #     # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
-        return schema.load(entity_config)
