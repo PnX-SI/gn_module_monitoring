@@ -1,5 +1,8 @@
 from typing import ClassVar
 
+from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
+from gn_module_monitoring.monitoring.schemas import MonitoringIndividualsSchema
+
 from .base import BaseProtocolSchema
 
 
@@ -86,3 +89,9 @@ class IndividualProtocolSchema(BaseProtocolSchema):
             "",
         ],
     }
+
+
+class IndividualService:
+    model = TMonitoringIndividuals
+    model_schema = MonitoringIndividualsSchema
+    config_schema = IndividualProtocolSchema

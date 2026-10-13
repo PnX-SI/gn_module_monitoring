@@ -116,9 +116,8 @@ class AdapterProtocolSchema(ma.Schema):
 
 class FieldProtocolSchema(ma.Schema):
     class Meta:
-        unknown = ma.INCLUDE  # TODO: switch to raise once schema complete
+        unknown = ma.EXCLUDE  # TODO: switch to raise once schema complete
 
-    name = fields.Str(required=True)
     # FIXME: actuellement, on peut spécifier que le widget (resp. l’adapter) auquel cas l’adapter (resp. le widget) est déterminé automatiquement.
     # Comment utiliser, pour un widget donnée, l’adapter par défaut, mais overrider certaines propriétés ?
     widget = fields.Nested(WidgetProtocolSchema)
@@ -130,8 +129,7 @@ class FieldProtocolSchema(ma.Schema):
     hidden_js = MultilineStr()
 
     def load(self, data, **kwargs):
-        name = self.fields["name"].deserialize(data.get("name"), "name", data)
-        with schema_context(field_name=name):
+        with schema_context(field_name=data.pop("name")):
             return super().load(data, **kwargs)
 
     @pre_load
