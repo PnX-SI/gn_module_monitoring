@@ -9,6 +9,8 @@ from .site import SiteProtocolSchema
 from .visit import VisitProtocolSchema
 from .observation import ObservationProtocolSchema
 from .observation_detail import ObservationDetailProtocolSchema
+from .individual import IndividualProtocolSchema
+from .marking import MarkingProtocolSchema
 
 
 def load_protocol_entity_config(module_code, entity):
@@ -30,7 +32,10 @@ def load_protocol_entity_config(module_code, entity):
         schema = ObservationProtocolSchema()
     elif entity == "observation_detail":
         schema = ObservationDetailProtocolSchema()
-    # TODO: individual, marking
+    elif entity == "individual":
+        schema = IndividualProtocolSchema()
+    elif entity == "marking":
+        schema = MarkingProtocolSchema()
     else:
         raise NotImplementedError
 
