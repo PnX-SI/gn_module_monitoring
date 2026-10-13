@@ -34,16 +34,10 @@ default_route_object_type = "individual"
 OBJECT_CODE = "INDIVIDUALS"
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/individuals", methods=["GET"], defaults={"object_type": "individual"}
-)
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/individuals",
-    methods=["GET"],
-    defaults={"object_type": "individual"},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/individuals", methods=["GET"])
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals", methods=["GET"])
 @check_cruved_scope("R", object_code=OBJECT_CODE)
-def get_individuals(object_type, module_code=None):
+def get_individuals(module_code=None):
     """
     List the individuals readable by the current user.
 
@@ -80,7 +74,7 @@ def get_individuals(object_type, module_code=None):
 
     config = get_config(g.current_module.module_code)
     specific_properties = get_specific_properties(
-        TMonitoringIndividuals, config, "individual"
+        TMonitoringIndividuals, config, default_route_object_type
     ).keys()
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
@@ -102,13 +96,9 @@ def get_individuals(object_type, module_code=None):
     )
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
-def get_individual_by_id(scope: int, module_code: str, id: int, object_type: str):
+def get_individual_by_id(scope: int, module_code: str, id: int):
     """
     Retrieve a single individual.
 
@@ -143,13 +133,9 @@ def get_individual_by_id(scope: int, module_code: str, id: int, object_type: str
     return data
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/individuals",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
-def post_individual(object_type: str, module_code: str):
+def post_individual(module_code: str):
     """
     Create an individual from the request JSON body.
 
@@ -169,13 +155,9 @@ def post_individual(object_type: str, module_code: str):
     return create_or_update_individual(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
-def patch_individual(scope, object_type: str, module_code: str, _id: int):
+def patch_individual(scope, module_code: str, _id: int):
     """
     Update an individual from the request JSON body.
 
@@ -215,13 +197,9 @@ def patch_individual(scope, object_type: str, module_code: str, _id: int):
     return create_or_update_individual(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": "individual"},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>", methods=["DELETE"])
 @check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_individual(scope, _id: int, object_type: str, module_code: str):
+def delete_individual(scope, _id: int, module_code: str):
     """
     Delete an individual.
 

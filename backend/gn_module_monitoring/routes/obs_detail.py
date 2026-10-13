@@ -37,12 +37,10 @@ OBJECT_CODE = "MONITORINGS_VISITES"
 
 
 @blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>", methods=["DELETE"]
 )
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_obs_detail(scope, _id: int, object_type: str, module_code: str):
+def delete_obs_detail(scope, _id: int, module_code: str):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, _id)
     if not obs_detail.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -53,24 +51,18 @@ def delete_obs_detail(scope, _id: int, object_type: str, module_code: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation_details", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
-def post_obs_detail(object_type: str, module_code: str):
+def post_obs_detail(module_code: str):
     post_data = dict(request.get_json())
     return create_or_update_obs_detail(post_data, module_code=module_code)
 
 
 @blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>", methods=["PATCH"]
 )
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
-def patch_obs_detail(scope, object_type: str, module_code: str, _id: int):
+def patch_obs_detail(scope, module_code: str, _id: int):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, _id)
     if not obs_detail.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -82,12 +74,8 @@ def patch_obs_detail(scope, object_type: str, module_code: str, _id: int):
     return create_or_update_obs_detail(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
-def get_obs_details(object_type: str, module_code: str):
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation_details", methods=["GET"])
+def get_obs_details(module_code: str):
     object_code = "MONITORINGS_VISITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -120,7 +108,9 @@ def get_obs_details(object_type: str, module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(MonitoringObservationsDetailsSchema, object_type, module_code)
+    schema = add_specific_attributes(
+        MonitoringObservationsDetailsSchema, default_route_object_type, module_code
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -138,18 +128,18 @@ def get_obs_details(object_type: str, module_code: str):
 
 
 @blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
+    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:id>", methods=["GET"]
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
-def get_obs_detail_by_id(scope: int, module_code: str, id: int, object_type: str):
+def get_obs_detail_by_id(scope: int, module_code: str, id: int):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, id)
     if not obs_detail.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read observation detail {obs_detail.id_base_obs_detail}"
         )
-    schema = add_specific_attributes(MonitoringObservationsDetailsSchema, object_type, module_code)
+    schema = add_specific_attributes(
+        MonitoringObservationsDetailsSchema, default_route_object_type, module_code
+    )
 
     data = schema().dump(obs_detail)
 

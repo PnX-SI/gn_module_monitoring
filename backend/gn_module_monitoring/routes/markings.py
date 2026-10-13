@@ -72,13 +72,9 @@ def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEve
     return marking
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_marking(scope, _id: int, object_type: str, module_code: str):
+def delete_marking(scope, _id: int, module_code: str):
     """
     Delete a marking.
 
@@ -113,13 +109,9 @@ def delete_marking(scope, _id: int, object_type: str, module_code: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/markings",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
-def post_marking(object_type: str, module_code: str):
+def post_marking(module_code: str):
     """
     Create a marking from the request JSON body.
 
@@ -143,13 +135,9 @@ def post_marking(object_type: str, module_code: str):
     return create_or_update_marking(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
-def patch_marking(scope, object_type: str, module_code: str, _id: int):
+def patch_marking(scope, module_code: str, _id: int):
     """
     Update a marking from the request JSON body.
 
@@ -190,12 +178,8 @@ def patch_marking(scope, object_type: str, module_code: str, _id: int):
     return create_or_update_marking(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/markings",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
-def get_markings(object_type: str, module_code: str):
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings", methods=["GET"])
+def get_markings(module_code: str):
     """
     List the markings of a module readable by the current user.
 
@@ -246,7 +230,9 @@ def get_markings(object_type: str, module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(MonitoringMarkingSchema, object_type, module_code)
+    schema = add_specific_attributes(
+        MonitoringMarkingSchema, default_route_object_type, module_code
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -263,13 +249,9 @@ def get_markings(object_type: str, module_code: str):
     )
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
-def get_marking_by_id(scope: int, module_code: str, id: int, object_type: str):
+def get_marking_by_id(scope: int, module_code: str, id: int):
     """
     Retrieve a single marking.
 
@@ -299,7 +281,9 @@ def get_marking_by_id(scope: int, module_code: str, id: int, object_type: str):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = add_specific_attributes(MonitoringMarkingSchema, object_type, module_code)
+    schema = add_specific_attributes(
+        MonitoringMarkingSchema, default_route_object_type, module_code
+    )
 
     data = schema().dump(marking)
 

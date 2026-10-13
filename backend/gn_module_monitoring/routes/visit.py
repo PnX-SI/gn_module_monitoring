@@ -33,13 +33,9 @@ from gn_module_monitoring.routes.modules import get_modules
 default_route_object_type = "visit"
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
-def delete_visit(scope, _id, object_type, module_code):
+def delete_visit(scope, _id, module_code):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete visit {visit.id_base_visit}")
@@ -48,24 +44,16 @@ def delete_visit(scope, _id, object_type, module_code):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/visits",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
-def post_visit(object_type, module_code):
+def post_visit(module_code):
     post_data = dict(request.get_json())
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
-def patch_visit(scope, object_type: str, module_code: str, _id: int):
+def patch_visit(scope, module_code: str, _id: int):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update visit {visit.id_base_visit}")
@@ -75,15 +63,9 @@ def patch_visit(scope, object_type: str, module_code: str, _id: int):
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/visits", methods=["GET"], defaults={"object_type": default_route_object_type}
-)
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/visits",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
-def get_visits(object_type, module_code=None):
+@blueprint.route(f"{ROUTE_PREFIX}/visits", methods=["GET"])
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits", methods=["GET"])
+def get_visits(module_code=None):
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -129,18 +111,16 @@ def get_visits(object_type, module_code=None):
     )
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
-def get_visit_by_id(scope, module_code, id, object_type):
-    # print(scope, module_code, id, object_type)
+def get_visit_by_id(scope, module_code, id):
+
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = add_specific_attributes(MonitoringVisitsSchema, object_type, module_code)
+    schema = add_specific_attributes(
+        MonitoringVisitsSchema, default_route_object_type, module_code
+    )
 
     data = schema(exclude=("module",)).dump(visit)
 
