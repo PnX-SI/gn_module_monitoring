@@ -571,6 +571,30 @@ class TestSiteWithModule:
         # ID retourné pour attribut spécifique du site
         assert site_repr.get("meteo") == 2
 
+    def test_get_module_sites_additional_data_keys(self, test_module_user, types_site, add_site):
+        set_logged_user_cookie(self.client, test_module_user)
+        site = add_site(
+            types_site=[list(types_site.values())[0]],
+            data={
+                "profondeur_grotte": 42.8,
+                "prop_from_other_module": "foo",
+            },
+        )
+
+        response = self.client.get(url_for("monitorings.get_sites", module_code="test"))
+        assert response.status_code == 200
+        site_repr = next(
+            s for s in response.json["items"] if s["id_base_site"] == site.id_base_site
+        )
+
+        assert "data" not in site_repr
+        # Propriété non définie dans la configuration du module : retournée et listée
+        assert site_repr["prop_from_other_module"] == "foo"
+        assert "prop_from_other_module" in site_repr["additional_data_keys"]
+        # Propriété spécifique définie dans la configuration : non listée
+        assert site_repr["profondeur_grotte"] == 42.8
+        assert "profondeur_grotte" not in site_repr["additional_data_keys"]
+
     def test_get_module_sites_with_filter_on_generic_attribute(self, test_module_user, add_site):
         set_logged_user_cookie(self.client, test_module_user)
         filter_params = {"base_site_name": "gr"}
