@@ -6,7 +6,7 @@ from marshmallow import fields, validate
 from ..utils import ValueLabelField
 
 
-class BaseAdapter:
+class BaseStore:
     class ConfigSchema(ma.Schema):
         class Meta:
             unknown = ma.RAISE
@@ -85,7 +85,7 @@ class BaseAdapter:
         return self.__class__.__name__
 
 
-class DummyAdapter(BaseAdapter):
+class DummyStore(BaseStore):
     """
     Cet apapter est utilisé quand il n’y a pas de données à manipuler.
     Par exemple, le widget des médias interagit directement avec l’API des médias.
@@ -95,12 +95,12 @@ class DummyAdapter(BaseAdapter):
         return Never
 
 
-class ValueAdapter(BaseAdapter):
+class ValueStore(BaseStore):
     """
     Cet adapter est utilisé pour vérifier qu’une valeur appartient à une liste.
     """
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
     # TODO: default widget
@@ -109,12 +109,12 @@ class ValueAdapter(BaseAdapter):
         return Literal[tuple(value["value"] for value in self.config["values"])]
 
 
-class ListAdapter(BaseAdapter):
+class ListStore(BaseStore):
     """
-    Idem que ValueAdapter, mais pour une liste de données.
+    Idem que ValueStore, mais pour une liste de données.
     """
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
     # TODO: default widget
@@ -123,7 +123,7 @@ class ListAdapter(BaseAdapter):
         return list[Literal[tuple(value["value"] for value in self.config["values"])]]
 
 
-class StringAdapter(BaseAdapter):
+class StringStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import TextWidget
 
@@ -133,7 +133,7 @@ class StringAdapter(BaseAdapter):
         return str
 
 
-class BooleanAdapter(BaseAdapter):
+class BooleanStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import CheckboxWidget
 
@@ -143,7 +143,7 @@ class BooleanAdapter(BaseAdapter):
         return bool
 
 
-class IntegerAdapter(BaseAdapter):
+class IntegerStore(BaseStore):
     key = "integer"
 
     def _get_default_widget(self, data, **kwargs):
@@ -155,7 +155,7 @@ class IntegerAdapter(BaseAdapter):
         return int
 
 
-class FloatAdapter(BaseAdapter):
+class FloatStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import NumberWidget
 
@@ -165,7 +165,7 @@ class FloatAdapter(BaseAdapter):
         return float
 
 
-class DateAdapter(BaseAdapter):
+class DateStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import DateWidget
 
@@ -175,7 +175,7 @@ class DateAdapter(BaseAdapter):
         return str
 
 
-class TimeAdapter(BaseAdapter):
+class TimeStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import TimeWidget
 
@@ -185,10 +185,10 @@ class TimeAdapter(BaseAdapter):
         return str
 
 
-class UUIDAdapter(BaseAdapter):
+class UUIDStore(BaseStore):
     key = "uuid"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("uuid"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -200,10 +200,10 @@ class UUIDAdapter(BaseAdapter):
         return str
 
 
-class UserAdapter(BaseAdapter):
+class UserStore(BaseStore):
     key = "user"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("user"))
         multiple = fields.Bool(load_default=False)
 
@@ -218,10 +218,10 @@ class UserAdapter(BaseAdapter):
         return int
 
 
-class ObserverListAdapter(BaseAdapter):
+class ObserverListStore(BaseStore):
     key = "observer_list"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("observer_list"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -234,10 +234,10 @@ class ObserverListAdapter(BaseAdapter):
         return list[int]
 
 
-class TaxonomyAdapter(BaseAdapter):
+class TaxonomyStore(BaseStore):
     key = "taxonomy"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("taxonomy"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -249,10 +249,10 @@ class TaxonomyAdapter(BaseAdapter):
         return int
 
 
-class TaxonomyListAdapter(BaseAdapter):
+class TaxonomyListStore(BaseStore):
     key = "taxonomy_list"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("taxonomy_list"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -273,10 +273,10 @@ class TaxonomyListAdapter(BaseAdapter):
         return int
 
 
-class DatasetAdapter(BaseAdapter):
+class DatasetStore(BaseStore):
     key = "dataset"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("dataset"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -288,10 +288,10 @@ class DatasetAdapter(BaseAdapter):
         return int
 
 
-class HabitatAdapter(BaseAdapter):
+class HabitatStore(BaseStore):
     key = "habitat"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("habitat"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -303,10 +303,10 @@ class HabitatAdapter(BaseAdapter):
         return int
 
 
-class AreasAdapter(BaseAdapter):
+class AreasStore(BaseStore):
     key = "areas"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.OneOf(["area", "areas"]))
         many = fields.Boolean(load_default=True)
 
@@ -322,10 +322,10 @@ class AreasAdapter(BaseAdapter):
             return int
 
 
-class TypesSiteAdapter(BaseAdapter):
+class TypesSiteStore(BaseStore):
     key = "types_site"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("types_site"))
 
     def _get_default_widget(self, data, **kwargs):
@@ -346,10 +346,10 @@ class TypesSiteAdapter(BaseAdapter):
         return int
 
 
-class ModuleAdapter(BaseAdapter):
+class ModuleStore(BaseStore):
     key = "module"
 
-    class ConfigSchema(BaseAdapter.ConfigSchema):
+    class ConfigSchema(BaseStore.ConfigSchema):
         type = fields.Str(validate=validate.Equal("module"))
 
     def _get_default_widget(self, data, **kwargs):

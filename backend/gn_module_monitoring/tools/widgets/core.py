@@ -37,19 +37,19 @@ class BaseWidget:
     def dump_config(self):
         return self.get_config_schema_class()().dump(self.config)
 
-    def get_default_adapter(self, data=None, **kwargs):
+    def get_default_store(self, data=None, **kwargs):
         # Gestion de la rétro-compat: si le widget a été initialisé en mode retro-compat.,
-        # on initialise l’adapter en mode retro-compat.
+        # on initialise le store en mode retro-compat.
         data = data or {}
         if self.extra_data:
-            return self._get_default_adapter(
+            return self._get_default_store(
                 {**self.extra_data, **data},
                 **{**kwargs, "unknown": ma.EXCLUDE},
             )
         else:
-            return self._get_default_adapter(data, **kwargs)
+            return self._get_default_store(data, **kwargs)
 
-    def _get_default_adapter(self, data, **kwargs):
+    def _get_default_store(self, data, **kwargs):
         raise NotImplementedError
 
     def get_wire_type(self) -> Any:
@@ -65,10 +65,10 @@ class BaseWidget:
 class TextWidget(BaseWidget):
     key = "text"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import StringAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import StringStore
 
-        return StringAdapter(data, **kwargs)
+        return StringStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -77,10 +77,10 @@ class TextWidget(BaseWidget):
 class TextareaWidget(BaseWidget):
     key = "textarea"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import StringAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import StringStore
 
-        return StringAdapter(data, **kwargs)
+        return StringStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -89,10 +89,10 @@ class TextareaWidget(BaseWidget):
 class CheckboxWidget(BaseWidget):
     key = "bool_checkbox"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import BooleanAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import BooleanStore
 
-        return BooleanAdapter(data, **kwargs)
+        return BooleanStore(data, **kwargs)
 
     def get_wire_type(self):
         return bool
@@ -101,10 +101,10 @@ class CheckboxWidget(BaseWidget):
 class RadioWidget(BaseWidget):
     key = "radio"
 
-    def _get_default_adapter(self, data=None, **kwargs):
-        from ..adapters import StringAdapter
+    def _get_default_store(self, data=None, **kwargs):
+        from ..stores import StringStore
 
-        return StringAdapter(data, **kwargs)
+        return StringStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -123,15 +123,15 @@ class NumberWidget(BaseWidget):
         step = self.config.get("step")
         return step is not None and step.is_integer()
 
-    def _get_default_adapter(self, data=None, **kwargs):
+    def _get_default_store(self, data=None, **kwargs):
         if self.is_integer:
-            from ..adapters import IntegerAdapter
+            from ..stores import IntegerStore
 
-            return IntegerAdapter(data, **kwargs)
+            return IntegerStore(data, **kwargs)
         else:
-            from ..adapters import FloatAdapter
+            from ..stores import FloatStore
 
-            return FloatAdapter(data, **kwargs)
+            return FloatStore(data, **kwargs)
 
     def get_wire_type(self):
         if self.is_integer:
@@ -143,10 +143,10 @@ class NumberWidget(BaseWidget):
 class DateWidget(BaseWidget):
     key = "date"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import DateAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import DateStore
 
-        return DateAdapter(data, **kwargs)
+        return DateStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -155,10 +155,10 @@ class DateWidget(BaseWidget):
 class TimeWidget(BaseWidget):
     key = "time"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import TimeAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import TimeStore
 
-        return TimeAdapter(data, **kwargs)
+        return TimeStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -173,10 +173,10 @@ class SelectWidget(BaseWidget):
 
         values = fields.List(ValueLabelField(), required=True)
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import ValueAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import ValueStore
 
-        return ValueAdapter({"values": self.config["values"], **(data or {})}, **kwargs)
+        return ValueStore({"values": self.config["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
         return Literal[tuple(value["value"] for value in self.config["values"])]
@@ -188,10 +188,10 @@ class MultiselectWidget(BaseWidget):
     class ConfigSchema(BaseWidget.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import ListAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import ListStore
 
-        return ListAdapter({"values": self.config["values"], **(data or {})}, **kwargs)
+        return ListStore({"values": self.config["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
         return list[Literal[tuple(value["value"] for value in self.config["values"])]]
@@ -230,16 +230,16 @@ class DatalistWidget(BaseWidget):
                         {"keyValue": "Avec 'api', vous devez fournir 'keyLabel'"}
                     )
 
-    def _get_default_adapter(self, data, **kwargs):
+    def _get_default_store(self, data, **kwargs):
         if "values" in self.config:
-            from ..adapters import ValueAdapter
+            from ..stores import ValueStore
 
-            return ValueAdapter({"values": self.config["values"], **data}, **kwargs)
+            return ValueStore({"values": self.config["values"], **data}, **kwargs)
         else:
-            from ..adapters import StringAdapter
+            from ..stores import StringStore
 
             # This is pure guessing as we do not know the API return type
-            return StringAdapter(data, **kwargs)
+            return StringStore(data, **kwargs)
 
     def get_wire_type(self):
         if "values" in self.config:
@@ -253,10 +253,10 @@ class DatalistWidget(BaseWidget):
 class ObserversTextWidget(BaseWidget):
     key = "observers-text"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import StringAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import StringStore
 
-        return StringAdapter(data, **kwargs)
+        return StringStore(data, **kwargs)
 
     def get_wire_type(self):
         return str

@@ -26,19 +26,19 @@ from gn_module_monitoring.tools.widgets import (
     ObserversTextWidget,
     AreasWidget,
 )
-from gn_module_monitoring.tools.adapters import (
-    StringAdapter,
-    UserAdapter,
-    ObserverListAdapter,
-    NomenclatureAdapter,
-    TaxonomyAdapter,
-    TaxonomyListAdapter,
-    DatasetAdapter,
-    HabitatAdapter,
-    TypesSiteAdapter,
-    ModuleAdapter,
-    UUIDAdapter,
-    AreasAdapter,
+from gn_module_monitoring.tools.stores import (
+    StringStore,
+    UserStore,
+    ObserverListStore,
+    NomenclatureStore,
+    TaxonomyStore,
+    TaxonomyListStore,
+    DatasetStore,
+    HabitatStore,
+    TypesSiteStore,
+    ModuleStore,
+    UUIDStore,
+    AreasStore,
 )
 from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
@@ -81,37 +81,37 @@ class WidgetConfigSchema(ma.Schema):
             )
 
 
-class AdapterConfigSchema(ma.Schema):
-    adapter_map = {
-        UserAdapter.key: UserAdapter,
-        ObserverListAdapter.key: ObserverListAdapter,
-        NomenclatureAdapter.key: NomenclatureAdapter,
-        TaxonomyAdapter.key: TaxonomyAdapter,
-        TaxonomyListAdapter.key: TaxonomyListAdapter,
-        DatasetAdapter.key: DatasetAdapter,
-        HabitatAdapter.key: HabitatAdapter,
-        TypesSiteAdapter.key: TypesSiteAdapter,
-        ModuleAdapter.key: ModuleAdapter,
-        UUIDAdapter.key: UUIDAdapter,
-        AreasAdapter.key: AreasAdapter,
-        "area": (AreasAdapter, {"many": False}),
+class StoreConfigSchema(ma.Schema):
+    store_map = {
+        UserStore.key: UserStore,
+        ObserverListStore.key: ObserverListStore,
+        NomenclatureStore.key: NomenclatureStore,
+        TaxonomyStore.key: TaxonomyStore,
+        TaxonomyListStore.key: TaxonomyListStore,
+        DatasetStore.key: DatasetStore,
+        HabitatStore.key: HabitatStore,
+        TypesSiteStore.key: TypesSiteStore,
+        ModuleStore.key: ModuleStore,
+        UUIDStore.key: UUIDStore,
+        AreasStore.key: AreasStore,
+        "area": (AreasStore, {"many": False}),
     }
 
     type = fields.Str(required=True)
 
     def load(self, data, **kwargs):
         data = super().load(data, unknown=ma.INCLUDE)
-        if data["type"] in self.adapter_map:
-            adapter = self.adapter_map[data["type"]]
-            if type(adapter) == tuple:
-                adapter, default_params = adapter
+        if data["type"] in self.store_map:
+            store = self.store_map[data["type"]]
+            if type(store) == tuple:
+                store, default_params = store
             else:
                 default_params = {}
-            return adapter(data, **{**default_params, **kwargs})
+            return store(data, **{**default_params, **kwargs})
         else:
             raise ValidationError(
                 {
-                    "type": f"Type d’apdapter '{data["type"]}' inconnu. Types autorisés : {', '.join(self.adapter_map)}"
+                    "type": f"Type de store '{data["type"]}' inconnu. Types autorisés : {', '.join(self.store_map)}"
                 }
             )
 
@@ -120,10 +120,10 @@ class EntityFieldConfigSchema(ma.Schema):
     class Meta:
         unknown = ma.EXCLUDE  # TODO: switch to raise once schema complete
 
-    # FIXME: actuellement, on peut spécifier que le widget (resp. l’adapter) auquel cas l’adapter (resp. le widget) est déterminé automatiquement.
-    # Comment utiliser, pour un widget donnée, l’adapter par défaut, mais overrider certaines propriétés ?
+    # FIXME: actuellement, on peut spécifier que le widget (resp. le store) auquel cas le store (resp. le widget) est déterminé automatiquement.
+    # Comment utiliser, pour un widget donnée, le store par défaut, mais overrider certaines propriétés ?
     widget = fields.Nested(WidgetConfigSchema)
-    adapter = fields.Nested(AdapterConfigSchema)
+    store = fields.Nested(StoreConfigSchema)
 
     required = fields.Boolean(load_default=False)
     required_js = MultilineStr()
@@ -136,8 +136,8 @@ class EntityFieldConfigSchema(ma.Schema):
 
     @pre_load
     def pre_load(self, data, **kwargs):
-        # Si required (resp. hidden) n’est pas un booléen, c’est une valeur dynamique à évaluer en js.
-        # On considère le champs commen non requis (resp. non masqué) en l’absence de possibilité de savoir ce qu’il en est réellement.
+        # Si required (resp. hidden) n'est pas un booléen, c'est une valeur dynamique à évaluer en js.
+        # On considère le champs commen non requis (resp. non masqué) en l'absence de possibilité de savoir ce qu'il en est réellement.
         if "required" in data and not isinstance(data["required"], bool):
             data["required_js"] = data.pop("required")
             data["required"] = False
@@ -150,42 +150,42 @@ class EntityFieldConfigSchema(ma.Schema):
             data["widget"] = deepcopy(data)
             data["widget"]["type"] = data.pop("type_widget")
         if "type_util" in data:
-            # TODO: gérer le mélange type_util + adapter due à générique + spécifique
-            data["adapter"] = deepcopy(data)
-            data["adapter"]["type"] = data.pop("type_util")
+            # TODO: gérer le mélange type_util + store due à générique + spécifique
+            data["store"] = deepcopy(data)
+            data["store"]["type"] = data.pop("type_util")
         return data
 
     @post_load(pass_original=True)
     def post_load(self, data, original_data, **kwargs):
-        # Instanciation de l’adapter à partir du widget
-        if "widget" in data and "adapter" not in data:
+        # Instanciation du store à partir du widget
+        if "widget" in data and "store" not in data:
             try:
-                data["adapter"] = data["widget"].get_default_adapter()
+                data["store"] = data["widget"].get_default_store()
             except ValidationError as e:
-                raise ValidationError({"adapter": e.messages_dict})
-        # Instanciation du widget à partir de l’adapter
-        if "adapter" in data and "widget" not in data:
+                raise ValidationError({"store": e.messages_dict})
+        # Instanciation du widget à partir du store
+        if "store" in data and "widget" not in data:
             try:
-                data["widget"] = data["adapter"].get_default_widget()
+                data["widget"] = data["store"].get_default_widget()
             except ValidationError as e:
                 raise ValidationError({"widget": e.messages_dict})
-        elif "widget" not in data and "adapter" not in data:
+        elif "widget" not in data and "store" not in data:
             data["widget"] = TextWidget()
-            data["adapter"] = StringAdapter()
+            data["store"] = StringStore()
 
-        # Vérification de la cohérence des données entre le widget et l’adapter.
-        # Si l’un des deux renvoit None, cela veut dire que le type n’est pas connue
-        # (typiquement datalist qui ne connait pas le type de retour de l’API)
+        # Vérification de la cohérence des données entre le widget et le store.
+        # Si l'un des deux renvoit None, cela veut dire que le type n'est pas connue
+        # (typiquement datalist qui ne connait pas le type de retour de l'API)
         # et dans ce cas la vérification ne peut pas avoir lieu.
         widget_wire_type = data["widget"].get_wire_type()
-        adapter_wire_type = data["adapter"].get_wire_type()
+        store_wire_type = data["store"].get_wire_type()
         if (
-            widget_wire_type != adapter_wire_type
+            widget_wire_type != store_wire_type
             and widget_wire_type is not Any
-            and adapter_wire_type is not Any
+            and store_wire_type is not Any
         ):
             raise ValidationError(
-                f"Incohérence de type : {data["widget"]} renvoit '{widget_wire_type}' alors que {data["adapter"]} attend '{adapter_wire_type}'"
+                f"Incohérence de type : {data["widget"]} renvoit '{widget_wire_type}' alors que {data["store"]} attend '{store_wire_type}'"
             )
 
         return data

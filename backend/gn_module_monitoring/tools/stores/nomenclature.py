@@ -20,7 +20,7 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring.tools.utils import schema_context
 
-from .core import BaseAdapter
+from .core import BaseStore
 
 
 @cache
@@ -42,7 +42,7 @@ def get_nomenclature(nomenclature_type, *whereclauses, **kwargs):
     ).scalar_one_or_none()
 
 
-class NomenclatureAdapter(BaseAdapter):
+class NomenclatureStore(BaseStore):
     key = "nomenclature"
 
     @cache
@@ -57,7 +57,7 @@ class NomenclatureAdapter(BaseAdapter):
 
     @classmethod
     def get_config_schema_class(cls):
-        columns = NomenclatureAdapter.get_nomenclature_columns()
+        columns = NomenclatureStore.get_nomenclature_columns()
 
         class ConfigSchema(ma.Schema):
             class Meta:
@@ -127,7 +127,7 @@ class NomenclatureAdapter(BaseAdapter):
 
     @cached_property
     def storage_type(self):
-        columns = NomenclatureAdapter.get_nomenclature_columns()
+        columns = NomenclatureStore.get_nomenclature_columns()
         if self.config.storage_col:
             return columns[self.config.storage_col].type.python_type
         else:
@@ -140,7 +140,7 @@ class NomenclatureAdapter(BaseAdapter):
         indique un champs texte. Par exemple, si storage_cols=["id_nomenclature","cd_nomenclature"].
         Dans ce cas, on pourra rechercher une nomenclature en se basant sur cette propriété.
         """
-        columns = NomenclatureAdapter.get_nomenclature_columns()
+        columns = NomenclatureStore.get_nomenclature_columns()
         if self.config.storage_col:  # par principe, on couvre ce cas aussi
             columns = {self.config.storage_col: columns[self.config.storage_col]}
         else:
