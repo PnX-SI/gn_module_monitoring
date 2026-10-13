@@ -1,5 +1,15 @@
 import collections.abc
 
+from flask import current_app
+
+
+def get_permission_object_code(object_type):
+    """
+    Renvoie le code de l'objet de permission associé à un type d'objet,
+    défini par le paramètre PERMISSION_LEVEL de la configuration du module.
+    """
+    return current_app.config["MONITORINGS"]["PERMISSION_LEVEL"][object_type]
+
 
 def to_int(s):
     try:

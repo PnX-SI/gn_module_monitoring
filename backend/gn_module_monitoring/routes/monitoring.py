@@ -14,6 +14,8 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.utils.env import DB
 import geonature.utils.filemanager as fm
 
+from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.routes.legacy import blueprint_legacy
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
@@ -82,7 +84,7 @@ def list_object_api(module_code, object_type):
 
 # mise à jour de la synthèse
 @blueprint.route("synthese/<string:module_code>", methods=["POST"])
-@check_cruved_scope("U", object_code="MONITORINGS_MODULES")
+@check_cruved_scope("U", object_code=get_permission_object_code(ObjectType.MODULE))
 @json_resp
 def update_synthese_api(module_code):
     return process_synthese(module_code, get_config(module_code))
@@ -91,7 +93,7 @@ def update_synthese_api(module_code):
 # export add mje
 # export all observations
 @blueprint.route("/exports/csv/<module_code>/<method>", methods=["GET"])
-@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
+@check_cruved_scope("E", object_code=get_permission_object_code(ObjectType.MODULE))
 def export_all_observations(module_code, method):
     """
     Export all data in csv of a custom module view
@@ -142,7 +144,7 @@ def export_all_observations(module_code, method):
 
 
 @blueprint.route("/exports/pdf/<module_code>/<object_type>/<int:id>", methods=["POST"])
-@check_cruved_scope("E", object_code="MONITORINGS_MODULES")
+@check_cruved_scope("E", object_code=get_permission_object_code(ObjectType.MODULE))
 def post_export_pdf(module_code, object_type, id):
     """
     Export the fiche individu as a PDF file.

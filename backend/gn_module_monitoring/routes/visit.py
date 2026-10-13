@@ -11,6 +11,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
@@ -33,7 +34,9 @@ from gn_module_monitoring.routes.modules import get_modules
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
-@permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "D", get_scope=True, object_code=get_permission_object_code(ObjectType.VISIT)
+)
 def delete_visit(scope, _id, module_code):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
@@ -44,14 +47,16 @@ def delete_visit(scope, _id, module_code):
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits", methods=["POST"])
-@permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope("C", object_code=get_permission_object_code(ObjectType.VISIT))
 def post_visit(module_code):
     post_data = dict(request.get_json())
     return create_or_update_visit(post_data, module_code=module_code)
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
-@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "U", get_scope=True, object_code=get_permission_object_code(ObjectType.VISIT)
+)
 def patch_visit(scope, module_code: str, _id: int):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
@@ -74,7 +79,7 @@ def get_visits(module_code=None):
 
     # FIXME: check permission according to module in param if any
     # Retrieves visits that do not depend on modules
-    OBJECT_CODE = "MONITORINGS_VISITES"
+    OBJECT_CODE = get_permission_object_code(ObjectType.VISIT)
 
     modules = get_objet_with_permission_boolean(modules_object, object_code=OBJECT_CODE)
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
@@ -111,7 +116,9 @@ def get_visits(module_code=None):
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:id>", methods=["GET"])
-@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "R", get_scope=True, object_code=get_permission_object_code(ObjectType.VISIT)
+)
 def get_visit_by_id(scope, module_code, id):
 
     visit = db.get_or_404(TMonitoringVisits, id)

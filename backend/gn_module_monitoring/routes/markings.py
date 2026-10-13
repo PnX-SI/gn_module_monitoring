@@ -11,6 +11,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
@@ -30,7 +31,7 @@ from gn_module_monitoring.utils.routes import (
     sort,
 )
 
-OBJECT_CODE = "MONITORINGS_MARKINGS"
+OBJECT_CODE = get_permission_object_code(ObjectType.MARKING)
 
 
 def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEvent:

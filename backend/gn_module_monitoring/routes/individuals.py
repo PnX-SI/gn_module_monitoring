@@ -11,6 +11,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -31,7 +32,7 @@ from gn_module_monitoring.utils.routes import (
     sort_according_to_column_type_for_site,
 )
 
-OBJECT_CODE = "INDIVIDUALS"
+OBJECT_CODE = get_permission_object_code(ObjectType.INDIVIDUAL)
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/individuals", methods=["GET"])

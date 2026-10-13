@@ -3,6 +3,7 @@ from geonature.utils.env import db
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 
 from gn_module_monitoring.config.repositories import get_config
@@ -36,9 +37,11 @@ from flask import request, g
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations", methods=["GET"])
-@permissions.check_cruved_scope("R", object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "R", object_code=get_permission_object_code(ObjectType.OBSERVATION)
+)
 def get_observations(module_code: str = None):
-    object_code = "MONITORINGS_VISITES"
+    object_code = get_permission_object_code(ObjectType.OBSERVATION)
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
 
@@ -91,13 +94,15 @@ def get_observations(module_code: str = None):
 
 @blueprint.route(f"{ROUTE_PREFIX}/observation/geometries", methods=["GET"])
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation/geometries", methods=["GET"])
-@permissions.check_cruved_scope("R")
+@permissions.check_cruved_scope("R", object_code=get_permission_object_code(ObjectType.SITE))
 def obs_geometries(module_code=None):
     return {}
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["GET"])
-@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "R", get_scope=True, object_code=get_permission_object_code(ObjectType.OBSERVATION)
+)
 def get_observation_by_id(scope, module_code, _id):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
@@ -114,7 +119,9 @@ def get_observation_by_id(scope, module_code, _id):
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["DELETE"])
-@permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "D", get_scope=True, object_code=get_permission_object_code(ObjectType.OBSERVATION)
+)
 def delete_observation(scope, _id, module_code):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
@@ -127,14 +134,18 @@ def delete_observation(scope, _id, module_code):
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations", methods=["POST"])
-@permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "C", object_code=get_permission_object_code(ObjectType.OBSERVATION)
+)
 def post_observation(module_code):
     post_data = dict(request.get_json())
     return create_or_update_observation(post_data, module_code=module_code)
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["PATCH"])
-@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
+@permissions.check_cruved_scope(
+    "U", get_scope=True, object_code=get_permission_object_code(ObjectType.OBSERVATION)
+)
 def patch_observation(scope, module_code: str, _id: int):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):

@@ -14,6 +14,7 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.utils.utils import get_permission_object_code
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -43,9 +44,9 @@ from gn_module_monitoring.utils.routes import (
     f"{ROUTE_PREFIX}/<string:module_code>/sites_groups",
     methods=["GET"],
 )
-@check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
+@check_cruved_scope("R", object_code=get_permission_object_code(ObjectType.SITES_GROUP))
 def get_sites_groups(module_code=None):
-    object_code = "MONITORINGS_GRP_SITES"
+    object_code = get_permission_object_code(ObjectType.SITES_GROUP)
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
 
@@ -104,7 +105,9 @@ def get_sites_groups(module_code=None):
     f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:id_sites_group>",
     methods=["GET"],
 )
-@permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+@permissions.check_cruved_scope(
+    "R", get_scope=True, object_code=get_permission_object_code(ObjectType.SITES_GROUP)
+)
 def get_sites_group_by_id(scope, module_code, id_sites_group: int):
     sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
@@ -118,7 +121,7 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int):
 
 @blueprint.route(f"{ROUTE_PREFIX}/sites_groups/geometries", methods=["GET"])
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/geometries", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("R", object_code=get_permission_object_code(ObjectType.SITES_GROUP))
 def get_sites_group_geometries(module_code=None):
 
     if g.current_module:
@@ -127,7 +130,7 @@ def get_sites_group_geometries(module_code=None):
         module_code = MODULE_CODE
 
     params = request.args.to_dict(flat=True)
-    object_code = "MONITORINGS_GRP_SITES"
+    object_code = get_permission_object_code(ObjectType.SITES_GROUP)
     query = select(TMonitoringSitesGroups)
     query = TMonitoringSitesGroups.filter_by_readable(
         query=query, module_code=module_code, object_code=object_code
@@ -168,7 +171,9 @@ def get_sites_group_geometries(module_code=None):
 
 @blueprint.route(f"{ROUTE_PREFIX}/sites_groups/<int:_id>", methods=["PATCH"])
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:_id>", methods=["PATCH"])
-@permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_GRP_SITES")
+@permissions.check_cruved_scope(
+    "U", get_scope=True, object_code=get_permission_object_code(ObjectType.SITES_GROUP)
+)
 def patch(scope, module_code: str = "generic", _id: int = None):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
@@ -182,7 +187,9 @@ def patch(scope, module_code: str = "generic", _id: int = None):
 
 @blueprint.route(f"{ROUTE_PREFIX}/sites_groups", methods=["POST"])
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites_groups", methods=["POST"])
-@check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
+@check_cruved_scope(
+    "C", module_code=MODULE_CODE, object_code=get_permission_object_code(ObjectType.SITES_GROUP)
+)
 def post_sites_group(module_code: str = "generic"):
     post_data = dict(request.get_json())
     sites_group = create_or_update_site_group(post_data, module_code)
@@ -191,7 +198,10 @@ def post_sites_group(module_code: str = "generic"):
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites_groups/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope(
-    "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
+    "D",
+    get_scope=True,
+    module_code=MODULE_CODE,
+    object_code=get_permission_object_code(ObjectType.SITES_GROUP),
 )
 def delete(scope, _id: int, module_code: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
