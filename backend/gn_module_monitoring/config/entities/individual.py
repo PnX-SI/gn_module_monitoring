@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
 from gn_module_monitoring.monitoring.schemas import MonitoringIndividualsSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class IndividualProtocolSchema(BaseProtocolSchema):
+class IndividualConfigSchema(BaseEntityConfigSchema):
     base_data: ClassVar = {
         "id_field_name": "id_individual",
         "description_field_name": "individual_name",
@@ -89,9 +89,3 @@ class IndividualProtocolSchema(BaseProtocolSchema):
             "",
         ],
     }
-
-
-class IndividualService:
-    model = TMonitoringIndividuals
-    model_schema = MonitoringIndividualsSchema
-    config_schema = IndividualProtocolSchema

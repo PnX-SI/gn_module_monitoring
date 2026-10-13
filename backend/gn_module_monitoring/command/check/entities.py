@@ -4,7 +4,7 @@ import marshmallow as ma
 
 from gn_module_monitoring.command.utils import validate_json_file_protocol
 from gn_module_monitoring.command.check.utils import get_object_types, wrap_errors
-from gn_module_monitoring.config.protocol import load_protocol_entity_config
+from gn_module_monitoring.config.entities import load_module_entity_config
 
 
 def legacy_check(module_code):
@@ -13,16 +13,16 @@ def legacy_check(module_code):
     yield from errors
 
 
-def check_protocol_entity_config(module_code, entity):
+def check_module_entity_config(module_code, entity):
     try:
-        return load_protocol_entity_config(module_code, entity)
+        return load_module_entity_config(module_code, entity)
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         yield e
     except ma.exceptions.ValidationError as e:
         yield e.messages
 
 
-def check_protocol_entities_config(module_code, config):
+def check_module_entities_config(module_code, config):
     """
     Contrôle la validité des fichiers de definition du protocole.
     """
@@ -33,7 +33,7 @@ def check_protocol_entities_config(module_code, config):
         # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
         error_count, entity_config = wrap_errors(
             f"Définition du protocole - {entity}",
-            check_protocol_entity_config(module_code, entity),
+            check_module_entity_config(module_code, entity),
             return_result=True,
         )
         if entity_config is not None:

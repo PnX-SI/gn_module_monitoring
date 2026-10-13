@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringMarkingEvent
 from gn_module_monitoring.monitoring.schemas import MonitoringMarkingSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class MarkingProtocolSchema(BaseProtocolSchema):
+class MarkingConfigSchema(BaseEntityConfigSchema):
     base_data: ClassVar = {
         "id_field_name": "id_marking",
         "description_field_name": "id_marking",
@@ -83,9 +83,3 @@ class MarkingProtocolSchema(BaseProtocolSchema):
             },
         },
     }
-
-
-class MarkingService:
-    model = TMonitoringMarkingEvent
-    model_schema = MonitoringMarkingSchema
-    config_schema = MarkingProtocolSchema

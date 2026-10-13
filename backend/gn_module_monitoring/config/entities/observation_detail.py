@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringObservations
 from gn_module_monitoring.monitoring.schemas import MonitoringObservationsSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class ObservationDetailProtocolSchema(BaseProtocolSchema):
+class ObservationDetailConfigSchema(BaseEntityConfigSchema):
     base_data: ClassVar = {
         "id_field_name": "id_observation_detail",
         "description_field_name": "id_observation_detail",
@@ -36,9 +36,3 @@ class ObservationDetailProtocolSchema(BaseProtocolSchema):
             },
         },
     }
-
-
-class ObservationDetailService:
-    model = TMonitoringObservations
-    model_schema = MonitoringObservationsSchema
-    config_schema = ObservationDetailProtocolSchema

@@ -3,10 +3,10 @@ from typing import ClassVar
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
 from gn_module_monitoring.monitoring.schemas import MonitoringVisitsSchema
 
-from .base import BaseProtocolSchema
+from .base import BaseEntityConfigSchema
 
 
-class VisitProtocolSchema(BaseProtocolSchema):
+class VisitConfigSchema(BaseEntityConfigSchema):
     base_data: ClassVar = {
         "id_field_name": "id_base_visit",
         "chained": True,
@@ -90,9 +90,3 @@ class VisitProtocolSchema(BaseProtocolSchema):
             },
         },
     }
-
-
-class VisitService:
-    model = TMonitoringVisits
-    model_schema = MonitoringVisitsSchema
-    config_schema = VisitProtocolSchema
