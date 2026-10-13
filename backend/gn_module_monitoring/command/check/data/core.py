@@ -148,8 +148,8 @@ def check_field(entity: str, row_id: int, field_name: str, field_config: dict, v
     #     if fix and click.confirm("Applatir ?"):
     #         updated_value = value[0]
     #         value = updated_value
-    adapter = field_config["adapter"]
-    updated_value = yield from adapter.check_stored_value(
+    store = field_config["store"]
+    updated_value = yield from store.check_stored_value(
         entity, row_id, field_name, field_config, value, fix
     )
     return updated_value

@@ -8,10 +8,10 @@ from .core import BaseWidget
 class NomenclatureWidget(BaseWidget):
     key = "nomenclature"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import NomenclatureAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import NomenclatureStore
 
-        return NomenclatureAdapter(data, **kwargs)
+        return NomenclatureStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -20,10 +20,10 @@ class NomenclatureWidget(BaseWidget):
 class TaxonomyWidget(BaseWidget):
     key = "taxonomy"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import TaxonomyAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import TaxonomyStore
 
-        return TaxonomyAdapter(data, **kwargs)
+        return TaxonomyStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -32,10 +32,10 @@ class TaxonomyWidget(BaseWidget):
 class DatasetWidget(BaseWidget):
     key = "dataset"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import DatasetAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import DatasetStore
 
-        return DatasetAdapter(data, **kwargs)
+        return DatasetStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -44,10 +44,10 @@ class DatasetWidget(BaseWidget):
 class HabitatWidget(BaseWidget):
     key = "habitat"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import HabitatAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import HabitatStore
 
-        return HabitatAdapter(data, **kwargs)
+        return HabitatStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -56,10 +56,10 @@ class HabitatWidget(BaseWidget):
 class UserWidget(BaseWidget):
     key = "user"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import UserAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import UserStore
 
-        return UserAdapter(data, **kwargs)
+        return UserStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -69,11 +69,11 @@ class UserWidget(BaseWidget):
 class ObserversWidget(BaseWidget):
     key = "observers"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import UserAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import UserStore
 
         # TODO: pass some parameters like the observer list or multiple
-        return UserAdapter(data, **kwargs)
+        return UserStore(data, **kwargs)
 
     def get_wire_type(self):
         return int
@@ -82,10 +82,10 @@ class ObserversWidget(BaseWidget):
 class MediaWidget(BaseWidget):
     key = "medias"
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import DummyAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import DummyStore
 
-        return DummyAdapter(data, **kwargs)
+        return DummyStore(data, **kwargs)
 
     def get_wire_type(self):
         return Never
@@ -98,10 +98,10 @@ class AreasWidget(BaseWidget):
         type = fields.Str(validate=validate.OneOf(["area", "areas"]))
         many = fields.Boolean(load_default=True)
 
-    def _get_default_adapter(self, data, **kwargs):
-        from ..adapters import AreasAdapter
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import AreasStore
 
-        return AreasAdapter(data, **kwargs)
+        return AreasStore(data, **kwargs)
 
     def get_wire_type(self):
         if self.config.many:

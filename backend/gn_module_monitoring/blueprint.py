@@ -25,7 +25,7 @@ from gn_module_monitoring.monitoring.admin import BibTypeSiteView
 from gn_module_monitoring.command.cmd import commands  # noqa: E402
 from gn_module_monitoring.command.utils import get_modules
 from gn_module_monitoring.command.check.utils import get_object_types
-from gn_module_monitoring.tools.adapters import BaseAdapter
+from gn_module_monitoring.tools.stores import BaseStore
 from gn_module_monitoring.tools.widgets import BaseWidget
 from gn_module_monitoring.config.module import load_module_config
 from gn_module_monitoring.config.entities import load_module_entity_config
@@ -43,7 +43,7 @@ blueprint_api = Blueprint("api", __name__, url_prefix="/refacto")
 
 @blueprint.record_once
 def register_serializer(state):
-    register_json_provider(BaseAdapter, lambda o: o.dump_config())
+    register_json_provider(BaseStore, lambda o: o.dump_config())
     register_json_provider(BaseWidget, lambda o: o.dump_config())
 
 
