@@ -267,7 +267,6 @@ def get_config(module_code=None, force=False):
     # Si module est `generic`
     config["custom"] = {
         "DESCRIPTION_MODULE": current_app.config["MONITORINGS"]["TITLE_MODULE"],
-        "PERMISSION_LEVEL": current_app.config["MONITORINGS"]["PERMISSION_LEVEL"],
         "__MODULE.MODULE_CODE": "generic",
         "__MODULE.ID_MODULE": None,
         "__MODULE.B_SYNTHESE": False,

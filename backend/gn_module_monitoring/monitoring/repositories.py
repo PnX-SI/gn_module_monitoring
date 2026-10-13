@@ -1,4 +1,4 @@
-from flask import current_app, g
+from flask import g
 
 from sqlalchemy import select
 from sqlalchemy.sql import text
@@ -8,6 +8,7 @@ from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_synthese.utils.process import import_from_table
 
 from gn_module_monitoring.monitoring.serializer import MonitoringObjectSerializer
+from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
 from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
@@ -53,9 +54,7 @@ class MonitoringObject(MonitoringObjectSerializer):
             ):
                 cruved_item_dict = get_objet_with_permission_boolean(
                     [self._model],
-                    object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                        self._object_type
-                    ],
+                    object_code=PERMISSION_OBJECT_CODES[self._object_type],
                 )
                 self.cruved = cruved_item_dict[0]["cruved"]
 
@@ -274,9 +273,7 @@ class MonitoringObject(MonitoringObjectSerializer):
         if hasattr(Model, "filter_by_readable"):
             req = Model.filter_by_readable(
                 query=req,
-                object_code=current_app.config["MONITORINGS"]
-                .get("PERMISSION_LEVEL", {})
-                .get(self._object_type, None),
+                object_code=PERMISSION_OBJECT_CODES.get(self._object_type),
                 module_code=g.current_module.module_code,
             )
         # # filtres config
