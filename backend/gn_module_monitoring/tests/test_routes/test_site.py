@@ -493,6 +493,103 @@ class TestSite:
             db.get_or_404(TMonitoringSites, id_base_site)
         assert "404 Not Found" in str(e.value)
 
+    def test_get_all_types_site_from_site_id(self, sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        site = sites["Test_Grotte"]
+
+        r = self.client.get(
+            url_for("monitorings.get_all_types_site_from_site_id", id_site=site.id_base_site)
+        )
+
+        assert r.status_code == 200
+        assert {t["id_nomenclature_type_site"] for t in r.json} == {
+            t.id_nomenclature_type_site for t in site.types_site
+        }
+
+    def test_get_all_types_site_from_site_id_no_type(self, sites, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        r = self.client.get(
+            url_for(
+                "monitorings.get_all_types_site_from_site_id",
+                id_site=sites["no-type"].id_base_site,
+            )
+        )
+
+        assert r.status_code == 200
+        assert r.json == []
+
+    def test_get_type_site_by_id_not_found(self, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        r = self.client.get(url_for("monitorings.get_type_site_by_id", id_type_site=-1))
+        assert r.status_code == 404
+
+    @pytest.mark.parametrize(
+        "route,method",
+        [
+            ("monitorings.get_site_by_id", "get"),
+            ("monitorings.patch_site", "patch"),
+            ("monitorings.delete_site", "delete"),
+        ],
+    )
+    def test_site_not_found(self, route, method, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+        r = getattr(self.client, method)(
+            url_for(route, module_code="generic", **{id_param: -1}),
+            json={},
+        )
+        assert r.status_code == 404
+
+    @pytest.mark.parametrize(
+        "route,method",
+        [
+            ("monitorings.get_site_by_id", "get"),
+            ("monitorings.patch_site", "patch"),
+            ("monitorings.delete_site", "delete"),
+        ],
+    )
+    @pytest.mark.parametrize("username", ["noright_user", "self_user", "stranger_user"])
+    def test_site_forbidden(self, route, method, username, sites, users):
+        # Les sites de la fixture sont saisis par `user` : ni `self_user` (portée 1)
+        # ni `stranger_user` (portée 2, autre organisme) n'y ont accès
+        set_logged_user_cookie(self.client, users[username])
+        site = sites["Test_Grotte"]
+        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+
+        r = getattr(self.client, method)(
+            url_for(route, module_code="generic", **{id_param: site.id_base_site}),
+            json={"base_site_name": "forbidden"},
+        )
+
+        assert r.status_code == 403
+        assert db.session.get(TMonitoringSites, site.id_base_site) is not None
+
+    @pytest.mark.parametrize(
+        "route,method",
+        [
+            ("monitorings.get_site_by_id", "get"),
+            ("monitorings.patch_site", "patch"),
+            ("monitorings.delete_site", "delete"),
+        ],
+    )
+    def test_site_allowed_for_digitiser(self, route, method, sites, users):
+        # `user` est le numérisateur des sites de la fixture
+        set_logged_user_cookie(self.client, users["user"])
+        site = sites["Test_Grotte"]
+        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+
+        r = getattr(self.client, method)(
+            url_for(route, module_code="generic", **{id_param: site.id_base_site}),
+            json={"base_site_name": "allowed"},
+        )
+
+        assert r.status_code in (200, 201)
+
+    def test_get_sites_unauthenticated(self, sites):
+        r = self.client.get(url_for("monitorings.get_sites"))
+        assert r.status_code == 401
+
 
 # @pytest.fixture()
 # def add_site(test_module_user, types_site, site_group_with_sites):
@@ -570,6 +667,20 @@ class TestSiteWithModule:
 
         # ID retourné pour attribut spécifique du site
         assert site_repr.get("meteo") == 2
+
+    def test_get_module_site_geometries(self, test_module_user, types_site, add_site):
+        set_logged_user_cookie(self.client, test_module_user)
+        site = add_site(types_site=[list(types_site.values())[0]])
+        site_no_type = add_site(types_site=[], base_site_name="no-type")
+
+        r = self.client.get(url_for("monitorings.get_module_site_geometries", module_code="test"))
+
+        assert r.status_code == 200
+        assert r.json["type"] == "FeatureCollection"
+        ids = [f["properties"]["id_base_site"] for f in r.json["features"]]
+        assert site.id_base_site in ids
+        # Site sans type correspondant au module : absent
+        assert site_no_type.id_base_site not in ids
 
     def test_get_module_sites_additional_data_keys(self, test_module_user, types_site, add_site):
         set_logged_user_cookie(self.client, test_module_user)
