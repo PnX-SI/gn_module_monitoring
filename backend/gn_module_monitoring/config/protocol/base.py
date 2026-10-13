@@ -132,7 +132,7 @@ class FieldProtocolSchema(ma.Schema):
     def load(self, data, **kwargs):
         name = self.fields["name"].deserialize(data.get("name"), "name", data)
         with schema_context(field_name=name):
-            super().load(data, **kwargs)
+            return super().load(data, **kwargs)
 
     @pre_load
     def pre_load(self, data, **kwargs):
