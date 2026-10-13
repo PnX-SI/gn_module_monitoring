@@ -2,6 +2,7 @@ from marshmallow import EXCLUDE
 from geonature.utils.env import db
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 
 from gn_module_monitoring.config.repositories import get_config
@@ -33,8 +34,6 @@ from geonature.core.gn_permissions import decorators as permissions
 
 from flask import request, g
 
-default_route_object_type = "observation"
-
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations", methods=["GET"])
 @permissions.check_cruved_scope("R", object_code="MONITORINGS_VISITES")
@@ -65,7 +64,7 @@ def get_observations(module_code: str = None):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservations, get_config(module_code), "observation"
+        TMonitoringObservations, get_config(module_code), ObjectType.OBSERVATION
     )
     query_allowed = TMonitoringObservations.filter_by_specific(
         query=query_allowed,
@@ -106,7 +105,7 @@ def get_observation_by_id(scope, module_code, _id):
             f"User {g.current_user} cannot read observation {observation.id_observation}"
         )
     schema = add_specific_attributes(
-        MonitoringObservationsSchema, default_route_object_type, module_code
+        MonitoringObservationsSchema, ObjectType.OBSERVATION, module_code
     )
 
     data = schema().dump(observation)
@@ -157,7 +156,7 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized observation
     """
     config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.OBSERVATION)
 
     # Cas des individus, s'il y a un id_individual
     # Récupération du cd_nom de l'individu
@@ -177,6 +176,6 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     db.session.commit()
 
     schema = add_specific_attributes(
-        MonitoringObservationsSchema, default_route_object_type, module_code
+        MonitoringObservationsSchema, ObjectType.OBSERVATION, module_code
     )
     return schema().dump(observation)

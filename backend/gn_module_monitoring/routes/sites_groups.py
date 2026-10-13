@@ -13,6 +13,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -35,8 +36,6 @@ from gn_module_monitoring.utils.routes import (
     sort,
     process_json_data_for_db_upsert,
 )
-
-default_route_object_type = "sites_group"
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/sites_groups", methods=["GET"])
@@ -76,7 +75,7 @@ def get_sites_groups(module_code=None):
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
     specific_properties = get_specific_properties(
-        TMonitoringSitesGroups, get_config(module_code), "sites_group"
+        TMonitoringSitesGroups, get_config(module_code), ObjectType.SITES_GROUP
     )
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,
@@ -86,7 +85,7 @@ def get_sites_groups(module_code=None):
 
     if module_code:
         schema = add_specific_attributes(
-            MonitoringSitesGroupsSchema, default_route_object_type, module_code
+            MonitoringSitesGroupsSchema, ObjectType.SITES_GROUP, module_code
         )
     else:
         schema = MonitoringSitesGroupsSchema
@@ -223,7 +222,7 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized site group
     """
     config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.SITES_GROUP)
 
     sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
 

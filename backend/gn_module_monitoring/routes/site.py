@@ -15,6 +15,7 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -43,8 +44,6 @@ from gn_module_monitoring.utils.routes import (
     sort,
     sort_according_to_column_type_for_site,
 )
-
-default_route_object_type = "site"
 
 
 @blueprint.route("/sites/types", methods=["GET"])
@@ -131,7 +130,7 @@ def get_sites(module_code=None):
         )
 
     config = get_config(g.current_module.module_code)
-    specific_properties = get_specific_properties(TMonitoringSites, config, "site")
+    specific_properties = get_specific_properties(TMonitoringSites, config, ObjectType.SITE)
 
     query = filter_params(TMonitoringSites, query=query, params=params)
     query = sort_according_to_column_type_for_site(
@@ -148,7 +147,7 @@ def get_sites(module_code=None):
         specific_properties=specific_properties,
     )
 
-    schema = add_specific_attributes(MonitoringSitesSchema, default_route_object_type, module_code)
+    schema = add_specific_attributes(MonitoringSitesSchema, ObjectType.SITE, module_code)
 
     return paginate_scope(
         query=query_allowed,
@@ -172,9 +171,7 @@ def get_site_by_id(scope, module_code, id):
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
 
-    schema = add_specific_attributes(
-        MonitoringSitesSchemaCruved, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringSitesSchemaCruved, ObjectType.SITE, module_code)
 
     data = schema().dump(site)
     return data
@@ -230,7 +227,7 @@ def _get_site_geometries(module_code=None):
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
     specific_properties = get_specific_properties(
-        TMonitoringSites, get_config(module_code), "site"
+        TMonitoringSites, get_config(module_code), ObjectType.SITE
     )
 
     query_allowed = TMonitoringSites.filter_by_specific(
@@ -327,7 +324,7 @@ def create_or_update_site(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized site
     """
     config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.SITE)
 
     site = MonitoringSitesSchema(unknown=EXCLUDE).load(process_data)
 

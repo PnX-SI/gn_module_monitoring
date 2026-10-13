@@ -11,6 +11,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
@@ -32,7 +33,6 @@ from gn_module_monitoring.utils.routes import (
     sort,
 )
 
-default_route_object_type = "observation_detail"
 OBJECT_CODE = "MONITORINGS_VISITES"
 
 
@@ -101,7 +101,7 @@ def get_obs_details(module_code: str):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservationDetails, get_config(module_code), "observation_detail"
+        TMonitoringObservationDetails, get_config(module_code), ObjectType.OBSERVATION_DETAIL
     )
     query_allowed = TMonitoringObservationDetails.filter_by_specific(
         query=query_allowed,
@@ -109,7 +109,7 @@ def get_obs_details(module_code: str):
         specific_properties=specific_properties,
     )
     schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, default_route_object_type, module_code
+        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
     )
 
     return paginate_scope(
@@ -138,7 +138,7 @@ def get_obs_detail_by_id(scope: int, module_code: str, id: int):
             f"User {g.current_user} cannot read observation detail {obs_detail.id_base_obs_detail}"
         )
     schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, default_route_object_type, module_code
+        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
     )
 
     data = schema().dump(obs_detail)
@@ -155,7 +155,9 @@ def create_or_update_obs_detail(post_data: dict, module_code: str = "generic"):
     :return: dict, serialized observation detail
     """
     config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(
+        config, post_data, ObjectType.OBSERVATION_DETAIL
+    )
 
     obs_detail = MonitoringObservationsDetailsSchema(unknown=EXCLUDE).load(process_data)
 
@@ -163,6 +165,6 @@ def create_or_update_obs_detail(post_data: dict, module_code: str = "generic"):
     db.session.commit()
 
     schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, default_route_object_type, module_code
+        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
     )
     return schema().dump(obs_detail)

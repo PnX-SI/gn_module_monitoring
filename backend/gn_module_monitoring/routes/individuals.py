@@ -10,6 +10,7 @@ from geonature.utils.env import db
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -30,7 +31,6 @@ from gn_module_monitoring.utils.routes import (
     sort_according_to_column_type_for_site,
 )
 
-default_route_object_type = "individual"
 OBJECT_CODE = "INDIVIDUALS"
 
 
@@ -74,7 +74,7 @@ def get_individuals(module_code=None):
 
     config = get_config(g.current_module.module_code)
     specific_properties = get_specific_properties(
-        TMonitoringIndividuals, config, default_route_object_type
+        TMonitoringIndividuals, config, ObjectType.INDIVIDUAL
     ).keys()
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
@@ -256,7 +256,7 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
         Serialized individual.
     """
     config = get_config(module_code, force=True)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.INDIVIDUAL)
 
     individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
 

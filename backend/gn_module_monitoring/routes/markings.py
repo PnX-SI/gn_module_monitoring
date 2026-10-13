@@ -10,6 +10,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
@@ -29,7 +30,6 @@ from gn_module_monitoring.utils.routes import (
     sort,
 )
 
-default_route_object_type = "marking"
 OBJECT_CODE = "MONITORINGS_MARKINGS"
 
 
@@ -223,16 +223,14 @@ def get_markings(module_code: str):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringMarkingEvent, get_config(module_code, force=True), "marking"
+        TMonitoringMarkingEvent, get_config(module_code, force=True), ObjectType.MARKING
     )
     query_allowed = TMonitoringMarkingEvent.filter_by_specific(
         query=query_allowed,
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(
-        MonitoringMarkingSchema, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
 
     return paginate_scope(
         query=query_allowed,
@@ -281,9 +279,7 @@ def get_marking_by_id(scope: int, module_code: str, id: int):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = add_specific_attributes(
-        MonitoringMarkingSchema, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
 
     data = schema().dump(marking)
 
@@ -307,7 +303,7 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
         Serialized marking.
     """
     config = get_config(module_code, force=True)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.MARKING)
     try:
         marking = MonitoringMarkingSchema(unknown=EXCLUDE).load(process_data)
     except Exception as e:
@@ -317,7 +313,5 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     db.session.add(marking)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringMarkingSchema, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
     return schema().dump(marking)

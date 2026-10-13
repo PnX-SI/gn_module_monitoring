@@ -10,6 +10,7 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
+from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
@@ -29,8 +30,6 @@ from gn_module_monitoring.utils.routes import (
     get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.modules import get_modules
-
-default_route_object_type = "visit"
 
 
 @blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
@@ -118,9 +117,7 @@ def get_visit_by_id(scope, module_code, id):
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = add_specific_attributes(
-        MonitoringVisitsSchema, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringVisitsSchema, ObjectType.VISIT, module_code)
 
     data = schema(exclude=("module",)).dump(visit)
 
@@ -137,7 +134,7 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
     """
     config = get_config(module_code)
     # print(config, "config", module_code, "module_code")
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.VISIT)
 
     try:
         visit = MonitoringVisitsSchema(unknown=EXCLUDE).load(process_data)
@@ -148,7 +145,5 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
     db.session.add(visit)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringVisitsSchema, default_route_object_type, module_code
-    )
+    schema = add_specific_attributes(MonitoringVisitsSchema, ObjectType.VISIT, module_code)
     return schema().dump(visit)
