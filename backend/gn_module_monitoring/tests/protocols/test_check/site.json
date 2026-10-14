@@ -1,0 +1,8 @@
+{
+    "specific": {
+        "site_field": {
+            "type_widget": "text",
+            "attribut_label": "Champ spécifique aux sites"
+        }
+    }
+}

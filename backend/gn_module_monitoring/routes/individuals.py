@@ -9,7 +9,6 @@ from geonature.utils.env import db
 
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
-from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
@@ -17,17 +16,14 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
 )
 from gn_module_monitoring.monitoring.schemas import MonitoringIndividualsSchema
-from gn_module_monitoring.routes.modules import get_modules
 
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
-    paginate,
     paginate_scope,
     process_json_data_for_db_upsert,
     sort,
-    sort_according_to_column_type_for_site,
 )
 
 default_route_object_type = "individual"
