@@ -17,3 +17,16 @@ SERVICE_MAP = {
     "individual": IndividualService,
     "marking": MarkingService,
 }
+
+
+__all__ = [
+    "SERVICE_MAP",
+    "ModuleService",
+    "SitesGroupService",
+    "SiteService",
+    "VisitService",
+    "ObservationService",
+    "ObservationDetailService",
+    "IndividualService",
+    "MarkingService",
+]

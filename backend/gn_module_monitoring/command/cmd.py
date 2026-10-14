@@ -357,6 +357,7 @@ def check_filter_options(option_name, param_name, description):
 @check_filter_options("--visit", "visit", "visites")
 @check_filter_options("--observation", "observation", "observations")
 @check_filter_options("--observation-detail", "observation_detail", "détails d’observation")
+@click.option("--strict/--tolerant", "strict", default=True, help="Vérifie les données")
 @click.option(
     "--fix",
     is_flag=True,
@@ -364,7 +365,7 @@ def check_filter_options(option_name, param_name, description):
     help="Propose de corriger les anomalies détectées",
 )
 @with_appcontext
-def cmd_check(module_code, fix, check_data, **data_filters):
+def cmd_check(module_code, strict, fix, check_data, **data_filters):
     """
     Contrôle la configuration, les nomenclatures et les données des
     protocoles de suivi.
@@ -379,7 +380,7 @@ def cmd_check(module_code, fix, check_data, **data_filters):
     Pour chaque catégorie, il est possible de limiter le contrôle de données à
     certains enregistrements (--<category>-pk) ou à certains champs (--<category>-field).
     """
-    run_check(module_code, check_data, data_filters, fix)
+    run_check(module_code, strict, check_data, data_filters, fix)
 
 
 commands = [

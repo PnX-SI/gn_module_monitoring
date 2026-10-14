@@ -13,6 +13,8 @@ class GnModuleSchemaConf(Schema):
     DESCRIPTION_MODULE = fields.String(load_default="")
     TITLE_MODULE = fields.String(load_default="Module monitoring")
     CODE_OBSERVERS_LIST = fields.String(load_default="obsocctax")
+    # choose between raising errors or printing warnings
+    STRICT = fields.Boolean(load_default=False)
 
     # Obsolète : les objets de permission associés à chaque type d'objet
     # sont définis par PERMISSION_OBJECT_CODES (gn_module_monitoring.constants)

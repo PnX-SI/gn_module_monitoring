@@ -1,3 +1,4 @@
+from pprint import pformat
 from typing import overload, Literal, Any
 from textwrap import indent
 
@@ -33,7 +34,10 @@ def wrap_errors(message, errors, return_result=False):
             if not nl:
                 nl = True
                 click.echo("")
-            lines = str(error).splitlines()
+            if not isinstance(error, str):
+                error = pformat(error)
+
+            lines = error.splitlines()
             if lines[0]:
                 error_count += 1
                 click.echo(indent(lines[0], prefix=click.style("[ERR] ", fg="red")))
