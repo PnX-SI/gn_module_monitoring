@@ -104,7 +104,7 @@ class AreasWidget(BaseWidget):
         return AreasStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config.many:
+        if self.config["many"]:
             return list[int]
         else:
             return int

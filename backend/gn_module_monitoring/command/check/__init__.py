@@ -1,4 +1,5 @@
 import click
+from flask import current_app
 
 from gn_module_monitoring.config.repositories import get_config
 
@@ -52,7 +53,9 @@ def run_module_check(module_code, check_data, data_filters, fix):
     return total_error_count
 
 
-def run_check(module_code, check_data, data_filters, fix):
+def run_check(module_code, strict, check_data, data_filters, fix):
+    current_app.config["MONITORINGS"]["STRICT"] = strict
+
     available_module_codes = {module["module_code"] for module in available_modules()}
     installed_module_codes = {module["module_code"] for module in installed_modules()}
 

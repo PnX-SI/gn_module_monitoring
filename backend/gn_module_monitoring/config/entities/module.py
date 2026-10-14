@@ -15,7 +15,6 @@ class ModuleConfigSchema(BaseEntityConfigSchema):
         "uuid_field_name": "uuid_module_complement",
         "display_properties": ["module_label", "module_desc", "datasets"],
         "fields": {
-            "id_module": {"type_widget": "text", "attribut_label": "ID", "hidden": True},
             "module_code": {
                 "type_widget": "text",
                 "attribut_label": "Code",
@@ -102,9 +101,7 @@ class ModuleConfigSchema(BaseEntityConfigSchema):
                 "designStyle": "bootstrap",
             },
             "cd_nom": {
-                "type_widget": "taxonomy",
                 "attribut_label": "Espèce",
-                "type_util": "taxonomy",
                 "required": False,
                 "hidden": True,
             },
