@@ -3,7 +3,7 @@ from geonature.utils.env import db
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint_api
 
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import get_specific_properties
@@ -35,7 +35,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from flask import request, g
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/observations", methods=["GET"])
 @permissions.check_cruved_scope("R", object_code="MONITORINGS_VISITES")
 def get_observations(module_code: str = None):
     object_code = "MONITORINGS_VISITES"
@@ -89,14 +89,14 @@ def get_observations(module_code: str = None):
     )
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/observation/geometries", methods=["GET"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation/geometries", methods=["GET"])
+@blueprint_api.route("/observation/geometries", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/observation/geometries", methods=["GET"])
 @permissions.check_cruved_scope("R")
 def obs_geometries(module_code=None):
     return {}
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
 def get_observation_by_id(scope, module_code, _id):
     observation = db.get_or_404(TMonitoringObservations, _id)
@@ -113,7 +113,7 @@ def get_observation_by_id(scope, module_code, _id):
     return data
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
 def delete_observation(scope, _id, module_code):
     observation = db.get_or_404(TMonitoringObservations, _id)
@@ -126,14 +126,14 @@ def delete_observation(scope, _id, module_code):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/observations", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
 def post_observation(module_code):
     post_data = dict(request.get_json())
     return create_or_update_observation(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observations/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
 def patch_observation(scope, module_code: str, _id: int):
     observation = db.get_or_404(TMonitoringObservations, _id)

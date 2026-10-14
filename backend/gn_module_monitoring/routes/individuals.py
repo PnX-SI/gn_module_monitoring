@@ -11,7 +11,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint_api
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -34,8 +34,8 @@ from gn_module_monitoring.utils.routes import (
 OBJECT_CODE = "INDIVIDUALS"
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/individuals", methods=["GET"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals", methods=["GET"])
+@blueprint_api.route("/individuals", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/individuals", methods=["GET"])
 @check_cruved_scope("R", object_code=OBJECT_CODE)
 def get_individuals(module_code=None):
     """
@@ -96,7 +96,7 @@ def get_individuals(module_code=None):
     )
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:id>", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/individuals/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
 def get_individual_by_id(scope: int, module_code: str, id: int):
     """
@@ -133,7 +133,7 @@ def get_individual_by_id(scope: int, module_code: str, id: int):
     return data
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/individuals", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_individual(module_code: str):
     """
@@ -155,7 +155,7 @@ def post_individual(module_code: str):
     return create_or_update_individual(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/individuals/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
 def patch_individual(scope, module_code: str, _id: int):
     """
@@ -197,7 +197,7 @@ def patch_individual(scope, module_code: str, _id: int):
     return create_or_update_individual(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/individuals/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/<string:module_code>/individuals/<int:_id>", methods=["DELETE"])
 @check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_individual(scope, _id: int, module_code: str):
     """

@@ -11,7 +11,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint_api
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -72,7 +72,7 @@ def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEve
     return marking
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/<string:module_code>/markings/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_marking(scope, _id: int, module_code: str):
     """
@@ -109,7 +109,7 @@ def delete_marking(scope, _id: int, module_code: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/markings", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_marking(module_code: str):
     """
@@ -135,7 +135,7 @@ def post_marking(module_code: str):
     return create_or_update_marking(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/markings/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
 def patch_marking(scope, module_code: str, _id: int):
     """
@@ -178,7 +178,7 @@ def patch_marking(scope, module_code: str, _id: int):
     return create_or_update_marking(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/markings", methods=["GET"])
 def get_markings(module_code: str):
     """
     List the markings of a module readable by the current user.
@@ -247,7 +247,7 @@ def get_markings(module_code: str):
     )
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/markings/<int:id>", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/markings/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
 def get_marking_by_id(scope: int, module_code: str, id: int):
     """

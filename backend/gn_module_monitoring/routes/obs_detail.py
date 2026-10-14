@@ -12,7 +12,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint_api
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -36,9 +36,7 @@ from gn_module_monitoring.utils.routes import (
 OBJECT_CODE = "MONITORINGS_VISITES"
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>", methods=["DELETE"]
-)
+@blueprint_api.route("/<string:module_code>/observation_details/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
 def delete_obs_detail(scope, _id: int, module_code: str):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, _id)
@@ -51,16 +49,14 @@ def delete_obs_detail(scope, _id: int, module_code: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation_details", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/observation_details", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_obs_detail(module_code: str):
     post_data = dict(request.get_json())
     return create_or_update_obs_detail(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:_id>", methods=["PATCH"]
-)
+@blueprint_api.route("/<string:module_code>/observation_details/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
 def patch_obs_detail(scope, module_code: str, _id: int):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, _id)
@@ -74,7 +70,7 @@ def patch_obs_detail(scope, module_code: str, _id: int):
     return create_or_update_obs_detail(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/observation_details", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/observation_details", methods=["GET"])
 def get_obs_details(module_code: str):
     object_code = "MONITORINGS_VISITES"
     params = MultiDict(request.args)
@@ -127,9 +123,7 @@ def get_obs_details(module_code: str):
     )
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/observation_details/<int:id>", methods=["GET"]
-)
+@blueprint_api.route("/<string:module_code>/observation_details/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
 def get_obs_detail_by_id(scope: int, module_code: str, id: int):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, id)

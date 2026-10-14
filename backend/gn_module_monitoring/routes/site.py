@@ -16,7 +16,7 @@ from werkzeug.exceptions import Forbidden
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint, blueprint_api
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -111,8 +111,8 @@ def get_all_types_site_from_site_id(id_site):
     return schema.dump(types_site)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/sites", methods=["GET"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites", methods=["GET"])
+@blueprint_api.route("/sites", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/sites", methods=["GET"])
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_sites(module_code=None):
     OBJECT_CODE = "MONITORINGS_SITES"
@@ -164,7 +164,7 @@ def get_sites(module_code=None):
     )
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:id>", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/sites/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_SITES")
 def get_site_by_id(scope, module_code, id):
     site = db.get_or_404(TMonitoringSites, id)
@@ -177,13 +177,13 @@ def get_site_by_id(scope, module_code, id):
     return data
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/sites/geometries", methods=["GET"])
+@blueprint_api.route("/sites/geometries", methods=["GET"])
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_all_site_geometries():
     return _get_site_geometries()
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites/geometries", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/sites/geometries", methods=["GET"])
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_module_site_geometries(module_code):
     return _get_site_geometries(module_code)
@@ -241,9 +241,7 @@ def _get_site_geometries(module_code=None):
     return jsonify(result)
 
 
-@blueprint.route(
-    f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:id_base_site>/modules", methods=["GET"]
-)
+@blueprint_api.route("/<string:module_code>/sites/<int:id_base_site>/modules", methods=["GET"])
 @check_cruved_scope("R", object_code="MONITORINGS_SITES")
 def get_module_by_id_base_site(module_code: str, id_base_site: int):
     modules_object = get_modules()
@@ -275,22 +273,22 @@ def get_module_by_id_base_site(module_code: str, id_base_site: int):
 
 
 # TODO: vérfier si c'est utilisé
-@blueprint.route(f"{ROUTE_PREFIX}/sites/module/<string:module_code>", methods=["GET"])
+@blueprint_api.route("/sites/module/<string:module_code>", methods=["GET"])
 def get_module_sites(module_code: str):
     # TODO: load with site_categories.json API
     return jsonify({"module_code": module_code})
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/sites", methods=["POST"], defaults={"module_code": "generic"})
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites", methods=["POST"])
+@blueprint_api.route("/sites", methods=["POST"], defaults={"module_code": "generic"})
+@blueprint_api.route("/<string:module_code>/sites", methods=["POST"])
 @check_cruved_scope("C", object_code="MONITORINGS_SITES")
 def post_sites(module_code: str):
     post_data = dict(request.get_json())
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/sites/<int:_id>", methods=["PATCH"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/sites/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/sites/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_SITES")
 def patch_site(scope, module_code, _id):
     site = db.get_or_404(TMonitoringSites, _id)
@@ -303,8 +301,8 @@ def patch_site(scope, module_code, _id):
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/sites/<int:_id>", methods=["DELETE"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/sites/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/sites/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/<string:module_code>/sites/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_SITES")
 def delete_site(scope, _id, module_code=None):
     site = db.get_or_404(TMonitoringSites, _id)

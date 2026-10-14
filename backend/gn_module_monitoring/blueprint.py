@@ -22,8 +22,8 @@ blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
 
-# Préfixe des routes de la nouvelle API (les routes legacy sont dans blueprint_legacy)
-ROUTE_PREFIX = "/refacto"
+# Blueprint de la nouvelle API, imbriqué dans `blueprint` (les routes legacy sont dans blueprint_legacy)
+blueprint_api = Blueprint("api", __name__, url_prefix="/v2")
 
 
 @blueprint.teardown_request
@@ -77,6 +77,8 @@ def set_current_module():
 
 
 from .routes import *  # noqa
+
+blueprint.register_blueprint(blueprint_api)
 
 blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORINGS"
 for cmd in commands:

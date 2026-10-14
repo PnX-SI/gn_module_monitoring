@@ -11,7 +11,7 @@ from werkzeug.datastructures import MultiDict
 from geonature.utils.env import db
 
 from gn_module_monitoring.constants import ObjectType
-from gn_module_monitoring.blueprint import blueprint, ROUTE_PREFIX
+from gn_module_monitoring.blueprint import blueprint_api
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
 from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
@@ -32,7 +32,7 @@ from gn_module_monitoring.utils.routes import (
 from gn_module_monitoring.routes.modules import get_modules
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
+@blueprint_api.route("/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
 def delete_visit(scope, _id, module_code):
     visit = db.get_or_404(TMonitoringVisits, _id)
@@ -43,14 +43,14 @@ def delete_visit(scope, _id, module_code):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/visits", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
 def post_visit(module_code):
     post_data = dict(request.get_json())
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
 def patch_visit(scope, module_code: str, _id: int):
     visit = db.get_or_404(TMonitoringVisits, _id)
@@ -62,8 +62,8 @@ def patch_visit(scope, module_code: str, _id: int):
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/visits", methods=["GET"])
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits", methods=["GET"])
+@blueprint_api.route("/visits", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/visits", methods=["GET"])
 def get_visits(module_code=None):
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -110,7 +110,7 @@ def get_visits(module_code=None):
     )
 
 
-@blueprint.route(f"{ROUTE_PREFIX}/<string:module_code>/visits/<int:id>", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/visits/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
 def get_visit_by_id(scope, module_code, id):
 
