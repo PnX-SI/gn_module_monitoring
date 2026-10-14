@@ -7,6 +7,7 @@ from .core import (
     NumberWidget,
     DateWidget,
     TimeWidget,
+    SelectWidget,
     MultiselectWidget,
     DatalistWidget,
     ObserversTextWidget,

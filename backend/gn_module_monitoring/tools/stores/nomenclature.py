@@ -80,8 +80,16 @@ class NomenclatureStore(BaseStore):
 
             @pre_load
             def retrocompat(self, data, **kwargs):
+                # was code, but it is a mnemonique so it was renamed
                 if "code_nomenclature_type" in data:
                     data["nomenclature_type"] = data.pop("code_nomenclature_type")
+                # find nomenclature_type from datalist widget api url (better to use nomenclature widget…)
+                if (
+                    "nomenclature_type" not in data
+                    and data.get("type_widget") == "datalist"
+                    and data.get("api", "").startswith("nomenclatures/nomenclature/")
+                ):
+                    data["nomenclature_type"] = data["api"].split("/")[2]
                 return data
 
             @validates_schema

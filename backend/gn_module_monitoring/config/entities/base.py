@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import marshmallow as ma
 from marshmallow import pre_load, validates_schema, ValidationError
 
@@ -10,7 +12,6 @@ class BaseEntityConfigSchema(ma.Schema):
         unknown = ma.EXCLUDE
 
     fields = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Nested(EntityFieldConfigSchema))
-    # fields = ma.fields.List(ma.fields.Nested(EntityFieldConfigSchema))
     display_list = ma.fields.List(ma.fields.Str(), load_default=[])
     display_properties = ma.fields.List(ma.fields.Str(), load_default=[])
 
@@ -25,7 +26,7 @@ class BaseEntityConfigSchema(ma.Schema):
         fields = data.pop("fields", data.pop("specific", {}))
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
-        data = {**self.base_data, **data}
+        data = {**deepcopy(self.base_data), **data}
         # Maintenant, pour les fields, on permet :
         #   - de définir de nouveau fields
         #   - d’override, pour les fields existant dans default_data, uniquement :

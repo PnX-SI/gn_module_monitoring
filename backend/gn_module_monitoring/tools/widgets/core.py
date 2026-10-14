@@ -43,7 +43,7 @@ class BaseWidget:
         data = data or {}
         if self.extra_data:
             return self._get_default_store(
-                {**self.extra_data, **data},
+                {**{k: v for k, v in self.extra_data.items() if k != "type"}, **data},
                 **{**kwargs, "unknown": ma.EXCLUDE},
             )
         else:
@@ -144,9 +144,9 @@ class DateWidget(BaseWidget):
     key = "date"
 
     def _get_default_store(self, data, **kwargs):
-        from ..stores import DateStore
+        from ..stores import DatetimeStore
 
-        return DateStore(data, **kwargs)
+        return DatetimeStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -156,9 +156,9 @@ class TimeWidget(BaseWidget):
     key = "time"
 
     def _get_default_store(self, data, **kwargs):
-        from ..stores import TimeStore
+        from ..stores import DatetimeStore
 
-        return TimeStore(data, **kwargs)
+        return DatetimeStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -168,9 +168,6 @@ class SelectWidget(BaseWidget):
     key = "select"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        class Meta:
-            unknown = ma.RAISE
-
         values = fields.List(ValueLabelField(), required=True)
 
     def _get_default_store(self, data, **kwargs):

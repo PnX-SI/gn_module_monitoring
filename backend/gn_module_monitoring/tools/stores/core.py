@@ -1,9 +1,10 @@
 from typing import Literal, Never, Any
 
+import sqlalchemy as sa
 import marshmallow as ma
 from marshmallow import fields, validate
 
-from ..utils import ValueLabelField
+from ..utils import ValueLabelField, schema_context
 
 
 class BaseStore:
@@ -15,7 +16,25 @@ class BaseStore:
     def get_config_schema_class(cls):
         return cls.ConfigSchema
 
+    @classmethod
+    def get_store_from_column_attr(cls, column_attr):
+        if len(column_attr.columns) == 1:
+            column = column_attr.columns[0]
+            if column.foreign_keys:
+                from gn_module_monitoring.tools.stores.relationships import BaseRelationshipStore
+
+                for subcls in BaseRelationshipStore.__subclasses__():
+                    if subcls.is_suitable_for_column(column):
+                        return subcls
+            else:
+                for subcls in BaseTypeStore.__subclasses__():
+                    if subcls.is_suitable_for_column(column):
+                        return subcls
+        raise ValueError(f"Unable to find proper store for column '{column_attr}'")
+
     def __init__(self, data=None, **kwargs):
+        from gn_module_monitoring.services import SERVICE_MAP
+
         data = data or {}
         if "type_util" in data:
             self.extra_data = data
@@ -24,6 +43,10 @@ class BaseStore:
         else:
             self.extra_data = None
         self.config = self.get_config_schema_class()().load(data, **kwargs)
+        ctx = schema_context.get()
+        self.entity = SERVICE_MAP[ctx["entity"]]
+        self.field_name = ctx["field_name"]
+        self.native_column = self.entity.get_columns().get(self.field_name)
 
     def dump_config(self):
         return self.get_config_schema_class()().dump(self.config)
@@ -34,7 +57,7 @@ class BaseStore:
         data = data or {}
         if self.extra_data:
             return self._get_default_widget(
-                {**self.extra_data, **data},
+                {**{k: v for k, v in self.extra_data.items() if k != "type"}, **data},
                 **{**kwargs, "unknown": ma.EXCLUDE},
             )
         else:
@@ -123,7 +146,15 @@ class ListStore(BaseStore):
         return list[Literal[tuple(value["value"] for value in self.config["values"])]]
 
 
-class StringStore(BaseStore):
+class BaseTypeStore(BaseStore):
+    @classmethod
+    def is_suitable_for_column(cls, column):
+        return isinstance(column.type, cls.sql_type)
+
+
+class StringStore(BaseTypeStore):
+    sql_type = sa.types.String
+
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import TextWidget
 
@@ -133,7 +164,13 @@ class StringStore(BaseStore):
         return str
 
 
-class BooleanStore(BaseStore):
+class BooleanStore(BaseTypeStore):
+    key = "bool"
+    sql_type = sa.types.Boolean
+
+    class ConfigSchema(BaseStore.ConfigSchema):
+        type = fields.Str(validate=validate.Equal("bool"), load_default="bool")
+
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import CheckboxWidget
 
@@ -143,8 +180,9 @@ class BooleanStore(BaseStore):
         return bool
 
 
-class IntegerStore(BaseStore):
+class IntegerStore(BaseTypeStore):
     key = "integer"
+    sql_type = sa.types.Integer
 
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import NumberWidget
@@ -155,7 +193,9 @@ class IntegerStore(BaseStore):
         return int
 
 
-class FloatStore(BaseStore):
+class FloatStore(BaseTypeStore):
+    sql_type = sa.types.Float
+
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import NumberWidget
 
@@ -165,7 +205,9 @@ class FloatStore(BaseStore):
         return float
 
 
-class DateStore(BaseStore):
+class DatetimeStore(BaseTypeStore):
+    sql_type = sa.types.DateTime
+
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import DateWidget
 
@@ -175,21 +217,12 @@ class DateStore(BaseStore):
         return str
 
 
-class TimeStore(BaseStore):
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import TimeWidget
-
-        return TimeWidget(data, **kwargs)
-
-    def get_wire_type(self):
-        return str
-
-
-class UUIDStore(BaseStore):
+class UUIDStore(BaseTypeStore):
     key = "uuid"
+    sql_type = sa.types.Uuid
 
     class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("uuid"))
+        type = fields.Str(validate=validate.Equal("uuid"), load_default="uuid")
 
     def _get_default_widget(self, data, **kwargs):
         from ..widgets import TextWidget
@@ -198,176 +231,6 @@ class UUIDStore(BaseStore):
 
     def get_wire_type(self):
         return str
-
-
-class UserStore(BaseStore):
-    key = "user"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("user"))
-        multiple = fields.Bool(load_default=False)
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import UserWidget
-
-        return UserWidget(data, **kwargs)
-
-    def get_wire_type(self):
-        if self.config["multiple"]:
-            return list[int]
-        return int
-
-
-class ObserverListStore(BaseStore):
-    key = "observer_list"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("observer_list"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatalistWidget
-
-        # TODO: instancier DatalistWidget avec les bon paramètres
-        raise NotImplementedError("Missing default widget for adapter 'observer_list'")
-
-    def get_wire_type(self):
-        return list[int]
-
-
-class TaxonomyStore(BaseStore):
-    key = "taxonomy"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("taxonomy"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import TaxonomyWidget
-
-        return TaxonomyWidget(data, **kwargs)
-
-    def get_wire_type(self):
-        return int
-
-
-class TaxonomyListStore(BaseStore):
-    key = "taxonomy_list"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("taxonomy_list"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatalistWidget
-
-        return DatalistWidget(
-            {
-                "attribut_label": "Liste des taxons",
-                "keyValue": "id_liste",
-                "keyLabel": "nom_liste",
-                "multiple": False,
-                "api": "biblistes/",
-            },
-            **kwargs,
-        )
-
-    def get_wire_type(self):
-        return int
-
-
-class DatasetStore(BaseStore):
-    key = "dataset"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("dataset"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatasetWidget
-
-        return DatasetWidget(data, **kwargs)
-
-    def get_wire_type(self) -> type:
-        return int
-
-
-class HabitatStore(BaseStore):
-    key = "habitat"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("habitat"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import HabitatWidget
-
-        return HabitatWidget(data, **kwargs)
-
-    def get_wire_type(self) -> type:
-        return int
-
-
-class AreasStore(BaseStore):
-    key = "areas"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.OneOf(["area", "areas"]))
-        many = fields.Boolean(load_default=True)
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import AreasWidget
-
-        return AreasWidget(data, **kwargs)
-
-    def get_wire_type(self) -> type:
-        if self.config.many:
-            return list[int]
-        else:
-            return int
-
-
-class TypesSiteStore(BaseStore):
-    key = "types_site"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("types_site"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatalistWidget
-
-        return DatalistWidget(
-            {
-                "attribut_label": "Type(s) de site",
-                "keyValue": "id_nomenclature_type_site",
-                "keyLabel": "label",
-                "multiple": True,
-                "api": "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
-            },
-            **kwargs,
-        )
-
-    def get_wire_type(self) -> type:
-        return int
-
-
-class ModuleStore(BaseStore):
-    key = "module"
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("module"))
-
-    def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DatalistWidget
-
-        return DatalistWidget(
-            {
-                "attribut_label": "Modules",
-                "keyValue": "id_module",
-                "keyLabel": "module_label",
-                "multiple": True,
-                "api": "monitorings/modules",
-            },
-            **kwargs,
-        )
-
-    def get_wire_type(self) -> type:
-        return list[int]
 
 
 # TODO: date, site, sites_group, area

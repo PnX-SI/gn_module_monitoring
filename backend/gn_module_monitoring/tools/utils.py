@@ -20,7 +20,6 @@ class ContextManagedContextVar:
 
     @contextmanager
     def __call__(self, **kwargs):
-        # def manager():
         current = self.get() or {}
         new = {**current, **kwargs}
         token = self.set(new)
@@ -28,8 +27,6 @@ class ContextManagedContextVar:
             yield new
         finally:
             self.reset(token)
-
-        # return manager()
 
 
 schema_context = ContextManagedContextVar("schema_context", default=None)
