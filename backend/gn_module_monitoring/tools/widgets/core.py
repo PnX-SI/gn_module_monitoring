@@ -144,9 +144,9 @@ class DateWidget(BaseWidget):
     key = "date"
 
     def _get_default_store(self, data, **kwargs):
-        from ..stores import DatetimeStore
+        from ..stores import DateStore
 
-        return DatetimeStore(data, **kwargs)
+        return DateStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -156,9 +156,9 @@ class TimeWidget(BaseWidget):
     key = "time"
 
     def _get_default_store(self, data, **kwargs):
-        from ..stores import DatetimeStore
+        from ..stores import DateTimeStore
 
-        return DatetimeStore(data, **kwargs)
+        return DateTimeStore(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -257,6 +257,18 @@ class ObserversTextWidget(BaseWidget):
 
     def get_wire_type(self):
         return str
+
+
+class MediaWidget(BaseWidget):
+    key = "medias"
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import DummyStore
+
+        return DummyStore(data, **kwargs)
+
+    def get_wire_type(self):
+        return Never
 
 
 # TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas

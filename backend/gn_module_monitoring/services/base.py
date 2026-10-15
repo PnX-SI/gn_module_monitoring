@@ -24,5 +24,5 @@ class BaseService(metaclass=BaseServiceMeta):
 
     @classmethod
     @cache
-    def get_columns(cls):
-        return sa.inspect(cls.model).column_attrs
+    def get_attrs(cls):
+        return sa.inspect(cls.model).attrs

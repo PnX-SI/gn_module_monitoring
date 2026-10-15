@@ -1,5 +1,3 @@
-from typing import Never
-
 from marshmallow import fields, validate
 
 from .core import BaseWidget
@@ -32,12 +30,47 @@ class TaxonomyWidget(BaseWidget):
 class DatasetWidget(BaseWidget):
     key = "dataset"
 
-    def _get_default_store(self, data, **kwargs):
-        from ..stores import DatasetStore
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        multi_select = fields.Boolean(load_default=False)
 
-        return DatasetStore(data, **kwargs)
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import DatasetStore, DatasetsStore
+
+        # multi_select est une option du widget, pas du store
+        data = {k: v for k, v in data.items() if k != "multi_select"}
+        if self.config["multi_select"]:
+            return DatasetsStore(data, **kwargs)
+        else:
+            return DatasetStore(data, **kwargs)
 
     def get_wire_type(self):
+        if self.config["multi_select"]:
+            return list[int]
+        return int
+
+
+class ModuleWidget(BaseWidget):
+    key = "module"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        multiple = fields.Boolean(load_default=False)
+        keyValue = fields.Str(load_default="id_module")
+        keyLabel = fields.Str(load_default="module_label")
+        api = fields.Str(load_default="monitorings/modules")
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import ModuleStore, ModulesStore
+
+        # multiple est une option du widget, pas du store
+        data = {k: v for k, v in data.items() if k != "multiple"}
+        if self.config["multiple"]:
+            return ModulesStore(data, **kwargs)
+        else:
+            return ModuleStore(data, **kwargs)
+
+    def get_wire_type(self):
+        if self.config["multiple"]:
+            return list[int]
         return int
 
 
@@ -69,26 +102,23 @@ class UserWidget(BaseWidget):
 class ObserversWidget(BaseWidget):
     key = "observers"
 
-    def _get_default_store(self, data, **kwargs):
-        from ..stores import UserStore
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        multi_select = fields.Boolean(load_default=False)
 
-        # TODO: pass some parameters like the observer list or multiple
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import UserStore, UsersStore
+
+        # multi_select est une option du widget, pas du store
+        data = {k: v for k, v in data.items() if k != "multi_select"}
+        # TODO: pass some parameters like the observer list
+        if self.config["multi_select"]:
+            return UsersStore(data, **kwargs)
         return UserStore(data, **kwargs)
 
     def get_wire_type(self):
+        if self.config["multi_select"]:
+            return list[int]
         return int
-
-
-class MediaWidget(BaseWidget):
-    key = "medias"
-
-    def _get_default_store(self, data, **kwargs):
-        from ..stores import DummyStore
-
-        return DummyStore(data, **kwargs)
-
-    def get_wire_type(self):
-        return Never
 
 
 class AreasWidget(BaseWidget):
@@ -96,7 +126,6 @@ class AreasWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         type = fields.Str(validate=validate.OneOf(["area", "areas"]))
-        many = fields.Boolean(load_default=True)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreasStore
@@ -104,11 +133,19 @@ class AreasWidget(BaseWidget):
         return AreasStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["many"]:
-            return list[int]
-        else:
-            return int
+        return list[int]
 
 
-# TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas
-# Multiple: multiselect, checkbox, municipalities, areas
+class MunicipalitiesWidget(BaseWidget):
+    key = "municipalities"
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import AreasStore
+
+        return AreasStore({**data, "area_code": "COM"}, **kwargs)
+
+    def get_wire_type(self):
+        return list[int]
+
+
+# TODO: checkbox, radio, html, bool_checkbox, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time, individuals
