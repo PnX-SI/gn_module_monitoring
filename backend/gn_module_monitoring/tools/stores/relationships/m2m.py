@@ -60,9 +60,6 @@ class TypesSiteStore(BaseManyToManyStore):
 
         return BibTypeSite
 
-    class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("types_site"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatalistWidget
 
@@ -88,7 +85,6 @@ class AreasStore(BaseManyToManyStore):
         return LAreas
 
     class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        type = fields.Str(validate=validate.OneOf(["areas"]))
         area_code = fields.Str()
 
     def _get_default_widget(self, data, **kwargs):
@@ -106,9 +102,6 @@ class DatasetsStore(BaseManyToManyStore):
 
         return TDatasets
 
-    class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("datasets"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatasetWidget
 
@@ -123,9 +116,6 @@ class ModulesStore(BaseManyToManyStore):
         from gn_module_monitoring.monitoring.models import TMonitoringModules
 
         return TMonitoringModules
-
-    class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("modules"))
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ModuleWidget
@@ -143,9 +133,6 @@ class UsersStore(BaseManyToManyStore):
         from pypnusershub.db.models import User
 
         return User
-
-    class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("users"))
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ObserversWidget

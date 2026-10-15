@@ -12,6 +12,7 @@ from gn_module_monitoring.tools.widgets import (
     ModuleWidget,
     TextWidget,
     TextareaWidget,
+    BoolCheckboxWidget,
     CheckboxWidget,
     RadioWidget,
     NumberWidget,
@@ -24,6 +25,7 @@ from gn_module_monitoring.tools.widgets import (
     TaxonomyWidget,
     HabitatWidget,
     MediaWidget,
+    HiddenWidget,
     UserWidget,
     ObserversWidget,
     ObserversTextWidget,
@@ -61,6 +63,7 @@ class WidgetConfigSchema(ma.Schema):
     widget_map = {
         TextWidget.key: TextWidget,
         TextareaWidget.key: TextareaWidget,
+        BoolCheckboxWidget.key: BoolCheckboxWidget,
         CheckboxWidget.key: CheckboxWidget,
         RadioWidget.key: RadioWidget,
         NumberWidget.key: NumberWidget,
@@ -78,6 +81,7 @@ class WidgetConfigSchema(ma.Schema):
         ModuleWidget.key: ModuleWidget,
         HabitatWidget.key: HabitatWidget,
         MediaWidget.key: MediaWidget,
+        HiddenWidget.key: HiddenWidget,
         ObserversTextWidget.key: ObserversTextWidget,
         AreasWidget.key: AreasWidget,
         MunicipalitiesWidget.key: MunicipalitiesWidget,
@@ -150,8 +154,6 @@ class EntityFieldConfigSchema(ma.Schema):
 
     required = fields.Boolean(load_default=False)
     required_js = MultilineStr()
-    hidden = fields.Boolean(load_default=False)
-    hidden_js = MultilineStr()
 
     def load(self, data, **kwargs):
         with schema_context(field_name=data.pop("name")):
@@ -160,13 +162,10 @@ class EntityFieldConfigSchema(ma.Schema):
     @pre_load
     def pre_load(self, data, **kwargs):
         # Si required (resp. hidden) n'est pas un booléen, c'est une valeur dynamique à évaluer en js.
-        # On considère le champs commen non requis (resp. non masqué) en l'absence de possibilité de savoir ce qu'il en est réellement.
+        # On considère le champs comme non requis (resp. non masqué) en l'absence de possibilité de savoir ce qu'il en est réellement.
         if "required" in data and not isinstance(data["required"], bool):
             data["required_js"] = data.pop("required")
             data["required"] = False
-        if "hidden" in data and not isinstance(data["hidden"], bool):
-            data["hidden_js"] = data.pop("hidden")
-            data["hidden"] = False
 
         # retro-compat.
         orig_data = deepcopy(data)
@@ -178,6 +177,11 @@ class EntityFieldConfigSchema(ma.Schema):
             widget_type = data.pop("type_widget")
             data["widget"] = deepcopy(orig_data)
             data["widget"]["type"] = widget_type
+            if widget_type == "site":
+                # Il n’y a pas de widget site
+                if not data["widget"].get("hidden", False):
+                    raise ValidationError({"widget": "Le widget 'site' ne peut que être hidden."})
+                data["widget"]["type"] = "hidden"
         if "type_util" in data:
             if "store" in data:
                 raise ValidationError(
@@ -190,6 +194,8 @@ class EntityFieldConfigSchema(ma.Schema):
                 data["store"]["type"] = "datasets"
             if store_type == "module" and data["store"].pop("multiple", False):
                 data["store"]["type"] = "modules"
+            if store_type == "user" and data["store"].pop("multi_select", False):
+                data["store"]["type"] = "users"
         return data
 
     @post_load

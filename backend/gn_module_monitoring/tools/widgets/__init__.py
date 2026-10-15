@@ -2,6 +2,7 @@ from .core import (
     BaseWidget,
     TextWidget,
     TextareaWidget,
+    BoolCheckboxWidget,
     CheckboxWidget,
     RadioWidget,
     NumberWidget,
@@ -12,6 +13,7 @@ from .core import (
     DatalistWidget,
     ObserversTextWidget,
     MediaWidget,
+    HiddenWidget,
 )
 from .relationships import (
     NomenclatureWidget,

@@ -1,9 +1,11 @@
 from copy import deepcopy
 
+import sqlalchemy as sa
 import marshmallow as ma
 from marshmallow import pre_load, validates_schema, ValidationError
 
-from .fields import EntityFieldConfigSchema
+from gn_module_monitoring.services import SERVICE_MAP
+from .fields import EntityFieldConfigSchema, schema_context
 
 
 class BaseEntityConfigSchema(ma.Schema):
@@ -28,16 +30,27 @@ class BaseEntityConfigSchema(ma.Schema):
         # On écrase tous les champs, sauf "fields" qui a été sortie
         data = {**deepcopy(self.base_data), **data}
         # Maintenant, pour les fields, on permet :
-        #   - de définir de nouveau fields
+        #   - de définir de nouveau fields, s’ils n’existent pas en base
         #   - d’override, pour les fields existant dans default_data, uniquement :
         #     - le widget
         #     - required, seulement si c’est pour le forcer à True
+        model = SERVICE_MAP[schema_context.get()["entity"]].model
+        mapper = sa.inspect(model)
         for field_name, field_def in fields.items():
             if field_name in data["fields"]:  # field existant
-                # TODO: Comportement legacy, adopter le comportement strict décrit ci-dessus
+                # TODO: restreindre l’override pour interdire de modifier le type des champs sql !
                 data["fields"][field_name].update(field_def)
             else:  # nouveau field, on l’ajoute
+                if field_name in mapper.attrs:
+                    raise ValidationError(
+                        {
+                            "fields": {
+                                field_name: "Ce champs rentre en conflit avec un champs du modèle."
+                            }
+                        }
+                    )
                 data["fields"][field_name] = field_def
+
         # On rajoute à chaque field une clé "name" pour que chaque field est connaissance de son nom
         data["fields"] = {k: {**v, "name": k} for k, v in data["fields"].items()}
         return data
