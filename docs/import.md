@@ -52,7 +52,7 @@ Dans le cadre de l'import, seuls les observateurs renseignés dans les champs "O
 
 ## Activation de l'import dans un protocole de suivi Monitoring
 
-Pour pouvoir importer des données d'un sous-module Monitoring, il faut d'abord que ledit sous-module soit configuré. Si ce n'est pas le cas, rendez-vous dans la section dédiée du sous-module, accessible depuis le bouton `Éditer le module`.
+Pour pouvoir importer des données d'un sous-module Monitoring, il faut d'abord que ledit sous-module soit configuré (une liste d'observateurs, au moins un jeu de données et une liste de taxons doivent lui être associés, et l'affichage des taxons doit être renseigné). Si ce n'est pas le cas, rendez-vous dans la section dédiée du sous-module, accessible depuis le bouton `Éditer le module`.
 
 Une fois le sous-module configuré, il suffit de lancer la commande `geonature monitorings process_import <module_code>`.
 
