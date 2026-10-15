@@ -78,6 +78,7 @@ import { DetailObservationsResolver } from './resolver/detail-observations-resol
 import { DetailSitesResolver } from './resolver/detail-sites-resolver';
 import { MapListResolver } from './resolver/map-list-resolver';
 import { ModuleConfigResolver } from './resolver/config.resolver';
+import { ModuleConfiguredGuard } from './resolver/module-configured.guard';
 import { ImportButtonComponent } from '@geonature/shared/importButton/import-button.component';
 import { MonitoringObservationsDetailCreateComponent } from './components/monitoring-observationsdetails-create/monitoring-observationsdetail-create.component';
 import { MonitoringObservationsDetailDetailComponent } from './components/monitoring-observationsdetail-detail/monitoring-observationsdetail-detail.component';
@@ -93,6 +94,7 @@ const routes: Routes = [
   { path: '', component: ModulesComponent },
   {
     path: 'object/:moduleCode',
+    canActivateChild: [ModuleConfiguredGuard], // Bloque l'accès aux objets si le module n'est pas configuré
     resolve: {
       data: ModuleConfigResolver, // Permet de charger la configuration du module
     },

@@ -59,6 +59,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   currentPermission: TPermission;
 
+  // Module configuré : liste d'observateurs, jeu(x) de données, liste de taxons
+  // et affichage des taxons renseignés
+  isConfigured: boolean = true;
+
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
     site: 'visit',
@@ -115,6 +119,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
+      this.isConfigured = this._configServiceG.config()?.configured !== false;
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -161,6 +166,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
         });
       }
     });
+  }
+
+  configureModule() {
+    this._formService.changeCurrentEditMode(true);
   }
 
   ngOnDestroy() {
