@@ -154,10 +154,15 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
         this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
           this.objectData = data;
-          this.resolvedObj = this._dataUtilsService.resolveObjectProperties(
-            this.objectData,
-            this._configServiceG.config()['module']['fields']
-          );
+          this._dataUtilsService
+            .resolveObjectProperties(
+              this.objectData,
+              this._configServiceG.config()['module']['fields']
+            )
+            .subscribe((data) => {
+              console.log(data);
+              this.resolvedObj = data;
+            });
         });
       }
     });

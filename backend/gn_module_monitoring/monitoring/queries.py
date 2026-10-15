@@ -8,6 +8,7 @@ from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
 from pypn_habref_api.models import Habref
+from geonature.core.gn_meta.models import TDatasets
 from ref_geo.models import LAreas
 from sqlalchemy import Unicode, and_, false, func, or_, select, true
 from sqlalchemy.orm import aliased, class_mapper
@@ -201,6 +202,10 @@ class GnMonitoringGenericFilter:
             join_table = aliased(LAreas)
             join_column = join_table.id_area
             filter_column = join_table.area_name
+        elif type_util == "dataset":
+            join_table = aliased(TDatasets)
+            join_column = join_table.id_dataset
+            filter_column = join_table.dataset_name
         elif type_util == "habitat":
             join_table = aliased(Habref)
             join_column = join_table.cd_hab
@@ -320,6 +325,22 @@ class VisitQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
                 ]
             query = query.where(or_(*ors))
+        return query
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "id_dataset" in params:
+            value = params.pop("id_dataset")
+            if not value.isdigit():
+                join_dataset = aliased(TDatasets)
+                query = query.join(join_dataset, cls.dataset)
+                query = query.filter(join_dataset.dataset_name.ilike(f"%{value}%"))
+            else:
+                if not isinstance(value, list):
+                    value = [value]
+                query = query.filter(cls.id_dataset == value)
+        query = super().filter_by_params(query, params)
+
         return query
 
 
