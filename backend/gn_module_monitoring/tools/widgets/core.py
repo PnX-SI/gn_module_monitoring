@@ -1,9 +1,9 @@
 from typing import Any, Literal, Never
 
 import marshmallow as ma
-from marshmallow import fields, validates_schema, ValidationError
+from marshmallow import fields, validates_schema, pre_load, ValidationError, validate
 
-from ..utils import ValueLabelField
+from ..utils import ValueLabelField, schema_context, MultilineStr
 
 
 class BaseWidget:
@@ -11,7 +11,25 @@ class BaseWidget:
         class Meta:
             unknown = ma.RAISE
 
+        type = fields.Str(required=True)
+
+        hidden = fields.Boolean(load_default=False)
+        hidden_js = MultilineStr()
+
         attribut_label = fields.String()  # FIXME: required?
+
+        @pre_load
+        def set_hidden_js(self, data, **kwargs):
+            if "hidden" in data and not isinstance(data["hidden"], bool):
+                data["hidden_js"] = data.pop("hidden")
+                data["hidden"] = False
+            return data
+
+        @pre_load
+        def load_default_type(self, data, **kwargs):
+            if "type" not in data:
+                data["type"] = schema_context.get()["widget"].key
+            return data
 
         def get_attribute(self, obj, attr, default):
             # default function is based on getattr, which fail
@@ -32,7 +50,8 @@ class BaseWidget:
             kwargs["unknown"] = ma.EXCLUDE
         else:
             self.extra_data = None
-        self.config = self.get_config_schema_class()().load(data, **kwargs)
+        with schema_context(widget=self, retro_compat=self.extra_data is not None):
+            self.config = self.get_config_schema_class()().load(data, **kwargs)
 
     def dump_config(self):
         return self.get_config_schema_class()().dump(self.config)
@@ -62,6 +81,32 @@ class BaseWidget:
         return self.__class__.__name__
 
 
+class HiddenWidget(BaseWidget):
+    """
+    Champ non affiché dans le formulaire, mais dont la valeur est conservée et envoyée à l'API.
+    Le store est celui de l'attribut natif du modèle si il existe, sinon DummyStore.
+    """
+
+    key = "hidden"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        hidden = fields.Boolean(validate=validate.Equal(True))
+
+    def _get_default_store(self, data, **kwargs):
+        from gn_module_monitoring.services import SERVICE_MAP
+        from ..stores import BaseStore, DummyStore
+
+        ctx = schema_context.get()
+        attr = SERVICE_MAP[ctx["entity"]].get_attrs().get(ctx["field_name"])
+        if attr is not None:
+            return BaseStore.get_store_from_attr(attr)(data, **kwargs)
+        else:
+            return DummyStore(data, **kwargs)
+
+    def get_wire_type(self):
+        return self.get_default_store().get_wire_type()
+
+
 class TextWidget(BaseWidget):
     key = "text"
 
@@ -86,7 +131,7 @@ class TextareaWidget(BaseWidget):
         return str
 
 
-class CheckboxWidget(BaseWidget):
+class BoolCheckboxWidget(BaseWidget):
     key = "bool_checkbox"
 
     def _get_default_store(self, data, **kwargs):
@@ -96,6 +141,21 @@ class CheckboxWidget(BaseWidget):
 
     def get_wire_type(self):
         return bool
+
+
+class CheckboxWidget(BaseWidget):
+    key = "checkbox"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        values = fields.List(ValueLabelField(), required=True)
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import ListStore
+
+        return ListStore({"values": self.config["values"], **(data or {})}, **kwargs)
+
+    def get_wire_type(self):
+        return list[Literal[tuple(value["value"] for value in self.config["values"])]]
 
 
 class RadioWidget(BaseWidget):

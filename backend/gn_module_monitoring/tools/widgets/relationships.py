@@ -125,7 +125,7 @@ class AreasWidget(BaseWidget):
     key = "areas"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        type = fields.Str(validate=validate.OneOf(["area", "areas"]))
+        pass
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreasStore

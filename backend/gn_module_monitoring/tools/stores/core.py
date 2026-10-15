@@ -3,7 +3,7 @@ from typing import Literal, Never, Any
 import sqlalchemy as sa
 import marshmallow as ma
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
-from marshmallow import fields, validate
+from marshmallow import fields, pre_load
 
 from ..utils import ValueLabelField, schema_context
 
@@ -12,6 +12,14 @@ class BaseStore:
     class ConfigSchema(ma.Schema):
         class Meta:
             unknown = ma.RAISE
+
+        type = fields.Str(required=True)
+
+        @pre_load
+        def load_default_type(self, data, **kwargs):
+            if "type" not in data:
+                data["type"] = schema_context.get()["store"].key
+            return data
 
     @classmethod
     def get_config_schema_class(cls):
@@ -129,6 +137,8 @@ class DummyStore(BaseStore):
     Par exemple, le widget des médias interagit directement avec l’API des médias.
     """
 
+    key = "dummy"
+
     def get_wire_type(self):
         return Never
 
@@ -137,6 +147,8 @@ class ValueStore(BaseStore):
     """
     Cet adapter est utilisé pour vérifier qu’une valeur appartient à une liste.
     """
+
+    key = "value"
 
     class ConfigSchema(BaseStore.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
@@ -152,10 +164,15 @@ class ListStore(BaseStore):
     Idem que ValueStore, mais pour une liste de données.
     """
 
+    key = "list"
+
     class ConfigSchema(BaseStore.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
-    # TODO: default widget
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import CheckboxWidget
+
+        return CheckboxWidget({"values": self.config["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
         return list[Literal[tuple(value["value"] for value in self.config["values"])]]
@@ -168,6 +185,7 @@ class BaseTypeStore(BaseStore):
 
 
 class StringStore(BaseTypeStore):
+    key = "string"
     sql_type = sa.types.String
 
     def _get_default_widget(self, data, **kwargs):
@@ -183,13 +201,10 @@ class BooleanStore(BaseTypeStore):
     key = "bool"
     sql_type = sa.types.Boolean
 
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("bool"), load_default="bool")
-
     def _get_default_widget(self, data, **kwargs):
-        from gn_module_monitoring.tools.widgets import CheckboxWidget
+        from gn_module_monitoring.tools.widgets import BoolCheckboxWidget
 
-        return CheckboxWidget(data, **kwargs)
+        return BoolCheckboxWidget(data, **kwargs)
 
     def get_wire_type(self):
         return bool
@@ -209,6 +224,7 @@ class IntegerStore(BaseTypeStore):
 
 
 class FloatStore(BaseTypeStore):
+    key = "float"
     sql_type = sa.types.Float
 
     def _get_default_widget(self, data, **kwargs):
@@ -224,9 +240,6 @@ class DateStore(BaseTypeStore):
     key = "date"
     sql_type = sa.types.Date
 
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("date"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DateWidget
 
@@ -240,9 +253,6 @@ class DateTimeStore(BaseTypeStore):
     key = "datetime"
     sql_type = sa.types.DateTime
 
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("datetime"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TimeWidget
 
@@ -255,9 +265,6 @@ class DateTimeStore(BaseTypeStore):
 class UUIDStore(BaseTypeStore):
     key = "uuid"
     sql_type = sa.types.Uuid
-
-    class ConfigSchema(BaseStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("uuid"), load_default="uuid")
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TextWidget

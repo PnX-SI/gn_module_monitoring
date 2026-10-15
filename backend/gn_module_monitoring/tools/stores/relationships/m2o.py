@@ -131,7 +131,6 @@ class UserStore(BaseForeignKeyStore):
         return User
 
     class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("user"))
         multiple = fields.Bool(load_default=False)
 
     def _get_default_widget(self, data, **kwargs):
@@ -155,9 +154,6 @@ class ObserverListStore(BaseForeignKeyStore):
 
         return UserList
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("observer_list"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatalistWidget
 
@@ -178,9 +174,6 @@ class TaxonomyStore(BaseForeignKeyStore):
 
         return Taxref
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("taxonomy"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TaxonomyWidget
 
@@ -199,9 +192,6 @@ class TaxonomyListStore(BaseForeignKeyStore):
         from apptax.taxonomie.models import BibListes
 
         return BibListes
-
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("taxonomy_list"))
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatalistWidget
@@ -231,9 +221,6 @@ class DatasetStore(BaseForeignKeyStore):
 
         return TDatasets
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("dataset"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatasetWidget
 
@@ -253,9 +240,6 @@ class HabitatStore(BaseForeignKeyStore):
 
         return Habref
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("habitat"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import HabitatWidget
 
@@ -274,9 +258,6 @@ class SitesGroupStore(BaseForeignKeyStore):
         from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
 
         return TMonitoringSitesGroups
-
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("sites_group"))
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatalistWidget
@@ -306,9 +287,6 @@ class SiteStore(BaseForeignKeyStore):
 
         return TMonitoringSites
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("site"))
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatalistWidget
 
@@ -336,9 +314,6 @@ class ModuleStore(BaseForeignKeyStore):
         from gn_module_monitoring.monitoring.models import TMonitoringModules
 
         return TMonitoringModules
-
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("module"))
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ModuleWidget
@@ -368,7 +343,6 @@ class NomenclatureStore(BaseForeignKeyStore):
         return list(db.session.execute(sa.select(BibNomenclaturesTypes.mnemonique)).scalars())
 
     class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        type = fields.Str(validate=validate.Equal("nomenclature"))
         nomenclature_type = fields.Str(required=True)
         cd_nomenclatures = fields.List(fields.Str())
 
@@ -412,7 +386,9 @@ class NomenclatureStore(BaseForeignKeyStore):
             if not ctx["protocol_installed"]:
                 return
             type_mnemonique = data["nomenclature_type"]
-            cd_nomenclatures = data.get("cd_nomenclatures")
+            if "cd_nomenclatures" not in data:
+                return
+            cd_nomenclatures = data["cd_nomenclatures"]
             found = set(
                 db.session.execute(
                     select(TNomenclatures.cd_nomenclature)
