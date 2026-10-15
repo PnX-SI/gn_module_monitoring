@@ -2,6 +2,7 @@ from typing import Literal, Never, Any
 
 import sqlalchemy as sa
 import marshmallow as ma
+from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 from marshmallow import fields, validate
 
 from ..utils import ValueLabelField, schema_context
@@ -17,20 +18,33 @@ class BaseStore:
         return cls.ConfigSchema
 
     @classmethod
-    def get_store_from_column_attr(cls, column_attr):
-        if len(column_attr.columns) == 1:
-            column = column_attr.columns[0]
-            if column.foreign_keys:
-                from gn_module_monitoring.tools.stores.relationships import BaseRelationshipStore
+    def get_store_from_attr(cls, attr):
+        """
+        Retourne la classe de store adaptée à un attribut de mapper (`mapper.attrs[field_name]`) :
+        - RelationshipProperty -> store M2M adapté
+        - ColumnProperty avec FK -> store FK adapté
+        - ColumnProperty sans FK -> store de type adapté
+        """
+        if isinstance(attr, RelationshipProperty):
+            from gn_module_monitoring.tools.stores.relationships.m2m import BaseManyToManyStore
 
-                for subcls in BaseRelationshipStore.__subclasses__():
+            for subcls in BaseManyToManyStore.__subclasses__():
+                if subcls.is_suitable_for_relationship(attr):
+                    return subcls
+            raise ValueError(f"Unable to find proper store for relationship '{attr.key}'")
+        elif isinstance(attr, ColumnProperty) and len(attr.columns) == 1:
+            column = attr.columns[0]
+            if column.foreign_keys:
+                from gn_module_monitoring.tools.stores.relationships.m2o import BaseForeignKeyStore
+
+                for subcls in BaseForeignKeyStore.__subclasses__():
                     if subcls.is_suitable_for_column(column):
                         return subcls
             else:
                 for subcls in BaseTypeStore.__subclasses__():
                     if subcls.is_suitable_for_column(column):
                         return subcls
-        raise ValueError(f"Unable to find proper store for column '{column_attr}'")
+        raise ValueError(f"Unable to find proper store for column '{attr.key}'")
 
     def __init__(self, data=None, **kwargs):
         from gn_module_monitoring.services import SERVICE_MAP
@@ -42,11 +56,12 @@ class BaseStore:
             kwargs["unknown"] = ma.EXCLUDE
         else:
             self.extra_data = None
-        self.config = self.get_config_schema_class()().load(data, **kwargs)
         ctx = schema_context.get()
         self.entity = SERVICE_MAP[ctx["entity"]]
         self.field_name = ctx["field_name"]
-        self.native_column = self.entity.get_columns().get(self.field_name)
+        self.native_attr = self.entity.get_attrs().get(self.field_name)
+        with schema_context(store=self):
+            self.config = self.get_config_schema_class()().load(data, **kwargs)
 
     def dump_config(self):
         return self.get_config_schema_class()().dump(self.config)
@@ -156,7 +171,7 @@ class StringStore(BaseTypeStore):
     sql_type = sa.types.String
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import TextWidget
+        from gn_module_monitoring.tools.widgets import TextWidget
 
         return TextWidget(data, **kwargs)
 
@@ -172,7 +187,7 @@ class BooleanStore(BaseTypeStore):
         type = fields.Str(validate=validate.Equal("bool"), load_default="bool")
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import CheckboxWidget
+        from gn_module_monitoring.tools.widgets import CheckboxWidget
 
         return CheckboxWidget(data, **kwargs)
 
@@ -185,7 +200,7 @@ class IntegerStore(BaseTypeStore):
     sql_type = sa.types.Integer
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import NumberWidget
+        from gn_module_monitoring.tools.widgets import NumberWidget
 
         return NumberWidget({"step": 1}, **kwargs)
 
@@ -197,7 +212,7 @@ class FloatStore(BaseTypeStore):
     sql_type = sa.types.Float
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import NumberWidget
+        from gn_module_monitoring.tools.widgets import NumberWidget
 
         return NumberWidget(data, **kwargs)
 
@@ -205,13 +220,33 @@ class FloatStore(BaseTypeStore):
         return float
 
 
-class DatetimeStore(BaseTypeStore):
-    sql_type = sa.types.DateTime
+class DateStore(BaseTypeStore):
+    key = "date"
+    sql_type = sa.types.Date
+
+    class ConfigSchema(BaseStore.ConfigSchema):
+        type = fields.Str(validate=validate.Equal("date"))
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import DateWidget
+        from gn_module_monitoring.tools.widgets import DateWidget
 
         return DateWidget(data, **kwargs)
+
+    def get_wire_type(self):
+        return str
+
+
+class DateTimeStore(BaseTypeStore):
+    key = "datetime"
+    sql_type = sa.types.DateTime
+
+    class ConfigSchema(BaseStore.ConfigSchema):
+        type = fields.Str(validate=validate.Equal("datetime"))
+
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import TimeWidget
+
+        return TimeWidget(data, **kwargs)
 
     def get_wire_type(self):
         return str
@@ -225,7 +260,7 @@ class UUIDStore(BaseTypeStore):
         type = fields.Str(validate=validate.Equal("uuid"), load_default="uuid")
 
     def _get_default_widget(self, data, **kwargs):
-        from ..widgets import TextWidget
+        from gn_module_monitoring.tools.widgets import TextWidget
 
         return TextWidget(data, **kwargs)
 

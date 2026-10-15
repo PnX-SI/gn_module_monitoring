@@ -9,6 +9,7 @@ from flask import current_app
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.tools.widgets import (
     DatasetWidget,
+    ModuleWidget,
     TextWidget,
     TextareaWidget,
     CheckboxWidget,
@@ -27,10 +28,10 @@ from gn_module_monitoring.tools.widgets import (
     ObserversWidget,
     ObserversTextWidget,
     AreasWidget,
+    MunicipalitiesWidget,
 )
 from gn_module_monitoring.tools.stores import (
     BaseStore,
-    StringStore,
     BooleanStore,
     UserStore,
     ObserverListStore,
@@ -40,9 +41,16 @@ from gn_module_monitoring.tools.stores import (
     DatasetStore,
     HabitatStore,
     TypesSiteStore,
+    SitesGroupStore,
+    SiteStore,
     ModuleStore,
     UUIDStore,
+    DateStore,
+    DateTimeStore,
     AreasStore,
+    DatasetsStore,
+    ModulesStore,
+    UsersStore,
 )
 from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
@@ -67,10 +75,12 @@ class WidgetConfigSchema(ma.Schema):
         ObserversWidget.key: ObserversWidget,
         ObserversTextWidget.key: ObserversTextWidget,
         DatasetWidget.key: DatasetWidget,
+        ModuleWidget.key: ModuleWidget,
         HabitatWidget.key: HabitatWidget,
         MediaWidget.key: MediaWidget,
         ObserversTextWidget.key: ObserversTextWidget,
         AreasWidget.key: AreasWidget,
+        MunicipalitiesWidget.key: MunicipalitiesWidget,
     }
 
     type = fields.Str(required=True)
@@ -99,10 +109,16 @@ class StoreConfigSchema(ma.Schema):
         DatasetStore.key: DatasetStore,
         HabitatStore.key: HabitatStore,
         TypesSiteStore.key: TypesSiteStore,
+        SitesGroupStore.key: SitesGroupStore,
+        SiteStore.key: SiteStore,
         ModuleStore.key: ModuleStore,
         UUIDStore.key: UUIDStore,
+        DateStore.key: DateStore,
+        DateTimeStore.key: DateTimeStore,
         AreasStore.key: AreasStore,
-        "area": (AreasStore, {"many": False}),
+        DatasetsStore.key: DatasetsStore,
+        ModulesStore.key: ModulesStore,
+        UsersStore.key: UsersStore,
     }
 
     type = fields.Str(required=True)
@@ -170,6 +186,10 @@ class EntityFieldConfigSchema(ma.Schema):
             store_type = data.pop("type_util")
             data["store"] = deepcopy(orig_data)
             data["store"]["type"] = store_type
+            if store_type == "dataset" and data["store"].pop("multi_select", False):
+                data["store"]["type"] = "datasets"
+            if store_type == "module" and data["store"].pop("multiple", False):
+                data["store"]["type"] = "modules"
         return data
 
     @post_load
@@ -198,10 +218,11 @@ class EntityFieldConfigSchema(ma.Schema):
             ctx = schema_context.get()
             entity = SERVICE_MAP[ctx["entity"]]
             field_name = ctx["field_name"]
-            column = entity.get_columns().get(field_name)
-            if column:
+            attr = entity.get_attrs().get(field_name)
+            if attr is not None:
                 try:
-                    data["store"] = BaseStore.get_store_from_column_attr(column)(data.get("store"))
+                    store_class = BaseStore.get_store_from_attr(attr)
+                    data["store"] = store_class(data.get("store"))
                 except ValueError as e:
                     raise ValidationError(
                         {"store": f"{e}. Définissez explicitement un store et son type."}

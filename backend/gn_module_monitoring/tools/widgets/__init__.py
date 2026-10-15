@@ -11,14 +11,16 @@ from .core import (
     MultiselectWidget,
     DatalistWidget,
     ObserversTextWidget,
+    MediaWidget,
 )
 from .relationships import (
     NomenclatureWidget,
     DatasetWidget,
+    ModuleWidget,
     TaxonomyWidget,
     HabitatWidget,
-    MediaWidget,
     UserWidget,
     ObserversWidget,
     AreasWidget,
+    MunicipalitiesWidget,
 )
