@@ -116,6 +116,24 @@ class TestVisits:
 
         assert r.status_code == 404
 
+    def test_get_visits_filters_dataset(self, visits_routes, users, datasets):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        test_data = (
+            ("orphan_dataset", "id_dataset", len(visits_routes)),
+            ("orphan_dataset", "dataset_name", len(visits_routes)),
+            ("own_dataset", "id_dataset", 0),
+            ("own_dataset", "dataset_name", 0),
+        )
+        for key, value, expected in test_data:
+            r = self.client.get(
+                url_for(
+                    "monitorings.api.get_visits",
+                    module_code="test",
+                    id_dataset=getattr(datasets[key], value),
+                )
+            )
+            assert len(r.json["items"]) == expected
+
     def test_post_visit(self, visits_routes, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         site = list(sites.values())[0]

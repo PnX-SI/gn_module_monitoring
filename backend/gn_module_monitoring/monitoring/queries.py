@@ -336,9 +336,8 @@ class VisitQuery(GnMonitoringGenericFilter):
                 query = query.join(join_dataset, cls.dataset)
                 query = query.filter(join_dataset.dataset_name.ilike(f"%{value}%"))
             else:
-                if not isinstance(value, list):
-                    value = [value]
                 query = query.filter(cls.id_dataset == value)
+
         query = super().filter_by_params(query, params)
 
         return query
