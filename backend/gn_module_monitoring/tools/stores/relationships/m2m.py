@@ -8,6 +8,7 @@ from sqlalchemy.orm import RelationshipProperty
 from gn_module_monitoring import MODULE_CODE
 
 from .core import BaseRelationshipStore
+from .m2o import NomenclatureStore
 
 log = logging.getLogger(__name__)
 
@@ -106,6 +107,24 @@ class DatasetsStore(BaseManyToManyStore):
         from gn_module_monitoring.tools.widgets import DatasetWidget
 
         return DatasetWidget({**(data or {}), "multi_select": True}, **kwargs)
+
+
+class NomenclaturesStore(BaseManyToManyStore):
+    key = "nomenclatures"
+
+    @classmethod
+    def get_model(cls):
+        from pypnnomenclature.models import TNomenclatures
+
+        return TNomenclatures
+
+    class ConfigSchema(NomenclatureStore.ConfigSchema):
+        pass
+
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import NomenclatureWidget
+
+        return NomenclatureWidget({**(data or {}), "multi_select": True}, **kwargs)
 
 
 class ModulesStore(BaseManyToManyStore):

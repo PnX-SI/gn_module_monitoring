@@ -258,16 +258,7 @@ class DatalistWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         multiple = fields.Bool(load_default=False)
-        values = fields.List(
-            fields.Nested(
-                ma.Schema.from_dict(
-                    {
-                        "value": fields.String(required=True),
-                        "label": fields.String(required=True),
-                    }
-                )
-            )
-        )
+        values = fields.List(ValueLabelField())
         api = fields.String()
         keyValue = fields.String()
         keyLabel = fields.String()
