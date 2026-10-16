@@ -40,7 +40,6 @@ class SiteConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "last_visit", "dir": "desc"}],
         "fields": {
-            "id_base_site": {"type_widget": "number", "attribut_label": "Id site", "hidden": True},
             "base_site_code": {"type_widget": "text", "attribut_label": "Code", "required": True},
             "base_site_name": {"type_widget": "text", "attribut_label": "Nom", "required": True},
             "base_site_description": {"type_widget": "textarea", "attribut_label": "Description"},
@@ -90,14 +89,18 @@ class SiteConfigSchema(BaseEntityConfigSchema):
                 "schema_dot_table": "gn_monitoring.t_base_sites",
             },
             "altitude_min": {
-                "type_widget": "number",
-                "attribut_label": "Altitude (min)",
-                "hidden": True,
+                "store": {"type": "integer"},
+                "widget": {
+                    "attribut_label": "Altitude (min)",
+                    "hidden": True,
+                },
             },
             "altitude_max": {
-                "type_widget": "number",
-                "attribut_label": "Altitude (max)",
-                "hidden": True,
+                "store": {"type": "integer"},
+                "widget": {
+                    "attribut_label": "Altitude (max)",
+                    "hidden": True,
+                },
             },
             "types_site": {
                 "type_widget": "datalist",
