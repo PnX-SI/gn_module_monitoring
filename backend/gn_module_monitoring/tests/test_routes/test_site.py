@@ -25,7 +25,8 @@ from gn_module_monitoring.monitoring.models import (
 
 @pytest.mark.usefixtures("client_class")
 class TestSite:
-    def test_get_type_site_by_id(self, types_site):
+    def test_get_type_site_by_id(self, types_site, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         for type_site in types_site.values():
             r = self.client.get(
                 url_for(
@@ -35,7 +36,8 @@ class TestSite:
             )
             assert r.json["id_nomenclature_type_site"] == type_site.id_nomenclature_type_site
 
-    def test_get_types_site(self, types_site):
+    def test_get_types_site(self, types_site, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         schema = BibTypeSiteSchema()
 
         r = self.client.get(url_for("monitorings.get_types_site"))
@@ -47,7 +49,7 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
         schema = MonitoringSitesSchemaCruved(exclude=("medias", "parents"))
 
-        r = self.client.get(url_for("monitorings.get_sites"))
+        r = self.client.get(url_for("monitorings.api.get_sites"))
         assert r.status_code == 200
         assert r.json["count"] >= len(sites)
 
@@ -55,18 +57,26 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         ids_sites = [s.id_base_site for k, s in sites.items()]
-        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="desc"))
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", sort="id_base_site", sort_dir="desc")
+        )
         assert r.json["count"] >= len(sites)
         assert r.json["items"][0]["id_base_site"] == max(ids_sites)
-        r = self.client.get(url_for("monitorings.get_sites", sort="id_base_site", sort_dir="asc"))
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", sort="id_base_site", sort_dir="asc")
+        )
         assert r.json["items"][0]["id_base_site"] == min(ids_sites)
 
-        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="desc"))
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", sort="id_inventor", sort_dir="desc")
+        )
 
         assert r.json["count"] >= len(sites)
         assert r.json["items"][0]["id_inventor"] == users["user"].id_role
 
-        r = self.client.get(url_for("monitorings.get_sites", sort="id_inventor", sort_dir="asc"))
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", sort="id_inventor", sort_dir="asc")
+        )
 
         assert r.json["count"] >= len(sites)
         assert r.json["items"][0]["id_inventor"] == users["admin_user"].id_role
@@ -76,33 +86,33 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.get(
-            url_for("monitorings.get_sites", sort="unknown_field", sort_dir="desc")
+            url_for("monitorings.api.get_sites", sort="unknown_field", sort_dir="desc")
         )
         assert r.json["count"] >= len(sites)
 
         r = self.client.get(
-            url_for("monitorings.get_sites", sort="id_base_site", sort_dir="unknown_sort")
+            url_for("monitorings.api.get_sites", sort="id_base_site", sort_dir="unknown_sort")
         )
         assert r.json["count"] >= len(sites)
 
     def test_get_sites_filters(self, sites, visits, users):
         set_logged_user_cookie(self.client, users["admin_user"])
 
-        r = self.client.get(url_for("monitorings.get_sites", last_visit="2025"))
+        r = self.client.get(url_for("monitorings.api.get_sites", last_visit="2025"))
         assert r.json["count"] >= len(sites)
 
-        r = self.client.get(url_for("monitorings.get_sites", last_visit="2026"))
+        r = self.client.get(url_for("monitorings.api.get_sites", last_visit="2026"))
         assert r.json["count"] == 0
 
         # Test filters with inventor name
-        resp = self.client.get(url_for("monitorings.get_sites", id_inventor="Bob"))
+        resp = self.client.get(url_for("monitorings.api.get_sites", id_inventor="Bob"))
         nb_results = resp.json["count"]
         assert nb_results >= 3
 
         # Test filters  with inventor name with order by
         resp = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 id_inventor="Bob",
                 sort="id_inventor",
                 sort_dir="desc",
@@ -113,7 +123,7 @@ class TestSite:
         # Test get all sites with order by
         resp = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 sort="id_base_site",
                 sort_dir="desc",
             )
@@ -125,23 +135,23 @@ class TestSite:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 types_site=types_site["Test_Grotte"].id_nomenclature_type_site,
             )
         )
         assert r.json["count"] == 2
 
-        r = self.client.get(url_for("monitorings.get_sites", types_site="Test_Grotte"))
+        r = self.client.get(url_for("monitorings.api.get_sites", types_site="Test_Grotte"))
         assert r.json["count"] == 2
 
-        r = self.client.get(url_for("monitorings.get_sites", types_site_label="Test_Grotte"))
+        r = self.client.get(url_for("monitorings.api.get_sites", types_site_label="Test_Grotte"))
         assert r.json["count"] == 2
 
     def test_get_sites_limit(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         limit = 2
 
-        r = self.client.get(url_for("monitorings.get_sites", limit=limit))
+        r = self.client.get(url_for("monitorings.api.get_sites", limit=limit))
 
         assert len(r.json["items"]) == limit
 
@@ -150,7 +160,7 @@ class TestSite:
         site = list(sites.values())[0]
         base_site_name = site.base_site_name
 
-        r = self.client.get(url_for("monitorings.get_sites", base_site_name=base_site_name))
+        r = self.client.get(url_for("monitorings.api.get_sites", base_site_name=base_site_name))
 
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["base_site_name"] == base_site_name
@@ -160,7 +170,7 @@ class TestSite:
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
 
-        r = self.client.get(url_for("monitorings.get_sites", id_base_site=id_base_site))
+        r = self.client.get(url_for("monitorings.api.get_sites", id_base_site=id_base_site))
 
         assert len(r.json["items"]) == 1
         assert r.json["items"][0]["id_base_site"] == id_base_site
@@ -172,7 +182,7 @@ class TestSite:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_site_by_id",
+                "monitorings.api.get_site_by_id",
                 module_code="generic",
                 id=id_base_site,
                 object_type="site",
@@ -183,7 +193,7 @@ class TestSite:
 
     def test_get_all_site_geometries(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_all_site_geometries"))
+        r = self.client.get(url_for("monitorings.api.get_all_site_geometries"))
 
         json_resp = r.json
         features = json_resp.get("features")
@@ -205,7 +215,7 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 id_sites_group=site_group_without_sites.id_sites_group,
             )
         )
@@ -219,7 +229,7 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 id_sites_group=site_group_with_sites.id_sites_group,
             )
         )
@@ -238,7 +248,7 @@ class TestSite:
         # Test with user's id
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 id_inventor=users["user"].id_role,
             )
         )
@@ -251,7 +261,7 @@ class TestSite:
         # Utilisation de l'utilisateur admin car plus discrimant lors d'une recherche ilike
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 id_inventor=users["admin_user"].nom_role,
             )
         )
@@ -269,7 +279,7 @@ class TestSite:
         )
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 types_site=id_nomenclature_type_site,
                 cd_nom_test="Sonneur",
                 observers3=users["user"].nom_complet,
@@ -282,7 +292,7 @@ class TestSite:
         assert len(features) == 1
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 types_site=id_nomenclature_type_site,
                 cd_nom_test="Sonneur",
                 observers3=users["user"].nom_complet,
@@ -305,7 +315,9 @@ class TestSite:
             sites_with_data_typeutils[types_site[0]].types_site[0].id_nomenclature_type_site
         )
         r = self.client.get(
-            url_for("monitorings.get_all_site_geometries", types_site=id_nomenclature_type_site)
+            url_for(
+                "monitorings.api.get_all_site_geometries", types_site=id_nomenclature_type_site
+            )
         )
         json_resp = r.json
         features = json_resp.get("features")
@@ -314,7 +326,7 @@ class TestSite:
         nom_type_site = list(sites_with_data_typeutils.keys())[0]
         r = self.client.get(
             url_for(
-                "monitorings.get_all_site_geometries",
+                "monitorings.api.get_all_site_geometries",
                 types_site=nom_type_site,
             )
         )
@@ -330,7 +342,7 @@ class TestSite:
     #     id_base_site = site.id_base_site
 
     #     r = self.client.get(
-    #         url_for("monitorings.get_module_by_id_base_site", id_base_site=id_base_site)
+    #         url_for("monitorings.api.get_module_by_id_base_site", id_base_site=id_base_site)
     #     )
     #     expected_modules = {monitoring_module.id_module}
     #     current_modules = {module["id_module"] for module in r.json}
@@ -345,7 +357,7 @@ class TestSite:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_module_by_id_base_site",
+                "monitorings.api.get_module_by_id_base_site",
                 module_code="generic",
                 id_base_site=id_base_site,
             )
@@ -361,7 +373,7 @@ class TestSite:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_module_by_id_base_site",
+                "monitorings.api.get_module_by_id_base_site",
                 module_code="generic",
                 id_base_site=id_base_site,
             )
@@ -378,7 +390,7 @@ class TestSite:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_module_by_id_base_site",
+                "monitorings.api.get_module_by_id_base_site",
                 module_code="generic",
                 id_base_site=site.id_base_site,
             )
@@ -402,7 +414,7 @@ class TestSite:
 
             r = self.client.get(
                 url_for(
-                    "monitorings.get_module_by_id_base_site",
+                    "monitorings.api.get_module_by_id_base_site",
                     module_code="generic",
                     id_base_site=site.id_base_site,
                 )
@@ -422,7 +434,7 @@ class TestSite:
     def test_get_module_sites(self, monitoring_module, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         module_code = "TEST"
-        r = self.client.get(url_for("monitorings.get_module_sites", module_code=module_code))
+        r = self.client.get(url_for("monitorings.api.get_module_sites", module_code=module_code))
         assert r.json["module_code"] == module_code
 
     def test_get_types_site_by_label(self, types_site, users):
@@ -456,7 +468,8 @@ class TestSite:
     ):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.post(
-            url_for("monitorings.post_sites", module_code="generic"), data=site_to_post_with_types
+            url_for("monitorings.api.post_sites", module_code="generic"),
+            data=site_to_post_with_types,
         )
         assert response.status_code == 201
 
@@ -474,7 +487,7 @@ class TestSite:
             "base_site_name": "Test_Grotte_updated",
         }
         response = self.client.patch(
-            url_for("monitorings.patch_site", module_code="generic", _id=_id_site),
+            url_for("monitorings.api.patch_site", module_code="generic", _id=_id_site),
             data=update_data,
         )
         assert response.status_code == 201
@@ -486,7 +499,7 @@ class TestSite:
         set_logged_user_cookie(self.client, users["admin_user"])
         site = list(sites.values())[0]
         id_base_site = site.id_base_site
-        r = self.client.delete(url_for("monitorings.delete_site", _id=id_base_site))
+        r = self.client.delete(url_for("monitorings.api.delete_site", _id=id_base_site))
 
         assert r.json["success"] == "Item is successfully deleted"
         with pytest.raises(Exception) as e:
@@ -527,14 +540,14 @@ class TestSite:
     @pytest.mark.parametrize(
         "route,method",
         [
-            ("monitorings.get_site_by_id", "get"),
-            ("monitorings.patch_site", "patch"),
-            ("monitorings.delete_site", "delete"),
+            ("monitorings.api.get_site_by_id", "get"),
+            ("monitorings.api.patch_site", "patch"),
+            ("monitorings.api.delete_site", "delete"),
         ],
     )
     def test_site_not_found(self, route, method, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+        id_param = "id" if route == "monitorings.api.get_site_by_id" else "_id"
         r = getattr(self.client, method)(
             url_for(route, module_code="generic", **{id_param: -1}),
             json={},
@@ -544,9 +557,9 @@ class TestSite:
     @pytest.mark.parametrize(
         "route,method",
         [
-            ("monitorings.get_site_by_id", "get"),
-            ("monitorings.patch_site", "patch"),
-            ("monitorings.delete_site", "delete"),
+            ("monitorings.api.get_site_by_id", "get"),
+            ("monitorings.api.patch_site", "patch"),
+            ("monitorings.api.delete_site", "delete"),
         ],
     )
     @pytest.mark.parametrize("username", ["noright_user", "self_user", "stranger_user"])
@@ -555,7 +568,7 @@ class TestSite:
         # ni `stranger_user` (portée 2, autre organisme) n'y ont accès
         set_logged_user_cookie(self.client, users[username])
         site = sites["Test_Grotte"]
-        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+        id_param = "id" if route == "monitorings.api.get_site_by_id" else "_id"
 
         r = getattr(self.client, method)(
             url_for(route, module_code="generic", **{id_param: site.id_base_site}),
@@ -568,16 +581,16 @@ class TestSite:
     @pytest.mark.parametrize(
         "route,method",
         [
-            ("monitorings.get_site_by_id", "get"),
-            ("monitorings.patch_site", "patch"),
-            ("monitorings.delete_site", "delete"),
+            ("monitorings.api.get_site_by_id", "get"),
+            ("monitorings.api.patch_site", "patch"),
+            ("monitorings.api.delete_site", "delete"),
         ],
     )
     def test_site_allowed_for_digitiser(self, route, method, sites, users):
         # `user` est le numérisateur des sites de la fixture
         set_logged_user_cookie(self.client, users["user"])
         site = sites["Test_Grotte"]
-        id_param = "id" if route == "monitorings.get_site_by_id" else "_id"
+        id_param = "id" if route == "monitorings.api.get_site_by_id" else "_id"
 
         r = getattr(self.client, method)(
             url_for(route, module_code="generic", **{id_param: site.id_base_site}),
@@ -587,7 +600,7 @@ class TestSite:
         assert r.status_code in (200, 201)
 
     def test_get_sites_unauthenticated(self, sites):
-        r = self.client.get(url_for("monitorings.get_sites"))
+        r = self.client.get(url_for("monitorings.api.get_sites"))
         assert r.status_code == 401
 
 
@@ -645,7 +658,7 @@ class TestSiteWithModule:
             )
         add_site(types_site=[], base_site_name="no-type")
 
-        response = self.client.get(url_for("monitorings.get_sites", module_code="test"))
+        response = self.client.get(url_for("monitorings.api.get_sites", module_code="test"))
 
         assert response.status_code == 200
         assert (
@@ -673,7 +686,9 @@ class TestSiteWithModule:
         site = add_site(types_site=[list(types_site.values())[0]])
         site_no_type = add_site(types_site=[], base_site_name="no-type")
 
-        r = self.client.get(url_for("monitorings.get_module_site_geometries", module_code="test"))
+        r = self.client.get(
+            url_for("monitorings.api.get_module_site_geometries", module_code="test")
+        )
 
         assert r.status_code == 200
         assert r.json["type"] == "FeatureCollection"
@@ -692,7 +707,7 @@ class TestSiteWithModule:
             },
         )
 
-        response = self.client.get(url_for("monitorings.get_sites", module_code="test"))
+        response = self.client.get(url_for("monitorings.api.get_sites", module_code="test"))
         assert response.status_code == 200
         site_repr = next(
             s for s in response.json["items"] if s["id_base_site"] == site.id_base_site
@@ -715,7 +730,7 @@ class TestSiteWithModule:
         )  # Non lié au module, ne devrait pas être retourné
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -736,7 +751,7 @@ class TestSiteWithModule:
         )  # Non lié au module, ne devrait pas être retourné
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -758,7 +773,7 @@ class TestSiteWithModule:
         )  # Non lié au module, ne devrait pas être retourné
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -779,7 +794,7 @@ class TestSiteWithModule:
         add_site()  # empty "meteo" => no match
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -803,7 +818,7 @@ class TestSiteWithModule:
         add_site()  # empty "meteo_multiple" => no match
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -825,7 +840,7 @@ class TestSiteWithModule:
         add_site()  # empty "meteo" => no match
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -843,7 +858,7 @@ class TestSiteWithModule:
         add_site()  # empty "cd_nom_taxonomy" => no match
         filter_params = {"cd_nom_taxonomy": "ill"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -864,7 +879,7 @@ class TestSiteWithModule:
         add_site()  # empty "cd_nom_taxonomy" => no match
         filter_params = {"determiner": "Bob"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         assert response.status_code == 200
         sites_response = response.json["items"]
@@ -872,7 +887,7 @@ class TestSiteWithModule:
 
         filter_params = {"determiner": "Bobnotfound"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         sites_response = response.json["items"]
         assert len(sites_response) == 0
@@ -886,7 +901,7 @@ class TestSiteWithModule:
         add_site()  # empty "cd_hab" => no match
         filter_params = {"cd_hab": "Dép"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         assert response.status_code == 200
         sites_response = response.json["items"]
@@ -894,7 +909,7 @@ class TestSiteWithModule:
 
         filter_params = {"cd_hab": "notfound"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         sites_response = response.json["items"]
         assert len(sites_response) == 0
@@ -950,7 +965,7 @@ class TestSiteWithModule:
             add_site(data={filter_name: site_data})
         filter_params = {filter_name: filter_value}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         assert response.status_code == 200
         sites_response = response.json["items"]
@@ -958,7 +973,7 @@ class TestSiteWithModule:
 
         filter_params = {filter_name: "notfound"}
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
         sites_response = response.json["items"]
         assert len(sites_response) == expected_not_found
@@ -982,7 +997,7 @@ class TestSiteWithModule:
             self.add_visit(site4, dataset)
 
         response = self.client.get(
-            url_for("monitorings.get_sites", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -1015,7 +1030,7 @@ class TestSiteWithModule:
 
         response = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 module_code="test",
                 sort="base_site_name",
                 sort_dir=dir,
@@ -1053,7 +1068,7 @@ class TestSiteWithModule:
 
         response = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 module_code="test",
                 sort="contact_name",
                 sort_dir=dir,
@@ -1089,7 +1104,7 @@ class TestSiteWithModule:
 
         response = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 module_code="test",
                 sort="contact_name",
                 sort_dir=dir,
@@ -1130,7 +1145,7 @@ class TestSiteWithModule:
 
         response = self.client.get(
             url_for(
-                "monitorings.get_sites",
+                "monitorings.api.get_sites",
                 module_code="test",
                 sort="meteo",
                 sort_dir=dir,

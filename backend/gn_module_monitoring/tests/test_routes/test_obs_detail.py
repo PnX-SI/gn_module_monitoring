@@ -94,7 +94,7 @@ class TestObservationDetails:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_details",
+                "monitorings.api.get_obs_details",
                 module_code="test",
             )
         )
@@ -110,7 +110,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_details",
+                "monitorings.api.get_obs_details",
                 module_code="test",
                 id_observation=observation.id_observation,
             ),
@@ -134,7 +134,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=obs_detail_instance.id_observation_detail,
             )
@@ -150,7 +150,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=999999999,
             )
@@ -170,7 +170,7 @@ class TestObservationDetails:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_obs_detail",
+                "monitorings.api.post_obs_detail",
                 module_code="test",
             ),
             json=data,
@@ -192,7 +192,7 @@ class TestObservationDetails:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_obs_detail",
+                "monitorings.api.patch_obs_detail",
                 object_type="observation_detail",
                 module_code="test",
                 _id=obs_detail_instance.id_observation_detail,
@@ -210,7 +210,7 @@ class TestObservationDetails:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_obs_detail",
+                "monitorings.api.patch_obs_detail",
                 object_type="observation_detail",
                 module_code=module_code,
                 _id=999999999,
@@ -226,7 +226,7 @@ class TestObservationDetails:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_obs_detail",
+                "monitorings.api.delete_obs_detail",
                 object_type="observation_detail",
                 module_code="test",
                 _id=obs_detail_instance.id_observation_detail,
@@ -238,7 +238,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=obs_detail_instance.id_observation_detail,
                 object_type="observation_detail",
@@ -250,7 +250,7 @@ class TestObservationDetails:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_obs_detail", _id=999999999, module_code="test")
+            url_for("monitorings.api.delete_obs_detail", _id=999999999, module_code="test")
         )
 
         assert r.status_code == 404
