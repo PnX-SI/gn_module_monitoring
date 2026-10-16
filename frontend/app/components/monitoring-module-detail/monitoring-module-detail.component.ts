@@ -142,17 +142,20 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);
 
-      if (data.route == ObjectType.site) {
-        this.currentPermission.site.R > 0
-          ? this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters'])
-          : null;
-      } else {
-        this.currentPermission.sites_group.R > 0
-          ? this._geojsonService.getSitesGroupsGeometries(
-              this.onEachFeatureSiteGroups(),
-              this.dataTableConfig[this.activetabIndex]['defaultFilters']
-            )
-          : null;
+      // Pas de récupération des géométries si le module n'est pas configuré
+      if (this.isConfigured) {
+        if (data.route == ObjectType.site) {
+          this.currentPermission.site.R > 0
+            ? this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters'])
+            : null;
+        } else {
+          this.currentPermission.sites_group.R > 0
+            ? this._geojsonService.getSitesGroupsGeometries(
+                this.onEachFeatureSiteGroups(),
+                this.dataTableConfig[this.activetabIndex]['defaultFilters']
+              )
+            : null;
+        }
       }
 
       if (this.moduleCode != 'generic') {
