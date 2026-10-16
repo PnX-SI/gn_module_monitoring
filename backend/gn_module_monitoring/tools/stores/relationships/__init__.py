@@ -16,4 +16,5 @@ from .m2m import (
     DatasetsStore,
     ModulesStore,
     UsersStore,
+    NomenclaturesStore,
 )

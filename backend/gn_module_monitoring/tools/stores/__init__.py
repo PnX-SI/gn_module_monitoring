@@ -27,4 +27,5 @@ from .relationships import (
     DatasetsStore,
     ModulesStore,
     UsersStore,
+    NomenclaturesStore,
 )

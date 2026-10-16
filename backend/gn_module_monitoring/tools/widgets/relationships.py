@@ -6,12 +6,21 @@ from .core import BaseWidget
 class NomenclatureWidget(BaseWidget):
     key = "nomenclature"
 
-    def _get_default_store(self, data, **kwargs):
-        from ..stores import NomenclatureStore
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        multi_select = fields.Boolean(load_default=False)
 
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import NomenclatureStore, NomenclaturesStore
+
+        # multi_select est une option du widget, pas du store
+        data = {k: v for k, v in data.items() if k != "multi_select"}
+        if self.config["multi_select"]:
+            return NomenclaturesStore(data, **kwargs)
         return NomenclatureStore(data, **kwargs)
 
     def get_wire_type(self):
+        if self.config["multi_select"]:
+            return list[int]
         return int
 
 

@@ -53,6 +53,7 @@ from gn_module_monitoring.tools.stores import (
     DatasetsStore,
     ModulesStore,
     UsersStore,
+    NomenclaturesStore,
 )
 from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
@@ -123,6 +124,7 @@ class StoreConfigSchema(ma.Schema):
         DatasetsStore.key: DatasetsStore,
         ModulesStore.key: ModulesStore,
         UsersStore.key: UsersStore,
+        NomenclaturesStore.key: NomenclaturesStore,
     }
 
     type = fields.Str(required=True)
