@@ -1,20 +1,17 @@
 # Documentation technique
 
-## SQL
-
-## Backend
-
 ## Frontend
 
-Une github action vérifiant le lint du frontend est réalisée .
-En mode développement il est nécessaire d'effectuer avant chaque PR les commandes suivantes :
+Une GitHub Action vérifie le formatage du code frontend. En développement, il est donc nécessaire de lancer les commandes suivantes avant chaque PR :
 
 ```sh
-cd frontend # se placer dans le dossier frontend
-nvm use # sourcer la bonne version de node
-npm run format:check # vérifier l'état des fichiers frontend 
+cd frontend           # se placer dans le dossier frontend
+nvm use               # utiliser la bonne version de node
+npm run format:check  # vérifier le formatage des fichiers frontend
 ```
 
-La sortie de la commande `npm run format:check` va renvoyer des warning en fonction des fichiers non lintés .
+La commande `npm run format:check` renvoie des avertissements pour les fichiers mal formatés. Si c'est le cas, lancer :
 
-Si c'est le cas , alors lancer la commande : `npm run format`.
+```sh
+npm run format
+```
