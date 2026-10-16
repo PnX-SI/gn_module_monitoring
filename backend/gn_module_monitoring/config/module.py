@@ -1,6 +1,15 @@
 import json
 
-from marshmallow import Schema, ValidationError, fields, validate, RAISE, EXCLUDE, validates_schema
+from marshmallow import (
+    Schema,
+    ValidationError,
+    fields,
+    validate,
+    RAISE,
+    EXCLUDE,
+    validates_schema,
+    pre_load,
+)
 
 from gn_module_monitoring.config.utils import (
     customize_config,
@@ -104,6 +113,11 @@ class ModuleConfigSchema(Schema):
     display_field_names = fields.Dict()
     data = fields.Nested(DataSchema)
 
+    @pre_load
+    def customize_config(self, data, **kwargs):
+        customize_config(data, get_data_preload(data))
+        return data
+
 
 def load_module_config(module_code):
     """
@@ -115,7 +129,6 @@ def load_module_config(module_code):
     # Validation marshmallow
     config_path = monitoring_module_config_path(module_code) / "config.json"
     config = json.loads(config_path.read_text())
-    customize_config(config, get_data_preload(config))
     config = ModuleConfigSchema().load(
         config,
         unknown=EXCLUDE,  # FIXME: DataSchema is incomplete

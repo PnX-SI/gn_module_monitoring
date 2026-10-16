@@ -207,7 +207,7 @@ def get_config_old(module_code=None, force=False):
     config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
 
     # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-    config["data"] = get_data_preload(config, module)
+    config["data"] = get_data_preload(config)
     config["display_field_names"] = config["default_display_field_names"]
     config["custom"]["__MONITORINGS_PATH"] = get_monitorings_path()
     # Remplacement des variables __MODULE.XXX
@@ -300,7 +300,7 @@ def get_config(module_code=None, force=False):
     # Get the list of observers
     config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
     # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
-    config["data"] = get_data_preload(config, module)
+    config["data"] = get_data_preload(config)
 
     config["display_field_names"] = config["default_display_field_names"]
 
