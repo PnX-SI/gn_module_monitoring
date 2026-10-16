@@ -341,6 +341,16 @@ La variable `"module_code": "__MODULE.MODULE_CODE"` permet de sélectionner uniq
 
 Dans plusieurs cas, on peut avoir besoin de redéfinir un élément du schéma. On ajoute alors cet élément dans la variable `specific`, et il sera mis à jour.
 
+> [!TIP] **Ordre de priorité.** Pour un même objet, la configuration finale combine, du moins au plus prioritaire :
+>
+> 1. les champs génériques (`generic`) fournis par le module Monitoring ;
+> 2. pour les sites, les champs définis sur les types de sites (module Admin) ;
+> 3. les champs `specific` du fichier JSON du sous-module.
+>
+> Exception : pour un champ de site défini à la fois sur un type de site et dans `site.json`, c'est la valeur du type de site qui l'emporte.
+>
+> Si un champ redéfini dans `specific` porte **le même `type_widget`** que le champ générique, il le remplace entièrement : il faut alors redéfinir tous ses attributs. Sinon (sans `type_widget`, ou avec un autre), ses attributs sont fusionnés avec ceux du champ générique.
+
 **Changer le label d'un élément, et le rendre visible et obligatoire :**
 
 ```json
@@ -353,7 +363,7 @@ Dans plusieurs cas, on peut avoir besoin de redéfinir un élément du schéma. 
 
 **Donner une valeur par défaut à une nomenclature et cacher l'élément :**
 
-Dans le cas où la variable `type_widget` est redéfinie, il faut redéfinir toutes les variables.
+Ici, `type_widget` est redéfini avec une autre valeur que celle du champ générique : les attributs indiqués sont fusionnés avec ceux du champ générique.
 
 ```json
 "id_nomenclature_sex": {
