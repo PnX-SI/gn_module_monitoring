@@ -50,10 +50,10 @@ Pour cela , il faut créer les types de sites via l'interface administrateur (vo
 
 <details><summary> Images représentant l'interface administrateur au niveau du menu "Types de site"</summary>
 
-![Menu dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel.png)
+![Menu dans interface admin pour les types de site](images/type_site_module_config_admin_panel.png)
 
 
-![Config dans interface admin pour les types de site](docs/../images/type_site_module_config_admin_panel_config.png)
+![Config dans interface admin pour les types de site](images/type_site_module_config_admin_panel_config.png)
 
 </details>
 
@@ -61,7 +61,7 @@ Ces types de site , une fois créés pourront être associés au sous module dan
 
 <details open><summary> Image représentant la configuration du module avec l'association aux types de sites</summary>
 
-![Association des types de site au sous module](docs/../images/type_site_module_config_front.png)
+![Association des types de site au sous module](images/type_site_module_config_front.png)
 
 </details>
 
