@@ -24,7 +24,11 @@ class SitesGroupConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "sites_group_code"}],
         "fields": {
-            "id_sites_group": {"type_widget": "text", "attribut_label": "Id site", "hidden": True},
+            "id_sites_group": {
+                "type_util": "integer",
+                "attribut_label": "Id site",
+                "hidden": True,
+            },
             "sites_group_name": {"type_widget": "text", "attribut_label": "Nom", "required": True},
             "sites_group_code": {
                 "type_widget": "text",
@@ -44,7 +48,7 @@ class SitesGroupConfigSchema(BaseEntityConfigSchema):
             },
             "nb_sites": {
                 "attribut_label": "Nombre de sites",
-                "type_widget": "number",
+                "type_util": "integer",
                 "hidden": True,
             },
             "nb_visits": {

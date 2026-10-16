@@ -22,3 +22,4 @@ def load_module_config(module_code):
             module_code, config["tree"], entity=entity, substitutions=substitutions
         )
     config["nomenclature"] = get_data_preload(config)["nomenclature"]
+    return config

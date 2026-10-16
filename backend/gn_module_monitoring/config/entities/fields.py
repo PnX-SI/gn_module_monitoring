@@ -238,11 +238,14 @@ class EntityFieldConfigSchema(ma.Schema):
             if attr is not None:
                 try:
                     store_class = BaseStore.get_store_from_attr(attr)
-                    data["store"] = store_class(data.get("store"))
                 except ValueError as e:
                     raise ValidationError(
                         {"store": f"{e}. Définissez explicitement un store et son type."}
                     )
+                try:
+                    data["store"] = store_class(data.get("store"))
+                except ValidationError as e:
+                    raise ValidationError({"store": e.messages_dict})
             else:
                 raise ValidationError("Vous devez fournir 'store' ou 'widget'")
 

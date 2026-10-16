@@ -318,6 +318,7 @@ def apply_substitutions(data, substitutions):
         for old, new in substitutions.items():
             if data == old:  # keep the new type (e.g. int instead of string)
                 data = new
+                break
             else:
                 data = data.replace(old, str(new))
     return data
@@ -330,6 +331,34 @@ def get_substitutions(config):
     #     {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
     # ]
     return substitutions
+
+
+def get_tree_relations(tree):
+    """
+    Calcule, pour chaque type d'objet de l'arbre, ses types parents et enfants directs.
+
+    Même logique que `get_config_objects` : les parents sont dans l'ordre de parcours
+    de l'arbre et dédoublonnés, les enfants sont les clés du sous-arbre.
+    """
+    parent_types = {}
+    children_types = {}
+
+    def walk(subtree, parent_type=None):
+        for object_type, sub in (subtree or {}).items():
+            children = list((sub or {}).keys())
+            children_types.setdefault(object_type, [])
+            children_types[object_type] = list(
+                dict.fromkeys(children_types[object_type] + children)
+            )
+            parent_types.setdefault(object_type, [])
+            if parent_type:
+                parent_types[object_type] = list(
+                    dict.fromkeys(parent_types[object_type] + [parent_type])
+                )
+            walk(sub, object_type)
+
+    walk(tree)
+    return parent_types, children_types
 
 
 def get_data_preload(config):
