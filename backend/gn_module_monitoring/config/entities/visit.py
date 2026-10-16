@@ -76,7 +76,7 @@ class VisitConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "nb_observations": {
-                "type_widget": "number",
+                "type_util": "integer",
                 "attribut_label": "Nombre d'observations",
                 "hidden": True,
             },

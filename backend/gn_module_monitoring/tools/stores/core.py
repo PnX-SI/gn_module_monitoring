@@ -1,11 +1,16 @@
+import logging
 from typing import Literal, Never, Any
 
 import sqlalchemy as sa
 import marshmallow as ma
+from flask import current_app
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
-from marshmallow import fields, pre_load
+from marshmallow import fields, pre_load, ValidationError
 
+from gn_module_monitoring import MODULE_CODE
 from ..utils import ValueLabelField, schema_context
+
+log = logging.getLogger(__name__)
 
 
 class BaseStore:
@@ -177,9 +182,36 @@ class ListStore(BaseStore):
 
 
 class BaseTypeStore(BaseStore):
+    """
+    Store pour une colonne simple dont le type SQL correspond à `sql_type`.
+    """
+
     @classmethod
     def is_suitable_for_column(cls, column):
         return isinstance(column.type, cls.sql_type)
+
+    def __init__(self, data=None, **kwargs):
+        super().__init__(data, **kwargs)
+        if self.native_attr is not None:
+            # Cas attendu : une colonne simple, dont le type SQL correspond à self.sql_type
+            error_message = None
+            if (
+                not isinstance(self.native_attr, ColumnProperty)
+                or len(self.native_attr.columns) != 1
+            ):
+                error_message = f"Le store {self.key} doit être utilisé avec une colonne simple."
+            else:
+                column = self.native_attr.columns[0]
+                if not self.is_suitable_for_column(column):
+                    error_message = (
+                        f"Le store {self.key} doit être utilisé avec une colonne de type "
+                        f"{self.sql_type.__name__}. Trouvé une colonne de type {column.type}."
+                    )
+            if error_message is not None:
+                if current_app.config[MODULE_CODE]["STRICT"]:
+                    raise ValidationError({self.field_name: error_message})
+                else:
+                    log.warning(f"Validation warning: {error_message}")
 
 
 class StringStore(BaseTypeStore):

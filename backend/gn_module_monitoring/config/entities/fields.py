@@ -35,6 +35,8 @@ from gn_module_monitoring.tools.widgets import (
 from gn_module_monitoring.tools.stores import (
     BaseStore,
     BooleanStore,
+    IntegerStore,
+    FloatStore,
     UserStore,
     ObserverListStore,
     NomenclatureStore,
@@ -106,6 +108,8 @@ class WidgetConfigSchema(ma.Schema):
 class StoreConfigSchema(ma.Schema):
     store_map = {
         BooleanStore.key: BooleanStore,
+        IntegerStore.key: IntegerStore,
+        FloatStore.key: FloatStore,
         UserStore.key: UserStore,
         ObserverListStore.key: ObserverListStore,
         NomenclatureStore.key: NomenclatureStore,
