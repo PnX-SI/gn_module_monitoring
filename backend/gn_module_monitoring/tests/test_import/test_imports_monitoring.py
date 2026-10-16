@@ -27,7 +27,7 @@ from gn_module_occhab.models import OccurenceHabitat, Station
 
 
 @pytest.fixture()
-def install_test_module_with_import(install_module_test):
+def install_test_module_with_import(install_module_test, datasets):
     module_test = db.session.execute(
         sa.select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one_or_none()
@@ -36,6 +36,7 @@ def install_test_module_with_import(install_module_test):
         module_test.id_list_taxonomy = db.session.scalar(sa.select(BibListes.id_liste).limit(1))
         module_test.id_list_observer = db.session.scalar(sa.select(UserList.id_liste).limit(1))
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
+        module_test.datasets.append(datasets["orphan_dataset"])
         db.session.add(module_test)
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
