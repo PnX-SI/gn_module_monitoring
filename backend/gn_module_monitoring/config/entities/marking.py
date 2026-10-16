@@ -1,13 +1,10 @@
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringMarkingEvent
-from gn_module_monitoring.monitoring.schemas import MonitoringMarkingSchema
-
 from .base import BaseEntityConfigSchema
 
 
 class MarkingConfigSchema(BaseEntityConfigSchema):
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "id_field_name": "id_marking",
         "description_field_name": "id_marking",
         "chained": True,

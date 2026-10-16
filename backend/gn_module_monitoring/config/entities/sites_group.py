@@ -1,13 +1,10 @@
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringSitesGroups
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesGroupsSchema
-
 from .base import BaseEntityConfigSchema
 
 
 class SitesGroupConfigSchema(BaseEntityConfigSchema):
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "id_field_name": "id_sites_group",
         "chained": True,
         "description_field_name": "sites_group_name",

@@ -1,13 +1,10 @@
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringVisits
-from gn_module_monitoring.monitoring.schemas import MonitoringVisitsSchema
-
 from .base import BaseEntityConfigSchema
 
 
 class VisitConfigSchema(BaseEntityConfigSchema):
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "id_field_name": "id_base_visit",
         "chained": True,
         "description_field_name": "visit_date_min",

@@ -5,7 +5,7 @@ from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.services import SERVICE_MAP
 
 
-def load_module_entity_config(module_code, entity):
+def load_module_entity_config(module_code, module_tree, entity):
     """
     Raises:
         UnicodeDecodeError
@@ -20,6 +20,6 @@ def load_module_entity_config(module_code, entity):
         entity_config = {}
 
     #     # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
-    schema = SERVICE_MAP[entity].config_schema()
-    with schema_context(entity=entity):
-        return schema.load(entity_config)
+    entity_service = SERVICE_MAP[entity]
+    with schema_context(entity_service=entity_service):
+        return entity_service.config_schema(module_tree=module_tree).load(entity_config)

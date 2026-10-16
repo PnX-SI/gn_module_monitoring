@@ -2,7 +2,11 @@ import json
 
 from marshmallow import Schema, ValidationError, fields, validate, RAISE, EXCLUDE, validates_schema
 
-from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.config.utils import (
+    customize_config,
+    get_data_preload,
+    monitoring_module_config_path,
+)
 
 
 class ObservationDetailTreeSchema(Schema):
@@ -78,7 +82,7 @@ class DataSchema(Schema):
 
 class ModuleConfigSchema(Schema):
     class Meta:
-        unknown = EXCLUDE  # TODO: switch to RAISE
+        unknown = RAISE
 
     tree = fields.Nested(
         TreeSchema,
@@ -89,7 +93,7 @@ class ModuleConfigSchema(Schema):
             }
         },
     )
-    synthese_object = fields.String(validate=validate.OneOf(["observation"]))
+    synthese_object = fields.String(validate=validate.OneOf(["observation", "visit"]))
     permission_objects = fields.List(  # FIXME: Legacy?
         fields.String(
             validate=validate.OneOf(
@@ -111,9 +115,9 @@ def load_module_config(module_code):
     # Validation marshmallow
     config_path = monitoring_module_config_path(module_code) / "config.json"
     config = json.loads(config_path.read_text())
+    customize_config(config, get_data_preload(config))
     config = ModuleConfigSchema().load(
         config,
-        unknown=RAISE,
+        unknown=EXCLUDE,  # FIXME: DataSchema is incomplete
     )
-    # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
     return config

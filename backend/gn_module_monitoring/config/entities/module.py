@@ -7,7 +7,7 @@ from .base import BaseEntityConfigSchema
 
 
 class ModuleConfigSchema(BaseEntityConfigSchema):
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "id_field_name": "id_module",
         "description_field_name": "module_label",
         "label": "Module",

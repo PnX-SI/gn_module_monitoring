@@ -93,11 +93,10 @@ class HiddenWidget(BaseWidget):
         hidden = fields.Boolean(validate=validate.Equal(True))
 
     def _get_default_store(self, data, **kwargs):
-        from gn_module_monitoring.services import SERVICE_MAP
         from ..stores import BaseStore, DummyStore
 
         ctx = schema_context.get()
-        attr = SERVICE_MAP[ctx["entity"]].get_attrs().get(ctx["field_name"])
+        attr = ctx["entity_service"].get_attrs().get(ctx["field_name"])
         if attr is not None:
             return BaseStore.get_store_from_attr(attr)(data, **kwargs)
         else:

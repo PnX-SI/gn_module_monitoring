@@ -219,12 +219,10 @@ class EntityFieldConfigSchema(ma.Schema):
             except ValidationError as e:
                 raise ValidationError({"store": e.messages_dict})
         else:
-            from gn_module_monitoring.services import SERVICE_MAP
-
             ctx = schema_context.get()
-            entity = SERVICE_MAP[ctx["entity"]]
+            entity_service = ctx["entity_service"]
             field_name = ctx["field_name"]
-            attr = entity.get_attrs().get(field_name)
+            attr = entity_service.get_attrs().get(field_name)
             if attr is not None:
                 try:
                     store_class = BaseStore.get_store_from_attr(attr)
