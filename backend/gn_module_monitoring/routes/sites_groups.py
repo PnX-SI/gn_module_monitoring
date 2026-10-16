@@ -118,7 +118,7 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int):
 
 @blueprint_api.route("/sites_groups/geometries", methods=["GET"])
 @blueprint_api.route("/<string:module_code>/sites_groups/geometries", methods=["GET"])
-@check_cruved_scope("R")
+@check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(module_code=None):
 
     if g.current_module:

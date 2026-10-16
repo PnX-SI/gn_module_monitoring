@@ -23,7 +23,7 @@ blueprint = Blueprint(
 )
 
 # Blueprint de la nouvelle API, imbriqué dans `blueprint` (les routes legacy sont dans blueprint_legacy)
-blueprint_api = Blueprint("api", __name__, url_prefix="/v2")
+blueprint_api = Blueprint("api", __name__, url_prefix="/refacto")
 
 
 @blueprint.teardown_request
