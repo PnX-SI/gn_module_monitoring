@@ -90,10 +90,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
   ngOnInit() {
     super.ngOnInit();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-    this.initObject();
+    this.initData();
   }
 
-  initObject() {
+  initData() {
     this._Activatedroute.data.subscribe(({ data }) => {
       let currentData;
       switch (data.route) {
@@ -160,7 +160,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
               this._configServiceG.config()['module']['fields']
             )
             .subscribe((data) => {
-              console.log(data);
               this.resolvedObj = data;
             });
         });
@@ -306,6 +305,13 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
     this.router.navigate([`/monitorings/object/${this.moduleCode}/`, type, 'create'], {
       queryParams: queryParams,
     });
+  }
+  onbEditChange(event: boolean) {
+    if (this.bEdit == true && event == false) {
+      // Passage du mode édition au mode consultation
+      this.initData();
+    }
+    this.bEdit = event;
   }
 
   onDelete(event) {
