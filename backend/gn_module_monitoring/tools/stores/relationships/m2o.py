@@ -359,7 +359,7 @@ class NomenclatureStore(BaseForeignKeyStore):
             ):
                 ctx = schema_context.get()
                 log.warning(
-                    f"{ctx["entity"]} - {ctx["field_name"]} - "
+                    f"{ctx["entity_service"].name} - {ctx["field_name"]} - "
                     "Detected nomenclature store with datalist widget. "
                     "Consider using nomenclature widget."
                 )

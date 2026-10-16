@@ -1,13 +1,10 @@
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringObservations
-from gn_module_monitoring.monitoring.schemas import MonitoringObservationsSchema
-
 from .base import BaseEntityConfigSchema
 
 
 class ObservationConfigSchema(BaseEntityConfigSchema):
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "id_field_name": "id_observation",
         "description_field_name": "id_observation",
         "chained": True,

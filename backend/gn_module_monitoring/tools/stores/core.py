@@ -55,8 +55,6 @@ class BaseStore:
         raise ValueError(f"Unable to find proper store for column '{attr.key}'")
 
     def __init__(self, data=None, **kwargs):
-        from gn_module_monitoring.services import SERVICE_MAP
-
         data = data or {}
         if "type_util" in data:
             self.extra_data = data
@@ -65,9 +63,9 @@ class BaseStore:
         else:
             self.extra_data = None
         ctx = schema_context.get()
-        self.entity = SERVICE_MAP[ctx["entity"]]
+        self.entity_service = ctx["entity_service"]
         self.field_name = ctx["field_name"]
-        self.native_attr = self.entity.get_attrs().get(self.field_name)
+        self.native_attr = self.entity_service.get_attrs().get(self.field_name)
         with schema_context(store=self):
             self.config = self.get_config_schema_class()().load(data, **kwargs)
 

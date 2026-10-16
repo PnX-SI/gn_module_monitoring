@@ -1,15 +1,13 @@
+from copy import deepcopy
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringSites
-from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
+from gn_module_monitoring.command.check.utils import get_object_types
 
 from .base import BaseEntityConfigSchema
 
 
 class SiteConfigSchema(BaseEntityConfigSchema):
-    # TODO: si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
-    # voir SITES_GROUP_CONFIG et process_schema dans config/utils.py
-    base_data: ClassVar = {
+    default_config: ClassVar = {
         "chained": True,
         "id_field_name": "id_base_site",
         "description_field_name": "base_site_name",
@@ -117,3 +115,18 @@ class SiteConfigSchema(BaseEntityConfigSchema):
             },
         },
     }
+
+    def get_default_config(self):
+        config = deepcopy(self.default_config)
+        if "sites_group" in get_object_types(self.module_tree):
+            # si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
+            config["fields"]["id_sites_group"] = {
+                "type_widget": "datalist",
+                "attribut_label": "Groupe de sites",
+                "type_util": "sites_group",
+                "keyValue": "id_sites_group",
+                "keyLabel": "sites_group_name",
+                "api": "__MONITORINGS_PATH/list/__MODULE.MODULE_CODE/sites_group?id_module=__MODULE.ID_MODULE&fields=id_sites_group&fields=sites_group_name",
+                "application": "GeoNature",
+            }
+        return config

@@ -13,9 +13,9 @@ def legacy_check(module_code):
     yield from errors
 
 
-def check_module_entity_config(module_code, entity):
+def check_module_entity_config(module_code, module_tree, entity):
     try:
-        return load_module_entity_config(module_code, entity)
+        return load_module_entity_config(module_code, module_tree, entity)
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         yield e
     except ma.exceptions.ValidationError as e:
@@ -33,7 +33,7 @@ def check_module_entities_config(module_code, config):
         # TODO: remplacer les templates (__MONITORINGS_PATH, etc.)
         error_count, entity_config = wrap_errors(
             f"Définition du protocole - {entity}",
-            check_module_entity_config(module_code, entity),
+            check_module_entity_config(module_code, config["tree"], entity),
             return_result=True,
         )
         if entity_config is not None:

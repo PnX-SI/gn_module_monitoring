@@ -4,7 +4,6 @@ import sqlalchemy as sa
 import marshmallow as ma
 from marshmallow import pre_load, validates_schema, ValidationError
 
-from gn_module_monitoring.services import SERVICE_MAP
 from .fields import EntityFieldConfigSchema, schema_context
 
 
@@ -17,6 +16,10 @@ class BaseEntityConfigSchema(ma.Schema):
     display_list = ma.fields.List(ma.fields.Str(), load_default=[])
     display_properties = ma.fields.List(ma.fields.Str(), load_default=[])
 
+    def __init__(self, *, module_tree, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.module_tree = module_tree
+
     @pre_load
     def pre_load(self, data, **kwargs):
         """
@@ -28,13 +31,13 @@ class BaseEntityConfigSchema(ma.Schema):
         fields = data.pop("fields", data.pop("specific", {}))
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
-        data = {**deepcopy(self.base_data), **data}
+        data = {**self.get_default_config(), **data}
         # Maintenant, pour les fields, on permet :
         #   - de définir de nouveau fields, s’ils n’existent pas en base
         #   - d’override, pour les fields existant dans default_data, uniquement :
         #     - le widget
         #     - required, seulement si c’est pour le forcer à True
-        model = SERVICE_MAP[schema_context.get()["entity"]].model
+        model = schema_context.get()["entity_service"].model
         mapper = sa.inspect(model)
         for field_name, field_def in fields.items():
             if field_name in data["fields"]:  # field existant
@@ -65,3 +68,6 @@ class BaseEntityConfigSchema(ma.Schema):
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )
+
+    def get_default_config(self):
+        return deepcopy(self.default_config)

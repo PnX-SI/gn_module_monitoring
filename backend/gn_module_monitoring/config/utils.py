@@ -307,7 +307,7 @@ def customize_config(elem, custom):
     return elem
 
 
-def get_data_preload(config, module):
+def get_data_preload(config):
     out = {"nomenclature": ["TYPE_MEDIA"]}
 
     # if getattr(module, "id_list_observer", None):
