@@ -61,7 +61,7 @@ class TestRouteConfig:
     def test_get_config_generic(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
-            url_for("monitorings.api.get_config_apiV2", module_code="generic")
+            url_for("monitorings.api.get_config_endpoint", module_code="generic")
         )
         data = response.json
         # Test éléments de premier niveau de la réponse
@@ -84,7 +84,7 @@ class TestRouteConfig:
         assert data["module"]["fields"]["datasets"]["multi_select"] == True
 
     @pytest.mark.parametrize(
-        "route", ["monitorings.legacy.get_config_api", "monitorings.api.get_config_apiV2"]
+        "route", ["monitorings.legacy.get_config_api", "monitorings.api.get_config_endpoint"]
     )  # TODO remove when new config API is official
     def test_get_config(self, route):
         response = self.client.get(url_for(route))
@@ -94,7 +94,7 @@ class TestRouteConfig:
         "route,fields_key",
         [
             ("monitorings.legacy.get_config_api", "specific"),
-            ("monitorings.api.get_config_apiV2", "fields"),
+            ("monitorings.api.get_config_endpoint", "fields"),
         ],
     )  # TODO remove when new config API is official
     def test_get_config_module(self, module_list, users, route, fields_key):
@@ -107,7 +107,7 @@ class TestRouteConfig:
         # test éléments de premier niveau de la réponse
         # (la clé "configured" n'est renvoyée que par la nouvelle API)
         expected_keys = set(CONFIG_KEYS)
-        if route == "monitorings.get_config_apiV2":
+        if route == "monitorings.api.get_config_endpoint":
             expected_keys.add("configured")
         assert expected_keys == set(data.keys())
 
@@ -125,7 +125,9 @@ class TestRouteConfig:
         module, _ = module_list
 
         def get_configured():
-            response = self.client.get(url_for("monitorings.get_config_apiV2", module_code="test"))
+            response = self.client.get(
+                url_for("monitorings.api.get_config_endpoint", module_code="test")
+            )
             return response.json["configured"]
 
         # Liste d'observateurs uniquement : module non configuré
