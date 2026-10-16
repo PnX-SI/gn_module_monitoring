@@ -5,6 +5,7 @@ import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { NgSelectConfig } from '@ng-select/ng-select';
 
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -25,6 +26,13 @@ import { Popup } from '../../utils/popup';
   selector: 'pnx-monitoring-form-g',
   templateUrl: './monitoring-form-g.component.html',
   styleUrls: ['./monitoring-form-g.component.css'],
+  // Listes déroulantes ng-select rattachées au body pour ne pas être coupées par le scroll du formulaire
+  providers: [
+    {
+      provide: NgSelectConfig,
+      useFactory: () => Object.assign(new NgSelectConfig(), { appendTo: 'body' }),
+    },
+  ],
 })
 export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() apiService: ApiService;
@@ -67,7 +75,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
     private translate: TranslateService,
-    public _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
     private _objectService: ObjectService,
     private _popup: Popup
@@ -273,10 +281,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.object = objData;
       this._commonService.regularToaster('success', actionLabel);
       this.saveSpinner = this.saveAndAddChildrenSpinner = false;
-      /** si c'est un module : reset de la config */
-      // if (this.obj.objectType === 'module') {
-      //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
-      // }
+      /** si c'est un module : rechargement de la config puis de la page d'accueil du module
+       * pour prendre en compte les modifications (ex: statut 'configured') */
+      if (this.objectType === 'module') {
+        const moduleCode = this.apiService._getModuleCode();
+        this._formService.changeCurrentEditMode(false);
+        this._configServiceG
+          .loadConfig(moduleCode)
+          .subscribe(() => this._navigationService.reloadModuleHome(moduleCode));
+        return;
+      }
       if (this.chainInput) {
         this.resetForm();
       } else if (isAddChildrend) {
@@ -518,7 +532,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.deleteSpinner = true;
     this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
       this.deleteSpinner = this.deleteModal = false;
-      this.object.deleted = true;
+
+      this._formService.changeCurrentEditMode(false);
       this._commonService.regularToaster(
         'info',
         this.translate.instant('Monitoring.Actions.Deleted')

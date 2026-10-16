@@ -20,6 +20,7 @@ from gn_module_monitoring.config.utils import (
     get_data_preload,
     monitoring_module_config_path,
     get_module_code_list,
+    is_module_configured,
 )
 from gn_module_monitoring.utils.utils import dict_deep_update
 from werkzeug.datastructures import ImmutableDict
@@ -267,7 +268,6 @@ def get_config(module_code=None, force=False):
     # Si module est `generic`
     config["custom"] = {
         "DESCRIPTION_MODULE": current_app.config["MONITORINGS"]["TITLE_MODULE"],
-        "PERMISSION_LEVEL": current_app.config["MONITORINGS"]["PERMISSION_LEVEL"],
         "__MODULE.MODULE_CODE": "generic",
         "__MODULE.ID_MODULE": None,
         "__MODULE.B_SYNTHESE": False,
@@ -293,6 +293,9 @@ def get_config(module_code=None, force=False):
     config["custom"]["__MODULE.IDS_TYPE_SITE"] = [
         {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
     ]
+
+    # Le module est-il configuré (liste d'observateurs et jeu(x) de données associés)
+    config["configured"] = is_module_configured(module)
 
     # Get the list of observers
     config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
