@@ -21,6 +21,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.config.utils import (
     get_monitorings_path,
+    get_tree_relations,
     monitoring_module_config_path,
 )
 
@@ -119,6 +120,15 @@ class ModuleConfigSchema(Schema):
         This hook trash deprecated fields data, avoiding raising unexpected fields errors.
         """
         data.pop("permission_objects", None)  # supprimé dans la 0.7.0
+        return data
+
+    @post_load
+    def load_tree_relations(self, data, **kwargs):
+        """
+        Ajoute `parent_types` et `children_types` (dict type d'objet -> liste de types),
+        calculés à partir de `tree`.
+        """
+        data["parent_types"], data["children_types"] = get_tree_relations(data.get("tree", {}))
         return data
 
 

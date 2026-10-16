@@ -15,12 +15,12 @@ class ObservationConfigSchema(BaseEntityConfigSchema):
         "uuid_field_name": "uuid_observation",
         "fields": {
             "id_observation": {
-                "type_widget": "number",
+                "type_util": "integer",
                 "attribut_label": "Id observation",
                 "hidden": True,
             },
             "id_base_visit": {
-                "type_widget": "number",
+                "type_util": "integer",
                 "attribut_label": "Id visite",
                 "hidden": True,
             },
