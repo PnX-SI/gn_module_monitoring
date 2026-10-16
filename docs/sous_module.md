@@ -341,7 +341,8 @@ La variable `"module_code": "__MODULE.MODULE_CODE"` permet de sélectionner uniq
 
 Dans plusieurs cas, on peut avoir besoin de redéfinir un élément du schéma. On ajoute alors cet élément dans la variable `specific`, et il sera mis à jour.
 
-> [!TIP] **Ordre de priorité.** Pour un même objet, la configuration finale combine, du moins au plus prioritaire :
+> [!TIP]
+> **Ordre de priorité.** Pour un même objet, la configuration finale combine, du moins au plus prioritaire :
 >
 > 1. les champs génériques (`generic`) fournis par le module Monitoring ;
 > 2. pour les sites, les champs définis sur les types de sites (module Admin) ;

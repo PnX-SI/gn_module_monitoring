@@ -192,7 +192,8 @@ Chaque sous-module permet de créer ses propres sites et groupes de sites. Cepen
 
 Dans le gestionnaire de sites, il est possible de créer, éditer, supprimer des sites et des groupes de sites de manière indépendante à la gestion de sous-modules. Il est également possible de saisir directement des visites et des observations en rattachant les visites au sous-module que l'on souhaite.
 
-> [!IMPORTANT] > **Associer un site à un sous-module**
+> [!IMPORTANT]
+> **Associer un site à un sous-module**
 >
 > Plutôt que d'associer un à un les sites à des sous-modules, l'association entre un site et un sous-module se fait via la notion de **types de sites**. Un type de sites est un concept permettant de regrouper des sites qui font l'objet de plusieurs protocoles et qui partagent potentiellement une série de descripteurs communs.
 >
