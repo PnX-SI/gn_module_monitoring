@@ -10,6 +10,7 @@ from geonature.utils.env import DB
 from geonature.core.admin.admin import admin as flask_admin
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.monitoring.admin import BibTypeSiteView
 from gn_module_monitoring.command.cmd import commands  # noqa: E402
 from geonature.core.gn_permissions.models import TObjects
@@ -20,6 +21,9 @@ from sqlalchemy import select
 blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
+
+# Blueprint de la nouvelle API, imbriqué dans `blueprint` (les routes legacy sont dans blueprint_legacy)
+blueprint_api = Blueprint("api", __name__, url_prefix="/refacto")
 
 
 @blueprint.teardown_request
@@ -51,8 +55,7 @@ def set_current_module():
     object_type = values.get("object_type")
 
     if object_type:
-        permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
-        requested_permission_object_code = permission_level.get(object_type)
+        requested_permission_object_code = PERMISSION_OBJECT_CODES.get(object_type)
 
         if requested_permission_object_code is None:
             # error ?
@@ -74,6 +77,8 @@ def set_current_module():
 
 
 from .routes import *  # noqa
+
+blueprint.register_blueprint(blueprint_api)
 
 blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORINGS"
 for cmd in commands:

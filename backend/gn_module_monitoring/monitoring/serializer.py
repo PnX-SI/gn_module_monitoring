@@ -2,7 +2,7 @@
 serialiser
 """
 
-from flask import current_app, g
+from flask import g
 
 from marshmallow import EXCLUDE
 
@@ -13,6 +13,7 @@ from geonature.core.gn_monitoring.models import (
     TIndividuals,
 )
 from geonature.core.gn_monitoring.schema import TMarkingEventSchema
+from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.routes.data_utils import id_field_name_dict
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
@@ -125,9 +126,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         scope = get_scopes_by_action(
             id_role=g.current_user.id_role,
             module_code=self._module_code,
-            object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                children_type
-            ],
+            object_code=PERMISSION_OBJECT_CODES[children_type],
         )["R"]
         if getattr(childs_model, "has_instance_permission", None) or scope < 3:
             childs_model = [
@@ -158,9 +157,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             scope = get_scopes_by_action(
                 id_role=g.current_user.id_role,
                 module_code=self._module_code,
-                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                    children_type
-                ],
+                object_code=PERMISSION_OBJECT_CODES[children_type],
             )
             children_of_type = []
 
@@ -189,9 +186,7 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
             cruved_item_dict = get_objet_with_permission_boolean(
                 list_model,
                 module_code=self._module_code,
-                object_code=current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})[
-                    self._object_type
-                ],
+                object_code=PERMISSION_OBJECT_CODES[self._object_type],
             )
             for cruved_item in cruved_item_dict:
                 if self._id == cruved_item[id_name]:
