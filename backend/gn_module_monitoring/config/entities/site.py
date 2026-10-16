@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import ClassVar
 
-from gn_module_monitoring.command.check.utils import get_object_types
+from gn_module_monitoring.config.utils import get_tree_entities
 
 from .base import BaseEntityConfigSchema
 
@@ -118,7 +118,7 @@ class SiteConfigSchema(BaseEntityConfigSchema):
 
     def get_default_config(self):
         config = deepcopy(self.default_config)
-        if "sites_group" in get_object_types(self.module_tree):
+        if "sites_group" in get_tree_entities(self.module_tree):
             # si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
             config["fields"]["id_sites_group"] = {
                 "type_widget": "datalist",

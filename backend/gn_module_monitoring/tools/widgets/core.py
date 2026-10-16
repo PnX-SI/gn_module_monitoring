@@ -174,6 +174,8 @@ class NumberWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         step = fields.Float()
+        # Il existait des protocoles avec min contenant un script js
+        # C’est désormais interdit et il faut traduire en CEL
         min = fields.Float()
         max = fields.Float()
 

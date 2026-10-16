@@ -3,7 +3,7 @@ from flask import current_app
 
 from gn_module_monitoring.config.repositories import get_config
 
-from gn_module_monitoring.command.check.module import check_module_config
+from gn_module_monitoring.command.check.module import check_module_root_config
 from gn_module_monitoring.command.check.entities import check_module_entities_config
 from gn_module_monitoring.command.check.data import check_module_data
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
@@ -27,7 +27,9 @@ def run_module_check(module_code, check_data, data_filters, fix):
     total_error_count = 0
 
     error_count, config = wrap_errors(
-        "Fichier de configuration du module", check_module_config(module_code), return_result=True
+        "Fichier de configuration du module",
+        check_module_root_config(module_code),
+        return_result=True,
     )
     total_error_count += error_count
 

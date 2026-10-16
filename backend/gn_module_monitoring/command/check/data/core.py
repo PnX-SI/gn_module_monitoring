@@ -11,8 +11,7 @@ from gn_module_monitoring.command.check.utils import (
     wrap_errors,
 )
 from gn_module_monitoring.command.imports.constant import MULTI_TYPE_WIDGET
-
-from gn_module_monitoring.command.check.utils import get_object_types
+from gn_module_monitoring.config.utils import get_tree_entities
 
 
 def is_multiple(field_conf: dict) -> bool:
@@ -218,7 +217,7 @@ def check_module_data(
 ):
     total_error_count = 0
     id_module = legacy_config["module"]["id_module"]
-    for object_type in get_object_types(config["tree"]):
+    for object_type in get_tree_entities(config["tree"]):
         total_error_count += wrap_errors(
             f"Données - {object_type}",
             check_module_data_type(config, fix, data_filters, id_module, object_type),

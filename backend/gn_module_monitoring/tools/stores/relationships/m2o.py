@@ -351,18 +351,23 @@ class NomenclatureStore(BaseForeignKeyStore):
             # it is a mnemonique, not a code, so the field was renamed
             if "code_nomenclature_type" in data:
                 data["nomenclature_type"] = data.pop("code_nomenclature_type")
+            if "value" in data:  # TODO: this is kind of a way to define a default value?
+                if "code_nomenclature_type" in data["value"]:
+                    data["nomenclature_type"] = data["value"]["code_nomenclature_type"]
+                if "cd_nomenclature" in data["value"]:
+                    data["cd_nomenclatures"] = [data["value"]["cd_nomenclature"]]
             # find nomenclature_type from datalist widget api url (better to use nomenclature widget…)
             if (
                 "nomenclature_type" not in data
                 and data.get("type_widget") == "datalist"
                 and data.get("api", "").startswith("nomenclatures/nomenclature/")
             ):
-                ctx = schema_context.get()
-                log.warning(
-                    f"{ctx["entity_service"].name} - {ctx["field_name"]} - "
-                    "Detected nomenclature store with datalist widget. "
-                    "Consider using nomenclature widget."
-                )
+                # ctx = schema_context.get()
+                # log.warning(
+                #     f"{ctx["entity_service"].name} - {ctx["field_name"]} - "
+                #     "Detected nomenclature store with datalist widget. "
+                #     "Consider using nomenclature widget."
+                # )
                 data["nomenclature_type"] = data["api"].split("/")[2]
             return data
 
@@ -371,7 +376,7 @@ class NomenclatureStore(BaseForeignKeyStore):
             # On valide nomenclature_type avant que soit validé les cd_nomenclatures
             # N’est validé que pour les protocoles installés !
             ctx = schema_context.get()
-            if not ctx["protocol_installed"]:
+            if not ctx.get("protocol_installed", True):
                 return
             if get_nomenclature_type(value) is None:
                 raise ValidationError(f"Le type de nomenclature '{value} n’existe pas.")
@@ -383,7 +388,7 @@ class NomenclatureStore(BaseForeignKeyStore):
             # Si nomenclature_type est absent ou inconnu, c'est signalé ailleurs : on ne vérifie rien.
             # N’est validé que pour les protocoles installés !
             ctx = schema_context.get()
-            if not ctx["protocol_installed"]:
+            if not ctx.get("protocol_installed", True):
                 return
             type_mnemonique = data["nomenclature_type"]
             if "cd_nomenclatures" not in data:
