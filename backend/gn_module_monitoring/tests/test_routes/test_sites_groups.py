@@ -26,7 +26,7 @@ class TestSitesGroups:
         id_sites_group = sites_group.id_sites_group
         r = self.client.get(
             url_for(
-                "monitorings.get_sites_group_by_id",
+                "monitorings.api.get_sites_group_by_id",
                 module_code="generic",
                 id_sites_group=id_sites_group,
             )
@@ -37,7 +37,7 @@ class TestSitesGroups:
 
     def test_get_sites_groups(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_sites_groups"))
+        r = self.client.get(url_for("monitorings.api.get_sites_groups"))
 
         assert r.json["count"] >= len(sites_groups)
 
@@ -57,7 +57,7 @@ class TestSitesGroups:
         schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias",))
 
         r = self.client.get(
-            url_for("monitorings.get_sites_groups"), query_string={"sites_group_name": name}
+            url_for("monitorings.api.get_sites_groups"), query_string={"sites_group_name": name}
         )
 
         assert r.json["count"] >= 1
@@ -79,7 +79,7 @@ class TestSitesGroups:
 
     def test_get_sites_groups_geometries(self, sites, site_group_with_sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_sites_group_geometries"))
+        r = self.client.get(url_for("monitorings.api.get_sites_group_geometries"))
 
         json_resp = r.json
         features = json_resp.get("features")
@@ -122,7 +122,7 @@ class TestSitesGroups:
         first_site = sites_groups["Site_eolien"]
         data = self.client.get(
             url_for(
-                "monitorings.get_sites_group_by_id",
+                "monitorings.api.get_sites_group_by_id",
                 module_code="generic",
                 id_sites_group=first_site.id_sites_group,
             )
@@ -137,7 +137,7 @@ class TestSitesGroups:
         site_group["sites_group_name"] = "update name"
         site_group["geom"] = geom
         r = self.client.patch(
-            url_for("monitorings.patch", _id=first_site.id_sites_group),
+            url_for("monitorings.api.patch", _id=first_site.id_sites_group),
             data=site_group,
         )
         assert r.status_code == status_code
@@ -175,7 +175,7 @@ class TestSitesGroups:
             "geom": geom_sites_group,
         }
         r = self.client.post(
-            url_for("monitorings.post_sites_group"),
+            url_for("monitorings.api.post_sites_group"),
             data=site_group,
         )
         assert r.status_code == 200
@@ -202,7 +202,7 @@ class TestSitesGroupsWithModule:
                 )
             )
 
-        response = self.client.get(url_for("monitorings.get_sites_groups", module_code="test"))
+        response = self.client.get(url_for("monitorings.api.get_sites_groups", module_code="test"))
 
         assert response.status_code == 200
         groups_repr = response.json["items"]
@@ -224,7 +224,7 @@ class TestSitesGroupsWithModule:
         filter_params = {"sites_group_name": "gr"}
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -242,7 +242,7 @@ class TestSitesGroupsWithModule:
         add_group(data={"group_specific": "bar"})  # Non retourné avec le filtre
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -263,7 +263,7 @@ class TestSitesGroupsWithModule:
         add_group()  # empty "meteo" => no match
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
