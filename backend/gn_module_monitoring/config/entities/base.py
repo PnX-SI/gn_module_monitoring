@@ -4,6 +4,7 @@ import sqlalchemy as sa
 import marshmallow as ma
 from marshmallow import pre_load, validates_schema, ValidationError
 
+from gn_module_monitoring.config.utils import customize_config, get_data_preload
 from .fields import EntityFieldConfigSchema, schema_context
 
 
@@ -24,7 +25,9 @@ class BaseEntityConfigSchema(ma.Schema):
     def pre_load(self, data, **kwargs):
         """
         Ce hook s’occupe de merger la config generic avec la config specific.
+        Il s’occupe également de la customisation (remplacement des chaînes spétial __MODULE.…).
         """
+        customize_config(data, get_data_preload(data))
         # Permet de valider de manière minimale les fields pour les manipuler
         fields_field = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Dict())
         # specific is a retro.compat key
