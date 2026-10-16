@@ -281,10 +281,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.object = objData;
       this._commonService.regularToaster('success', actionLabel);
       this.saveSpinner = this.saveAndAddChildrenSpinner = false;
-      /** si c'est un module : reset de la config */
-      // if (this.obj.objectType === 'module') {
-      //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
-      // }
+      /** si c'est un module : rechargement de la config puis de la page d'accueil du module
+       * pour prendre en compte les modifications (ex: statut 'configured') */
+      if (this.objectType === 'module') {
+        const moduleCode = this.apiService._getModuleCode();
+        this._formService.changeCurrentEditMode(false);
+        this._configServiceG
+          .loadConfig(moduleCode)
+          .subscribe(() => this._navigationService.reloadModuleHome(moduleCode));
+        return;
+      }
       if (this.chainInput) {
         this.resetForm();
       } else if (isAddChildrend) {
