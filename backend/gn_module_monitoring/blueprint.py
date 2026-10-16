@@ -24,11 +24,9 @@ from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.monitoring.admin import BibTypeSiteView
 from gn_module_monitoring.command.cmd import commands  # noqa: E402
 from gn_module_monitoring.command.utils import get_modules
-from gn_module_monitoring.command.check.utils import get_object_types
 from gn_module_monitoring.tools.stores import BaseStore
 from gn_module_monitoring.tools.widgets import BaseWidget
-from gn_module_monitoring.config.module import load_module_config
-from gn_module_monitoring.config.entities import load_module_entity_config
+from gn_module_monitoring.config import load_module_config
 from gn_module_monitoring.tools.utils import schema_context
 
 log = logging.getLogger()
@@ -54,13 +52,7 @@ def load_modues_config(state):
     for module in get_modules():
         module_code = module.module_code
         try:
-            with schema_context(protocol_installed=True):
-                module_config = load_module_config(module_code)
-                for entity in get_object_types(module_config["tree"]):
-                    module_config[entity] = load_module_entity_config(
-                        module_code, module_config["tree"], entity=entity
-                    )
-                monitoring_config["protocols"][module_code] = module_config
+            monitoring_config["protocols"][module_code] = load_module_config(module_code)
         except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
             ctx = click.get_current_context(silent=True)
             # Avoid printing errors when using the CLI

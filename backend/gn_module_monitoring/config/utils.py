@@ -1,4 +1,4 @@
-import os, datetime, time
+import os
 import importlib
 import json
 from pathlib import Path
@@ -307,6 +307,31 @@ def customize_config(elem, custom):
     return elem
 
 
+def apply_substitutions(data, substitutions):
+    if isinstance(data, list):
+        for idx, value in enumerate(data):
+            data[idx] = apply_substitutions(value, substitutions)
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            data[key] = apply_substitutions(value, substitutions)
+    elif isinstance(data, str):
+        for old, new in substitutions.items():
+            if data == old:  # keep the new type (e.g. int instead of string)
+                data = new
+            else:
+                data = data.replace(old, str(new))
+    return data
+
+
+def get_substitutions(config):
+    substitutions = {f"__MODULE.{k.upper()}": v for k, v in config["module"].items()}
+    substitutions["__MONITORINGS_PATH"] = get_monitorings_path()
+    # data["custom"]["__MODULE.IDS_TYPE_SITE"] = [
+    #     {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
+    # ]
+    return substitutions
+
+
 def get_data_preload(config):
     out = {"nomenclature": ["TYPE_MEDIA"]}
 
@@ -479,3 +504,24 @@ def get_specific_properties_from_object_config(monitoringClass: object, object_c
         if not hasattr(monitoringClass, field_name)
     }
     return specific_properties
+
+
+def get_tree_entities(tree: dict):
+    """
+    Retourne la liste des objets du sous-module (sites, visites, observations...)
+    pour lesquels des données spécifiques sont stockées, en parcourant
+    l'arbre des objets défini dans la configuration.
+    """
+
+    def iter_tree(tree):
+        for object_type, children in (tree or {}).items():
+            yield object_type
+            if children is not None:
+                yield from iter_tree(children)
+
+    object_types = ["module"]
+    for object_type in iter_tree(tree):
+        if object_type not in object_types:
+            object_types.append(object_type)
+
+    return object_types

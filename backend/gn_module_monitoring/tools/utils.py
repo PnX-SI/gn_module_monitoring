@@ -4,6 +4,14 @@ from contextlib import contextmanager
 import marshmallow as ma
 from marshmallow import ValidationError, fields
 
+JSON_TYPES = [
+    type(None),
+    int,
+    float,
+    bool,
+    str,
+]
+
 
 class ContextManagedContextVar:
     def __init__(self, name: str, default=None):
@@ -43,11 +51,11 @@ class ValueLabelField(fields.Field):
     """
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if isinstance(value, str):
-            return {"value": value, "label": value}
         if isinstance(value, dict):
             return ValueLabelSchema().load(value)
-        raise ValidationError("Must be a string or a dict.")
+        if type(value) in JSON_TYPES:
+            return {"value": value, "label": value}
+        raise ValidationError("Must be a json type or a dict.")
 
 
 class StrOrListStr(fields.Field):

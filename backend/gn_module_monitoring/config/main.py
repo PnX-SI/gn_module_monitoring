@@ -1,19 +1,26 @@
 import json
 
+import sqlalchemy as sa
+from flask import current_app
 from marshmallow import (
     Schema,
     ValidationError,
     fields,
     validate,
     RAISE,
-    EXCLUDE,
+    INCLUDE,
     validates_schema,
     pre_load,
+    post_load,
 )
 
+from geonature.utils.env import db
+from pypnusershub.db.models import UserList
+
+from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.config.utils import (
-    customize_config,
-    get_data_preload,
+    get_monitorings_path,
     monitoring_module_config_path,
 )
 
@@ -85,8 +92,8 @@ class TreeSchema(Schema):
 
 
 class DataSchema(Schema):
-    # TODO: complete
-    pass
+    class Meta:
+        unknown = INCLUDE  # this schema in incomplete
 
 
 class ModuleConfigSchema(Schema):
@@ -103,24 +110,22 @@ class ModuleConfigSchema(Schema):
         },
     )
     synthese_object = fields.String(validate=validate.OneOf(["observation", "visit"]))
-    permission_objects = fields.List(  # FIXME: Legacy?
-        fields.String(
-            validate=validate.OneOf(
-                ["GNM_GRP_SITES", "GNM_SITES", "GNM_VISITES", "GNM_OBSERVATIONS"]
-            )
-        )
-    )
     display_field_names = fields.Dict()
     data = fields.Nested(DataSchema)
 
     @pre_load
-    def customize_config(self, data, **kwargs):
-        customize_config(data, get_data_preload(data))
+    def remove_deprecated(self, data, **kwargs):
+        """
+        This hook trash deprecated fields data, avoiding raising unexpected fields errors.
+        """
+        data.pop("permission_objects", None)  # supprimé dans la 0.7.0
         return data
 
 
-def load_module_config(module_code):
+def load_module_root_config(module_code):
     """
+    Charge la config de base depuis config.json.
+
     Raises:
         UnicodeDecodeError
         JSONDecodeError
@@ -129,8 +134,33 @@ def load_module_config(module_code):
     # Validation marshmallow
     config_path = monitoring_module_config_path(module_code) / "config.json"
     config = json.loads(config_path.read_text())
-    config = ModuleConfigSchema().load(
-        config,
-        unknown=EXCLUDE,  # FIXME: DataSchema is incomplete
-    )
+    with schema_context(module_code=module_code):
+        config = ModuleConfigSchema().load(config)
     return config
+
+
+def load_module_db_config(module_code):
+    module = db.session.execute(
+        sa.select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
+    ).scalar_one()
+    module_config = {
+        attr: getattr(module, attr)
+        for attr in [
+            "module_code",
+            "id_list_taxonomy",
+            "b_synthese",
+            "b_draw_sites_group",
+            "taxonomy_display_field_name",
+            "id_module",
+            "cd_nom",
+        ]
+    }
+    if module.id_list_observer:
+        module_config["code_observers_list"] = db.session.execute(
+            sa.select(UserList.code_liste).where(UserList.id_liste == module.id_list_observer)
+        ).scalar_one()
+    else:
+        module_config["code_observers_list"] = current_app.config["MONITORINGS"][
+            "CODE_OBSERVERS_LIST"
+        ]
+    return module_config

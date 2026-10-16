@@ -205,8 +205,11 @@ class EntityFieldConfigSchema(ma.Schema):
         widget_init = False
         # Le widget est définie avec un type, initialisation
         if "type" in data.get("widget", {}):
-            data["widget"] = WidgetConfigSchema().load(data["widget"])
-            widget_init = True
+            try:
+                data["widget"] = WidgetConfigSchema().load(data["widget"])
+                widget_init = True
+            except ValidationError as e:
+                raise ValidationError({"widget": e.messages_dict})
 
         # Initialisation du store :
         # - à partir de son type
@@ -214,7 +217,10 @@ class EntityFieldConfigSchema(ma.Schema):
         # - à partir du type de la colonne SQL
         # FIXME: inverse priority between widget & sql column?
         if "type" in data.get("store", {}):
-            data["store"] = StoreConfigSchema().load(data["store"])
+            try:
+                data["store"] = StoreConfigSchema().load(data["store"])
+            except ValidationError as e:
+                raise ValidationError({"store": e.messages_dict})
         elif widget_init:
             try:
                 data["store"] = data["widget"].get_default_store(data.get("store"))

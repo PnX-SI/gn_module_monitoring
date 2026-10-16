@@ -24,10 +24,8 @@ class BaseEntityConfigSchema(ma.Schema):
     @pre_load
     def pre_load(self, data, **kwargs):
         """
-        Ce hook s’occupe de merger la config generic avec la config specific.
-        Il s’occupe également de la customisation (remplacement des chaînes spétial __MODULE.…).
+        Ce hook s’occupe de merger la config par défaut avec la config que l’on s’apprête à charger.
         """
-        customize_config(data, get_data_preload(data))
         # Permet de valider de manière minimale les fields pour les manipuler
         fields_field = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Dict())
         # specific is a retro.compat key
