@@ -148,6 +148,30 @@ class TestIndividuals:
         assert r.json["id_individual"] == individual_instance.id_individual
         assert r.json["individual_name"] == individual_instance.individual_name
         assert r.json["cd_nom"] == individual_instance.cd_nom
+        # droits de l'utilisateur sur l'objet, utilisés par le formulaire (éditer / supprimer)
+        assert {action: r.json["cruved"][action] for action in "RUD"} == {
+            "R": True,
+            "U": True,
+            "D": True,
+        }
+
+    def test_get_individual_by_id_cruved_scope_1(self, install_module_test_indi, users):
+        # scope 1 : droits complets sur ses propres individus
+        self_user = users["self_user"]
+        own = next(i for i in install_module_test_indi if i.id_digitiser == self_user.id_role)
+        set_logged_user_cookie(self.client, self_user)
+
+        r = self.client.get(
+            url_for(
+                "monitorings.api.get_individual_by_id",
+                module_code="test_indi",
+                id=own.id_individual,
+            )
+        )
+
+        assert r.status_code == 200
+        assert r.json["cruved"]["U"] is True
+        assert r.json["cruved"]["D"] is True
 
     def test_get_individual_by_id_not_found(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])
