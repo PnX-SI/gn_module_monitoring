@@ -317,52 +317,34 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
   onDelete(event) {
     this.currentRoute = event.objectType;
     const queryParams = { module_code: this.moduleCode };
-    if (event.objectType == 'sites_group') {
-      this._sites_group_service
-        .delete(event.rowSelected.id_sites_group, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/sites_group`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-            this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
-            this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
-          }, 100);
-        });
-    } else if (event.objectType == 'individual') {
-      this._individualService
-        .delete(event.rowSelected.id_individual, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/individual`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-          }, 100);
-        });
+    let delete$;
+    if (event.objectType == ObjectType.sites_group) {
+      delete$ = this._sites_group_service.delete(event.rowSelected.id_sites_group, queryParams);
+    } else if (event.objectType == ObjectType.individual) {
+      delete$ = this._individualService.delete(event.rowSelected.id_individual, queryParams);
     } else {
-      this._sitesService.delete(event.rowSelected.id_base_site, queryParams).subscribe((del) => {
-        setTimeout(() => {
-          this.bDeleteModalEmitter.emit(false);
-          this.activetabIndex = this.getdataTableIndex(event.objectType);
-          this.router.navigate([`/monitorings/object/${this.moduleCode}/site`, { delete: true }], {
-            onSameUrlNavigation: 'reload',
-          });
-
-          this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-          this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters']);
-        }, 100);
-      });
+      delete$ = this._sitesService.delete(event.rowSelected.id_base_site, queryParams);
     }
+    delete$.subscribe(() => {
+      this.bDeleteModalEmitter.emit(false);
+      this.refreshAfterDelete(event.objectType);
+    });
+  }
+
+  /**
+   * Rafraîchit le tableau (et la carte) de l'onglet courant sans recharger la route,
+   * en conservant la page et les filtres en cours.
+   * Si la ligne supprimée était la dernière de la page, revient à la page précédente.
+   */
+  refreshAfterDelete(objectType: ObjectType) {
+    const page = this.dataTableObjData[objectType]?.page;
+    let pageNumber = page ? page.page + 1 : 1;
+    if (page && pageNumber > 1 && page.count - 1 <= page.page * page.limit) {
+      pageNumber -= 1;
+    }
+    const tabConfig: any = this.dataTableConfig[this.getdataTableIndex(objectType)];
+    const defaultFilters = tabConfig?.defaultFilters || {};
+    this.getData(pageNumber, { ...defaultFilters, ...this.filters }, objectType);
   }
 
   onSelectedOnDataTable(data) {
