@@ -6,7 +6,7 @@ from marshmallow import fields, validates, validates_schema, ValidationError
 
 from gn_module_monitoring.tools.utils import schema_context
 
-from ..core import BaseStore
+from ..base import BaseStore
 
 log = logging.getLogger(__name__)
 
@@ -42,9 +42,10 @@ class BaseRelationshipStore(BaseStore):
                 raise ValidationError(
                     f"Les colonnes {invalid} n'existent pas dans le modèle {store.get_model().__name__}."
                 )
-            if self.get_model_pk().name not in values:
+            pk_name = store.get_model_pk().name
+            if pk_name not in values:
                 raise ValidationError(
-                    f"'storage_cols' **doit** contenir la PK du model ({self.get_model_pk().name})."
+                    f"'storage_cols' **doit** contenir la PK du model ({pk_name})."
                 )
 
         @validates_schema

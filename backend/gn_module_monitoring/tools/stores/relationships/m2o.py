@@ -24,6 +24,7 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.tools.utils import schema_context
 
+from ..base import BaseStore
 from .core import BaseRelationshipStore
 from .utils import get_nomenclature, get_nomenclature_type
 
@@ -87,37 +88,42 @@ class BaseForeignKeyStore(BaseRelationshipStore):
         except MultipleResultsFound:
             raise ValueError(f"Unexpected value '{value}' : plusieurs instances trouvées.")
 
-    def wire_to_storage(self, value: Any) -> Any:
-        """
-        La valeur reçue de l'API est la clé primaire de la cible.
-        Vérifie son type et l'existence de la ligne, puis retourne la valeur à stocker.
-        """
-        if value is None:
-            return None
-        pk = self.get_model_pk()
-        if not isinstance(value, pk.type.python_type):
-            raise ValidationError(
-                f"Valeur '{value}' invalide : {pk.type.python_type.__name__} attendu."
-            )
-        if db.session.get(self.get_model(), value) is None:
-            raise ValidationError(
-                f"Aucune instance de {self.get_model().__name__} pour {pk.name} = '{value}'."
-            )
-        return value
+    class Field(BaseStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            """
+            La valeur reçue de l'API est la clé primaire de la cible.
+            Vérifie son type et l'existence de la ligne, puis retourne la valeur à stocker.
+            """
+            if value is None:
+                return None
+            store = self.store
+            pk = store.get_model_pk()
+            if not isinstance(value, pk.type.python_type):
+                raise ValidationError(
+                    f"Valeur '{value}' invalide : {pk.type.python_type.__name__} attendu."
+                )
+            if db.session.get(store.get_model(), value) is None:
+                raise ValidationError(
+                    f"Aucune instance de {store.get_model().__name__} pour {pk.name} = '{value}'."
+                )
+            return value
 
-    def storage_to_wire(self, value: Any) -> Any:
-        if value is None:
-            return None
-        elif self.get("storage_cols") and isinstance(value, dict):
-            return value[self.get_model_pk().name]
-        elif self.get("storage_col") and isinstance(
-            value, self.get_model_attrs[self.get("storage_col")].type.python_type
-        ):
-            return getattr(self.get_instance_by_col(value), self.get_model_pk().name)
-        elif (pk := self.get_model_pk()) is not None and isinstance(value, pk.type.python_type):
-            return value  # we assume this is the pk!
-        else:
-            raise ValueError(f"Unexpected value '{value}'")
+        def _serialize(self, value, attr, obj, **kwargs):
+            store = self.store
+            if value is None:
+                return None
+            elif store.get("storage_cols") and isinstance(value, dict):
+                return value[store.get_model_pk().name]
+            elif store.get("storage_col") and isinstance(
+                value, store.get_model_attrs()[store.get("storage_col")].type.python_type
+            ):
+                return getattr(store.get_instance_by_col(value), store.get_model_pk().name)
+            elif (pk := store.get_model_pk()) is not None and isinstance(
+                value, pk.type.python_type
+            ):
+                return value  # we assume this is the pk!
+            else:
+                raise ValueError(f"Unexpected value '{value}'")
 
 
 class UserStore(BaseForeignKeyStore):
@@ -138,10 +144,10 @@ class UserStore(BaseForeignKeyStore):
 
         return UserWidget(data, **kwargs)
 
-    def get_wire_type(self):
-        if self["multiple"]:
-            return list[int]
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        @property
+        def wire_type(self):
+            return list[int] if self.store["multiple"] else int
 
 
 class ObserverListStore(BaseForeignKeyStore):
@@ -160,8 +166,8 @@ class ObserverListStore(BaseForeignKeyStore):
         # TODO: instancier DatalistWidget avec les bon paramètres
         raise NotImplementedError("Missing default widget for adapter 'observer_list'")
 
-    def get_wire_type(self):
-        return list[int]
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = list[int]
 
 
 class TaxonomyStore(BaseForeignKeyStore):
@@ -179,8 +185,8 @@ class TaxonomyStore(BaseForeignKeyStore):
 
         return TaxonomyWidget(data, **kwargs)
 
-    def get_wire_type(self):
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class TaxonomyListStore(BaseForeignKeyStore):
@@ -207,8 +213,8 @@ class TaxonomyListStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    def get_wire_type(self):
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class DatasetStore(BaseForeignKeyStore):
@@ -226,8 +232,8 @@ class DatasetStore(BaseForeignKeyStore):
 
         return DatasetWidget(data, **kwargs)
 
-    def get_wire_type(self) -> type:
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class HabitatStore(BaseForeignKeyStore):
@@ -245,8 +251,8 @@ class HabitatStore(BaseForeignKeyStore):
 
         return HabitatWidget(data, **kwargs)
 
-    def get_wire_type(self) -> type:
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class SitesGroupStore(BaseForeignKeyStore):
@@ -273,8 +279,8 @@ class SitesGroupStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    def get_wire_type(self) -> type:
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class SiteStore(BaseForeignKeyStore):
@@ -301,8 +307,8 @@ class SiteStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    def get_wire_type(self) -> type:
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
 
 class ModuleStore(BaseForeignKeyStore):
@@ -322,8 +328,8 @@ class ModuleStore(BaseForeignKeyStore):
             {"attribut_label": "Modules", **(data or {}), "multiple": False}, **kwargs
         )
 
-    def get_wire_type(self) -> type:
-        return list[int]
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = list[int]
 
 
 class NomenclatureStore(BaseForeignKeyStore):
@@ -431,23 +437,24 @@ class NomenclatureStore(BaseForeignKeyStore):
 
         return NomenclatureWidget(data, **kwargs)
 
-    def get_wire_type(self):
-        return int
+    class Field(BaseForeignKeyStore.Field):
+        wire_type = int
 
-    def storage_to_wire(self, value: Any) -> Any:
-        try:
-            super().storage_to_wire(value)
-        except ValueError:
-            if self.storage_col and isinstance(
-                value, self.get_model_attrs()[self.storage_col].type.python_type
-            ):
-                nomenclature = get_nomenclature(
-                    type=self["nomenclature_type"], **{self.storage_col: value}
-                )
-                if nomenclature is not None:
-                    return nomenclature
-            # Pas de solution trouvé
-            raise
+        def _serialize(self, value, attr, obj, **kwargs):
+            store = self.store
+            try:
+                return super()._serialize(value, attr, obj, **kwargs)
+            except ValueError:
+                if store.storage_col and isinstance(
+                    value, store.get_model_attrs()[store.storage_col].type.python_type
+                ):
+                    nomenclature = get_nomenclature(
+                        store["nomenclature_type"], **{store.storage_col: value}
+                    )
+                    if nomenclature is not None:
+                        return nomenclature
+                # Pas de solution trouvé
+                raise
 
     def check_stored_value(self, entity, row_id, field_name, value, fix):
         # TODO: cette fonction s’attend uniquement à trouver un id_nomenclature
