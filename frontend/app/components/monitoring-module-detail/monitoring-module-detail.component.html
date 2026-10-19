@@ -28,9 +28,9 @@
   </mat-card>
 
   <pnx-monitoring-properties-g
-    *ngIf="objectData && !bEdit"
+    *ngIf="resolvedObj && !bEdit"
     id="nav-properties"
-    [obj]="objectData"
+    [obj]="resolvedObj"
     [templateData]="templateData"
     [(bEdit)]="bEdit"
     [currentUser]="currentUser"
