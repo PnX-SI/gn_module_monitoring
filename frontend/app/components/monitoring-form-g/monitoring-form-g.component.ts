@@ -182,7 +182,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const nbChildren =
       (this.object['nb_sites'] || 0) +
       (this.object['nb_visits'] || 0) +
-      (this.object['nb_observations'] || 0);
+      (this.object['nb_observations'] || 0) +
+      (this.object['nb_marking_events'] || 0);
 
     if (nbChildren > 0) {
       this.canDelete = false;
