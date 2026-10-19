@@ -284,23 +284,12 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       queryParams[row['pk']] = row['id'];
       const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
       queryParams['parents_path'] = ['module', current_object];
-      if (current_object == 'individual') {
-        // Patch individual tant que la page détail des individus est générique
-        queryParams['parents_path'] = ['module', 'individual'];
-        this.router.navigate(
-          [`/monitorings/create_object/${this.moduleCode}/`, row['object_type']],
-          {
-            queryParams: queryParams,
-          }
-        );
-      } else {
-        this.router.navigate(
-          [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
-          {
-            queryParams: queryParams,
-          }
-        );
-      }
+      this.router.navigate(
+        [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
+        {
+          queryParams: queryParams,
+        }
+      );
     }
   }
 
