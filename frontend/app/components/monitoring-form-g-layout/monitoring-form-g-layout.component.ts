@@ -21,6 +21,8 @@ export class MonitoringFormGLayoutComponent {
   @Input() form: FormGroup;
   @Input() chainInput: boolean;
   @Input() saveSpinner: boolean;
+  // valeurs de l'objet chargées dans le formulaire (validation impossible avant)
+  @Input() formReady: boolean = true;
   @Input() saveAndAddChildrenSpinner: boolean;
   @Input() canUpdate: boolean;
   @Input() canDelete: boolean;
