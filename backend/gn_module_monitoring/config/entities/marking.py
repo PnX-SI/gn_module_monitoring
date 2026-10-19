@@ -3,7 +3,7 @@ from typing import ClassVar
 from .base import BaseEntityConfigSchema
 
 
-class MarkingConfigSchema(BaseEntityConfigSchema):
+class MarkingEntityConfigSchema(BaseEntityConfigSchema):
     default_config: ClassVar = {
         "id_field_name": "id_marking",
         "description_field_name": "id_marking",

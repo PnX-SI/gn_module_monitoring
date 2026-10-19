@@ -1,3 +1,4 @@
+from collections import UserDict
 from typing import Any, Literal, Never
 
 import marshmallow as ma
@@ -5,8 +6,10 @@ from marshmallow import fields, validates_schema, pre_load, ValidationError, val
 
 from ..utils import ValueLabelField, schema_context, MultilineStr
 
+WIDGET_MAP: dict[str, type] = {}
 
-class BaseWidget:
+
+class BaseWidget(UserDict):
     class ConfigSchema(ma.Schema):
         class Meta:
             unknown = ma.RAISE
@@ -38,11 +41,17 @@ class BaseWidget:
                 return obj.get(attr, default)
             return super().get_attribute(obj, attr, default)
 
-    @classmethod
-    def get_config_schema_class(cls):
-        return cls.ConfigSchema
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if "key" in cls.__dict__:
+            WIDGET_MAP[cls.key] = cls
+
+    @property
+    def config_schema_class(self):
+        return self.ConfigSchema
 
     def __init__(self, data=None, **kwargs):
+        super().__init__()
         data = data or {}
         if "type_widget" in data:
             self.extra_data = data
@@ -50,11 +59,12 @@ class BaseWidget:
             kwargs["unknown"] = ma.EXCLUDE
         else:
             self.extra_data = None
+        self.config_schema = self.config_schema_class()
         with schema_context(widget=self, retro_compat=self.extra_data is not None):
-            self.config = self.get_config_schema_class()().load(data, **kwargs)
+            self.data = self.config_schema.load(data, **kwargs)
 
     def dump_config(self):
-        return self.get_config_schema_class()().dump(self.config)
+        return self.config_schema.dump(self.data)
 
     def get_default_store(self, data=None, **kwargs):
         # Gestion de la rétro-compat: si le widget a été initialisé en mode retro-compat.,
@@ -96,7 +106,7 @@ class HiddenWidget(BaseWidget):
         from ..stores import BaseStore, DummyStore
 
         ctx = schema_context.get()
-        attr = ctx["entity_service"].get_attrs().get(ctx["field_name"])
+        attr = ctx["entity"].get_model_attrs().get(ctx["field_name"])
         if attr is not None:
             return BaseStore.get_store_from_attr(attr)(data, **kwargs)
         else:
@@ -151,10 +161,10 @@ class CheckboxWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import ListStore
 
-        return ListStore({"values": self.config["values"], **(data or {})}, **kwargs)
+        return ListStore({"values": self["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
-        return list[Literal[tuple(value["value"] for value in self.config["values"])]]
+        return list[Literal[tuple(value["value"] for value in self["values"])]]
 
 
 class RadioWidget(BaseWidget):
@@ -181,7 +191,7 @@ class NumberWidget(BaseWidget):
 
     @property
     def is_integer(self):
-        step = self.config.get("step")
+        step = self.get("step")
         return step is not None and step.is_integer()
 
     def _get_default_store(self, data=None, **kwargs):
@@ -234,10 +244,10 @@ class SelectWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import ValueStore
 
-        return ValueStore({"values": self.config["values"], **(data or {})}, **kwargs)
+        return ValueStore({"values": self["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
-        return Literal[tuple(value["value"] for value in self.config["values"])]
+        return Literal[tuple(value["value"] for value in self["values"])]
 
 
 class MultiselectWidget(BaseWidget):
@@ -249,10 +259,10 @@ class MultiselectWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import ListStore
 
-        return ListStore({"values": self.config["values"], **(data or {})}, **kwargs)
+        return ListStore({"values": self["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
-        return list[Literal[tuple(value["value"] for value in self.config["values"])]]
+        return list[Literal[tuple(value["value"] for value in self["values"])]]
 
 
 class DatalistWidget(BaseWidget):
@@ -280,10 +290,10 @@ class DatalistWidget(BaseWidget):
                     )
 
     def _get_default_store(self, data, **kwargs):
-        if "values" in self.config:
+        if "values" in self:
             from ..stores import ValueStore
 
-            return ValueStore({"values": self.config["values"], **data}, **kwargs)
+            return ValueStore({"values": self["values"], **data}, **kwargs)
         else:
             from ..stores import StringStore
 
@@ -291,8 +301,8 @@ class DatalistWidget(BaseWidget):
             return StringStore(data, **kwargs)
 
     def get_wire_type(self):
-        if "values" in self.config:
-            return Literal[tuple(value["value"] for value in self.config["values"])]
+        if "values" in self:
+            return Literal[tuple(value["value"] for value in self["values"])]
         else:
             # We do not know the type returned by the API…
             return Any
@@ -324,4 +334,3 @@ class MediaWidget(BaseWidget):
 
 
 # TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas
-# Multiple: multiselect, checkbox, municipalities, areas

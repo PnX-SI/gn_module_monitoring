@@ -1,4 +1,5 @@
 from .core import (
+    WIDGET_MAP,
     BaseWidget,
     TextWidget,
     TextareaWidget,

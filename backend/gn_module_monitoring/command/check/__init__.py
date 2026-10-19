@@ -1,10 +1,10 @@
+import json
+
 import click
 from flask import current_app
+from marshmallow import ValidationError
 
-from gn_module_monitoring.config.repositories import get_config
-
-from gn_module_monitoring.command.check.module import check_module_root_config
-from gn_module_monitoring.command.check.entities import check_module_entities_config
+from gn_module_monitoring.modules import MonitoringModule
 from gn_module_monitoring.command.check.data import check_module_data
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
 from gn_module_monitoring.command.check.sql import check_module_sql_files
@@ -14,27 +14,17 @@ from gn_module_monitoring.command.utils import available_modules, installed_modu
 from gn_module_monitoring.tools.utils import schema_context
 
 
-def load_legacy_config(module_code):
+def load_module(module_code):
     try:
-        config = get_config(module_code, force=True)
-    except Exception as e:  # FIXME: revoir get_config pour éviter les exceptions
+        return MonitoringModule(module_code)
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError) as e:
         yield e
-        return
-    return config
+    except ValidationError as e:
+        yield e.messages
 
 
-def run_module_check(module_code, check_data, data_filters, fix):
+def run_module_check(module_code, installed, check_data, data_filters, fix):
     total_error_count = 0
-
-    error_count, config = wrap_errors(
-        "Fichier de configuration du module",
-        check_module_root_config(module_code),
-        return_result=True,
-    )
-    total_error_count += error_count
-
-    if config is not None:
-        total_error_count += check_module_entities_config(module_code, config)
 
     total_error_count += wrap_errors(
         "Nomenclatures", check_module_nomenclatures(module_code, check_data, fix)
@@ -42,15 +32,16 @@ def run_module_check(module_code, check_data, data_filters, fix):
 
     total_error_count += check_module_sql_files(module_code, check_data, fix)
 
-    error_count, legacy_config = wrap_errors(
-        "Assemblage des configurations", load_legacy_config(module_code), return_result=True
-    )
-    total_error_count += error_count
+    if installed:
+        error_count, module = wrap_errors(
+            "Assemblage des configurations", load_module(module_code), return_result=True
+        )
+        total_error_count += error_count
 
-    if config and check_data:
-        total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
+        if module is not None and check_data:
+            total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
 
-        total_error_count += check_module_data(config, legacy_config, fix, data_filters)
+            total_error_count += check_module_data(module, fix, data_filters)
 
     return total_error_count
 
@@ -76,10 +67,12 @@ def run_check(module_code, strict, check_data, data_filters, fix):
     for module_code in module_codes:
         click.secho(f"===== {module_code} =====", bold=True)
 
-        with schema_context(protocol_installed=module_code in installed_module_codes):
+        installed = module_code in installed_module_codes
+        with schema_context(protocol_installed=installed):
             error_count += run_module_check(
                 module_code,
-                check_data and module_code in installed_module_codes,
+                installed,
+                check_data and installed,
                 data_filters,
                 fix,
             )

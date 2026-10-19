@@ -3,7 +3,7 @@ from typing import ClassVar
 from .base import BaseEntityConfigSchema
 
 
-class SitesGroupConfigSchema(BaseEntityConfigSchema):
+class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
     default_config: ClassVar = {
         "id_field_name": "id_sites_group",
         "chained": True,

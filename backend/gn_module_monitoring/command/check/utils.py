@@ -1,4 +1,4 @@
-from pprint import pformat
+import json
 from typing import overload, Literal, Any
 from textwrap import indent
 
@@ -34,8 +34,10 @@ def wrap_errors(message, errors, return_result=False):
             if not nl:
                 nl = True
                 click.echo("")
-            if not isinstance(error, str):
-                error = pformat(error)
+            if isinstance(error, (dict, list)):
+                error = json.dumps(error, indent=2, ensure_ascii=False, default=str)
+            elif not isinstance(error, str):
+                error = str(error)
 
             lines = error.splitlines()
             if lines[0]:
