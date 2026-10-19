@@ -177,11 +177,10 @@ class EntityFieldConfigSchema(ma.Schema):
         orig_data = deepcopy(data)
         if "type_widget" in data:
             if "widget" in data:
-                raise ValidationError(
-                    {"widget": "Vous devez supprimer 'type_widget' lorsque vous utilisez 'widget'"}
-                )
+                data["widget"].update(data)
+            else:
+                data["widget"] = deepcopy(orig_data)
             widget_type = data.pop("type_widget")
-            data["widget"] = deepcopy(orig_data)
             data["widget"]["type"] = widget_type
             if widget_type == "site":
                 # Il n’y a pas de widget site
@@ -190,11 +189,10 @@ class EntityFieldConfigSchema(ma.Schema):
                 data["widget"]["type"] = "hidden"
         if "type_util" in data:
             if "store" in data:
-                raise ValidationError(
-                    {"store": "Vous devez supprimer 'type_util' lorsque vous utilisez 'store'"}
-                )
+                data["store"].update(data)
+            else:
+                data["store"] = deepcopy(orig_data)
             store_type = data.pop("type_util")
-            data["store"] = deepcopy(orig_data)
             data["store"]["type"] = store_type
             if store_type == "dataset" and data["store"].pop("multi_select", False):
                 data["store"]["type"] = "datasets"

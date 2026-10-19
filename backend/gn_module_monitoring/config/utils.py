@@ -282,8 +282,8 @@ def process_config_display(object_type, config):
 
     config_object["display_properties"] = display_properties
     config_object["display_list"] = display_list
-    config_object["properties_keys"] = properties_keys
-    config_object["display_form"] = display_form
+    config_object["properties_keys"] = properties_keys  # FIXME: not used
+    config_object["display_form"] = display_form  # FIXME: not used
 
 
 def customize_config(elem, custom):
@@ -324,9 +324,10 @@ def apply_substitutions(data, substitutions):
     return data
 
 
-def get_substitutions(config):
-    substitutions = {f"__MODULE.{k.upper()}": v for k, v in config["module"].items()}
+def get_substitutions(module_db_config):
+    substitutions = {f"__MODULE.{k.upper()}": v for k, v in module_db_config.items()}
     substitutions["__MONITORINGS_PATH"] = get_monitorings_path()
+    # FIXME: backport this?
     # data["custom"]["__MODULE.IDS_TYPE_SITE"] = [
     #     {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
     # ]

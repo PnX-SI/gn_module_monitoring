@@ -17,7 +17,6 @@ class VisitConfigSchema(BaseEntityConfigSchema):
             "visit_date_min",
             "observers",
             "comments",
-            "dataset",
             "nb_observations",
         ],
         "display_list": [
@@ -25,7 +24,6 @@ class VisitConfigSchema(BaseEntityConfigSchema):
             "visit_date_min",
             "observers",
             "comments",
-            "dataset",
             "nb_observations",
         ],
         "sorts": [{"prop": "visit_date_min", "dir": "desc"}],
@@ -60,7 +58,12 @@ class VisitConfigSchema(BaseEntityConfigSchema):
                 "attribut_label": "Date (max)",
                 "hidden": True,
             },
-            "id_nomenclature_tech_collect_campanule": {},
+            "id_nomenclature_tech_collect_campanule": {
+                "store": {
+                    "type": "nomenclature",
+                    "nomenclature_type": "TECHNIQUE_OBS",
+                }
+            },
             "comments": {"type_widget": "text", "attribut_label": "Commentaires"},
             "uuid_base_visit": {
                 "attribut_label": "uuid",

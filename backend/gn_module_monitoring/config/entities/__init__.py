@@ -1,4 +1,5 @@
 import json
+from marshmallow import ValidationError
 
 from gn_module_monitoring.config.utils import apply_substitutions, monitoring_module_config_path
 from gn_module_monitoring.tools.utils import schema_context
@@ -23,4 +24,7 @@ def load_module_entity_config(module_code, module_tree, entity, substitutions=No
 
     entity_service = SERVICE_MAP[entity]
     with schema_context(entity_service=entity_service):
-        return entity_service.config_schema(module_tree=module_tree).load(entity_config)
+        try:
+            return entity_service.config_schema(module_tree=module_tree).load(entity_config)
+        except ValidationError as e:
+            raise ValidationError({entity: e.messages_dict})
