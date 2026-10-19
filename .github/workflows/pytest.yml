@@ -23,8 +23,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["release-2.18.0"] # Mettre version compatible
-    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@release-2.18.0
+        geonature_ref: ["monitoring-controls"] # Mettre version compatible
+        geontaure_repo: naturalsolutions/GeoNature
+    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
     with:
       geonature_ref: ${{ matrix.geonature_ref }}
       upload_coverage: true
