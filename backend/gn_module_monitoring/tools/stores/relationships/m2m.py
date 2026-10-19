@@ -48,8 +48,8 @@ class BaseManyToManyStore(BaseRelationshipStore):
                 else:
                     log.warning(f"Validation warning: {error_message}")
 
-    def get_wire_type(self) -> type:
-        return list[int]
+    class Field(BaseRelationshipStore.Field):
+        wire_type = list[int]
 
 
 class TypesSiteStore(BaseManyToManyStore):

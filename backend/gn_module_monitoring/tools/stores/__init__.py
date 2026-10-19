@@ -1,15 +1,18 @@
-from .core import (
+from .base import (
     STORE_MAP,
     BaseStore,
     DummyStore,
+    ValueStore,
+    ListStore,
+)
+from .type import (
+    BaseTypeStore,
     StringStore,
     BooleanStore,
     IntegerStore,
     FloatStore,
     DateStore,
     DateTimeStore,
-    ValueStore,
-    ListStore,
     UUIDStore,
 )
 from .relationships import (
