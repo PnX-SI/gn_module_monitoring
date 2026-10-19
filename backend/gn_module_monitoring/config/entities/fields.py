@@ -3,149 +3,45 @@ from typing import Any
 import logging
 
 import marshmallow as ma
-from marshmallow import fields, pre_load, post_load, ValidationError
+from marshmallow import fields, pre_load, post_load, pre_dump, post_dump, ValidationError
 from flask import current_app
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.tools.widgets import (
-    DatasetWidget,
-    ModuleWidget,
-    TextWidget,
-    TextareaWidget,
-    BoolCheckboxWidget,
-    CheckboxWidget,
-    RadioWidget,
-    NumberWidget,
-    DateWidget,
-    TimeWidget,
-    SelectWidget,
-    MultiselectWidget,
-    DatalistWidget,
-    NomenclatureWidget,
-    TaxonomyWidget,
-    HabitatWidget,
-    MediaWidget,
-    HiddenWidget,
-    UserWidget,
-    ObserversWidget,
-    ObserversTextWidget,
-    AreasWidget,
-    MunicipalitiesWidget,
-)
-from gn_module_monitoring.tools.stores import (
-    BaseStore,
-    BooleanStore,
-    IntegerStore,
-    FloatStore,
-    UserStore,
-    ObserverListStore,
-    NomenclatureStore,
-    TaxonomyStore,
-    TaxonomyListStore,
-    DatasetStore,
-    HabitatStore,
-    TypesSiteStore,
-    SitesGroupStore,
-    SiteStore,
-    ModuleStore,
-    UUIDStore,
-    DateStore,
-    DateTimeStore,
-    AreasStore,
-    DatasetsStore,
-    ModulesStore,
-    UsersStore,
-    NomenclaturesStore,
-)
+from gn_module_monitoring.tools.widgets import WIDGET_MAP
+from gn_module_monitoring.tools.stores import BaseStore, STORE_MAP
 from gn_module_monitoring.tools.utils import MultilineStr, schema_context
 
 logger = logging.getLogger()
 
 
 class WidgetConfigSchema(ma.Schema):
-    widget_map = {
-        TextWidget.key: TextWidget,
-        TextareaWidget.key: TextareaWidget,
-        BoolCheckboxWidget.key: BoolCheckboxWidget,
-        CheckboxWidget.key: CheckboxWidget,
-        RadioWidget.key: RadioWidget,
-        NumberWidget.key: NumberWidget,
-        DateWidget.key: DateWidget,
-        TimeWidget.key: TimeWidget,
-        SelectWidget.key: SelectWidget,
-        MultiselectWidget.key: MultiselectWidget,
-        DatalistWidget.key: DatalistWidget,
-        NomenclatureWidget.key: NomenclatureWidget,
-        TaxonomyWidget.key: TaxonomyWidget,
-        UserWidget.key: UserWidget,
-        ObserversWidget.key: ObserversWidget,
-        ObserversTextWidget.key: ObserversTextWidget,
-        DatasetWidget.key: DatasetWidget,
-        ModuleWidget.key: ModuleWidget,
-        HabitatWidget.key: HabitatWidget,
-        MediaWidget.key: MediaWidget,
-        HiddenWidget.key: HiddenWidget,
-        ObserversTextWidget.key: ObserversTextWidget,
-        AreasWidget.key: AreasWidget,
-        MunicipalitiesWidget.key: MunicipalitiesWidget,
-    }
-
     type = fields.Str(required=True)
 
     def load(self, data, **kwargs):
         data = super().load(data, unknown=ma.INCLUDE)
-        if data["type"] in self.widget_map:
-            widget = self.widget_map[data["type"]]
+        if data["type"] in WIDGET_MAP:
+            widget = WIDGET_MAP[data["type"]]
             return widget(data, **kwargs)
         else:
             raise ValidationError(
                 {
-                    "type": f"Type de widget '{data["type"]}' inconnu. Types autorisés : {', '.join(self.widget_map)}"
+                    "type": f"Type de widget '{data["type"]}' inconnu. Types autorisés : {', '.join(WIDGET_MAP)}"
                 }
             )
 
 
 class StoreConfigSchema(ma.Schema):
-    store_map = {
-        BooleanStore.key: BooleanStore,
-        IntegerStore.key: IntegerStore,
-        FloatStore.key: FloatStore,
-        UserStore.key: UserStore,
-        ObserverListStore.key: ObserverListStore,
-        NomenclatureStore.key: NomenclatureStore,
-        TaxonomyStore.key: TaxonomyStore,
-        TaxonomyListStore.key: TaxonomyListStore,
-        DatasetStore.key: DatasetStore,
-        HabitatStore.key: HabitatStore,
-        TypesSiteStore.key: TypesSiteStore,
-        SitesGroupStore.key: SitesGroupStore,
-        SiteStore.key: SiteStore,
-        ModuleStore.key: ModuleStore,
-        UUIDStore.key: UUIDStore,
-        DateStore.key: DateStore,
-        DateTimeStore.key: DateTimeStore,
-        AreasStore.key: AreasStore,
-        DatasetsStore.key: DatasetsStore,
-        ModulesStore.key: ModulesStore,
-        UsersStore.key: UsersStore,
-        NomenclaturesStore.key: NomenclaturesStore,
-    }
-
     type = fields.Str(required=True)
 
     def load(self, data, **kwargs):
         data = super().load(data, unknown=ma.INCLUDE)
-        if data["type"] in self.store_map:
-            store = self.store_map[data["type"]]
-            if type(store) == tuple:
-                store, default_params = store
-            else:
-                default_params = {}
-            return store(data, **{**default_params, **kwargs})
+        if data["type"] in STORE_MAP:
+            store = STORE_MAP[data["type"]]
+            return store(data, **kwargs)
         else:
             raise ValidationError(
                 {
-                    "type": f"Type de store '{data["type"]}' inconnu. Types autorisés : {', '.join(self.store_map)}"
+                    "type": f"Type de store '{data["type"]}' inconnu. Types autorisés : {', '.join(STORE_MAP)}"
                 }
             )
 
@@ -230,9 +126,8 @@ class EntityFieldConfigSchema(ma.Schema):
                 raise ValidationError({"store": e.messages_dict})
         else:
             ctx = schema_context.get()
-            entity_service = ctx["entity_service"]
             field_name = ctx["field_name"]
-            attr = entity_service.get_attrs().get(field_name)
+            attr = ctx["entity"].get_model_attrs().get(field_name)
             if attr is not None:
                 try:
                     store_class = BaseStore.get_store_from_attr(attr)
@@ -273,4 +168,26 @@ class EntityFieldConfigSchema(ma.Schema):
             else:
                 logger.warning(message)
 
+        return data
+
+    @pre_dump
+    def dump_widget_and_store(self, data, **kwarsg):
+        return {
+            **data,
+            "widget": data["widget"].dump_config(),
+            "store": data["store"].dump_config(),
+        }
+
+    @post_dump
+    def retro_compat(self, data, **kwargs):
+        # frontend requires type_widget & type_util, not widget & store :-(
+        widget = data.pop("widget")
+        widget["type_widget"] = widget.pop("type")
+        store = data.pop("store")
+        store["type_util"] = store.pop("type")
+        data = {
+            **widget,
+            **store,
+            **data,
+        }
         return data

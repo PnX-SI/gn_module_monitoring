@@ -14,12 +14,12 @@ class NomenclatureWidget(BaseWidget):
 
         # multi_select est une option du widget, pas du store
         data = {k: v for k, v in data.items() if k != "multi_select"}
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return NomenclaturesStore(data, **kwargs)
         return NomenclatureStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return list[int]
         return int
 
@@ -47,13 +47,13 @@ class DatasetWidget(BaseWidget):
 
         # multi_select est une option du widget, pas du store
         data = {k: v for k, v in data.items() if k != "multi_select"}
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return DatasetsStore(data, **kwargs)
         else:
             return DatasetStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return list[int]
         return int
 
@@ -72,13 +72,13 @@ class ModuleWidget(BaseWidget):
 
         # multiple est une option du widget, pas du store
         data = {k: v for k, v in data.items() if k != "multiple"}
-        if self.config["multiple"]:
+        if self["multiple"]:
             return ModulesStore(data, **kwargs)
         else:
             return ModuleStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["multiple"]:
+        if self["multiple"]:
             return list[int]
         return int
 
@@ -120,12 +120,12 @@ class ObserversWidget(BaseWidget):
         # multi_select est une option du widget, pas du store
         data = {k: v for k, v in data.items() if k != "multi_select"}
         # TODO: pass some parameters like the observer list
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return UsersStore(data, **kwargs)
         return UserStore(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["multi_select"]:
+        if self["multi_select"]:
             return list[int]
         return int
 

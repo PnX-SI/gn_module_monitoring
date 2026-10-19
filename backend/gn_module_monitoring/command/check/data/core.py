@@ -5,43 +5,10 @@ from geonature.utils.env import db
 
 from pypnnomenclature.models import TNomenclatures
 
-from gn_module_monitoring.command.check.nomenclature import get_nomenclature, get_nomenclature_type
 from gn_module_monitoring.command.check.utils import (
     CheckResult,
     wrap_errors,
 )
-from gn_module_monitoring.command.imports.constant import MULTI_TYPE_WIDGET
-from gn_module_monitoring.config.utils import get_tree_entities
-
-
-def is_multiple(field_conf: dict) -> bool:
-    multiple = field_conf.get("multiple", field_conf.get("multi_select", False))
-    if isinstance(multiple, str):
-        multiple = multiple.strip().lower() in ["true", "vrai", "oui", "yes", "1"]
-    return bool(multiple) or field_conf.get("type_widget") in MULTI_TYPE_WIDGET
-
-
-def get_fields_config(config: dict, object_type: str):
-    """
-    Retourne la configuration des champs d'un objet, la configuration
-    spécifique prenant le pas sur la configuration générique.
-    """
-    object_config = config.get(object_type)
-    if not isinstance(object_config, dict):
-        return {}
-
-    fields = {}
-    for scope in ["generic", "specific"]:
-        scope_fields = object_config.get(scope)
-        if isinstance(scope_fields, dict):
-            fields.update(
-                {
-                    field_name: field_conf
-                    for field_name, field_conf in scope_fields.items()
-                    if isinstance(field_conf, dict)
-                }
-            )
-    return fields
 
 
 def get_table(name, schema="gn_monitoring"):
@@ -148,9 +115,7 @@ def check_field(entity: str, row_id: int, field_name: str, field_config: dict, v
     #         updated_value = value[0]
     #         value = updated_value
     store = field_config["store"]
-    updated_value = yield from store.check_stored_value(
-        entity, row_id, field_name, field_config, value, fix
-    )
+    updated_value = yield from store.check_stored_value(entity, row_id, field_name, value, fix)
     return updated_value
 
 
@@ -163,7 +128,7 @@ def check_row(row_id, config, data):
     yield
 
 
-def check_module_data_type(config, fix, data_filters, id_module, object_type):
+def check_module_data_type(module, fix, data_filters, object_type):
     # Excluded by CLI filters?
     if any(data_filters.values()) and not (
         data_filters.get(object_type)
@@ -172,11 +137,12 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
     ):
         return CheckResult("[SKIP]", bold=True)
 
-    if object_type not in config:
-        return CheckResult("[INVALID CONFIG]", fg="yellow")
+    if object_type not in module.entities:
+        return CheckResult("[INVALID CONFIG]", fg="yellow")
 
-    fields_config = config[object_type].get("fields", {})
-    rows = get_data_rows(object_type, id_module, data_filters.get(f"{object_type}_pks"))
+    entity = module.entities[object_type]
+    fields_config = entity.data["fields"]
+    rows = get_data_rows(object_type, module.module.id_module, data_filters.get(f"{object_type}_pks"))
     if not rows:
         return CheckResult("[NO DATA]", bold=True)
 
@@ -209,17 +175,14 @@ def check_module_data_type(config, fix, data_filters, id_module, object_type):
         if modified_row:
             yield from update_row(object_type, row_id, data)
 
-        yield from check_row(row_id, config, data)
+        yield from check_row(row_id, entity, data)
 
 
-def check_module_data(
-    config: dict, legacy_config: dict, fix: bool, data_filters: None | dict = None
-):
+def check_module_data(module, fix: bool, data_filters: None | dict = None):
     total_error_count = 0
-    id_module = legacy_config["module"]["id_module"]
-    for object_type in get_tree_entities(config["tree"]):
+    for object_type in module.entities_list:
         total_error_count += wrap_errors(
             f"Données - {object_type}",
-            check_module_data_type(config, fix, data_filters, id_module, object_type),
+            check_module_data_type(module, fix, data_filters, object_type),
         )
     return total_error_count

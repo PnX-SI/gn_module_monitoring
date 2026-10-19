@@ -3,7 +3,7 @@ from typing import ClassVar
 from .base import BaseEntityConfigSchema
 
 
-class VisitConfigSchema(BaseEntityConfigSchema):
+class VisitEntityConfigSchema(BaseEntityConfigSchema):
     default_config: ClassVar = {
         "id_field_name": "id_base_visit",
         "chained": True,

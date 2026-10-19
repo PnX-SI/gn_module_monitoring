@@ -324,44 +324,6 @@ def apply_substitutions(data, substitutions):
     return data
 
 
-def get_substitutions(module_db_config):
-    substitutions = {f"__MODULE.{k.upper()}": v for k, v in module_db_config.items()}
-    substitutions["__MONITORINGS_PATH"] = get_monitorings_path()
-    # FIXME: backport this?
-    # data["custom"]["__MODULE.IDS_TYPE_SITE"] = [
-    #     {"id_nomenclature_type_site": t} for t in config.get("module", [])["types_site"].keys()
-    # ]
-    return substitutions
-
-
-def get_tree_relations(tree):
-    """
-    Calcule, pour chaque type d'objet de l'arbre, ses types parents et enfants directs.
-
-    Même logique que `get_config_objects` : les parents sont dans l'ordre de parcours
-    de l'arbre et dédoublonnés, les enfants sont les clés du sous-arbre.
-    """
-    parent_types = {}
-    children_types = {}
-
-    def walk(subtree, parent_type=None):
-        for object_type, sub in (subtree or {}).items():
-            children = list((sub or {}).keys())
-            children_types.setdefault(object_type, [])
-            children_types[object_type] = list(
-                dict.fromkeys(children_types[object_type] + children)
-            )
-            parent_types.setdefault(object_type, [])
-            if parent_type:
-                parent_types[object_type] = list(
-                    dict.fromkeys(parent_types[object_type] + [parent_type])
-                )
-            walk(sub, object_type)
-
-    walk(tree)
-    return parent_types, children_types
-
-
 def get_data_preload(config):
     out = {"nomenclature": ["TYPE_MEDIA"]}
 
@@ -534,24 +496,3 @@ def get_specific_properties_from_object_config(monitoringClass: object, object_c
         if not hasattr(monitoringClass, field_name)
     }
     return specific_properties
-
-
-def get_tree_entities(tree: dict):
-    """
-    Retourne la liste des objets du sous-module (sites, visites, observations...)
-    pour lesquels des données spécifiques sont stockées, en parcourant
-    l'arbre des objets défini dans la configuration.
-    """
-
-    def iter_tree(tree):
-        for object_type, children in (tree or {}).items():
-            yield object_type
-            if children is not None:
-                yield from iter_tree(children)
-
-    object_types = ["module"]
-    for object_type in iter_tree(tree):
-        if object_type not in object_types:
-            object_types.append(object_type)
-
-    return object_types

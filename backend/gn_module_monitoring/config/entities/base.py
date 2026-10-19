@@ -2,9 +2,9 @@ from copy import deepcopy
 
 import sqlalchemy as sa
 import marshmallow as ma
-from marshmallow import pre_load, validates_schema, ValidationError
+from marshmallow import pre_load, post_load, validates_schema, ValidationError
 
-from gn_module_monitoring.config.utils import customize_config, get_data_preload
+from gn_module_monitoring.config.utils import apply_substitutions
 from .fields import EntityFieldConfigSchema, schema_context
 
 
@@ -30,23 +30,24 @@ class BaseEntityConfigSchema(ma.Schema):
     label_list = ma.fields.Str()
     sorts = ma.fields.Raw()
     uuid_field_name = ma.fields.Str()
-
-    def __init__(self, *, module_tree, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.module_tree = module_tree
+    # Calculés à partir de l’arbre du module (voir load_tree_relations)
+    parent_types = ma.fields.List(ma.fields.Str(), dump_only=True)
+    children_types = ma.fields.List(ma.fields.Str(), dump_only=True)
 
     @pre_load
     def pre_load(self, data, **kwargs):
         """
         Ce hook s’occupe de merger la config par défaut avec la config que l’on s’apprête à charger.
         """
+        substitutions = schema_context.get()["entity"].module.substitutions
+        data = apply_substitutions(data, substitutions)
         # Permet de valider de manière minimale les fields pour les manipuler
         fields_field = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Dict())
         # specific is a retro.compat key
         fields = data.pop("fields", data.pop("specific", {}))
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
-        data = {**self.get_default_config(), **data}
+        data = {**apply_substitutions(self.get_default_config(), substitutions), **data}
         # Comme le legacy : display_list vaut display_properties si non défini
         data.setdefault("display_list", data.get("display_properties", []))
         # Maintenant, pour les fields, on permet :
@@ -54,7 +55,7 @@ class BaseEntityConfigSchema(ma.Schema):
         #   - d’override, pour les fields existant dans default_data, uniquement :
         #     - le widget
         #     - required, seulement si c’est pour le forcer à True
-        model = schema_context.get()["entity_service"].model
+        model = schema_context.get()["entity"].model
         mapper = sa.inspect(model)
         for field_name, field_def in fields.items():
             if field_name in data["fields"]:  # field existant
@@ -77,7 +78,7 @@ class BaseEntityConfigSchema(ma.Schema):
 
     @validates_schema
     def validates_schema(self, data, **kwargs):
-        schema = schema_context.get()["entity_service"].get_model_schema()
+        schema = schema_context.get()["entity"].get_model_schema()
         for field in data["display_list"]:
             if field not in data["fields"] and not hasattr(schema, field):
                 raise ValidationError({"display_list": f"Le champs '{field}' n’a pas été défini."})
@@ -86,6 +87,29 @@ class BaseEntityConfigSchema(ma.Schema):
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )
+
+    @post_load
+    def load_tree_relations(self, data, **kwargs):
+        """
+        Ajoute `parent_types` et `children_types` : les types d’objets parents et enfants directs
+        de cette entité dans l’arbre du module.
+        """
+        entity = schema_context.get()["entity"]
+        parent_types = []
+        children_types = []
+
+        def walk(subtree, parent_type=None):
+            for object_type, sub in (subtree or {}).items():
+                if object_type == entity.name:
+                    if parent_type:
+                        parent_types.append(parent_type)
+                    children_types.extend((sub or {}).keys())
+                walk(sub, object_type)
+
+        walk(entity.module["tree"])
+        data["parent_types"] = list(dict.fromkeys(parent_types))
+        data["children_types"] = list(dict.fromkeys(children_types))
+        return data
 
     def get_default_config(self):
         return deepcopy(self.default_config)

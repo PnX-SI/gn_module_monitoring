@@ -1,4 +1,5 @@
 import logging
+from collections import UserDict
 from typing import Literal, Never, Any
 
 import sqlalchemy as sa
@@ -12,8 +13,10 @@ from ..utils import ValueLabelField, schema_context
 
 log = logging.getLogger(__name__)
 
+STORE_MAP: dict[str, type] = {}
 
-class BaseStore:
+
+class BaseStore(UserDict):
     class ConfigSchema(ma.Schema):
         class Meta:
             unknown = ma.RAISE
@@ -26,9 +29,14 @@ class BaseStore:
                 data["type"] = schema_context.get()["store"].key
             return data
 
-    @classmethod
-    def get_config_schema_class(cls):
-        return cls.ConfigSchema
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if "key" in cls.__dict__:
+            STORE_MAP[cls.key] = cls
+
+    @property
+    def config_schema_class(self):
+        return self.ConfigSchema
 
     @classmethod
     def get_store_from_attr(cls, attr):
@@ -60,6 +68,7 @@ class BaseStore:
         raise ValueError(f"Unable to find proper store for column '{attr.key}'")
 
     def __init__(self, data=None, **kwargs):
+        super().__init__()
         data = data or {}
         if "type_util" in data:
             self.extra_data = data
@@ -68,14 +77,15 @@ class BaseStore:
         else:
             self.extra_data = None
         ctx = schema_context.get()
-        self.entity_service = ctx["entity_service"]
+        self.entity = ctx["entity"]
         self.field_name = ctx["field_name"]
-        self.native_attr = self.entity_service.get_attrs().get(self.field_name)
+        self.native_attr = self.entity.get_model_attrs().get(self.field_name)
+        self.config_schema = self.config_schema_class()
         with schema_context(store=self):
-            self.config = self.get_config_schema_class()().load(data, **kwargs)
+            self.data = self.config_schema.load(data, **kwargs)
 
     def dump_config(self):
-        return self.get_config_schema_class()().dump(self.config)
+        return self.config_schema.dump(self.data)
 
     def get_default_widget(self, data=None, **kwargs):
         # Gestion de la rétro-compat: si l’adapter a été initialisé en mode retro-compat.,
@@ -156,10 +166,13 @@ class ValueStore(BaseStore):
     class ConfigSchema(BaseStore.ConfigSchema):
         values = fields.List(ValueLabelField(), required=True)
 
-    # TODO: default widget
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import SelectWidget
+
+        return SelectWidget({"values": self["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
-        return Literal[tuple(value["value"] for value in self.config["values"])]
+        return Literal[tuple(value["value"] for value in self["values"])]
 
 
 class ListStore(BaseStore):
@@ -175,10 +188,10 @@ class ListStore(BaseStore):
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import CheckboxWidget
 
-        return CheckboxWidget({"values": self.config["values"], **(data or {})}, **kwargs)
+        return CheckboxWidget({"values": self["values"], **(data or {})}, **kwargs)
 
     def get_wire_type(self):
-        return list[Literal[tuple(value["value"] for value in self.config["values"])]]
+        return list[Literal[tuple(value["value"] for value in self["values"])]]
 
 
 class BaseTypeStore(BaseStore):

@@ -108,10 +108,10 @@ class BaseForeignKeyStore(BaseRelationshipStore):
     def storage_to_wire(self, value: Any) -> Any:
         if value is None:
             return None
-        elif self.config.storage_cols and isinstance(value, dict):
+        elif self.get("storage_cols") and isinstance(value, dict):
             return value[self.get_model_pk().name]
-        elif self.config.storage_col and isinstance(
-            value, self.get_model_attrs[self.config.storage_col].type.python_type
+        elif self.get("storage_col") and isinstance(
+            value, self.get_model_attrs[self.get("storage_col")].type.python_type
         ):
             return getattr(self.get_instance_by_col(value), self.get_model_pk().name)
         elif (pk := self.get_model_pk()) is not None and isinstance(value, pk.type.python_type):
@@ -139,7 +139,7 @@ class UserStore(BaseForeignKeyStore):
         return UserWidget(data, **kwargs)
 
     def get_wire_type(self):
-        if self.config["multiple"]:
+        if self["multiple"]:
             return list[int]
         return int
 
@@ -364,7 +364,7 @@ class NomenclatureStore(BaseForeignKeyStore):
             ):
                 # ctx = schema_context.get()
                 # log.warning(
-                #     f"{ctx["entity_service"].name} - {ctx["field_name"]} - "
+                #     f"{ctx["entity"].name} - {ctx["field_name"]} - "
                 #     "Detected nomenclature store with datalist widget. "
                 #     "Consider using nomenclature widget."
                 # )
@@ -442,7 +442,7 @@ class NomenclatureStore(BaseForeignKeyStore):
                 value, self.get_model_attrs()[self.storage_col].type.python_type
             ):
                 nomenclature = get_nomenclature(
-                    type=self.config["nomenclature_type"], **{self.storage_col: value}
+                    type=self["nomenclature_type"], **{self.storage_col: value}
                 )
                 if nomenclature is not None:
                     return nomenclature
@@ -454,7 +454,7 @@ class NomenclatureStore(BaseForeignKeyStore):
         # Il faut la faire évoluer pour gérer storage_col & storage_cols
         updated_value = value
 
-        nomenclature_type = self.config["nomenclature_type"]
+        nomenclature_type = self["nomenclature_type"]
 
         if type(value) != int:
             yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - valeur '{value}' : pas un entier"
@@ -492,7 +492,7 @@ class NomenclatureStore(BaseForeignKeyStore):
         if nomenclature is None:
             return value
 
-        cd_nomenclatures = self.config.get("cd_nomenclatures")
+        cd_nomenclatures = self.get("cd_nomenclatures")
         if cd_nomenclatures and nomenclature.cd_nomenclature not in cd_nomenclatures:
             yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - cd_nomenclature '{nomenclature.cd_nomenclature}' : non autorisée"
             yield "\nValeurs admises :"

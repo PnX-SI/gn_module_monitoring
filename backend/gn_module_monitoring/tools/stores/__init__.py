@@ -1,4 +1,5 @@
 from .core import (
+    STORE_MAP,
     BaseStore,
     DummyStore,
     StringStore,

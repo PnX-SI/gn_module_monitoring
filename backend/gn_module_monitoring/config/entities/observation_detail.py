@@ -3,7 +3,7 @@ from typing import ClassVar
 from .base import BaseEntityConfigSchema
 
 
-class ObservationDetailConfigSchema(BaseEntityConfigSchema):
+class ObservationDetailEntityConfigSchema(BaseEntityConfigSchema):
     default_config: ClassVar = {
         "id_field_name": "id_observation_detail",
         "description_field_name": "id_observation_detail",

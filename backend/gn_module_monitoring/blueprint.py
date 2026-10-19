@@ -19,15 +19,12 @@ from geonature.core.admin.admin import admin as flask_admin
 from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_commons.models.base import TModules
 
-from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring import MODULE_CODE, EXTENSION_CODE
 from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.monitoring.admin import BibTypeSiteView
 from gn_module_monitoring.command.cmd import commands  # noqa: E402
-from gn_module_monitoring.command.utils import get_modules
 from gn_module_monitoring.tools.stores import BaseStore
 from gn_module_monitoring.tools.widgets import BaseWidget
-from gn_module_monitoring.config import load_module_config
-from gn_module_monitoring.tools.utils import schema_context
 
 log = logging.getLogger()
 
@@ -45,19 +42,11 @@ def register_serializer(state):
     register_json_provider(BaseWidget, lambda o: o.dump_config())
 
 
-# @blueprint.record
-# def load_modues_config(state):
-#     monitoring_config = config[MODULE_CODE]
-#     monitoring_config["modules"] = dict()
-#     for module_code in ["generic"] + [module.module_code for module in get_modules()]:
-#         try:
-#             monitoring_config["modules"][module_code] = load_module_config(module_code)
-#         except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
-#             ctx = click.get_current_context(silent=True)
-#             # Avoid printing errors when using the CLI
-#             if ctx is None or True:
-#                 log.exception(e)
-#             log.warning(f"Unable to load protocol '{module_code}', skipping…")
+@blueprint.record
+def init_monitoring(state):
+    current_app.extensions[EXTENSION_CODE] = {
+        "modules": {},  # loaded monitoring modules
+    }
 
 
 @blueprint.teardown_request

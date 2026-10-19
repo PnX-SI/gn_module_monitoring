@@ -3,7 +3,7 @@ from typing import ClassVar
 from .base import BaseEntityConfigSchema
 
 
-class IndividualConfigSchema(BaseEntityConfigSchema):
+class IndividualEntityConfigSchema(BaseEntityConfigSchema):
     default_config: ClassVar = {
         "id_field_name": "id_individual",
         "description_field_name": "individual_name",

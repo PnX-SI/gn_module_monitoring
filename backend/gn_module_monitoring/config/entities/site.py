@@ -1,12 +1,29 @@
 from copy import deepcopy
 from typing import ClassVar
 
-from gn_module_monitoring.config.utils import get_tree_entities
+import marshmallow as ma
+from marshmallow import post_load
+
+from gn_module_monitoring.tools.utils import schema_context
+from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 from .base import BaseEntityConfigSchema
 
 
-class SiteConfigSchema(BaseEntityConfigSchema):
+class SiteEntityConfigSchema(BaseEntityConfigSchema):
+    types_site = ma.fields.Dict(dump_only=True)
+
+    @post_load
+    def load_types_site(self, data, **kwargs):
+        # for frontend
+        module = schema_context.get()["entity"].module
+        id_module = module.module.id_module if module.module else None
+        data["types_site"] = {
+            t.id_nomenclature_type_site: {"name": t.nomenclature.label_default}
+            for t in query_all_types_site_from_module_id(id_module)
+        }
+        return data
+
     default_config: ClassVar = {
         "chained": True,
         "id_field_name": "id_base_site",
@@ -120,8 +137,9 @@ class SiteConfigSchema(BaseEntityConfigSchema):
     }
 
     def get_default_config(self):
+        entity = schema_context.get()["entity"]
         config = deepcopy(self.default_config)
-        if "sites_group" in get_tree_entities(self.module_tree):
+        if "sites_group" in entity.module.entities_list:
             # si sites_group fait partie du tree, alors site a par défaut un champs id_sites_group d’ajouté
             config["fields"]["id_sites_group"] = {
                 "type_widget": "datalist",
