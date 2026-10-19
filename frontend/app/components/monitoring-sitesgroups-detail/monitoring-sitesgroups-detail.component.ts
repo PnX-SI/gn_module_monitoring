@@ -70,7 +70,7 @@ export class MonitoringSitesgroupsDetailComponent
 
   initSite() {
     const fieldsConfig = this._configServiceG.config()['site']['fields'];
-    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId);
+    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId, this.moduleCode);
     // Initialisation des filtres des sites
     const defaultFilters = {
       ...(this._configServiceG.config()['site']?.['filters'] || {}),
