@@ -244,7 +244,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   getIndividuals(page = 1, params = {}) {
     this.updateDataTableContent(page, params, this._individualService);
-    this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
@@ -348,8 +347,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
                 onSameUrlNavigation: 'reload',
               }
             );
-            this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
-            this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
           }, 100);
         });
     } else {
