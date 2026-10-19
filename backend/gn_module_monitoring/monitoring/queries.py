@@ -309,18 +309,23 @@ class VisitQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringVisits.id_digitiser == user.id_role,
-                Models.TMonitoringVisits.observers.any(id_role=user.id_role),
-            ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
-                    Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
-                ]
-            query = query.where(or_(*ors))
+            query = query.where(or_(*cls.scope_conditions(scope, user)))
         return query
+
+    @staticmethod
+    def scope_conditions(scope, user):
+        """Conditions d'appartenance d'une visite à l'utilisateur (scope 1) ou à son organisme (scope 2)"""
+        ors = [
+            Models.TMonitoringVisits.id_digitiser == user.id_role,
+            Models.TMonitoringVisits.observers.any(id_role=user.id_role),
+        ]
+        # if organism is None => do not filter on id_organism even if level = 2
+        if scope == 2 and user.id_organisme is not None:
+            ors += [
+                Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
+                Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
+            ]
+        return ors
 
 
 class ObservationsQuery(GnMonitoringGenericFilter):
@@ -331,16 +336,25 @@ class ObservationsQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringObservations.id_digitiser == user.id_role,
-            ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
-                ]
-            query = query.where(or_(*ors))
+            # Pas d'objet de permission propre aux observations : celles de la visite font foi
+            # (cohérent avec TMonitoringObservations.has_instance_permission)
+            query = query.where(or_(*cls.scope_conditions(scope, user)))
         return query
+
+    @staticmethod
+    def scope_conditions(scope, user):
+        """Observations numérisées par l'utilisateur (ou son organisme) ou rattachées à une visite
+        qui lui appartient"""
+        ors = [
+            Models.TMonitoringObservations.id_digitiser == user.id_role,
+            Models.TMonitoringObservations.visit.has(
+                or_(*VisitQuery.scope_conditions(scope, user))
+            ),
+        ]
+        # if organism is None => do not filter on id_organism even if level = 2
+        if scope == 2 and user.id_organisme is not None:
+            ors += [Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)]
+        return ors
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
@@ -433,15 +447,10 @@ class ObservationDetailsQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringObservationDetails.observation.id_digitiser == user.id_role,
-            ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringObservationDetails.observation.id_digitiser.has(
-                        id_organisme=user.id_organisme
-                    )
-                ]
-            query = query.where(or_(*ors))
+            # L'appartenance d'un détail est celle de son observation
+            query = query.where(
+                Models.TMonitoringObservationDetails.observation.has(
+                    or_(*ObservationsQuery.scope_conditions(scope, user))
+                )
+            )
         return query
