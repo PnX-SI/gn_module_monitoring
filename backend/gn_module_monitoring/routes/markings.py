@@ -18,6 +18,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringMarkingEvent,
 )
 from gn_module_monitoring.monitoring.schemas import (
+    MonitoringMarkingSchemaCruved,
     MonitoringMarkingSchema,
     add_specific_attributes,
 )
@@ -279,7 +280,9 @@ def get_marking_by_id(scope: int, module_code: str, id: int):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
+    schema = add_specific_attributes(
+        MonitoringMarkingSchemaCruved, ObjectType.MARKING, module_code
+    )
 
     data = schema().dump(marking)
 
