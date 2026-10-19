@@ -8,7 +8,7 @@
     "id_individual": {
       "type_widget": "individuals",
       "attribut_label": "Choix de l'individu",
-      "id_module": "__MODULE.ID_MODULE",
+      "module_code": "__MODULE.MODULE_CODE",
       "id_list": "__MODULE.ID_LIST_TAXONOMY",
       "cd_nom": "__MODULE.CD_NOM",
       "hidden": false

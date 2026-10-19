@@ -28,7 +28,7 @@
         "id_individual": {
             "type_widget": "individuals",
             "attribut_label": "Choix de l'individu",
-            "id_module": "__MODULE.ID_MODULE",
+            "module_code": "__MODULE.MODULE_CODE",
             "hidden": true
         },
         "marking_date": {
