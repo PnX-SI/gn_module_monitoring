@@ -26,3 +26,7 @@ class BaseService(metaclass=BaseServiceMeta):
     @cache
     def get_attrs(cls):
         return sa.inspect(cls.model).attrs
+
+    @classmethod
+    def get_model_schema(cls):
+        return cls.model_schema()

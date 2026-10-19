@@ -142,17 +142,17 @@ def load_module_root_config(module_code):
         ValidationError
     """
     # Validation marshmallow
-    config_path = monitoring_module_config_path(module_code) / "config.json"
-    config = json.loads(config_path.read_text())
+    if module_code == "generic":
+        config = {}
+    else:
+        config_path = monitoring_module_config_path(module_code) / "config.json"
+        config = json.loads(config_path.read_text())
     with schema_context(module_code=module_code):
         config = ModuleConfigSchema().load(config)
     return config
 
 
-def load_module_db_config(module_code):
-    module = db.session.execute(
-        sa.select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
-    ).scalar_one()
+def load_module_db_config(module):
     module_config = {
         attr: getattr(module, attr)
         for attr in [

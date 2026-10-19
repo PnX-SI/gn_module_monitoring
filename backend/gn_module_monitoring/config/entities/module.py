@@ -1,8 +1,5 @@
 from typing import ClassVar
 
-from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.monitoring.schemas import MonitoringModuleSchema
-
 from .base import BaseEntityConfigSchema
 
 

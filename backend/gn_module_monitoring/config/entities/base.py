@@ -14,8 +14,22 @@ class BaseEntityConfigSchema(ma.Schema):
         unknown = ma.EXCLUDE
 
     fields = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Nested(EntityFieldConfigSchema))
-    display_list = ma.fields.List(ma.fields.Str(), load_default=[])
     display_properties = ma.fields.List(ma.fields.Str(), load_default=[])
+    display_list = ma.fields.List(ma.fields.Str())
+    # Clés descriptives utilisées par le frontend : conservées telles quelles si présentes
+    # (pas de load_default, pour ne pas ajouter de clé absente de la config legacy)
+    chained = ma.fields.Raw()
+    change = ma.fields.Raw()
+    filters = ma.fields.Raw()
+    genre = ma.fields.Str()
+    geom_field_name = ma.fields.Str()
+    geometry_type = ma.fields.Raw()
+    id_field_name = ma.fields.Str()
+    description_field_name = ma.fields.Str()
+    label = ma.fields.Str()
+    label_list = ma.fields.Str()
+    sorts = ma.fields.Raw()
+    uuid_field_name = ma.fields.Str()
 
     def __init__(self, *, module_tree, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -33,6 +47,8 @@ class BaseEntityConfigSchema(ma.Schema):
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
         data = {**self.get_default_config(), **data}
+        # Comme le legacy : display_list vaut display_properties si non défini
+        data.setdefault("display_list", data.get("display_properties", []))
         # Maintenant, pour les fields, on permet :
         #   - de définir de nouveau fields, s’ils n’existent pas en base
         #   - d’override, pour les fields existant dans default_data, uniquement :
@@ -61,11 +77,12 @@ class BaseEntityConfigSchema(ma.Schema):
 
     @validates_schema
     def validates_schema(self, data, **kwargs):
+        schema = schema_context.get()["entity_service"].get_model_schema()
         for field in data["display_list"]:
-            if field not in data["fields"]:
+            if field not in data["fields"] and not hasattr(schema, field):
                 raise ValidationError({"display_list": f"Le champs '{field}' n’a pas été défini."})
         for field in data["display_properties"]:
-            if field not in data["fields"]:
+            if field not in data["fields"] and not hasattr(schema, field):
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )

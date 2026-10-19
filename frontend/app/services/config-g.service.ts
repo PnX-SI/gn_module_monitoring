@@ -72,8 +72,8 @@ export class ConfigServiceG {
   }
 
   codeListObservers() {
-    if (this._config['custom']['CODE_OBSERVERS_LIST']) {
-      return this._config['custom']['CODE_OBSERVERS_LIST'];
+    if (this._config?.['module']?.['code_observers_list']) {
+      return this._config['module']['code_observers_list'];
     }
     return this.geonatureConfig.MONITORINGS.CODE_OBSERVERS_LIST;
   }

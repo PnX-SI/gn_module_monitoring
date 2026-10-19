@@ -45,20 +45,19 @@ def register_serializer(state):
     register_json_provider(BaseWidget, lambda o: o.dump_config())
 
 
-@blueprint.record
-def load_modues_config(state):
-    monitoring_config = config[MODULE_CODE]
-    monitoring_config["protocols"] = dict()
-    for module in get_modules():
-        module_code = module.module_code
-        try:
-            monitoring_config["protocols"][module_code] = load_module_config(module_code)
-        except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
-            ctx = click.get_current_context(silent=True)
-            # Avoid printing errors when using the CLI
-            if ctx is None:
-                log.exception(e)
-            log.warning(f"Unable to load protocol '{module_code}', skipping…")
+# @blueprint.record
+# def load_modues_config(state):
+#     monitoring_config = config[MODULE_CODE]
+#     monitoring_config["modules"] = dict()
+#     for module_code in ["generic"] + [module.module_code for module in get_modules()]:
+#         try:
+#             monitoring_config["modules"][module_code] = load_module_config(module_code)
+#         except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as e:
+#             ctx = click.get_current_context(silent=True)
+#             # Avoid printing errors when using the CLI
+#             if ctx is None or True:
+#                 log.exception(e)
+#             log.warning(f"Unable to load protocol '{module_code}', skipping…")
 
 
 @blueprint.teardown_request
