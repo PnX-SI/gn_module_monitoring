@@ -155,10 +155,13 @@ export class MonitoringObservationsDetailComponent
   }
 
   onDelete($event) {
-    this._observationsService.delete($event.rowSelected.id_observation).subscribe((del) => {
-      this.bDeleteModalEmitter.emit(false);
-      this.initData();
-    });
+    // la liste de cette page contient les détails de l'observation, pas l'observation elle-même
+    this._observationsDetailService
+      .delete($event.rowSelected.id_observation_detail)
+      .subscribe((del) => {
+        this.bDeleteModalEmitter.emit(false);
+        this.initData();
+      });
   }
 
   navigateToAddObj($event) {
