@@ -259,7 +259,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
-    pass
+    __object_code__ = "MONITORINGS_GRP_SITES"
 
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
@@ -311,7 +311,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
-    pass
+    __object_code__ = "MONITORINGS_SITES"
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
@@ -351,7 +351,7 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
@@ -390,7 +390,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
@@ -438,7 +438,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsDetailsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsDetailsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
@@ -466,7 +466,7 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
-    pass
+    __object_code__ = "INDIVIDUALS"
 
 
 class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
@@ -500,4 +500,4 @@ class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringMarkingSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringMarkingSchema):
-    pass
+    __object_code__ = "MONITORINGS_MARKINGS"
