@@ -2,7 +2,8 @@ from contextvars import ContextVar
 from contextlib import contextmanager
 
 import marshmallow as ma
-from marshmallow import ValidationError, fields
+from cel_expr_python.cel import NewEnv
+from marshmallow import ValidationError, fields, post_load, validates
 
 JSON_TYPES = [
     type(None),
@@ -11,6 +12,54 @@ JSON_TYPES = [
     bool,
     str,
 ]
+
+CEL_ENV = NewEnv()
+
+
+def check_cel_syntax(expression):
+    # Seule la syntaxe est vérifiée : les variables ne sont pas connues à ce stade
+    try:
+        CEL_ENV.compile(expression, disable_check=True)
+    except RuntimeError as e:
+        raise ValidationError(f"Expression CEL invalide : {e}")
+
+
+class CELValidationSchema(ma.Schema):
+    class Meta:
+        unknown = ma.RAISE
+
+    condition = fields.Str(required=True)
+    message = fields.Str()
+
+    @validates("condition")
+    def validate_condition(self, value, **kwargs):
+        check_cel_syntax(value)
+
+    @post_load
+    def set_default_message(self, data, **kwargs):
+        if "message" not in data:
+            data["message"] = f"The following condition is not met: {data["condition"]}"
+        return data
+
+
+class CELValidationsField(fields.Field):
+    """
+    Ce champs attends une liste d’object {"condition": str, "message": str}  avec "condition"
+    une condition CEL et "message" un message d’erreur si la condition n’est pas remplie.
+
+    Si ne reçoit pas une liste, convertie en list.
+    Si les items ne sont pas des objets mais des strings, on considère qu’il s’agit de
+    la condition et on utilise un messgae par défaut (voir CELValidationSchema).
+    """
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if value is None:
+            return None
+        items = value if isinstance(value, list) else [value]
+        return [
+            CELValidationSchema().load({"condition": item} if isinstance(item, str) else item)
+            for item in items
+        ]
 
 
 class ContextManagedContextVar:

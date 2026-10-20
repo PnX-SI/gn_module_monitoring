@@ -122,6 +122,10 @@ class TestNomenclatureStore:
         store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
         assert store.get_wire_type() is int
 
+    def test_dump_config_exposes_type_mnemonique(self):
+        store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
+        assert store.dump_config()["code_nomenclature_type"] == "TEST_METEO"
+
     def test_accepts_existing_nomenclature_id(self, meteo_nomenclature):
         field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).to_field()
         assert field.deserialize(meteo_nomenclature.id_nomenclature) == (

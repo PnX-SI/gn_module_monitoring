@@ -3,8 +3,8 @@ from gn_module_monitoring.config.repositories import get_config as get_old_confi
 from gn_module_monitoring.modules import get_module
 
 
-@blueprint_api.route("/old/<string:module_code>/config", methods=["GET"])
-@blueprint_api.route("/old/config", defaults={"module_code": None}, methods=["GET"])
+@blueprint_api.route("/<string:module_code>/config", methods=["GET"])
+@blueprint_api.route("/config", defaults={"module_code": None}, methods=["GET"])
 def get_config_endpoint(module_code):
     """
     route qui renvoie la config pour un module donné
@@ -13,8 +13,8 @@ def get_config_endpoint(module_code):
     return dict(config)
 
 
-@blueprint_api.route("/<string:module_code>/config", methods=["GET"])
-@blueprint_api.route("/config", defaults={"module_code": "generic"}, methods=["GET"])
+@blueprint_api.route("/v3/<string:module_code>/config", methods=["GET"])
+@blueprint_api.route("/v3/config", defaults={"module_code": "generic"}, methods=["GET"])
 def get_config(module_code):
     """
     route qui renvoie la config pour un module donné

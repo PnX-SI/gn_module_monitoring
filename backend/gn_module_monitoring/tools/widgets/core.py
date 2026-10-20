@@ -16,8 +16,12 @@ class BaseWidget(UserDict):
 
         type = fields.Str(required=True)
 
-        hidden = fields.Boolean(load_default=False)
+        hidden = fields.Boolean()
         hidden_js = MultilineStr()
+        hidden_cel = fields.Str()
+
+        # required, required_cel & validate_cel are defined at field level
+        required_js = MultilineStr()
 
         attribut_label = fields.String()  # FIXME: required?
 
@@ -25,7 +29,6 @@ class BaseWidget(UserDict):
         def set_hidden_js(self, data, **kwargs):
             if "hidden" in data and not isinstance(data["hidden"], bool):
                 data["hidden_js"] = data.pop("hidden")
-                data["hidden"] = False
             return data
 
         @pre_load
@@ -50,8 +53,13 @@ class BaseWidget(UserDict):
     def config_schema_class(self):
         return self.ConfigSchema
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(
+        self, data=None, *, required=False, required_cel=None, validate_cel=None, **kwargs
+    ):
         super().__init__()
+        self.required = required
+        self.required_cel = required_cel
+        self.validate_cel = validate_cel
         data = data or {}
         if "type_widget" in data:
             self.extra_data = data

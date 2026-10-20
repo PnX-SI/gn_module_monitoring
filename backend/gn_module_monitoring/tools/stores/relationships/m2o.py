@@ -13,6 +13,7 @@ from marshmallow import (
     validates,
     validates_schema,
     ValidationError,
+    post_dump,
     post_load,
     pre_load,
 )
@@ -430,6 +431,12 @@ class NomenclatureStore(BaseForeignKeyStore):
         @post_load
         def load_nomenclature_type(self, data, **kwargs):
             data["nomenclature_type"] = get_nomenclature_type(data["nomenclature_type"])
+            return data
+
+        @post_dump(pass_original=True)
+        def dump_code_nomenclature_type(self, data, original, **kwargs):
+            # Le frontend attend le mnémonique du type (et non son libellé) dans `code_nomenclature_type`
+            data["code_nomenclature_type"] = original["nomenclature_type"].mnemonique
             return data
 
     def _get_default_widget(self, data, **kwargs):

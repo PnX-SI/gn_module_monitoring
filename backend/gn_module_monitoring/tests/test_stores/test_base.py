@@ -19,9 +19,9 @@ from gn_module_monitoring.tools.stores.type import StringStore
 from gn_module_monitoring.tools.utils import schema_context
 
 
-def make_store(store_cls, config, field_name="my_field", entity="site"):
+def make_store(store_cls, config, field_name="my_field", entity="site", **kwargs):
     with schema_context(entity=ENTITY_MAP[entity], field_name=field_name):
-        return store_cls(config)
+        return store_cls(config, **kwargs)
 
 
 class TestRegistry:
@@ -50,7 +50,8 @@ class TestConfigSchema:
     def test_default_type_comes_from_store_class(self):
         store = make_store(StringStore, {})
         assert store["type"] == "string"
-        assert store["required"] is False
+        assert store.required is False
+        assert store.required_cel is None
 
     def test_unknown_key_is_rejected(self):
         with pytest.raises(ValidationError):
@@ -98,7 +99,7 @@ class TestBaseStore:
 
 class TestRequired:
     def test_required_field_rejects_none(self):
-        field = make_store(StringStore, {"required": True}).to_field()
+        field = make_store(StringStore, {}, required=True).to_field()
         assert field.required is True
         with pytest.raises(ValidationError):
             field.deserialize(None)

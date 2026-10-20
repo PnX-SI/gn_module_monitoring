@@ -5,6 +5,7 @@ import marshmallow as ma
 from marshmallow import pre_load, post_load, validates_schema, ValidationError
 
 from gn_module_monitoring.config.utils import apply_substitutions
+from gn_module_monitoring.tools.utils import CELValidationsField
 from .fields import EntityFieldConfigSchema, schema_context
 
 
@@ -30,6 +31,8 @@ class BaseEntityConfigSchema(ma.Schema):
     label_list = ma.fields.Str()
     sorts = ma.fields.Raw()
     uuid_field_name = ma.fields.Str()
+    # Condition CEL sur l’objet entier, évaluée par le schéma (voir CELMixin)
+    validate_cel = CELValidationsField()
     # Calculés à partir de l’arbre du module (voir load_tree_relations)
     parent_types = ma.fields.List(ma.fields.Str(), dump_only=True)
     children_types = ma.fields.List(ma.fields.Str(), dump_only=True)
@@ -47,6 +50,7 @@ class BaseEntityConfigSchema(ma.Schema):
         fields = data.pop("fields", data.pop("specific", {}))
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
+        # TODO: et sauf validate_cel pour lequel on doit étendre la liste ?
         data = {**apply_substitutions(self.get_default_config(), substitutions), **data}
         # Comme le legacy : display_list vaut display_properties si non défini
         data.setdefault("display_list", data.get("display_properties", []))

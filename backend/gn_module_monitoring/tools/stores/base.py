@@ -5,7 +5,10 @@ import marshmallow as ma
 from marshmallow import fields, pre_load, validate
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 
-from gn_module_monitoring.tools.utils import ValueLabelField, schema_context
+from gn_module_monitoring.tools.utils import (
+    ValueLabelField,
+    schema_context,
+)
 
 STORE_MAP: dict[str, type] = {}
 
@@ -20,7 +23,8 @@ class BaseStore(UserDict):
             unknown = ma.RAISE
 
         type = fields.Str(required=True)
-        required = fields.Boolean(load_default=False)
+
+        # required, required_cel & validate_cel are defined at field level
 
         @pre_load
         def load_default_type(self, data, **kwargs):
@@ -35,7 +39,9 @@ class BaseStore(UserDict):
 
         def __init__(self, store, **kwargs):
             super().__init__(
-                required=store["required"], allow_none=not store["required"], **kwargs
+                required=store.required,
+                allow_none=not store.required,
+                **kwargs,
             )
             self.store = store
 
@@ -64,8 +70,13 @@ class BaseStore(UserDict):
         if "key" in cls.__dict__:
             STORE_MAP[cls.key] = cls
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(
+        self, data=None, *, required=False, required_cel=None, validate_cel=None, **kwargs
+    ):
         super().__init__()
+        self.required = required
+        self.required_cel = required_cel
+        self.validate_cel = validate_cel
         data = data or {}
         if "type_util" in data:
             self.extra_data = data
@@ -224,4 +235,3 @@ class ListStore(BaseStore):
 
 # TODO: date, site, sites_group, area
 # TODO: observer_list, taxonomy_list, municipality? accepté par la route util/<type_util>/
-
