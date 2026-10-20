@@ -551,6 +551,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
       this.deleteSpinner = this.deleteModal = false;
 
+      this.object.deleted = true;
       this._formService.changeCurrentEditMode(false);
       this._commonService.regularToaster(
         'info',

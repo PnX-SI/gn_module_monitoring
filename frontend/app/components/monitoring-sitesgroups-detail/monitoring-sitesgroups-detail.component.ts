@@ -135,14 +135,17 @@ export class MonitoringSitesgroupsDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initSite();
-      const sitesParams = { ...{}, ...this.baseFilters };
-      this._geojsonService.getSitesGroupsGeometriesWithSites(
-        this.onEachFeatureGroupSite(),
-        this.onEachFeatureSite(),
-        this.baseFilters,
-        sitesParams
-      );
+
+      if (this.sitesGroup.deleted !== true) {
+        this.initSite();
+        const sitesParams = { ...{}, ...this.baseFilters };
+        this._geojsonService.getSitesGroupsGeometriesWithSites(
+          this.onEachFeatureGroupSite(),
+          this.onEachFeatureSite(),
+          this.baseFilters,
+          sitesParams
+        );
+      }
     }
   }
 
