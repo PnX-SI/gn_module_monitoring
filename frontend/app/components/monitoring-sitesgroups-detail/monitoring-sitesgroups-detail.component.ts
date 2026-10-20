@@ -69,7 +69,8 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   initSite() {
-    const fieldsConfig = this._configServiceG.config()['site']['fields'];
+    const fieldsConfigSite = this._configServiceG.config()['site']['fields'];
+    const fieldsConfigSitesGroup = this._configServiceG.config()['sites_group']['fields'];
     const siteGroupdata$ = this._sitesGroupService.getById(this.dataId, this.moduleCode);
     // Initialisation des filtres des sites
     const defaultFilters = {
@@ -83,13 +84,13 @@ export class MonitoringSitesgroupsDetailComponent
           this.sitesGroup = sitesGroupData;
           const siteGroupDataResolved$ = this._dataUtilsService.resolveObjectProperties(
             this.sitesGroup,
-            fieldsConfig
+            fieldsConfigSitesGroup
           );
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
             this.limit,
             defaultFilters,
-            fieldsConfig
+            fieldsConfigSite
           );
           return forkJoin({
             sitesGroupResolved: siteGroupDataResolved$,
@@ -105,7 +106,6 @@ export class MonitoringSitesgroupsDetailComponent
           page: sites.page,
           limit: sites.limit,
         };
-
         this.setDataTableObjData(
           {
             sites: {
