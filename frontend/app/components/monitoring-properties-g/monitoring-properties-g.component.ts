@@ -12,6 +12,14 @@ import { TemplateData } from '../../interfaces/template';
 import { PermissionService } from '../../services/permission.service';
 import { FormService } from '../../services/form.service';
 
+// Interface pour typer la configuration de html2canvas
+interface Html2CanvasConfig {
+  allowTaint: boolean;
+  useCORS: boolean;
+  logging: boolean;
+  ignoreElements: (element: HTMLElement) => boolean;
+}
+
 @Component({
   selector: 'pnx-monitoring-properties-g',
   templateUrl: './monitoring-properties-g.component.html',
@@ -95,57 +103,109 @@ export class MonitoringPropertiesGComponent implements OnInit {
 
   getExportCsv(exportDef: any, jd: number) {
     const queryParams = jd != null ? { id_dataset: jd } : {};
-    console.log(exportDef);
     this._dataService.getExportCsv(this.moduleCode, exportDef.method, queryParams);
   }
 
-  processExportPdf(exportPdfConfig: any) {
-    var map = this.mapservice.map;
-    const $this = this;
-
+  /**
+   * Exporte un élément DOM en PDF en utilisant html2canvas.
+   * Capture l'élément avec l'ID 'geometry', applique des filtres pour exclure certains éléments,
+   * puis envoie les données au service d'export PDF.
+   *
+   * @param exportPdfConfig - Configuration spécifique pour l'export PDF (ex: template).
+   * @throws Affiche une erreur via un toaster si une exception est levée.
+   */
+  processExportPdf(exportPdfConfig: { template: string }): void {
     try {
-      var zoomInElement = document.querySelector(
-        '#monitoring-map-container .leaflet-control-zoom-in'
-      );
-      var snapshotElement = document.getElementById('geometry');
-      var config = {
-        allowTaint: true,
-        useCORS: true,
-        ignoreElements: function (element) {
+      // Récupération de l'élément DOM à exporter
+      const snapshotElement = document.getElementById('geometry');
+      if (!snapshotElement) {
+        throw new Error("L'élément 'geometry' est introuvable dans le DOM.");
+      }
+
+      //  Configuration de html2canvas pour ignorer certains éléments (contrôles Leaflet, etc.)
+      const html2CanvasConfig: Html2CanvasConfig = {
+        allowTaint: true, // Autorise les images cross-origin
+        useCORS: true, // Active le support CORS pour les images
+        logging: false, // Désactive les logs de débogage
+        ignoreElements: (element: HTMLElement) => {
+          // Liste des éléments à exclure de la capture
+          const excludedClasses = [
+            'leaflet-control-zoom-in',
+            'leaflet-control-zoom-out',
+            'leaflet-control-layers-toggle',
+          ];
+          const excludedAttributes = [
+            { attribute: 'title', value: 'A JS library for interactive maps' },
+            { attribute: 'placeholder', value: 'Rechercher un lieu' },
+          ];
+
+          // Vérifie si l'élément a une classe ou un attribut exclu
           return (
-            element.classList[0] == 'leaflet-control-zoom-in' ||
-            element.classList[0] == 'leaflet-control-zoom-out' ||
-            element.classList[0] == 'leaflet-control-layers-toggle' ||
-            element.title == 'A JS library for interactive maps' ||
-            element.placeholder == 'Rechercher un lieu'
+            excludedClasses.includes(element.classList[0]) ||
+            excludedAttributes.some(
+              ({ attribute, value }) => element.getAttribute(attribute) === value
+            )
           );
         },
-        logging: false,
       };
 
-      html2canvas(snapshotElement, config).then(function (canvas) {
-        var imgData = canvas.toDataURL('image/png');
-        const extra_data = {
-          resolved_properties: $this.obj.resolvedProperties,
-        };
-        $this._dataService
-          .postPdfExport(
-            $this.obj.moduleCode,
-            $this.obj.objectType,
-            $this.obj.id,
-            exportPdfConfig.template,
-            imgData,
-            extra_data
-          )
-          .subscribe(() => {
-            $this._commonService.regularToaster(
-              'success',
-              "L'export PDF est prêt à être récupéré dans le dossier de Téléchargement"
-            );
-          });
-      });
-    } catch {
-      $this._commonService.regularToaster('error', "Une erreur est survenue durant l'export PDF");
+      // Capture de l'élément en canvas
+      html2canvas(snapshotElement, html2CanvasConfig)
+        .then((canvas: HTMLCanvasElement) => {
+          // Conversion du canvas en image PNG (base64)
+          const imgData = canvas.toDataURL('image/png');
+
+          // Préparation des données supplémentaires pour l'export
+          const objectId =
+            this.obj[this._configServiceG.config()?.[this.objectType]?.id_field_name];
+          if (!objectId) {
+            throw new Error("L'ID de l'objet est introuvable.");
+          }
+
+          const extraData = {
+            resolved_properties: this.obj,
+          };
+
+          // Appel au service pour générer le PDF
+          this._dataService
+            .postPdfExport(
+              this.moduleCode,
+              this.objectType,
+              objectId,
+              exportPdfConfig.template,
+              imgData,
+              extraData
+            )
+            .subscribe({
+              next: () => {
+                // 7. Notification de succès
+                this._commonService.regularToaster(
+                  'success',
+                  "L'export PDF est prêt à être récupéré dans le dossier de Téléchargement"
+                );
+              },
+              error: (error) => {
+                // Gestion des erreurs du service
+                console.error("Erreur lors de l'export PDF :", error);
+                this._commonService.regularToaster(
+                  'error',
+                  "Une erreur est survenue lors de l'envoi des données pour l'export PDF."
+                );
+              },
+            });
+        })
+        .catch((error) => {
+          // Gestion des erreurs de html2canvas
+          console.error('Erreur lors de la capture du canvas :', error);
+          this._commonService.regularToaster(
+            'error',
+            "Une erreur est survenue lors de la capture de l'élément pour l'export PDF."
+          );
+        });
+    } catch (error) {
+      //  Gestion des erreurs générales (ex: élément DOM manquant)
+      console.error("Erreur générale lors de l'export PDF :", error);
+      this._commonService.regularToaster('error', "Une erreur est survenue durant l'export PDF.");
     }
   }
 }
