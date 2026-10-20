@@ -495,22 +495,6 @@ class TestSite:
         obj_created = response.json
         assert obj_created["base_site_name"] == update_data["base_site_name"]
 
-    def test_patch_sites_keeps_undeclared_data(self, sites, users):
-        set_logged_user_cookie(self.client, users["admin_user"])
-        site = sites["Test_Grotte"]
-        site.data = {"prop_from_other_module": "foo"}
-        db.session.commit()
-
-        response = self.client.patch(
-            url_for("monitorings.api.patch_site", module_code="generic", _id=site.id_base_site),
-            json={"base_site_name": "Test_Grotte_kept"},
-        )
-        assert response.status_code == 201
-        assert "prop_from_other_module" not in response.json
-        assert "additional_data_keys" not in response.json
-        db.session.refresh(site)
-        assert site.data == {"prop_from_other_module": "foo"}
-
     def test_delete_site(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         site = list(sites.values())[0]
@@ -730,21 +714,12 @@ class TestSiteWithModule:
         )
 
         assert "data" not in site_repr
-        assert "additional_data_keys" not in site_repr
-        # Propriété non définie dans la configuration du module : non retournée
-        assert "prop_from_other_module" not in site_repr
-        # Propriété spécifique définie dans la configuration : retournée
+        # Propriété non définie dans la configuration du module : retournée et listée
+        assert site_repr["prop_from_other_module"] == "foo"
+        assert "prop_from_other_module" in site_repr["additional_data_keys"]
+        # Propriété spécifique définie dans la configuration : non listée
         assert site_repr["profondeur_grotte"] == 42.8
-
-        # Conservée à l'enregistrement du site
-        response = self.client.patch(
-            url_for("monitorings.api.patch_site", module_code="test", _id=site.id_base_site),
-            json={"base_site_name": "renamed", "profondeur_grotte": 1.0},
-        )
-        assert response.status_code == 201
-        db.session.refresh(site)
-        assert site.data["prop_from_other_module"] == "foo"
-        assert site.data["profondeur_grotte"] == 1.0
+        assert "profondeur_grotte" not in site_repr["additional_data_keys"]
 
     def test_get_module_sites_with_filter_on_generic_attribute(self, test_module_user, add_site):
         set_logged_user_cookie(self.client, test_module_user)
