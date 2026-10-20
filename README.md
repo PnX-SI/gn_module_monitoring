@@ -147,6 +147,7 @@ Le sous-module installé précedemment doit s'afficher dans la liste des sous-mo
 #### Cliquez sur le sous-module
 
 Vous êtes désormais sur la page du sous-module. Un message apparaît pour vous indiquer de configurer celui-ci.
+Un sous-module est considéré comme configuré lorsqu'une liste d'observateurs, au moins un jeu de données et une liste de taxons lui sont associés, et que l'affichage des taxons est renseigné. Tant que ce n'est pas le cas, les listes, pages de détail et formulaires de création/modification des objets du sous-module (groupes de sites, sites, visites, observations, etc.) ne sont pas accessibles.
 
 #### Cliquez sur le bouton `Éditer`
 

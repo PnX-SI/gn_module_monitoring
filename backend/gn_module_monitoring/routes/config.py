@@ -1,28 +1,22 @@
-from utils_flask_sqla.response import json_resp
+from gn_module_monitoring.blueprint import blueprint_api
+from gn_module_monitoring.config.repositories import get_config as get_old_config
+from gn_module_monitoring.modules import get_module
 
-from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config_old, get_config
 
-
-# TODO : Remove when new API for config is effective
-@blueprint.route("/config/<string:module_code>", methods=["GET"])
-@blueprint.route("/config", defaults={"module_code": None}, methods=["GET"])
-@json_resp
-def get_config_api(module_code):
+@blueprint_api.route("/<string:module_code>/config", methods=["GET"])
+@blueprint_api.route("/config", defaults={"module_code": None}, methods=["GET"])
+def get_config_endpoint(module_code):
     """
     route qui renvoie la config pour un module donné
     """
-    config = get_config_old(module_code, force=True)
+    config = get_old_config(module_code, force=True)
     return dict(config)
 
 
-# TODO : Remove /refacto when old API for fetching config is removed
-@blueprint.route("/refacto/config/<string:module_code>", methods=["GET"])
-@blueprint.route("/refacto/config", defaults={"module_code": None}, methods=["GET"])
-@json_resp
-def get_config_apiV2(module_code):
+@blueprint_api.route("/v3/<string:module_code>/config", methods=["GET"])
+@blueprint_api.route("/v3/config", defaults={"module_code": "generic"}, methods=["GET"])
+def get_config(module_code):
     """
     route qui renvoie la config pour un module donné
     """
-    config = get_config(module_code, force=True)
-    return dict(config)
+    return get_module(module_code).dump_config()

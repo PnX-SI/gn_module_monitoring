@@ -38,7 +38,8 @@ from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_permissions.tools import has_any_permissions_by_action
 
-from pypnusershub.db.models import User
+from pypnusershub.db.models import User, UserList
+from apptax.taxonomie.models import BibListes
 
 from gn_module_monitoring.monitoring.queries import (
     GnMonitoringGenericFilter as MonitoringQuery,
@@ -592,8 +593,14 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
 
     uuid_module_complement: Mapped[Any] = mapped_column(UUID(as_uuid=True), default=uuid4)
 
-    id_list_observer: Mapped[Optional[int]] = mapped_column(DB.Integer)
-    id_list_taxonomy: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    id_list_observer: Mapped[Optional[int]] = mapped_column(
+        DB.Integer,
+        DB.ForeignKey(UserList.id_liste, onupdate="CASCADE", ondelete="CASCADE"),
+    )
+    id_list_taxonomy: Mapped[Optional[int]] = mapped_column(
+        DB.Integer,
+        DB.ForeignKey(BibListes.id_liste, onupdate="CASCADE", ondelete="CASCADE"),
+    )
     cd_nom: Mapped[Optional[int]] = mapped_column(DB.Integer)
 
     taxonomy_display_field_name: Mapped[Optional[str]] = mapped_column(DB.Unicode)

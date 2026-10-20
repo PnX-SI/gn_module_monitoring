@@ -3,23 +3,50 @@ blueprint
 charge les routes présentes dans le dossier route
 """
 
+import json
+import logging
+
+import click
 from flask import Blueprint, current_app, g, request
-from urllib.parse import urlparse, parse_qs
-
-from geonature.utils.env import DB
-from geonature.core.admin.admin import admin as flask_admin
-
-from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.monitoring.admin import BibTypeSiteView
-from gn_module_monitoring.command.cmd import commands  # noqa: E402
-from geonature.core.gn_permissions.models import TObjects
-from geonature.core.gn_commons.models.base import TModules
 from sqlalchemy.orm import joinedload
 from sqlalchemy import select
+from marshmallow import ValidationError
+
+from geonature.utils.env import DB
+from geonature.utils.config import config
+from geonature.utils.json import register_json_provider
+from geonature.core.admin.admin import admin as flask_admin
+from geonature.core.gn_permissions.models import TObjects
+from geonature.core.gn_commons.models.base import TModules
+
+from gn_module_monitoring import MODULE_CODE, EXTENSION_CODE
+from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
+from gn_module_monitoring.monitoring.admin import BibTypeSiteView
+from gn_module_monitoring.command.cmd import commands  # noqa: E402
+from gn_module_monitoring.tools.stores import BaseStore
+from gn_module_monitoring.tools.widgets import BaseWidget
+
+log = logging.getLogger()
 
 blueprint = Blueprint(
     "monitorings", __name__, template_folder=current_app.config["MEDIA_FOLDER"] + "/monitorings"
 )
+
+# Blueprint de la nouvelle API, imbriqué dans `blueprint` (les routes legacy sont dans blueprint_legacy)
+blueprint_api = Blueprint("api", __name__, url_prefix="/refacto")
+
+
+@blueprint.record_once
+def register_serializer(state):
+    register_json_provider(BaseStore, lambda o: o.dump_config())
+    register_json_provider(BaseWidget, lambda o: o.dump_config())
+
+
+@blueprint.record
+def init_monitoring(state):
+    current_app.extensions[EXTENSION_CODE] = {
+        "modules": {},  # loaded monitoring modules
+    }
 
 
 @blueprint.teardown_request
@@ -51,8 +78,7 @@ def set_current_module():
     object_type = values.get("object_type")
 
     if object_type:
-        permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
-        requested_permission_object_code = permission_level.get(object_type)
+        requested_permission_object_code = PERMISSION_OBJECT_CODES.get(object_type)
 
         if requested_permission_object_code is None:
             # error ?
@@ -73,7 +99,18 @@ def set_current_module():
                 return
 
 
-from .routes import *  # noqa
+import gn_module_monitoring.routes.config
+import gn_module_monitoring.routes.data_utils
+import gn_module_monitoring.routes.individuals
+import gn_module_monitoring.routes.monitoring
+import gn_module_monitoring.routes.modules
+import gn_module_monitoring.routes.sites_groups
+import gn_module_monitoring.routes.site
+import gn_module_monitoring.routes.visit
+import gn_module_monitoring.routes.observations
+import gn_module_monitoring.routes.obs_detail
+
+blueprint.register_blueprint(blueprint_api)
 
 blueprint.cli.short_help = "Commandes pour l" "administration du module MONITORINGS"
 for cmd in commands:

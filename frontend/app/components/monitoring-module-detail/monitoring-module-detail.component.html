@@ -1,5 +1,31 @@
 <!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
 <div>
+  <!-- Module non configuré : invitation à configurer le module (la liste des objets est masquée) -->
+  <mat-card
+    *ngIf="!bEdit && !isConfigured"
+    appearance="outlined"
+    class="module-setup"
+    role="status"
+  >
+    <mat-card-content>
+      <h4 class="module-setup__title">{{ 'Monitoring.Module.Setup.Title' | translate }}</h4>
+      <p class="module-setup__intro">{{ 'Monitoring.Module.Setup.Intro' | translate }}</p>
+
+      <button
+        *ngIf="currentPermission?.module?.U > 0; else noEditPermission"
+        mat-flat-button
+        color="primary"
+        (click)="configureModule()"
+      >
+        {{ 'Monitoring.Module.Setup.Action' | translate }}
+      </button>
+      <ng-template #noEditPermission>
+        <p class="module-setup__no-permission">
+          {{ 'Monitoring.Module.Setup.NoPermission' | translate }}
+        </p>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
 
   <pnx-monitoring-properties-g
     *ngIf="objectData && !bEdit"
@@ -12,12 +38,18 @@
     [bSynthese]="objectData.b_synthese"
   ></pnx-monitoring-properties-g>
 
-  <pnx-monitoring-form-g  *ngIf="objectData && bEdit" [object]="objectData" objectType="module" [form]="form" [apiService]="_moduleService"
-    [config]="moduleConfig['module']" [currentUser]="currentUser">
-  </pnx-monitoring-form-g>
+  <pnx-monitoring-form-g
+    *ngIf="objectData && bEdit"
+    [object]="objectData"
+    objectType="module"
+    [form]="form"
+    [apiService]="_moduleService"
+    [config]="moduleConfig['module']"
+    [currentUser]="currentUser"
+  ></pnx-monitoring-form-g>
 
   <pnx-monitoring-datatable-g
-    *ngIf="!bEdit"
+    *ngIf="!bEdit && isConfigured"
     [dataTableConfig]="dataTableConfig"
     [dataTableObjData]="dataTableObjData"
     [rows]="siteResolvedProperties"

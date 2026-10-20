@@ -28,6 +28,7 @@ export class MonitoringFormGLayoutComponent {
   @Input() addChildren: boolean;
   @Input() deleteSpinner: boolean;
   @Input() deleteModal: boolean;
+  @Input() validationError: string[] = [];
 
   @Output() chainInputChange = new EventEmitter<boolean>();
   @Output() deleteModalChange = new EventEmitter<boolean>();
@@ -35,4 +36,10 @@ export class MonitoringFormGLayoutComponent {
   @Output() notAllowed = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
   @Output() confirmDelete = new EventEmitter<void>();
+
+  closeDropdowns() {
+    if (document.querySelector('body > .ng-dropdown-panel')) {
+      document.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  }
 }

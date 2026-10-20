@@ -4,29 +4,31 @@ Fichier spécifiant les types des paramètres et leurs valeurs par défaut
 Fichier à ne pas modifier. Paramètres surcouchables dans config/config_gn_module.tml
 """
 
-from marshmallow import Schema, fields
+from warnings import warn
 
-# Permissions associés à chaque objet monitoring
-PERMISSION_LEVEL_DEFAULT = {
-    "module": "MONITORINGS_MODULES",
-    "site": "MONITORINGS_SITES",
-    "sites_group": "MONITORINGS_GRP_SITES",
-    "visit": "MONITORINGS_VISITES",
-    "observation": "MONITORINGS_VISITES",
-    "observation_detail": "MONITORINGS_VISITES",
-    "individual": "INDIVIDUALS",
-    "marking": "MONITORINGS_MARKINGS",
-}
+from marshmallow import Schema, fields, pre_load
 
 
 class GnModuleSchemaConf(Schema):
     DESCRIPTION_MODULE = fields.String(load_default="")
     TITLE_MODULE = fields.String(load_default="Module monitoring")
     CODE_OBSERVERS_LIST = fields.String(load_default="obsocctax")
+    # choose between raising errors or printing warnings
+    STRICT = fields.Boolean(load_default=False)
 
-    PERMISSION_LEVEL = fields.Dict(
-        keys=fields.Str(), values=fields.Str(), load_default=PERMISSION_LEVEL_DEFAULT
-    )
+    # Obsolète : les objets de permission associés à chaque type d'objet
+    # sont définis par PERMISSION_OBJECT_CODES (gn_module_monitoring.constants)
+    PERMISSION_LEVEL = fields.Dict(load_default=None)
+
+    @pre_load
+    def warn_deprecated(self, data, **kwargs):
+        if "PERMISSION_LEVEL" in data:
+            warn(
+                "PERMISSION_LEVEL is deprecated and no longer used - "
+                "permission objects are defined by PERMISSION_OBJECT_CODES "
+                "in gn_module_monitoring.constants"
+            )
+        return data
 
 
 #     AREA_TYPE = fields.List(fields.String(), missing=["COM", "M1", "M5", "M10"])
