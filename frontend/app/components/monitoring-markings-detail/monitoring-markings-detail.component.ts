@@ -66,7 +66,9 @@ export class MonitoringMarkingsDetailComponent extends MonitoringGeomComponent i
   onbEditChange(event: boolean) {
     if (this.bEdit == true && event == false) {
       // Passage du mode édition au mode consultation
-      this.initData();
+      if (this.objectData.deleted !== true) {
+        this.initData();
+      }
     }
   }
 

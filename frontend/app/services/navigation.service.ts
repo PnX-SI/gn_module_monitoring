@@ -126,17 +126,20 @@ export class NavigationService {
   }
 
   /**
-   * Recharge complètement la page d'accueil d'un module
+   * Recharge la page d'accueil d'un module
    *
    * Les composants de la page d'accueil sont réutilisés par le router lors d'une navigation
-   * vers la même route : ils ne prendraient pas en compte une nouvelle configuration du module.
-   * On passe donc par la racine du module (sans modifier l'url du navigateur) pour forcer
-   * leur recréation et la ré-exécution des resolvers.
+   * vers la même route : on force la ré-exécution des resolvers (`runGuardsAndResolvers: 'always'`)
+   * en autorisant le rechargement sur une url identique, le temps de cette navigation.
+   * Les composants mettent à jour leur affichage à la réception des nouvelles données
+   * (ex : nouvelle configuration du module).
    */
   reloadModuleHome(moduleCode: string) {
     const moduleUrl = this._configServiceG.frontendModuleMonitoringUrl();
+    const onSameUrlNavigation = this._router.onSameUrlNavigation;
+    this._router.onSameUrlNavigation = 'reload';
     this._router
-      .navigate([moduleUrl], { skipLocationChange: true })
-      .then(() => this._router.navigate([moduleUrl, 'object', moduleCode, 'sites_group']));
+      .navigate([moduleUrl, 'object', moduleCode, 'sites_group'])
+      .finally(() => (this._router.onSameUrlNavigation = onSameUrlNavigation));
   }
 }

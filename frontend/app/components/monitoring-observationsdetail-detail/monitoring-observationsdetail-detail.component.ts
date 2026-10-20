@@ -87,7 +87,9 @@ export class MonitoringObservationsDetailDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initData();
+      if (this.objectData.deleted !== true) {
+        this.initData();
+      }
     }
   }
 

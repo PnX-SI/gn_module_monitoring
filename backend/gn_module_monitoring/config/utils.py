@@ -60,7 +60,7 @@ def is_module_configured(module) -> bool:
     Indique si un module de suivi est configuré, c'est-à-dire si lui sont associés :
         - une liste d'observateurs
         - au moins un jeu de données
-        - une liste de taxons
+        - une liste de taxons ou un cd_nom est spécifié
         - un mode d'affichage des taxons
 
     Le module générique (module=None) est toujours considéré comme configuré.
@@ -70,7 +70,7 @@ def is_module_configured(module) -> bool:
     return (
         bool(module.id_list_observer)
         and len(module.datasets) > 0
-        and module.id_list_taxonomy is not None
+        and (module.id_list_taxonomy or module.cd_nom) is not None
         and bool(module.taxonomy_display_field_name)
     )
 
