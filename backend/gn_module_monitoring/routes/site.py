@@ -18,6 +18,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, blueprint_api
 from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringSites,
@@ -26,9 +27,7 @@ from gn_module_monitoring.monitoring.models import (
 )
 from gn_module_monitoring.monitoring.schemas import (
     BibTypeSiteSchema,
-    MonitoringSitesSchema,
-    MonitoringSitesSchemaCruved,
-    add_specific_attributes,
+    MonitoringCruvedSchemaMixin,
 )
 from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.utils.routes import (
@@ -39,7 +38,6 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate,
     paginate_scope,
-    process_json_data_for_db_upsert,
     query_all_types_site_from_site_id,
     sort,
     sort_according_to_column_type_for_site,
@@ -147,7 +145,7 @@ def get_sites(module_code=None):
         specific_properties=specific_properties,
     )
 
-    schema = add_specific_attributes(MonitoringSitesSchema, ObjectType.SITE, module_code)
+    schema = get_module(module_code or "generic").entities["site"].get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -171,7 +169,9 @@ def get_site_by_id(scope, module_code, id):
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
 
-    schema = add_specific_attributes(MonitoringSitesSchemaCruved, ObjectType.SITE, module_code)
+    schema = (
+        get_module(module_code).entities["site"].get_extended_schema(MonitoringCruvedSchemaMixin)
+    )
 
     data = schema().dump(site)
     return data
@@ -321,12 +321,23 @@ def create_or_update_site(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized site
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.SITE)
+    schema = get_module(module_code).entities["site"].get_extended_schema()
 
-    site = MonitoringSitesSchema(unknown=EXCLUDE).load(process_data)
+    existing = None
+    if post_data.get("id_base_site"):
+        existing = db.session.get(TMonitoringSites, post_data["id_base_site"])
+    if existing is not None:
+        # Les données non déclarées dans le module (autres modules) sont conservées
+        kept = {
+            key: value
+            for key, value in (existing.data or {}).items()
+            if key not in schema.extra_field_names
+        }
+        post_data["data"] = {**kept, **(post_data.get("data") or {})}
+
+    site = schema(unknown=EXCLUDE).load(post_data)
 
     db.session.add(site)
     db.session.commit()
 
-    return MonitoringSitesSchema(unknown=EXCLUDE).dump(site)
+    return schema(unknown=EXCLUDE).dump(site)
