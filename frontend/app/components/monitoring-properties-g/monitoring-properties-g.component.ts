@@ -29,7 +29,6 @@ export class MonitoringPropertiesGComponent implements OnInit {
   public datasetForm: FormControl = new FormControl();
   public bUpdateSyntheseSpinner: boolean = false;
   public modalReference: any;
-  public canUpdateObj: boolean;
   public selectedDataSet: Array<number> = [];
   public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   public userPermission: any;
@@ -53,8 +52,10 @@ export class MonitoringPropertiesGComponent implements OnInit {
       this.permissionService.setModulePermissions(this._configServiceG.moduleCode() || 'generic');
   }
 
-  hasEditPermission() {
-    return this.userPermission[this.objectType]['U'] > 0;
+  hasEditPermission(): boolean {
+    const objectCruved = this.obj?.cruved ?? {};
+    const userPermission = this.userPermission?.[this.objectType] ?? {};
+    return (objectCruved['U'] ?? 0) > 0 || (userPermission['U'] ?? 0) > 0;
   }
 
   onEditClick() {

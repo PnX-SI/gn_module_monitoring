@@ -17,6 +17,10 @@ from gn_module_monitoring.monitoring.schemas import (
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
+def without_cruved(item: dict) -> dict:
+    return {key: value for key, value in item.items() if key != "cruved"}
+
+
 @pytest.mark.usefixtures("client_class")
 class TestSitesGroups:
 
@@ -41,27 +45,24 @@ class TestSitesGroups:
 
         assert r.json["count"] >= len(sites_groups)
 
-        sites_group_response = r.json["items"]
+        # le cruved des items est calculé par la liste (paginate_scope), celui du schéma dans le
+        # contexte d'une requête : on compare les données
+        sites_group_response = [without_cruved(item) for item in r.json["items"]]
+        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias", "cruved"))
 
-        assert all(
-            [
-                MonitoringSitesGroupsSchemaCruved(exclude=("medias",)).dump(group)
-                in sites_group_response
-                for group in sites_groups.values()
-            ]
-        )
+        assert all([schema.dump(group) in sites_group_response for group in sites_groups.values()])
 
     def test_get_sites_groups_filter_name(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         name, name_not_present = list(sites_groups.keys())
-        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias",))
+        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias", "cruved"))
 
         r = self.client.get(
             url_for("monitorings.api.get_sites_groups"), query_string={"sites_group_name": name}
         )
 
         assert r.json["count"] >= 1
-        json_sites_groups = r.json["items"]
+        json_sites_groups = [without_cruved(item) for item in r.json["items"]]
 
         assert schema.dump(sites_groups[name]) in json_sites_groups
         assert schema.dump(sites_groups[name_not_present]) not in json_sites_groups

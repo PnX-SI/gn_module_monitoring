@@ -84,7 +84,7 @@
           class="btn btn-success float-right mr-1"
           [matTooltip]="canUpdate ? null : toolTipNotAllowed"
           (click)="canUpdate ? submitForm.emit(true) : notAllowed.emit()"
-          [disabled]="!form.valid"
+          [disabled]="!form.valid || !formReady"
         >
           <span
             [ngClass]="{ 'hide-spinner': !saveAndAddChildrenSpinner }"
@@ -101,7 +101,7 @@
           class="float-right mr-1"
           [matTooltip]="canUpdate ? null : toolTipNotAllowed"
           (click)="canUpdate ? submitForm.emit(false) : notAllowed.emit()"
-          [disabled]="!form.valid"
+          [disabled]="!form.valid || !formReady"
         >
           <span
             [ngClass]="{ 'hide-spinner': !saveSpinner }"

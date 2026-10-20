@@ -24,6 +24,7 @@ export interface ISitesGroup extends IGeomObject {
   sites_group_description: string;
   sites_group_name: string;
   uuid_sites_group: string; //FIXME: see if OK
+  deleted: boolean;
 }
 
 export interface ISite extends IGeomObject {
@@ -48,6 +49,7 @@ export interface ISite extends IGeomObject {
   id_sites_group: number;
   id_inventor: number;
   inventor: string[];
+  deleted: boolean;
 }
 
 export interface ISiteField extends Omit<ISite, 'types_site'> {

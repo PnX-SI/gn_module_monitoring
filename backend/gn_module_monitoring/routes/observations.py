@@ -15,6 +15,7 @@ from gn_module_monitoring.monitoring.models import (
 )
 
 from gn_module_monitoring.monitoring.schemas import (
+    MonitoringObservationsSchemaCruved,
     MonitoringObservationsSchema,
     add_specific_attributes,
 )
@@ -105,7 +106,7 @@ def get_observation_by_id(scope, module_code, _id):
             f"User {g.current_user} cannot read observation {observation.id_observation}"
         )
     schema = add_specific_attributes(
-        MonitoringObservationsSchema, ObjectType.OBSERVATION, module_code
+        MonitoringObservationsSchemaCruved, ObjectType.OBSERVATION, module_code
     )
 
     data = schema().dump(observation)

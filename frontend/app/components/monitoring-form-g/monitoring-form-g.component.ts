@@ -49,6 +49,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public meta: any;
   public saveAndAddChildrenSpinner: boolean = false;
   public saveSpinner: boolean = false;
+  public formReady: boolean = true;
   public chainInput: boolean = false;
   public canUpdate: boolean = false;
   public canDelete: boolean = false;
@@ -98,9 +99,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       });
     }
 
-    this.formValues(this.form.value).subscribe((formValue) => {
-      this.form.patchValue(formValue);
-      this.initialFormValue = this.form.value;
+    // Conversion asynchrone des valeurs de l'objet pour les widgets (dates, observateurs, ...) :
+    // tant qu'elle n'est pas terminée, le formulaire contient les valeurs brutes de l'API,
+    // que formatForApi ne sait pas relire (envoi de valeurs nulles)
+    this.formValues(this.form.value).subscribe({
+      next: (formValue) => {
+        this.form.patchValue(formValue);
+        this.initialFormValue = this.form.value;
+      },
+      complete: () => setTimeout(() => (this.formReady = true)),
+      error: () => setTimeout(() => (this.formReady = true)),
     });
 
     // Affichage de la geometrie des sites et groupes de sites du module
@@ -171,8 +179,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     const objectPermission = this.userPermission[this.objectType.toString()] || {};
     const isCreate = !this.object;
+    // droits sur l'objet lui-même (scope « mes données » / « mon organisme »), calculés par l'API
+    const objectCruved = this.objectType != 'module' ? this.object?.cruved : undefined;
 
-    this.canUpdate = isCreate ? objectPermission['C'] > 0 : objectPermission['U'] > 0;
+    this.canUpdate = isCreate
+      ? objectPermission['C'] > 0
+      : objectCruved
+        ? !!objectCruved['U']
+        : objectPermission['U'] > 0;
 
     if (isCreate || this.objectType == 'module') {
       this.canDelete = false;
@@ -188,12 +202,13 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.canDelete = false;
       this.toolTipNotAllowed = TOOLTIPMESSAGEALERT_CHILD;
     } else {
-      this.canDelete = objectPermission['D'] > 0;
+      this.canDelete = objectCruved ? !!objectCruved['D'] : objectPermission['D'] > 0;
     }
   }
 
   ngOnInit() {
     this.queryParams = this._route.snapshot.queryParams || {};
+    this.formReady = !this.object;
     this.initForm();
     this.initPermission();
     if (this.fetchedParents) {
@@ -260,6 +275,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit(isAddChildrend = false) {
+    if (!this.formReady) {
+      return;
+    }
     isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
 
     let formValueGroup = this.form.value;
@@ -533,6 +551,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
       this.deleteSpinner = this.deleteModal = false;
 
+      this.object.deleted = true;
       this._formService.changeCurrentEditMode(false);
       this._commonService.regularToaster(
         'info',

@@ -17,7 +17,10 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringIndividuals,
 )
-from gn_module_monitoring.monitoring.schemas import MonitoringIndividualsSchema
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringIndividualsSchema,
+    MonitoringIndividualsSchemaCruved,
+)
 from gn_module_monitoring.routes.modules import get_modules
 
 from gn_module_monitoring.utils.routes import (
@@ -128,7 +131,7 @@ def get_individual_by_id(scope: int, module_code: str, id: int):
     individual = db.get_or_404(TMonitoringIndividuals, id)
     if not individual.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read individual {individual.id_individual}")
-    data = MonitoringIndividualsSchema().dump(individual)
+    data = MonitoringIndividualsSchemaCruved().dump(individual)
 
     return data
 
