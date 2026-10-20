@@ -85,9 +85,9 @@ class TestTypeStores:
         field = make_store(UUIDStore, {}, field_name="my_extra").to_field()
         assert field.deserialize(value) == value
 
-    def test_native_date_is_decoded(self):
-        field = make_store(DateStore, {}, field_name="visit_date_min", entity="visit").to_field()
-        assert field.deserialize("2026-01-02") == datetime.date(2026, 1, 2)
+    def test_native_datetime_is_decoded(self):
+        field = make_store(DateTimeStore, {}, field_name="first_use_date").to_field()
+        assert field.deserialize("2026-01-02T10:00:00") == datetime.datetime(2026, 1, 2, 10)
 
     def test_native_uuid_is_decoded(self):
         value = uuid.uuid4()
