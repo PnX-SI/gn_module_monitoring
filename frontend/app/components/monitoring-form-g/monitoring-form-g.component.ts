@@ -487,17 +487,17 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    */
   navigateToParent() {
     this.EditChange.emit(false); // patch bug navigation
-
     const rawParentsPath = this.queryParams['parents_path'] || [];
     const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
 
     const parentType = parentsPath[parentsPath.length - 1];
     const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
-
+    // Si l'objet est vide, c-a-d une création l'id parent est récupéré depuis les queryParams
+    const parentId = this.object?.[parentFieldId] || this.queryParams[parentFieldId];
     this._navigationService.navigateToParent(
       this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
-      this.object?.[parentFieldId],
+      parentId,
       [...parentsPath]
     );
   }
