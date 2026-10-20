@@ -318,6 +318,8 @@ export class MonitoringDatatableGComponent implements OnInit {
 
   navigateToAddChildren(_, row) {
     row['object_type'] = this.dataTableConfig[this.activetabIndex]['childType'];
+    // type de la ligne, parent de l'objet à créer
+    row['parent_object_type'] = this.dataTableConfig[this.activetabIndex]['objectType'];
     this.onAddChildren.emit(row);
   }
 

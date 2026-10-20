@@ -279,10 +279,10 @@ def get_module_sites(module_code: str):
     return jsonify({"module_code": module_code})
 
 
-@blueprint_api.route("/sites", methods=["POST"], defaults={"module_code": "generic"})
+@blueprint_api.route("/sites", methods=["POST"])
 @blueprint_api.route("/<string:module_code>/sites", methods=["POST"])
 @check_cruved_scope("C", object_code="MONITORINGS_SITES")
-def post_sites(module_code: str):
+def post_sites(module_code: str = "generic"):
     post_data = dict(request.get_json())
     return create_or_update_site(post_data, module_code=module_code), 201
 

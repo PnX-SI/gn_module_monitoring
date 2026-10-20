@@ -21,6 +21,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringVisits,
 )
 from gn_module_monitoring.monitoring.schemas import (
+    MonitoringObservationsDetailsSchemaCruved,
     MonitoringObservationsDetailsSchema,
     add_specific_attributes,
 )
@@ -129,10 +130,10 @@ def get_obs_detail_by_id(scope: int, module_code: str, id: int):
     obs_detail = db.get_or_404(TMonitoringObservationDetails, id)
     if not obs_detail.has_instance_permission(scope=scope):
         raise Forbidden(
-            f"User {g.current_user} cannot read observation detail {obs_detail.id_base_obs_detail}"
+            f"User {g.current_user} cannot read observation detail {obs_detail.id_observation_detail}"
         )
     schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
+        MonitoringObservationsDetailsSchemaCruved, ObjectType.OBSERVATION_DETAIL, module_code
     )
 
     data = schema().dump(obs_detail)

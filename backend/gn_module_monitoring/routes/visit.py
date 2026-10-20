@@ -117,7 +117,7 @@ def get_visit_by_id(scope, module_code, id):
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = add_specific_attributes(MonitoringVisitsSchema, ObjectType.VISIT, module_code)
+    schema = add_specific_attributes(MonitoringVisitsSchemaCruved, ObjectType.VISIT, module_code)
 
     data = schema(exclude=("module",)).dump(visit)
 
