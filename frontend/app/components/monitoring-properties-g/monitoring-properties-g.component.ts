@@ -32,6 +32,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
   public selectedDataSet: Array<number> = [];
   public toolTipNotAllowed: string = TOOLTIPMESSAGEALERT;
   public userPermission: any;
+  public editPermission: boolean = false;
 
   constructor(
     private _configServiceG: ConfigServiceG,
@@ -50,6 +51,7 @@ export class MonitoringPropertiesGComponent implements OnInit {
     this.userPermission =
       this.currentUser.moduleCruved ||
       this.permissionService.setModulePermissions(this._configServiceG.moduleCode() || 'generic');
+    this.editPermission = this.hasEditPermission();
   }
 
   hasEditPermission(): boolean {
