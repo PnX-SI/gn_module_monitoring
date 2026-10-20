@@ -19,9 +19,9 @@
   </span>
 </div>
 <pnx-monitoring-properties-g
-  *ngIf="sitesGroup && !bEdit"
+  *ngIf="sitesGroupResolved && !bEdit"
   id="nav-properties"
-  [obj]="sitesGroup"
+  [obj]="sitesGroupResolved"
   [templateData]="templateData"
   [(bEdit)]="bEdit"
   [currentUser]="currentUser"
