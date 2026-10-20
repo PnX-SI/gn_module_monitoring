@@ -1,4 +1,4 @@
-import { forkJoin, Observable, of, EMPTY } from 'rxjs';
+import { forkJoin, Observable, of, EMPTY, Subscription } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { NgSelectConfig } from '@ng-select/ng-select';
+import { evaluate } from '@marcbachmann/cel-js';
 
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -39,6 +40,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() object: any;
   @Input() form: FormGroup = new FormGroup('');
   @Input() config: any;
+  validationError: string[] = [];
+  private validationSub: Subscription;
   @Input() currentUser: any;
   @Input() objectType: string;
   // Dans le cas de création, la liste des parents est fournie par le resolver du composant parent
@@ -195,6 +198,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.queryParams = this._route.snapshot.queryParams || {};
     this.initForm();
+    this.subscribeEntityValidation();
     this.initPermission();
     if (this.fetchedParents) {
       this.meta.parents = this.buildParentsMeta();
@@ -259,10 +263,43 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     );
   }
 
-  onSubmit(isAddChildrend = false) {
-    isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
+  /**
+   * Évalue la condition `validate_cel` de l’entité sur l’ensemble du formulaire.
+   * Retourne le message d’erreur, ou null si la condition est respectée.
+   */
+  checkEntityValidateCel(formValue: JsonData): string[] {
+    const context = Object.fromEntries(
+      Object.entries(formValue).map(([key, value]) => [key, value ?? null])
+    );
+    const errors: string[] = [];
+    for (const item of this.config?.['validate_cel'] || []) {
+      const { condition, message } =
+        typeof item === 'string' ? { condition: item, message: null } : item;
+      console.log('[CEL] évaluation validate_cel', condition, 'contexte', context);
+      try {
+        const result = evaluate(condition, context);
+        console.log('[CEL] résultat validate_cel', result);
+        if (typeof result !== 'boolean') {
+          errors.push(`Expression de validation non booléenne : ${result}`);
+        } else if (!result) {
+          errors.push(message || `The following condition is not met: ${condition}`);
+        }
+      } catch (e) {
+        errors.push(`Expression de validation impossible à évaluer : ${(e as Error).message}`);
+      }
+    }
+    return errors;
+  }
 
+  onSubmit(isAddChildrend = false) {
     let formValueGroup = this.form.value;
+
+    this.validationError = this.checkEntityValidateCel(formValueGroup);
+    if (this.validationError.length) {
+      return;
+    }
+
+    isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
 
     let actionLabel = '';
     let action;
@@ -544,7 +581,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Évalue la condition `validate_cel` de l’entité à chaque modification du formulaire.
+   * Différé : la valeur peut changer pendant la détection de changement.
+   */
+  private subscribeEntityValidation() {
+    this.validationSub = this.form.valueChanges.subscribe((value) => {
+      setTimeout(() => (this.validationError = this.checkEntityValidateCel(value)));
+    });
+  }
+
   ngOnDestroy() {
+    this.validationSub?.unsubscribe();
     this._geojsonService.removeAllFeatureGroup();
     this.form.patchValue({ geometry: null });
     this._formService.changeFormMapObj({

@@ -76,6 +76,14 @@
       >
         <ng-content></ng-content>
       </div>
+      <div
+        class="alert alert-danger"
+        *ngIf="validationError?.length"
+      >
+        <ul class="mb-0 pl-3">
+          <li *ngFor="let message of validationError">{{ message }}</li>
+        </ul>
+      </div>
       <div class="btn-child">
         <button
           mat-raised-button

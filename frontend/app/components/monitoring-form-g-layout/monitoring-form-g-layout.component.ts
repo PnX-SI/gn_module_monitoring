@@ -28,6 +28,7 @@ export class MonitoringFormGLayoutComponent {
   @Input() addChildren: boolean;
   @Input() deleteSpinner: boolean;
   @Input() deleteModal: boolean;
+  @Input() validationError: string[] = [];
 
   @Output() chainInputChange = new EventEmitter<boolean>();
   @Output() deleteModalChange = new EventEmitter<boolean>();
