@@ -45,7 +45,8 @@ export class ConfigServiceG {
   loadConfig(moduleCode: string): Observable<boolean> {
     console.log('ConfigServiceG loadConfig for moduleCode : ', moduleCode);
 
-    const baseUrl = this.geonatureConfig.API_ENDPOINT + '/' + moduleCode;
+    const baseUrl =
+      this.geonatureConfig.API_ENDPOINT + '/' + this._moduleService.currentModule.module_path;
     const urlConfig =
       moduleCode === 'generic'
         ? `${baseUrl}/${API_PREFIX}/config`
