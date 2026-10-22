@@ -117,16 +117,44 @@ def sort(
         return query.order_by(order_by)
     elif specific_properties and sort in specific_properties:
         field = specific_properties.get(sort)
+        multiple = False
+        if "multiple" in specific_properties[sort]:
+            multiple_value = specific_properties[sort]["multiple"]
+            if isinstance(multiple_value, bool):
+                multiple = multiple_value
+            else:
+                multiple = json.loads(multiple_value)
+
         # TODO: implémenter les autres type_util
         if field.get("type_util") == "nomenclature":
             join_table, join_column, filter_column = model._get_relationship_clause(
                 type_util="nomenclature"
             )
-            query = query.join(join_table, model.data[sort].astext.cast(Integer) == join_column)
+            if multiple:
+                # Sous-requête pour vérifier si model.data[sort] est un tableau
+                is_array = func.jsonb_typeof(model.data[sort]) == "array"
+
+                # Sous-requête principale
+                subquery_select = (
+                    select(
+                        func.jsonb_array_elements_text(model.data[sort])
+                        .cast(DB.Integer)
+                        .label("id")
+                    )
+                    .where(is_array)
+                    .correlate_except()
+                    .lateral()
+                )
+                query = query.outerjoin(  # Condition pour éviter les NULL
+                    subquery_select, model.data[sort] != None
+                ).outerjoin(join_table, subquery_select.c.id == join_column)
+            else:
+                query = query.outerjoin(
+                    join_table, model.data[sort].astext.cast(Integer) == join_column
+                )
             order_by = filter_column
         else:
             order_by = model.data[sort]
-
         if sort_dir == "desc":
             order_by = desc(order_by)
         return query.order_by(order_by)
