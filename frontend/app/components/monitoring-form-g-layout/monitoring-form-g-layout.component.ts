@@ -21,6 +21,8 @@ export class MonitoringFormGLayoutComponent {
   @Input() form: FormGroup;
   @Input() chainInput: boolean;
   @Input() saveSpinner: boolean;
+  // valeurs de l'objet chargées dans le formulaire (validation impossible avant)
+  @Input() formReady: boolean = true;
   @Input() saveAndAddChildrenSpinner: boolean;
   @Input() canUpdate: boolean;
   @Input() canDelete: boolean;
@@ -35,4 +37,10 @@ export class MonitoringFormGLayoutComponent {
   @Output() notAllowed = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
   @Output() confirmDelete = new EventEmitter<void>();
+
+  closeDropdowns() {
+    if (document.querySelector('body > .ng-dropdown-panel')) {
+      document.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  }
 }

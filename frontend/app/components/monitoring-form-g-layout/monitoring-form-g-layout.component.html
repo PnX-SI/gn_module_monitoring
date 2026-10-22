@@ -32,7 +32,7 @@
     class="cadre"
     *ngIf="formsDefinition"
   >
-    <div style="height: 25px">
+    <div style="min-height: 25px; display: flow-root">
       <span
         *ngIf="!object && config['chained']"
         id="toggle-btn"
@@ -71,10 +71,8 @@
 
       <!-- composant choix de site select + filtre -->
       <div
-        [ngClass]="{
-          'form-scroll-info-geom': config['geometry_type'] && !form.value.geometry,
-          'form-scroll': !(config['geometry_type'] && !form.value.geometry)
-        }"
+        class="form-scroll"
+        (scroll)="closeDropdowns()"
       >
         <ng-content></ng-content>
       </div>
@@ -86,7 +84,7 @@
           class="btn btn-success float-right mr-1"
           [matTooltip]="canUpdate ? null : toolTipNotAllowed"
           (click)="canUpdate ? submitForm.emit(true) : notAllowed.emit()"
-          [disabled]="!form.valid"
+          [disabled]="!form.valid || !formReady"
         >
           <span
             [ngClass]="{ 'hide-spinner': !saveAndAddChildrenSpinner }"
@@ -103,7 +101,7 @@
           class="float-right mr-1"
           [matTooltip]="canUpdate ? null : toolTipNotAllowed"
           (click)="canUpdate ? submitForm.emit(false) : notAllowed.emit()"
-          [disabled]="!form.valid"
+          [disabled]="!form.valid || !formReady"
         >
           <span
             [ngClass]="{ 'hide-spinner': !saveSpinner }"

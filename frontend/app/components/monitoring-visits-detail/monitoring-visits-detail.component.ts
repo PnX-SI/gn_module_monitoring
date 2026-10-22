@@ -77,8 +77,14 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
         this.objectDataResolved = data;
       });
     });
+
     // Initialisation du datatable
+    // Check if observations exist
+    if (!('observation' in this._configServiceG.config())) {
+      return;
+    }
     const defaultFilters = {
+      ...(this._configServiceG.config()['observation'] || {})['filters'],
       ...this._configServiceG.config()['observation']['filters'],
       ...{
         id_base_visit: this.dataId,
@@ -105,7 +111,9 @@ export class MonitoringVisitsDetailComponent extends MonitoringGeomComponent imp
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initData();
+      if (this.objectData.deleted !== true) {
+        this.initData();
+      }
     }
   }
   getChild(page: number, params) {

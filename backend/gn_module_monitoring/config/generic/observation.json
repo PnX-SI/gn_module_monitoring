@@ -30,7 +30,10 @@
     },
     "id_individual": {
       "type_widget": "text",
-      "attribut_label": "Id individu",
+      "attribut_label": "Choix de l'individu",
+      "module_code": "__MODULE.MODULE_CODE",
+      "id_list": "__MODULE.ID_LIST_TAXONOMY",
+      "cd_nom": "__MODULE.CD_NOM",
       "hidden": true
     },
     "cd_nom": {

@@ -45,7 +45,7 @@ class TestMarkings:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_markings",
+                "monitorings.api.get_markings",
                 module_code="test_indi",
             )
         )
@@ -61,7 +61,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_markings",
+                "monitorings.api.get_markings",
                 module_code="test_indi",
                 id_individual=marking_instance.id_individual,
             )
@@ -77,7 +77,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=marking_instance.id_marking,
             )
@@ -92,7 +92,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=999999999,
             )
@@ -116,7 +116,7 @@ class TestMarkings:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_marking",
+                "monitorings.api.post_marking",
                 module_code="test_indi",
             ),
             json=data,
@@ -143,7 +143,7 @@ class TestMarkings:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_marking",
+                "monitorings.api.patch_marking",
                 module_code="test_indi",
                 _id=marking_instance.id_marking,
             ),
@@ -158,7 +158,7 @@ class TestMarkings:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_marking",
+                "monitorings.api.patch_marking",
                 module_code="test_indi",
                 _id=999999999,
             ),
@@ -173,7 +173,7 @@ class TestMarkings:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_marking",
+                "monitorings.api.delete_marking",
                 _id=marking_instance.id_marking,
                 module_code="test_indi",
             )
@@ -184,7 +184,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=marking_instance.id_marking,
             )
@@ -195,7 +195,7 @@ class TestMarkings:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_marking", _id=999999999, module_code="test_indi")
+            url_for("monitorings.api.delete_marking", _id=999999999, module_code="test_indi")
         )
 
         assert r.status_code == 404

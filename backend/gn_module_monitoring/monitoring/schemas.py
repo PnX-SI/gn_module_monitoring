@@ -68,9 +68,6 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
-    # Certains modèles (ex: individus) n'ont pas de colonne data
-    if hasattr(model_class, "data"):
-        parameters["exclude"].append("data")
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
@@ -121,10 +118,11 @@ class GenericAdditionalSchema(Schema):
     def add_additional_fields(self, data, **kwargs) -> Dict[str, Any]:
         # Cas des propriétés renseignées dans d'autre module
         #  Ajout manuel des propriétés manquantes
-
         additional_fields_data: dict[str, Any] = data.pop("data", {})
+
         if not additional_fields_data:
             return data
+
         # Initialiser `additional_data_keys` si absent
         if "additional_data_keys" not in data:
             data["additional_data_keys"] = []
@@ -261,7 +259,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
-    pass
+    __object_code__ = "MONITORINGS_GRP_SITES"
 
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
@@ -313,7 +311,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
-    pass
+    __object_code__ = "MONITORINGS_SITES"
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
@@ -353,7 +351,7 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
@@ -392,7 +390,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
@@ -440,7 +438,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsDetailsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsDetailsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
@@ -468,7 +466,7 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
-    pass
+    __object_code__ = "INDIVIDUALS"
 
 
 class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
@@ -502,4 +500,4 @@ class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringMarkingSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringMarkingSchema):
-    pass
+    __object_code__ = "MONITORINGS_MARKINGS"
