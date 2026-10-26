@@ -92,12 +92,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     }
     this.setDefaultFormValue();
 
-    if (this.config['geometry_type']) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form.controls['geometry'] as FormControl,
-        geometry_type: this.config['geometry_type'],
-      });
-    }
+    this.publishGeometryControl();
 
     // Conversion asynchrone des valeurs de l'objet pour les widgets (dates, observateurs, ...) :
     // tant qu'elle n'est pas terminée, le formulaire contient les valeurs brutes de l'API,
@@ -516,7 +511,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     this.object = null;
 
-    this.form.patchValue({ geometry: null });
+    // Les contrôles sont conservés lors du changement de définition (`preserveControls`) :
+    // on vide donc explicitement toutes les valeurs (géométrie incluse) avant de restaurer
+    // celles à conserver dans `onDynamicFormGroupChange`
+    this.form.reset();
 
     this.resetDynamicForm();
     // Force le rafraichissement des géométries de façon à ammender le layer avec la dernière données saisie
@@ -525,6 +523,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   resetDynamicForm() {
     this.formsDefinition = (this.formsDefinition as any[]).map((formDef) => ({ ...formDef }));
+  }
+
+  /** Relie le composant de dessin au contrôle `geometry` courant du formulaire */
+  private publishGeometryControl() {
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
+    }
   }
 
   onDynamicFormGroupChange() {
