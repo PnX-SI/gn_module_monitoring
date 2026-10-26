@@ -305,7 +305,7 @@ class TestSitesGroupsWithModule:
             ],
         }
         r = self.client.post(
-            url_for("monitorings.post_sites_group", module_code="test"),
+            url_for("monitorings.api.post_sites_group", module_code="test"),
             data=site_group,
         )
 
