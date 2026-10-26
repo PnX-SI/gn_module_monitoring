@@ -168,12 +168,12 @@ class TestMarkings:
         assert MonitoringSitesSchema().dump(selected_site).get("nb_marking_events") == 1
 
         # test route site with markings event
-        r = self.client.get(url_for("monitorings.api.get_sites", module_code="test_indi"))
-        for i in r.json["items"]:
-            if i["id_base_site"] == sites["admin_user_Test_Grotte"].id_base_site:
-                assert i["nb_marking_events"] == 1
-            else:
-                assert i["nb_marking_events"] == 0
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", module_code="test_indi", nb_marking_events=1)
+        )
+        assert len(r.json["items"]) == 1
+        assert r.json["count"] == 1
+        assert r.json["items"][0]["id_base_site"] == sites["admin_user_Test_Grotte"].id_base_site
 
     def test_patch_marking(self, markings_routes, users):
         set_logged_user_cookie(self.client, users["admin_user"])
