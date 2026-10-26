@@ -68,9 +68,6 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
-    # Certains modèles (ex: individus) n'ont pas de colonne data
-    if hasattr(model_class, "data"):
-        parameters["exclude"].append("data")
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
@@ -121,10 +118,11 @@ class GenericAdditionalSchema(Schema):
     def add_additional_fields(self, data, **kwargs) -> Dict[str, Any]:
         # Cas des propriétés renseignées dans d'autre module
         #  Ajout manuel des propriétés manquantes
-
         additional_fields_data: dict[str, Any] = data.pop("data", {})
+
         if not additional_fields_data:
             return data
+
         # Initialiser `additional_data_keys` si absent
         if "additional_data_keys" not in data:
             data["additional_data_keys"] = []

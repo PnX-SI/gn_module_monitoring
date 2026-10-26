@@ -1,7 +1,8 @@
-import os, datetime, time
+import os
 import importlib
 import json
 from pathlib import Path
+import copy
 
 from flask import current_app
 from sqlalchemy import and_, select
@@ -55,6 +56,26 @@ def get_monitoring_module(module_code):
     ).scalar_one_or_none()
 
 
+def is_module_configured(module) -> bool:
+    """
+    Indique si un module de suivi est configuré, c'est-à-dire si lui sont associés :
+        - une liste d'observateurs
+        - au moins un jeu de données
+        - une liste de taxons
+        - un mode d'affichage des taxons
+
+    Le module générique (module=None) est toujours considéré comme configuré.
+    """
+    if module is None:
+        return True
+    return (
+        bool(module.id_list_observer)
+        and len(module.datasets) > 0
+        and module.id_list_taxonomy is not None
+        and bool(module.taxonomy_display_field_name)
+    )
+
+
 def get_monitorings_path():
     module = DB.session.execute(
         select(TModules.module_path).where(TModules.module_code == "MONITORINGS")
@@ -93,10 +114,6 @@ def get_id_table_location(object_type):
         pass
 
     return id_table_location
-
-
-def copy_dict(dict_in):
-    return json.loads(json.dumps(dict_in))
 
 
 def json_from_file(file_path, result_default={}):
@@ -217,9 +234,9 @@ def process_schema(object_type, config):
         type_widget_g = generic[key].get("type_widget")
 
         if type_widget_s and type_widget_s == type_widget_g:
-            generic[key] = copy_dict(specific[key])
+            generic[key] = copy.deepcopy(specific[key])
         else:
-            generic[key].update(copy_dict(specific[key]))
+            generic[key].update(copy.deepcopy(specific[key]))
         generic[key].update(process_display_element(generic[key]))
 
         del specific[key]
@@ -265,8 +282,8 @@ def process_config_display(object_type, config):
 
     config_object["display_properties"] = display_properties
     config_object["display_list"] = display_list
-    config_object["properties_keys"] = properties_keys
-    config_object["display_form"] = display_form
+    config_object["properties_keys"] = properties_keys  # FIXME: not used
+    config_object["display_form"] = display_form  # FIXME: not used
 
 
 def customize_config(elem, custom):
@@ -290,7 +307,24 @@ def customize_config(elem, custom):
     return elem
 
 
-def get_data_preload(config, module):
+def apply_substitutions(data, substitutions):
+    if isinstance(data, list):
+        for idx, value in enumerate(data):
+            data[idx] = apply_substitutions(value, substitutions)
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            data[key] = apply_substitutions(value, substitutions)
+    elif isinstance(data, str):
+        for old, new in substitutions.items():
+            if data == old:  # keep the new type (e.g. int instead of string)
+                data = new
+                break
+            else:
+                data = data.replace(old, str(new))
+    return data
+
+
+def get_data_preload(config):
     out = {"nomenclature": ["TYPE_MEDIA"]}
 
     # if getattr(module, "id_list_observer", None):

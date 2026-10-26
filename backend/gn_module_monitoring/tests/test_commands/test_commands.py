@@ -170,6 +170,12 @@ class TestCommands:
         result = runner.invoke(synchronize_synthese, ["test"])
         assert result.exit_code == 0
 
+    def test_cmd_add_module_protocol_fields_without_config(self, install_module_test):
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
+        assert result.exit_code == 0
+        assert "Le module test n'est pas configuré !" in result.output
+
     def test_cmd_add_module_protocol_fields(self, install_module_test_with_config):
         runner = current_app.test_cli_runner()
         result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])

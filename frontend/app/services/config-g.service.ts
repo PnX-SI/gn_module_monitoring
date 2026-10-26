@@ -4,6 +4,7 @@ import { ModuleService } from '@geonature/services/module.service';
 import { of, Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
+import { API_PREFIX } from '../constants/api';
 
 @Injectable({
   providedIn: 'root', // a changer :/
@@ -41,8 +42,8 @@ export class ConfigServiceG {
     console.log('ConfigServiceG loadConfig for moduleCode : ', moduleCode);
     const urlConfig =
       moduleCode === 'generic'
-        ? `${this.backendModuleUrl()}/refacto/config`
-        : `${this.backendModuleUrl()}/refacto/config/${moduleCode}`;
+        ? `${this.backendModuleUrl()}/${API_PREFIX}/config`
+        : `${this.backendModuleUrl()}/${API_PREFIX}/${moduleCode}/config`;
     return this._http.get<any>(urlConfig).pipe(
       mergeMap((config: any) => {
         this._config = config;
@@ -71,8 +72,8 @@ export class ConfigServiceG {
   }
 
   codeListObservers() {
-    if (this._config['custom']['CODE_OBSERVERS_LIST']) {
-      return this._config['custom']['CODE_OBSERVERS_LIST'];
+    if (this._config?.['module']?.['code_observers_list']) {
+      return this._config['module']['code_observers_list'];
     }
     return this.geonatureConfig.MONITORINGS.CODE_OBSERVERS_LIST;
   }

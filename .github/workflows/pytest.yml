@@ -16,14 +16,16 @@ on:
       - main
       - hotfixes
       - develop
-      - refact-config
+      - refact-hotfixes
+      - controls
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["develop"] # Mettre version compatible
+        geonature_ref: ["monitoring-controls"] # Mettre version compatible
+        geontaure_repo: naturalsolutions/GeoNature
     uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
     with:
       geonature_ref: ${{ matrix.geonature_ref }}

@@ -50,12 +50,14 @@ export class DrawFormComponent implements OnInit {
     // choix du type de geometrie
     this.initDrawConfig();
 
-    this.currentEditModeSubscription = this._formService.currentEditMode.subscribe(
-      (editMode: boolean) => {
-        this.bEdit = editMode;
-        this.initForm();
-      }
-    );
+    this.currentEditModeSubscription = this._formService.currentEditMode
+      .pipe(distinctUntilChanged())
+      .subscribe((editMode: boolean) => {
+        setTimeout(() => {
+          this.bEdit = editMode;
+          this.initForm();
+        });
+      });
   }
 
   initForm() {

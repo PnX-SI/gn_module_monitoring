@@ -22,7 +22,6 @@
       "hidden": true
     },
     "id_digitiser": {
-      "type_widget": "text",
       "attribut_label": "Numérisateur",
       "required": true,
       "hidden": true,
