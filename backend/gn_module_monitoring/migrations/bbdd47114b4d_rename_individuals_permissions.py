@@ -17,22 +17,14 @@ depends_on = "ad8b797d89c0"
 
 
 def upgrade():
-    op.execute(
-        sa.text(
-            """
+    op.execute(sa.text("""
         DELETE FROM gn_permissions.t_objects
         WHERE code_object = 'MONITORINGS_INDIVIDUALS'
-        """
-        )
-    )
+        """))
 
 
 def downgrade():
-    op.execute(
-        sa.text(
-            """
+    op.execute(sa.text("""
         INSERT INTO gn_permissions.t_objects (id_object, code_object, description_object)
         VALUES(nextval('gn_permissions.t_objects_id_object_seq'::regclass), 'MONITORINGS_INDIVIDUALS', 'Permissions sur les individus');
-        """
-        )
-    )
+        """))
