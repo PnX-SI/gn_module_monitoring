@@ -78,6 +78,10 @@ def cmd_install_monitoring_module(module_code):
         )
         return
 
+    if module_code in [module["module_code"] for module in installed_modules()]:
+        click.secho(f"Le module {module_code} est déjà installé !\n")
+        return
+
     if module_code:
         module_config_dir_path = monitoring_module_config_path(module_code)
 

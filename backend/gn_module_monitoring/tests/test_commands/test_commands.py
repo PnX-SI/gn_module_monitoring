@@ -47,6 +47,15 @@ class TestCommands:
         ).scalar_one()
         assert result.module_code == "test"
 
+    def test_install_monitoring_module_already_exists(self, install_module_test):
+        # Installation du module
+        # Test Installation
+        module_code = "test"
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_install_monitoring_module, [module_code])
+        assert result.exit_code == 0
+        assert result.output.startswith(f"Le module {module_code} est déjà installé !")
+
     def test_install_monitoring_module_none_modulecode(self):
         # Commande d'installation du module avec aucun module_code
         runner = current_app.test_cli_runner()
