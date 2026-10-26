@@ -136,7 +136,7 @@ class TestMarkings:
     def test_post_marking_site(self, markings_routes, users, nomenclature_type_markings, sites):
         set_logged_user_cookie(self.client, users["admin_user"])
         marking_instance = markings_routes[0]
-        print(sites, sites["admin_user_Test_Grotte"].id_base_site)
+
         data = {
             "id_individual": marking_instance.id_individual,
             "id_digitiser": users["admin_user"].id_role,
@@ -166,6 +166,14 @@ class TestMarkings:
             .limit(1)
         )
         assert MonitoringSitesSchema().dump(selected_site).get("nb_marking_events") == 1
+
+        # test route site with markings event
+        r = self.client.get(url_for("monitorings.api.get_sites", module_code="test_indi"))
+        for i in r.json["items"]:
+            if i["id_base_site"] == sites["admin_user_Test_Grotte"].id_base_site:
+                assert i["nb_marking_events"] == 1
+            else:
+                assert i["nb_marking_events"] == 0
 
     def test_patch_marking(self, markings_routes, users):
         set_logged_user_cookie(self.client, users["admin_user"])
