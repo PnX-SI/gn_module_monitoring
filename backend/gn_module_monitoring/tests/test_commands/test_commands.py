@@ -47,6 +47,22 @@ class TestCommands:
         ).scalar_one()
         assert result.module_code == "test"
 
+    def test_install_monitoring_module_already_exists(self, install_module_test):
+        # Installation du module
+        # Test Installation
+        module_code = "test"
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_install_monitoring_module, [module_code])
+        assert result.exit_code == 0
+        assert result.output.startswith(f"Le module {module_code} est déjà installé !")
+
+    def test_install_monitoring_module_none_modulecode(self):
+        # Commande d'installation du module avec aucun module_code
+        runner = current_app.test_cli_runner()
+        result = runner.invoke(cmd_install_monitoring_module)
+        assert result.exit_code == 0
+        assert result.output.startswith(f"\nModules disponibles")
+
     @pytest.mark.parametrize(
         "module_code",
         [
@@ -73,7 +89,6 @@ class TestCommands:
         ],
     )
     def test_install_monitoring_module_false_modulecode(self, module_code):
-        print(module_code)
         # Installation du module
         runner = current_app.test_cli_runner()
         result = runner.invoke(cmd_install_monitoring_module, [module_code])
@@ -85,7 +100,6 @@ class TestCommands:
         ["code", "CODE", "my_code", "code_1234", "code_"],
     )
     def test_install_monitoring_module_ok_modulecode(self, module_code):
-        print(module_code)
         # Installation du module
         runner = current_app.test_cli_runner()
         result = runner.invoke(cmd_install_monitoring_module, [module_code])
