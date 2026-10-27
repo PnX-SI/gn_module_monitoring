@@ -1,6 +1,6 @@
 <!-- IF prefered observable compare to ngOnChanges we can remove rows and colsname-->
 <div>
-  <span class="obj-title">{{ 'Actions.Add' | translate }}</span>
+  <span class="obj-title">{{ 'Actions.Add' | translate }}  : {{ (moduleConfig["sites_group"] || [])["label"]}}</span>
 </div>
 <div>
   <pnx-monitoring-form-g [object]="sitesGroup" objectType="sites_group" [form]="form" [apiService]="_sitesGroupService"
