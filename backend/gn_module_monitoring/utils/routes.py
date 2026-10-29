@@ -29,6 +29,7 @@ from sqlalchemy.orm import aliased, load_only
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
+
 from gn_module_monitoring.monitoring.models import (
     TBaseSites,
     TModules,
@@ -38,6 +39,7 @@ from gn_module_monitoring.monitoring.models import (
     cor_site_type,
 )
 from gn_module_monitoring.monitoring.schemas import paginate_schema
+from gn_module_monitoring.monitoring.queries import _build_join_for_specific_property
 
 
 def get_limit_page(params: MultiDict) -> Tuple[int]:
@@ -115,15 +117,15 @@ def sort(
         if sort_dir == "desc":
             order_by = desc(order_by)
         return query.order_by(order_by)
-    elif specific_properties and sort in specific_properties:
-        field = specific_properties.get(sort)
-        # TODO: implémenter les autres type_util
-        if field.get("type_util") == "nomenclature":
-            join_table, join_column, filter_column = model._get_relationship_clause(
-                type_util="nomenclature"
+
+    if specific_properties and sort in specific_properties:
+        field = specific_properties[sort]
+        type_util = field.get("type_util")
+
+        if type_util in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
+            query, order_by = _build_join_for_specific_property(
+                query, model, sort, specific_properties, type_util, is_outer_join=True
             )
-            query = query.join(join_table, model.data[sort].astext.cast(Integer) == join_column)
-            order_by = filter_column
         else:
             order_by = model.data[sort]
 
