@@ -51,6 +51,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public saveSpinner: boolean = false;
   public formReady: boolean = true;
   public chainInput: boolean = false;
+  // Nombre d'objets validés depuis le début de la saisie enchaînée
+  public chainedCount = 0;
   public canUpdate: boolean = false;
   public canDelete: boolean = false;
   public addChildren: boolean = false;
@@ -92,12 +94,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     }
     this.setDefaultFormValue();
 
-    if (this.config['geometry_type']) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form.controls['geometry'] as FormControl,
-        geometry_type: this.config['geometry_type'],
-      });
-    }
+    this.publishGeometryControl();
 
     // Conversion asynchrone des valeurs de l'objet pour les widgets (dates, observateurs, ...) :
     // tant qu'elle n'est pas terminée, le formulaire contient les valeurs brutes de l'API,
@@ -310,6 +307,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         return;
       }
       if (this.chainInput) {
+        this.chainedCount++;
         this.resetForm();
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
@@ -516,7 +514,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     this.object = null;
 
-    this.form.patchValue({ geometry: null });
+    // Les contrôles sont conservés lors du changement de définition (`preserveControls`) :
+    // on vide donc explicitement toutes les valeurs (géométrie incluse) avant de restaurer
+    // celles à conserver dans `onDynamicFormGroupChange`
+    this.form.reset();
 
     this.resetDynamicForm();
     // Force le rafraichissement des géométries de façon à ammender le layer avec la dernière données saisie
@@ -525,6 +526,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   resetDynamicForm() {
     this.formsDefinition = (this.formsDefinition as any[]).map((formDef) => ({ ...formDef }));
+  }
+
+  /** Relie le composant de dessin au contrôle `geometry` courant du formulaire */
+  private publishGeometryControl() {
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
+    }
   }
 
   onDynamicFormGroupChange() {
@@ -543,6 +554,15 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
         : this._geojsonService.setMapBeforeEdit(this.object.geometry);
     }
+    this.navigateToDetail();
+  }
+
+  /**
+   * Arrête la saisie enchaînée : quitte le formulaire de création (les objets déjà
+   * validés sont conservés) pour retourner vers l'objet parent
+   */
+  onStopChain() {
+    this.chainInput = false;
     this.navigateToDetail();
   }
 
