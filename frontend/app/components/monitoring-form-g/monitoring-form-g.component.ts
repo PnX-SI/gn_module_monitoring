@@ -51,6 +51,8 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public saveSpinner: boolean = false;
   public formReady: boolean = true;
   public chainInput: boolean = false;
+  // Nombre d'objets validés depuis le début de la saisie enchaînée
+  public chainedCount = 0;
   public canUpdate: boolean = false;
   public canDelete: boolean = false;
   public addChildren: boolean = false;
@@ -305,6 +307,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         return;
       }
       if (this.chainInput) {
+        this.chainedCount++;
         this.resetForm();
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
@@ -551,6 +554,15 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         ? this._geojsonService.setMapDataWithFeatureGroup([this._geojsonService.sitesFeatureGroup])
         : this._geojsonService.setMapBeforeEdit(this.object.geometry);
     }
+    this.navigateToDetail();
+  }
+
+  /**
+   * Arrête la saisie enchaînée : quitte le formulaire de création (les objets déjà
+   * validés sont conservés) pour retourner vers l'objet parent
+   */
+  onStopChain() {
+    this.chainInput = false;
     this.navigateToDetail();
   }
 

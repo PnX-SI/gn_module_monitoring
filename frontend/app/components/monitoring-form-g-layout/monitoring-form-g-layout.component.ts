@@ -20,6 +20,8 @@ export class MonitoringFormGLayoutComponent {
   @Input() objectType: String;
   @Input() form: FormGroup;
   @Input() chainInput: boolean;
+  // Nombre d'objets déjà validés en saisie enchaînée
+  @Input() chainedCount = 0;
   @Input() saveSpinner: boolean;
   // valeurs de l'objet chargées dans le formulaire (validation impossible avant)
   @Input() formReady: boolean = true;
@@ -36,6 +38,7 @@ export class MonitoringFormGLayoutComponent {
   @Output() submitForm = new EventEmitter<boolean>();
   @Output() notAllowed = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
+  @Output() stopChain = new EventEmitter<void>();
   @Output() confirmDelete = new EventEmitter<void>();
 
   closeDropdowns() {
