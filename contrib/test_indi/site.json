@@ -8,7 +8,8 @@
     "id_inventor",
     "first_use_date",
     "last_visit",
-    "nb_visits"
+    "nb_visits",
+    "nb_marking_events"
   ],
   "export_pdf": [
     {
