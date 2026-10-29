@@ -230,13 +230,14 @@ export class MonitoringSitesgroupsDetailComponent
       if (this.moduleCode === 'generic') {
         this.getModules();
       } else {
-        this.addNewVisit({ id: this.moduleCode, label: '' });
+        this.addNewVisit(this.moduleCode);
       }
     }
   }
 
   onSaveAddChildren($event: SelectObject) {
-    this.addNewVisit($event);
+    const moduleCode = $event['moduleCode'];
+    this.addNewVisit(moduleCode);
   }
 
   getModules() {
@@ -253,8 +254,8 @@ export class MonitoringSitesgroupsDetailComponent
       );
   }
 
-  addNewVisit(event) {
-    const moduleCode = event.id;
+  addNewVisit(moduleCode: string | null = null) {
+    moduleCode = moduleCode || this.moduleCode;
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
     this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {
