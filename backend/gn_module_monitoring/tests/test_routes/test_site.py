@@ -809,7 +809,7 @@ class TestSiteWithModule:
         set_logged_user_cookie(self.client, test_module_user)
         beau = self._get_meteo_value("Beau")
         mauvais = self._get_meteo_value("Mauvais")
-        filter_params = {"meteo_multiple": "mauv"}
+        filter_params = {"meteo_multiple": "mauv", "sort": "meteo_multiple"}
         site = add_site(
             data={"meteo_multiple": [mauvais.id_nomenclature, beau.id_nomenclature]}
         )  # match
