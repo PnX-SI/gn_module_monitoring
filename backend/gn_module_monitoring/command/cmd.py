@@ -13,14 +13,17 @@ from geonature.core.imports.models import Destination
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_simple_module
 from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.config.utils import (
+    get_monitoring_module,
+    is_module_configured,
+    monitoring_module_config_path,
+)
 from gn_module_monitoring.command.nomenclature import add_nomenclature
 from gn_module_monitoring.command.permissions import process_available_permissions
 from gn_module_monitoring.command.sql import process_sql_files
 from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
-    is_module_configured,
     process_module_import,
     process_update_module_import,
     remove_monitoring_module,
@@ -66,19 +69,24 @@ def cmd_install_monitoring_module(module_code):
     # module_code = module_code or module_config_dir_path.name
 
     # Check module code_name
-    is_module_code_given = module_code != ""
-
-    if is_module_code_given and not check_module_code_name(module_code):
+    module_code = None if module_code in ("", None) else module_code
+    module_config_dir_path = ""
+    if module_code and not check_module_code_name(module_code):
         click.secho(
             f"Le nom du module {module_code} n'est pas valide !",
             fg="red",
         )
         return
 
-    module_config_dir_path = monitoring_module_config_path(module_code)
+    if module_code in [module["module_code"] for module in installed_modules()]:
+        click.secho(f"Le module {module_code} est déjà installé !\n")
+        return
 
-    if not (is_module_code_given and (module_config_dir_path / "module.json").is_file()):
-        if is_module_code_given:
+    if module_code:
+        module_config_dir_path = monitoring_module_config_path(module_code)
+
+    if not (module_code and (module_config_dir_path / "module.json").is_file()):
+        if module_code:
             click.secho(
                 f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
                 fg="red",
@@ -200,7 +208,11 @@ def cmd_add_update_import_on_protocole(module_code):
         click.echo("Mise à jour de l'import annulée")
         return
 
-    if not is_module_configured(module_code):
+    if not is_module_configured(get_monitoring_module(module_code)):
+        click.secho(
+            f"Le module {module_code} n'est pas configuré ! ",
+            fg="red",
+        )
         return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")

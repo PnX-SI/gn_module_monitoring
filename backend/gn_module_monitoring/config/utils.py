@@ -55,6 +55,26 @@ def get_monitoring_module(module_code):
     ).scalar_one_or_none()
 
 
+def is_module_configured(module) -> bool:
+    """
+    Indique si un module de suivi est configuré, c'est-à-dire si lui sont associés :
+        - une liste d'observateurs
+        - au moins un jeu de données
+        - une liste de taxons ou un cd_nom est spécifié
+        - un mode d'affichage des taxons
+
+    Le module générique (module=None) est toujours considéré comme configuré.
+    """
+    if module is None:
+        return True
+    return (
+        bool(module.id_list_observer)
+        and len(module.datasets) > 0
+        and (module.id_list_taxonomy or module.cd_nom) is not None
+        and bool(module.taxonomy_display_field_name)
+    )
+
+
 def get_monitorings_path():
     module = DB.session.execute(
         select(TModules.module_path).where(TModules.module_code == "MONITORINGS")

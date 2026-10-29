@@ -1,6 +1,7 @@
 import json
 from copy import copy
 
+from typing import Optional
 from apptax.taxonomie.models import Taxref
 from flask import g
 from geonature.core.gn_permissions.tools import get_scopes_by_action
@@ -8,10 +9,11 @@ from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
 from pypn_habref_api.models import Habref
+from geonature.core.gn_meta.models import TDatasets
 from ref_geo.models import LAreas
-from sqlalchemy import Unicode, and_, false, func, or_, select, true
+from sqlalchemy import Unicode, and_, false, func, or_, select, true, Integer
 from sqlalchemy.orm import aliased, class_mapper
-from sqlalchemy.sql.expression import Select
+from sqlalchemy.sql.expression import Select, BinaryExpression
 from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
 
@@ -117,71 +119,35 @@ class GnMonitoringGenericFilter:
         :return: requête sql amendée de filtre
         """
         for param, value in params.items():
-            if param in specific_properties:
-                field_type = "text"
-                if "type_util" in specific_properties[param]:
-                    field_type = specific_properties[param]["type_util"]
-                multiple = False
-                if "multiple" in specific_properties[param]:
-                    multiple_value = specific_properties[param]["multiple"]
-                    if isinstance(multiple_value, bool):
-                        multiple = multiple_value
-                    else:
-                        multiple = json.loads(multiple_value)
-                if field_type in ("nomenclature", "taxonomy", "user", "area", "habitat"):
+            if param not in specific_properties:
+                continue
 
-                    join_table, join_column, filter_column = cls._get_relationship_clause(
-                        field_type
-                    )
-                    if not (
-                        specific_properties[param].get("value_field_name", None)
-                        or specific_properties[param].get("keyValue", None)
-                    ) in [
-                        None,
-                        join_column.name,
-                    ]:
-                        # Pas de filtre si le champ stocké est exotique
-                        continue
-                    if multiple:
-                        # Si la propriété est de type multiple
-                        # Alors jointure sur chaque element de data->'params'
-                        # extraction réalisée via fonction jsonb_array_elements_text avec une jointure lateral
-                        # utilisation de correlate_except pour ne pas que t_base_site et t_sites_complement
-                        #       soient de nouveau dans la clause from
+            field_type = specific_properties[param].get("type_util", "text")
 
-                        # Sous-requête pour vérifier si cls.data[param] est un tableau
-                        is_array = func.jsonb_typeof(cls.data[param]) == "array"
+            if field_type in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
+                # Vérification des champs exotiques
+                value_field = specific_properties[param].get(
+                    "value_field_name"
+                ) or specific_properties[param].get("keyValue")
+                if value_field and value_field != getattr(
+                    cls._get_relationship_clause(field_type)[1], "name", None
+                ):
+                    continue
 
-                        # Sous-requête principale
-                        subquery_select = (
-                            select(
-                                func.jsonb_array_elements_text(cls.data[param])
-                                .cast(db.Integer)
-                                .label("id")
-                            )
-                            .where(is_array)
-                            .correlate_except()
-                            .lateral()
-                        )
-                        query = query.join(subquery_select, cls.data[param] != None)
-                        query = query.join(
-                            join_table,
-                            subquery_select.c.id == join_column,
-                        )
-                    else:
-                        # Sinon type non multiple, jointure sur la valeur de data->'params'
-                        query = query.join(
-                            join_table, cls.data[param].astext.cast(db.Integer) == join_column
-                        )
-                    # Filtre sur la valeur de la table de jointure
-                    query = query.where(filter_column.ilike(f"{value}%"))
-                else:
-                    # Sinon filtre texte simple
-                    query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
+                query, filter_column = _build_join_for_specific_property(
+                    query, cls, param, specific_properties, field_type, is_outer_join=False
+                )
+
+                query = query.where(filter_column.ilike(f"{value}%"))
+            else:
+                query = query.where(cls.data[param].astext.ilike(f"%{value}%"))
         return query
 
-    @staticmethod
-    def _get_relationship_clause(type_util):
+    @classmethod
+    def _get_relationship_clause(
+        cls,
+        type_util: str,
+    ) -> tuple[Optional[aliased], Optional[str], Optional[str]]:
         join_table = None  # alias de la table de jointure
         join_column = None  # nom de la colonne permettant la jointure entre data et la table
         filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
@@ -201,6 +167,10 @@ class GnMonitoringGenericFilter:
             join_table = aliased(LAreas)
             join_column = join_table.id_area
             filter_column = join_table.area_name
+        elif type_util == "dataset":
+            join_table = aliased(TDatasets)
+            join_column = join_table.id_dataset
+            filter_column = join_table.dataset_name
         elif type_util == "habitat":
             join_table = aliased(Habref)
             join_column = join_table.cd_hab
@@ -309,17 +279,52 @@ class VisitQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringVisits.id_digitiser == user.id_role,
-                Models.TMonitoringVisits.observers.any(id_role=user.id_role),
+            query = query.where(or_(*cls.scope_conditions(scope, user)))
+        return query
+
+    @staticmethod
+    def scope_conditions(scope, user):
+        """Conditions d'appartenance d'une visite à l'utilisateur (scope 1) ou à son organisme (scope 2)"""
+        ors = [
+            Models.TMonitoringVisits.id_digitiser == user.id_role,
+            Models.TMonitoringVisits.observers.any(id_role=user.id_role),
+        ]
+        # if organism is None => do not filter on id_organism even if level = 2
+        if scope == 2 and user.id_organisme is not None:
+            ors += [
+                Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
+                Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
             ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
-                    Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
-                ]
-            query = query.where(or_(*ors))
+        return ors
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "id_dataset" in params:
+            value = params.pop("id_dataset")
+            if not value.isdigit():
+                join_dataset = aliased(TDatasets)
+                query = query.join(join_dataset, cls.dataset)
+                query = query.filter(join_dataset.dataset_name.ilike(f"%{value}%"))
+            else:
+                query = query.filter(cls.id_dataset == value)
+
+        query = super().filter_by_params(query, params)
+
+        return query
+
+    @classmethod
+    def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
+        if "id_dataset" in params:
+            value = params.pop("id_dataset")
+            if not value.isdigit():
+                join_dataset = aliased(TDatasets)
+                query = query.join(join_dataset, cls.dataset)
+                query = query.filter(join_dataset.dataset_name.ilike(f"%{value}%"))
+            else:
+                query = query.filter(cls.id_dataset == value)
+
+        query = super().filter_by_params(query, params)
+
         return query
 
 
@@ -331,16 +336,25 @@ class ObservationsQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringObservations.id_digitiser == user.id_role,
-            ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)
-                ]
-            query = query.where(or_(*ors))
+            # Pas d'objet de permission propre aux observations : celles de la visite font foi
+            # (cohérent avec TMonitoringObservations.has_instance_permission)
+            query = query.where(or_(*cls.scope_conditions(scope, user)))
         return query
+
+    @staticmethod
+    def scope_conditions(scope, user):
+        """Observations numérisées par l'utilisateur (ou son organisme) ou rattachées à une visite
+        qui lui appartient"""
+        ors = [
+            Models.TMonitoringObservations.id_digitiser == user.id_role,
+            Models.TMonitoringObservations.visit.has(
+                or_(*VisitQuery.scope_conditions(scope, user))
+            ),
+        ]
+        # if organism is None => do not filter on id_organism even if level = 2
+        if scope == 2 and user.id_organisme is not None:
+            ors += [Models.TMonitoringObservations.digitiser.has(id_organisme=user.id_organisme)]
+        return ors
 
     @classmethod
     def filter_by_params(cls, query: Select, params: MultiDict = None, **kwargs):
@@ -433,15 +447,77 @@ class ObservationDetailsQuery(GnMonitoringGenericFilter):
         if scope == 0:
             query = query.where(false())
         elif scope in (1, 2):
-            ors = [
-                Models.TMonitoringObservationDetails.observation.id_digitiser == user.id_role,
-            ]
-            # if organism is None => do not filter on id_organism even if level = 2
-            if scope == 2 and user.id_organisme is not None:
-                ors += [
-                    Models.TMonitoringObservationDetails.observation.id_digitiser.has(
-                        id_organisme=user.id_organisme
-                    )
-                ]
-            query = query.where(or_(*ors))
+            # L'appartenance d'un détail est celle de son observation
+            query = query.where(
+                Models.TMonitoringObservationDetails.observation.has(
+                    or_(*ObservationsQuery.scope_conditions(scope, user))
+                )
+            )
         return query
+
+
+def _is_multiple(specific_property: dict) -> bool:
+    """
+    Extrait la valeur de `multiple` depuis une propriété spécifique.
+    Retourne False par défaut si non défini ou invalide.
+    """
+    if not specific_property:
+        return False
+    multiple_value = specific_property.get("multiple", False)
+    if isinstance(multiple_value, bool):
+        return multiple_value
+    try:
+        return bool(json.loads(multiple_value))
+    except (TypeError, ValueError):
+        return False
+
+
+def _build_join_for_specific_property(
+    query: Select,
+    model,
+    param: str,
+    specific_properties: dict,
+    type_util: str,
+    is_outer_join: bool = False,
+) -> tuple[Select, BinaryExpression]:
+    """
+    Construit les jointures nécessaires pour une propriété spécifique (nomenclature, taxonomy, etc.).
+    Retourne la requête modifiée et la colonne à utiliser pour le tri ou le filtre.
+
+    :param query: Requête SQLAlchemy initiale.
+    :param model: Modèle SQLAlchemy.
+    :param param: Nom de la propriété spécifique.
+    :param specific_properties: Dictionnaire des propriétés spécifiques.
+    :param type_util: Type de la propriété (ex: "nomenclature").
+    :param is_outer_join: Si True, utilise outerjoin pour éviter d'exclure les NULL (nécessaire pour le tri).
+    :return: Tuple (requête modifiée, colonne pour le tri/filtre).
+    """
+
+    def _apply_join(query, target, onclause, is_outer: bool):
+        """Applique une jointure (join ou outerjoin) et retourne la nouvelle requête."""
+        if is_outer:
+            return query.outerjoin(target, onclause)
+        else:
+            return query.join(target, onclause)
+
+    join_table, join_column, filter_column = model._get_relationship_clause(type_util)
+    multiple = _is_multiple(specific_properties.get(param, {}))
+
+    if multiple:
+        # Sous-requête pour vérifier si le champ est un tableau
+        is_array = func.jsonb_typeof(model.data[param]) == "array"
+        subquery_select = (
+            select(func.jsonb_array_elements_text(model.data[param]).cast(Integer).label("id"))
+            .where(is_array)
+            .correlate_except()
+            .lateral()
+        )
+        # Jointure latérale
+        query = _apply_join(query, subquery_select, model.data[param] != None, is_outer_join)
+        query = _apply_join(query, join_table, subquery_select.c.id == join_column, is_outer_join)
+    else:
+        # Jointure simple
+        query = _apply_join(
+            query, join_table, model.data[param].astext.cast(Integer) == join_column, is_outer_join
+        )
+    return query, filter_column

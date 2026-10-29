@@ -59,6 +59,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   currentPermission: TPermission;
 
+  // Module configuré : liste d'observateurs, jeu(x) de données, liste de taxons
+  // et affichage des taxons renseignés
+  isConfigured: boolean = true;
+
   // TODO: move to a common file
   private childTypes: { [index: string]: string } = {
     site: 'visit',
@@ -90,10 +94,10 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
   ngOnInit() {
     super.ngOnInit();
     this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-    this.initObject();
+    this.initData();
   }
 
-  initObject() {
+  initData() {
     this._Activatedroute.data.subscribe(({ data }) => {
       let currentData;
       switch (data.route) {
@@ -115,6 +119,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
       this.currentPermission = data.permission;
       this.currentRoute = data.route;
+      this.isConfigured = this._configServiceG.config()?.configured !== false;
 
       // breadcrumb
       const queryParams = this._Activatedroute.snapshot.queryParams;
@@ -137,30 +142,41 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       // Indentify active tab
       this.activetabIndex = this.getdataTableIndex(data.route);
 
-      if (data.route == ObjectType.site) {
-        this.currentPermission.site.R > 0
-          ? this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters'])
-          : null;
-      } else {
-        this.currentPermission.sites_group.R > 0
-          ? this._geojsonService.getSitesGroupsGeometries(
-              this.onEachFeatureSiteGroups(),
-              this.dataTableConfig[this.activetabIndex]['defaultFilters']
-            )
-          : null;
+      // Pas de récupération des géométries si le module n'est pas configuré
+      if (this.isConfigured) {
+        if (data.route == ObjectType.site) {
+          this.currentPermission.site.R > 0
+            ? this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters'])
+            : null;
+        } else {
+          this.currentPermission.sites_group.R > 0
+            ? this._geojsonService.getSitesGroupsGeometries(
+                this.onEachFeatureSiteGroups(),
+                this.dataTableConfig[this.activetabIndex]['defaultFilters']
+              )
+            : null;
+        }
       }
 
       if (this.moduleCode != 'generic') {
         // this._moduleService.getModulebyCode(this.moduleCode).subscribe((data) => {
         this._moduleService.getByModuleCode(this.moduleCode).subscribe((data) => {
           this.objectData = data;
-          this.resolvedObj = this._dataUtilsService.resolveObjectProperties(
-            this.objectData,
-            this._configServiceG.config()['module']['fields']
-          );
+          this._dataUtilsService
+            .resolveObjectProperties(
+              this.objectData,
+              this._configServiceG.config()['module']['fields']
+            )
+            .subscribe((data) => {
+              this.resolvedObj = data;
+            });
         });
       }
     });
+  }
+
+  configureModule() {
+    this._formService.changeCurrentEditMode(true);
   }
 
   ngOnDestroy() {
@@ -228,7 +244,6 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
 
   getIndividuals(page = 1, params = {}) {
     this.updateDataTableContent(page, params, this._individualService);
-    this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups(), params);
   }
 
   getSites(page = 1, params = {}) {
@@ -272,23 +287,12 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       queryParams[row['pk']] = row['id'];
       const current_object = this.dataTableConfig[this.activetabIndex]['objectType'];
       queryParams['parents_path'] = ['module', current_object];
-      if (current_object == 'individual') {
-        // Patch individual tant que la page détail des individus est générique
-        queryParams['parents_path'] = ['module', 'individual'];
-        this.router.navigate(
-          [`/monitorings/create_object/${this.moduleCode}/`, row['object_type']],
-          {
-            queryParams: queryParams,
-          }
-        );
-      } else {
-        this.router.navigate(
-          [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
-          {
-            queryParams: queryParams,
-          }
-        );
-      }
+      this.router.navigate(
+        [`/monitorings/object/${this.moduleCode}/`, row['object_type'], 'create'],
+        {
+          queryParams: queryParams,
+        }
+      );
     }
   }
 
@@ -302,58 +306,47 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       queryParams: queryParams,
     });
   }
+  onbEditChange(event: boolean) {
+    if (this.bEdit == true && event == false) {
+      // Passage du mode édition au mode consultation
+      if (this.objectData.deleted !== true) {
+        this.initData();
+      }
+    }
+    this.bEdit = event;
+  }
 
   onDelete(event) {
     this.currentRoute = event.objectType;
     const queryParams = { module_code: this.moduleCode };
-    if (event.objectType == 'sites_group') {
-      this._sites_group_service
-        .delete(event.rowSelected.id_sites_group, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/sites_group`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-            this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
-            this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
-          }, 100);
-        });
-    } else if (event.objectType == 'individual') {
-      this._individualService
-        .delete(event.rowSelected.id_individual, queryParams)
-        .subscribe((del) => {
-          setTimeout(() => {
-            this.bDeleteModalEmitter.emit(false);
-            this.activetabIndex = this.getdataTableIndex(event.objectType);
-            this.router.navigate(
-              [`/monitorings/object/${this.moduleCode}/individual`, { delete: true }],
-              {
-                onSameUrlNavigation: 'reload',
-              }
-            );
-            this._geojsonService.removeFeatureGroup(this._geojsonService.sitesGroupFeatureGroup);
-            this._geojsonService.getSitesGroupsGeometries(this.onEachFeatureSiteGroups());
-          }, 100);
-        });
+    let delete$;
+    if (event.objectType == ObjectType.sites_group) {
+      delete$ = this._sites_group_service.delete(event.rowSelected.id_sites_group, queryParams);
+    } else if (event.objectType == ObjectType.individual) {
+      delete$ = this._individualService.delete(event.rowSelected.id_individual, queryParams);
     } else {
-      this._sitesService.delete(event.rowSelected.id_base_site, queryParams).subscribe((del) => {
-        setTimeout(() => {
-          this.bDeleteModalEmitter.emit(false);
-          this.activetabIndex = this.getdataTableIndex(event.objectType);
-          this.router.navigate([`/monitorings/object/${this.moduleCode}/site`, { delete: true }], {
-            onSameUrlNavigation: 'reload',
-          });
-
-          this._geojsonService.removeFeatureGroup(this._geojsonService.sitesFeatureGroup);
-          this.getGeometriesSite(this.dataTableConfig[this.activetabIndex]['defaultFilters']);
-        }, 100);
-      });
+      delete$ = this._sitesService.delete(event.rowSelected.id_base_site, queryParams);
     }
+    delete$.subscribe(() => {
+      this.bDeleteModalEmitter.emit(false);
+      this.refreshAfterDelete(event.objectType);
+    });
+  }
+
+  /**
+   * Rafraîchit le tableau (et la carte) de l'onglet courant sans recharger la route,
+   * en conservant la page et les filtres en cours.
+   * Si la ligne supprimée était la dernière de la page, revient à la page précédente.
+   */
+  refreshAfterDelete(objectType: ObjectType) {
+    const page = this.dataTableObjData[objectType]?.page;
+    let pageNumber = page ? page.page + 1 : 1;
+    if (page && pageNumber > 1 && page.count - 1 <= page.page * page.limit) {
+      pageNumber -= 1;
+    }
+    const tabConfig: any = this.dataTableConfig[this.getdataTableIndex(objectType)];
+    const defaultFilters = tabConfig?.defaultFilters || {};
+    this.getData(pageNumber, { ...defaultFilters, ...this.filters }, objectType);
   }
 
   onSelectedOnDataTable(data) {

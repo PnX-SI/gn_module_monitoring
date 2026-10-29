@@ -69,8 +69,14 @@ export class MonitoringSitesgroupsDetailComponent
   }
 
   initSite() {
-    const fieldsConfig = this._configServiceG.config()['site']['fields'];
-    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId);
+    const fieldsConfigSite = this._configServiceG.config()['site']['fields'];
+    const fieldsConfigSitesGroup = this._configServiceG.config()['sites_group']['fields'];
+    const siteGroupdata$ = this._sitesGroupService.getById(this.dataId, this.moduleCode);
+    // Initialisation des filtres des sites
+    const defaultFilters = {
+      ...(this._configServiceG.config()['site']?.['filters'] || {}),
+      ...this.baseFilters,
+    };
 
     siteGroupdata$
       .pipe(
@@ -78,13 +84,13 @@ export class MonitoringSitesgroupsDetailComponent
           this.sitesGroup = sitesGroupData;
           const siteGroupDataResolved$ = this._dataUtilsService.resolveObjectProperties(
             this.sitesGroup,
-            fieldsConfig
+            fieldsConfigSitesGroup
           );
           const sitedata$ = this._sitesGroupService.getSitesChildResolved(
             1,
             this.limit,
-            this.baseFilters,
-            fieldsConfig
+            defaultFilters,
+            fieldsConfigSite
           );
           return forkJoin({
             sitesGroupResolved: siteGroupDataResolved$,
@@ -100,7 +106,6 @@ export class MonitoringSitesgroupsDetailComponent
           page: sites.page,
           limit: sites.limit,
         };
-
         this.setDataTableObjData(
           {
             sites: {
@@ -113,7 +118,7 @@ export class MonitoringSitesgroupsDetailComponent
         );
 
         this.rows = this.dataTableObjData.site.rows;
-        this.getSitesFromSiteGroupId(this.page.page, {});
+        this.getSitesFromSiteGroupId(this.page.page, defaultFilters);
       });
   }
 
@@ -130,14 +135,17 @@ export class MonitoringSitesgroupsDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initSite();
-      const sitesParams = { ...{}, ...this.baseFilters };
-      this._geojsonService.getSitesGroupsGeometriesWithSites(
-        this.onEachFeatureGroupSite(),
-        this.onEachFeatureSite(),
-        this.baseFilters,
-        sitesParams
-      );
+
+      if (this.sitesGroup.deleted !== true) {
+        this.initSite();
+        const sitesParams = { ...{}, ...this.baseFilters };
+        this._geojsonService.getSitesGroupsGeometriesWithSites(
+          this.onEachFeatureGroupSite(),
+          this.onEachFeatureSite(),
+          this.baseFilters,
+          sitesParams
+        );
+      }
     }
   }
 
@@ -164,7 +172,7 @@ export class MonitoringSitesgroupsDetailComponent
     // Tableau
     const fieldsConfig = this._configServiceG.config()['site']['fields'];
     this._sitesGroupService
-      .getSitesChildResolved(1, this.limit, sitesParams, fieldsConfig)
+      .getSitesChildResolved(page, this.limit, sitesParams, fieldsConfig)
       .subscribe((data: IPaginated<ISite>) => {
         const siteList = data.items;
         this.rows = siteList;
