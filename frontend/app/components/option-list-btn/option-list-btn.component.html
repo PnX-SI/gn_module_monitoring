@@ -47,7 +47,7 @@
       </mat-autocomplete>
     </mat-form-field>
     <div>
-      <button mat-flat-button color="primary" (click)="onSave()">{{ 'Monitoring.List.Add' | translate }}</button>
+      <button mat-flat-button color="primary" (click)="onSave()" [disabled]="isDisabled()">{{ 'Monitoring.List.Add' | translate }}</button>
       <button mat-button (click)="canCreateChild ? onCancel() : null">{{ 'Monitoring.List.Cancel' | translate }}</button>
     </div>
   </div>

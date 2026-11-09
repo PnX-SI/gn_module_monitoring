@@ -397,7 +397,9 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
   }
 
   onSaveAddChildren($event: SelectObject) {
-    this.addNewVisit($event);
+    const siteId = $event[$event['pk']];
+    const moduleCode = $event['moduleCode'];
+    this.addNewVisit(siteId, moduleCode);
   }
 
   getModules(siteId: number) {
@@ -414,10 +416,11 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
       );
   }
 
-  addNewVisit(idSite) {
+  addNewVisit(idSite, moduleCode: string | null = null) {
+    moduleCode = moduleCode || this.moduleCode;
     const keys = Object.keys(this._configServiceG.config());
     const parents_path = ['sites_group', 'site'].filter((item) => keys.includes(item));
-    this.router.navigate([`monitorings/object/${this.moduleCode}/visit/create`], {
+    this.router.navigate([`monitorings/object/${moduleCode}/visit/create`], {
       queryParams: { id_base_site: idSite, parents_path: parents_path },
     });
   }
