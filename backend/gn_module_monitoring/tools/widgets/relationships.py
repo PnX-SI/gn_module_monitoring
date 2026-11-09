@@ -53,6 +53,8 @@ class DatasetWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         multi_select = fields.Boolean(load_default=False)
+        module_code = fields.Str()  # lu par dynamic-form (formDef.module_code)
+        creatable_in_module = fields.Str()  # lu par dynamic-form (formDef.creatable_in_module)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import DatasetStore, DatasetsStore

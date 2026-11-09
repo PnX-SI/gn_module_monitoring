@@ -108,31 +108,6 @@ class BaseWidget(UserDict):
         return self.__class__.__name__
 
 
-class HiddenWidget(BaseWidget):
-    """
-    Champ non affiché dans le formulaire, mais dont la valeur est conservée et envoyée à l'API.
-    Le store est celui de l'attribut natif du modèle si il existe, sinon DummyStore.
-    """
-
-    key = "hidden"
-
-    class ConfigSchema(BaseWidget.ConfigSchema):
-        hidden = fields.Boolean(validate=validate.Equal(True))
-
-    def _get_default_store(self, data, **kwargs):
-        from ..stores import BaseStore, DummyStore
-
-        ctx = schema_context.get()
-        attr = ctx["entity"].get_model_attrs().get(ctx["field_name"])
-        if attr is not None:
-            return BaseStore.get_store_from_attr(attr)(data, **kwargs)
-        else:
-            return DummyStore(data, **kwargs)
-
-    def get_api_type(self):
-        return self.get_default_store().get_api_type()
-
-
 class TextWidget(BaseWidget):
     key = "text"
 
@@ -355,6 +330,9 @@ class ObserversTextWidget(BaseWidget):
 
 class MediaWidget(BaseWidget):
     key = "medias"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        schema_dot_table = fields.String()  # lu par dynamic-form (schemaDotTable)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import DummyStore

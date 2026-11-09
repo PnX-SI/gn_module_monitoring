@@ -14,7 +14,6 @@ from .core import (
     DatalistWidget,
     ObserversTextWidget,
     MediaWidget,
-    HiddenWidget,
 )
 from .relationships import (
     NomenclatureWidget,
