@@ -247,10 +247,10 @@ export class MonitoringDatatableGComponent implements OnInit {
     }
   }
 
-  saveOptionChild($event: SelectObject) {
+  saveOptionChild($row, $event: SelectObject) {
     // Uniquement pour les visites ?
     // Voir si possiblement factorisable
-    this.saveOptionChildren.emit($event);
+    this.saveOptionChildren.emit({ ...$row, ...{ moduleCode: $event['id'] } });
   }
 
   ngOnDestroy() {

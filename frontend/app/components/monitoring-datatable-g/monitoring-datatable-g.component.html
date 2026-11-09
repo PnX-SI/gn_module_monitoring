@@ -156,7 +156,7 @@
                         [canCreateChild]="dataTableConfig[i].canCreateChild"
                         [item]="row"
                         (onDeployed)="addChildrenVisit(row)"
-                        (onSaved)="saveOptionChild($event)"
+                        (onSaved)="saveOptionChild(row, $event)"
                       ></option-list-btn>
                     </ng-template>
                     <ng-template #addChildrenTemplate>
