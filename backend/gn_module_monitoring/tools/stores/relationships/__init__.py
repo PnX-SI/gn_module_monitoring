@@ -8,6 +8,7 @@ from .m2o import (
     ModuleStore,
     SitesGroupStore,
     SiteStore,
+    VisitStore,
     NomenclatureStore,
 )
 from .m2m import (

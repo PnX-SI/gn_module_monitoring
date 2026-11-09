@@ -302,6 +302,31 @@ class SiteStore(BaseForeignKeyStore):
         )
 
 
+class VisitStore(BaseForeignKeyStore):
+    key = "visit"
+    fk_target = "gn_monitoring.t_base_visits.id_base_visit"
+
+    @classmethod
+    def get_model(cls):
+        from gn_module_monitoring.monitoring.models import TMonitoringVisits
+
+        return TMonitoringVisits
+
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import DatalistWidget
+
+        return DatalistWidget(
+            {
+                "attribut_label": "Visite",
+                "keyValue": "id_base_visit",
+                "keyLabel": "visit_date_min",
+                "multiple": False,
+                "api": "monitorings/visits",
+            },
+            **kwargs,
+        )
+
+
 class ModuleStore(BaseForeignKeyStore):
     key = "module"
     fk_target = "gn_commons.t_modules.id_module"

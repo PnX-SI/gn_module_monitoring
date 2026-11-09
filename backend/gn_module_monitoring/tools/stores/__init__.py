@@ -25,6 +25,7 @@ from .relationships import (
     ModuleStore,
     SitesGroupStore,
     SiteStore,
+    VisitStore,
     NomenclatureStore,
     TypesSiteStore,
     AreasStore,
