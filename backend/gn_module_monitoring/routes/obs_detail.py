@@ -63,7 +63,7 @@ def patch_obs_detail(scope, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_observation_detail" in post_data:
         post_data["id_observation_detail"] = _id
-    return create_or_update_obs_detail(post_data, module_code=module_code)
+    return create_or_update_obs_detail(post_data, module_code=module_code, instance=obs_detail)
 
 
 @blueprint_api.route("/<string:module_code>/observation_details", methods=["GET"])
@@ -132,17 +132,18 @@ def get_obs_detail_by_id(scope: int, module_code: str, id: int):
     return data
 
 
-def create_or_update_obs_detail(post_data: dict, module_code: str = "generic"):
+def create_or_update_obs_detail(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update an observation detail.
 
     :param post_data: dict containing data to create or update an observation detail
     :param module_code: str, module code, default is "generic"
+    :param instance: existing observation detail to update, None to create one
     :return: dict, serialized observation detail
     """
     schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
 
-    obs_detail = schema(unknown=EXCLUDE).load(post_data)
+    obs_detail = schema(unknown=EXCLUDE).load(post_data, instance=instance)
 
     db.session.add(obs_detail)
     db.session.commit()

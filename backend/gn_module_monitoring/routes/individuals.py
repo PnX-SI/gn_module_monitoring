@@ -194,7 +194,7 @@ def patch_individual(scope, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_individual" in post_data:
         post_data["id_individual"] = _id
-    return create_or_update_individual(post_data, module_code=module_code)
+    return create_or_update_individual(post_data, module_code=module_code, instance=individual)
 
 
 @blueprint_api.route("/<string:module_code>/individuals/<int:_id>", methods=["DELETE"])
@@ -236,7 +236,7 @@ def delete_individual(scope, _id: int, module_code: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-def create_or_update_individual(post_data: dict, module_code: str = "generic"):
+def create_or_update_individual(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update an individual.
 
@@ -249,6 +249,8 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
         Data used to create or update an individual.
     module_code : str, optional
         Module code, by default "generic".
+    instance : TMonitoringIndividuals, optional
+        Existing individual to update, None to create one.
 
     Returns
     -------
@@ -257,7 +259,7 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
     """
     schema = get_entity_or_404(module_code, "individual").get_extended_schema()
 
-    individual = schema(unknown=EXCLUDE).load(post_data)
+    individual = schema(unknown=EXCLUDE).load(post_data, instance=instance)
 
     # Association de l'individu au module courant (cor_individual_module)
     module = db.session.execute(

@@ -52,7 +52,7 @@ def patch_visit(scope, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_base_visit" in post_data:
         post_data["id_base_visit"] = _id
-    return create_or_update_visit(post_data, module_code=module_code)
+    return create_or_update_visit(post_data, module_code=module_code, instance=visit)
 
 
 @blueprint_api.route("/visits", methods=["GET"])
@@ -119,18 +119,19 @@ def get_visit_by_id(scope, module_code, id):
     return data
 
 
-def create_or_update_visit(post_data: dict, module_code: str = "generic"):
+def create_or_update_visit(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a visit.
 
     :param post_data: dict containing data to create or update a visit
     :param module_code: str, module code, default is "generic"
+    :param instance: existing visit to update, None to create one
     :return: dict, serialized visit
     """
     schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
     try:
-        visit = schema(unknown=EXCLUDE).load(post_data)
+        visit = schema(unknown=EXCLUDE).load(post_data, instance=instance)
     except Exception as e:
         # TODO REMOVE DEV MODE
         print(e.__dict__)

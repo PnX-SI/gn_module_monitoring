@@ -138,15 +138,16 @@ def patch_observation(scope, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_observation" in post_data:
         post_data["id_observation"] = _id
-    return create_or_update_observation(post_data, module_code=module_code)
+    return create_or_update_observation(post_data, module_code=module_code, instance=observation)
 
 
-def create_or_update_observation(post_data: dict, module_code: str = "generic"):
+def create_or_update_observation(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a observation.
 
     :param post_data: dict containing data to create or update a observation
     :param module_code: str, module code, default is "generic"
+    :param instance: existing observation to update, None to create one
     :return: dict, serialized observation
     """
     schema = get_entity_or_404(module_code, "observation").get_extended_schema()
@@ -163,7 +164,7 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
         if individual:
             post_data["cd_nom"] = individual.cd_nom
 
-    observation = schema(unknown=EXCLUDE).load(post_data)
+    observation = schema(unknown=EXCLUDE).load(post_data, instance=instance)
 
     db.session.add(observation)
     db.session.commit()

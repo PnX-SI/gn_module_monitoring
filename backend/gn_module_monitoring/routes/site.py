@@ -295,7 +295,7 @@ def patch_site(scope, module_code=None, _id=None):
     post_data = dict(request.get_json())
     if "id_base_site" not in post_data:
         post_data["id_base_site"] = _id
-    return create_or_update_site(post_data, module_code=module_code), 201
+    return create_or_update_site(post_data, module_code=module_code, instance=site), 201
 
 
 @blueprint_api.route("/sites/<int:_id>", methods=["DELETE"])
@@ -310,17 +310,18 @@ def delete_site(scope, _id, module_code=None):
     return {"success": "Item is successfully deleted"}, 200
 
 
-def create_or_update_site(post_data: dict, module_code: str = "generic"):
+def create_or_update_site(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a site.
 
     :param post_data: dict containing data to create or update a site
     :param module_code: str, module code, default is "generic"
+    :param instance: existing site to update, None to create one
     :return: dict, serialized site
     """
     schema = get_entity_or_404(module_code, "site").get_extended_schema()
 
-    site = schema(unknown=EXCLUDE).load(post_data)
+    site = schema(unknown=EXCLUDE).load(post_data, instance=instance)
 
     db.session.add(site)
     db.session.commit()

@@ -167,7 +167,7 @@ def patch(scope, module_code: str = "generic", _id: int = None):
             f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
         )
     post_data = dict(request.get_json())
-    sites_group = create_or_update_site_group(post_data, module_code)
+    sites_group = create_or_update_site_group(post_data, module_code, instance=sites_group)
     return sites_group
 
 
@@ -204,17 +204,18 @@ def handle_validation_error(error):
     ).to_dict()
 
 
-def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
+def create_or_update_site_group(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a site group.
 
     :param post_data: dict containing data to create or update a site group
     :param module_code: str, module code, default is "generic"
+    :param instance: existing site group to update, None to create one
     :return: dict, serialized site group
     """
     schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
 
-    sites_group = schema(unknown=EXCLUDE).load(post_data)
+    sites_group = schema(unknown=EXCLUDE).load(post_data, instance=instance)
 
     db.session.add(sites_group)
     db.session.commit()

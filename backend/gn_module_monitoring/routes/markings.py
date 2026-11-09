@@ -171,7 +171,7 @@ def patch_marking(scope, module_code: str, _id: int):
         post_data["id_marking"] = _id
     if not "id_module" in post_data:
         post_data["id_module"] = g.get("current_module").id_module
-    return create_or_update_marking(post_data, module_code=module_code)
+    return create_or_update_marking(post_data, module_code=module_code, instance=marking)
 
 
 @blueprint_api.route("/<string:module_code>/markings", methods=["GET"])
@@ -282,7 +282,7 @@ def get_marking_by_id(scope: int, module_code: str, id: int):
     return data
 
 
-def create_or_update_marking(post_data: dict, module_code: str = "generic"):
+def create_or_update_marking(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a marking.
 
@@ -292,6 +292,8 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
         Data used to create or update a marking.
     module_code : str, optional
         Module code, by default "generic".
+    instance : TMonitoringMarkingEvent, optional
+        Existing marking to update, None to create one.
 
     Returns
     -------
@@ -300,7 +302,7 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     """
     schema = get_entity_or_404(module_code, "marking").get_extended_schema()
     try:
-        marking = schema(unknown=EXCLUDE).load(post_data)
+        marking = schema(unknown=EXCLUDE).load(post_data, instance=instance)
     except Exception as e:
         print(f"Error loading marking data: {e}")
         raise
