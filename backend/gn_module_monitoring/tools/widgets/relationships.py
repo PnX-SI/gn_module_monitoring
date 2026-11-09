@@ -134,19 +134,26 @@ class AreasWidget(BaseWidget):
     key = "areas"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        pass
+        multiple = fields.Boolean(load_default=False)
 
     def _get_default_store(self, data, **kwargs):
-        from ..stores import AreasStore
+        from ..stores import AreaStore, AreasStore
 
-        return AreasStore(data, **kwargs)
+        # multiple est une option du widget, pas du store
+        data = {k: v for k, v in data.items() if k != "multiple"}
+        if self["multiple"]:
+            return AreasStore(data, **kwargs)
+        return AreaStore(data, **kwargs)
 
     def get_api_type(self):
-        return list[int]
+        return list[int] if self["multiple"] else int
 
 
 class MunicipalitiesWidget(BaseWidget):
     key = "municipalities"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        multiple = fields.Boolean(load_default=False)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreasStore
@@ -154,7 +161,7 @@ class MunicipalitiesWidget(BaseWidget):
         return AreasStore({**data, "area_code": "COM"}, **kwargs)
 
     def get_api_type(self):
-        return list[int]
+        return list[int] if self["multiple"] else int
 
 
 # TODO: checkbox, radio, html, bool_checkbox, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time, individuals

@@ -10,6 +10,7 @@ from .m2o import (
     SiteStore,
     VisitStore,
     NomenclatureStore,
+    AreaStore,
 )
 from .m2m import (
     TypesSiteStore,

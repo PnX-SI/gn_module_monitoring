@@ -28,6 +28,7 @@ from .relationships import (
     VisitStore,
     NomenclatureStore,
     TypesSiteStore,
+    AreaStore,
     AreasStore,
     DatasetsStore,
     ModulesStore,

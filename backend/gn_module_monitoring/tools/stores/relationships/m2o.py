@@ -345,6 +345,22 @@ class ModuleStore(BaseForeignKeyStore):
         )
 
 
+class AreaStore(BaseForeignKeyStore):
+    key = "area"
+    fk_target = "ref_geo.l_areas.id_area"
+
+    @classmethod
+    def get_model(cls):
+        from ref_geo.models import LAreas
+
+        return LAreas
+
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import AreasWidget
+
+        return AreasWidget({**(data or {}), "multiple": False}, **kwargs)
+
+
 class NomenclatureStore(BaseForeignKeyStore):
     key = "nomenclature"
 

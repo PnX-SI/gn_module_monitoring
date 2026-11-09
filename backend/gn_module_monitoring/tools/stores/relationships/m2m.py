@@ -115,7 +115,7 @@ class AreasStore(BaseManyToManyStore):
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import AreasWidget
 
-        return AreasWidget(data, **kwargs)
+        return AreasWidget({**(data or {}), "multiple": True}, **kwargs)
 
 
 class DatasetsStore(BaseManyToManyStore):
