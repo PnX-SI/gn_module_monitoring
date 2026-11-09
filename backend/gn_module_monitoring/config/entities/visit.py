@@ -38,7 +38,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "type_widget": "observers",
                 "attribut_label": "Observateurs",
                 "type_util": "user",
-                "code_list": "CODE_OBSERVERS_LIST",
+                "code_list": "__MODULE.CODE_OBSERVERS_LIST",
                 "multi_select": True,
                 "hidden": False,
                 "required": True,

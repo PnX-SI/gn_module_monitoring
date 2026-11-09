@@ -1,22 +1,11 @@
 import logging
 from functools import cache
-from typing import Any
 
 import click
 import sqlalchemy as sa
-from sqlalchemy import select
 from sqlalchemy.orm import ColumnProperty
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
-from marshmallow import (
-    fields,
-    validate,
-    validates,
-    validates_schema,
-    ValidationError,
-    post_dump,
-    post_load,
-    pre_load,
-)
+from marshmallow import ValidationError
 from flask import current_app
 
 from geonature.utils.env import db
@@ -25,7 +14,12 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring import MODULE_CODE
 
 from .core import BaseRelationshipStore
-from .utils import get_declared_nomenclatures, get_nomenclature, get_nomenclature_type
+from .mixin import AreaMixin, DatasetMixin, ModuleMixin, NomenclatureMixin, UserMixin
+from .utils import (
+    get_nomenclature,
+    validate_areas_of_type,
+    validate_observers_in_list,
+)
 
 log = logging.getLogger(__name__)
 
@@ -146,15 +140,16 @@ class BaseForeignKeyStore(BaseRelationshipStore):
         return self.get_model()
 
 
-class UserStore(BaseForeignKeyStore):
+class UserStore(UserMixin, BaseForeignKeyStore):
     key = "user"
     fk_target = "utilisateurs.t_roles.id_role"
 
-    @classmethod
-    def get_model(cls):
-        from pypnusershub.db.models import User
-
-        return User
+    class Field(BaseForeignKeyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instance = super()._deserialize(value, attr, data, **kwargs)
+            if instance is not None and self.store.list:
+                validate_observers_in_list([instance], self.store.list)
+            return instance
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import UserWidget
@@ -164,6 +159,7 @@ class UserStore(BaseForeignKeyStore):
 
 class ObserverListStore(BaseForeignKeyStore):
     key = "observer_list"
+    model = "observer_list"
     fk_target = "utilisateurs.t_listes.id_liste"
 
     @classmethod
@@ -181,6 +177,7 @@ class ObserverListStore(BaseForeignKeyStore):
 
 class TaxonomyStore(BaseForeignKeyStore):
     key = "taxonomy"
+    model = "taxonomy"
     fk_target = "taxonomie.taxref.cd_nom"
 
     @classmethod
@@ -197,6 +194,7 @@ class TaxonomyStore(BaseForeignKeyStore):
 
 class TaxonomyListStore(BaseForeignKeyStore):
     key = "taxonomy_list"
+    model = "taxonomy_list"
     fk_target = "taxonomie.bib_listes.id_liste"
 
     @classmethod
@@ -220,15 +218,9 @@ class TaxonomyListStore(BaseForeignKeyStore):
         )
 
 
-class DatasetStore(BaseForeignKeyStore):
+class DatasetStore(DatasetMixin, BaseForeignKeyStore):
     key = "dataset"
     fk_target = "gn_meta.t_datasets.id_dataset"
-
-    @classmethod
-    def get_model(cls):
-        from geonature.core.gn_meta.models import TDatasets
-
-        return TDatasets
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatasetWidget
@@ -238,6 +230,7 @@ class DatasetStore(BaseForeignKeyStore):
 
 class HabitatStore(BaseForeignKeyStore):
     key = "habitat"
+    model = "habitat"
     fk_target = "ref_habitats.habref.cd_hab"
 
     @classmethod
@@ -254,6 +247,7 @@ class HabitatStore(BaseForeignKeyStore):
 
 class SitesGroupStore(BaseForeignKeyStore):
     key = "sites_group"
+    model = "sites_group"
     fk_target = "gn_monitoring.t_sites_groups.id_sites_group"
 
     @classmethod
@@ -279,6 +273,7 @@ class SitesGroupStore(BaseForeignKeyStore):
 
 class SiteStore(BaseForeignKeyStore):
     key = "site"
+    model = "site"
     fk_target = "gn_monitoring.t_base_sites.id_base_site"
 
     @classmethod
@@ -304,6 +299,7 @@ class SiteStore(BaseForeignKeyStore):
 
 class VisitStore(BaseForeignKeyStore):
     key = "visit"
+    model = "visit"
     fk_target = "gn_monitoring.t_base_visits.id_base_visit"
 
     @classmethod
@@ -327,15 +323,9 @@ class VisitStore(BaseForeignKeyStore):
         )
 
 
-class ModuleStore(BaseForeignKeyStore):
+class ModuleStore(ModuleMixin, BaseForeignKeyStore):
     key = "module"
     fk_target = "gn_commons.t_modules.id_module"
-
-    @classmethod
-    def get_model(cls):
-        from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-        return TMonitoringModules
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ModuleWidget
@@ -345,15 +335,16 @@ class ModuleStore(BaseForeignKeyStore):
         )
 
 
-class AreaStore(BaseForeignKeyStore):
+class AreaStore(AreaMixin, BaseForeignKeyStore):
     key = "area"
     fk_target = "ref_geo.l_areas.id_area"
 
-    @classmethod
-    def get_model(cls):
-        from ref_geo.models import LAreas
-
-        return LAreas
+    class Field(BaseForeignKeyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instance = super()._deserialize(value, attr, data, **kwargs)
+            if instance is not None and self.store.area_type:
+                validate_areas_of_type([instance], self.store.area_type)
+            return instance
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import AreasWidget
@@ -361,14 +352,8 @@ class AreaStore(BaseForeignKeyStore):
         return AreasWidget({**(data or {}), "multiple": False}, **kwargs)
 
 
-class NomenclatureStore(BaseForeignKeyStore):
+class NomenclatureStore(NomenclatureMixin, BaseForeignKeyStore):
     key = "nomenclature"
-
-    @classmethod
-    def get_model(cls):
-        from pypnnomenclature.models import TNomenclatures
-
-        return TNomenclatures
 
     fk_target = "ref_nomenclatures.t_nomenclatures.id_nomenclature"
 
@@ -376,105 +361,6 @@ class NomenclatureStore(BaseForeignKeyStore):
     @staticmethod
     def get_types_mnemoniques():
         return list(db.session.execute(sa.select(BibNomenclaturesTypes.mnemonique)).scalars())
-
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        nomenclature_type = fields.Str(required=True)
-        cd_nomenclatures = fields.List(fields.Str())
-
-        @pre_load
-        def retrocompat(self, data, **kwargs):
-            # it is a mnemonique, not a code, so the field was renamed
-            if "code_nomenclature_type" in data:
-                data["nomenclature_type"] = data.pop("code_nomenclature_type")
-            if "value" in data:  # TODO: this is kind of a way to define a default value?
-                if "code_nomenclature_type" in data["value"]:
-                    data["nomenclature_type"] = data["value"]["code_nomenclature_type"]
-                if "cd_nomenclature" in data["value"]:
-                    data["cd_nomenclatures"] = [data["value"]["cd_nomenclature"]]
-            # find nomenclature_type from datalist widget api url (better to use nomenclature widget…)
-            if (
-                "nomenclature_type" not in data
-                and data.get("type_widget") == "datalist"
-                and data.get("api", "").startswith("nomenclatures/nomenclature/")
-            ):
-                # ctx = schema_context.get()
-                # log.warning(
-                #     f"{ctx["entity"].name} - {ctx["field_name"]} - "
-                #     "Detected nomenclature store with datalist widget. "
-                #     "Consider using nomenclature widget."
-                # )
-                data["nomenclature_type"] = data["api"].split("/")[2]
-            return data
-
-        @validates("nomenclature_type")
-        def validate_nomenclature_type(self, value, **kwargs):
-            # On valide nomenclature_type avant que soit validé les cd_nomenclatures
-            # Le type doit exister en base OU être déclaré dans le nomenclature.json du module
-            declared_types = {t["mnemonique"] for t in get_declared_nomenclatures()["types"]}
-            if get_nomenclature_type(value) is None and value not in declared_types:
-                raise ValidationError(f"Le type de nomenclature '{value} n’existe pas.")
-
-        @validates_schema
-        def validate_cd_nomenclatures(self, data, **kwargs):
-            # Vérifie que chaque cd_nomenclature existe pour le type de nomenclature demandé,
-            # en base OU dans le nomenclature.json du module.
-            # Si nomenclature_type est absent ou inconnu, c'est signalé ailleurs : on ne vérifie rien.
-            type_mnemonique = data["nomenclature_type"]
-            if "cd_nomenclatures" not in data:
-                return
-            cd_nomenclatures = data["cd_nomenclatures"]
-            # nomenclatures existantes en base
-            existing_nomenclatures = set(
-                db.session.execute(
-                    select(TNomenclatures.cd_nomenclature)
-                    .join(
-                        BibNomenclaturesTypes,
-                        TNomenclatures.id_type == BibNomenclaturesTypes.id_type,
-                    )
-                    .where(
-                        BibNomenclaturesTypes.mnemonique == type_mnemonique,
-                        TNomenclatures.cd_nomenclature.in_(cd_nomenclatures),
-                    )
-                ).scalars()
-            )
-            # nomenclatures déclarées dans nomenclature.json
-            declared_nomenclatures = {
-                n["cd_nomenclature"]
-                for n in get_declared_nomenclatures()["nomenclatures"]
-                if n["type"] == type_mnemonique
-            }
-            missing = [
-                cd
-                for cd in cd_nomenclatures
-                if cd not in existing_nomenclatures and cd not in declared_nomenclatures
-            ]
-            if missing:
-                raise ValidationError(
-                    {
-                        "cd_nomenclatures": f"Les cd_nomenclature {missing} n'existent pas pour le type de nomenclature '{type_mnemonique}'."
-                    }
-                )
-
-        @validates_schema
-        def set_defaults(self, data, **kwargs):
-            # Par défaut, on stock ces 3 colonnes de la nomenclature
-            if "storage_col" not in data and "storage_cols" not in data:
-                data["storage_cols"] = ["id_nomenclature", "cd_nomenclature", "label_default"]
-
-        @post_load
-        def load_nomenclature_type(self, data, **kwargs):
-            mnemonique = data["nomenclature_type"]
-            # Un type déclaré seulement dans le nomenclature.json n’existe pas encore en base
-            data["nomenclature_type"] = get_nomenclature_type(mnemonique) or BibNomenclaturesTypes(
-                mnemonique=mnemonique
-            )
-            return data
-
-        @post_dump(pass_original=True)
-        def dump_code_nomenclature_type(self, data, original, **kwargs):
-            # Le frontend attend le mnémonique du type (et non son libellé) dans `code_nomenclature_type`
-            data["code_nomenclature_type"] = original["nomenclature_type"].mnemonique
-            return data
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
@@ -486,7 +372,7 @@ class NomenclatureStore(BaseForeignKeyStore):
         # Il faut la faire évoluer pour gérer storage_col & storage_cols
         updated_value = value
 
-        nomenclature_type = self["nomenclature_type"]
+        nomenclature_type = self.nomenclature_type
 
         if type(value) != int:
             yield f"[id={row_id}] Type de nomenclature '{nomenclature_type}' - valeur '{value}' : pas un entier"

@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from marshmallow import (
     Schema,
     ValidationError,
@@ -94,10 +96,27 @@ class ModuleConfigSchema(Schema):
             }
         },
     )
+    synthese = fields.String(load_default="__MODULE.B_SYNTHESE")
     synthese_object = fields.String(validate=validate.OneOf(["observation", "visit"]))
     display_field_names = fields.Dict()
     data = fields.Nested(DataSchema)
     configured = fields.Boolean(dump_only=True)
+
+    default_display_field_names: ClassVar = {
+        "user": "nom_complet",
+        "nomenclature": "label_fr",
+        "dataset": "dataset_name",
+        "observer_list": "nom_liste",
+        "taxonomy": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+        "taxonomy_list": "nom_liste",
+        "cd_nom": "cd_nom",
+        "sites_group": "sites_group_name",
+        "habitat": "lb_hab_fr",
+        "area": "area_name",
+        "municipality": "nom_com_dept",
+        "site": "base_site_name",
+        "module": "module_label",
+    }
 
     @pre_load
     def remove_deprecated(self, data, **kwargs):
@@ -105,4 +124,15 @@ class ModuleConfigSchema(Schema):
         This hook trash deprecated fields data, avoiding raising unexpected fields errors.
         """
         data.pop("permission_objects", None)  # supprimé dans la 0.7.0
+        return data
+
+    @pre_load
+    def merge_display_field_names(self, data, **kwargs):
+        """
+        Surcharge les noms d’affichage par défaut par ceux du module, clé par clé.
+        """
+        data["display_field_names"] = {
+            **self.default_display_field_names,
+            **data.get("display_field_names", {}),
+        }
         return data

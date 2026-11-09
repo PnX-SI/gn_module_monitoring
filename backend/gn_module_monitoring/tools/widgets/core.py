@@ -24,6 +24,8 @@ class BaseWidget(UserDict):
         required_js = MultilineStr()
 
         attribut_label = fields.String()  # FIXME: required?
+        definition = fields.String()  # description affichée sous le champ
+        title = fields.String()  # infobulle du champ
 
         @pre_load
         def set_hidden_js(self, data, **kwargs):
@@ -134,6 +136,9 @@ class HiddenWidget(BaseWidget):
 class TextWidget(BaseWidget):
     key = "text"
 
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        value = fields.String()  # valeur par défaut, lue par form.service (toForm)
+
     def _get_default_store(self, data, **kwargs):
         from ..stores import StringStore
 
@@ -185,6 +190,10 @@ class CheckboxWidget(BaseWidget):
 class RadioWidget(BaseWidget):
     key = "radio"
 
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        value = fields.String()  # valeur par défaut, lue par form.service (toForm)
+        values = fields.List(fields.String())
+
     def _get_default_store(self, data=None, **kwargs):
         from ..stores import StringStore
 
@@ -203,6 +212,7 @@ class NumberWidget(BaseWidget):
         # C’est désormais interdit et il faut traduire en CEL
         min = fields.Float()
         max = fields.Float()
+        default = fields.Raw()  # valeur par défaut, lue par form.service (toForm)
 
     @property
     def is_integer(self):
@@ -289,6 +299,13 @@ class DatalistWidget(BaseWidget):
         api = fields.String()
         keyValue = fields.String()
         keyLabel = fields.String()
+        data_path = fields.String()  # lu par datalist.component (extraction de la liste)
+        default = fields.Raw()  # valeur par défaut, lue par datalist.component
+        nullDefault = fields.Boolean()  # lu par datalist.component
+        designStyle = fields.String()  # lu par datalist.component
+        application = fields.String()  # lu par datalist.component (source de l'API)
+        # restriction de la liste : {nom_du_champ: [valeurs autorisées]}, lu par datalist
+        filters = fields.Dict(keys=fields.Str(), values=fields.List(fields.Str()))
 
         @validates_schema
         def validates_schema(self, data, **kwargs):
@@ -308,12 +325,12 @@ class DatalistWidget(BaseWidget):
         if "values" in self:
             from ..stores import ValueStore
 
-            return ValueStore({"values": self["values"], **data}, **kwargs)
+            return ValueStore({"values": self["values"]}, **kwargs)
         else:
             from ..stores import StringStore
 
             # This is pure guessing as we do not know the API return type
-            return StringStore(data, **kwargs)
+            return StringStore({}, **kwargs)
 
     def get_api_type(self):
         if "values" in self:

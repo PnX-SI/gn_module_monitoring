@@ -3,6 +3,7 @@ import sqlalchemy as sa
 from marshmallow import ValidationError
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.tools.stores.relationships.m2m import (
@@ -16,7 +17,9 @@ from gn_module_monitoring.tools.utils import schema_context
 
 
 def make_store(store_cls, config, field_name="my_field"):
-    with schema_context(entity=ENTITY_MAP["site"], field_name=field_name):
+    with schema_context(
+        entity=ENTITY_MAP["site"], field_name=field_name, module=get_module("test")
+    ):
         return store_cls(config)
 
 
@@ -25,7 +28,7 @@ def types_site_relationship():
     return sa.inspect(TMonitoringSites).relationships["types_site"]
 
 
-@pytest.mark.usefixtures("temporary_transaction")
+@pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
 class TestTypesSiteStore:
     def test_api_type_is_list_of_int(self):
         assert make_store(TypesSiteStore, {}, field_name="types_site").get_api_type() == list[int]
@@ -36,8 +39,10 @@ class TestTypesSiteStore:
     def test_is_not_suitable_for_other_model(self, types_site_relationship):
         assert not AreasStore.is_suitable_for_relationship(types_site_relationship)
 
-    def test_is_not_suitable_without_relationship(self):
-        assert not TypesSiteStore.is_suitable_for_relationship(None)
+    def test_is_not_suitable_without_secondary(self):
+        many_to_one = sa.inspect(TMonitoringSites).relationships["sites_group"]
+        assert many_to_one.secondary is None
+        assert not TypesSiteStore.is_suitable_for_relationship(many_to_one)
 
     def test_native_relationship_is_accepted(self):
         store = make_store(TypesSiteStore, {}, field_name="types_site")
@@ -54,7 +59,7 @@ class TestTypesSiteStore:
         assert store.native_attr is not None
 
 
-@pytest.mark.usefixtures("temporary_transaction", "install_module_test")
+@pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
 class TestNomenclaturesStore:
     @pytest.fixture(autouse=True)
     def clear_nomenclature_cache(self):
@@ -64,7 +69,7 @@ class TestNomenclaturesStore:
 
     def test_nomenclature_type_is_loaded(self):
         store = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"})
-        assert store["nomenclature_type"].mnemonique == "TEST_METEO"
+        assert store.nomenclature_type.mnemonique == "TEST_METEO"
 
     def test_default_storage_cols(self):
         store = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"})
@@ -96,8 +101,7 @@ class TestLoadInstances:
         with pytest.raises(ValidationError):
             store.get_field().deserialize([-1])
 
-    def test_field_serializes_instances_to_ids(self, users):
+    def test_field_serializes_pks_unchanged(self, users):
         id_role = users["user"].id_role
         store = make_store(UsersStore, {})
-        instances = store.get_field().deserialize([id_role])
-        assert store.get_field()._serialize(instances, None, None) == [id_role]
+        assert store.get_field()._serialize([id_role], None, None) == [id_role]

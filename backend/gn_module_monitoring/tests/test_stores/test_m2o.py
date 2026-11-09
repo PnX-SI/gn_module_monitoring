@@ -5,6 +5,7 @@ from pypnusershub.db.models import User
 from pypnnomenclature.models import TNomenclatures
 
 from geonature.utils.env import db
+from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.tools.stores.relationships.m2o import (
     ModuleStore,
@@ -21,7 +22,9 @@ from gn_module_monitoring.tools.utils import schema_context
 
 
 def make_store(store_cls, config, field_name="my_field"):
-    with schema_context(entity=ENTITY_MAP["site"], field_name=field_name):
+    with schema_context(
+        entity=ENTITY_MAP["site"], field_name=field_name, module=get_module("test")
+    ):
         return store_cls(config)
 
 
@@ -80,7 +83,7 @@ class TestSiteStore:
         assert field._serialize(42, "site", None) == 42
 
 
-@pytest.mark.usefixtures("temporary_transaction", "install_module_test")
+@pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
 class TestNomenclatureStore:
     @pytest.fixture(autouse=True)
     def clear_nomenclature_cache(self):
@@ -103,11 +106,11 @@ class TestNomenclatureStore:
             NomenclatureStore,
             {"code_nomenclature_type": "TEST_METEO"},
         )
-        assert store["nomenclature_type"].mnemonique == "TEST_METEO"
+        assert store.nomenclature_type.mnemonique == "TEST_METEO"
 
     def test_nomenclature_type_from_nomenclature_type(self):
         store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
-        assert store["nomenclature_type"].mnemonique == "TEST_METEO"
+        assert store.nomenclature_type.mnemonique == "TEST_METEO"
 
     def test_default_storage_cols(self):
         store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})

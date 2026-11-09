@@ -312,8 +312,13 @@ def apply_substitutions(data, substitutions):
         for idx, value in enumerate(data):
             data[idx] = apply_substitutions(value, substitutions)
     elif isinstance(data, dict):
-        for key, value in data.items():
-            data[key] = apply_substitutions(value, substitutions)
+        for key, value in list(data.items()):
+            value = apply_substitutions(value, substitutions)
+            # Une substitution non définie (None) équivaut à une clé absente
+            if value is None and isinstance(data[key], str):
+                del data[key]
+            else:
+                data[key] = value
     elif isinstance(data, str):
         for old, new in substitutions.items():
             if data == old:  # keep the new type (e.g. int instead of string)

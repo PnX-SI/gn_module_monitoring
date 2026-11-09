@@ -4,7 +4,6 @@
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_nomenclature_type_site",
     "cd_hab",
     "id_inventor",
     "first_use_date",
@@ -14,8 +13,7 @@
   "display_list": [
     "base_site_name",
     "commune_areas",
-    "commune_area_code",
-    "commune"
+    "commune_area_code"
   ],
   "export_pdf": [
     {
@@ -28,14 +26,6 @@
   "specific": {
     "base_site_code": {
       "required": false
-    },
-    "id_nomenclature_type_site": {
-      "filters": {
-        "cd_nomenclature": ["1", "2", "3"]
-      },
-      "default": {
-        "cd_nomenclature": "1"
-      }
     },
     "id_sites_group": {
       "required": true,
@@ -102,14 +92,14 @@
       "type_widget": "observers",
       "attribut_label": "Observateur",
       "type_util": "user",
-      "code_list": "CODE_OBSERVERS_LIST",
+      "code_list": "__MODULE.CODE_OBSERVERS_LIST",
       "multi_select": false
     },
     "determiner_mutiple": {
       "type_widget": "observers",
       "attribut_label": "Observateur",
       "type_util": "user",
-      "code_list": "CODE_OBSERVERS_LIST",
+      "code_list": "__MODULE.CODE_OBSERVERS_LIST",
       "multi_select": true
     },
     "commune_areas": {

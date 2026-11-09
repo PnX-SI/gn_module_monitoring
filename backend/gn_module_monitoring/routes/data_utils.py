@@ -18,7 +18,7 @@ from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_commons.models import TModules
 
-from pypnusershub.db.models import User, UserList
+from pypnusershub.db.models import UserList
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 

@@ -1,4 +1,4 @@
-from marshmallow import fields, validate
+from marshmallow import fields, pre_load, validate
 
 from .core import BaseWidget
 
@@ -12,8 +12,12 @@ class NomenclatureWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import NomenclatureStore, NomenclaturesStore
 
-        # multi_select est une option du widget, pas du store
-        data = {k: v for k, v in data.items() if k != "multi_select"}
+        # Clés acceptées par le store (multi_select est une option du widget)
+        data = {
+            k: v
+            for k, v in data.items()
+            if k in ("nomenclature_type", "cd_nomenclatures", "storage_col", "storage_cols")
+        }
         if self["multi_select"]:
             return NomenclaturesStore(data, **kwargs)
         return NomenclatureStore(data, **kwargs)
@@ -26,6 +30,14 @@ class NomenclatureWidget(BaseWidget):
 
 class TaxonomyWidget(BaseWidget):
     key = "taxonomy"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        id_list = fields.Int(allow_none=True)  # liste TaxHub restreignant la recherche (None = pas de restriction), lue par pnx-taxonomy
+        application = fields.String()
+        api = fields.String()
+        keyValue = fields.String()
+        keyLabel = fields.String()
+        multiple = fields.Boolean()
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import TaxonomyStore
@@ -45,8 +57,8 @@ class DatasetWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import DatasetStore, DatasetsStore
 
-        # multi_select est une option du widget, pas du store
-        data = {k: v for k, v in data.items() if k != "multi_select"}
+        # Clés acceptées par le store (multi_select est une option du widget)
+        data = {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}
         if self["multi_select"]:
             return DatasetsStore(data, **kwargs)
         else:
@@ -70,8 +82,8 @@ class ModuleWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import ModuleStore, ModulesStore
 
-        # multiple est une option du widget, pas du store
-        data = {k: v for k, v in data.items() if k != "multiple"}
+        # Clés acceptées par le store (multiple est une option du widget)
+        data = {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}
         if self["multiple"]:
             return ModulesStore(data, **kwargs)
         else:
@@ -113,13 +125,21 @@ class ObserversWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         multi_select = fields.Boolean(load_default=False)
+        multiple = fields.Boolean()  # alias de multi_select (legacy)
+        code_list = fields.String()  # liste d'observateurs (code), lue par pnx-observers
+        id_list = fields.Raw()  # liste d'observateurs (id), lue par pnx-observers
+
+        @pre_load
+        def retrocompat_multiple(self, data, **kwargs):
+            if "multiple" in data and "multi_select" not in data:
+                data["multi_select"] = data["multiple"]
+            return data
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import UserStore, UsersStore
 
-        # multi_select est une option du widget, pas du store
-        data = {k: v for k, v in data.items() if k != "multi_select"}
-        # TODO: pass some parameters like the observer list
+        # Clés acceptées par le store (multi_select, multiple, id_list sont propres au widget)
+        data = {k: v for k, v in data.items() if k in ("storage_col", "storage_cols", "code_list")}
         if self["multi_select"]:
             return UsersStore(data, **kwargs)
         return UserStore(data, **kwargs)
@@ -134,16 +154,20 @@ class AreasWidget(BaseWidget):
     key = "areas"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        multiple = fields.Boolean(load_default=False)
+        multiple = fields.Boolean(load_default=False)  # lue par pnx-areas
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreaStore, AreasStore
 
-        # multiple est une option du widget, pas du store
-        data = {k: v for k, v in data.items() if k != "multiple"}
+        # Clés acceptées par le store (multiple est une option du widget)
         if self["multiple"]:
-            return AreasStore(data, **kwargs)
-        return AreaStore(data, **kwargs)
+            return AreasStore(
+                {k: v for k, v in data.items() if k in ("area_code", "storage_col", "storage_cols")},
+                **kwargs,
+            )
+        return AreaStore(
+            {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}, **kwargs
+        )
 
     def get_api_type(self):
         return list[int] if self["multiple"] else int

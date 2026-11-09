@@ -9,7 +9,8 @@ from geonature.utils.env import db
 from gn_module_monitoring import MODULE_CODE
 
 from .core import BaseRelationshipStore
-from .m2o import NomenclatureStore
+from .mixin import AreaMixin, DatasetMixin, ModuleMixin, NomenclatureMixin, UserMixin
+from .utils import validate_areas_of_type, validate_observers_in_list
 
 log = logging.getLogger(__name__)
 
@@ -78,6 +79,7 @@ class BaseManyToManyStore(BaseRelationshipStore):
 
 class TypesSiteStore(BaseManyToManyStore):
     key = "types_site"
+    model = "types_site"
 
     @classmethod
     def get_model(cls):
@@ -100,17 +102,15 @@ class TypesSiteStore(BaseManyToManyStore):
         )
 
 
-class AreasStore(BaseManyToManyStore):
+class AreasStore(AreaMixin, BaseManyToManyStore):
     key = "areas"
 
-    @classmethod
-    def get_model(cls):
-        from ref_geo.models import LAreas
-
-        return LAreas
-
-    class ConfigSchema(BaseManyToManyStore.ConfigSchema):
-        area_code = fields.Str()
+    class Field(BaseManyToManyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instances = super()._deserialize(value, attr, data, **kwargs)
+            if instances and self.store.area_type:
+                validate_areas_of_type(instances, self.store.area_type)
+            return instances
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import AreasWidget
@@ -118,14 +118,8 @@ class AreasStore(BaseManyToManyStore):
         return AreasWidget({**(data or {}), "multiple": True}, **kwargs)
 
 
-class DatasetsStore(BaseManyToManyStore):
+class DatasetsStore(DatasetMixin, BaseManyToManyStore):
     key = "datasets"
-
-    @classmethod
-    def get_model(cls):
-        from geonature.core.gn_meta.models import TDatasets
-
-        return TDatasets
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatasetWidget
@@ -133,17 +127,8 @@ class DatasetsStore(BaseManyToManyStore):
         return DatasetWidget({**(data or {}), "multi_select": True}, **kwargs)
 
 
-class NomenclaturesStore(BaseManyToManyStore):
+class NomenclaturesStore(NomenclatureMixin, BaseManyToManyStore):
     key = "nomenclatures"
-
-    @classmethod
-    def get_model(cls):
-        from pypnnomenclature.models import TNomenclatures
-
-        return TNomenclatures
-
-    class ConfigSchema(NomenclatureStore.ConfigSchema, BaseManyToManyStore.ConfigSchema):
-        pass
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
@@ -151,14 +136,8 @@ class NomenclaturesStore(BaseManyToManyStore):
         return NomenclatureWidget({**(data or {}), "multi_select": True}, **kwargs)
 
 
-class ModulesStore(BaseManyToManyStore):
+class ModulesStore(ModuleMixin, BaseManyToManyStore):
     key = "modules"
-
-    @classmethod
-    def get_model(cls):
-        from gn_module_monitoring.monitoring.models import TMonitoringModules
-
-        return TMonitoringModules
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ModuleWidget
@@ -168,14 +147,15 @@ class ModulesStore(BaseManyToManyStore):
         )
 
 
-class UsersStore(BaseManyToManyStore):
+class UsersStore(UserMixin, BaseManyToManyStore):
     key = "users"
 
-    @classmethod
-    def get_model(cls):
-        from pypnusershub.db.models import User
-
-        return User
+    class Field(BaseManyToManyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instances = super()._deserialize(value, attr, data, **kwargs)
+            if instances and self.store.list:
+                validate_observers_in_list(instances, self.store.list)
+            return instances
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import ObserversWidget

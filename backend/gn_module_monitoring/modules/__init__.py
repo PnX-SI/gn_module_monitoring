@@ -94,9 +94,7 @@ class MonitoringModule(UserDict):
             super().__init__(self.config_schema.load(config))
             self.nomenclatures = load_module_nomenclatures(module_code)
             if module_code == "generic":
-                self.module = None
-                self["configured"] = True
-                self.substitutions = {}
+                self.module = TMonitoringModules(module_code="generic", b_synthese=False)
             else:
                 self.module = db.session.execute(
                     sa.select(TMonitoringModules).where(
@@ -106,9 +104,8 @@ class MonitoringModule(UserDict):
                 if self.module is None:
                     # Module non installé : instance transitoire, non ajoutée à la session
                     self.module = TMonitoringModules(module_code=module_code)
-                self["configured"] = is_module_configured(self.module)
-                self.substitutions = get_substitutions(self.module)
-
+            self["configured"] = is_module_configured(self.module)
+            self.substitutions = get_substitutions(self.module)
             self.entities = {}
             for entity in self.entities_list:
                 try:
@@ -125,8 +122,8 @@ class MonitoringModule(UserDict):
         for entity in self.entities.values():
             for field in entity.data["fields"].values():
                 store = field["store"]
-                if isinstance(store, NomenclatureStore) and store["nomenclature_type"] is not None:
-                    types.append(store["nomenclature_type"].mnemonique)
+                if isinstance(store, NomenclatureStore) and store.nomenclature_type is not None:
+                    types.append(store.nomenclature_type.mnemonique)
         return list(dict.fromkeys(types))
 
     def dump_config(self):

@@ -3,6 +3,7 @@ from functools import cache
 
 import sqlalchemy as sa
 from marshmallow import fields, validates, validates_schema, ValidationError
+from sqlalchemy.orm import RelationshipProperty
 
 from gn_module_monitoring.tools.utils import schema_context
 
@@ -17,8 +18,14 @@ class BaseRelationshipStore(BaseStore):
     many-to-one (FK) et many-to-many (relationship via table d'association).
     """
 
+    # Modèle métier ciblé par le store (dump only), ex. "user" pour UserStore et UsersStore
+    # C’est cette propriété qui est dumpée dans type_util.
+    model = None
+
     class ConfigSchema(BaseStore.ConfigSchema):
         """Paramètres communs : colonnes de stockage de la cible."""
+
+        model = fields.Str(dump_only=True)
 
         # Stock cette propriété du modèle associé au store.
         storage_col = fields.Str()
@@ -70,6 +77,22 @@ class BaseRelationshipStore(BaseStore):
             super().__init__(**store._get_field_kwargs(), **kwargs)
             self.store = store
 
+        def get_value(self, obj, attr, accessor=None, default=None):
+            """
+            Les champs non natifs stockent la PK, et pour éviter de fetcher l’objet, `_serialize`
+            attend uniquement la PK. Pour les champs natifs, on a l’objet, dont on récupère donc
+            la (les) PK, comme attendue par `_serialize`.
+            """
+            value = super().get_value(obj, attr, accessor, default)
+            native_attr = self.store.native_attr
+            if value is None or not isinstance(native_attr, RelationshipProperty):
+                return value
+            pk = self.store.get_model_pk().name
+            if native_attr.uselist:
+                return [getattr(instance, pk) for instance in value]
+            else:
+                return getattr(value, pk)
+
         def _deserialize(self, value, attr, data, **kwargs):
             """
             Reçoit la (m2o) ou les (m2m) PK par l’API, et renvoi la ou les instance(s) associée(s).
@@ -88,6 +111,9 @@ class BaseRelationshipStore(BaseStore):
 
     def get_field(self) -> fields.Field:
         return self.Field(self)
+
+    def dump_config(self):
+        return self.config_schema.dump({**self.data, "model": self.model})
 
     @classmethod
     def get_model(cls):

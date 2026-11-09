@@ -66,6 +66,14 @@ def check_cel_types(fields_def, entity_validate_cel):
         )
 
 
+class ExportPdfSchema(ma.Schema):
+    class Meta:
+        unknown = ma.RAISE
+
+    label = ma.fields.Str(required=True)
+    template = ma.fields.Str(required=True)
+
+
 class BaseEntityConfigSchema(ma.Schema):
     class Meta:
         # TODO: le but est de passer à RAISE une fois les schémas complets
@@ -78,7 +86,10 @@ class BaseEntityConfigSchema(ma.Schema):
     # (pas de load_default, pour ne pas ajouter de clé absente de la config legacy)
     chained = ma.fields.Raw()
     change = ma.fields.Raw()
-    filters = ma.fields.Raw()
+    # Filtres par défaut appliqués à la liste de l’objet : {nom_du_champ: valeur ou liste de valeurs}
+    # (ex. {"active": True} ou {"cd_nomenclature": ["1", "2"]}).
+    # Lu par le frontend (monitoring-geom-component.ts : defaultFilters) et par sites-groups.resolver.ts.
+    filters = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Raw())
     genre = ma.fields.Str()
     geom_field_name = ma.fields.Str()
     geometry_type = ma.fields.Raw()
@@ -86,6 +97,14 @@ class BaseEntityConfigSchema(ma.Schema):
     description_field_name = ma.fields.Str()
     label = ma.fields.Str()
     label_list = ma.fields.Str()
+    # Liste des champs (noms de fields) dont la dernière valeur saisie est conservée
+    # par le formulaire après la création d’un objet (ex. ["id_dataset", "observers"]).
+    # Lu par monitoring-form-g.component.ts (resetForm / clé "keep").
+    keep = ma.fields.List(ma.fields.Str())
+    # Modèles de rapports PDF proposés pour l’objet. Liste d’objets {label, template}.
+    # Lu par monitoring-geom-component.ts (templateData.exportPDF) pour afficher le bouton
+    # d’export PDF dans monitoring-properties-g.component.html.
+    export_pdf = ma.fields.List(ma.fields.Nested(ExportPdfSchema))
     sorts = ma.fields.Raw()
     uuid_field_name = ma.fields.Str()
     # Condition CEL sur l’objet entier, évaluée par le schéma (voir CELMixin)

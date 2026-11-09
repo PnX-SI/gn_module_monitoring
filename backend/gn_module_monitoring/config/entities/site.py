@@ -64,7 +64,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "type_widget": "observers",
                 "attribut_label": "Observateur",
                 "type_util": "user",
-                "code_list": "CODE_OBSERVERS_LIST",
+                "code_list": "__MODULE.CODE_OBSERVERS_LIST",
                 "required": True,
                 "multi_select": False,
             },

@@ -215,7 +215,7 @@ class EntityFieldConfigSchema(ma.Schema):
     def retro_compat(self, data, **kwargs):
         # frontend requires type_widget & type_util, not widget & store :-(
         store = copy(data["store"])
-        store["type_util"] = store.pop("type")
+        store["type_util"] = store.pop("model", None)
         widget = copy(data["widget"])
         widget["type_widget"] = widget.pop("type")
         if "hidden_js" in widget:
