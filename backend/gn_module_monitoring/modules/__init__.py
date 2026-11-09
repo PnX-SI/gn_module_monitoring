@@ -10,7 +10,7 @@ from werkzeug.exceptions import NotFound
 from geonature.utils.env import db
 from pypnusershub.db.models import UserList
 
-from gn_module_monitoring import EXTENSION_CODE
+from gn_module_monitoring import EXTENSION_CODE, MODULE_CODE
 from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.config.module import ModuleConfigSchema
@@ -144,6 +144,8 @@ class MonitoringModule(UserDict):
 
 
 def get_module(module_code):
+    if module_code == MODULE_CODE:
+        module_code = "generic"
     if module_code not in current_app.extensions[EXTENSION_CODE]["modules"]:
         current_app.extensions[EXTENSION_CODE]["modules"][module_code] = MonitoringModule(
             module_code
