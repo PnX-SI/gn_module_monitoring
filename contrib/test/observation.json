@@ -4,7 +4,7 @@
       "type_widget": "datalist",
       "attribut_label": "Taxon",
       "keyValue": "cd_nom",
-      "keyLabel": "__MODULE.TAXONOMY_DISPLAY_FIELD_NAME",
+      "keyLabel": "nom_valide",
       "multiple": false,
       "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
       "application": "TaxHub",

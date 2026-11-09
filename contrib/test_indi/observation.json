@@ -1,7 +1,7 @@
 {
   "specific": {
     "cd_nom": {
-       "type_widget": "text",
+       "type_widget": "taxonomy",
        "required": false,
        "hidden": true
     },
