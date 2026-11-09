@@ -1,9 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormControl } from '@angular/forms';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { leafletDrawOptions } from './leaflet-draw.options';
+import { LeafletDrawComponent } from '@geonature_common/map/leaflet-draw/leaflet-draw.component';
 import { CustomMarkerIcon } from '@geonature_common/map/marker/marker.component';
 import { FormService } from '../../services/form.service';
 import { IFormMap } from '../../interfaces/object';
@@ -14,6 +23,7 @@ import { IFormMap } from '../../interfaces/object';
   styleUrls: ['./draw-form.component.css'],
 })
 export class DrawFormComponent implements OnInit {
+  @ViewChild(LeafletDrawComponent) leafletDraw: LeafletDrawComponent;
   public geojson;
   public leafletDrawOptions: any;
 
@@ -21,6 +31,7 @@ export class DrawFormComponent implements OnInit {
   /** Type de geomtrie parmi : 'Point', 'Polygon', 'LineString' */
   public geometryType: string[] = [];
   private currentEditModeSubscription: Subscription;
+  private geometryValueSubscription: Subscription;
   // search bar default to true
 
   @Output() onChange = new EventEmitter<any>();
@@ -46,6 +57,19 @@ export class DrawFormComponent implements OnInit {
         this.geometryType = formMapObj.geometry_type;
         this.parentFormControl = formMapObj.frmGp;
         this.initForm();
+      });
+    // Suppression du dessin de la carte lorsque la géométrie du formulaire est vidée
+    // (ex: enchaînement de saisies)
+    this.geometryValueSubscription = this._formService.currentFormMap
+      .pipe(
+        filter((formMapObj) => !!formMapObj?.frmGp),
+        distinctUntilChanged((prev, curr) => prev.frmGp === curr.frmGp),
+        switchMap((formMapObj) => formMapObj.frmGp.valueChanges),
+        filter((value) => !value)
+      )
+      .subscribe(() => {
+        this.geojson = null;
+        this.leafletDraw?.clearDraw();
       });
     // choix du type de geometrie
     this.initDrawConfig();
@@ -129,5 +153,6 @@ export class DrawFormComponent implements OnInit {
   }
   ngOnDestroy() {
     this.currentEditModeSubscription.unsubscribe();
+    this.geometryValueSubscription?.unsubscribe();
   }
 }

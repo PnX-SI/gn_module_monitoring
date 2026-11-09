@@ -125,6 +125,16 @@
           {{ 'Monitoring.Form.Cancel' | translate }}
         </button>
         <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          class="float-left"
+          *ngIf="chainInput && !object && chainedCount > 0"
+          (click)="stopChain.emit()"
+        >
+          {{ 'Monitoring.Form.StopChain' | translate }}
+        </button>
+        <button
           mat-raised-button
           [matTooltip]="canDelete ? null : toolTipNotAllowed"
           [disabled]="!canDelete"
