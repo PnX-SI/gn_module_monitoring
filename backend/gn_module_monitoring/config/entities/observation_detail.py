@@ -14,12 +14,11 @@ class ObservationDetailEntityConfigSchema(BaseEntityConfigSchema):
         "display_properties": ["uuid_observation_detail"],
         "uuid_field_name": "uuid_observation_detail",
         "fields": {
-            "id_observation_detail": {
-                "type_widget": "text",
+            "id_observation": {
+                "type_util": "integer",
                 "attribut_label": "Id observation",
                 "hidden": True,
             },
-            "id_observation": {"attribut_label": "Id visite", "type_util": "user", "hidden": True},
             "uuid_observation_detail": {
                 "attribut_label": "uuid",
                 "type_widget": "text",

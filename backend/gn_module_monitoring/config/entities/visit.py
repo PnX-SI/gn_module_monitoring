@@ -28,13 +28,12 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "visit_date_min", "dir": "desc"}],
         "fields": {
-            "id_base_visit": {"store": {"type": "visit"}, "attribut_label": "ID", "hidden": True},
             "id_base_site": {
                 "store": {"type": "site"},
                 "attribut_label": "ID SITE",
                 "hidden": True,
             },
-            "id_module": {"type_widget": "text", "attribut_label": "ID Module", "hidden": True},
+            "id_module": {"type_util": "integer", "attribut_label": "ID Module", "hidden": True},
             "observers": {
                 "type_widget": "observers",
                 "attribut_label": "Observateurs",
@@ -56,9 +55,15 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
                 "hidden": True,
             },
-            "visit_date_min": {"type_widget": "date", "attribut_label": "Date", "required": True},
+            "visit_date_min": {
+                "type_widget": "date",
+                "type_util": "datetime",
+                "attribut_label": "Date",
+                "required": True,
+            },
             "visit_date_max": {
                 "type_widget": "date",
+                "type_util": "datetime",
                 "attribut_label": "Date (max)",
                 "hidden": True,
             },

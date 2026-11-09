@@ -14,11 +14,6 @@ class ObservationEntityConfigSchema(BaseEntityConfigSchema):
         "display_properties": ["cd_nom", "comments"],
         "uuid_field_name": "uuid_observation",
         "fields": {
-            "id_observation": {
-                "type_util": "integer",
-                "attribut_label": "Id observation",
-                "hidden": True,
-            },
             "id_base_visit": {
                 "type_util": "integer",
                 "attribut_label": "Id visite",
@@ -31,7 +26,7 @@ class ObservationEntityConfigSchema(BaseEntityConfigSchema):
                 "type_util": "user",
             },
             "id_individual": {
-                "type_widget": "text",
+                "type_util": "integer",
                 "attribut_label": "Id individu",
                 "hidden": True,
             },
