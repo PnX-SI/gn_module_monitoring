@@ -103,6 +103,20 @@ class ExtraDataMixin:
             data[name] = extra.get(name)
         return data
 
+    @ma.post_load
+    def make_instance(self, data, **kwargs):
+        # Mise à jour : les champs déclarés absents de la requête sont supprimés, mais les données
+        # stockées qui ne sont pas déclarées dans la configuration sont conservées.
+        instance = (self.instance or self.get_instance(data)) if self._load_instance else None
+        if instance is not None:
+            kept = {
+                name: value
+                for name, value in (instance.data or {}).items()
+                if name not in self.extra_field_names
+            }
+            data["data"] = {**kept, **(data.get("data") or {})}
+        return super().make_instance(data, **kwargs)
+
 
 def compile_conditions(conditions):
     """
