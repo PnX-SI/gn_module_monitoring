@@ -15,7 +15,7 @@ from gn_module_monitoring.tools.stores.type import (
     StringStore,
     UUIDStore,
 )
-from gn_module_monitoring.tools.stores.relationships.m2m import UsersStore
+from gn_module_monitoring.tools.stores.relationships.m2m import DatasetsStore, UsersStore
 from gn_module_monitoring.tools.stores.relationships.m2o import SiteStore, UserStore
 from gn_module_monitoring.tools.utils import schema_context
 
@@ -116,6 +116,27 @@ class TestExtendedSchemaStorage:
         schema = build_schema({"day": make_store(DateStore, "day")})
         with pytest.raises(ValidationError):
             schema().load({"day": "pas une date"})
+
+    def test_many_to_many_extra_values_are_stored_as_pks(self, datasets):
+        ids = [datasets["orphan_dataset"].id_dataset]
+        store = make_store(DatasetsStore, "my_datasets", {"storage_col": "dataset_name"})
+        schema = build_schema({"my_datasets": store})
+        loaded = schema().load({"my_datasets": ids})
+        assert loaded.data == {"my_datasets": [datasets["orphan_dataset"].dataset_name]}
+        assert json.dumps(loaded.data)
+
+    def test_many_to_many_extra_values_are_read_back_as_pks(self, datasets):
+        ids = [datasets["orphan_dataset"].id_dataset]
+        store = make_store(DatasetsStore, "my_datasets", {"storage_col": "dataset_name"})
+        schema = build_schema({"my_datasets": store})
+        loaded = schema().load({"my_datasets": ids})
+        obj = SimpleNamespace(data=loaded.data)
+        assert schema().dump(obj)["my_datasets"] == ids
+
+    def test_many_to_many_unknown_id_is_rejected(self):
+        schema = build_schema({"my_datasets": make_store(DatasetsStore, "my_datasets")})
+        with pytest.raises(ValidationError):
+            schema().load({"my_datasets": [-1]})
 
 
 class TestPythonType:

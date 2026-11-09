@@ -4,7 +4,6 @@ from functools import cache
 import click
 import sqlalchemy as sa
 from sqlalchemy.orm import ColumnProperty
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from marshmallow import ValidationError
 from flask import current_app
 
@@ -93,44 +92,13 @@ class BaseForeignKeyStore(BaseRelationshipStore):
     def to_storage(self, value):
         if value is None:
             return None
-        if self.get("storage_cols"):
-            # we store a dict with given columns
-            return {col: getattr(value, col) for col in self["storage_cols"]}
-        elif self.get("storage_col"):
-            # we store this column
-            return getattr(value, self["storage_col"])
-        else:
-            # we store the pk
-            return getattr(value, self.get_model_pk().name)
+        return self._to_storage(value)
 
     def from_storage(self, value):
         # Renvoie la clé primaire sans charger l’instance
         if value is None:
             return None
-        if isinstance(value, dict):
-            # La donnée stockée est un dict, qu’on peut supposer contenir la clé primaire
-            # (forcé par validate_storage_cols)
-            return value[self.get_model_pk().name]
-        elif storage_col := self.get("storage_col"):
-            # La donnée stockée est la colonne 'storage_col'
-            # On vérifie tous de même le type dès fois que la configuration soit incorrecte.
-            python_type = self.get_model_mapper().attrs[storage_col].columns[0].type.python_type
-            if not isinstance(value, python_type):
-                raise ValueError(
-                    f"Unexpected value '{value}' : mauvais type, attendu : '{python_type}'"
-                )
-            pk = self.get_model_pk()
-            try:
-                return db.session.execute(
-                    sa.select(pk).where(getattr(self.get_model(), storage_col) == value)
-                ).scalar_one()
-            except NoResultFound:
-                raise ValueError(f"Unexpected value '{value}' : aucune instance trouvée.")
-            except MultipleResultsFound:
-                raise ValueError(f"Unexpected value '{value}' : plusieurs instances trouvées.")
-        else:
-            # Donnée stockée sous forme de clé primaire en théorie
-            return value
+        return self._from_storage(value)
 
     def get_api_type(self) -> type:
         # Clé primaire de la cible : un identifiant entier

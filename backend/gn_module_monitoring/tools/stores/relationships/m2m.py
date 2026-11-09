@@ -20,11 +20,15 @@ class BaseManyToManyStore(BaseRelationshipStore):
     Store pour une relation many-to-many : le champ est une relationship SQLAlchemy
     passant par une table d'association (paramètre `secondary`), et non une colonne.
 
-    Pas de to_storage / from_storage : la relation est native, elle n’est pas stockée dans `data`.
+    Champ natif (relation SQLAlchemy) : pas de stockage, la relation est lue et écrite directement.
+    Champ non natif (stocké dans `data`) : chaque élément est converti comme pour un store M2O
+    (clé primaire, `storage_col` ou `storage_cols`), et la liste entière est stockée.
     Asymétrie entre les deux sens :
     - chargement (API → DB) : `Field._deserialize` renvoie une liste d’instances, pour la validation ;
-    - dump (DB → API) : la valeur lue est la relation elle-même, donc une liste d’instances,
-      et `Field._serialize` en extrait les clés primaires.
+      `to_storage` la convertit en liste de valeurs stockables ;
+    - dump (DB → API) : `from_storage` renvoie une liste de clés primaires, et `Field._serialize`
+      la renvoie telle quelle. Pour un champ natif, `Field.get_value` extrait les clés primaires
+      de la relation (liste d’instances).
     """
 
     class Field(BaseRelationshipStore.Field):
@@ -52,6 +56,16 @@ class BaseManyToManyStore(BaseRelationshipStore):
     @classmethod
     def is_suitable_for_relationship(cls, relationship):
         return relationship.secondary is not None and relationship.mapper.class_ is cls.get_model()
+
+    def to_storage(self, value):
+        if value is None:
+            return None
+        return [self._to_storage(instance) for instance in value]
+
+    def from_storage(self, value):
+        if value is None:
+            return None
+        return [self._from_storage(item) for item in value]
 
     def __init__(self, data=None, **kwargs):
         super().__init__(data, **kwargs)
