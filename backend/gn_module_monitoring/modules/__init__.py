@@ -13,6 +13,7 @@ from gn_module_monitoring import EXTENSION_CODE
 from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.config.module import ModuleConfigSchema
+from gn_module_monitoring.config.nomenclature import load_module_nomenclatures
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.config.utils import (
     get_monitorings_path,
@@ -90,6 +91,7 @@ class MonitoringModule(UserDict):
         self.config_schema = ModuleConfigSchema()
         with schema_context(module=self):
             super().__init__(self.config_schema.load(config))
+        self.nomenclatures = load_module_nomenclatures(module_code)
         if module_code == "generic":
             self.module = None
             self["configured"] = True
