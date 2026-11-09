@@ -98,10 +98,10 @@ class EntityFieldConfigSchema(ma.Schema):
             widget_type = data.pop("type_widget")
             data["widget"]["type"] = widget_type
             if widget_type == "site":  # retro-compat
-                # Il n’y a pas de widget site
+                # Il n’y a pas de widget site : le champ est masqué, son widget est celui du store
                 if not data["widget"].get("hidden", False):
                     raise ValidationError({"widget": "Le widget 'site' ne peut que être hidden."})
-                data["widget"]["type"] = "hidden"
+                data["widget"].pop("type")
         if "type_util" in data:
             if "store" in data:
                 data["store"].update(data)

@@ -30,42 +30,46 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
         "fields": {
             "id_base_site": {
                 "store": {"type": "site"},
-                "attribut_label": "ID SITE",
-                "hidden": True,
+                "widget": {"attribut_label": "ID SITE", "hidden": True},
             },
-            "id_module": {"type_util": "integer", "attribut_label": "ID Module", "hidden": True},
+            "id_module": {
+                "store": {"type": "integer"},
+                "widget": {"attribut_label": "ID Module", "hidden": True},
+            },
             "observers": {
-                "type_widget": "observers",
-                "attribut_label": "Observateurs",
-                "type_util": "user",
-                "code_list": "__MODULE.CODE_OBSERVERS_LIST",
-                "multi_select": True,
-                "hidden": False,
+                "store": {
+                    "type": "users",
+                    "code_list": "__MODULE.CODE_OBSERVERS_LIST",
+                },
+                "widget": {
+                    "type": "observers",
+                    "attribut_label": "Observateurs",
+                    "multi_select": True,
+                    "hidden": False,
+                },
                 "required": True,
             },
             "observers_txt": {
-                "type_widget": "observers-text",
-                "attribut_label": "Observateur(s) (extérieur)",
+                "widget": {
+                    "type": "observers-text",
+                    "attribut_label": "Observateur(s) (extérieur)",
+                    "hidden": True,
+                },
                 "required": False,
-                "hidden": True,
             },
             "id_digitiser": {
-                "attribut_label": "Digitiser",
-                "type_util": "user",
+                "store": {"type": "user"},
+                "widget": {"attribut_label": "Digitiser", "hidden": True},
                 "required": True,
-                "hidden": True,
             },
             "visit_date_min": {
-                "type_widget": "date",
-                "type_util": "datetime",
-                "attribut_label": "Date",
+                "store": {"type": "datetime"},
+                "widget": {"type": "date", "attribut_label": "Date"},
                 "required": True,
             },
             "visit_date_max": {
-                "type_widget": "date",
-                "type_util": "datetime",
-                "attribut_label": "Date (max)",
-                "hidden": True,
+                "store": {"type": "datetime"},
+                "widget": {"type": "date", "attribut_label": "Date (max)", "hidden": True},
             },
             "id_nomenclature_tech_collect_campanule": {
                 "store": {
@@ -73,30 +77,31 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                     "nomenclature_type": "TECHNIQUE_OBS",
                 }
             },
-            "comments": {"type_widget": "text", "attribut_label": "Commentaires"},
+            "comments": {"widget": {"type": "text", "attribut_label": "Commentaires"}},
             "uuid_base_visit": {
-                "attribut_label": "uuid",
-                "type_widget": "text",
-                "type_util": "uuid",
-                "hidden": True,
+                "store": {"type": "uuid"},
+                "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "id_dataset": {
-                "type_widget": "dataset",
-                "type_util": "dataset",
-                "attribut_label": "Jeu de données",
-                "module_code": "__MODULE.MODULE_CODE",
-                "creatable_in_module": "__MODULE.MODULE_CODE.MONITORINGS_VISITES",
+                "store": {"type": "dataset"},
+                "widget": {
+                    "type": "dataset",
+                    "attribut_label": "Jeu de données",
+                    "module_code": "__MODULE.MODULE_CODE",
+                    "creatable_in_module": "__MODULE.MODULE_CODE.MONITORINGS_VISITES",
+                },
                 "required": True,
             },
             "nb_observations": {
-                "type_util": "integer",
-                "attribut_label": "Nombre d'observations",
-                "hidden": True,
+                "store": {"type": "integer"},
+                "widget": {"attribut_label": "Nombre d'observations", "hidden": True},
             },
             "medias": {
-                "type_widget": "medias",
-                "attribut_label": "Médias",
-                "schema_dot_table": "gn_monitoring.t_base_visits",
+                "widget": {
+                    "type": "medias",
+                    "attribut_label": "Médias",
+                    "schema_dot_table": "gn_monitoring.t_base_visits",
+                },
             },
         },
     }

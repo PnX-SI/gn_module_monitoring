@@ -15,20 +15,19 @@ class ObservationDetailEntityConfigSchema(BaseEntityConfigSchema):
         "uuid_field_name": "uuid_observation_detail",
         "fields": {
             "id_observation": {
-                "type_util": "integer",
-                "attribut_label": "Id observation",
-                "hidden": True,
+                "store": {"type": "integer"},
+                "widget": {"attribut_label": "Id observation", "hidden": True},
             },
             "uuid_observation_detail": {
-                "attribut_label": "uuid",
-                "type_widget": "text",
-                "type_util": "uuid",
-                "hidden": True,
+                "store": {"type": "uuid"},
+                "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "medias": {
-                "type_widget": "medias",
-                "attribut_label": "Médias",
-                "schema_dot_table": "gn_monitoring.t_observation_details",
+                "widget": {
+                    "type": "medias",
+                    "attribut_label": "Médias",
+                    "schema_dot_table": "gn_monitoring.t_observation_details",
+                },
             },
         },
     }
