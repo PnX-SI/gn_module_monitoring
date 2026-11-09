@@ -46,8 +46,9 @@ class NomenclaturesDefinitionSchema(Schema):
 
 def load_module_nomenclatures(module_code):
     nomenclatures_path = monitoring_module_config_path(module_code) / "nomenclature.json"
-    if not nomenclatures_path.is_file():
-        return None
-    with nomenclatures_path.open() as f:
-        nomenclatures = json.load(f)
+    if nomenclatures_path.is_file():
+        with nomenclatures_path.open() as f:
+            nomenclatures = json.load(f)
+    else:
+        nomenclatures = {}
     return NomenclaturesDefinitionSchema().load(nomenclatures)

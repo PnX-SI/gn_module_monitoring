@@ -23,10 +23,9 @@ from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.tools.utils import schema_context
 
 from .core import BaseRelationshipStore
-from .utils import get_nomenclature, get_nomenclature_type
+from .utils import get_declared_nomenclatures, get_nomenclature, get_nomenclature_type
 
 log = logging.getLogger(__name__)
 
@@ -369,27 +368,22 @@ class NomenclatureStore(BaseForeignKeyStore):
         @validates("nomenclature_type")
         def validate_nomenclature_type(self, value, **kwargs):
             # On valide nomenclature_type avant que soit validé les cd_nomenclatures
-            # N’est validé que pour les protocoles installés !
-            ctx = schema_context.get()
-            if not ctx.get("protocol_installed", True):
-                return
-            if get_nomenclature_type(value) is None:
+            # Le type doit exister en base OU être déclaré dans le nomenclature.json du module
+            declared_types = {t["mnemonique"] for t in get_declared_nomenclatures()["types"]}
+            if get_nomenclature_type(value) is None and value not in declared_types:
                 raise ValidationError(f"Le type de nomenclature '{value} n’existe pas.")
-            # TODO: vérifier qu’elle existe en base OU qu’elle est déclarer dans nomenclature.json ?
 
         @validates_schema
         def validate_cd_nomenclatures(self, data, **kwargs):
-            # Vérifie que chaque cd_nomenclature existe pour le type de nomenclature demandé.
+            # Vérifie que chaque cd_nomenclature existe pour le type de nomenclature demandé,
+            # en base OU dans le nomenclature.json du module.
             # Si nomenclature_type est absent ou inconnu, c'est signalé ailleurs : on ne vérifie rien.
-            # N’est validé que pour les protocoles installés !
-            ctx = schema_context.get()
-            if not ctx.get("protocol_installed", True):
-                return
             type_mnemonique = data["nomenclature_type"]
             if "cd_nomenclatures" not in data:
                 return
             cd_nomenclatures = data["cd_nomenclatures"]
-            found = set(
+            # nomenclatures existantes en base
+            existing_nomenclatures = set(
                 db.session.execute(
                     select(TNomenclatures.cd_nomenclature)
                     .join(
@@ -402,7 +396,17 @@ class NomenclatureStore(BaseForeignKeyStore):
                     )
                 ).scalars()
             )
-            missing = [cd for cd in cd_nomenclatures if cd not in found]
+            # nomenclatures déclarées dans nomenclature.json
+            declared_nomenclatures = {
+                n["cd_nomenclature"]
+                for n in get_declared_nomenclatures()["nomenclatures"]
+                if n["type"] == type_mnemonique
+            }
+            missing = [
+                cd
+                for cd in cd_nomenclatures
+                if cd not in existing_nomenclatures and cd not in declared_nomenclatures
+            ]
             if missing:
                 raise ValidationError(
                     {
@@ -418,7 +422,11 @@ class NomenclatureStore(BaseForeignKeyStore):
 
         @post_load
         def load_nomenclature_type(self, data, **kwargs):
-            data["nomenclature_type"] = get_nomenclature_type(data["nomenclature_type"])
+            mnemonique = data["nomenclature_type"]
+            # Un type déclaré seulement dans le nomenclature.json n’existe pas encore en base
+            data["nomenclature_type"] = get_nomenclature_type(mnemonique) or BibNomenclaturesTypes(
+                mnemonique=mnemonique
+            )
             return data
 
         @post_dump(pass_original=True)
@@ -431,7 +439,6 @@ class NomenclatureStore(BaseForeignKeyStore):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
 
         return NomenclatureWidget(data, **kwargs)
-
 
     def check_stored_value(self, entity, row_id, field_name, value, fix):
         # TODO: cette fonction s’attend uniquement à trouver un id_nomenclature

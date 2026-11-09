@@ -91,24 +91,29 @@ class MonitoringModule(UserDict):
         self.config_schema = ModuleConfigSchema()
         with schema_context(module=self):
             super().__init__(self.config_schema.load(config))
-        self.nomenclatures = load_module_nomenclatures(module_code)
-        if module_code == "generic":
-            self.module = None
-            self["configured"] = True
-            self.substitutions = {}
-        else:
-            self.module = db.session.execute(
-                sa.select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
-            ).scalar_one()
-            self["configured"] = is_module_configured(self.module)
-            self.substitutions = get_substitutions(self.module)
+            self.nomenclatures = load_module_nomenclatures(module_code)
+            if module_code == "generic":
+                self.module = None
+                self["configured"] = True
+                self.substitutions = {}
+            else:
+                self.module = db.session.execute(
+                    sa.select(TMonitoringModules).where(
+                        TMonitoringModules.module_code == module_code
+                    )
+                ).scalar_one_or_none()
+                if self.module is None:
+                    # Module non installé : instance transitoire, non ajoutée à la session
+                    self.module = TMonitoringModules(module_code=module_code)
+                self["configured"] = is_module_configured(self.module)
+                self.substitutions = get_substitutions(self.module)
 
-        self.entities = {}
-        for entity in self.entities_list:
-            try:
-                self.entities[entity] = ENTITY_MAP[entity](self)
-            except ValidationError as e:
-                raise ValidationError({"entities": {entity: e.messages_dict}})
+            self.entities = {}
+            for entity in self.entities_list:
+                try:
+                    self.entities[entity] = ENTITY_MAP[entity](self)
+                except ValidationError as e:
+                    raise ValidationError({"entities": {entity: e.messages_dict}})
 
     def collect_nomenclatures(self):
         """

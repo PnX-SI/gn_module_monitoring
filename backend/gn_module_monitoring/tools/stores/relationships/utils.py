@@ -5,12 +5,23 @@ from sqlalchemy import select
 from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
+from gn_module_monitoring.tools.utils import schema_context
+
 
 @cache
 def get_nomenclature_type(mnemonique):
     return db.session.execute(
         select(BibNomenclaturesTypes).where(BibNomenclaturesTypes.mnemonique == mnemonique)
     ).scalar_one_or_none()
+
+
+def get_declared_nomenclatures():
+    """
+    Nomenclatures déclarées dans le nomenclature.json du module du contexte (types et nomenclatures),
+    qu’elles soient ou non présentes en base.
+    """
+    module = schema_context.get()["module"]
+    return module.nomenclatures
 
 
 @cache
