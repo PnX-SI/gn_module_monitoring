@@ -1,0 +1,30 @@
+{
+
+    "display_properties": [
+      "uuid_individual",
+      "individual_name",
+      "active",
+      "id_nomenclature_sex",
+      "test_nomenclature",
+      "comment",
+      "cd_nom",
+      "id_digitiser",
+      "id_operator"
+    ],
+    "display_list": [
+      "individual_name",
+      "test_nomenclature",
+      "uuid_individual",
+      "active",
+      "nb_sites"
+    ],
+    "uuid_field_name": "uuid_individual",
+    "specific": {
+      "test_nomenclature": {
+        "type_widget": "nomenclature",
+        "attribut_label": "test_nomenclature",
+        "code_nomenclature_type": "SEXE",
+        "type_util": "nomenclature"
+      }
+  }
+}
