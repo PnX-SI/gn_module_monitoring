@@ -245,6 +245,23 @@ class HabitatStore(BaseForeignKeyStore):
         return HabitatWidget(data, **kwargs)
 
 
+class IndividualStore(BaseForeignKeyStore):
+    key = "individual"
+    model = "individual"
+    fk_target = "gn_monitoring.t_individuals.id_individual"
+
+    @classmethod
+    def get_model(cls):
+        from gn_module_monitoring.monitoring.models import TMonitoringIndividuals
+
+        return TMonitoringIndividuals
+
+    def _get_default_widget(self, data, **kwargs):
+        from gn_module_monitoring.tools.widgets import IndividualsWidget
+
+        return IndividualsWidget(data, **kwargs)
+
+
 class SitesGroupStore(BaseForeignKeyStore):
     key = "sites_group"
     model = "sites_group"

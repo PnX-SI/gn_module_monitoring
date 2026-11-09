@@ -21,6 +21,7 @@ from .relationships import (
     ModuleWidget,
     TaxonomyWidget,
     HabitatWidget,
+    IndividualsWidget,
     UserWidget,
     ObserversWidget,
     AreasWidget,

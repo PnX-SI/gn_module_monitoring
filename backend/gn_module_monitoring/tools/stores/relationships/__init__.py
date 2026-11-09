@@ -5,6 +5,7 @@ from .m2o import (
     TaxonomyListStore,
     DatasetStore,
     HabitatStore,
+    IndividualStore,
     ModuleStore,
     SitesGroupStore,
     SiteStore,

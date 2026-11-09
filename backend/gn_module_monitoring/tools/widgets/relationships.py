@@ -109,6 +109,28 @@ class HabitatWidget(BaseWidget):
         return int
 
 
+class IndividualsWidget(BaseWidget):
+    key = "individuals"
+
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        module_code = fields.Str()  # lu par pnx-individuals (moduleCode)
+        id_module = fields.Int()  # module de rattachement (config par défaut du marquage)
+        id_list = fields.Int(allow_none=True)  # lu par pnx-individuals (idList)
+        cd_nom = fields.Int(allow_none=True)  # lu par pnx-individuals (cdNom)
+        bind_all_item = fields.Boolean()  # lu par form.service (objet complet au lieu de l’id)
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import IndividualStore
+
+        # Clés acceptées par le store (module_code, id_list, cd_nom sont propres au widget)
+        return IndividualStore(
+            {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}, **kwargs
+        )
+
+    def get_api_type(self):
+        return int
+
+
 class UserWidget(BaseWidget):
     key = "user"
 
@@ -190,4 +212,4 @@ class MunicipalitiesWidget(BaseWidget):
         return list[int] if self["multiple"] else int
 
 
-# TODO: checkbox, radio, html, bool_checkbox, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time, individuals
+# TODO: checkbox, radio, html, bool_checkbox, multiselect, observers-text, media, medias, date, text, textarea, jsonb, time

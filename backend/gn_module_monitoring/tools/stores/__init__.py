@@ -22,6 +22,7 @@ from .relationships import (
     TaxonomyListStore,
     DatasetStore,
     HabitatStore,
+    IndividualStore,
     ModuleStore,
     SitesGroupStore,
     SiteStore,

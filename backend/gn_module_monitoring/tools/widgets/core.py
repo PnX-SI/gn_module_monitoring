@@ -138,6 +138,9 @@ class TextareaWidget(BaseWidget):
 class BoolCheckboxWidget(BaseWidget):
     key = "bool_checkbox"
 
+    class ConfigSchema(BaseWidget.ConfigSchema):
+        value = fields.Boolean()  # valeur par défaut, lue par form.service (toForm)
+
     def _get_default_store(self, data, **kwargs):
         from ..stores import BooleanStore
 

@@ -20,13 +20,12 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
             "comment",
             "cd_nom",
             "id_digitiser",
-            "id_operator",
         ],
         "display_list": ["individual_name", "uuid_individual", "active", "nb_sites"],
         "uuid_field_name": "uuid_individual",
-        "generic": {
+        "fields": {
             "id_individual": {
-                "widget": {"type": "text", "attribut_label": "Id individual", "hidden": True},
+                "widget": {"attribut_label": "Id individual", "hidden": True},
             },
             "nb_sites": {"widget": {"attribut_label": "Nombre de sites associés"}},
             "uuid_individual": {
@@ -69,7 +68,6 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
             "id_digitiser": {
                 "store": {"type": "user"},
                 "widget": {
-                    "type": "text",
                     "attribut_label": "Numérisateur",
                     "hidden": True,
                 },
