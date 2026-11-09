@@ -17,17 +17,12 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringMarkingEvent,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringMarkingSchemaCruved,
-    MonitoringMarkingSchema,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
 )
 
@@ -231,7 +226,7 @@ def get_markings(module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -280,9 +275,7 @@ def get_marking_by_id(scope: int, module_code: str, id: int):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = add_specific_attributes(
-        MonitoringMarkingSchemaCruved, ObjectType.MARKING, module_code
-    )
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
 
     data = schema().dump(marking)
 
@@ -305,10 +298,9 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     dict
         Serialized marking.
     """
-    config = get_config(module_code, force=True)
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.MARKING)
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
     try:
-        marking = MonitoringMarkingSchema(unknown=EXCLUDE).load(process_data)
+        marking = schema(unknown=EXCLUDE).load(post_data)
     except Exception as e:
         print(f"Error loading marking data: {e}")
         raise
@@ -316,5 +308,4 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     db.session.add(marking)
     db.session.commit()
 
-    schema = add_specific_attributes(MonitoringMarkingSchema, ObjectType.MARKING, module_code)
     return schema().dump(marking)

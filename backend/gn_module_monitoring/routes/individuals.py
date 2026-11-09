@@ -17,10 +17,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringIndividuals,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringIndividualsSchema,
-    MonitoringIndividualsSchemaCruved,
-)
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.routes.modules import get_modules
 
 from gn_module_monitoring.utils.routes import (
@@ -29,7 +26,6 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
     sort_according_to_column_type_for_site,
 )
@@ -87,7 +83,7 @@ def get_individuals(module_code=None):
         query=query, module_code=g.current_module.module_code, object_code=object_code
     )
 
-    schema = MonitoringIndividualsSchema
+    schema = get_entity_or_404(module_code, "individual").get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -131,7 +127,8 @@ def get_individual_by_id(scope: int, module_code: str, id: int):
     individual = db.get_or_404(TMonitoringIndividuals, id)
     if not individual.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read individual {individual.id_individual}")
-    data = MonitoringIndividualsSchemaCruved().dump(individual)
+    schema = get_entity_or_404(module_code, "individual").get_extended_schema()
+    data = schema().dump(individual)
 
     return data
 
@@ -258,10 +255,9 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
     dict
         Serialized individual.
     """
-    config = get_config(module_code, force=True)
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.INDIVIDUAL)
+    schema = get_entity_or_404(module_code, "individual").get_extended_schema()
 
-    individual = MonitoringIndividualsSchema(unknown=EXCLUDE).load(process_data)
+    individual = schema(unknown=EXCLUDE).load(post_data)
 
     # Association de l'individu au module courant (cor_individual_module)
     module = db.session.execute(
@@ -273,4 +269,4 @@ def create_or_update_individual(post_data: dict, module_code: str = "generic"):
     db.session.add(individual)
     db.session.commit()
 
-    return MonitoringIndividualsSchema().dump(individual)
+    return schema().dump(individual)

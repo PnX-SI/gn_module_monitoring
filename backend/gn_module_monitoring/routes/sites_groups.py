@@ -21,11 +21,8 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringSitesGroups,
     TMonitoringModules,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringSitesGroupsSchema,
-    MonitoringSitesGroupsSchemaCruved,
-    add_specific_attributes,
-)
+from gn_module_monitoring.monitoring.schemas import MonitoringCruvedSchemaMixin
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -34,7 +31,6 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate_scope,
     sort,
-    process_json_data_for_db_upsert,
 )
 
 
@@ -83,12 +79,7 @@ def get_sites_groups(module_code=None):
         specific_properties=specific_properties,
     )
 
-    if module_code:
-        schema = add_specific_attributes(
-            MonitoringSitesGroupsSchema, ObjectType.SITES_GROUP, module_code
-        )
-    else:
-        schema = MonitoringSitesGroupsSchema
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -111,9 +102,9 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsSchemaCruved()
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema(MonitoringCruvedSchemaMixin)
 
-    return schema.dump(sites_group)
+    return schema().dump(sites_group)
 
 
 @blueprint_api.route("/sites_groups/geometries", methods=["GET"])
@@ -221,11 +212,10 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized site group
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.SITES_GROUP)
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
 
-    sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+    sites_group = schema(unknown=EXCLUDE).load(post_data)
 
     db.session.add(sites_group)
     db.session.commit()
-    return MonitoringSitesGroupsSchema().dump(sites_group)
+    return schema().dump(sites_group)

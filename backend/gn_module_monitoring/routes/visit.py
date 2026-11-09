@@ -1,6 +1,5 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.config.repositories import get_config
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden
 from gn_module_monitoring.command import permissions
@@ -10,22 +9,16 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint_api
+from gn_module_monitoring.modules import get_entity_or_404
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
 from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringVisitsSchemaCruved,
-    MonitoringVisitsSchema,
-    add_specific_attributes,
-)
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
     get_objet_with_permission_boolean,
 )
@@ -95,9 +88,11 @@ def get_visits(module_code=None):
             query_allowed = TMonitoringVisits.filter_by_readable(
                 query=query_allowed, module_code=module["module_code"], object_code=OBJECT_CODE
             )
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
+
     return paginate_scope(
         query=query_allowed,
-        schema=MonitoringVisitsSchema,
+        schema=schema,
         limit=limit,
         page=page,
         object_code=OBJECT_CODE,
@@ -117,7 +112,7 @@ def get_visit_by_id(scope, module_code, id):
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = add_specific_attributes(MonitoringVisitsSchemaCruved, ObjectType.VISIT, module_code)
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
     data = schema(exclude=("module",)).dump(visit)
 
@@ -132,12 +127,10 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized visit
     """
-    config = get_config(module_code)
-    # print(config, "config", module_code, "module_code")
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.VISIT)
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
     try:
-        visit = MonitoringVisitsSchema(unknown=EXCLUDE).load(process_data)
+        visit = schema(unknown=EXCLUDE).load(post_data)
     except Exception as e:
         # TODO REMOVE DEV MODE
         print(e.__dict__)
@@ -145,5 +138,4 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
     db.session.add(visit)
     db.session.commit()
 
-    schema = add_specific_attributes(MonitoringVisitsSchema, ObjectType.VISIT, module_code)
     return schema().dump(visit)

@@ -16,6 +16,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
 from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
@@ -24,7 +25,6 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_module_id,
-    process_json_data_for_db_upsert,
 )
 
 
@@ -105,12 +105,11 @@ def create_or_update_module(post_data: dict, module_code: str):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized module
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, "module")
-    module = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data, partial=True)
+    schema = get_entity_or_404(module_code, "module").get_extended_schema()
+    module = schema(unknown=EXCLUDE).load(post_data, partial=True)
 
     db.session.add(module)
     db.session.commit()
     # Les attributs du module alimentent config["custom"] : rafraîchissement du cache
     get_config(module.module_code, force=True)
-    return MonitoringModuleSchema().dump(module)
+    return schema().dump(module)

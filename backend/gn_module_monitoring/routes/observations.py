@@ -14,17 +14,12 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
 )
 
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringObservationsSchemaCruved,
-    MonitoringObservationsSchema,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
 )
 from sqlalchemy import select
 from gn_module_monitoring.utils.routes import sort
@@ -73,7 +68,7 @@ def get_observations(module_code: str = None):
         specific_properties=specific_properties,
     )
 
-    schema = MonitoringObservationsSchema
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -105,9 +100,7 @@ def get_observation_by_id(scope, module_code, _id):
         raise Forbidden(
             f"User {g.current_user} cannot read observation {observation.id_observation}"
         )
-    schema = add_specific_attributes(
-        MonitoringObservationsSchemaCruved, ObjectType.OBSERVATION, module_code
-    )
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
 
     data = schema().dump(observation)
 
@@ -156,27 +149,23 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized observation
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.OBSERVATION)
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
 
     # Cas des individus, s'il y a un id_individual
     # Récupération du cd_nom de l'individu
-    if process_data.get("id_individual", None):
+    if post_data.get("id_individual", None):
         # Get individual cd_nom
         individual = db.session.scalar(
             select(TMonitoringIndividuals).where(
-                TMonitoringIndividuals.id_individual == process_data["id_individual"]
+                TMonitoringIndividuals.id_individual == post_data["id_individual"]
             )
         )
         if individual:
-            process_data["cd_nom"] = individual.cd_nom
+            post_data["cd_nom"] = individual.cd_nom
 
-    observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
+    observation = schema(unknown=EXCLUDE).load(post_data)
 
     db.session.add(observation)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringObservationsSchema, ObjectType.OBSERVATION, module_code
-    )
     return schema().dump(observation)

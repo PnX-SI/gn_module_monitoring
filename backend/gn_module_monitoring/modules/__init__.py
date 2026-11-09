@@ -5,6 +5,7 @@ import json
 import sqlalchemy as sa
 from flask import current_app
 from marshmallow import ValidationError
+from werkzeug.exceptions import NotFound
 
 from geonature.utils.env import db
 from pypnusershub.db.models import UserList
@@ -150,3 +151,15 @@ def get_module(module_code):
             module_code
         )
     return current_app.extensions[EXTENSION_CODE]["modules"][module_code]
+
+
+def get_entity_or_404(module_code, object_type):
+    """
+    Entité `object_type` de la configuration du module (ou générique si `module_code` est vide).
+    Renvoie une erreur 404 si l’entité ne fait pas partie de l’arbre du module.
+    """
+    module_code = module_code or "generic"
+    entities = get_module(module_code).entities
+    if object_type not in entities:
+        raise NotFound(f"L'entité '{object_type}' n'existe pas pour le module '{module_code}'.")
+    return entities[object_type]

@@ -20,17 +20,12 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringObservations,
     TMonitoringVisits,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringObservationsDetailsSchemaCruved,
-    MonitoringObservationsDetailsSchema,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
 )
 
@@ -105,9 +100,7 @@ def get_obs_details(module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
-    )
+    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
 
     return paginate_scope(
         query=query_allowed,
@@ -132,9 +125,7 @@ def get_obs_detail_by_id(scope: int, module_code: str, id: int):
         raise Forbidden(
             f"User {g.current_user} cannot read observation detail {obs_detail.id_observation_detail}"
         )
-    schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchemaCruved, ObjectType.OBSERVATION_DETAIL, module_code
-    )
+    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
 
     data = schema().dump(obs_detail)
 
@@ -149,17 +140,11 @@ def create_or_update_obs_detail(post_data: dict, module_code: str = "generic"):
     :param module_code: str, module code, default is "generic"
     :return: dict, serialized observation detail
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(
-        config, post_data, ObjectType.OBSERVATION_DETAIL
-    )
+    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
 
-    obs_detail = MonitoringObservationsDetailsSchema(unknown=EXCLUDE).load(process_data)
+    obs_detail = schema(unknown=EXCLUDE).load(post_data)
 
     db.session.add(obs_detail)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringObservationsDetailsSchema, ObjectType.OBSERVATION_DETAIL, module_code
-    )
     return schema().dump(obs_detail)
