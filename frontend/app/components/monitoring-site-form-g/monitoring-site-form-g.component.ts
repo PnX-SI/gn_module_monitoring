@@ -212,14 +212,6 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     });
   }
 
-  resetDynamicForm() {
-    super.resetDynamicForm();
-    this.typeSiteFormsDefinition = this.typeSiteFormsDefinition.map((typeSite) => ({
-      ...typeSite,
-      fields: typeSite.fields.map((formDef) => ({ ...formDef })),
-    }));
-  }
-
   ngOnDestroy() {
     this.typesSiteValueChangesSub?.unsubscribe();
     super.ngOnDestroy();
