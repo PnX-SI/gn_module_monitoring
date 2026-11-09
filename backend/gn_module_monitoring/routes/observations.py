@@ -5,7 +5,6 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint_api
 
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import get_specific_properties
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
@@ -14,7 +13,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
 )
 
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
@@ -60,7 +59,9 @@ def get_observations(module_code: str = None):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservations, get_config(module_code), ObjectType.OBSERVATION
+        TMonitoringObservations,
+        get_module(module_code or "generic").dump_config(),
+        ObjectType.OBSERVATION,
     )
     query_allowed = TMonitoringObservations.filter_by_specific(
         query=query_allowed,

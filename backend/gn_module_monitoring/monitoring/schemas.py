@@ -46,7 +46,7 @@ def add_specific_attributes(schema, object_type, module_code):
     à la classe 'schema' passée en argument."""
 
     # FIXME: déplacer ces imports hors de la fonction mais il faut résoudre un pb de circular import
-    from gn_module_monitoring.config.repositories import get_config
+    from gn_module_monitoring.modules import get_module
     from gn_module_monitoring.monitoring.definitions import (
         MonitoringModels_dict,
         MonitoringObjects_dict,
@@ -56,7 +56,7 @@ def add_specific_attributes(schema, object_type, module_code):
 
     model_class = MonitoringModels_dict[object_type]
 
-    config = get_config(module_code)
+    config = get_module(module_code).dump_config()
     specific_properties = get_specific_properties(model_class, config, object_type).keys()
 
     def create_getter(key):

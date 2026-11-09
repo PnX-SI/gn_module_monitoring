@@ -126,7 +126,7 @@ def get_sites(module_code=None):
             TMonitoringSites.modules.any(TMonitoringModules.module_code == module_code)
         )
 
-    config = get_config(g.current_module.module_code)
+    config = get_module(module_code or "generic").dump_config()
     specific_properties = get_specific_properties(TMonitoringSites, config, ObjectType.SITE)
 
     query = filter_params(TMonitoringSites, query=query, params=params)
@@ -224,7 +224,9 @@ def _get_site_geometries(module_code=None):
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
     specific_properties = get_specific_properties(
-        TMonitoringSites, get_config(module_code), ObjectType.SITE
+        TMonitoringSites,
+        get_module(module_code).dump_config(),
+        ObjectType.SITE,
     )
 
     query_allowed = TMonitoringSites.filter_by_specific(

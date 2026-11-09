@@ -11,8 +11,8 @@ from geonature.core.gn_commons.models import TModules
 from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
+from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.modules.repositories import get_simple_module
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
     get_monitoring_module,
     is_module_configured,
@@ -113,13 +113,7 @@ def cmd_install_monitoring_module(module_code):
         return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
-    from gn_module_monitoring.config.repositories import get_config
-
-    config = get_config(module_code, force=True)
-
-    if not config:
-        click.secho(f"config directory for module {module_code} does not exist", fg="red")
-        return None
+    config = get_module(module_code).dump_config()
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
@@ -199,7 +193,7 @@ def cmd_add_update_import_on_protocole(module_code):
             f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !"
         )
 
-    config = get_config(module_code, force=True)
+    config = get_module(module_code).dump_config()
     # Vérification de la conformité des fichier json
     success, errors = validate_json_file_protocol(module_code)
     if not success:

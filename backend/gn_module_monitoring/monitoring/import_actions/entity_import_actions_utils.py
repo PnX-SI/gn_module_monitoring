@@ -97,10 +97,10 @@ class EntityImportActionsUtils:
 
     @staticmethod
     def check_cd_nom_on_taxonomy_field(imprt: TImports, entity_code: str):
-        from gn_module_monitoring.config.repositories import get_config
+        from gn_module_monitoring.modules import get_module
 
         entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
-        config = get_config(imprt.destination.code)
+        config = get_module(imprt.destination.code).dump_config()
 
         for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
             if field.type_field == "taxonomy" or (

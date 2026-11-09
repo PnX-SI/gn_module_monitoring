@@ -95,6 +95,7 @@ class MonitoringModule(UserDict):
             self.nomenclatures = load_module_nomenclatures(module_code)
             if module_code == "generic":
                 self.module = TMonitoringModules(module_code="generic", b_synthese=False)
+                self["configured"] = True  # overwise the frontend refuse to let use edit sites
             else:
                 self.module = db.session.execute(
                     sa.select(TMonitoringModules).where(
@@ -104,7 +105,7 @@ class MonitoringModule(UserDict):
                 if self.module is None:
                     # Module non installé : instance transitoire, non ajoutée à la session
                     self.module = TMonitoringModules(module_code=module_code)
-            self["configured"] = is_module_configured(self.module)
+                self["configured"] = is_module_configured(self.module)
             self.substitutions = get_substitutions(self.module)
             self.entities = {}
             for entity in self.entities_list:

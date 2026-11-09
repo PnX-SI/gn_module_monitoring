@@ -91,9 +91,9 @@ class MonitoringImportActions(ImportActions):
     # "api": "users/menu/2",
     @staticmethod
     def process_fields(destination, entities):
-        from gn_module_monitoring.config.repositories import get_config
+        from gn_module_monitoring.modules import get_module
 
-        config = get_config(destination.code)
+        config = get_module(destination.code).dump_config()
         customs = config["custom"]
         for entity in entities:
             for theme in entity["themes"]:
@@ -116,9 +116,9 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def check_transient_data(task, logger, imprt: TImports) -> None:
-        from gn_module_monitoring.config.repositories import get_config
+        from gn_module_monitoring.modules import get_module
 
-        config = get_config(imprt.destination.code)
+        config = get_module(imprt.destination.code).dump_config()
 
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE

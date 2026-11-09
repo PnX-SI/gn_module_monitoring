@@ -15,14 +15,13 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, blueprint_api
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
     TMonitoringSitesGroups,
     TMonitoringModules,
 )
 from gn_module_monitoring.monitoring.schemas import MonitoringCruvedSchemaMixin
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -71,7 +70,9 @@ def get_sites_groups(module_code=None):
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
     specific_properties = get_specific_properties(
-        TMonitoringSitesGroups, get_config(module_code), ObjectType.SITES_GROUP
+        TMonitoringSitesGroups,
+        get_module(module_code or "generic").dump_config(),
+        ObjectType.SITES_GROUP,
     )
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,

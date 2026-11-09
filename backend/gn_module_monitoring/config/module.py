@@ -96,7 +96,9 @@ class ModuleConfigSchema(Schema):
             }
         },
     )
-    synthese = fields.String(load_default="__MODULE.B_SYNTHESE")
+    # Active la synchronisation de la synthèse (`process_synthese`, route `synthese/<module_code>`).
+    # Copie de `TMonitoringModules.b_synthese` (rétro-compatibilité avec la config v2).
+    synthese = fields.Boolean(attribute="module.b_synthese", dump_only=True)
     synthese_object = fields.String(validate=validate.OneOf(["observation", "visit"]))
     display_field_names = fields.Dict()
     data = fields.Nested(DataSchema)

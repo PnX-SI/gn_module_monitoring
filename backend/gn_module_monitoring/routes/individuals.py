@@ -12,12 +12,11 @@ from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint_api
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringIndividuals,
 )
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.routes.modules import get_modules
 
 from gn_module_monitoring.utils.routes import (
@@ -71,7 +70,7 @@ def get_individuals(module_code=None):
             TMonitoringIndividuals.modules.any(TMonitoringModules.module_code == module_code)
         )
 
-    config = get_config(g.current_module.module_code)
+    config = get_module(g.current_module.module_code).dump_config()
     specific_properties = get_specific_properties(
         TMonitoringIndividuals, config, ObjectType.INDIVIDUAL
     ).keys()

@@ -1,6 +1,5 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import get_specific_properties
 from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
@@ -20,7 +19,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringObservations,
     TMonitoringVisits,
 )
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
@@ -94,7 +93,9 @@ def get_obs_details(module_code: str):
         module_code=module_code or g.current_module.module_code,
     )
     specific_properties = get_specific_properties(
-        TMonitoringObservationDetails, get_config(module_code), ObjectType.OBSERVATION_DETAIL
+        TMonitoringObservationDetails,
+        get_module(module_code).dump_config(),
+        ObjectType.OBSERVATION_DETAIL,
     )
     query_allowed = TMonitoringObservationDetails.filter_by_specific(
         query=query_allowed,

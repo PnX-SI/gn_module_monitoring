@@ -14,8 +14,8 @@ from geonature.core.gn_commons.models import TModules
 
 from gn_module_monitoring.command.imports.constant import ACTION_LABEL, PERMISSION_LABEL
 from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.utils.utils import extract_keys
+from gn_module_monitoring.modules import get_module as get_module_config
 from gn_module_monitoring.modules.repositories import get_module
 
 
@@ -26,10 +26,7 @@ def process_available_permissions(module_code, session):
         print("le module n'existe pas")
         return
 
-    config = get_config(module_code, force=True)
-    if not config:
-        print(f"Il y a un problème de configuration pour le module {module_code}")
-        return
+    config = get_module_config(module_code).dump_config()
 
     tree = config.get("tree", [])
 
