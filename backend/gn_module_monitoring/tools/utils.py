@@ -2,7 +2,8 @@ from contextvars import ContextVar
 from contextlib import contextmanager
 
 import marshmallow as ma
-from marshmallow import ValidationError, fields
+from cel_expr_python.cel import NewEnv, Type
+from marshmallow import ValidationError, fields, post_load
 
 JSON_TYPES = [
     type(None),
@@ -11,6 +12,62 @@ JSON_TYPES = [
     bool,
     str,
 ]
+
+CEL_ENV = NewEnv()
+
+
+def check_cel_type(env, expression):
+    """
+    Vérifie la syntaxe et le typage d’une expression dans un environnement typé (variables
+    déclarées), ainsi qu’un retour booléen (ou un type dynamique).
+    """
+    try:
+        compiled = env.compile(expression)
+    except RuntimeError as e:
+        raise ValidationError(f"Expression CEL invalide : {e}")
+    return_type = compiled.return_type()
+    if return_type not in (Type.BOOL, Type.DYN):
+        raise ValidationError(
+            f"Expression CEL non booléenne : elle renvoie '{return_type.name()}'"
+        )
+
+
+def normalize_cel_conditions(value):
+    return CELValidationsField()._deserialize(value, None, None)
+
+
+class CELValidationSchema(ma.Schema):
+    class Meta:
+        unknown = ma.RAISE
+
+    condition = fields.Str(required=True)
+    message = fields.Str()
+
+    @post_load
+    def set_default_message(self, data, **kwargs):
+        if "message" not in data:
+            data["message"] = f"The following condition is not met: {data["condition"]}"
+        return data
+
+
+class CELValidationsField(fields.Field):
+    """
+    Ce champs attends une liste d’object {"condition": str, "message": str}  avec "condition"
+    une condition CEL et "message" un message d’erreur si la condition n’est pas remplie.
+
+    Si ne reçoit pas une liste, convertie en list.
+    Si les items ne sont pas des objets mais des strings, on considère qu’il s’agit de
+    la condition et on utilise un messgae par défaut (voir CELValidationSchema).
+    """
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if value is None:
+            return None
+        items = value if isinstance(value, list) else [value]
+        return [
+            CELValidationSchema().load({"condition": item} if isinstance(item, str) else item)
+            for item in items
+        ]
 
 
 class ContextManagedContextVar:

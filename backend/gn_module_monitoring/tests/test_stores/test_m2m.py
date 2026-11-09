@@ -9,6 +9,7 @@ from gn_module_monitoring.tools.stores.relationships.m2m import (
     AreasStore,
     NomenclaturesStore,
     TypesSiteStore,
+    UsersStore,
 )
 from gn_module_monitoring.tools.stores.relationships.utils import get_nomenclature_type
 from gn_module_monitoring.tools.utils import schema_context
@@ -26,8 +27,8 @@ def types_site_relationship():
 
 @pytest.mark.usefixtures("temporary_transaction")
 class TestTypesSiteStore:
-    def test_wire_type_is_list_of_int(self):
-        assert make_store(TypesSiteStore, {}, field_name="types_site").get_wire_type() == list[int]
+    def test_api_type_is_list_of_int(self):
+        assert make_store(TypesSiteStore, {}, field_name="types_site").get_api_type() == list[int]
 
     def test_is_suitable_for_types_site_relationship(self, types_site_relationship):
         assert TypesSiteStore.is_suitable_for_relationship(types_site_relationship)
@@ -73,6 +74,30 @@ class TestNomenclaturesStore:
         with pytest.raises(ValidationError):
             make_store(NomenclaturesStore, {"nomenclature_type": "UNKNOWN_TYPE_XYZ"})
 
-    def test_wire_type_is_list_of_int(self):
+    def test_api_type_is_list_of_int(self):
         store = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"})
-        assert store.get_wire_type() == list[int]
+        assert store.get_api_type() == list[int]
+
+
+@pytest.mark.usefixtures("temporary_transaction")
+class TestLoadInstances:
+    def test_python_type_is_list_of_model(self):
+        store = make_store(TypesSiteStore, {})
+        assert store.get_python_type() == list[TypesSiteStore.get_model()]
+
+    def test_field_loads_instances(self, users):
+        id_role = users["user"].id_role
+        store = make_store(UsersStore, {})
+        (instance,) = store.get_field().deserialize([id_role])
+        assert instance.id_role == id_role
+
+    def test_field_rejects_unknown_id(self):
+        store = make_store(UsersStore, {})
+        with pytest.raises(ValidationError):
+            store.get_field().deserialize([-1])
+
+    def test_field_serializes_instances_to_ids(self, users):
+        id_role = users["user"].id_role
+        store = make_store(UsersStore, {})
+        instances = store.get_field().deserialize([id_role])
+        assert store.get_field()._serialize(instances, None, None) == [id_role]

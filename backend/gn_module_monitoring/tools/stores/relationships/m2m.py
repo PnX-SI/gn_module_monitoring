@@ -4,6 +4,7 @@ from marshmallow import fields, validate, ValidationError
 from flask import current_app
 from sqlalchemy.orm import RelationshipProperty
 
+from geonature.utils.env import db
 
 from gn_module_monitoring import MODULE_CODE
 
@@ -17,18 +18,39 @@ class BaseManyToManyStore(BaseRelationshipStore):
     """
     Store pour une relation many-to-many : le champ est une relationship SQLAlchemy
     passant par une table d'association (paramètre `secondary`), et non une colonne.
+
+    Pas de to_storage / from_storage : la relation est native, elle n’est pas stockée dans `data`.
+    Asymétrie entre les deux sens :
+    - chargement (API → DB) : `Field._deserialize` renvoie une liste d’instances, pour la validation ;
+    - dump (DB → API) : la valeur lue est la relation elle-même, donc une liste d’instances,
+      et `Field._serialize` en extrait les clés primaires.
     """
 
-    class ConfigSchema(BaseRelationshipStore.ConfigSchema):
-        pass
+    class Field(BaseRelationshipStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            """
+            La valeur reçue de l’API est une liste de clés primaires de la cible.
+            Vérifie l’existence de chaque ligne, puis renvoie les objets.
+            """
+            if value is None:
+                return None
+            store = self.store
+            model = store.get_model()
+            pk = store.get_model_pk()
+            ids = fields.List(fields.Integer(strict=True)).deserialize(value)
+            instances = []
+            for id in ids:
+                instance = db.session.get(model, id)
+                if instance is None:
+                    raise ValidationError(
+                        f"Aucune instance de {model.__name__} pour {pk.name} = '{id}'."
+                    )
+                instances.append(instance)
+            return instances
 
     @classmethod
     def is_suitable_for_relationship(cls, relationship):
-        return (
-            relationship is not None
-            and relationship.secondary is not None
-            and relationship.mapper.class_ is cls.get_model()
-        )
+        return relationship.secondary is not None and relationship.mapper.class_ is cls.get_model()
 
     def __init__(self, data=None, **kwargs):
         super().__init__(data, **kwargs)
@@ -36,8 +58,7 @@ class BaseManyToManyStore(BaseRelationshipStore):
             # Cas attendu : une relationship passant par une table d'association, vers self.get_model()
             if not (
                 isinstance(self.native_attr, RelationshipProperty)
-                and self.native_attr.secondary is not None
-                and self.native_attr.mapper.class_ is self.get_model()
+                and self.is_suitable_for_relationship(self.native_attr)
             ):
                 error_message = (
                     f"Le store {self.key} n'est pas adapté à l'attribut {self.field_name} : "
@@ -48,8 +69,11 @@ class BaseManyToManyStore(BaseRelationshipStore):
                 else:
                     log.warning(f"Validation warning: {error_message}")
 
-    class Field(BaseRelationshipStore.Field):
-        wire_type = list[int]
+    def get_api_type(self) -> type:
+        return list[int]
+
+    def get_python_type(self) -> type:
+        return list[self.get_model()]
 
 
 class TypesSiteStore(BaseManyToManyStore):
@@ -118,7 +142,7 @@ class NomenclaturesStore(BaseManyToManyStore):
 
         return TNomenclatures
 
-    class ConfigSchema(NomenclatureStore.ConfigSchema):
+    class ConfigSchema(NomenclatureStore.ConfigSchema, BaseManyToManyStore.ConfigSchema):
         pass
 
     def _get_default_widget(self, data, **kwargs):

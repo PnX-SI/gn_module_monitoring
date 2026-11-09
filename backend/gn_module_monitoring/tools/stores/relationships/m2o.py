@@ -13,6 +13,7 @@ from marshmallow import (
     validates,
     validates_schema,
     ValidationError,
+    post_dump,
     post_load,
     pre_load,
 )
@@ -24,7 +25,6 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.tools.utils import schema_context
 
-from ..base import BaseStore
 from .core import BaseRelationshipStore
 from .utils import get_nomenclature, get_nomenclature_type
 
@@ -34,10 +34,34 @@ log = logging.getLogger(__name__)
 class BaseForeignKeyStore(BaseRelationshipStore):
     """
     Store pour une relation many-to-one : le champ est une foreign key.
+
+    Asymétrie volontaire entre les deux sens :
+    - chargement (API → DB) : `Field._deserialize` renvoie une instance, et `to_storage` la reçoit,
+      car la validation (CEL, contrôles propres au store) en a besoin ;
+    - dump (DB → API) : `from_storage` renvoie une clé primaire, et `Field._serialize` la reçoit,
+      sans charger l’instance.
     """
 
-    class ConfigSchema(BaseRelationshipStore.ConfigSchema):
-        pass
+    class Field(BaseRelationshipStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            """
+            La valeur reçue de l'API est la clé primaire de la cible.
+            Vérifie son type et l'existence de la ligne, puis retourne l’instance.
+            """
+            if value is None:
+                return None
+            store = self.store
+            pk = store.get_model_pk()
+            if not isinstance(value, pk.type.python_type):
+                raise ValidationError(
+                    f"Valeur '{value}' invalide : {pk.type.python_type.__name__} attendu."
+                )
+            instance = db.session.get(store.get_model(), value)
+            if instance is None:
+                raise ValidationError(
+                    f"Aucune instance de {store.get_model().__name__} pour {pk.name} = '{value}'."
+                )
+            return instance
 
     @classmethod
     def is_suitable_for_column(cls, column):
@@ -73,57 +97,54 @@ class BaseForeignKeyStore(BaseRelationshipStore):
                 else:
                     log.warning(f"Validation warning: {error_message}")
 
-    def get_instance_by_col(self, value):
-        """
-        Lorsque storage_col est renseigné, cette fonction va récupérer l’instance du modèle.
-        """
-        try:
-            return db.session.execute(
-                sa.select(self.get_model()).where(
-                    self.get_model_attrs()[self.storage_col] == value
-                )
-            ).scalar_one()
-        except NoResultFound:
-            raise ValueError(f"Unexpected value '{value}' : aucune instance trouvée.")
-        except MultipleResultsFound:
-            raise ValueError(f"Unexpected value '{value}' : plusieurs instances trouvées.")
+    def to_storage(self, value):
+        if value is None:
+            return None
+        if self.get("storage_cols"):
+            # we store a dict with given columns
+            return {col: getattr(value, col) for col in self["storage_cols"]}
+        elif self.get("storage_col"):
+            # we store this column
+            return getattr(value, self["storage_col"])
+        else:
+            # we store the pk
+            return getattr(value, self.get_model_pk().name)
 
-    class Field(BaseStore.Field):
-        def _deserialize(self, value, attr, data, **kwargs):
-            """
-            La valeur reçue de l'API est la clé primaire de la cible.
-            Vérifie son type et l'existence de la ligne, puis retourne la valeur à stocker.
-            """
-            if value is None:
-                return None
-            store = self.store
-            pk = store.get_model_pk()
-            if not isinstance(value, pk.type.python_type):
-                raise ValidationError(
-                    f"Valeur '{value}' invalide : {pk.type.python_type.__name__} attendu."
+    def from_storage(self, value):
+        # Renvoie la clé primaire sans charger l’instance
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            # La donnée stockée est un dict, qu’on peut supposer contenir la clé primaire
+            # (forcé par validate_storage_cols)
+            return value[self.get_model_pk().name]
+        elif storage_col := self.get("storage_col"):
+            # La donnée stockée est la colonne 'storage_col'
+            # On vérifie tous de même le type dès fois que la configuration soit incorrecte.
+            python_type = self.get_model_mapper().attrs[storage_col].columns[0].type.python_type
+            if not isinstance(value, python_type):
+                raise ValueError(
+                    f"Unexpected value '{value}' : mauvais type, attendu : '{python_type}'"
                 )
-            if db.session.get(store.get_model(), value) is None:
-                raise ValidationError(
-                    f"Aucune instance de {store.get_model().__name__} pour {pk.name} = '{value}'."
-                )
+            pk = self.get_model_pk()
+            try:
+                return db.session.execute(
+                    sa.select(pk).where(getattr(self.get_model(), storage_col) == value)
+                ).scalar_one()
+            except NoResultFound:
+                raise ValueError(f"Unexpected value '{value}' : aucune instance trouvée.")
+            except MultipleResultsFound:
+                raise ValueError(f"Unexpected value '{value}' : plusieurs instances trouvées.")
+        else:
+            # Donnée stockée sous forme de clé primaire en théorie
             return value
 
-        def _serialize(self, value, attr, obj, **kwargs):
-            store = self.store
-            if value is None:
-                return None
-            elif store.get("storage_cols") and isinstance(value, dict):
-                return value[store.get_model_pk().name]
-            elif store.get("storage_col") and isinstance(
-                value, store.get_model_attrs()[store.get("storage_col")].type.python_type
-            ):
-                return getattr(store.get_instance_by_col(value), store.get_model_pk().name)
-            elif (pk := store.get_model_pk()) is not None and isinstance(
-                value, pk.type.python_type
-            ):
-                return value  # we assume this is the pk!
-            else:
-                raise ValueError(f"Unexpected value '{value}'")
+    def get_api_type(self) -> type:
+        # Clé primaire de la cible : un identifiant entier
+        return int
+
+    def get_python_type(self) -> type:
+        return self.get_model()
 
 
 class UserStore(BaseForeignKeyStore):
@@ -136,18 +157,10 @@ class UserStore(BaseForeignKeyStore):
 
         return User
 
-    class ConfigSchema(BaseForeignKeyStore.ConfigSchema):
-        multiple = fields.Bool(load_default=False)
-
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import UserWidget
 
         return UserWidget(data, **kwargs)
-
-    class Field(BaseForeignKeyStore.Field):
-        @property
-        def wire_type(self):
-            return list[int] if self.store["multiple"] else int
 
 
 class ObserverListStore(BaseForeignKeyStore):
@@ -166,9 +179,6 @@ class ObserverListStore(BaseForeignKeyStore):
         # TODO: instancier DatalistWidget avec les bon paramètres
         raise NotImplementedError("Missing default widget for adapter 'observer_list'")
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = list[int]
-
 
 class TaxonomyStore(BaseForeignKeyStore):
     key = "taxonomy"
@@ -184,9 +194,6 @@ class TaxonomyStore(BaseForeignKeyStore):
         from gn_module_monitoring.tools.widgets import TaxonomyWidget
 
         return TaxonomyWidget(data, **kwargs)
-
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
 
 
 class TaxonomyListStore(BaseForeignKeyStore):
@@ -213,9 +220,6 @@ class TaxonomyListStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
-
 
 class DatasetStore(BaseForeignKeyStore):
     key = "dataset"
@@ -232,9 +236,6 @@ class DatasetStore(BaseForeignKeyStore):
 
         return DatasetWidget(data, **kwargs)
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
-
 
 class HabitatStore(BaseForeignKeyStore):
     key = "habitat"
@@ -250,9 +251,6 @@ class HabitatStore(BaseForeignKeyStore):
         from gn_module_monitoring.tools.widgets import HabitatWidget
 
         return HabitatWidget(data, **kwargs)
-
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
 
 
 class SitesGroupStore(BaseForeignKeyStore):
@@ -279,9 +277,6 @@ class SitesGroupStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
-
 
 class SiteStore(BaseForeignKeyStore):
     key = "site"
@@ -307,9 +302,6 @@ class SiteStore(BaseForeignKeyStore):
             **kwargs,
         )
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
-
 
 class ModuleStore(BaseForeignKeyStore):
     key = "module"
@@ -327,9 +319,6 @@ class ModuleStore(BaseForeignKeyStore):
         return ModuleWidget(
             {"attribut_label": "Modules", **(data or {}), "multiple": False}, **kwargs
         )
-
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = list[int]
 
 
 class NomenclatureStore(BaseForeignKeyStore):
@@ -432,29 +421,17 @@ class NomenclatureStore(BaseForeignKeyStore):
             data["nomenclature_type"] = get_nomenclature_type(data["nomenclature_type"])
             return data
 
+        @post_dump(pass_original=True)
+        def dump_code_nomenclature_type(self, data, original, **kwargs):
+            # Le frontend attend le mnémonique du type (et non son libellé) dans `code_nomenclature_type`
+            data["code_nomenclature_type"] = original["nomenclature_type"].mnemonique
+            return data
+
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
 
         return NomenclatureWidget(data, **kwargs)
 
-    class Field(BaseForeignKeyStore.Field):
-        wire_type = int
-
-        def _serialize(self, value, attr, obj, **kwargs):
-            store = self.store
-            try:
-                return super()._serialize(value, attr, obj, **kwargs)
-            except ValueError:
-                if store.storage_col and isinstance(
-                    value, store.get_model_attrs()[store.storage_col].type.python_type
-                ):
-                    nomenclature = get_nomenclature(
-                        store["nomenclature_type"], **{store.storage_col: value}
-                    )
-                    if nomenclature is not None:
-                        return nomenclature
-                # Pas de solution trouvé
-                raise
 
     def check_stored_value(self, entity, row_id, field_name, value, fix):
         # TODO: cette fonction s’attend uniquement à trouver un id_nomenclature

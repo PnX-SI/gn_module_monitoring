@@ -1,5 +1,6 @@
+import datetime
 import logging
-from typing import ClassVar
+import uuid
 
 import sqlalchemy as sa
 from flask import current_app
@@ -18,16 +19,12 @@ class BaseTypeStore(BaseStore):
     Store pour une colonne simple dont le type SQL correspond à `sql_type`.
     """
 
-    class Field(BaseStore.Field):
-        # Décodage de la valeur envoyée par l’API, pour les types non JSON (date, uuid…)
-        wire_field: ClassVar[fields.Field]
+    # Le stockage JSON utilise la représentation de l’API (date et uuid sont stockés en chaîne)
+    def to_storage(self, value):
+        return None if value is None else self.get_field()._serialize(value, None, None)
 
-        def _deserialize(self, value, attr, data, **kwargs):
-            if self.store.native_attr is not None:
-                return self.wire_field.deserialize(value)
-            # Champ JSON : la validation seule suffit, la valeur envoyée est conservée
-            self.wire_field.deserialize(value)
-            return value
+    def from_storage(self, value):
+        return None if value is None else self.get_field().deserialize(value)
 
     @classmethod
     def is_suitable_for_column(cls, column):
@@ -61,10 +58,14 @@ class StringStore(BaseTypeStore):
     key = "string"
     sql_type = sa.types.String
 
-    class Field(BaseTypeStore.Field):
-        wire_type = str
+    def get_field(self) -> fields.Field:
+        return fields.String(**self._get_field_kwargs())
 
-        wire_field = fields.String()
+    def get_api_type(self) -> type:
+        return str
+
+    def get_python_type(self) -> type:
+        return str
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TextWidget
@@ -76,10 +77,14 @@ class BooleanStore(BaseTypeStore):
     key = "bool"
     sql_type = sa.types.Boolean
 
-    class Field(BaseTypeStore.Field):
-        wire_type = bool
+    def get_field(self) -> fields.Field:
+        return fields.Boolean(**self._get_field_kwargs())
 
-        wire_field = fields.Boolean()
+    def get_api_type(self) -> type:
+        return bool
+
+    def get_python_type(self) -> type:
+        return bool
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import BoolCheckboxWidget
@@ -91,10 +96,14 @@ class IntegerStore(BaseTypeStore):
     key = "integer"
     sql_type = sa.types.Integer
 
-    class Field(BaseTypeStore.Field):
-        wire_type = int
+    def get_field(self) -> fields.Field:
+        return fields.Integer(strict=True, **self._get_field_kwargs())
 
-        wire_field = fields.Integer(strict=True)
+    def get_api_type(self) -> type:
+        return int
+
+    def get_python_type(self) -> type:
+        return int
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NumberWidget
@@ -106,10 +115,14 @@ class FloatStore(BaseTypeStore):
     key = "float"
     sql_type = sa.types.Float
 
-    class Field(BaseTypeStore.Field):
-        wire_type = float
+    def get_field(self) -> fields.Field:
+        return fields.Float(**self._get_field_kwargs())
 
-        wire_field = fields.Float()
+    def get_api_type(self) -> type:
+        return float
+
+    def get_python_type(self) -> type:
+        return float
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NumberWidget
@@ -121,10 +134,14 @@ class DateStore(BaseTypeStore):
     key = "date"
     sql_type = sa.types.Date
 
-    class Field(BaseTypeStore.Field):
-        wire_type = str
+    def get_field(self) -> fields.Field:
+        return fields.Date(**self._get_field_kwargs())
 
-        wire_field = fields.Date()
+    def get_api_type(self) -> type:
+        return str
+
+    def get_python_type(self) -> type:
+        return datetime.date
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DateWidget
@@ -136,10 +153,14 @@ class DateTimeStore(BaseTypeStore):
     key = "datetime"
     sql_type = sa.types.DateTime
 
-    class Field(BaseTypeStore.Field):
-        wire_type = str
+    def get_field(self) -> fields.Field:
+        return fields.DateTime(**self._get_field_kwargs())
 
-        wire_field = fields.DateTime()
+    def get_api_type(self) -> type:
+        return str
+
+    def get_python_type(self) -> type:
+        return datetime.datetime
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TimeWidget
@@ -151,10 +172,14 @@ class UUIDStore(BaseTypeStore):
     key = "uuid"
     sql_type = sa.types.Uuid
 
-    class Field(BaseTypeStore.Field):
-        wire_type = str
+    def get_field(self) -> fields.Field:
+        return fields.UUID(**self._get_field_kwargs())
 
-        wire_field = fields.UUID()
+    def get_api_type(self) -> type:
+        return str
+
+    def get_python_type(self) -> type:
+        return uuid.UUID
 
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import TextWidget

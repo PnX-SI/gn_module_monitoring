@@ -7,7 +7,9 @@ from pypnnomenclature.models import TNomenclatures
 from geonature.utils.env import db
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.tools.stores.relationships.m2o import (
+    ModuleStore,
     NomenclatureStore,
+    ObserverListStore,
     SiteStore,
     UserStore,
 )
@@ -25,45 +27,56 @@ def make_store(store_cls, config, field_name="my_field"):
 
 @pytest.mark.usefixtures("temporary_transaction")
 class TestUserStore:
-    def test_single_user_wire_type(self):
-        assert make_store(UserStore, {}).get_wire_type() is int
+    def test_single_user_api_type(self):
+        assert make_store(UserStore, {}).get_api_type() is int
 
-    def test_multiple_users_wire_type(self):
-        assert make_store(UserStore, {"multiple": True}).get_wire_type() == list[int]
+    def test_multiple_option_is_not_supported(self):
+        with pytest.raises(ValidationError):
+            make_store(UserStore, {"multiple": True})
 
     def test_accepts_existing_user_id(self, users):
-        field = make_store(UserStore, {}).to_field()
+        field = make_store(UserStore, {}).get_field()
         id_role = users["user"].id_role
-        assert field.deserialize(id_role) == id_role
+        assert field.deserialize(id_role).id_role == id_role
 
     def test_rejects_unknown_user_id(self):
-        field = make_store(UserStore, {}).to_field()
+        field = make_store(UserStore, {}).get_field()
         unknown = db.session.scalar(sa.select(sa.func.max(User.id_role))) + 1000
         with pytest.raises(ValidationError):
             field.deserialize(unknown)
 
     def test_rejects_non_integer(self):
-        field = make_store(UserStore, {}).to_field()
+        field = make_store(UserStore, {}).get_field()
         with pytest.raises(ValidationError):
             field.deserialize("Bob")
 
 
 @pytest.mark.usefixtures("temporary_transaction")
+class TestModuleStore:
+    def test_api_type_is_int(self):
+        assert make_store(ModuleStore, {}).get_api_type() is int
+
+
+class TestObserverListStore:
+    def test_api_type_is_int(self):
+        assert make_store(ObserverListStore, {}).get_api_type() is int
+
+
 class TestSiteStore:
-    def test_wire_type_is_int(self):
-        assert make_store(SiteStore, {}).get_wire_type() is int
+    def test_api_type_is_int(self):
+        assert make_store(SiteStore, {}).get_api_type() is int
 
     def test_rejects_unknown_site_id(self):
-        field = make_store(SiteStore, {}).to_field()
+        field = make_store(SiteStore, {}).get_field()
         with pytest.raises(ValidationError):
             field.deserialize(-1)
 
     def test_none_is_accepted_when_optional(self):
-        field = make_store(SiteStore, {}).to_field()
+        field = make_store(SiteStore, {}).get_field()
         assert field.deserialize(None) is None
 
-    def test_serialize_pk_returns_value(self):
-        field = make_store(SiteStore, {}).to_field()
+    def test_serialize_pk_returns_pk(self):
+        field = make_store(SiteStore, {}).get_field()
         assert field._serialize(42, "site", None) == 42
 
 
@@ -118,21 +131,34 @@ class TestNomenclatureStore:
                 {"nomenclature_type": "TEST_METEO", "storage_cols": ["cd_nomenclature"]},
             )
 
-    def test_wire_type_is_int(self):
+    def test_api_type_is_int(self):
         store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
-        assert store.get_wire_type() is int
+        assert store.get_api_type() is int
+
+    def test_dump_config_exposes_type_mnemonique(self):
+        store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
+        assert store.dump_config()["code_nomenclature_type"] == "TEST_METEO"
 
     def test_accepts_existing_nomenclature_id(self, meteo_nomenclature):
-        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).to_field()
-        assert field.deserialize(meteo_nomenclature.id_nomenclature) == (
-            meteo_nomenclature.id_nomenclature
-        )
+        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).get_field()
+        loaded = field.deserialize(meteo_nomenclature.id_nomenclature)
+        assert loaded.id_nomenclature == meteo_nomenclature.id_nomenclature
 
-    def test_serialize_pk_returns_value(self):
-        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).to_field()
+    def test_serialize_pk_returns_pk(self):
+        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).get_field()
         assert field._serialize(7, "meteo", None) == 7
 
-    def test_serialize_storage_cols_dict_returns_pk(self):
-        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).to_field()
-        value = {"id_nomenclature": 7, "cd_nomenclature": "B", "label_default": "Beau"}
-        assert field._serialize(value, "meteo", None) == 7
+    def test_storage_cols_dict_is_read_back_as_pk(self, meteo_nomenclature):
+        store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
+        stored = store.to_storage(meteo_nomenclature)
+        assert stored["id_nomenclature"] == meteo_nomenclature.id_nomenclature
+        assert store.from_storage(stored) == meteo_nomenclature.id_nomenclature
+
+    def test_storage_col_is_read_back_as_pk(self, meteo_nomenclature):
+        store = make_store(
+            NomenclatureStore,
+            {"nomenclature_type": "TEST_METEO", "storage_col": "cd_nomenclature"},
+        )
+        stored = store.to_storage(meteo_nomenclature)
+        assert stored == meteo_nomenclature.cd_nomenclature
+        assert store.from_storage(stored) == meteo_nomenclature.id_nomenclature

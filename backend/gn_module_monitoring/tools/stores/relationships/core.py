@@ -54,11 +54,40 @@ class BaseRelationshipStore(BaseStore):
                 # L’intérêt d’utiliser les deux est de pouvoir sauvegarder plusieurs propriétés,
                 # mais si les données contiennent encore une colonne simple, on se base sur
                 # storage_col pour savoir de quoi il s’agit.
-                log.warnings(
+                log.warning(
                     f"{self.entity} - {self.field_name} - "
                     "You have set 'storage_col' and 'storage_cols'. "
                     "You should take a time to fix your data and remove 'storage_col'."
                 )
+
+    class Field(fields.Field):
+        """
+        Champ marshmallow d’une relation : la valeur échangée avec l’API est une clé primaire
+        (ou une liste de clés primaires).
+        """
+
+        def __init__(self, store, **kwargs):
+            super().__init__(**store._get_field_kwargs(), **kwargs)
+            self.store = store
+
+        def _deserialize(self, value, attr, data, **kwargs):
+            """
+            Reçoit la (m2o) ou les (m2m) PK par l’API, et renvoi la ou les instance(s) associée(s).
+            Le chargement des instances est nécessaire à d’éventuels contrôles, au contexte CEL,
+            et éventuellement à to_storage lorsque l’on souhaite stocker divers colonne de notre objet.
+            """
+            raise NotImplementedError
+
+        def _serialize(self, value, attr, obj, **kwargs):
+            """
+            Reçoit la (m2o) ou les (m2m) PK depuis la base (directement ou après appelle à from_storage
+            pour les champs non natifs), et renvoi la ou les PK telle(s) quelle(s), d’où l’implémentation
+            par défaut renvoyant simplement value.
+            """
+            return value
+
+    def get_field(self) -> fields.Field:
+        return self.Field(self)
 
     @classmethod
     def get_model(cls):

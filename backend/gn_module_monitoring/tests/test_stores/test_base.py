@@ -19,9 +19,9 @@ from gn_module_monitoring.tools.stores.type import StringStore
 from gn_module_monitoring.tools.utils import schema_context
 
 
-def make_store(store_cls, config, field_name="my_field", entity="site"):
+def make_store(store_cls, config, field_name="my_field", entity="site", **kwargs):
     with schema_context(entity=ENTITY_MAP[entity], field_name=field_name):
-        return store_cls(config)
+        return store_cls(config, **kwargs)
 
 
 class TestRegistry:
@@ -50,7 +50,8 @@ class TestConfigSchema:
     def test_default_type_comes_from_store_class(self):
         store = make_store(StringStore, {})
         assert store["type"] == "string"
-        assert store["required"] is False
+        assert store.required is False
+        assert store.required_cel is None
 
     def test_unknown_key_is_rejected(self):
         with pytest.raises(ValidationError):
@@ -92,19 +93,19 @@ class TestBaseStore:
         store = make_store(StringStore, {}, field_name="my_extra")
         assert store.native_attr is None
 
-    def test_dummy_store_has_no_wire_type(self):
-        assert make_store(DummyStore, {}).get_wire_type() is Never
+    def test_dummy_store_has_no_api_type(self):
+        assert make_store(DummyStore, {}).get_api_type() is Never
 
 
 class TestRequired:
     def test_required_field_rejects_none(self):
-        field = make_store(StringStore, {"required": True}).to_field()
+        field = make_store(StringStore, {}, required=True).get_field()
         assert field.required is True
         with pytest.raises(ValidationError):
             field.deserialize(None)
 
     def test_optional_field_accepts_none(self):
-        field = make_store(StringStore, {}).to_field()
+        field = make_store(StringStore, {}).get_field()
         assert field.required is False
         assert field.deserialize(None) is None
 
@@ -113,32 +114,32 @@ class TestValueStore:
     VALUES = [{"value": "a", "label": "A"}, "b"]
 
     def test_accepts_allowed_value(self):
-        field = make_store(ValueStore, {"values": self.VALUES}).to_field()
+        field = make_store(ValueStore, {"values": self.VALUES}).get_field()
         assert field.deserialize("a") == "a"
         assert field.deserialize("b") == "b"
 
     def test_rejects_other_value(self):
-        field = make_store(ValueStore, {"values": self.VALUES}).to_field()
+        field = make_store(ValueStore, {"values": self.VALUES}).get_field()
         with pytest.raises(ValidationError):
             field.deserialize("c")
 
-    def test_wire_type_is_literal_of_values(self):
+    def test_api_type_is_literal_of_values(self):
         store = make_store(ValueStore, {"values": self.VALUES})
-        assert store.get_wire_type() == Literal["a", "b"]
+        assert store.get_api_type() == Literal["a", "b"]
 
 
 class TestListStore:
     VALUES = [{"value": "a", "label": "A"}, "b"]
 
     def test_accepts_list_of_allowed_values(self):
-        field = make_store(ListStore, {"values": self.VALUES}).to_field()
+        field = make_store(ListStore, {"values": self.VALUES}).get_field()
         assert field.deserialize(["a", "b"]) == ["a", "b"]
 
     def test_rejects_list_with_other_value(self):
-        field = make_store(ListStore, {"values": self.VALUES}).to_field()
+        field = make_store(ListStore, {"values": self.VALUES}).get_field()
         with pytest.raises(ValidationError):
             field.deserialize(["a", "c"])
 
-    def test_wire_type_is_list_of_literal(self):
+    def test_api_type_is_list_of_literal(self):
         store = make_store(ListStore, {"values": self.VALUES})
-        assert store.get_wire_type() == list[Literal["a", "b"]]
+        assert store.get_api_type() == list[Literal["a", "b"]]

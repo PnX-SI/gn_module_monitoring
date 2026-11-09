@@ -5,7 +5,10 @@ import marshmallow as ma
 from marshmallow import fields, pre_load, validate
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 
-from gn_module_monitoring.tools.utils import ValueLabelField, schema_context
+from gn_module_monitoring.tools.utils import (
+    ValueLabelField,
+    schema_context,
+)
 
 STORE_MAP: dict[str, type] = {}
 
@@ -20,7 +23,8 @@ class BaseStore(UserDict):
             unknown = ma.RAISE
 
         type = fields.Str(required=True)
-        required = fields.Boolean(load_default=False)
+
+        # required, required_cel & validate_cel are defined at field level
 
         @pre_load
         def load_default_type(self, data, **kwargs):
@@ -28,44 +32,19 @@ class BaseStore(UserDict):
                 data["type"] = schema_context.get()["store"].key
             return data
 
-    class Field(fields.Field):
-        """
-        Champ marshmallow d’un store : conversion et validation entre l’API et le stockage.
-        """
-
-        def __init__(self, store, **kwargs):
-            super().__init__(
-                required=store["required"], allow_none=not store["required"], **kwargs
-            )
-            self.store = store
-
-        def _deserialize(self, value, attr, data, **kwargs):
-            """
-            Fonction de validation des données reçu par l’API.
-            En cas d’erreur(s), lever une exception ValidationError.
-            Retourne la valeur qui doit être stocké en base.
-            """
-            raise NotImplementedError
-
-        def _serialize(self, value, attr, obj, **kwargs):
-            """
-            Fonction de déserialisation des données depuis la base avant l’envoi à l’API.
-            Sauf cas particulier, la données peut être envoyé telle quelle à l’API.
-            """
-            return value
-
-        @property
-        def wire_type(self):
-            raise NotImplementedError
-
     def __init_subclass__(cls, **kwargs):
         # Enregistrement automatique dans STORE_MAP
         super().__init_subclass__(**kwargs)
         if "key" in cls.__dict__:
             STORE_MAP[cls.key] = cls
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(
+        self, data=None, *, required=False, required_cel=None, validate_cel=None, **kwargs
+    ):
         super().__init__()
+        self.required = required
+        self.required_cel = required_cel
+        self.validate_cel = validate_cel
         data = data or {}
         if "type_util" in data:
             self.extra_data = data
@@ -134,11 +113,38 @@ class BaseStore(UserDict):
                         return subcls
         raise ValueError(f"Unable to find proper store for column '{attr.key}'")
 
-    def to_field(self):
-        return self.Field(self)
+    def get_field(self) -> fields.Field:
+        """
+        Champ marshmallow du store : valide et convertit la valeur reçue de l’API en valeur Python,
+        et convertit la valeur Python en valeur envoyée à l’API.
+        """
+        raise NotImplementedError
 
-    def get_wire_type(self) -> type:
-        return self.to_field().wire_type
+    def get_api_type(self) -> type:
+        """Type Python de la valeur échangée avec l’API."""
+        raise NotImplementedError
+
+    def get_python_type(self) -> type:
+        """Type Python de la valeur renvoyée par le champ après le chargement d’un objet."""
+        raise NotImplementedError
+
+    def _get_field_kwargs(self) -> dict:
+        """Options communes des champs marshmallow du store."""
+        return {"required": self.required, "allow_none": not self.required}
+
+    def to_storage(self, value):
+        """
+        Convertit une valeur Python en valeur stockable dans la colonne JSON `data`
+        (uniquement pour les champs non natifs). Par défaut, la valeur est inchangée.
+        """
+        return value
+
+    def from_storage(self, value):
+        """
+        Convertit une valeur lue depuis la colonne JSON `data` en valeur Python
+        (inverse de `to_storage`). Par défaut, la valeur est inchangée.
+        """
+        return value
 
     def check_stored_value(self, entity, row_id, field_name, value: Any, fix: bool):
         """
@@ -168,8 +174,11 @@ class DummyStore(BaseStore):
 
     key = "dummy"
 
-    class Field(BaseStore.Field):
-        wire_type = Never
+    def get_api_type(self) -> type:
+        return Never
+
+    def get_python_type(self) -> type:
+        return Never
 
 
 class ValueStore(BaseStore):
@@ -187,14 +196,15 @@ class ValueStore(BaseStore):
 
         return SelectWidget({"values": self["values"], **(data or {})}, **kwargs)
 
-    class Field(BaseStore.Field):
-        @property
-        def wire_type(self):
-            return Literal[tuple(item["value"] for item in self.store["values"])]
+    def get_field(self) -> fields.Field:
+        allowed = [item["value"] for item in self["values"]]
+        return fields.Raw(validate=validate.OneOf(allowed), **self._get_field_kwargs())
 
-        def _deserialize(self, value, attr, data, **kwargs):
-            allowed = [item["value"] for item in self.store["values"]]
-            return fields.Raw(validate=validate.OneOf(allowed)).deserialize(value)
+    def get_api_type(self) -> type:
+        return Literal[tuple(item["value"] for item in self["values"])]
+
+    def get_python_type(self) -> type:
+        return self.get_api_type()
 
 
 class ListStore(BaseStore):
@@ -212,16 +222,18 @@ class ListStore(BaseStore):
 
         return CheckboxWidget({"values": self["values"], **(data or {})}, **kwargs)
 
-    class Field(BaseStore.Field):
-        @property
-        def wire_type(self):
-            return list[Literal[tuple(item["value"] for item in self.store["values"])]]
+    def get_field(self) -> fields.Field:
+        allowed = [item["value"] for item in self["values"]]
+        return fields.List(
+            fields.Raw(validate=validate.OneOf(allowed)), **self._get_field_kwargs()
+        )
 
-        def _deserialize(self, value, attr, data, **kwargs):
-            allowed = [item["value"] for item in self.store["values"]]
-            return fields.List(fields.Raw(validate=validate.OneOf(allowed))).deserialize(value)
+    def get_api_type(self) -> type:
+        return list[Literal[tuple(item["value"] for item in self["values"])]]
+
+    def get_python_type(self) -> type:
+        return self.get_api_type()
 
 
 # TODO: date, site, sites_group, area
 # TODO: observer_list, taxonomy_list, municipality? accepté par la route util/<type_util>/
-

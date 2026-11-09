@@ -58,7 +58,7 @@ class TestGetStoreFromColumn:
         assert BaseStore.get_store_from_attr(attr) is store_cls
 
 
-class TestWireType:
+class TestApiType:
     @pytest.mark.parametrize(
         "store_cls,expected",
         [
@@ -71,41 +71,41 @@ class TestWireType:
             (UUIDStore, str),
         ],
     )
-    def test_wire_type(self, store_cls, expected):
-        assert make_store(store_cls, {}).get_wire_type() is expected
+    def test_api_type(self, store_cls, expected):
+        assert make_store(store_cls, {}).get_api_type() is expected
 
 
 class TestTypeStores:
-    def test_extra_date_is_kept_as_sent(self):
-        field = make_store(DateStore, {}, field_name="my_extra").to_field()
-        assert field.deserialize("2026-01-02") == "2026-01-02"
+    def test_extra_date_is_decoded_to_python(self):
+        field = make_store(DateStore, {}, field_name="my_extra").get_field()
+        assert field.deserialize("2026-01-02") == datetime.date(2026, 1, 2)
 
-    def test_extra_uuid_is_kept_as_sent(self):
-        value = str(uuid.uuid4())
-        field = make_store(UUIDStore, {}, field_name="my_extra").to_field()
-        assert field.deserialize(value) == value
+    def test_extra_uuid_is_decoded_to_python(self):
+        value = uuid.uuid4()
+        field = make_store(UUIDStore, {}, field_name="my_extra").get_field()
+        assert field.deserialize(str(value)) == value
 
     def test_native_datetime_is_decoded(self):
-        field = make_store(DateTimeStore, {}, field_name="first_use_date").to_field()
+        field = make_store(DateTimeStore, {}, field_name="first_use_date").get_field()
         assert field.deserialize("2026-01-02T10:00:00") == datetime.datetime(2026, 1, 2, 10)
 
     def test_native_uuid_is_decoded(self):
         value = uuid.uuid4()
-        field = make_store(UUIDStore, {}, field_name="uuid_base_site").to_field()
+        field = make_store(UUIDStore, {}, field_name="uuid_base_site").get_field()
         assert field.deserialize(str(value)) == value
 
     def test_integer_rejects_string(self):
-        field = make_store(IntegerStore, {}, field_name="my_extra").to_field()
+        field = make_store(IntegerStore, {}, field_name="my_extra").get_field()
         assert field.deserialize(3) == 3
         with pytest.raises(ValidationError):
             field.deserialize("3")
 
     def test_float_accepts_int(self):
-        field = make_store(FloatStore, {}, field_name="my_extra").to_field()
+        field = make_store(FloatStore, {}, field_name="my_extra").get_field()
         assert field.deserialize(3) == 3.0
 
     def test_boolean_rejects_string(self):
-        field = make_store(BooleanStore, {}, field_name="my_extra").to_field()
+        field = make_store(BooleanStore, {}, field_name="my_extra").get_field()
         assert field.deserialize(True) is True
         with pytest.raises(ValidationError):
             field.deserialize("maybe")

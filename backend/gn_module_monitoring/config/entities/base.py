@@ -1,11 +1,69 @@
+import datetime
+import uuid
 from copy import deepcopy
 
 import sqlalchemy as sa
 import marshmallow as ma
+from cel_expr_python.cel import NewEnv, Type
 from marshmallow import pre_load, post_load, validates_schema, ValidationError
 
 from gn_module_monitoring.config.utils import apply_substitutions
+from gn_module_monitoring.tools.utils import CELValidationsField, check_cel_type
 from .fields import EntityFieldConfigSchema, schema_context
+
+# Types CEL des valeurs Python des stores (par type Python de la valeur chargée) :
+CEL_TYPES_MAP = {
+    int: Type("google.protobuf.Int64Value"),
+    float: Type("google.protobuf.DoubleValue"),
+    bool: Type("google.protobuf.BoolValue"),
+    str: Type("google.protobuf.StringValue"),
+    uuid.UUID: Type("google.protobuf.StringValue"),  # converti en chaîne pour CEL
+    datetime.date: Type("google.protobuf.Timestamp"),
+    datetime.datetime: Type("google.protobuf.Timestamp"),
+}
+
+
+def check_cel_types(fields_def, entity_validate_cel):
+    """
+    Vérifie le typage des expressions CEL d’une entité, les variables `fields.<nom>` étant
+    typées par le store de chaque champ.
+    """
+    env = NewEnv(
+        variables={
+            f"fields.{name}": CEL_TYPES_MAP.get(field["store"].get_python_type(), Type.DYN)
+            for name, field in fields_def.items()
+        }
+    )
+    errors = {}
+    for name, field in fields_def.items():
+        store = field["store"]
+        widget = field.get("widget")
+        expressions = {
+            "required_cel": [store.required_cel] if store.required_cel is not None else [],
+            "validate_cel": [condition["condition"] for condition in store.validate_cel or []],
+            "hidden_cel": (
+                [widget.get("hidden_cel")] if widget and widget.get("hidden_cel") else []
+            ),
+        }
+        for key, conditions in expressions.items():
+            for expression in conditions:
+                try:
+                    check_cel_type(env, expression)
+                except ValidationError as e:
+                    errors.setdefault(name, {}).setdefault(key, []).extend(e.messages)
+    entity_errors = []
+    for condition in entity_validate_cel or []:
+        try:
+            check_cel_type(env, condition["condition"])
+        except ValidationError as e:
+            entity_errors.extend(e.messages)
+    if errors or entity_errors:
+        raise ValidationError(
+            {
+                **({"fields": errors} if errors else {}),
+                **({"validate_cel": entity_errors} if entity_errors else {}),
+            }
+        )
 
 
 class BaseEntityConfigSchema(ma.Schema):
@@ -30,6 +88,8 @@ class BaseEntityConfigSchema(ma.Schema):
     label_list = ma.fields.Str()
     sorts = ma.fields.Raw()
     uuid_field_name = ma.fields.Str()
+    # Condition CEL sur l’objet entier, évaluée par le schéma (voir CELMixin)
+    validate_cel = CELValidationsField()
     # Calculés à partir de l’arbre du module (voir load_tree_relations)
     parent_types = ma.fields.List(ma.fields.Str(), dump_only=True)
     children_types = ma.fields.List(ma.fields.Str(), dump_only=True)
@@ -47,6 +107,7 @@ class BaseEntityConfigSchema(ma.Schema):
         fields = data.pop("fields", data.pop("specific", {}))
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
+        # TODO: et sauf validate_cel pour lequel on doit étendre la liste ?
         data = {**apply_substitutions(self.get_default_config(), substitutions), **data}
         # Comme le legacy : display_list vaut display_properties si non défini
         data.setdefault("display_list", data.get("display_properties", []))
@@ -87,6 +148,7 @@ class BaseEntityConfigSchema(ma.Schema):
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )
+        check_cel_types(data["fields"], data.get("validate_cel"))
 
     @post_load
     def load_tree_relations(self, data, **kwargs):

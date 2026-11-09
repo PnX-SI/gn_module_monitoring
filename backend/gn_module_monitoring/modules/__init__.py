@@ -4,6 +4,7 @@ import json
 
 import sqlalchemy as sa
 from flask import current_app
+from marshmallow import ValidationError
 
 from geonature.utils.env import db
 from pypnusershub.db.models import UserList
@@ -102,7 +103,10 @@ class MonitoringModule(UserDict):
 
         self.entities = {}
         for entity in self.entities_list:
-            self.entities[entity] = ENTITY_MAP[entity](self)
+            try:
+                self.entities[entity] = ENTITY_MAP[entity](self)
+            except ValidationError as e:
+                raise ValidationError({"entities": {entity: e.messages_dict}})
 
     def collect_nomenclatures(self):
         """

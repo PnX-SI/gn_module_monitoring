@@ -16,8 +16,12 @@ class BaseWidget(UserDict):
 
         type = fields.Str(required=True)
 
-        hidden = fields.Boolean(load_default=False)
+        hidden = fields.Boolean()
         hidden_js = MultilineStr()
+        hidden_cel = fields.Str()
+
+        # required, required_cel & validate_cel are defined at field level
+        required_js = MultilineStr()
 
         attribut_label = fields.String()  # FIXME: required?
 
@@ -25,7 +29,6 @@ class BaseWidget(UserDict):
         def set_hidden_js(self, data, **kwargs):
             if "hidden" in data and not isinstance(data["hidden"], bool):
                 data["hidden_js"] = data.pop("hidden")
-                data["hidden"] = False
             return data
 
         @pre_load
@@ -50,8 +53,13 @@ class BaseWidget(UserDict):
     def config_schema_class(self):
         return self.ConfigSchema
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(
+        self, data=None, *, required=False, required_cel=None, validate_cel=None, **kwargs
+    ):
         super().__init__()
+        self.required = required
+        self.required_cel = required_cel
+        self.validate_cel = validate_cel
         data = data or {}
         if "type_widget" in data:
             self.extra_data = data
@@ -81,7 +89,7 @@ class BaseWidget(UserDict):
     def _get_default_store(self, data, **kwargs):
         raise NotImplementedError
 
-    def get_wire_type(self) -> Any:
+    def get_api_type(self) -> Any:
         raise NotImplementedError
 
     def __str__(self):
@@ -112,8 +120,8 @@ class HiddenWidget(BaseWidget):
         else:
             return DummyStore(data, **kwargs)
 
-    def get_wire_type(self):
-        return self.get_default_store().get_wire_type()
+    def get_api_type(self):
+        return self.get_default_store().get_api_type()
 
 
 class TextWidget(BaseWidget):
@@ -124,7 +132,7 @@ class TextWidget(BaseWidget):
 
         return StringStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -136,7 +144,7 @@ class TextareaWidget(BaseWidget):
 
         return StringStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -148,7 +156,7 @@ class BoolCheckboxWidget(BaseWidget):
 
         return BooleanStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return bool
 
 
@@ -163,7 +171,7 @@ class CheckboxWidget(BaseWidget):
 
         return ListStore({"values": self["values"], **(data or {})}, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return list[Literal[tuple(value["value"] for value in self["values"])]]
 
 
@@ -175,7 +183,7 @@ class RadioWidget(BaseWidget):
 
         return StringStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -204,7 +212,7 @@ class NumberWidget(BaseWidget):
 
             return FloatStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if self.is_integer:
             return int
         else:
@@ -219,7 +227,7 @@ class DateWidget(BaseWidget):
 
         return DateStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -231,7 +239,7 @@ class TimeWidget(BaseWidget):
 
         return DateTimeStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -246,7 +254,7 @@ class SelectWidget(BaseWidget):
 
         return ValueStore({"values": self["values"], **(data or {})}, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return Literal[tuple(value["value"] for value in self["values"])]
 
 
@@ -261,7 +269,7 @@ class MultiselectWidget(BaseWidget):
 
         return ListStore({"values": self["values"], **(data or {})}, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return list[Literal[tuple(value["value"] for value in self["values"])]]
 
 
@@ -300,7 +308,7 @@ class DatalistWidget(BaseWidget):
             # This is pure guessing as we do not know the API return type
             return StringStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if "values" in self:
             return Literal[tuple(value["value"] for value in self["values"])]
         else:
@@ -317,7 +325,7 @@ class ObserversTextWidget(BaseWidget):
 
         return StringStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return str
 
 
@@ -329,7 +337,7 @@ class MediaWidget(BaseWidget):
 
         return DummyStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return Never
 
 

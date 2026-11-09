@@ -18,7 +18,7 @@ class NomenclatureWidget(BaseWidget):
             return NomenclaturesStore(data, **kwargs)
         return NomenclatureStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if self["multi_select"]:
             return list[int]
         return int
@@ -32,7 +32,7 @@ class TaxonomyWidget(BaseWidget):
 
         return TaxonomyStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return int
 
 
@@ -52,7 +52,7 @@ class DatasetWidget(BaseWidget):
         else:
             return DatasetStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if self["multi_select"]:
             return list[int]
         return int
@@ -77,7 +77,7 @@ class ModuleWidget(BaseWidget):
         else:
             return ModuleStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if self["multiple"]:
             return list[int]
         return int
@@ -91,7 +91,7 @@ class HabitatWidget(BaseWidget):
 
         return HabitatStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return int
 
 
@@ -103,7 +103,7 @@ class UserWidget(BaseWidget):
 
         return UserStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return int
 
 
@@ -124,7 +124,7 @@ class ObserversWidget(BaseWidget):
             return UsersStore(data, **kwargs)
         return UserStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         if self["multi_select"]:
             return list[int]
         return int
@@ -141,7 +141,7 @@ class AreasWidget(BaseWidget):
 
         return AreasStore(data, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return list[int]
 
 
@@ -153,7 +153,7 @@ class MunicipalitiesWidget(BaseWidget):
 
         return AreasStore({**data, "area_code": "COM"}, **kwargs)
 
-    def get_wire_type(self):
+    def get_api_type(self):
         return list[int]
 
 
