@@ -40,6 +40,7 @@ def delete_visit(scope, _id, module_code):
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
 def post_visit(module_code):
     post_data = dict(request.get_json())
+    post_data.pop("id_base_visit", None)
     return create_or_update_visit(post_data, module_code=module_code)
 
 

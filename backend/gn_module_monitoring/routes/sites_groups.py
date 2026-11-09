@@ -176,6 +176,7 @@ def patch(scope, module_code: str = "generic", _id: int = None):
 @check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def post_sites_group(module_code: str = "generic"):
     post_data = dict(request.get_json())
+    post_data.pop("id_sites_group", None)
     sites_group = create_or_update_site_group(post_data, module_code)
     return sites_group
 

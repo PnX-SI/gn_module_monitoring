@@ -126,6 +126,7 @@ def post_marking(module_code: str):
         Serialized created marking.
     """
     post_data = dict(request.get_json())
+    post_data.pop("id_marking", None)
     if not "id_module" in post_data:
         post_data["id_module"] = g.get("current_module").id_module
     return create_or_update_marking(post_data, module_code=module_code)

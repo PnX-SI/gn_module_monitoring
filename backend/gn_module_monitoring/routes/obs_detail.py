@@ -49,6 +49,7 @@ def delete_obs_detail(scope, _id: int, module_code: str):
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
 def post_obs_detail(module_code: str):
     post_data = dict(request.get_json())
+    post_data.pop("id_observation_detail", None)
     return create_or_update_obs_detail(post_data, module_code=module_code)
 
 

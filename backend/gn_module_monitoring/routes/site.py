@@ -282,6 +282,7 @@ def get_module_sites(module_code: str):
 @check_cruved_scope("C", object_code="MONITORINGS_SITES")
 def post_sites(module_code: str = "generic"):
     post_data = dict(request.get_json())
+    post_data.pop("id_base_site", None)
     return create_or_update_site(post_data, module_code=module_code), 201
 
 

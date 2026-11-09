@@ -124,6 +124,7 @@ def delete_observation(scope, _id, module_code):
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
 def post_observation(module_code):
     post_data = dict(request.get_json())
+    post_data.pop("id_observation", None)
     return create_or_update_observation(post_data, module_code=module_code)
 
 

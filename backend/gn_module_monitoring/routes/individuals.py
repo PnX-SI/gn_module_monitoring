@@ -152,6 +152,7 @@ def post_individual(module_code: str):
         Serialized created individual.
     """
     post_data = dict(request.get_json())
+    post_data.pop("id_individual", None)
     return create_or_update_individual(post_data, module_code=module_code)
 
 
