@@ -1,11 +1,12 @@
-import { forkJoin, Observable, of, EMPTY } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
+import { forkJoin, Observable, of, EMPTY, Subscription } from 'rxjs';
+import { concatMap, debounceTime } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { NgSelectConfig } from '@ng-select/ng-select';
+import { evaluate } from '@marcbachmann/cel-js';
 
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -39,6 +40,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() object: any;
   @Input() form: FormGroup = new FormGroup('');
   @Input() config: any;
+  validationError: string[] = [];
+  fieldErrors: { [name: string]: string[] } = {};
+  private validationSub: Subscription;
   @Input() currentUser: any;
   @Input() objectType: string;
   // Dans le cas de création, la liste des parents est fournie par le resolver du composant parent
@@ -208,6 +212,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.queryParams = this._route.snapshot.queryParams || {};
     this.formReady = !this.object;
     this.initForm();
+    this.subscribeEntityValidation();
     this.initPermission();
     if (this.fetchedParents) {
       this.meta.parents = this.buildParentsMeta();
@@ -252,6 +257,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const objectFormDefiniton = this._dynformService
       .formDefinitionsdictToArray(schema, this.meta)
       .filter((formDef) => formDef.type_widget)
+      .map((formDef) => this.applyCelDefinition(formDef))
       .sort((a, b) => {
         if (a.attribut_name === 'medias') return 1;
         if (b.attribut_name === 'medias') return -1;
@@ -272,10 +278,166 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /**
+   * Convertit une valeur en valeur CEL : les dates et heures deviennent des timestamps
+   * (dates à minuit UTC, heures sur le 1970-01-01 UTC) pour pouvoir être comparées.
+   */
+  private toCelValue(value: any, typeWidget?: string): any {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    if (typeWidget === 'date') {
+      if (typeof value === 'object') {
+        return value.year && value.month && value.day
+          ? new Date(Date.UTC(value.year, value.month - 1, value.day))
+          : null;
+      }
+      const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value));
+      return match ? new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])) : null;
+    }
+    if (typeWidget === 'time') {
+      const match = /^(\d{2}):(\d{2})(?::(\d{2}))?/.exec(String(value));
+      return match ? new Date(Date.UTC(1970, 0, 1, +match[1], +match[2], +(match[3] || 0))) : null;
+    }
+    return value;
+  }
+
+  /**
+   * Parents de l’objet, accessibles par leur type (`site`, `sites_group`…) selon `parent_types`
+   * de la configuration, comme `meta.parents` dans les expressions js.
+   */
+  private buildParentsCelContext(): JsonData {
+    const parents = this.buildParentsMeta();
+    const parentsConfig = this._configServiceG.config() || {};
+    const context: JsonData = {};
+    for (const parentType of this.config?.['parent_types'] || []) {
+      const parent = parents[parentType];
+      if (!parent) {
+        context[parentType] = null;
+        continue;
+      }
+      const parentFields = parentsConfig[parentType]?.['fields'] || {};
+      context[parentType] = Object.fromEntries(
+        Object.entries(parent).map(([key, value]) => [
+          key,
+          this.toCelValue(value, parentFields[key]?.['type_widget']),
+        ])
+      );
+    }
+    return context;
+  }
+
+  /**
+   * Contexte CEL : les champs sont accessibles via `fields` (`fields.accessibility`),
+   * les parents via leur type (`site`). Les médias ne sont pas dans le contexte.
+   */
+  private buildCelContext(formValue: JsonData): JsonData {
+    const fieldsConfig = this.config?.['fields'] || {};
+    const fields = Object.fromEntries(
+      Object.entries(formValue)
+        .filter(([key]) => fieldsConfig[key]?.['type_widget'] !== 'medias')
+        .map(([key, value]) => [
+          key,
+          this.toCelValue(value, fieldsConfig[key]?.['type_widget']),
+        ])
+    );
+    return { ...this.buildParentsCelContext(), fields };
+  }
+
+  /** Évalue une condition CEL booléenne (`hidden_cel`, `required_cel`). Faux en cas d’erreur. */
+  private evaluateCelBoolean(condition: string, context: JsonData): boolean {
+    try {
+      return evaluate(condition, context) === true;
+    } catch (e) {
+      console.error(`Expression CEL impossible à évaluer : ${condition}`, e);
+      return false;
+    }
+  }
+
+  /**
+   * `hidden_cel` et `required_cel` remplacent `hidden` et `required` : la propriété
+   * devient une fonction évaluée sur la valeur du formulaire (cf. DynamicFormService.getFormDefValue),
+   * ce qui met à jour l'affichage et les validateurs à chaque modification.
+   */
+  private applyCelDefinition(formDef: JsonData): JsonData {
+    if (formDef['hidden_cel']) {
+      const condition = formDef['hidden_cel'];
+      formDef['hidden'] = ({ value }) =>
+        this.evaluateCelBoolean(condition, this.buildCelContext(value));
+    }
+    if (formDef['required_cel']) {
+      const condition = formDef['required_cel'];
+      formDef['required'] = ({ value }) =>
+        this.evaluateCelBoolean(condition, this.buildCelContext(value));
+    }
+    return formDef;
+  }
+
+  /**
+   * Évalue toutes les conditions CEL (liste de {condition, message}) et retourne
+   * les messages des conditions non respectées.
+   */
+  private evaluateCelConditions(conditions: any, context: JsonData): string[] {
+    const errors: string[] = [];
+    for (const item of conditions || []) {
+      const { condition, message } =
+        typeof item === 'string' ? { condition: item, message: null } : item;
+      console.log('[CEL] évaluation validate_cel', condition, 'contexte', context);
+      try {
+        const result = evaluate(condition, context);
+        console.log('[CEL] résultat validate_cel', result);
+        if (typeof result !== 'boolean') {
+          errors.push(`Expression de validation non booléenne : ${result}`);
+        } else if (!result) {
+          errors.push(message || `The following condition is not met: ${condition}`);
+        }
+      } catch (e) {
+        errors.push(`Expression de validation impossible à évaluer : ${(e as Error).message}`);
+      }
+    }
+    return errors;
+  }
+
+  /** Conditions `validate_cel` de l’entité, évaluées sur l’ensemble du formulaire. */
+  checkEntityValidateCel(formValue: JsonData): string[] {
+    return this.evaluateCelConditions(
+      this.config?.['validate_cel'],
+      this.buildCelContext(formValue)
+    );
+  }
+
+  /**
+   * Conditions `validate_cel` de chaque champ : évaluées seulement si le champ a une valeur.
+   * Retourne les messages par nom de champ.
+   */
+  checkFieldValidateCel(formValue: JsonData): { [name: string]: string[] } {
+    const context = this.buildCelContext(formValue);
+    const errors: { [name: string]: string[] } = {};
+    for (const [name, field] of Object.entries(this.config?.['fields'] || {})) {
+      if (formValue[name] === undefined || formValue[name] === null) {
+        continue;
+      }
+      const messages = this.evaluateCelConditions((field as JsonData)['validate_cel'], context);
+      if (messages.length) {
+        errors[name] = messages;
+      }
+    }
+    return errors;
+  }
+
   onSubmit(isAddChildrend = false) {
     if (!this.formReady) {
       return;
     }
+
+    let formValueGroup = this.form.value;
+
+    this.validationError = this.checkEntityValidateCel(formValueGroup);
+    this.fieldErrors = this.checkFieldValidateCel(formValueGroup);
+    if (this.validationError.length || Object.keys(this.fieldErrors).length) {
+      return;
+    }
+
     isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
 
     let formValueGroup = this.form.value;
@@ -308,7 +470,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         return;
       }
       if (this.chainInput) {
-        this.chainedCount++;
         this.resetForm();
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
@@ -486,6 +647,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    */
   navigateToParent() {
     this.EditChange.emit(false); // patch bug navigation
+
     const rawParentsPath = this.queryParams['parents_path'] || [];
     const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
 
@@ -567,6 +729,42 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.navigateToDetail();
   }
 
+  /**
+   * Évalue les conditions `validate_cel` (entité et champs) à chaque modification du formulaire.
+   * Différé de 300 ms : évite d’évaluer à chaque frappe au clavier.
+   */
+  private subscribeEntityValidation() {
+    this.validationSub = this.form.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe((value) => {
+        this.validationError = this.checkEntityValidateCel(value);
+        this.fieldErrors = this.checkFieldValidateCel(value);
+        this.logHiddenRequiredEmptyFields(value);
+      });
+  }
+
+  /** Définitions de tous les champs du formulaire, avec `hidden` et `required` évaluables. */
+  protected fieldDefinitions(): JsonData[] {
+    return this.formsDefinition as JsonData[];
+  }
+
+  /**
+   * Avertit dans la console des champs masqués et requis mais vides : leur validateur reste actif
+   * alors que l’utilisateur ne peut pas les renseigner.
+   */
+  private logHiddenRequiredEmptyFields(formValue: JsonData) {
+    for (const formDef of this.fieldDefinitions()) {
+      const name = formDef['attribut_name'];
+      const hidden = this._dynformService.getFormDefValue(formDef, 'hidden', formValue);
+      const required = this._dynformService.getFormDefValue(formDef, 'required', formValue);
+      const value = formValue[name];
+      const empty = value == null || value === '' || (Array.isArray(value) && !value.length);
+      if (hidden && required && empty) {
+        console.log(`[WARNING] Le champ '${name}' est masqué et requis, mais il est vide.`);
+      }
+    }
+  }
+
   onDelete() {
     this.deleteSpinner = true;
     this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
@@ -585,6 +783,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.validationSub?.unsubscribe();
     this._geojsonService.removeAllFeatureGroup();
     this.form.patchValue({ geometry: null });
     this._formService.changeFormMapObj({

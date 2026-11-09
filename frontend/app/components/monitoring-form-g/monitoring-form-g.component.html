@@ -9,6 +9,7 @@
   (chainInputChange)="chainInput = $event"
   [saveSpinner]="saveSpinner"
   [formReady]="formReady"
+  [validationError]="validationError"
   [saveAndAddChildrenSpinner]="saveAndAddChildrenSpinner"
   [canUpdate]="canUpdate"
   [canDelete]="canDelete"
@@ -30,6 +31,8 @@
     [myFormGroup]="form"
     [preserveControls]="true"
     [formsDefinition]="formsDefinition"
+    [fieldErrors]="fieldErrors"
+    [updateDelay]="300"
     (myFormGroupChange)="onDynamicFormGroupChange()"
     (change)="onFormValueChange($event)"
   ></pnx-dynamic-form-generator>

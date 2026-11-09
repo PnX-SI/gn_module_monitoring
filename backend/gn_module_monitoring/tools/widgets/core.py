@@ -37,6 +37,13 @@ class BaseWidget(UserDict):
                 data["type"] = schema_context.get()["widget"].key
             return data
 
+        @validates_schema
+        def validate_hidden_exclusive(self, data, **kwargs):
+            if sum(["hidden" in data, "hidden_js" in data, "hidden_cel" in data]) > 1:
+                raise ValidationError(
+                    "'hidden' et 'hidden_cel' ne peuvent pas être définis ensemble."
+                )
+
         def get_attribute(self, obj, attr, default):
             # default function is based on getattr, which fail
             # for dict when accessing for instance keys or values attr.

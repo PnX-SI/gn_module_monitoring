@@ -173,6 +173,10 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     );
   }
 
+  protected fieldDefinitions(): JsonData[] {
+    return this.allSiteFormsDefinition as JsonData[];
+  }
+
   private getTypeSiteFields(idType: number): JsonData[] {
     if (!this.typeSiteFieldsCache[idType]) {
       this.typeSiteFieldsCache[idType] = (this.allSiteFormsDefinition as any[]).filter((formDef) =>
