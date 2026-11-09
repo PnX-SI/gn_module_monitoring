@@ -479,6 +479,24 @@ class TestSite:
 
         assert set(res.types_site) == set([ts for k, ts in types_site.items()])
 
+    def test_post_sites_does_not_update_existing_site(self, sites, site_to_post_with_types, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        existing = sites["Test_Grotte"]
+        original_name = existing.base_site_name
+        response = self.client.post(
+            url_for("monitorings.api.post_sites", module_code="generic"),
+            data={
+                **site_to_post_with_types,
+                "id_base_site": existing.id_base_site,
+                "base_site_name": "hijacked",
+            },
+        )
+        assert response.status_code == 201
+        assert response.json["id_base_site"] != existing.id_base_site
+
+        db.session.refresh(existing)
+        assert existing.base_site_name == original_name
+
     def test_patch_sites(self, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         _id_site = sites["Test_Grotte"].id_base_site
@@ -634,7 +652,7 @@ class TestSite:
 
 
 # TODO: ajouter tests sur filtre par permissions
-@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test_with_config")
 class TestSiteWithModule:
 
     def test_get_module_sites(
@@ -714,12 +732,40 @@ class TestSiteWithModule:
         )
 
         assert "data" not in site_repr
-        # Propriété non définie dans la configuration du module : retournée et listée
-        assert site_repr["prop_from_other_module"] == "foo"
-        assert "prop_from_other_module" in site_repr["additional_data_keys"]
-        # Propriété spécifique définie dans la configuration : non listée
+        # Propriété non définie dans la configuration du module : non renvoyée
+        assert "prop_from_other_module" not in site_repr
+        assert "additional_data_keys" not in site_repr
+        # Propriété spécifique définie dans la configuration : renvoyée
         assert site_repr["profondeur_grotte"] == 42.8
-        assert "profondeur_grotte" not in site_repr["additional_data_keys"]
+
+    def test_patch_site_keeps_undeclared_data(self, test_module_user, types_site, add_site):
+        set_logged_user_cookie(self.client, test_module_user)
+        site = add_site(
+            types_site=[list(types_site.values())[0]],
+            data={
+                "profondeur_grotte": 42.8,
+                "prop_from_other_module": "foo",
+            },
+        )
+        body = self.client.get(
+            url_for("monitorings.api.get_site_by_id", module_code="test", id=site.id_base_site)
+        ).json
+        body["base_site_name"] = "renamed"
+        body["first_use_date"] = "2024-01-02"
+        del body["profondeur_grotte"]
+
+        r = self.client.patch(
+            url_for("monitorings.api.patch_site", module_code="test", _id=site.id_base_site),
+            json=body,
+        )
+
+        assert r.status_code == 201
+        db.session.refresh(site)
+        assert site.base_site_name == "renamed"
+        # Champ déclaré non envoyé : supprimé
+        assert "profondeur_grotte" not in site.data
+        # Donnée non déclarée dans la configuration : conservée
+        assert site.data["prop_from_other_module"] == "foo"
 
     def test_get_module_sites_with_filter_on_generic_attribute(self, test_module_user, add_site):
         set_logged_user_cookie(self.client, test_module_user)

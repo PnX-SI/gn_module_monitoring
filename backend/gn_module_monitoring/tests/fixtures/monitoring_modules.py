@@ -7,7 +7,7 @@ from flask import current_app
 
 from sqlalchemy import select
 
-from geonature.utils.env import db, BACKEND_DIR
+from geonature.utils.env import db
 from geonature.core.gn_permissions.models import (
     PermAction,
     PermObject,
@@ -68,7 +68,9 @@ def install_monitoring_module(module_code, type_site, users):
     # Copy des fichiers du module de test
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
     path_module_test = path_gn_monitoring / Path(f"contrib/{module_code}")
-    path_gn_monitoring = BACKEND_DIR / Path(f"media/monitorings/{module_code}")
+    from gn_module_monitoring.config.utils import monitoring_module_config_path
+
+    path_gn_monitoring = monitoring_module_config_path(module_code)
     shutil.copytree(src=str(path_module_test), dst=str(path_gn_monitoring), dirs_exist_ok=True)
 
     # Installation du module

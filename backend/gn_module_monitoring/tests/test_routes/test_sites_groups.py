@@ -186,7 +186,7 @@ class TestSitesGroups:
 
 # TODO: ajouter tests sur tri
 # TODO: ajouter tests sur filtre par permissions
-@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test_with_config")
 class TestSitesGroupsWithModule:
 
     def test_get_module_groups(self, test_module_user, add_group):
