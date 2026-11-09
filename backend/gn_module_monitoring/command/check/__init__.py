@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 
 import click
 from flask import current_app
@@ -47,9 +48,22 @@ def run_module_check(module_code, check_data, data_filters, fix):
     return total_error_count
 
 
-def run_check(module_code, strict, check_data, data_filters, fix):
+@contextmanager
+def strict_mode(strict):
+    previous_strict = current_app.config["MONITORINGS"]["STRICT"]
     current_app.config["MONITORINGS"]["STRICT"] = strict
+    try:
+        yield
+    finally:
+        current_app.config["MONITORINGS"]["STRICT"] = previous_strict
 
+
+def run_check(module_code, strict, check_data, data_filters, fix):
+    with strict_mode(strict):
+        return _run_check(module_code, check_data, data_filters, fix)
+
+
+def _run_check(module_code, check_data, data_filters, fix):
     available_module_codes = {module["module_code"] for module in available_modules()}
     installed_module_codes = {module["module_code"] for module in installed_modules()}
 

@@ -131,12 +131,7 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic", instan
     """
     schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
-    try:
-        visit = schema(unknown=EXCLUDE).load(post_data, instance=instance)
-    except Exception as e:
-        # TODO REMOVE DEV MODE
-        print(e.__dict__)
-        raise e
+    visit = schema(unknown=EXCLUDE).load(post_data, instance=instance)
     db.session.add(visit)
     db.session.commit()
 

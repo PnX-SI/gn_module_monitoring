@@ -76,8 +76,7 @@ class ExportPdfSchema(ma.Schema):
 
 class BaseEntityConfigSchema(ma.Schema):
     class Meta:
-        # TODO: le but est de passer à RAISE une fois les schémas complets
-        unknown = ma.EXCLUDE
+        unknown = ma.RAISE
 
     fields = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Nested(EntityFieldConfigSchema))
     display_properties = ma.fields.List(ma.fields.Str(), load_default=[])

@@ -12,10 +12,12 @@ import sqlalchemy as sa
 import marshmallow as ma
 from cel_expr_python.cel import Type
 from google.protobuf.timestamp_pb2 import Timestamp
+from flask import current_app
 from marshmallow import ValidationError, validates_schema
 
 from geonature.utils.env import db
 
+from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.tools.stores import DummyStore
 from gn_module_monitoring.tools.utils import CEL_ENV, normalize_cel_conditions, schema_context
@@ -309,8 +311,9 @@ class BaseEntity(UserDict):
             config = {}
 
         self.config_schema = self.config_schema_class()
+        unknown = ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
         with schema_context(entity=self):
-            self.data = self.config_schema.load(config)
+            self.data = self.config_schema.load(config, unknown=unknown)
 
     def dump_config(self):
         return self.config_schema.dump(self.data)
