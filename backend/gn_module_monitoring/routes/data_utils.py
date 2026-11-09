@@ -32,6 +32,7 @@ from ref_geo.models import LAreas, LiMunicipalities
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import (
+    TMonitoringIndividuals,
     TMonitoringSites,
     TMonitoringSitesGroups,
 )
@@ -49,6 +50,7 @@ model_dict = {
     "area": LAreas,
     "municipality": LiMunicipalities,
     "module": TModules,
+    "individual": TMonitoringIndividuals,
 }
 
 
