@@ -620,7 +620,10 @@ class TMonitoringModules(TModules, PermissionModel, MonitoringQuery):
         DB.Integer,
         DB.ForeignKey(BibListes.id_liste, onupdate="CASCADE", ondelete="CASCADE"),
     )
-    cd_nom: Mapped[Optional[int]] = mapped_column(DB.Integer)
+    cd_nom: Mapped[Optional[int]] = mapped_column(
+        DB.Integer,
+        DB.ForeignKey("taxonomie.taxref.cd_nom"),
+    )
 
     taxonomy_display_field_name: Mapped[Optional[str]] = mapped_column(DB.Unicode)
     b_synthese: Mapped[Optional[bool]] = mapped_column(DB.Boolean)
