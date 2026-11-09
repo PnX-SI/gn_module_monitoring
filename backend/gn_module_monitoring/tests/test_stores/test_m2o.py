@@ -8,6 +8,7 @@ from geonature.utils.env import db
 from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.tools.stores.relationships.m2o import (
+    AreaStore,
     ModuleStore,
     NomenclatureStore,
     ObserverListStore,
@@ -19,6 +20,7 @@ from gn_module_monitoring.tools.stores.relationships.utils import (
     get_nomenclature_type,
 )
 from gn_module_monitoring.tools.utils import schema_context
+from gn_module_monitoring.tools.widgets.relationships import AreasWidget
 
 
 def make_store(store_cls, config, field_name="my_field"):
@@ -95,17 +97,6 @@ class TestNomenclatureStore:
         get_nomenclature_type.cache_clear()
         get_nomenclature.cache_clear()
 
-    @pytest.fixture
-    def meteo_nomenclature(self):
-        return db.session.execute(
-            sa.select(TNomenclatures)
-            .join(BibNomenclaturesTypes, TNomenclatures.id_type == BibNomenclaturesTypes.id_type)
-            .where(
-                BibNomenclaturesTypes.mnemonique == "TEST_METEO",
-                TNomenclatures.cd_nomenclature == "METEO_B",
-            )
-        ).scalar_one()
-
     def test_nomenclature_type_from_code_nomenclature_type(self):
         store = make_store(
             NomenclatureStore,
@@ -170,3 +161,96 @@ class TestNomenclatureStore:
         stored = store.to_storage(meteo_nomenclature)
         assert stored == meteo_nomenclature.cd_nomenclature
         assert store.from_storage(stored) == meteo_nomenclature.id_nomenclature
+
+    def test_nomenclature_of_other_type_is_rejected(self, other_type_nomenclature):
+        field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).get_field()
+        with pytest.raises(ValidationError):
+            field.deserialize(other_type_nomenclature.id_nomenclature)
+
+    def test_type_absent_from_db_rejects_any_nomenclature(self, meteo_nomenclature):
+        store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
+        store.nomenclature_type = BibNomenclaturesTypes(mnemonique="TYPE_NON_INSTALLE")
+        with pytest.raises(ValidationError):
+            store.get_field().deserialize(meteo_nomenclature.id_nomenclature)
+
+
+@pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
+class TestAreaStore:
+    def test_area_type_is_loaded(self):
+        store = make_store(AreaStore, {"area_type_code": "DEP"})
+        assert store.area_type.type_code == "DEP"
+
+    def test_no_area_type_accepts_any_area(self, dep_area):
+        store = make_store(AreaStore, {})
+        assert store.area_type is None
+        assert store.get_field().deserialize(dep_area.id_area).id_area == dep_area.id_area
+
+    def test_unknown_area_type_is_rejected(self):
+        with pytest.raises(ValidationError):
+            make_store(AreaStore, {"area_type_code": "UNKNOWN_TYPE_XYZ"})
+
+    def test_area_of_type_is_accepted(self, dep_area):
+        field = make_store(AreaStore, {"area_type_code": "DEP"}).get_field()
+        assert field.deserialize(dep_area.id_area).id_area == dep_area.id_area
+
+    def test_area_of_other_type_is_rejected(self, other_type_area):
+        field = make_store(AreaStore, {"area_type_code": "DEP"}).get_field()
+        with pytest.raises(ValidationError):
+            field.deserialize(other_type_area.id_area)
+
+    def test_storage_col_is_resolved_within_area_type(self, dep_area):
+        store = make_store(
+            AreaStore,
+            {"area_type_code": "DEP", "storage_col": "area_code"},
+        )
+        assert store.from_storage(dep_area.area_code) == dep_area.id_area
+
+    def test_storage_col_ignores_areas_of_other_type(self, other_type_area):
+        store = make_store(
+            AreaStore,
+            {"area_type_code": "DEP", "storage_col": "area_code"},
+        )
+        with pytest.raises(ValueError):
+            store.from_storage(other_type_area.area_code)
+
+    def test_widget_passes_area_type_code_to_single_store(self):
+        with schema_context(
+            entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
+        ):
+            store = AreasWidget({"multiple": False}).get_default_store({"area_type_code": "DEP"})
+        assert isinstance(store, AreaStore)
+        assert store.area_type.type_code == "DEP"
+
+    def test_widget_passes_its_own_area_type_code_to_store(self):
+        with schema_context(
+            entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
+        ):
+            store = AreasWidget(
+                {"multiple": False, "area_type_code": "DEP"}
+            ).get_default_store()
+        assert isinstance(store, AreaStore)
+        assert store.area_type.type_code == "DEP"
+
+    def test_widget_retro_compat_passes_area_type_code_to_store(self):
+        with schema_context(
+            entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
+        ):
+            store = AreasWidget(
+                {"type_widget": "areas", "area_type_code": "DEP"}
+            ).get_default_store()
+        assert isinstance(store, AreaStore)
+        assert store.area_type.type_code == "DEP"
+
+    def test_widget_dump_config_exposes_type_codes(self):
+        with schema_context(
+            entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
+        ):
+            config = AreasWidget({"multiple": False, "area_type_code": "DEP"}).dump_config()
+        assert config["type_codes"] == ["DEP"]
+
+    def test_widget_dump_config_without_area_type_code_has_no_type_codes(self):
+        with schema_context(
+            entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
+        ):
+            config = AreasWidget({"multiple": False}).dump_config()
+        assert "type_codes" not in config

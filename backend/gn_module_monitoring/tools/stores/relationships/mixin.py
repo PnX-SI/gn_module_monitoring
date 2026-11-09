@@ -9,7 +9,7 @@ from marshmallow import (
 )
 from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 from pypnusershub.db.models import UserList
-from ref_geo.models import BibAreasTypes
+from ref_geo.models import BibAreasTypes, LAreas
 from sqlalchemy import select
 
 from geonature.utils.env import db
@@ -152,6 +152,22 @@ class NomenclatureMixin:
         # Un cd_nomenclature n'est unique qu'au sein de son type
         return [TNomenclatures.id_type == self.nomenclature_type.id_type]
 
+    def validate_nomenclatures_of_type(self, nomenclatures):
+        # À la saisie, seuls les types et nomenclatures présents en base sont valides :
+        # nomenclature.json ne sert qu’au chargement de la config d’un module non installé.
+        mnemonique = self.nomenclature_type.mnemonique
+        if self.nomenclature_type.id_type is None:
+            raise ValidationError(f"Le type de nomenclature '{mnemonique}' n’existe pas en base.")
+        not_of_type = [
+            n.id_nomenclature
+            for n in nomenclatures
+            if n.id_type != self.nomenclature_type.id_type
+        ]
+        if not_of_type:
+            raise ValidationError(
+                f"Nomenclatures {not_of_type} n’appartenant pas au type de nomenclature '{mnemonique}'."
+            )
+
     @classmethod
     def get_model(cls):
         from pypnnomenclature.models import TNomenclatures
@@ -175,22 +191,31 @@ class AreaMixin:
     class ConfigSchema(BaseRelationshipStore.ConfigSchema):
         # Code du type de zone (ref_geo.bib_areas_types.type_code) : si défini, seules les zones
         # de ce type sont acceptées.
-        area_code = fields.Str()
+        area_type_code = fields.Str()
+
+        @validates("area_type_code")
+        def validate_area_type_code(self, value, **kwargs):
+            # Le type de zone doit exister en base : les zones viennent de ref_geo, pas du module
+            exists = db.session.execute(
+                sa.select(BibAreasTypes.id_type).where(BibAreasTypes.type_code == value)
+            ).scalar_one_or_none()
+            if exists is None:
+                raise ValidationError(f"Le type de zone '{value}' n’existe pas.")
 
     def __init__(self, data=None, **kwargs):
         super().__init__(data, **kwargs)
         self.area_type = None
-        if type_code := self.get("area_code"):
+        if type_code := self.get("area_type_code"):
             self.area_type = db.session.execute(
                 sa.select(BibAreasTypes).where(BibAreasTypes.type_code == type_code)
-            ).scalar_one_or_none()
-            if self.area_type is None:
-                raise ValidationError(
-                    {"area_code": f"Le type de zone '{type_code}' n’existe pas."}
-                )
+            ).scalar_one()
+
+    def _get_storage_filters(self):
+        # Un area_code n'est unique qu'au sein de son type de zone
+        if self.area_type is None:
+            return []
+        return [LAreas.id_type == self.area_type.id_type]
 
     @classmethod
     def get_model(cls):
-        from ref_geo.models import LAreas
-
         return LAreas

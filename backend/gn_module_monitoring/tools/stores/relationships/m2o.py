@@ -346,6 +346,13 @@ class NomenclatureStore(NomenclatureMixin, BaseForeignKeyStore):
 
     fk_target = "ref_nomenclatures.t_nomenclatures.id_nomenclature"
 
+    class Field(BaseForeignKeyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instance = super()._deserialize(value, attr, data, **kwargs)
+            if instance is not None:
+                self.store.validate_nomenclatures_of_type([instance])
+            return instance
+
     @cache
     @staticmethod
     def get_types_mnemoniques():

@@ -181,19 +181,26 @@ class AreasWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         multiple = fields.Boolean(load_default=False)  # lue par pnx-areas
+        area_type_code = fields.Str()  # type de zone, transmis au store et exposé en type_codes
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreaStore, AreasStore
 
         # Clés acceptées par le store (multiple est une option du widget)
+        data = {
+            k: v for k, v in data.items() if k in ("area_type_code", "storage_col", "storage_cols")
+        }
+        if self.get("area_type_code"):
+            data.setdefault("area_type_code", self["area_type_code"])
         if self["multiple"]:
-            return AreasStore(
-                {k: v for k, v in data.items() if k in ("area_code", "storage_col", "storage_cols")},
-                **kwargs,
-            )
-        return AreaStore(
-            {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}, **kwargs
-        )
+            return AreasStore(data, **kwargs)
+        return AreaStore(data, **kwargs)
+
+    def dump_config(self):
+        config = super().dump_config()
+        if self.get("area_type_code"):
+            config["type_codes"] = [self["area_type_code"]]
+        return config
 
     def get_api_type(self):
         return list[int] if self["multiple"] else int
@@ -208,7 +215,7 @@ class MunicipalitiesWidget(BaseWidget):
     def _get_default_store(self, data, **kwargs):
         from ..stores import AreasStore
 
-        return AreasStore({**data, "area_code": "COM"}, **kwargs)
+        return AreasStore({**data, "area_type_code": "COM"}, **kwargs)
 
     def get_api_type(self):
         return list[int] if self["multiple"] else int

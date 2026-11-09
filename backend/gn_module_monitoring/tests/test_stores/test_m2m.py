@@ -86,6 +86,37 @@ class TestNomenclaturesStore:
         store = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"})
         assert store.get_api_type() == list[int]
 
+    def test_nomenclatures_of_type_are_accepted(self, meteo_nomenclature):
+        field = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"}).get_field()
+        (instance,) = field.deserialize([meteo_nomenclature.id_nomenclature])
+        assert instance.id_nomenclature == meteo_nomenclature.id_nomenclature
+
+    def test_nomenclature_of_other_type_is_rejected(self, other_type_nomenclature):
+        field = make_store(NomenclaturesStore, {"nomenclature_type": "TEST_METEO"}).get_field()
+        with pytest.raises(ValidationError):
+            field.deserialize([other_type_nomenclature.id_nomenclature])
+
+
+@pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
+class TestAreasStore:
+    def test_area_type_is_loaded(self):
+        store = make_store(AreasStore, {"area_type_code": "DEP"})
+        assert store.area_type.type_code == "DEP"
+
+    def test_unknown_area_type_is_rejected(self):
+        with pytest.raises(ValidationError):
+            make_store(AreasStore, {"area_type_code": "UNKNOWN_TYPE_XYZ"})
+
+    def test_areas_of_type_are_accepted(self, dep_area):
+        field = make_store(AreasStore, {"area_type_code": "DEP"}).get_field()
+        (instance,) = field.deserialize([dep_area.id_area])
+        assert instance.id_area == dep_area.id_area
+
+    def test_area_of_other_type_is_rejected(self, dep_area, other_type_area):
+        field = make_store(AreasStore, {"area_type_code": "DEP"}).get_field()
+        with pytest.raises(ValidationError):
+            field.deserialize([dep_area.id_area, other_type_area.id_area])
+
 
 @pytest.mark.usefixtures("temporary_transaction")
 class TestManyToManyStorage:

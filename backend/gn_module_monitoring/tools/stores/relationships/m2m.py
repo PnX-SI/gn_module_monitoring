@@ -145,6 +145,13 @@ class DatasetsStore(DatasetMixin, BaseManyToManyStore):
 class NomenclaturesStore(NomenclatureMixin, BaseManyToManyStore):
     key = "nomenclatures"
 
+    class Field(BaseManyToManyStore.Field):
+        def _deserialize(self, value, attr, data, **kwargs):
+            instances = super()._deserialize(value, attr, data, **kwargs)
+            if instances:
+                self.store.validate_nomenclatures_of_type(instances)
+            return instances
+
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
 
