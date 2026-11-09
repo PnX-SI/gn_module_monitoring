@@ -3,8 +3,6 @@ import sqlalchemy as sa
 
 from geonature.utils.env import db
 
-from pypnnomenclature.models import TNomenclatures
-
 from gn_module_monitoring.command.check.utils import (
     CheckResult,
     wrap_errors,
@@ -15,13 +13,16 @@ def get_table(name, schema="gn_monitoring"):
     return db.metadata.tables["{}.{}".format(schema, name)]
 
 
+# TODO: use store["model"]?
 OBJECTS_TABLE_NAME = {
-    "module": ("t_module_complements", "id_module"),
-    "sites_group": ("t_sites_groups", "id_sites_group"),
-    "site": ("t_site_complements", "id_base_site"),
-    "visit": ("t_visit_complements", "id_base_visit"),
-    "observation": ("t_observation_complements", "id_observation"),
-    "observation_detail": ("t_observation_details", "id_observation_detail"),
+    "module": ("t_module_complements", "id_module", "data"),
+    "sites_group": ("t_sites_groups", "id_sites_group", "data"),
+    "site": ("t_site_complements", "id_base_site", "data"),
+    "visit": ("t_visit_complements", "id_base_visit", "data"),
+    "observation": ("t_observation_complements", "id_observation", "data"),
+    "observation_detail": ("t_observation_details", "id_observation_detail", "data"),
+    "individual": ("t_individuals", "id_individual", "additional_data"),
+    "marking": ("t_marking_events", "id_marking", "data"),
 }
 
 
@@ -33,7 +34,7 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
     Si `row_ids` est renseigné, seuls ces enregistrements sont retournés.
     """
 
-    complements_table_name, id_column_name = OBJECTS_TABLE_NAME[object_type]
+    complements_table_name, id_column_name, data_column_name = OBJECTS_TABLE_NAME[object_type]
     complements = get_table(complements_table_name)
     id_column = complements.c[id_column_name]
 
@@ -42,7 +43,7 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
     elif object_type == "sites_group":
         module_link = get_table("cor_sites_group_module")
         query = (
-            sa.select(id_column, complements.c.data)
+            sa.select(id_column, complements.c[data_column_name])
             .join(
                 module_link,
                 module_link.c.id_sites_group == id_column,
@@ -52,14 +53,14 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
     elif object_type == "site":
         module_link = get_table("cor_site_module")
         query = (
-            sa.select(id_column, complements.c.data)
+            sa.select(id_column, complements.c[data_column_name])
             .join(module_link, module_link.c.id_base_site == id_column)
             .where(module_link.c.id_module == id_module)
         )
     elif object_type == "visit":
         visits = get_table("t_base_visits")
         query = (
-            sa.select(id_column, complements.c.data)
+            sa.select(id_column, complements.c[data_column_name])
             .join(visits, visits.c.id_base_visit == id_column)
             .where(visits.c.id_module == id_module)
         )
@@ -67,7 +68,7 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
         observations = get_table("t_observations")
         visits = get_table("t_base_visits")
         query = (
-            sa.select(id_column, complements.c.data)
+            sa.select(id_column, complements.c[data_column_name])
             .join(observations, observations.c.id_observation == id_column)
             .join(visits, visits.c.id_base_visit == observations.c.id_base_visit)
             .where(visits.c.id_module == id_module)
@@ -76,10 +77,24 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
         observations = get_table("t_observations")
         visits = get_table("t_base_visits")
         query = (
-            sa.select(id_column, complements.c.data)
+            sa.select(id_column, complements.c[data_column_name])
             .join(observations, observations.c.id_observation == complements.c.id_observation)
             .join(visits, visits.c.id_base_visit == observations.c.id_base_visit)
             .where(visits.c.id_module == id_module)
+        )
+    elif object_type == "individual":
+        module_link = get_table("cor_individual_module")
+        query = (
+            sa.select(id_column, complements.c[data_column_name])
+            .join(
+                module_link,
+                module_link.c.id_individual == id_column,
+            )
+            .where(module_link.c.id_module == id_module)
+        )
+    elif object_type == "marking":
+        query = sa.select(id_column, complements.c[data_column_name]).where(
+            complements.c.id_module == id_module
         )
     else:
         raise Exception(f"Unexpected object type '{object_type}'")
@@ -91,11 +106,13 @@ def get_data_rows(object_type: str, id_module: int, row_ids=None):
 
 
 def update_row(object_type, row_id, data):
-    complements_table_name, id_column_name = OBJECTS_TABLE_NAME[object_type]
+    complements_table_name, id_column_name, data_column_name = OBJECTS_TABLE_NAME[object_type]
     complements = get_table(complements_table_name)
     id_column = complements.c[id_column_name]
 
-    db.session.execute(sa.update(complements).where(id_column == row_id).values(data=data))
+    db.session.execute(
+        sa.update(complements).where(id_column == row_id).values(**{data_column_name: data})
+    )
     db.session.commit()
 
     yield "\n" + click.style(f"Enregistrement {row_id} mis à jour", fg="green")
@@ -142,7 +159,9 @@ def check_module_data_type(module, fix, data_filters, object_type):
 
     entity = module.entities[object_type]
     fields_config = entity.data["fields"]
-    rows = get_data_rows(object_type, module.module.id_module, data_filters.get(f"{object_type}_pks"))
+    rows = get_data_rows(
+        object_type, module.module.id_module, data_filters.get(f"{object_type}_pks")
+    )
     if not rows:
         return CheckResult("[NO DATA]", bold=True)
 
