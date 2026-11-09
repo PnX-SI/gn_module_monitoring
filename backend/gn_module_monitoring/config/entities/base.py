@@ -8,7 +8,7 @@ from cel_expr_python.cel import NewEnv, Type
 from marshmallow import pre_load, post_load, validates_schema, ValidationError
 
 from gn_module_monitoring.config.utils import apply_substitutions
-from gn_module_monitoring.tools.utils import CELValidationsField, check_cel_type
+from gn_module_monitoring.tools.utils import CELValidationsField, MultilineStr, check_cel_type
 from .fields import EntityFieldConfigSchema, schema_context
 
 # Types CEL des valeurs Python des stores (par type Python de la valeur chargée) :
@@ -83,8 +83,10 @@ class BaseEntityConfigSchema(ma.Schema):
     display_list = ma.fields.List(ma.fields.Str())
     # Clés descriptives utilisées par le frontend : conservées telles quelles si présentes
     # (pas de load_default, pour ne pas ajouter de clé absente de la config legacy)
-    chained = ma.fields.Raw()
-    change = ma.fields.Raw()
+    chained = ma.fields.Boolean()
+    # Lu par le frontend (monitoring-form-g.component.ts) après enregistrement, pour toutes les entités
+    redirect_to_parent = ma.fields.Boolean()
+    change = MultilineStr()
     # Filtres par défaut appliqués à la liste de l’objet : {nom_du_champ: valeur ou liste de valeurs}
     # (ex. {"active": True} ou {"cd_nomenclature": ["1", "2"]}).
     # Lu par le frontend (monitoring-geom-component.ts : defaultFilters) et par sites-groups.resolver.ts.

@@ -348,7 +348,11 @@ def get_data_preload(config):
 
             # composant nomenclature
             if type_widget == "nomenclature":
-                out["nomenclature"].append(form["code_nomenclature_type"])
+                code_type = form.get("code_nomenclature_type") or (value or {}).get(
+                    "code_nomenclature_type"
+                )
+                if code_type:
+                    out["nomenclature"].append(code_type)
 
             # composant datalist
             if type_widget == "datalist":

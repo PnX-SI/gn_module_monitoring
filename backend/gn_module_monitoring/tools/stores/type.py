@@ -108,7 +108,7 @@ class IntegerStore(BaseTypeStore):
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NumberWidget
 
-        return NumberWidget({"step": 1}, **kwargs)
+        return NumberWidget({"step": 1, **(data or {})}, **kwargs)
 
 
 class FloatStore(BaseTypeStore):

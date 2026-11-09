@@ -23,7 +23,12 @@ class MarkingEntityConfigSchema(BaseEntityConfigSchema):
         "uuid_field_name": "id_marking",
         "fields": {
             "id_marking": {
-                "widget": {"type": "text", "attribut_label": "Id marquage", "hidden": True},
+                "widget": {
+                    "type": "number",
+                    "step": 1,
+                    "attribut_label": "Id marquage",
+                    "hidden": True,
+                },
             },
             "id_individual": {
                 "widget": {
@@ -34,6 +39,7 @@ class MarkingEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "marking_date": {
+                "store": {"type": "datetime"},
                 "widget": {"type": "date", "attribut_label": "Date de marquage"},
                 "required": True,
             },
@@ -79,7 +85,7 @@ class MarkingEntityConfigSchema(BaseEntityConfigSchema):
             "id_digitiser": {
                 "store": {"type": "user"},
                 "widget": {
-                    "type": "text",
+                    "type": "user",
                     "attribut_label": "Numérisateur",
                     "hidden": True,
                 },

@@ -169,16 +169,25 @@ class RadioWidget(BaseWidget):
     key = "radio"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        value = fields.String()  # valeur par défaut, lue par form.service (toForm)
-        values = fields.List(fields.String())
+        value = fields.Raw()  # valeur par défaut, lue par form.service (toForm)
+        values = fields.List(ValueLabelField())
+
+    @property
+    def values_are_int(self):
+        values = self.get("values") or []
+        return bool(values) and all(type(value["value"]) is int for value in values)
 
     def _get_default_store(self, data=None, **kwargs):
+        if self.values_are_int:
+            from ..stores import IntegerStore
+
+            return IntegerStore(data, **kwargs)
         from ..stores import StringStore
 
         return StringStore(data, **kwargs)
 
     def get_api_type(self):
-        return str
+        return int if self.values_are_int else str
 
 
 class NumberWidget(BaseWidget):
@@ -190,7 +199,7 @@ class NumberWidget(BaseWidget):
         # C’est désormais interdit et il faut traduire en CEL
         min = fields.Float()
         max = fields.Float()
-        default = fields.Raw()  # valeur par défaut, lue par form.service (toForm)
+        default = fields.Raw(allow_none=True)  # valeur par défaut, lue par form.service (toForm)
 
     @property
     def is_integer(self):
@@ -278,7 +287,7 @@ class DatalistWidget(BaseWidget):
         keyValue = fields.String()
         keyLabel = fields.String()
         data_path = fields.String()  # lu par datalist.component (extraction de la liste)
-        default = fields.Raw()  # valeur par défaut, lue par datalist.component
+        default = fields.Raw(allow_none=True)  # valeur par défaut, lue par datalist.component
         nullDefault = fields.Boolean()  # lu par datalist.component
         designStyle = fields.String()  # lu par datalist.component
         application = fields.String()  # lu par datalist.component (source de l'API)
@@ -296,19 +305,19 @@ class DatalistWidget(BaseWidget):
                     )
                 if "keyLabel" not in data:
                     raise ValidationError(
-                        {"keyValue": "Avec 'api', vous devez fournir 'keyLabel'"}
+                        {"keyLabel": "Avec 'api', vous devez fournir 'keyLabel'"}
                     )
 
     def _get_default_store(self, data, **kwargs):
         if "values" in self:
             from ..stores import ValueStore
 
-            return ValueStore({"values": self["values"]}, **kwargs)
+            return ValueStore({"values": self["values"], **(data or {})}, **kwargs)
         else:
             from ..stores import StringStore
 
             # This is pure guessing as we do not know the API return type
-            return StringStore({}, **kwargs)
+            return StringStore(data or {}, **kwargs)
 
     def get_api_type(self):
         if "values" in self:

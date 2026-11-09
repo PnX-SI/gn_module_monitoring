@@ -8,6 +8,7 @@ class NomenclatureWidget(BaseWidget):
 
     class ConfigSchema(BaseWidget.ConfigSchema):
         multi_select = fields.Boolean(load_default=False)
+        value = fields.Raw()  # valeur par défaut, lue par form.service (toForm)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import NomenclatureStore, NomenclaturesStore
@@ -38,6 +39,7 @@ class TaxonomyWidget(BaseWidget):
         keyValue = fields.String()
         keyLabel = fields.String()
         multiple = fields.Boolean()
+        value = fields.Int(allow_none=True)  # valeur par défaut, lue par form.service (toForm)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import TaxonomyStore

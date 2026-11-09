@@ -14,6 +14,10 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
     types_site = ma.fields.Dict(dump_only=True)
     # Lu par le frontend (monitoring-geom-component.ts) pour le bouton "Téléchargements"
     export_csv = ma.fields.Raw()
+    # Lus par la commande d'installation (command/cmd.py) et stockés dans TMonitoringModules
+    module_label = ma.fields.Str()
+    module_desc = ma.fields.Str()
+    b_draw_sites_group = ma.fields.Boolean()
 
     @post_load
     def load_types_site(self, data, **kwargs):

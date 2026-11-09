@@ -213,6 +213,7 @@ class TaxonomyListStore(BaseForeignKeyStore):
                 "keyLabel": "nom_liste",
                 "multiple": False,
                 "api": "biblistes/",
+                **(data or {}),
             },
             **kwargs,
         )
@@ -283,6 +284,7 @@ class SitesGroupStore(BaseForeignKeyStore):
                 "keyLabel": "sites_group_name",
                 "multiple": False,
                 "api": "monitorings/sites_groups",
+                **(data or {}),
             },
             **kwargs,
         )
@@ -309,6 +311,7 @@ class SiteStore(BaseForeignKeyStore):
                 "keyLabel": "base_site_name",
                 "multiple": False,
                 "api": "monitorings/sites",
+                **(data or {}),
             },
             **kwargs,
         )
@@ -335,6 +338,7 @@ class VisitStore(BaseForeignKeyStore):
                 "keyLabel": "visit_date_min",
                 "multiple": False,
                 "api": "monitorings/visits",
+                **(data or {}),
             },
             **kwargs,
         )

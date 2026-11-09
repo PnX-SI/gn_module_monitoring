@@ -97,6 +97,7 @@ class TypesSiteStore(BaseManyToManyStore):
                 "keyLabel": "label",
                 "multiple": True,
                 "api": "__MONITORINGS_PATH/modules/__MODULE.MODULE_CODE/types_sites",
+                **(data or {}),
             },
             **kwargs,
         )
