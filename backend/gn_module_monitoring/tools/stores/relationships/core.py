@@ -141,7 +141,10 @@ class BaseRelationshipStore(BaseStore):
                 )
             try:
                 return db.session.execute(
-                    sa.select(pk).where(getattr(self.get_model(), storage_col) == value)
+                    sa.select(pk).where(
+                        getattr(self.get_model(), storage_col) == value,
+                        *self._get_storage_filters(),
+                    )
                 ).scalar_one()
             except NoResultFound:
                 raise ValueError(f"Unexpected value '{value}' : aucune instance trouvée.")
@@ -150,6 +153,10 @@ class BaseRelationshipStore(BaseStore):
         else:
             # Donnée stockée sous forme de clé primaire en théorie
             return value
+
+    def _get_storage_filters(self):
+        # Conditions supplémentaires pour retrouver une instance à partir de storage_col
+        return []
 
     def get_field(self) -> fields.Field:
         return self.Field(self)

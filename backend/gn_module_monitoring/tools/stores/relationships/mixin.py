@@ -148,6 +148,10 @@ class NomenclatureMixin:
             mnemonique=mnemonique
         )
 
+    def _get_storage_filters(self):
+        # Un cd_nomenclature n'est unique qu'au sein de son type
+        return [TNomenclatures.id_type == self.nomenclature_type.id_type]
+
     @classmethod
     def get_model(cls):
         from pypnnomenclature.models import TNomenclatures

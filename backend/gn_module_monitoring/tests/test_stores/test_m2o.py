@@ -2,7 +2,7 @@ import pytest
 import sqlalchemy as sa
 from marshmallow import ValidationError
 from pypnusershub.db.models import User
-from pypnnomenclature.models import TNomenclatures
+from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
 from geonature.utils.env import db
 from gn_module_monitoring.modules import get_module
@@ -98,7 +98,12 @@ class TestNomenclatureStore:
     @pytest.fixture
     def meteo_nomenclature(self):
         return db.session.execute(
-            sa.select(TNomenclatures).where(TNomenclatures.cd_nomenclature == "METEO_B")
+            sa.select(TNomenclatures)
+            .join(BibNomenclaturesTypes, TNomenclatures.id_type == BibNomenclaturesTypes.id_type)
+            .where(
+                BibNomenclaturesTypes.mnemonique == "TEST_METEO",
+                TNomenclatures.cd_nomenclature == "METEO_B",
+            )
         ).scalar_one()
 
     def test_nomenclature_type_from_code_nomenclature_type(self):

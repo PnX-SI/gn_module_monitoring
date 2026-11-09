@@ -122,8 +122,8 @@ class MonitoringModule(UserDict):
         for entity in self.entities.values():
             for field in entity.data["fields"].values():
                 store = field["store"]
-                if isinstance(store, NomenclatureStore) and store.nomenclature_type is not None:
-                    types.append(store.nomenclature_type.mnemonique)
+                if isinstance(store, NomenclatureStore):
+                    types.append(store["nomenclature_type"])
         return list(dict.fromkeys(types))
 
     def dump_config(self):

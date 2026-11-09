@@ -17,7 +17,6 @@ from werkzeug.exceptions import Forbidden
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint, blueprint_api
-from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringSites,
@@ -28,7 +27,7 @@ from gn_module_monitoring.monitoring.schemas import (
     BibTypeSiteSchema,
     MonitoringCruvedSchemaMixin,
 )
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.utils.routes import (
     filter_params,

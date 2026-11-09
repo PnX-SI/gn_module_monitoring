@@ -4,6 +4,7 @@ routes pour les modules de suivis...
 
 from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
+from werkzeug.exceptions import BadRequest
 
 from marshmallow import EXCLUDE
 
@@ -93,20 +94,24 @@ def get_all_types_site_from_module_id(module_code):
 def patch_module(scope, module_code: str = "generic", _id: int = None):
     module = db.get_or_404(TMonitoringModules, _id)
     post_data = dict(request.get_json())
-    module = create_or_update_module(post_data, module_code)
+    if post_data.get("id_module", _id) != _id:
+        raise BadRequest("L'id_module du corps ne correspond pas à l'id de l'URL.")
+    post_data["id_module"] = _id
+    module = create_or_update_module(post_data, module_code, instance=module)
     return module
 
 
-def create_or_update_module(post_data: dict, module_code: str):
+def create_or_update_module(post_data: dict, module_code: str, instance=None):
     """
     Create or update a module.
 
     :param post_data: dict containing data to create or update a module
     :param module_code: str, module code, default is "generic"
+    :param instance: TMonitoringModules to update, None to create a new module
     :return: dict, serialized module
     """
     schema = get_entity_or_404(module_code, "module").get_extended_schema()
-    module = schema(unknown=EXCLUDE).load(post_data, partial=True)
+    module = schema(unknown=EXCLUDE).load(post_data, instance=instance, partial=True)
 
     db.session.add(module)
     db.session.commit()
