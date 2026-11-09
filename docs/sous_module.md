@@ -636,9 +636,9 @@ Fichier de configuration du niveau visite :
   },
   "change": [
     "({objForm, meta}) => {",
-    "const occ_sol = (meta.parents.site.properties.occ_sol);",
-    "const gestion = (meta.parents.site.properties.gestion);",
-    "(objForm.value.occ_sol == (null || undefined)  && meta.parents.site.properties.occ_sol != (null || undefined) ? objForm.patchValue({occ_sol}) : '');",
+    "const occ_sol = (meta.parents.site.occ_sol);",
+    "const gestion = (meta.parents.site.gestion);",
+    "(objForm.value.occ_sol == (null || undefined)  && meta.parents.site.occ_sol != (null || undefined) ? objForm.patchValue({occ_sol}) : '');",
     "(objForm.value.gestion == (null || undefined) ? objForm.patchValue({gestion}) : '');",
     "}",
     ""

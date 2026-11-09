@@ -34,7 +34,8 @@
       "module_code": "__MODULE.MODULE_CODE",
       "id_list": "__MODULE.ID_LIST_TAXONOMY",
       "cd_nom": "__MODULE.CD_NOM",
-      "hidden": true
+      "hidden": true,
+      "required": false
     },
     "cd_nom": {
       "type_widget": "taxonomy",
