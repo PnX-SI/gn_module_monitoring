@@ -75,7 +75,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "hidden": True,
             },
             "first_use_date": {
-                "type_widget": "date",
+                "store": {"type": "datetime"},
                 "attribut_label": "Date description",
                 "required": True,
             },
@@ -91,7 +91,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
             },
             "nb_individuals": {
                 "attribut_label": "Nb. individus",
-                "type_widget": "number",
+                "store": {"type": "integer"},
                 "hidden": True,
             },
             "uuid_base_site": {

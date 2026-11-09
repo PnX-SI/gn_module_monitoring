@@ -28,8 +28,12 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "visit_date_min", "dir": "desc"}],
         "fields": {
-            "id_base_visit": {"type_util": "integer", "attribut_label": "ID", "hidden": True},
-            "id_base_site": {"type_util": "integer", "attribut_label": "ID SITE", "hidden": True},
+            "id_base_visit": {"store": {"type": "visit"}, "attribut_label": "ID", "hidden": True},
+            "id_base_site": {
+                "store": {"type": "site"},
+                "attribut_label": "ID SITE",
+                "hidden": True,
+            },
             "id_module": {"type_widget": "text", "attribut_label": "ID Module", "hidden": True},
             "observers": {
                 "type_widget": "observers",
