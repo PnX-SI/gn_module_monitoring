@@ -1,7 +1,8 @@
-import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
+import { Component } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { NgSelectConfig } from '@ng-select/ng-select';
 import { Location } from '@angular/common';
@@ -81,7 +82,22 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
     this.setAsideHiddenTypesSite();
     super.ngOnInit();
   }
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
 
+    // Souscription aux changements des types de site
+    this.typesSiteValueChangesSub = this.form
+      .get('types_site')
+      .valueChanges.pipe(
+        distinctUntilChanged((prev: number[], curr: number[]) => {
+          // Comparaison profonde des tableaux (si l'ordre ou les éléments sont identiques)
+          return JSON.stringify(prev) === JSON.stringify(curr);
+        })
+      )
+      .subscribe((idTypesSite: number[]) => {
+        this.updateTypeSiteFormsDefinition(idTypesSite || []);
+      });
+  }
   private setAsideHiddenTypesSite() {
     if (!this.object) {
       return;
@@ -168,23 +184,17 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
 
   onDynamicFormGroupChange() {
     super.onDynamicFormGroupChange();
-
-    this.typesSiteValueChangesSub?.unsubscribe();
     const typesSiteControl = this.form.get('types_site');
     if (!typesSiteControl) {
       this.typeSiteFormsDefinition = [];
       return;
     }
     this.updateTypeSiteFormsDefinition(typesSiteControl.value || []);
-    this.typesSiteValueChangesSub = typesSiteControl.valueChanges.subscribe(
-      (idTypesSite: number[]) => {
-        this.updateTypeSiteFormsDefinition(idTypesSite || []);
-      }
-    );
   }
 
   updateTypeSiteFormsDefinition(typesSiteids: number[]) {
     const typesSiteConfig = this.config['types_site'] || {};
+    const typesSiteFormsDefinitionSave = this.typeSiteFormsDefinition;
     this.typeSiteFormsDefinition = typesSiteids
       .filter((idType) => typesSiteConfig[idType])
       .map((idType) => ({
@@ -192,6 +202,17 @@ export class MonitoringSiteFormGComponent extends MonitoringFormGComponent {
         name: typesSiteConfig[idType]['name'],
         fields: this.getTypeSiteFields(idType),
       }));
+
+    // En cas de suppression d'un type de site, on supprime ses champs
+    const removedItem = typesSiteFormsDefinitionSave.find(
+      (previousItem) =>
+        !this.typeSiteFormsDefinition.some((afterItem) => afterItem.idType === previousItem.idType)
+    );
+    if (removedItem) {
+      removedItem.fields.forEach((field) => {
+        this.form.removeControl(field.attribut_name);
+      });
+    }
   }
 
   /**
