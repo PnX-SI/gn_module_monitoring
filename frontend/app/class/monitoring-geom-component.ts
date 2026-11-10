@@ -126,9 +126,14 @@ export class MonitoringGeomComponent implements OnInit {
     if (row) {
       row['id'] = row[row.pk];
       const id_base_site = row?.id_base_site;
-      const routeParams = this._Activatedroute.snapshot.queryParams;
+      // getAll : toujours un tableau (queryParams donne une chaîne pour une valeur unique,
+      // undefined en accès direct) ; le parent du nouvel objet est la ligne cliquée
       let queryParams: any = {
-        parents_path: [...routeParams['parents_path'], this.objectType],
+        parents_path: [
+          ...this._Activatedroute.snapshot.queryParamMap.getAll('parents_path'),
+          this.objectType,
+          row['parent_object_type'],
+        ],
         id_base_site: id_base_site,
       };
       queryParams[row.pk] = row[row.pk];

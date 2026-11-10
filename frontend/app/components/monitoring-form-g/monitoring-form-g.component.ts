@@ -5,6 +5,7 @@ import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { NgSelectConfig } from '@ng-select/ng-select';
 
 import { CommonService } from '@geonature_common/service/common.service';
 import { DynamicFormService } from '@geonature_common/form/dynamic-form-generator/dynamic-form.service';
@@ -25,6 +26,13 @@ import { Popup } from '../../utils/popup';
   selector: 'pnx-monitoring-form-g',
   templateUrl: './monitoring-form-g.component.html',
   styleUrls: ['./monitoring-form-g.component.css'],
+  // Listes déroulantes ng-select rattachées au body pour ne pas être coupées par le scroll du formulaire
+  providers: [
+    {
+      provide: NgSelectConfig,
+      useFactory: () => Object.assign(new NgSelectConfig(), { appendTo: 'body' }),
+    },
+  ],
 })
 export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   @Input() apiService: ApiService;
@@ -41,7 +49,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   public meta: any;
   public saveAndAddChildrenSpinner: boolean = false;
   public saveSpinner: boolean = false;
+  public formReady: boolean = true;
   public chainInput: boolean = false;
+  // Nombre d'objets validés depuis le début de la saisie enchaînée
+  public chainedCount = 0;
   public canUpdate: boolean = false;
   public canDelete: boolean = false;
   public addChildren: boolean = false;
@@ -67,7 +78,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     private _navigationService: NavigationService,
     private _route: ActivatedRoute,
     private translate: TranslateService,
-    public _configServiceG: ConfigServiceG,
+    protected _configServiceG: ConfigServiceG,
     private _permissionService: PermissionService,
     private _objectService: ObjectService,
     private _popup: Popup
@@ -83,16 +94,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     }
     this.setDefaultFormValue();
 
-    if (this.config['geometry_type']) {
-      this._formService.changeFormMapObj({
-        frmGp: this.form.controls['geometry'] as FormControl,
-        geometry_type: this.config['geometry_type'],
-      });
-    }
+    this.publishGeometryControl();
 
-    this.formValues(this.form.value).subscribe((formValue) => {
-      this.form.patchValue(formValue);
-      this.initialFormValue = this.form.value;
+    // Conversion asynchrone des valeurs de l'objet pour les widgets (dates, observateurs, ...) :
+    // tant qu'elle n'est pas terminée, le formulaire contient les valeurs brutes de l'API,
+    // que formatForApi ne sait pas relire (envoi de valeurs nulles)
+    this.formValues(this.form.value).subscribe({
+      next: (formValue) => {
+        this.form.patchValue(formValue);
+        this.initialFormValue = this.form.value;
+      },
+      complete: () => setTimeout(() => (this.formReady = true)),
+      error: () => setTimeout(() => (this.formReady = true)),
     });
 
     // Affichage de la geometrie des sites et groupes de sites du module
@@ -163,8 +176,14 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     const objectPermission = this.userPermission[this.objectType.toString()] || {};
     const isCreate = !this.object;
+    // droits sur l'objet lui-même (scope « mes données » / « mon organisme »), calculés par l'API
+    const objectCruved = this.objectType != 'module' ? this.object?.cruved : undefined;
 
-    this.canUpdate = isCreate ? objectPermission['C'] > 0 : objectPermission['U'] > 0;
+    this.canUpdate = isCreate
+      ? objectPermission['C'] > 0
+      : objectCruved
+        ? !!objectCruved['U']
+        : objectPermission['U'] > 0;
 
     if (isCreate || this.objectType == 'module') {
       this.canDelete = false;
@@ -174,18 +193,20 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const nbChildren =
       (this.object['nb_sites'] || 0) +
       (this.object['nb_visits'] || 0) +
-      (this.object['nb_observations'] || 0);
+      (this.object['nb_observations'] || 0) +
+      (this.object['nb_marking_events'] || 0);
 
     if (nbChildren > 0) {
       this.canDelete = false;
       this.toolTipNotAllowed = TOOLTIPMESSAGEALERT_CHILD;
     } else {
-      this.canDelete = objectPermission['D'] > 0;
+      this.canDelete = objectCruved ? !!objectCruved['D'] : objectPermission['D'] > 0;
     }
   }
 
   ngOnInit() {
     this.queryParams = this._route.snapshot.queryParams || {};
+    this.formReady = !this.object;
     this.initForm();
     this.initPermission();
     if (this.fetchedParents) {
@@ -252,6 +273,9 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit(isAddChildrend = false) {
+    if (!this.formReady) {
+      return;
+    }
     isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
 
     let formValueGroup = this.form.value;
@@ -273,11 +297,18 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
       this.object = objData;
       this._commonService.regularToaster('success', actionLabel);
       this.saveSpinner = this.saveAndAddChildrenSpinner = false;
-      /** si c'est un module : reset de la config */
-      // if (this.obj.objectType === 'module') {
-      //     this._configService.loadConfig(this.obj.moduleCode).subscribe();
-      // }
+      /** si c'est un module : rechargement de la config puis de la page d'accueil du module
+       * pour prendre en compte les modifications (ex: statut 'configured') */
+      if (this.objectType === 'module') {
+        const moduleCode = this.apiService._getModuleCode();
+        this._formService.changeCurrentEditMode(false);
+        this._configServiceG
+          .loadConfig(moduleCode)
+          .subscribe(() => this._navigationService.reloadModuleHome(moduleCode));
+        return;
+      }
       if (this.chainInput) {
+        this.chainedCount++;
         this.resetForm();
       } else if (isAddChildrend) {
         this.navigateToAddChildren();
@@ -455,17 +486,17 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
    */
   navigateToParent() {
     this.EditChange.emit(false); // patch bug navigation
-
     const rawParentsPath = this.queryParams['parents_path'] || [];
     const parentsPath = Array.isArray(rawParentsPath) ? rawParentsPath : [rawParentsPath];
 
     const parentType = parentsPath[parentsPath.length - 1];
     const parentFieldId = (this._configServiceG.config()?.[parentType] || {})['id_field_name'];
-
+    // Si l'objet est vide, c-a-d une création l'id parent est récupéré depuis les queryParams
+    const parentId = this.object?.[parentFieldId] || this.queryParams[parentFieldId];
     this._navigationService.navigateToParent(
       this.apiService._getModuleCode(),
       this.apiService.objectObs.objectType,
-      this.object?.[parentFieldId],
+      parentId,
       [...parentsPath]
     );
   }
@@ -484,7 +515,10 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     this.object = null;
 
-    this.form.patchValue({ geometry: null });
+    // Les contrôles sont conservés lors du changement de définition (`preserveControls`) :
+    // on vide donc explicitement toutes les valeurs (géométrie incluse) avant de restaurer
+    // celles à conserver dans `onDynamicFormGroupChange`
+    this.form.reset();
 
     this.resetDynamicForm();
     // Force le rafraichissement des géométries de façon à ammender le layer avec la dernière données saisie
@@ -493,6 +527,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
   resetDynamicForm() {
     this.formsDefinition = (this.formsDefinition as any[]).map((formDef) => ({ ...formDef }));
+  }
+
+  /** Relie le composant de dessin au contrôle `geometry` courant du formulaire */
+  private publishGeometryControl() {
+    if (this.config['geometry_type']) {
+      this._formService.changeFormMapObj({
+        frmGp: this.form.controls['geometry'] as FormControl,
+        geometry_type: this.config['geometry_type'],
+      });
+    }
   }
 
   onDynamicFormGroupChange() {
@@ -514,11 +558,22 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     this.navigateToDetail();
   }
 
+  /**
+   * Arrête la saisie enchaînée : quitte le formulaire de création (les objets déjà
+   * validés sont conservés) pour retourner vers l'objet parent
+   */
+  onStopChain() {
+    this.chainInput = false;
+    this.navigateToDetail();
+  }
+
   onDelete() {
     this.deleteSpinner = true;
     this.apiService.delete(this.object[this.object.pk]).subscribe((objData) => {
       this.deleteSpinner = this.deleteModal = false;
+
       this.object.deleted = true;
+      this._formService.changeCurrentEditMode(false);
       this._commonService.regularToaster(
         'info',
         this.translate.instant('Monitoring.Actions.Deleted')

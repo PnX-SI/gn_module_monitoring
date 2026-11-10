@@ -51,7 +51,6 @@ export class MonitoringObservationsDetailCreateComponent implements OnInit {
     // breadcrumb
     const queryParams = this._route.snapshot.queryParams;
     const moduleCode = this._configServiceG.moduleCode();
-    this.observation_detail.id_observation = JSON.parse(queryParams?.id_observation);
     this._objService.loadBreadCrumb(moduleCode, 'observation_detail', null, queryParams);
     // Passage en mode édition
     this._formService.changeCurrentEditMode(true);

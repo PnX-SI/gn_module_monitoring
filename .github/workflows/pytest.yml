@@ -16,15 +16,15 @@ on:
       - main
       - hotfixes
       - develop
-      - refact-config
+      - refact-hotfixes
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        geonature_ref: ["develop"] # Mettre version compatible
-    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@develop
+        geonature_ref: ["release-2.18.0"] # Mettre version compatible
+    uses: pnx-si/geonature/.github/workflows/gn-module-pytest.yml@release-2.18.0
     with:
       geonature_ref: ${{ matrix.geonature_ref }}
       upload_coverage: true

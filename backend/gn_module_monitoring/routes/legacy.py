@@ -230,3 +230,14 @@ def get_config_sites(id=None, module_code="generic", object_type="site"):
 def get_config_sites_groups(id=None, module_code="generic", object_type="sites_group"):
     obj = get_serialized_object(module_code, object_type, id)
     return obj["properties"]
+
+
+@blueprint_legacy.route("/config/<string:module_code>", methods=["GET"])
+@blueprint_legacy.route("/config", defaults={"module_code": None}, methods=["GET"])
+@json_resp
+def get_config_api(module_code):
+    """
+    route qui renvoie la config pour un module donné
+    """
+    config = get_config_old(module_code, force=True)
+    return dict(config)

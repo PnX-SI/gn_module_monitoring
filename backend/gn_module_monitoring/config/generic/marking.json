@@ -28,7 +28,9 @@
         "id_individual": {
             "type_widget": "individuals",
             "attribut_label": "Choix de l'individu",
-            "id_module": "__MODULE.ID_MODULE",
+            "module_code": "__MODULE.MODULE_CODE",
+            "id_list": "__MODULE.ID_LIST_TAXONOMY",
+            "cd_nom": "__MODULE.CD_NOM",
             "hidden": true
         },
         "marking_date": {
@@ -37,13 +39,11 @@
             "required": true
         },
         "id_operator": {
-            "type_widget": "datalist",
             "attribut_label": "Opérateur",
-            "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-            "application": "GeoNature",
-            "keyValue": "id_role",
-            "keyLabel": "nom_complet",
+            "type_widget": "observers",
             "type_util": "user",
+            "code_list": "CODE_OBSERVERS_LIST",
+            "multi_select": false,
             "required": true
         },
         "id_base_marking_site": {

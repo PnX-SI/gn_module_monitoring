@@ -6,6 +6,8 @@ from geonature.tests.test_users_menu import tlist
 from geonature.utils.env import db
 from sqlalchemy import select
 
+from apptax.taxonomie.models import BibListes
+
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 
 # Liste des clés de premier niveau retournée par la config d'un module
@@ -58,10 +60,15 @@ class TestRouteConfig:
 
     def test_get_config_generic(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        response = self.client.get(url_for("monitorings.get_config_apiV2", module_code="generic"))
+        response = self.client.get(
+            url_for("monitorings.api.get_config_endpoint", module_code="generic")
+        )
         data = response.json
         # Test éléments de premier niveau de la réponse
-        assert set(CONFIG_KEYS) == set(data.keys())
+        assert set(CONFIG_KEYS) | {"configured"} == set(data.keys())
+
+        # Le module générique est toujours considéré comme configuré
+        assert data["configured"] is True
 
         # Test niveau custom contienne à minima l'entré nomenclature
         assert "nomenclature" in data["data"].keys()
@@ -77,7 +84,7 @@ class TestRouteConfig:
         assert data["module"]["fields"]["datasets"]["multi_select"] == True
 
     @pytest.mark.parametrize(
-        "route", ["monitorings.get_config_api", "monitorings.get_config_apiV2"]
+        "route", ["monitorings.legacy.get_config_api", "monitorings.api.get_config_endpoint"]
     )  # TODO remove when new config API is official
     def test_get_config(self, route):
         response = self.client.get(url_for(route))
@@ -85,7 +92,10 @@ class TestRouteConfig:
 
     @pytest.mark.parametrize(
         "route,fields_key",
-        [("monitorings.get_config_api", "specific"), ("monitorings.get_config_apiV2", "fields")],
+        [
+            ("monitorings.legacy.get_config_api", "specific"),
+            ("monitorings.api.get_config_endpoint", "fields"),
+        ],
     )  # TODO remove when new config API is official
     def test_get_config_module(self, module_list, users, route, fields_key):
         set_logged_user_cookie(self.client, users["admin_user"])
@@ -95,7 +105,11 @@ class TestRouteConfig:
         data = response.json
 
         # test éléments de premier niveau de la réponse
-        assert set(CONFIG_KEYS) == set(data.keys())
+        # (la clé "configured" n'est renvoyée que par la nouvelle API)
+        expected_keys = set(CONFIG_KEYS)
+        if route == "monitorings.api.get_config_endpoint":
+            expected_keys.add("configured")
+        assert expected_keys == set(data.keys())
 
         # Test liste des observateurs
         assert "CODE_OBSERVERS_LIST" in data["custom"].keys()
@@ -105,3 +119,36 @@ class TestRouteConfig:
         type_site_name = [v["name"] for k, v in module_type_site.items()]
 
         assert set(type_site_name) == set(["Test_Grotte", "Test_Mine"])
+
+    def test_get_config_module_configured(self, module_list, users, datasets):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        module, _ = module_list
+
+        def get_configured():
+            response = self.client.get(
+                url_for("monitorings.api.get_config_endpoint", module_code="test")
+            )
+            return response.json["configured"]
+
+        # Liste d'observateurs uniquement : module non configuré
+        assert get_configured() is False
+
+        # Ajout d'un jeu de données : toujours pas configuré (taxonomie manquante)
+        with db.session.begin_nested():
+            module.datasets.append(datasets["orphan_dataset"])
+        assert get_configured() is False
+
+        # Ajout de la liste de taxons : toujours pas configuré (affichage des taxons manquant)
+        with db.session.begin_nested():
+            module.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
+        assert get_configured() is False
+
+        # Ajout de l'affichage des taxons : module configuré
+        with db.session.begin_nested():
+            module.taxonomy_display_field_name = "nom_vern,lb_nom"
+        assert get_configured() is True
+
+        # Suppression de la liste d'observateurs : module non configuré
+        with db.session.begin_nested():
+            module.id_list_observer = None
+        assert get_configured() is False

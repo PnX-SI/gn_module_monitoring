@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ModuleService } from '@geonature/services/module.service';
+import { DataFormService } from '@geonature_common/form/data-form.service';
 import { of, Observable } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, map } from 'rxjs/operators';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
+import { API_PREFIX } from '../constants/api';
+import { CacheService } from './cache.service';
 
 @Injectable({
   providedIn: 'root', // a changer :/
@@ -15,7 +18,9 @@ export class ConfigServiceG {
   constructor(
     protected _http: HttpClient,
     protected _moduleService: ModuleService,
-    public geonatureConfig: GnConfigService
+    public geonatureConfig: GnConfigService,
+    private _cacheService: CacheService,
+    private _commonsDataFormService: DataFormService
   ) {}
 
   // Getter  de la config
@@ -39,10 +44,13 @@ export class ConfigServiceG {
 
   loadConfig(moduleCode: string): Observable<boolean> {
     console.log('ConfigServiceG loadConfig for moduleCode : ', moduleCode);
+
+    const baseUrl =
+      this.geonatureConfig.API_ENDPOINT + '/' + this._moduleService.currentModule.module_path;
     const urlConfig =
       moduleCode === 'generic'
-        ? `${this.backendModuleUrl()}/refacto/config`
-        : `${this.backendModuleUrl()}/refacto/config/${moduleCode}`;
+        ? `${baseUrl}/${API_PREFIX}/config`
+        : `${baseUrl}/${API_PREFIX}/${moduleCode}/config`;
     return this._http.get<any>(urlConfig).pipe(
       mergeMap((config: any) => {
         this._config = config;
@@ -51,23 +59,36 @@ export class ConfigServiceG {
         // Ex: transformer les chaines de caractères en fonctions JS
         this.processConfig();
         this._moduleCode = moduleCode;
-        return of(true);
+        // Initialisation des nomenclatures du module
+        return this.initModuleNomenclatures();
       })
     );
   }
 
-  /** Backend Module Url */
-  backendModuleUrl() {
-    // Test if api endpoint have a final slash
-    let api_url = this.geonatureConfig.API_ENDPOINT;
-    if (api_url.substring(api_url.length - 1, 1) !== '/') {
-      api_url = api_url + '/';
-    }
-    return `${api_url}${this._moduleService.currentModule.module_path}`;
-  }
-
-  backendUrl() {
-    return `${this.geonatureConfig.API_ENDPOINT}`;
+  initModuleNomenclatures(): Observable<any> {
+    /**
+     * Récupération et mise en cache de l'ensemble des nomenclatures utilisées dans le module
+     *
+     * @param moduleCode the module code
+     * @returns an Observable that completes when the nomenclatures are stored in cache
+     */
+    // Récupération des types de nomenclatures utilisées dans le module
+    const nomenclatureTypes = this._config['data']['nomenclature'] || [];
+    // Récupération des nomenclatures mise en forme et stockage en cache
+    return this._commonsDataFormService.getNomenclatures(nomenclatureTypes).pipe(
+      map((nomenclatures) => {
+        for (const key of Object.keys(nomenclatures)) {
+          for (const nomenclature of nomenclatures[key].values || []) {
+            let nomenclatureToStore = nomenclature;
+            nomenclatureToStore['code_type'] = nomenclatures[key].mnemonique;
+            this._cacheService.setCacheValue(
+              `util|nomenclature|${nomenclature['id_nomenclature']}`,
+              nomenclature
+            );
+          }
+        }
+      })
+    );
   }
 
   codeListObservers() {

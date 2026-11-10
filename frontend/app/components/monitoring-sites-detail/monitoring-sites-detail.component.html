@@ -1,42 +1,76 @@
 <div>
-  <span class="obj-title" *ngIf="bEdit">
+  <span
+    class="obj-title"
+    *ngIf="bEdit"
+  >
     {{ 'Actions.Edit' | translate }}
   </span>
-  <span class="obj-title" *ngIf="!bEdit">
+  <span
+    class="obj-title"
+    *ngIf="!bEdit"
+  >
     {{ 'Detail' | translate }}
   </span>
-  <span *ngIf="site" class="obj-description">
+  <span
+    *ngIf="site"
+    class="obj-description"
+  >
     {{ site.base_site_name }}
   </span>
 </div>
+{{ site | json }}
+<pnx-monitoring-site-form-g
+  *ngIf="objectDataResolved && bEdit"
+  [object]="objectData"
+  objectType="site"
+  [form]="form"
+  [currentUser]="currentUser"
+  [apiService]="_siteService"
+  [config]="moduleConfig['site']"
+></pnx-monitoring-site-form-g>
 
-<pnx-monitoring-site-form-g *ngIf="objectDataResolved && bEdit"  [object]="objectData" objectType="site" [form]="form" [currentUser]="currentUser"
-    [apiService]="_siteService" [config]="moduleConfig['site']"></pnx-monitoring-site-form-g>
+<pnx-monitoring-properties-g
+  *ngIf="objectDataResolved && !bEdit"
+  id="nav-properties"
+  [obj]="objectDataResolved"
+  [templateData]="templateData"
+  [(bEdit)]="bEdit"
+  [currentUser]="currentUser"
+  [objectType]="objectType"
+></pnx-monitoring-properties-g>
 
-<pnx-monitoring-properties-g *ngIf="objectDataResolved && !bEdit" id="nav-properties" [obj]="objectDataResolved"
-  [templateData]="templateData" [(bEdit)]="bEdit" [currentUser]="currentUser"
-  [objectType]="objectType"></pnx-monitoring-properties-g>
-
-<pnx-monitoring-datatable-g *ngIf="!bEdit" [dataTableConfig]="dataTableConfig" [dataTableObjData]="dataTableObjData"
-  [rows]="rows" [colsname]="colsname" (onSort)="setSort($event)" [page]="page"
+<pnx-monitoring-datatable-g
+  *ngIf="!bEdit"
+  [dataTableConfig]="dataTableConfig"
+  [dataTableObjData]="dataTableObjData"
+  [rows]="rows"
+  [colsname]="colsname"
+  (onSort)="setSort($event)"
+  [page]="page"
   (onFilter)="setFilter($event)"
-  (onSetPage)="setPage($event)" [obj]="visits" [moduleCode]="moduleCode"
+  (onSetPage)="setPage($event)"
+  [obj]="visits"
+  [parentObject]="objectData"
+  [moduleCode]="moduleCode"
   (onDetailsRow)="seeDetails($event)"
   (onEditEvent)="editChild($event)"
   (onAddObj)="navigateToAddObj($event)"
   (onDeleteEvent)="onDelete($event)"
   [bDeleteModalEmitter]="bDeleteModalEmitter"
   (onAddChildren)="navigateToAddChildren($event)"
-  parentPath="site">
+  parentPath="sites_group"
+>
   <!-- Bouton pour ajouter une visite
       dans le module generic le bouton est toujours actif c'est la liste des modules disponibles à l'utilisateur qui determinera les permissions
       Sinon dans le contexte d'un sous module on verifie la permission sur VISITES -->
-  <option-list-btn add-button
+  <option-list-btn
+    add-button
     placeholder="Sélectionner le protocole"
     *ngIf="moduleCode === 'generic'"
     label="{{ 'Monitoring.Sites.addVisit' | translate }}"
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild]="moduleCode === 'generic' ? true : currentPermission?.visit?.canCreate > 0"></option-list-btn>
+    [canCreateChild]="moduleCode === 'generic' ? true : currentPermission?.visit?.canCreate > 0"
+  ></option-list-btn>
 </pnx-monitoring-datatable-g>

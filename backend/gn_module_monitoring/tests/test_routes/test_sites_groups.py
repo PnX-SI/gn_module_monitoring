@@ -17,6 +17,10 @@ from gn_module_monitoring.monitoring.schemas import (
 from gn_module_monitoring.tests.fixtures.generic import *
 
 
+def without_cruved(item: dict) -> dict:
+    return {key: value for key, value in item.items() if key != "cruved"}
+
+
 @pytest.mark.usefixtures("client_class")
 class TestSitesGroups:
 
@@ -26,7 +30,7 @@ class TestSitesGroups:
         id_sites_group = sites_group.id_sites_group
         r = self.client.get(
             url_for(
-                "monitorings.get_sites_group_by_id",
+                "monitorings.api.get_sites_group_by_id",
                 module_code="generic",
                 id_sites_group=id_sites_group,
             )
@@ -37,31 +41,28 @@ class TestSitesGroups:
 
     def test_get_sites_groups(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_sites_groups"))
+        r = self.client.get(url_for("monitorings.api.get_sites_groups"))
 
         assert r.json["count"] >= len(sites_groups)
 
-        sites_group_response = r.json["items"]
+        # le cruved des items est calculé par la liste (paginate_scope), celui du schéma dans le
+        # contexte d'une requête : on compare les données
+        sites_group_response = [without_cruved(item) for item in r.json["items"]]
+        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias", "cruved"))
 
-        assert all(
-            [
-                MonitoringSitesGroupsSchemaCruved(exclude=("medias",)).dump(group)
-                in sites_group_response
-                for group in sites_groups.values()
-            ]
-        )
+        assert all([schema.dump(group) in sites_group_response for group in sites_groups.values()])
 
     def test_get_sites_groups_filter_name(self, sites_groups, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         name, name_not_present = list(sites_groups.keys())
-        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias",))
+        schema = MonitoringSitesGroupsSchemaCruved(exclude=("medias", "cruved"))
 
         r = self.client.get(
-            url_for("monitorings.get_sites_groups"), query_string={"sites_group_name": name}
+            url_for("monitorings.api.get_sites_groups"), query_string={"sites_group_name": name}
         )
 
         assert r.json["count"] >= 1
-        json_sites_groups = r.json["items"]
+        json_sites_groups = [without_cruved(item) for item in r.json["items"]]
 
         assert schema.dump(sites_groups[name]) in json_sites_groups
         assert schema.dump(sites_groups[name_not_present]) not in json_sites_groups
@@ -79,7 +80,7 @@ class TestSitesGroups:
 
     def test_get_sites_groups_geometries(self, sites, site_group_with_sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        r = self.client.get(url_for("monitorings.get_sites_group_geometries"))
+        r = self.client.get(url_for("monitorings.api.get_sites_group_geometries"))
 
         json_resp = r.json
         features = json_resp.get("features")
@@ -122,7 +123,7 @@ class TestSitesGroups:
         first_site = sites_groups["Site_eolien"]
         data = self.client.get(
             url_for(
-                "monitorings.get_sites_group_by_id",
+                "monitorings.api.get_sites_group_by_id",
                 module_code="generic",
                 id_sites_group=first_site.id_sites_group,
             )
@@ -137,7 +138,7 @@ class TestSitesGroups:
         site_group["sites_group_name"] = "update name"
         site_group["geom"] = geom
         r = self.client.patch(
-            url_for("monitorings.patch", _id=first_site.id_sites_group),
+            url_for("monitorings.api.patch", _id=first_site.id_sites_group),
             data=site_group,
         )
         assert r.status_code == status_code
@@ -175,7 +176,7 @@ class TestSitesGroups:
             "geom": geom_sites_group,
         }
         r = self.client.post(
-            url_for("monitorings.post_sites_group"),
+            url_for("monitorings.api.post_sites_group"),
             data=site_group,
         )
         assert r.status_code == 200
@@ -202,7 +203,7 @@ class TestSitesGroupsWithModule:
                 )
             )
 
-        response = self.client.get(url_for("monitorings.get_sites_groups", module_code="test"))
+        response = self.client.get(url_for("monitorings.api.get_sites_groups", module_code="test"))
 
         assert response.status_code == 200
         groups_repr = response.json["items"]
@@ -224,7 +225,7 @@ class TestSitesGroupsWithModule:
         filter_params = {"sites_group_name": "gr"}
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -242,7 +243,7 @@ class TestSitesGroupsWithModule:
         add_group(data={"group_specific": "bar"})  # Non retourné avec le filtre
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200
@@ -263,7 +264,7 @@ class TestSitesGroupsWithModule:
         add_group()  # empty "meteo" => no match
 
         response = self.client.get(
-            url_for("monitorings.get_sites_groups", module_code="test", **filter_params)
+            url_for("monitorings.api.get_sites_groups", module_code="test", **filter_params)
         )
 
         assert response.status_code == 200

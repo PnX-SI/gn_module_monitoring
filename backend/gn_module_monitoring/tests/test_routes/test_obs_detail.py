@@ -94,7 +94,7 @@ class TestObservationDetails:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_details",
+                "monitorings.api.get_obs_details",
                 module_code="test",
             )
         )
@@ -110,7 +110,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_details",
+                "monitorings.api.get_obs_details",
                 module_code="test",
                 id_observation=observation.id_observation,
             ),
@@ -128,13 +128,84 @@ class TestObservationDetails:
         print("current_obs_details", current_obs_details)
         assert expected_obs_details.issubset(current_obs_details)
 
+    def test_get_obs_details_scope_1(self, visits_routes, obs_details, users):
+        # scope 1 : seuls les détails des observations numérisées par l'utilisateur
+        self_user = users["self_user"]
+        own_observation = TMonitoringObservations(
+            id_base_visit=visits_routes[0].id_base_visit,
+            cd_nom=67111,
+            id_digitiser=self_user.id_role,
+        )
+        with db.session.begin_nested():
+            db.session.add(own_observation)
+        own_detail = TMonitoringObservationDetails(id_observation=own_observation.id_observation)
+        with db.session.begin_nested():
+            db.session.add(own_detail)
+
+        set_logged_user_cookie(self.client, self_user)
+        r = self.client.get(url_for("monitorings.api.get_obs_details", module_code="test"))
+
+        assert r.status_code == 200
+        current_obs_details = {item["id_observation_detail"] for item in r.json["items"]}
+        assert own_detail.id_observation_detail in current_obs_details
+        # détails d'une observation numérisée par admin_user : exclus
+        assert not {d.id_observation_detail for d in obs_details} & current_obs_details
+
+    def test_get_observations_scope_1_visit_owner(self, sites, datasets, module_test_visit, users):
+        # scope 1 : les permissions de la visite font foi, l'observation d'un autre
+        # utilisateur dans ma visite (et ses détails) est listée
+        self_user = users["self_user"]
+        visit = TMonitoringVisits(
+            id_base_site=next(iter(sites.values())).id_base_site,
+            id_module=module_test_visit.id_module,
+            id_dataset=datasets["orphan_dataset"].id_dataset,
+            visit_date_min=datetime.strptime("2025-01-01", "%Y-%m-%d").date(),
+            id_digitiser=self_user.id_role,
+        )
+        with db.session.begin_nested():
+            db.session.add(visit)
+        other_observation = TMonitoringObservations(
+            id_base_visit=visit.id_base_visit,
+            cd_nom=67111,
+            id_digitiser=users["admin_user"].id_role,
+        )
+        with db.session.begin_nested():
+            db.session.add(other_observation)
+        detail = TMonitoringObservationDetails(id_observation=other_observation.id_observation)
+        with db.session.begin_nested():
+            db.session.add(detail)
+
+        set_logged_user_cookie(self.client, self_user)
+        r = self.client.get(url_for("monitorings.api.get_observations", module_code="test"))
+        assert r.status_code == 200
+        assert other_observation.id_observation in {
+            item["id_observation"] for item in r.json["items"]
+        }
+
+        r = self.client.get(url_for("monitorings.api.get_obs_details", module_code="test"))
+        assert r.status_code == 200
+        assert detail.id_observation_detail in {
+            item["id_observation_detail"] for item in r.json["items"]
+        }
+
+    def test_get_obs_details_scope_2(self, obs_details, users):
+        # scope 2 : détails des observations numérisées par un membre de l'organisme
+        set_logged_user_cookie(self.client, users["associate_user"])
+        r = self.client.get(url_for("monitorings.api.get_obs_details", module_code="test"))
+
+        assert r.status_code == 200
+        current_obs_details = {item["id_observation_detail"] for item in r.json["items"]}
+        same_organism = users["associate_user"].id_organisme == users["admin_user"].id_organisme
+        expected = {d.id_observation_detail for d in obs_details}
+        assert expected.issubset(current_obs_details) == same_organism
+
     def test_get_obs_detail_by_id(self, obs_details, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         obs_detail_instance = obs_details[0]
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=obs_detail_instance.id_observation_detail,
             )
@@ -150,7 +221,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=999999999,
             )
@@ -170,7 +241,7 @@ class TestObservationDetails:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_obs_detail",
+                "monitorings.api.post_obs_detail",
                 module_code="test",
             ),
             json=data,
@@ -192,7 +263,7 @@ class TestObservationDetails:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_obs_detail",
+                "monitorings.api.patch_obs_detail",
                 object_type="observation_detail",
                 module_code="test",
                 _id=obs_detail_instance.id_observation_detail,
@@ -210,7 +281,7 @@ class TestObservationDetails:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_obs_detail",
+                "monitorings.api.patch_obs_detail",
                 object_type="observation_detail",
                 module_code=module_code,
                 _id=999999999,
@@ -226,7 +297,7 @@ class TestObservationDetails:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_obs_detail",
+                "monitorings.api.delete_obs_detail",
                 object_type="observation_detail",
                 module_code="test",
                 _id=obs_detail_instance.id_observation_detail,
@@ -238,7 +309,7 @@ class TestObservationDetails:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_obs_detail_by_id",
+                "monitorings.api.get_obs_detail_by_id",
                 module_code="test",
                 id=obs_detail_instance.id_observation_detail,
                 object_type="observation_detail",
@@ -250,7 +321,7 @@ class TestObservationDetails:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_obs_detail", _id=999999999, module_code="test")
+            url_for("monitorings.api.delete_obs_detail", _id=999999999, module_code="test")
         )
 
         assert r.status_code == 404

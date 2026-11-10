@@ -87,14 +87,10 @@ def get_all_types_site_from_module_id(module_code):
     return schema.dump(types_site)
 
 
-@blueprint.route("/module/<int:_id>", methods=["PATCH"], defaults={"object_type": "module"})
-@blueprint.route(
-    "/<string:module_code>/module/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": "module"},
-)
+@blueprint.route("/module/<int:_id>", methods=["PATCH"])
+@blueprint.route("/<string:module_code>/module/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_MODULES")
-def patch_module(scope, object_type: str, module_code: str = "generic", _id: int = None):
+def patch_module(scope, module_code: str = "generic", _id: int = None):
     module = db.get_or_404(TMonitoringModules, _id)
     post_data = dict(request.get_json())
     module = create_or_update_module(post_data, module_code)

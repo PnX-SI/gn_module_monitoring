@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Module Monitoring</title>
+    <meta
+      name="description"
+      content="Description"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css"
+    />
+    <!-- Light and dark mode -->
+    <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/prism-themes@1/themes/prism-one-light.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//unpkg.com/@fortawesome/fontawesome-free/css/fontawesome.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//unpkg.com/@fortawesome/fontawesome-free/css/brands.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//unpkg.com/@fortawesome/fontawesome-free/css/regular.css"
+    />
+    <link
+      rel="stylesheet"
+      href="//unpkg.com/@fortawesome/fontawesome-free/css/solid.css"
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.$docsify = {
+        name: 'Module Monitoring',
+        repo: 'https://github.com/PnX-SI/gn_module_monitoring',
+        loadSidebar: true,
+        subMaxLevel: 2,
+        auto2top: true,
+        // Root README.md is the single source; docs/ isn't served above itself
+        homepage: 'https://raw.githubusercontent.com/PnX-SI/gn_module_monitoring/main/README.md',
+        copyCode: {
+          buttonText: '<i class="fa-regular fa-copy"></i>',
+          errorText: 'Erreur',
+          successText: 'Copié !'
+        },
+        plugins: [
+          function (hook) {
+            // The root README links to docs/xxx.md and docs/images/…; Docsify serves from docs/
+            hook.beforeEach(function (md) {
+              return md.replace(/\]\(docs\//g, '](');
+            });
+          }
+        ]
+      };
+    </script>
+    <!-- Docsify resource -->
+    <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
+    <script src="https://unpkg.com/docsify-copy-code@3"></script>
+    <script src="//unpkg.com/docsify-fontawesome/dist/docsify-fontawesome.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+  </body>
+</html>

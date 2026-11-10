@@ -114,7 +114,9 @@ export class MonitoringObservationsDetailComponent
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.initData();
+      if (this.objectData.deleted !== true) {
+        this.initData();
+      }
     }
   }
   getChild(page: number, params) {
@@ -155,10 +157,13 @@ export class MonitoringObservationsDetailComponent
   }
 
   onDelete($event) {
-    this._observationsService.delete($event.rowSelected.id_observation).subscribe((del) => {
-      this.bDeleteModalEmitter.emit(false);
-      this.initData();
-    });
+    // la liste de cette page contient les détails de l'observation, pas l'observation elle-même
+    this._observationsDetailService
+      .delete($event.rowSelected.id_observation_detail)
+      .subscribe((del) => {
+        this.bDeleteModalEmitter.emit(false);
+        this.initData();
+      });
   }
 
   navigateToAddObj($event) {

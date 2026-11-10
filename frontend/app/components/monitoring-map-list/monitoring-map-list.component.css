@@ -3,6 +3,12 @@
   display: flex;
 }
 
+/* Hauteur disponible sous la barre d'outils de GeoNature (--gn-content-height) moins les marges.
+   Se recalcule automatiquement au redimensionnement de la fenêtre. */
+#object {
+  height: max(310px, calc(var(--gn-content-height) - 40px));
+}
+
 .flex-container > div {
   width: 50%;
   padding: 10px;
@@ -14,7 +20,19 @@
 }
 
 .scroll {
-  overflow-y: scroll;
+  overflow-y: auto;
+}
+
+:host ::ng-deep #monitoring-elem-container:has(.form-scroll),
+:host ::ng-deep #monitoring-elem-container :has(.form-scroll) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:host ::ng-deep #monitoring-elem-container:has(.form-scroll) > :not(:has(.form-scroll)):not(.form-scroll),
+:host ::ng-deep #monitoring-elem-container :has(.form-scroll) > :not(:has(.form-scroll)):not(.form-scroll) {
+  flex-shrink: 0;
 }
 
 :host ::ng-deep .cadre {

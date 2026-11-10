@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TPermission } from '../types/permission';
+import { ObjectPermission } from '../enum/objectPermission';
 import { ConfigService as GnConfigService } from '@geonature/services/config.service';
 import { ModuleService } from '@geonature/services/module.service';
 
@@ -8,23 +9,18 @@ import { ModuleService } from '@geonature/services/module.service';
 })
 export class PermissionService {
   modulePermission: TPermission;
-  constructor(
-    public appConfig: GnConfigService,
-    protected _moduleService: ModuleService
-  ) {}
+  constructor(protected _moduleService: ModuleService) {}
 
   // Issue de ConfigService
   setModulePermissions(module_code: string) {
     if (module_code == 'generic') {
       module_code = 'MONITORINGS';
     }
-    const permObjectDict = this.appConfig.MONITORINGS.PERMISSION_LEVEL;
     const module = this._moduleService.getModule(module_code);
     const moduleCruved: { [index: string]: any } = {};
-    for (const [objectCode, permObjectCode] of Object.entries(permObjectDict)) {
-      moduleCruved[objectCode] =
-        module.objects.find((o) => o.code_object == permObjectDict[objectCode])?.cruved ||
-        module.cruved;
+    for (const [objectType, permObjectCode] of Object.entries(ObjectPermission)) {
+      moduleCruved[objectType] =
+        module.objects.find((o) => o.code_object == permObjectCode)?.cruved || module.cruved;
     }
     return moduleCruved;
   }

@@ -1,24 +1,27 @@
-import { ObserversComponent } from '@geonature_common/form/observers/observers.component';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable, of, Subject } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
-import { ConfigServiceG } from './config-g.service';
+import { ConfigService as GnConfigService } from '@geonature/services/config.service';
+import { ModuleService } from '@geonature/services/module.service';
 
 /**
  *  Ce service référence et execute les requêtes bers le serveur backend
  *  Les requêtes pour les objects de type nomenclature, utilisateurs, taxonomie ,sont mise en cache
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class CacheService {
   private _cache = {};
   private _pendingCache = {};
 
   constructor(
     private _http: HttpClient,
-    private _configServiceG: ConfigServiceG
+    private _gnConfigService: GnConfigService,
+    private _moduleService: ModuleService
   ) {}
 
   /** http request */
@@ -55,9 +58,9 @@ export class CacheService {
 
     let url: string;
     if (isGN2Route === true) {
-      url = this._configServiceG.backendUrl() + '/' + urlRelative + url_params;
+      url = this._gnConfigService.API_ENDPOINT + '/' + urlRelative + url_params;
     } else {
-      url = this._configServiceG.backendModuleUrl() + '/' + urlRelative + url_params;
+      url = this.backendModuleUrl() + '/' + urlRelative + url_params;
     }
 
     // requete
@@ -202,7 +205,7 @@ export class CacheService {
       )
       .join('&');
 
-    const url = this._configServiceG.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
+    const url = this.backendModuleUrl() + '/' + urlRelative + '?' + url_params;
 
     // requete
     window.open(url);
@@ -217,7 +220,7 @@ export class CacheService {
     const httpHeaders: HttpHeaders = new HttpHeaders({
       Accept: 'application/pdf',
     });
-    const url = this._configServiceG.backendModuleUrl() + '/' + urlRelative;
+    const url = this.backendModuleUrl() + '/' + urlRelative;
 
     return this._http[requestType]<any>(url, postData, {
       responseType: 'arraybuffer',
@@ -232,5 +235,15 @@ export class CacheService {
         return of(true);
       })
     );
+  }
+
+  /** Backend Module Url */
+  backendModuleUrl() {
+    // Test if api endpoint have a final slash
+    let api_url = this._gnConfigService.API_ENDPOINT;
+    if (api_url.substring(api_url.length - 1, 1) !== '/') {
+      api_url = api_url + '/';
+    }
+    return `${api_url}${this._moduleService.currentModule.module_path}`;
   }
 }
