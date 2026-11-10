@@ -66,6 +66,7 @@ def prepare_fields(
         "nb_visits",  # dynamic
         "nb_observations",  # dynamic
         "nb_individuals",  # dynamic
+        "nb_marking_events",  # dynamic
         "medias",  # not importable
         "id_sites_group",  # ignored for now
     ]

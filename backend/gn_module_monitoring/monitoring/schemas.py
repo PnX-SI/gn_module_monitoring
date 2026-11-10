@@ -290,6 +290,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
+    nb_marking_events = fields.Integer(dump_only=True)
     last_visit = fields.Date(dump_only=True)
     first_use_date = fields.Date()
     geom = GeojsonSerializationField()

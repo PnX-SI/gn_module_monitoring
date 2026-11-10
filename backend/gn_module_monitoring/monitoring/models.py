@@ -447,6 +447,25 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
             return True
         return False
 
+    @hybrid_property
+    def nb_marking_events(self):
+        query = (
+            select(func.count(func.distinct(TMarkingEvent.id_marking)))
+            .where(TMarkingEvent.id_base_marking_site == self.id_base_site)
+            .correlate_except(TMarkingEvent)
+        )
+        return DB.session.scalar(query)
+
+    @nb_marking_events.expression
+    def nb_marking_events(cls):
+        query = (
+            select(func.count(func.distinct(TMarkingEvent.id_marking)))
+            .where(TMarkingEvent.id_base_marking_site == cls.id_base_site)
+            .correlate_except(TMarkingEvent)
+        )
+
+        return query.scalar_subquery()
+
 
 # TMonitoringVisits.site = DB.relationship(
 #     TMonitoringSites,
