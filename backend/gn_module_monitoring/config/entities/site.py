@@ -2,10 +2,9 @@ from copy import deepcopy
 from typing import ClassVar
 
 import marshmallow as ma
-from marshmallow import post_load
+from marshmallow import post_load, pre_load
 
 from gn_module_monitoring.tools.utils import schema_context
-from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 
 from .base import BaseEntityConfigSchema
 
@@ -13,15 +12,36 @@ from .base import BaseEntityConfigSchema
 class SiteEntityConfigSchema(BaseEntityConfigSchema):
     types_site = ma.fields.Dict(dump_only=True)
 
+    @pre_load
+    def pre_load(self, data, **kwargs):
+        # Les champs des types de site sont fusionnés avant ceux du protocole (le type de site l’emporte)
+        data["fields"] = data.get("fields", {})
+        for ts in schema_context.get()["entity"].module.module.types_site:
+            config = ts.config or {}
+            fields = {**config.get("specific", {}), **config.get("fields", {})}
+            # Les champs du protocole sont écrasé par
+            for field_name, field_spec in fields.items():
+                data["fields"].setdefault(field_name, {}).update(field_spec)
+        return super().pre_load(data, **kwargs)
+
     @post_load
-    def load_types_site(self, data, **kwargs):
-        # for frontend
-        module = schema_context.get()["entity"].module
-        id_module = module.module.id_module if module.module else None
-        data["types_site"] = {
-            t.id_nomenclature_type_site: {"name": t.nomenclature.label_default}
-            for t in query_all_types_site_from_module_id(id_module)
-        }
+    def load_types_site_ids_for_fields(self, data, **kwargs):
+        """
+        This hook:
+            - Add types_site to config.
+            - Add id_types_site to all fields which comes from types site.
+        """
+        data["types_site"] = {}
+        for ts in schema_context.get()["entity"].module.module.types_site:
+            config = ts.config or {}
+            fields = {**config.get("specific", {}), **config.get("fields", {})}
+            for field_name in fields:
+                data["fields"][field_name].setdefault("id_types_site", []).append(
+                    ts.id_nomenclature_type_site
+                )
+            data["types_site"][ts.id_nomenclature_type_site] = {
+                "name": ts.nomenclature.label_default
+            }
         return data
 
     default_config: ClassVar = {

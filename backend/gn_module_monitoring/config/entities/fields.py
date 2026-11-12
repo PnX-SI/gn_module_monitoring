@@ -68,6 +68,8 @@ class EntityFieldConfigSchema(ma.Schema):
     required = fields.Boolean()
     required_cel = fields.Str()
     validate_cel = CELValidationsField()
+    # Renseigné en post_load pour les champs spécifiques à un type de site
+    id_types_site = fields.List(fields.Integer(), dump_only=True)
 
     @validates_schema
     def validate_required_exclusive(self, data, **kwargs):

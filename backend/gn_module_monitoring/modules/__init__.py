@@ -7,6 +7,7 @@ from flask import current_app
 from marshmallow import ValidationError
 from werkzeug.exceptions import NotFound
 
+from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.utils.env import db
 from pypnusershub.db.models import UserList
 
@@ -95,6 +96,7 @@ class MonitoringModule(UserDict):
             self.nomenclatures = load_module_nomenclatures(module_code)
             if module_code == "generic":
                 self.module = TMonitoringModules(module_code="generic", b_synthese=False)
+                self.module.types_site = db.session.scalars(sa.select(BibTypeSite)).unique().all()
                 self["configured"] = True  # overwise the frontend refuse to let use edit sites
             else:
                 self.module = db.session.execute(

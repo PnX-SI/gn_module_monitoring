@@ -124,7 +124,8 @@ class BaseEntityConfigSchema(ma.Schema):
         # Permet de valider de manière minimale les fields pour les manipuler
         fields_field = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Dict())
         # specific is a retro.compat key
-        fields = data.pop("fields", data.pop("specific", {}))
+        # FIXME: we should validate specific & fields are dict … or better: just drop specific handling …
+        fields = {**data.pop("specific", {}), **data.pop("fields", {})}
         fields = fields_field.deserialize(fields)
         # On écrase tous les champs, sauf "fields" qui a été sortie
         # TODO: et sauf validate_cel pour lequel on doit étendre la liste ?
