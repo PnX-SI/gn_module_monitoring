@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = "bbdd47114b4d_rename_permissions"
+revision = "bbdd47114b4d"
 down_revision = "3d39820c9ab7"
 branch_labels = None
 depends_on = "ad8b797d89c0"
@@ -26,5 +26,5 @@ def upgrade():
 def downgrade():
     op.execute(sa.text("""
         INSERT INTO gn_permissions.t_objects (id_object, code_object, description_object)
-        VALUES(nextval('gn_permissions.t_objects_id_object_seq'::regclass), 'MONITORINGS_INDIVIDUALS', 'Permissions sur les individus');    
+        VALUES(nextval('gn_permissions.t_objects_id_object_seq'::regclass), 'MONITORINGS_INDIVIDUALS', 'Permissions sur les individus');
         """))
