@@ -14,7 +14,6 @@ from marshmallow import ValidationError
 
 from geonature.utils.env import DB
 from geonature.utils.config import config
-from geonature.utils.json import register_json_provider
 from geonature.core.admin.admin import admin as flask_admin
 from geonature.core.gn_permissions.models import TObjects
 from geonature.core.gn_commons.models.base import TModules
@@ -34,12 +33,6 @@ blueprint = Blueprint(
 
 # Blueprint de la nouvelle API, imbriqué dans `blueprint` (les routes legacy sont dans blueprint_legacy)
 blueprint_api = Blueprint("api", __name__, url_prefix="/refacto")
-
-
-@blueprint.record_once
-def register_serializer(state):
-    register_json_provider(BaseStore, lambda o: o.dump_config())
-    register_json_provider(BaseWidget, lambda o: o.dump_config())
 
 
 @blueprint.record
