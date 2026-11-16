@@ -20,7 +20,7 @@ from geonature.utils.env import db
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.tools.stores import DummyStore
-from gn_module_monitoring.tools.utils import CEL_ENV, normalize_cel_conditions, schema_context
+from gn_module_monitoring.tools.utils import schema_context
 
 ENTITY_MAP: dict[str, type] = {}
 
@@ -120,16 +120,6 @@ class ExtraDataMixin:
         return super().make_instance(data, **kwargs)
 
 
-def compile_conditions(conditions):
-    """
-    Compile des conditions `validate_cel` : liste de (expression compilée, message).
-    """
-    return [
-        (CEL_ENV.compile(condition["condition"], disable_check=True), condition["message"])
-        for condition in normalize_cel_conditions(conditions) or []
-    ]
-
-
 class CELMixin:
     """
     Schéma dont les champs peuvent avoir des conditions CEL, évaluées sur l’ensemble des champs :
@@ -139,26 +129,10 @@ class CELMixin:
     - `entity_validate_cel` : conditions sur l’objet entier, en erreur sous la clé `_schema`.
     """
 
-    entity_stores: ClassVar[dict] = {}
+    # Expressions compilées au chargement de la configuration (voir compile_entity_cel_expressions)
+    compiled_required_cel: ClassVar[dict] = {}
+    compiled_validate_cel: ClassVar[dict] = {}
     entity_validate_cel: ClassVar[list] = []
-
-    @classmethod
-    @cache
-    def compiled_required_cel(cls):
-        return {
-            name: CEL_ENV.compile(store.required_cel, disable_check=True)
-            for name, store in cls.entity_stores.items()
-            if store.required_cel is not None
-        }
-
-    @classmethod
-    @cache
-    def compiled_validate_cel(cls):
-        return {
-            name: compile_conditions(store.validate_cel)
-            for name, store in cls.entity_stores.items()
-            if store.validate_cel
-        }
 
     def _field_value(self, name, data, extra):
         return extra.get(name) if name in self.extra_field_names else data.get(name)
@@ -168,16 +142,20 @@ class CELMixin:
         # Exécuté après la désérialisation de tous les champs, et avant post_load (création de
         # l’instance) : le contexte CEL contient tous les champs, natifs et supplémentaires.
         extra = data.get("data") or {}
-        context = {"fields": {}}
+        context = {}
         for name in {*self.fields, *self.extra_field_names} - {"data"}:
             value = to_cel_value(self._field_value(name, data, extra))
             if value is not _CEL_SKIP:
-                context["fields"][name] = value
+                context[f"fields.{name}"] = value
 
         errors = {}
 
         def evaluate(name, expression):
-            result = expression.eval(data=context)
+            try:
+                result = expression.eval(data=context)
+            except RuntimeError as e:
+                errors.setdefault(name, []).append(f"Expression CEL impossible à évaluer : {e}")
+                return None
             if result.type() != Type.BOOL:
                 errors.setdefault(name, []).append(
                     f"Expression CEL non booléenne : {result.value()}"
@@ -185,10 +163,10 @@ class CELMixin:
                 return None
             return result.value()
 
-        for name, expression in self.compiled_required_cel().items():
+        for name, expression in self.compiled_required_cel.items():
             if self._field_value(name, data, extra) is None and evaluate(name, expression):
                 errors.setdefault(name, []).append("Champ requis.")
-        for name, conditions in self.compiled_validate_cel().items():
+        for name, conditions in self.compiled_validate_cel.items():
             if self._field_value(name, data, extra) is None:
                 continue
             for expression, message in conditions:
@@ -282,10 +260,20 @@ class BaseEntity(UserDict):
         }
 
         extra_data_schema = self._build_extra_data_schema(extra_stores)
+        fields = self.data["fields"]
         attrs = {
             "extra_field_names": frozenset(extra_stores),
-            "entity_stores": {name: field["store"] for name, field in self.data["fields"].items()},
-            "entity_validate_cel": compile_conditions(self.data.get("validate_cel")),
+            "compiled_required_cel": {
+                name: field["compiled_required_cel"]
+                for name, field in fields.items()
+                if field["compiled_required_cel"] is not None
+            },
+            "compiled_validate_cel": {
+                name: field["compiled_validate_cel"]
+                for name, field in fields.items()
+                if field["compiled_validate_cel"]
+            },
+            "entity_validate_cel": self.data["compiled_validate_cel"],
             "data": ma.fields.Nested(extra_data_schema, allow_none=True, unknown=ma.INCLUDE),
         }
 

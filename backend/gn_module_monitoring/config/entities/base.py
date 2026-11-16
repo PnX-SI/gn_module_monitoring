@@ -8,62 +8,109 @@ from cel_expr_python.cel import NewEnv, Type
 from marshmallow import pre_load, post_load, validates_schema, ValidationError
 
 from gn_module_monitoring.config.utils import apply_substitutions
-from gn_module_monitoring.tools.utils import CELValidationsField, MultilineStr, check_cel_type
+from gn_module_monitoring.tools.utils import (
+    CELValidationsField,
+    MultilineStr,
+    compile_cel_expression,
+)
 from .fields import EntityFieldConfigSchema, schema_context
 
 # Types CEL des valeurs Python des stores (par type Python de la valeur chargée) :
 CEL_TYPES_MAP = {
-    int: Type("google.protobuf.Int64Value"),
-    float: Type("google.protobuf.DoubleValue"),
-    bool: Type("google.protobuf.BoolValue"),
-    str: Type("google.protobuf.StringValue"),
-    uuid.UUID: Type("google.protobuf.StringValue"),  # converti en chaîne pour CEL
+    int: Type.INT,
+    float: Type.DOUBLE,
+    bool: Type.BOOL,
+    str: Type.STRING,
+    uuid.UUID: Type.STRING,  # converti en chaîne pour CEL
     datetime.date: Type("google.protobuf.Timestamp"),
     datetime.datetime: Type("google.protobuf.Timestamp"),
 }
 
 
-def check_cel_types(fields_def, entity_validate_cel):
+def cel_variable_type(store):
     """
-    Vérifie le typage des expressions CEL d’une entité, les variables `fields.<nom>` étant
-    typées par le store de chaque champ.
+    Type CEL de la variable `fields.<nom>`. Seul un scalaire `required` statique a un type :
+    marshmallow refuse une valeur absente ou nulle avant l’évaluation des conditions. Les autres
+    champs peuvent être vides (None) : ils sont déclarés `DYN`, et leur typage n’est pas vérifié.
     """
-    env = NewEnv(
+    if store.required is True:
+        return CEL_TYPES_MAP.get(store.get_python_type(), Type.DYN)
+    return Type.DYN
+
+
+def build_cel_env(fields_def):
+    """
+    Environnement CEL d’une entité : une variable `fields.<nom>` par champ. Construit une seule
+    fois par chargement de l’entité, et transmis à chaque champ en argument.
+    """
+    return NewEnv(
         variables={
-            f"fields.{name}": CEL_TYPES_MAP.get(field["store"].get_python_type(), Type.DYN)
+            f"fields.{name}": cel_variable_type(field["store"])
             for name, field in fields_def.items()
         }
     )
+
+
+def compile_field_cel_expressions(field, env):
+    """
+    Compile les expressions CEL d’un champ (`required_cel`, `validate_cel`, `hidden_cel`) avec
+    l’environnement de l’entité, et les stocke dans le champ :
+    `compiled_required_cel`, `compiled_validate_cel` [(expression, message)] et
+    `compiled_hidden_cel`.
+
+    Lève ValidationError, avec une clé par type d’expression, si une expression est invalide.
+    """
     errors = {}
-    for name, field in fields_def.items():
-        store = field["store"]
-        widget = field.get("widget")
-        expressions = {
-            "required_cel": [store.required_cel] if store.required_cel is not None else [],
-            "validate_cel": [condition["condition"] for condition in store.validate_cel or []],
-            "hidden_cel": (
-                [widget.get("hidden_cel")] if widget and widget.get("hidden_cel") else []
-            ),
-        }
-        for key, conditions in expressions.items():
-            for expression in conditions:
-                try:
-                    check_cel_type(env, expression)
-                except ValidationError as e:
-                    errors.setdefault(name, {}).setdefault(key, []).extend(e.messages)
-    entity_errors = []
-    for condition in entity_validate_cel or []:
+
+    def compile_one(key, expression):
         try:
-            check_cel_type(env, condition["condition"])
+            return compile_cel_expression(env, expression)
         except ValidationError as e:
-            entity_errors.extend(e.messages)
-    if errors or entity_errors:
-        raise ValidationError(
-            {
-                **({"fields": errors} if errors else {}),
-                **({"validate_cel": entity_errors} if entity_errors else {}),
-            }
-        )
+            errors.setdefault(key, []).extend(e.messages)
+
+    store = field["store"]
+    field["compiled_required_cel"] = (
+        compile_one("required_cel", store.required_cel) if store.required_cel is not None else None
+    )
+    field["compiled_validate_cel"] = []
+    for condition in store.validate_cel or []:
+        expression = compile_one("validate_cel", condition["condition"])
+        if expression is not None:
+            field["compiled_validate_cel"].append((expression, condition["message"]))
+    hidden_cel = (field.get("widget") or {}).get("hidden_cel")
+    field["compiled_hidden_cel"] = compile_one("hidden_cel", hidden_cel) if hidden_cel else None
+    if errors:
+        raise ValidationError(errors)
+
+
+def compile_entity_cel_expressions(data):
+    """
+    Compile les expressions CEL d’une entité chargée (`fields`, `validate_cel`).
+
+    - chaque champ reçoit ses expressions compilées (voir compile_field_cel) ;
+    - l’entité reçoit `compiled_validate_cel` : [(expression compilée, message)].
+
+    Les erreurs sont regroupées comme la validation de la configuration : par champ sous
+    `fields`, et pour l’entité sous `validate_cel`.
+    """
+    env = build_cel_env(data["fields"])
+    errors = {}
+    for name, field in data["fields"].items():
+        try:
+            compile_field_cel_expressions(field, env)
+        except ValidationError as e:
+            errors.setdefault("fields", {})[name] = e.messages
+    data["compiled_validate_cel"] = []
+    for condition in data.get("validate_cel") or []:
+        try:
+            expression = compile_cel_expression(env, condition["condition"])
+        except ValidationError as e:
+            errors.setdefault("validate_cel", []).extend(e.messages)
+        else:
+            data["compiled_validate_cel"].append((expression, condition["message"]))
+    if errors:
+        raise ValidationError(errors)
+    return data
 
 
 class ExportPdfSchema(ma.Schema):
@@ -162,14 +209,18 @@ class BaseEntityConfigSchema(ma.Schema):
     def validates_schema(self, data, **kwargs):
         schema = schema_context.get()["entity"].get_model_schema()
         for field in data["display_list"]:
-            if field not in data["fields"] and not hasattr(schema, field):
+            if field not in data["fields"] and field not in schema.fields:
                 raise ValidationError({"display_list": f"Le champs '{field}' n’a pas été défini."})
         for field in data["display_properties"]:
-            if field not in data["fields"] and not hasattr(schema, field):
+            if field not in data["fields"] and field not in schema.fields:
                 raise ValidationError(
                     {"display_properties": f"Le champs '{field}' n’a pas été défini."}
                 )
-        check_cel_types(data["fields"], data.get("validate_cel"))
+
+    @post_load
+    def compile_cel(self, data, **kwargs):
+        # Compilation unique des expressions CEL, réutilisée à l’évaluation (voir CELMixin)
+        return compile_entity_cel_expressions(data)
 
     @post_load
     def load_tree_relations(self, data, **kwargs):

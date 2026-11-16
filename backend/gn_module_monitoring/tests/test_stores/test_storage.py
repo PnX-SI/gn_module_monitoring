@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 from marshmallow import ValidationError
 
+from gn_module_monitoring.config.entities.base import compile_entity_cel_expressions
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.modules.entities.base import BaseEntity
 from gn_module_monitoring.tools.stores.type import (
@@ -28,6 +29,7 @@ def make_store(store_cls, field_name="value", data=None):
 def build_schema(stores):
     site_cls = ENTITY_MAP["site"]
     entity_data = {"fields": {name: {"store": store} for name, store in stores.items()}}
+    compile_entity_cel_expressions(entity_data)
     fake = SimpleNamespace(
         data=entity_data,
         model_schema_class=site_cls.model_schema_class,

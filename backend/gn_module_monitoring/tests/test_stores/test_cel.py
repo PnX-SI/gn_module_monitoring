@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from marshmallow import ValidationError
 
+from gn_module_monitoring.config.entities.base import compile_entity_cel_expressions
 from gn_module_monitoring.modules.entities import ENTITY_MAP
 from gn_module_monitoring.modules.entities.base import (
     _CEL_SKIP,
@@ -13,7 +14,7 @@ from gn_module_monitoring.modules.entities.base import (
     get_app_timezone,
     to_cel_value,
 )
-from gn_module_monitoring.tools.stores.type import IntegerStore, StringStore
+from gn_module_monitoring.tools.stores.type import DateStore, IntegerStore, StringStore
 from gn_module_monitoring.tools.utils import CELValidationsField, schema_context
 
 M = "The following condition is not met: {}"
@@ -31,16 +32,33 @@ def app_tz(monkeypatch):
     get_app_timezone.cache_clear()
 
 
+def normalized(conditions):
+    # Même normalisation que le chargement de la configuration (CELValidationsField)
+    return None if conditions is None else CELValidationsField().deserialize(conditions)
+
+
 def make_store(store_cls, field_name, required_cel=None, validate_cel=None):
     with schema_context(entity=ENTITY_MAP["site"], field_name=field_name):
-        return store_cls({}, required_cel=required_cel, validate_cel=validate_cel)
+        return store_cls(
+            {}, required_cel=required_cel, validate_cel=normalized(validate_cel)
+        )
 
 
 def build_schema(stores, validate_cel=None):
     site_cls = ENTITY_MAP["site"]
-    entity_data = {"fields": {name: {"store": store} for name, store in stores.items()}}
-    if validate_cel is not None:
-        entity_data["validate_cel"] = validate_cel
+    # Champs natifs du modèle, déclarés comme dans la configuration de l’entité
+    native_stores = {
+        "base_site_name": make_store(StringStore, "base_site_name"),
+        "base_site_description": make_store(StringStore, "base_site_description"),
+        "first_use_date": make_store(DateStore, "first_use_date"),
+    }
+    entity_data = {
+        "fields": {
+            name: {"store": store} for name, store in {**native_stores, **stores}.items()
+        }
+    }
+    entity_data["validate_cel"] = normalized(validate_cel)
+    compile_entity_cel_expressions(entity_data)
     fake = SimpleNamespace(
         data=entity_data,
         model_schema_class=site_cls.model_schema_class,
@@ -51,7 +69,7 @@ def build_schema(stores, validate_cel=None):
 
 def load_messages(schema, payload):
     try:
-        schema().load(payload)
+        schema(only=["+data", "+medias"]).load(payload)
     except ValidationError as e:
         return e.messages
     return None
@@ -205,16 +223,15 @@ class TestCheckRequiredCel:
         assert messages == {"base_site_description": ["Champ requis."]}
 
     def test_non_boolean_condition_is_an_error(self):
-        schema = build_schema({"value": make_store(IntegerStore, "value", "kind")})
+        # Sur une valeur absente, `fields.value` vaut null : le résultat n’est pas booléen
+        schema = build_schema({"value": make_store(IntegerStore, "value", "fields.value")})
         messages = load_messages(schema, {"base_site_name": "x"})
         assert "non booléenne" in messages["data"]["value"][0]
 
-    def test_unknown_field_in_condition_is_an_error(self):
-        schema = build_schema(
-            {"value": make_store(IntegerStore, "value", 'fields.missing == "x"')}
-        )
-        messages = load_messages(schema, {"base_site_name": "x"})
-        assert "non booléenne" in messages["data"]["value"][0]
+    def test_unknown_field_in_condition_is_a_configuration_error(self):
+        with pytest.raises(ValidationError) as e:
+            build_schema({"value": make_store(IntegerStore, "value", 'fields.missing == "x"')})
+        assert "missing" in e.value.messages["fields"]["value"]["required_cel"][0]
 
 
 class TestValidateCel:
@@ -299,7 +316,9 @@ class TestValidateCel:
         }
 
     def test_non_boolean_condition_is_an_error(self):
-        schema = build_schema({"value": make_store(IntegerStore, "value", validate_cel=cond("value"))})
+        schema = build_schema(
+            {"value": make_store(IntegerStore, "value", validate_cel=cond("fields.value"))}
+        )
         messages = load_messages(schema, {"base_site_name": "x", "value": 3})
         assert "non booléenne" in messages["data"]["value"][0]
 
@@ -346,7 +365,7 @@ class TestEntityValidateCel:
         assert messages == {"_schema": [M.format('fields.base_site_name == "x"')]}
 
     def test_non_boolean_condition_is_an_error(self):
-        schema = build_schema({}, validate_cel=[cond("base_site_name")])
+        schema = build_schema({}, validate_cel=[cond("fields.base_site_name")])
         messages = load_messages(schema, {"base_site_name": "x"})
         assert "non booléenne" in messages["_schema"][0]
 
