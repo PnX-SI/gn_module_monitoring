@@ -89,7 +89,9 @@ def get_visits(module_code=None):
             query_allowed = TMonitoringVisits.filter_by_readable(
                 query=query_allowed, module_code=module["module_code"], object_code=OBJECT_CODE
             )
-    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()(
+        only=["+module", "+observers", "+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -113,9 +115,11 @@ def get_visit_by_id(scope, module_code, id):
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()(
+        only=["+cruved", "+observers", "+medias", "+data"]
+    )
 
-    data = schema(exclude=("module",)).dump(visit)
+    data = schema.dump(visit)
 
     return data
 
@@ -129,10 +133,11 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic", instan
     :param instance: existing visit to update, None to create one
     :return: dict, serialized visit
     """
+    only = ["+module", "+observers", "+medias", "+data"]
     schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
-    visit = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+    visit = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
     db.session.add(visit)
     db.session.commit()
 
-    return schema().dump(visit)
+    return schema(only=only).dump(visit)

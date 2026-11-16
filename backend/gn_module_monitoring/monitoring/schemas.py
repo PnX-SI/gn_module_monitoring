@@ -12,6 +12,7 @@ from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
 from geonature.utils.env import MA
 from geonature.utils.schema import CruvedSchemaMixin
+from utils_flask_sqla.schema import SmartRelationshipsMixin
 from marshmallow import Schema, ValidationError, fields, post_dump, pre_load, validate
 from marshmallow_sqlalchemy import auto_field
 from marshmallow_sqlalchemy.fields import Related, RelatedList
@@ -140,7 +141,7 @@ class GenericAdditionalSchema(Schema):
         return data
 
 
-class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
+class MonitoringCruvedSchemaMixin(CruvedSchemaMixin, SmartRelationshipsMixin):
 
     @property
     def __module_code__(self):

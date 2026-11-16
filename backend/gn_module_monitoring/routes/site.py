@@ -23,10 +23,7 @@ from gn_module_monitoring.monitoring.models import (
     cor_module_type,
     cor_site_type,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    BibTypeSiteSchema,
-    MonitoringCruvedSchemaMixin,
-)
+from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema
 from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.utils.routes import (
@@ -144,7 +141,9 @@ def get_sites(module_code=None):
         specific_properties=specific_properties,
     )
 
-    schema = get_entity_or_404(module_code, "site").get_extended_schema()
+    schema = get_entity_or_404(module_code, "site").get_extended_schema()(
+        only=["+types_site", "+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -168,9 +167,11 @@ def get_site_by_id(scope, module_code, id):
     if not site.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read site {site.id_base_site}")
 
-    schema = get_entity_or_404(module_code, "site").get_extended_schema(MonitoringCruvedSchemaMixin)
+    schema = get_entity_or_404(module_code, "site").get_extended_schema()(
+        only=["+cruved", "+types_site", "+medias", "+data"]
+    )
 
-    data = schema().dump(site)
+    data = schema.dump(site)
     return data
 
 
@@ -321,11 +322,12 @@ def create_or_update_site(post_data: dict, module_code: str = "generic", instanc
     :param instance: existing site to update, None to create one
     :return: dict, serialized site
     """
+    only = ["+types_site", "+medias", "+data"]
     schema = get_entity_or_404(module_code, "site").get_extended_schema()
 
-    site = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+    site = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(site)
     db.session.commit()
 
-    return schema().dump(site)
+    return schema(only=only).dump(site)

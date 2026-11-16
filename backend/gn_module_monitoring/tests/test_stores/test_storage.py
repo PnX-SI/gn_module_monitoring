@@ -96,32 +96,32 @@ class TestApiType:
 class TestExtendedSchemaStorage:
     def test_loaded_extra_values_are_json_safe(self):
         schema = build_schema({"day": make_store(DateStore, "day")})
-        loaded = schema().load({"day": "2024-01-02"})
+        loaded = schema(only=["+data", "+medias"]).load({"day": "2024-01-02"})
         assert loaded.data == {"day": "2024-01-02"}
         assert json.dumps(loaded.data)
 
     def test_dump_reads_stored_values_back_to_api_format(self):
         schema = build_schema({"day": make_store(DateStore, "day")})
         obj = SimpleNamespace(data={"day": "2024-01-02"})
-        assert schema().dump(obj)["day"] == "2024-01-02"
+        assert schema(only=["+data", "+medias"]).dump(obj)["day"] == "2024-01-02"
 
     def test_dump_ignores_keys_missing_from_configuration(self):
         schema = build_schema({"day": make_store(DateStore, "day")})
         obj = SimpleNamespace(data={"day": "2024-01-02", "removed": "x"})
-        dumped = schema().dump(obj)
+        dumped = schema(only=["+data", "+medias"]).dump(obj)
         assert dumped["day"] == "2024-01-02"
         assert "removed" not in dumped
 
     def test_invalid_api_value_is_rejected(self):
         schema = build_schema({"day": make_store(DateStore, "day")})
         with pytest.raises(ValidationError):
-            schema().load({"day": "pas une date"})
+            schema(only=["+data", "+medias"]).load({"day": "pas une date"})
 
     def test_many_to_many_extra_values_are_stored_as_pks(self, datasets):
         ids = [datasets["orphan_dataset"].id_dataset]
         store = make_store(DatasetsStore, "my_datasets", {"storage_col": "dataset_name"})
         schema = build_schema({"my_datasets": store})
-        loaded = schema().load({"my_datasets": ids})
+        loaded = schema(only=["+data", "+medias"]).load({"my_datasets": ids})
         assert loaded.data == {"my_datasets": [datasets["orphan_dataset"].dataset_name]}
         assert json.dumps(loaded.data)
 
@@ -129,23 +129,23 @@ class TestExtendedSchemaStorage:
         ids = [datasets["orphan_dataset"].id_dataset]
         store = make_store(DatasetsStore, "my_datasets", {"storage_col": "dataset_name"})
         schema = build_schema({"my_datasets": store})
-        loaded = schema().load({"my_datasets": ids})
+        loaded = schema(only=["+data", "+medias"]).load({"my_datasets": ids})
         obj = SimpleNamespace(data=loaded.data)
-        assert schema().dump(obj)["my_datasets"] == ids
+        assert schema(only=["+data", "+medias"]).dump(obj)["my_datasets"] == ids
 
     def test_many_to_many_unknown_id_is_rejected(self):
         schema = build_schema({"my_datasets": make_store(DatasetsStore, "my_datasets")})
         with pytest.raises(ValidationError):
-            schema().load({"my_datasets": [-1]})
+            schema(only=["+data", "+medias"]).load({"my_datasets": [-1]})
 
     def test_many_to_many_update_replaces_stored_value(self, datasets):
         ids = [datasets["orphan_dataset"].id_dataset]
         store = make_store(DatasetsStore, "my_datasets", {"storage_col": "dataset_name"})
         schema = build_schema({"my_datasets": store})
-        assert schema().load({"my_datasets": ids}).data == {
+        assert schema(only=["+data", "+medias"]).load({"my_datasets": ids}).data == {
             "my_datasets": [datasets["orphan_dataset"].dataset_name]
         }
-        assert schema().load({"my_datasets": []}).data == {"my_datasets": []}
+        assert schema(only=["+data", "+medias"]).load({"my_datasets": []}).data == {"my_datasets": []}
 
 
 @pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
@@ -153,22 +153,22 @@ class TestAreasExtendedSchemaStorage:
     def test_areas_of_type_are_stored_as_pks(self, dep_area):
         store = make_store(AreasStore, "my_areas", {"area_type_code": "DEP"})
         schema = build_schema({"my_areas": store})
-        loaded = schema().load({"my_areas": [dep_area.id_area]})
+        loaded = schema(only=["+data", "+medias"]).load({"my_areas": [dep_area.id_area]})
         assert loaded.data == {"my_areas": [dep_area.id_area]}
         assert json.dumps(loaded.data)
-        assert schema().dump(SimpleNamespace(data=loaded.data))["my_areas"] == [dep_area.id_area]
+        assert schema(only=["+data", "+medias"]).dump(SimpleNamespace(data=loaded.data))["my_areas"] == [dep_area.id_area]
 
     def test_area_of_other_type_is_rejected(self, dep_area, other_type_area):
         store = make_store(AreasStore, "my_areas", {"area_type_code": "DEP"})
         schema = build_schema({"my_areas": store})
         with pytest.raises(ValidationError):
-            schema().load({"my_areas": [dep_area.id_area, other_type_area.id_area]})
+            schema(only=["+data", "+medias"]).load({"my_areas": [dep_area.id_area, other_type_area.id_area]})
 
     def test_unknown_area_is_rejected(self):
         store = make_store(AreasStore, "my_areas", {"area_type_code": "DEP"})
         schema = build_schema({"my_areas": store})
         with pytest.raises(ValidationError):
-            schema().load({"my_areas": [-1]})
+            schema(only=["+data", "+medias"]).load({"my_areas": [-1]})
 
 
 class TestPythonType:

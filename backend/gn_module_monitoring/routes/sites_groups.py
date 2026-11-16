@@ -20,7 +20,6 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringSitesGroups,
     TMonitoringModules,
 )
-from gn_module_monitoring.monitoring.schemas import MonitoringCruvedSchemaMixin
 from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
@@ -80,7 +79,9 @@ def get_sites_groups(module_code=None):
         specific_properties=specific_properties,
     )
 
-    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()(
+        only=["+modules", "+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -103,9 +104,11 @@ def get_sites_group_by_id(scope, module_code, id_sites_group: int):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema(MonitoringCruvedSchemaMixin)
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()(
+        only=["+cruved", "+medias", "+modules", "+data"]
+    )
 
-    return schema().dump(sites_group)
+    return schema.dump(sites_group)
 
 
 @blueprint_api.route("/sites_groups/geometries", methods=["GET"])
@@ -216,9 +219,10 @@ def create_or_update_site_group(post_data: dict, module_code: str = "generic", i
     :return: dict, serialized site group
     """
     schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
+    only = ["+medias", "+modules", "+data"]
 
-    sites_group = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+    sites_group = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(sites_group)
     db.session.commit()
-    return schema().dump(sites_group)
+    return schema(only=only).dump(sites_group)

@@ -102,7 +102,9 @@ def get_obs_details(module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
+    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()(
+        only=["+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -127,9 +129,11 @@ def get_obs_detail_by_id(scope: int, module_code: str, id: int):
         raise Forbidden(
             f"User {g.current_user} cannot read observation detail {obs_detail.id_observation_detail}"
         )
-    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
+    schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()(
+        only=["+cruved", "+medias", "+data"]
+    )
 
-    data = schema().dump(obs_detail)
+    data = schema.dump(obs_detail)
 
     return data
 
@@ -144,10 +148,11 @@ def create_or_update_obs_detail(post_data: dict, module_code: str = "generic", i
     :return: dict, serialized observation detail
     """
     schema = get_entity_or_404(module_code, "observation_detail").get_extended_schema()
+    only = ["+medias", "+data"]
 
-    obs_detail = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+    obs_detail = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(obs_detail)
     db.session.commit()
 
-    return schema().dump(obs_detail)
+    return schema(only=only).dump(obs_detail)

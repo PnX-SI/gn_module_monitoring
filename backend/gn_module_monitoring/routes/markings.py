@@ -227,7 +227,9 @@ def get_markings(module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(
+        only=["+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -276,9 +278,11 @@ def get_marking_by_id(scope: int, module_code: str, id: int):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(
+        only=["+cruved", "+medias", "+data"]
+    )
 
-    data = schema().dump(marking)
+    data = schema.dump(marking)
 
     return data
 
@@ -302,8 +306,9 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic", inst
         Serialized marking.
     """
     schema = get_entity_or_404(module_code, "marking").get_extended_schema()
+    only = ["+medias", "+data"]
     try:
-        marking = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+        marking = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
     except Exception as e:
         print(f"Error loading marking data: {e}")
         raise
@@ -311,4 +316,4 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic", inst
     db.session.add(marking)
     db.session.commit()
 
-    return schema().dump(marking)
+    return schema(only=only).dump(marking)

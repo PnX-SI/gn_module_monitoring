@@ -69,7 +69,9 @@ def get_observations(module_code: str = None):
         specific_properties=specific_properties,
     )
 
-    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(
+        only=["+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -101,9 +103,11 @@ def get_observation_by_id(scope, module_code, _id):
         raise Forbidden(
             f"User {g.current_user} cannot read observation {observation.id_observation}"
         )
-    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(
+        only=["+cruved", "+medias", "+data"]
+    )
 
-    data = schema().dump(observation)
+    data = schema.dump(observation)
 
     return data
 
@@ -153,6 +157,7 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic", 
     :return: dict, serialized observation
     """
     schema = get_entity_or_404(module_code, "observation").get_extended_schema()
+    only = ["+medias", "+data"]
 
     # Cas des individus, s'il y a un id_individual
     # Récupération du cd_nom de l'individu
@@ -166,9 +171,9 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic", 
         if individual:
             post_data["cd_nom"] = individual.cd_nom
 
-    observation = schema(unknown=EXCLUDE).load(post_data, instance=instance)
+    observation = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(observation)
     db.session.commit()
 
-    return schema().dump(observation)
+    return schema(only=only).dump(observation)
