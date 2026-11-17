@@ -108,6 +108,27 @@ TABLE_NAME_SUBMODULE = {
     "observation_detail": "t_observations_details",
 }
 
+# Champs de configuration non importés dans bib_fields (gérés à part, générés ou dynamiques).
+IGNORED_IMPORT_FIELDS = [
+    "id_module",  # handled manually
+    "id_dataset",  # handled manually
+    "id_digitiser",  # handled manually
+    "uuid_base_visit",  # handled manually
+    "uuid_base_site",  # handled manually
+    "uuid_observation",  # handled manually
+    "id_base_site",  # generated
+    "id_base_visit",  # generated
+    "id_observation",  # generated
+    "id_nomenclature_type_site",  # handled manually
+    "last_visit",  # dynamic
+    "nb_visits",  # dynamic
+    "nb_observations",  # dynamic
+    "nb_individuals",  # dynamic
+    "nb_marking_events",  # dynamic
+    "medias",  # not importable
+    "id_sites_group",  # ignored for now
+]
+
 ID_FIELD_NAME = {
     "sites_group": "id_sites_group",
     "site": "id_base_site",
