@@ -82,10 +82,11 @@ export class FormService {
     } else if (
       elem.type_util === 'nomenclature' &&
       Utils.isObject(x) &&
-      x.code_nomenclature_type &&
+      (x.code_nomenclature_type || elem.code_nomenclature_type) &&
       x.cd_nomenclature
     ) {
-      x = this._dataUtilsService.getNomenclature(x.code_nomenclature_type, x.cd_nomenclature).pipe(
+      const code_nomenclature_type = elem.code_nomenclature_type || x.code_nomenclature_type;
+      x = this._dataUtilsService.getNomenclature(code_nomenclature_type, x.cd_nomenclature).pipe(
         mergeMap((nomenclature) => {
           return of(nomenclature['id_nomenclature']);
         })
