@@ -440,8 +440,6 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
 
     isAddChildrend ? (this.saveAndAddChildrenSpinner = true) : (this.saveSpinner = true);
 
-    let formValueGroup = this.form.value;
-
     let actionLabel = '';
     let action;
     if (this.object && (this.object || [])[this.object.pk] !== undefined) {

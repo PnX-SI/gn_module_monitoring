@@ -8,8 +8,7 @@
       "test_nomenclature",
       "comment",
       "cd_nom",
-      "id_digitiser",
-      "id_operator"
+      "id_digitiser"
     ],
     "display_list": [
       "individual_name",
