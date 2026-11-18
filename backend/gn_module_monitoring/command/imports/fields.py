@@ -85,7 +85,9 @@ def determine_field_type(field_data: dict) -> str:
     Returns
     -------
     str
-        Type SQL du champ en majuscules ('VARCHAR', 'INTEGER', etc.)
+        Type de colonne (`type_column`) : 'varchar', 'integer', 'number', 'date', 'uuid',
+        'jsonb', etc., suffixé par '[]' pour un champ multiple. Il sert à construire la table
+        transitoire (`command/imports/sql.py`) et n'est jamais écrit dans `bib_fields`.
     """
     type_widget = field_data.get("type_widget", "text")
     type_util = field_data.get("type_util")
@@ -129,6 +131,9 @@ def monitoring_field_to_bib_field(
 ):
     """
     Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
+
+    La clé `type_column` n'est pas une colonne de bib_fields : elle est retirée par
+    `insert_bib_field` et sert uniquement à construire la table transitoire.
     """
     if "code_nomenclature_type" in field_data:
         mnemonique = field_data["code_nomenclature_type"]

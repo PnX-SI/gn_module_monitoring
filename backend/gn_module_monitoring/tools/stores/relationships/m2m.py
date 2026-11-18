@@ -68,7 +68,7 @@ class BaseManyToManyStore(BaseRelationshipStore):
 
     def __init__(self, data=None, **kwargs):
         super().__init__(data, **kwargs)
-        if self.native_attr is not None:
+        if current_app.config[MODULE_CODE]["STRICT"] and self.native_attr is not None:
             # Cas attendu : une relationship passant par une table d'association, vers self.get_model()
             if not (
                 isinstance(self.native_attr, RelationshipProperty)
@@ -78,10 +78,7 @@ class BaseManyToManyStore(BaseRelationshipStore):
                     f"Le store {self.key} n'est pas adapté à l'attribut {self.field_name} : "
                     f"il doit être une relation many-to-many vers {self.get_model().__name__}."
                 )
-                if current_app.config[MODULE_CODE]["STRICT"]:
-                    raise ValidationError({self.field_name: error_message})
-                else:
-                    log.warning(f"Validation warning: {error_message}")
+                raise ValidationError({self.field_name: error_message})
 
     def get_api_type(self) -> type:
         return list[int]

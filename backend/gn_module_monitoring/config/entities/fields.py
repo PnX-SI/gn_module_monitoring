@@ -186,22 +186,21 @@ class EntityFieldConfigSchema(ma.Schema):
             except ValidationError as e:
                 raise ValidationError({"widget": e.messages_dict})
 
-        # Vérification de la cohérence des données entre le widget et le store.
-        # Si l'un des deux renvoit None, cela veut dire que le type n'est pas connue
-        # (typiquement datalist qui ne connait pas le type de retour de l'API)
-        # et dans ce cas la vérification ne peut pas avoir lieu.
-        widget_api_type = data["widget"].get_api_type()
-        store_api_type = data["store"].get_api_type()
-        if (
-            widget_api_type != store_api_type
-            and widget_api_type is not Any
-            and store_api_type is not Any
-        ):
-            message = f"Incohérence de type : {data["widget"]} renvoit '{widget_api_type}' alors que {data["store"]} attend '{store_api_type}'"
-            if current_app.config[MODULE_CODE]["STRICT"]:
-                raise ValidationError(message)
-            else:
-                logger.warning(message)
+        if current_app.config[MODULE_CODE]["STRICT"]:
+            # Vérification de la cohérence des données entre le widget et le store.
+            # Si l'un des deux renvoit None, cela veut dire que le type n'est pas connue
+            # (typiquement datalist qui ne connait pas le type de retour de l'API)
+            # et dans ce cas la vérification ne peut pas avoir lieu.
+            widget_api_type = data["widget"].get_api_type()
+            store_api_type = data["store"].get_api_type()
+            if (
+                widget_api_type != store_api_type
+                and widget_api_type is not Any
+                and store_api_type is not Any
+            ):
+                raise ValidationError(
+                    f"Incohérence de type : {data["widget"]} renvoit '{widget_api_type}' alors que {data["store"]} attend '{store_api_type}'"
+                )
 
         return data
 

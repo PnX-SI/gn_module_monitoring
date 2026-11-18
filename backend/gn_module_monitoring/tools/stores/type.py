@@ -32,7 +32,7 @@ class BaseTypeStore(BaseStore):
 
     def __init__(self, data=None, **kwargs):
         super().__init__(data, **kwargs)
-        if self.native_attr is not None:
+        if current_app.config[MODULE_CODE]["STRICT"] and self.native_attr is not None:
             # Cas attendu : une colonne simple, dont le type SQL correspond à self.sql_type
             error_message = None
             if (
@@ -48,10 +48,7 @@ class BaseTypeStore(BaseStore):
                         f"{self.sql_type.__name__}. Trouvé une colonne de type {column.type}."
                     )
             if error_message is not None:
-                if current_app.config[MODULE_CODE]["STRICT"]:
-                    raise ValidationError({self.field_name: error_message})
-                else:
-                    log.warning(f"Validation warning: {error_message}")
+                raise ValidationError({self.field_name: error_message})
 
 
 class StringStore(BaseTypeStore):

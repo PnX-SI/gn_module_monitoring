@@ -1,8 +1,6 @@
 import os
 from gn_module_monitoring.command.imports.constant import ENTITIES_NOT_AVAILABLE, ID_FIELD_NAME
 
-from sqlalchemy import text
-
 from gn_module_monitoring.command.imports.utils import destination_name
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import (
@@ -327,9 +325,6 @@ def update_protocol(module_data, module_code, fields_to_delete, update_label_onl
 
             if fields_to_delete:
                 delete_bib_fields(fields_to_delete)
-
-            table_name = f"t_imports_{module_code.lower()}"
-            DB.session.execute(text(f"DROP TABLE IF EXISTS gn_imports.{table_name}"))
 
             create_sql_import_table_protocol(module_code, protocol_data)
 
