@@ -1,0 +1,82 @@
+{
+  "label": "Groupe démo",
+  "label_list": "Groupes démo",
+  "display_properties": [
+    "sites_group_name",
+    "sites_group_code",
+    "demo_group_type",
+    "demo_group_flag",
+    "demo_group_user",
+    "demo_group_module",
+    "modules",
+    "nb_sites",
+    "nb_visits",
+    "comments"
+  ],
+  "validate_cel": [
+    {
+      "condition": "fields.altitude_min == null || fields.altitude_max == null || fields.altitude_min <= fields.altitude_max",
+      "message": "L'altitude minimale doit être inférieure ou égale à l'altitude maximale."
+    }
+  ],
+  "fields": {
+    "sites_group_code": {
+      "widget": {
+        "type": "text",
+        "attribut_label": "Code"
+      },
+      "required": true,
+      "validate_cel": ["fields.sites_group_code.size() <= 20"]
+    },
+    "demo_group_type": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Type de groupe",
+        "values": ["zone", "transect"]
+      },
+      "required": true
+    },
+    "demo_group_flag": {
+      "widget": {
+        "type": "bool_checkbox",
+        "attribut_label": "Groupe actif (démo)",
+        "value": true,
+        "hidden": "({value}) => value.demo_group_type !== 'zone'"
+      }
+    },
+    "demo_group_count": {
+      "store": {
+        "type": "integer"
+      },
+      "widget": {
+        "type": "number",
+        "step": 1,
+        "attribut_label": "Nombre de passages prévus"
+      }
+    },
+    "demo_group_user": {
+      "store": {
+        "type": "user"
+      },
+      "widget": {
+        "type": "user",
+        "attribut_label": "Référent"
+      }
+    },
+    "demo_group_module": {
+      "store": {
+        "type": "module"
+      },
+      "widget": {
+        "type": "module",
+        "attribut_label": "Module référent"
+      }
+    },
+    "demo_group_nomenclature": {
+      "store": {
+        "type": "nomenclature",
+        "nomenclature_type": "DEMO_METEO"
+      }
+    }
+  }
+}

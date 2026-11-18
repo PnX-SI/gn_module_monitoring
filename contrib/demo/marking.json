@@ -1,0 +1,39 @@
+{
+  "label": "Marquage démo",
+  "label_list": "Marquages démo",
+  "display_properties": [
+    "marking_location",
+    "marking_code",
+    "marking_details",
+    "marking_date",
+    "demo_marking_color",
+    "demo_marking_tag_code"
+  ],
+  "fields": {
+    "marking_date": {
+      "store": {
+        "type": "datetime"
+      },
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date de marquage (démo)"
+      },
+      "required": true
+    },
+    "demo_marking_color": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Couleur du marquage",
+        "values": ["bleu", "jaune"]
+      },
+      "required": true
+    },
+    "demo_marking_tag_code": {
+      "widget": {
+        "type": "text",
+        "attribut_label": "Code de l'étiquette (6 chiffres)"
+      },
+      "validate_cel": ["fields.demo_marking_tag_code.matches('^[0-9]{6}$')"]
+    }
+  }
+}

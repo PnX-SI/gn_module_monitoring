@@ -1,0 +1,60 @@
+{
+  "label": "Détail démo",
+  "label_list": "Détails démo",
+  "display_properties": [
+    "uuid_observation_detail",
+    "demo_detail_text",
+    "demo_detail_number"
+  ],
+  "validate_cel": [
+    {
+      "condition": "fields.demo_detail_text != null || fields.demo_detail_number != null || fields.demo_detail_stade != null",
+      "message": "Renseigner au moins un texte, une mesure ou un stade."
+    }
+  ],
+  "specific": {
+    "demo_detail_text": {
+      "type_widget": "text",
+      "attribut_label": "Texte du détail"
+    },
+    "demo_detail_number": {
+      "type_widget": "number",
+      "attribut_label": "Mesure",
+      "step": 0.01,
+      "min": 0,
+      "validate_cel": ["fields.demo_detail_number < 1000.0"]
+    },
+    "demo_detail_date": {
+      "store": {
+        "type": "date"
+      },
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date du détail"
+      }
+    },
+    "demo_detail_stade": {
+      "type_widget": "nomenclature",
+      "type_util": "nomenclature",
+      "attribut_label": "Stade (détail)",
+      "code_nomenclature_type": "DEMO_STADE"
+    },
+    "demo_detail_choice": {
+      "type_widget": "checkbox",
+      "attribut_label": "Choix (cases)",
+      "values": [
+        {"value": "c1", "label": "Choix 1"},
+        {"value": "c2", "label": "Choix 2"}
+      ]
+    },
+    "demo_detail_datalist": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste (détail)",
+      "values": [
+        {"value": "d1", "label": "Détail 1"},
+        {"value": "d2", "label": "Détail 2"}
+      ],
+      "designStyle": "bootstrap"
+    }
+  }
+}

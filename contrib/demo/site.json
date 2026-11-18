@@ -1,0 +1,437 @@
+{
+  "label": "Site démo",
+  "label_list": "Sites démo",
+  "redirect_to_parent": false,
+  "display_properties": [
+    "base_site_name",
+    "base_site_code",
+    "base_site_description",
+    "id_inventor",
+    "altitude_min",
+    "altitude_max",
+    "types_site",
+    "demo_text",
+    "demo_textarea",
+    "demo_bool",
+    "demo_checkbox",
+    "demo_radio",
+    "demo_number_float",
+    "demo_number_int",
+    "demo_select",
+    "demo_multiselect",
+    "demo_datalist_values",
+    "demo_datalist_api",
+    "demo_taxonomy",
+    "demo_taxonomy_list",
+    "demo_nomenclature",
+    "demo_nomenclature_legacy",
+    "demo_nomenclature_datalist",
+    "demo_habitat",
+    "demo_user",
+    "demo_module",
+    "demo_area",
+    "demo_commune",
+    "demo_dataset",
+    "demo_datasets",
+    "demo_areas",
+    "demo_date",
+    "demo_time",
+    "demo_uuid",
+    "demo_integer",
+    "demo_float",
+    "demo_string",
+    "demo_value",
+    "demo_list",
+    "demo_observer_list"
+  ],
+  "display_list": [
+    "base_site_name",
+    "base_site_code",
+    "id_inventor",
+    "demo_select",
+    "demo_bool"
+  ],
+  "keep": ["id_inventor"],
+  "export_pdf": [
+    {
+      "template": "fiche_site.html",
+      "label": "Fiche site (démo)"
+    }
+  ],
+  "geometry_type": ["Point", "LineString", "Polygon"],
+  "sorts": [{"prop": "base_site_name", "dir": "asc"}],
+  "validate_cel": [
+    {
+      "condition": "fields.altitude_min == null || fields.altitude_max == null || fields.altitude_min <= fields.altitude_max",
+      "message": "L'altitude minimale doit être inférieure ou égale à l'altitude maximale."
+    },
+    "fields.demo_number_float == null || fields.demo_number_float <= 1000.0"
+  ],
+  "change": [
+    "({objForm}) => {",
+    "const name = objForm.value.base_site_name || '';",
+    "if (!objForm.controls.demo_text.dirty) {",
+    "objForm.patchValue({demo_text: 'Site ' + name})",
+    "}",
+    "}",
+    ""
+  ],
+  "specific": {
+    "base_site_code": {
+      "required": true,
+      "widget": {
+        "type": "text",
+        "attribut_label": "Code",
+        "definition": "Code du site : deux lettres suivies de chiffres"
+      },
+      "validate_cel": [
+        {
+          "condition": "fields.base_site_code.matches('^[A-Z]{2}[0-9]+$')",
+          "message": "Le code doit être de la forme AB123."
+        }
+      ]
+    },
+    "base_site_name": {
+      "required": true,
+      "type_widget": "text",
+      "attribut_label": "Nom",
+      "title": "Nom affiché dans les listes"
+    },
+    "base_site_description": {
+      "widget": {
+        "type": "textarea",
+        "attribut_label": "Description"
+      }
+    },
+    "altitude_min": {
+      "widget": {
+        "type": "number",
+        "step": 1,
+        "min": 0,
+        "max": 5000,
+        "attribut_label": "Altitude (min)",
+        "hidden": false
+      }
+    },
+    "altitude_max": {
+      "widget": {
+        "type": "number",
+        "step": 1,
+        "min": 0,
+        "max": 5000,
+        "attribut_label": "Altitude (max)",
+        "hidden": false
+      }
+    },
+    "demo_text": {
+      "type_widget": "text",
+      "attribut_label": "Texte (valeur par défaut)",
+      "value": "Valeur par défaut",
+      "hidden": "({value}) => !value.demo_bool",
+      "required_cel": "fields.demo_bool == true",
+      "title": "Requis quand l'option booléenne est cochée"
+    },
+    "demo_textarea": {
+      "store": {
+        "type": "string"
+      },
+      "widget": {
+        "type": "textarea",
+        "attribut_label": "Description libre (500 caractères max)",
+        "hidden_cel": "fields.demo_bool != true"
+      },
+      "validate_cel": [
+        {
+          "condition": "fields.demo_textarea.size() <= 500",
+          "message": "500 caractères maximum."
+        }
+      ]
+    },
+    "demo_bool": {
+      "type_widget": "bool_checkbox",
+      "store": {
+        "type": "bool"
+      },
+      "attribut_label": "Option booléenne",
+      "value": true
+    },
+    "demo_checkbox": {
+      "widget": {
+        "type": "checkbox",
+        "attribut_label": "Cases à cocher",
+        "values": [
+          {"value": "a", "label": "Option A"},
+          {"value": "b", "label": "Option B"},
+          {"value": "c", "label": "Option C"}
+        ]
+      }
+    },
+    "demo_radio": {
+      "widget": {
+        "type": "radio",
+        "attribut_label": "Choix radio (entier)",
+        "values": [
+          {"value": 1, "label": "Un"},
+          {"value": 2, "label": "Deux"}
+        ],
+        "value": 1
+      }
+    },
+    "demo_number_float": {
+      "store": {
+        "type": "float"
+      },
+      "widget": {
+        "type": "number",
+        "attribut_label": "Surface (ha)",
+        "step": 0.1,
+        "min": 0,
+        "max": 1000,
+        "default": null
+      },
+      "validate_cel": ["fields.demo_number_float >= 0.0"]
+    },
+    "demo_number_int": {
+      "widget": {
+        "type": "number",
+        "attribut_label": "Nombre de passages",
+        "step": 1,
+        "default": 0
+      },
+      "required_cel": "fields.demo_radio == 2",
+      "validate_cel": [
+        {
+          "condition": "fields.demo_number_int <= 10",
+          "message": "10 passages maximum."
+        }
+      ]
+    },
+    "demo_select": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Choix simple",
+        "values": ["choix_1", "choix_2", "choix_3"],
+        "definition": "Liste de valeurs statiques"
+      },
+      "required": true
+    },
+    "demo_multiselect": {
+      "widget": {
+        "type": "multiselect",
+        "attribut_label": "Choix multiples",
+        "values": ["choix_1", "choix_2", "choix_3"]
+      }
+    },
+    "demo_datalist_values": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste statique (datalist)",
+      "values": [
+        {"value": "x", "label": "Valeur X"},
+        {"value": "y", "label": "Valeur Y"}
+      ],
+      "default": "x",
+      "nullDefault": true,
+      "designStyle": "bootstrap"
+    },
+    "demo_datalist_api": {
+      "type_widget": "datalist",
+      "attribut_label": "Liste API (taxons)",
+      "api": "taxref/allnamebylist/100",
+      "application": "TaxHub",
+      "keyValue": "cd_nom",
+      "keyLabel": "nom_valide",
+      "data_path": "data",
+      "filters": {"regne": ["Animalia"]},
+      "params": {"search_name": ""}
+    },
+    "demo_taxonomy": {
+      "type_widget": "taxonomy",
+      "type_util": "taxonomy",
+      "attribut_label": "Taxon (widget taxonomy)",
+      "id_list": 100,
+      "application": "TaxHub",
+      "keyValue": "cd_nom",
+      "keyLabel": "nom_valide",
+      "multiple": false
+    },
+    "demo_taxonomy_list": {
+      "store": {
+        "type": "taxonomy_list"
+      }
+    },
+    "demo_nomenclature": {
+      "store": {
+        "type": "nomenclature",
+        "nomenclature_type": "DEMO_METEO",
+        "cd_nomenclatures": ["METEO_B", "METEO_N"]
+      },
+      "widget": {
+        "type": "nomenclature",
+        "attribut_label": "Météo (nomenclature)"
+      }
+    },
+    "demo_nomenclature_legacy": {
+      "type_widget": "nomenclature",
+      "type_util": "nomenclature",
+      "attribut_label": "Stade (écriture legacy)",
+      "code_nomenclature_type": "DEMO_STADE",
+      "cd_nomenclatures": ["STADE_A", "STADE_J"]
+    },
+    "demo_nomenclature_datalist": {
+      "type_widget": "datalist",
+      "type_util": "nomenclature",
+      "attribut_label": "Météo (datalist API)",
+      "api": "nomenclatures/nomenclature/DEMO_METEO",
+      "application": "GeoNature",
+      "keyValue": "id_nomenclature",
+      "keyLabel": "label_default",
+      "data_path": "values"
+    },
+    "demo_habitat": {
+      "type_util": "habitat",
+      "attribut_label": "Habitat"
+    },
+    "demo_user": {
+      "type_util": "user",
+      "attribut_label": "Utilisateur (user)"
+    },
+    "demo_module": {
+      "type_util": "module",
+      "attribut_label": "Module lié"
+    },
+    "demo_area": {
+      "type_util": "area",
+      "type_widget": "areas",
+      "attribut_label": "Département",
+      "area_type_code": "DEP",
+      "multiple": false
+    },
+    "demo_commune": {
+      "type_util": "area",
+      "type_widget": "municipalities",
+      "attribut_label": "Commune",
+      "area_type_code": "COM",
+      "multiple": false
+    },
+    "demo_dataset": {
+      "type_util": "dataset",
+      "type_widget": "dataset",
+      "attribut_label": "Jeu de données (démo)",
+      "module_code": "demo"
+    },
+    "demo_datasets": {
+      "type_util": "dataset",
+      "type_widget": "dataset",
+      "multi_select": true,
+      "attribut_label": "Jeux de données (démo, multiple)",
+      "module_code": "demo"
+    },
+    "demo_areas": {
+      "type_util": "areas",
+      "type_widget": "areas",
+      "multiple": true,
+      "attribut_label": "Départements (démo, multiple)",
+      "area_type_code": "DEP"
+    },
+    "demo_date": {
+      "store": {
+        "type": "date"
+      },
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date (démo)"
+      }
+    },
+    "demo_time": {
+      "store": {
+        "type": "datetime"
+      },
+      "widget": {
+        "type": "time",
+        "attribut_label": "Heure (démo)"
+      }
+    },
+    "demo_uuid": {
+      "type_util": "uuid",
+      "type_widget": "text",
+      "attribut_label": "uuid (démo)",
+      "hidden": true
+    },
+    "demo_integer": {
+      "store": {
+        "type": "integer"
+      },
+      "widget": {
+        "type": "number",
+        "step": 1,
+        "attribut_label": "Entier (démo)"
+      }
+    },
+    "demo_float": {
+      "store": {
+        "type": "float"
+      },
+      "widget": {
+        "type": "number",
+        "step": 0.5,
+        "attribut_label": "Décimal (démo)"
+      }
+    },
+    "demo_string": {
+      "store": {
+        "type": "string"
+      },
+      "widget": {
+        "type": "text",
+        "attribut_label": "Chaîne (démo)"
+      }
+    },
+    "demo_value": {
+      "store": {
+        "type": "value",
+        "values": [
+          {"value": "v1", "label": "Valeur 1"},
+          {"value": "v2", "label": "Valeur 2"}
+        ]
+      }
+    },
+    "demo_list": {
+      "store": {
+        "type": "list",
+        "values": [
+          {"value": "l1", "label": "Liste 1"},
+          {"value": "l2", "label": "Liste 2"}
+        ]
+      }
+    },
+    "demo_observer_list": {
+      "store": {
+        "type": "observer_list"
+      },
+      "widget": {
+        "type": "datalist",
+        "attribut_label": "Liste d'observateurs (démo)",
+        "keyValue": "id_liste",
+        "keyLabel": "nom_liste",
+        "api": "users/listes",
+        "application": "GeoNature",
+        "multiple": false
+      }
+    },
+    "demo_extra_hidden": {
+      "type_widget": "text",
+      "attribut_label": "Champ masqué (démo)",
+      "hidden": true,
+      "title": "Champ non natif masqué"
+    },
+    "cd_hab": {
+      "type_widget": "datalist",
+      "attribut_label": "Habitat (datalist legacy)",
+      "api": "habref/habitats/autocomplete",
+      "application": "GeoNature",
+      "keyValue": "cd_hab",
+      "keyLabel": "search_name",
+      "type_util": "habitat"
+    }
+  }
+}

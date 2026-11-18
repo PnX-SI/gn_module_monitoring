@@ -1,0 +1,79 @@
+{
+  "label": "Observation démo",
+  "label_list": "Observations démo",
+  "display_properties": [
+    "cd_nom",
+    "id_individual",
+    "demo_count",
+    "demo_observation_ok",
+    "demo_stade",
+    "demo_observation_type",
+    "comments"
+  ],
+  "display_list": ["cd_nom", "demo_count"],
+  "keep": ["cd_nom"],
+  "validate_cel": [
+    {
+      "condition": "fields.demo_observation_ok != true || (fields.demo_count != null && fields.demo_count > 0)",
+      "message": "Une observation validée doit avoir au moins un individu."
+    }
+  ],
+  "specific": {
+    "cd_nom": {
+      "type_widget": "taxonomy",
+      "type_util": "taxonomy",
+      "attribut_label": "Espèce",
+      "id_list": 100,
+      "required": true
+    },
+    "id_individual": {
+      "type_widget": "individuals",
+      "attribut_label": "Individu",
+      "module_code": "demo"
+    },
+    "comments": {
+      "type_widget": "textarea",
+      "attribut_label": "Commentaires"
+    },
+    "demo_count": {
+      "type_widget": "number",
+      "attribut_label": "Nombre d'individus",
+      "step": 1,
+      "min": 0,
+      "default": 1,
+      "hidden": "({value}) => !value.demo_observation_ok",
+      "validate_cel": ["fields.demo_count <= 100"]
+    },
+    "demo_observation_ok": {
+      "type_widget": "bool_checkbox",
+      "store": {
+        "type": "bool"
+      },
+      "attribut_label": "Observation validée",
+      "value": false
+    },
+    "demo_stade": {
+      "store": {
+        "type": "nomenclature",
+        "nomenclature_type": "DEMO_STADE",
+        "cd_nomenclatures": ["STADE_A", "STADE_J", "STADE_I"]
+      },
+      "widget": {
+        "type": "nomenclature",
+        "attribut_label": "Stade de vie",
+        "required_js": "({value}) => value.demo_count > 0"
+      }
+    },
+    "demo_observation_type": {
+      "widget": {
+        "type": "radio",
+        "attribut_label": "Type d'observation",
+        "values": [
+          {"value": "direct", "label": "Directe"},
+          {"value": "indirecte", "label": "Indirecte"}
+        ],
+        "value": "direct"
+      }
+    }
+  }
+}

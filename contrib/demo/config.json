@@ -1,0 +1,24 @@
+{
+  "tree": {
+    "module": {
+      "sites_group": {
+        "site": {
+          "visit": {
+            "observation": {
+              "observation_detail": null
+            }
+          }
+        }
+      },
+      "site": null,
+      "individual": {
+        "marking": null
+      }
+    }
+  },
+  "synthese_object": "visit",
+  "display_field_names": {
+    "taxonomy": "lb_nom",
+    "user": "nom_complet"
+  }
+}
