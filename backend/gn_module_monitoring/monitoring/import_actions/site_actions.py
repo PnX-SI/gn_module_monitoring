@@ -107,13 +107,11 @@ class SiteImportActions:
         )
 
     @staticmethod
-    def check_dataframe(imprt: TImports, entity: Entity, df, config) -> set:
+    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
         """
         Check the site data of one batch, in the dataframe.
 
         List of checks (in order of execution):
-        - check types
-        - check required values
         - check geography
 
         Parameters
@@ -124,8 +122,6 @@ class SiteImportActions:
             The site entity.
         df : pandas.DataFrame
             The site data of the batch (loaded and written back by the core).
-        config : dict
-            The configuration of the module.
 
         Returns
         -------
@@ -137,9 +133,10 @@ class SiteImportActions:
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
 
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
+        from gn_module_monitoring.modules import get_module
 
-        geom_field_name = config.get(SiteImportActions.ENTITY_CODE, {}).get("geom_field_name")
+        site_entity = get_module(imprt.destination.code).entities[SiteImportActions.ENTITY_CODE]
+        geom_field_name = site_entity.data.get("geom_field_name")
         if geom_field_name:
             geom_field_name__local = f"s__{geom_field_name}_local"
             geom_field_name__4326 = f"s__{geom_field_name}_4326"
@@ -195,7 +192,9 @@ class SiteImportActions:
         from gn_module_monitoring.monitoring.import_actions.observation_actions import (
             ObservationImportActions,
         )
-        from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+        from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+            VisitImportActions,
+        )
 
         # Problem with bounding box: the field doesn't have the same name between the transient table and the destination table
         # It  might be the problem

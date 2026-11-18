@@ -134,8 +134,6 @@ class VisitImportActions:
         Check the visit data of one batch, in the dataframe.
 
         List of checks (in order of execution):
-        - check types
-        - check required values
         - check datasets
 
         Parameters
@@ -156,8 +154,6 @@ class VisitImportActions:
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
-
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
         updated_cols |= check_datasets(
             imprt,

@@ -1,4 +1,6 @@
-from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+    VisitImportActions,
+)
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
@@ -109,33 +111,6 @@ class ObservationImportActions:
         )
 
         ObservationImportActions.check_parent_validity(imprt)
-
-    @staticmethod
-    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
-        """
-        Check the observation data of one batch, in the dataframe.
-
-        List of checks (in order of execution):
-        - check types
-        - check required values
-
-        Parameters
-        ----------
-        imprt : TImports
-            The import to check.
-        entity : Entity
-            The observation entity.
-        df : pandas.DataFrame
-            The observation data of the batch (loaded and written back by the core).
-
-        Returns
-        -------
-        set
-            Names of the columns modified in ``df``.
-        """
-        fields, _, _ = get_mapping_data(imprt, entity)
-
-        return EntityImportActionsUtils.dataframe_checks(imprt, df, entity, fields)
 
     @staticmethod
     def generate_id(imprt: TImports):

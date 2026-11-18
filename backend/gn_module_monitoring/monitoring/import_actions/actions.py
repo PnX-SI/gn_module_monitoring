@@ -15,8 +15,15 @@ from gn_module_monitoring.monitoring.models import (
 )
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
-from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels, import_hook
+from geonature.core.imports.actions import (
+    ImportActions,
+    ImportStatisticsLabels,
+    import_hook,
+)
 from geonature.core.imports.models import Entity, TImports
+from geonature.core.imports.checks.dataframe.cast import check_types
+from geonature.core.imports.checks.dataframe.core import check_required_values
+from geonature.core.imports.utils import get_mapping_data
 from geonature.core.gn_monitoring.models import CorVisitObserver
 
 
@@ -29,8 +36,12 @@ import typing
 
 
 from .entity_import_actions_utils import EntityImportActionsUtils
-from gn_module_monitoring.monitoring.import_actions.site_actions import SiteImportActions
-from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+from gn_module_monitoring.monitoring.import_actions.site_actions import (
+    SiteImportActions,
+)
+from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+    VisitImportActions,
+)
 from gn_module_monitoring.monitoring.import_actions.observation_actions import (
     ObservationImportActions,
 )
@@ -69,7 +80,6 @@ def get_entity_model_complements(entity: Entity):
 
 
 class MonitoringImportActions(ImportActions):
-
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
         return [
@@ -92,8 +102,7 @@ class MonitoringImportActions(ImportActions):
     def process_fields(destination, entities):
         from gn_module_monitoring.modules import get_module
 
-        config = get_module(destination.code).dump_config()
-        customs = config["custom"]
+        customs = get_module(destination.code).substitutions
         for entity in entities:
             for theme in entity["themes"]:
                 for field in theme["fields"]:
@@ -116,9 +125,7 @@ class MonitoringImportActions(ImportActions):
     @staticmethod
     def get_source_cols(imprt: TImports, entity: Entity) -> typing.List[str]:
         # All the fields are loaded: the CEL conditions may use any field of the entity
-        return [
-            ef.field.source_field for ef in entity.fields if ef.field.source_field is not None
-        ]
+        return [ef.field.source_field for ef in entity.fields if ef.field.source_field is not None]
 
     @staticmethod
     @import_hook(progress=0.1)
@@ -142,16 +149,18 @@ class MonitoringImportActions(ImportActions):
     ) -> set:
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
-        if entity.code == SiteImportActions.ENTITY_CODE:
-            from gn_module_monitoring.modules import get_module
+        fields, _, _ = get_mapping_data(imprt, entity)
 
-            config = get_module(imprt.destination.code).dump_config()
-            return SiteImportActions.check_dataframe(imprt, entity, df, config)
-        if entity.code == VisitImportActions.ENTITY_CODE:
-            return VisitImportActions.check_dataframe(imprt, entity, df)
-        if entity.code == ObservationImportActions.ENTITY_CODE:
-            return ObservationImportActions.check_dataframe(imprt, entity, df)
-        return set()
+        updated_cols = check_types(
+            imprt, entity, df, fields
+        )  # FIXME do not check site and visit uuid twice
+        updated_cols |= check_required_values(imprt, entity, df, fields)
+
+        if entity.code == SiteImportActions.ENTITY_CODE:
+            updated_cols |= SiteImportActions.check_dataframe(imprt, entity, df)
+        elif entity.code == VisitImportActions.ENTITY_CODE:
+            updated_cols |= VisitImportActions.check_dataframe(imprt, entity, df)
+        return updated_cols
 
     @staticmethod
     @import_hook(progress=0.5)
@@ -352,7 +361,8 @@ class MonitoringImportActions(ImportActions):
                             obs_ordered_cte.c.id_observation, comp_cte.c.data
                         ).select_from(
                             obs_ordered_cte.join(
-                                comp_cte, obs_ordered_cte.c.row_num == comp_cte.c.row_num
+                                comp_cte,
+                                obs_ordered_cte.c.row_num == comp_cte.c.row_num,
                             )
                         )
 

@@ -1,6 +1,4 @@
 from geonature.core.imports.models import Entity, TImports
-from geonature.core.imports.checks.dataframe.cast import check_types
-from geonature.core.imports.checks.dataframe.core import check_required_values
 from geonature.core.imports.checks.sql import (
     check_cd_nom,
 )
@@ -18,17 +16,6 @@ class EntityImportActionsUtils:
         return Entity.query.filter_by(
             code=entity_code, id_destination=imprt.destination.id_destination
         ).one()
-
-    @staticmethod
-    def dataframe_checks(imprt, df, entity, fields):
-        updated_cols = set({})
-        updated_cols |= check_types(
-            imprt, entity, df, fields
-        )  # FIXME do not check site and visit uuid twice
-
-        updated_cols |= check_required_values(imprt, entity, df, fields)
-
-        return updated_cols
 
     @staticmethod
     def get_destination_fields(imprt: TImports, entity: Entity):
@@ -100,7 +87,7 @@ class EntityImportActionsUtils:
         from gn_module_monitoring.modules import get_module
 
         entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
-        config = get_module(imprt.destination.code).dump_config()
+        substitutions = get_module(imprt.destination.code).substitutions
 
         for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
             if field.type_field == "taxonomy" or (
@@ -111,5 +98,5 @@ class EntityImportActionsUtils:
                     imprt,
                     entity,
                     field,
-                    config["custom"].get("__MODULE.ID_LIST_TAXONOMY"),
+                    substitutions.get("__MODULE.ID_LIST_TAXONOMY"),
                 )
