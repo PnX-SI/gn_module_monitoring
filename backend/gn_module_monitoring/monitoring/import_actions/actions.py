@@ -15,8 +15,7 @@ from gn_module_monitoring.monitoring.models import (
 )
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
-from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
-from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
+from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels, import_hook
 from geonature.core.imports.models import Entity, TImports
 from geonature.core.gn_monitoring.models import CorVisitObserver
 
@@ -115,23 +114,20 @@ class MonitoringImportActions(ImportActions):
         pass
 
     @staticmethod
-    def check_transient_data(task, logger, imprt: TImports) -> None:
-        from gn_module_monitoring.modules import get_module
+    def get_source_cols(imprt: TImports, entity: Entity) -> typing.List[str]:
+        # All the fields are loaded: the CEL conditions may use any field of the entity
+        return [
+            ef.field.source_field for ef in entity.fields if ef.field.source_field is not None
+        ]
 
-        config = get_module(imprt.destination.code).dump_config()
+    @staticmethod
+    @import_hook(progress=0.1)
+    def check_transient_data_pre(task, logger, imprt: TImports, update_progress) -> None:
+        ImportActions.check_transient_data_pre(task, logger, imprt, update_progress)
 
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
-        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
-
-        task.update_state(state="PROGRESS", meta={"progress": 0})
-        init_rows_validity(imprt)
-        task.update_state(state="PROGRESS", meta={"progress": 0.05})
-        check_orphan_rows(imprt)
-        task.update_state(state="PROGRESS", meta={"progress": 0.1})
 
         # We first check site and visit consistency in order to avoid checking
         # incoherent data
@@ -139,13 +135,33 @@ class MonitoringImportActions(ImportActions):
         if isVisit:
             VisitImportActions.check_entity_data_consistency(imprt)
 
+    @staticmethod
+    @import_hook(progress=0.4)
+    def check_transient_data_df_batch(
+        task, logger, imprt: TImports, entity: Entity, df, update_progress
+    ) -> set:
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
-        SiteImportActions.check_dataframe(imprt, config)
-        if isVisit:
-            VisitImportActions.check_dataframe(imprt)
-        if isObservation:
-            ObservationImportActions.check_dataframe(imprt)
+        if entity.code == SiteImportActions.ENTITY_CODE:
+            from gn_module_monitoring.modules import get_module
+
+            config = get_module(imprt.destination.code).dump_config()
+            return SiteImportActions.check_dataframe(imprt, entity, df, config)
+        if entity.code == VisitImportActions.ENTITY_CODE:
+            return VisitImportActions.check_dataframe(imprt, entity, df)
+        if entity.code == ObservationImportActions.ENTITY_CODE:
+            return ObservationImportActions.check_dataframe(imprt, entity, df)
+        return set()
+
+    @staticmethod
+    @import_hook(progress=0.5)
+    def check_transient_data_post(task, logger, imprt: TImports, update_progress) -> None:
+        isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, VisitImportActions.ENTITY_CODE
+        )
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
 
         SiteImportActions.check_sql(imprt)
         if isVisit:

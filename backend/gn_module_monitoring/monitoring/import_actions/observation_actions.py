@@ -2,7 +2,7 @@ from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitIm
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
-from geonature.core.imports.models import TImports
+from geonature.core.imports.models import Entity, TImports
 
 from geonature.core.gn_monitoring.models import TObservations
 from geonature.utils.env import db
@@ -27,8 +27,6 @@ from geonature.core.imports.checks.sql import (
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
-    load_transient_data_in_dataframe,
-    update_transient_data_from_dataframe,
 )
 
 
@@ -113,11 +111,11 @@ class ObservationImportActions:
         ObservationImportActions.check_parent_validity(imprt)
 
     @staticmethod
-    def check_dataframe(imprt: TImports):
+    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
         """
-        Check the observation data before importing.
+        Check the observation data of one batch, in the dataframe.
 
-        List of checks and data operations (in order of execution):
+        List of checks (in order of execution):
         - check types
         - check required values
 
@@ -125,22 +123,19 @@ class ObservationImportActions:
         ----------
         imprt : TImports
             The import to check.
+        entity : Entity
+            The observation entity.
+        df : pandas.DataFrame
+            The observation data of the batch (loaded and written back by the core).
 
+        Returns
+        -------
+        set
+            Names of the columns modified in ``df``.
         """
+        fields, _, _ = get_mapping_data(imprt, entity)
 
-        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
-
-        fields, _, source_cols = get_mapping_data(imprt, entity)
-
-        # Save column names where the data was changed in the dataframe
-        updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
-
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, fields)
-
-        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
+        return EntityImportActionsUtils.dataframe_checks(imprt, df, entity, fields)
 
     @staticmethod
     def generate_id(imprt: TImports):

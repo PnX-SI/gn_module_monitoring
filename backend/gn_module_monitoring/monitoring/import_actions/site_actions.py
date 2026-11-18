@@ -1,7 +1,7 @@
 from flask import current_app
 from .entity_import_actions_utils import EntityImportActionsUtils
 
-from geonature.core.imports.models import TImports
+from geonature.core.imports.models import Entity, TImports
 
 from geonature.core.imports.checks.sql.extra import (
     check_entity_data_consistency,
@@ -20,8 +20,6 @@ from geonature.core.imports.checks.sql import (
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
-    load_transient_data_in_dataframe,
-    update_transient_data_from_dataframe,
     compute_bounding_box,
 )
 
@@ -109,33 +107,35 @@ class SiteImportActions:
         )
 
     @staticmethod
-    def check_dataframe(imprt: TImports, config):
+    def check_dataframe(imprt: TImports, entity: Entity, df, config) -> set:
         """
-        Check the site data before importing.
+        Check the site data of one batch, in the dataframe.
 
-        List of checks and data operations (in order of execution):
+        List of checks (in order of execution):
         - check types
         - check required values
-        - convert geom columns
         - check geography
-        - check if given geometries are valid (see ST_VALID in PostGIS)
 
         Parameters
         ----------
         imprt : TImports
             The import to check.
+        entity : Entity
+            The site entity.
+        df : pandas.DataFrame
+            The site data of the batch (loaded and written back by the core).
+        config : dict
+            The configuration of the module.
 
+        Returns
+        -------
+        set
+            Names of the columns modified in ``df``.
         """
-
-        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
-
-        entity_fields, _, source_cols = get_mapping_data(imprt, entity)
+        entity_fields, _, _ = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
 
         updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
@@ -156,7 +156,7 @@ class SiteImportActions:
                 longitude_field=entity_fields["x"],
             )
 
-        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
+        return updated_cols
 
     @staticmethod
     def generate_id(imprt: TImports):

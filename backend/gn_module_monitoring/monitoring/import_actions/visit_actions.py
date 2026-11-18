@@ -21,8 +21,6 @@ from geonature.core.imports.checks.sql import (
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
-    load_transient_data_in_dataframe,
-    update_transient_data_from_dataframe,
 )
 
 from geonature.core.imports.models import Entity, TImports
@@ -131,31 +129,33 @@ class VisitImportActions:
         VisitImportActions.check_parent_validity(imprt)
 
     @staticmethod
-    def check_dataframe(imprt: TImports):
+    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
         """
-        Check the visit data before importing.
+        Check the visit data of one batch, in the dataframe.
 
-        List of checks and data operations (in order of execution):
-        - check datasets
+        List of checks (in order of execution):
         - check types
         - check required values
+        - check datasets
 
         Parameters
         ----------
         imprt : TImports
             The import to check.
+        entity : Entity
+            The visit entity.
+        df : pandas.DataFrame
+            The visit data of the batch (loaded and written back by the core).
 
+        Returns
+        -------
+        set
+            Names of the columns modified in ``df``.
         """
-
-        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
-
-        entity_fields, _, source_cols = get_mapping_data(imprt, entity)
+        entity_fields, _, _ = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
 
         updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
@@ -169,7 +169,7 @@ class VisitImportActions:
             object_code="MONITORINGS_VISITES",
         )
 
-        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
+        return updated_cols
 
     ## UUID visit and site should not be mandatory !
 
