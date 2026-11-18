@@ -356,7 +356,12 @@ def check_filter_options(option_name, param_name, description):
 @check_filter_options("--visit", "visit", "visites")
 @check_filter_options("--observation", "observation", "observations")
 @check_filter_options("--observation-detail", "observation_detail", "détails d’observation")
-@click.option("--strict/--tolerant", "strict", default=True, help="Vérifie les données")
+@click.option(
+    "--strict/--tolerant",
+    "strict",
+    default=False,
+    help="Mode strict : contrôle de manière plus exigeant la configuration en refusant certaines incohérences et syntaxes obsolètes.",
+)
 @click.option(
     "--fix",
     is_flag=True,
