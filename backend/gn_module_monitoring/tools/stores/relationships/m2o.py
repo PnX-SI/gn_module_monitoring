@@ -12,6 +12,7 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 from gn_module_monitoring import MODULE_CODE
 
+from .cache import get_instance
 from .core import BaseRelationshipStore
 from .mixin import AreaMixin, DatasetMixin, ModuleMixin, NomenclatureMixin, UserMixin
 from .utils import (
@@ -48,7 +49,7 @@ class BaseForeignKeyStore(BaseRelationshipStore):
                 raise ValidationError(
                     f"Valeur '{value}' invalide : {pk.type.python_type.__name__} attendu."
                 )
-            instance = db.session.get(store.get_model(), value)
+            instance = get_instance(store.get_model(), value)
             if instance is None:
                 raise ValidationError(
                     f"Aucune instance de {store.get_model().__name__} pour {pk.name} = '{value}'."

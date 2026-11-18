@@ -4,10 +4,9 @@ from marshmallow import fields, validate, ValidationError
 from flask import current_app
 from sqlalchemy.orm import RelationshipProperty
 
-from geonature.utils.env import db
-
 from gn_module_monitoring import MODULE_CODE
 
+from .cache import get_instance
 from .core import BaseRelationshipStore
 from .mixin import AreaMixin, DatasetMixin, ModuleMixin, NomenclatureMixin, UserMixin
 from .utils import validate_areas_of_type, validate_observers_in_list
@@ -45,7 +44,7 @@ class BaseManyToManyStore(BaseRelationshipStore):
             ids = fields.List(fields.Integer(strict=True)).deserialize(value)
             instances = []
             for id in ids:
-                instance = db.session.get(model, id)
+                instance = get_instance(model, id)
                 if instance is None:
                     raise ValidationError(
                         f"Aucune instance de {model.__name__} pour {pk.name} = '{id}'."
