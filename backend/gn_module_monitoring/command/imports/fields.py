@@ -136,6 +136,7 @@ def insert_bib_field(protocol_data: dict):
     def upsert_field(field):
         values = {**field}
         values.pop("store", None)  # store d'un champ synthétique (command/imports/protocol.py)
+        values.pop("column_type", None)  # type SQL d'un identifiant (get_identifier_bib_fields)
         set_ = {
             "fr_label": field.get("fr_label"),
             "eng_label": field.get("eng_label"),

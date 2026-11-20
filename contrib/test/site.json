@@ -23,9 +23,6 @@
   ],
   "geometry_type": "Point",
   "specific": {
-    "base_site_code": {
-      "required": false
-    },
     "id_sites_group": {
       "required": true,
       "hidden": false

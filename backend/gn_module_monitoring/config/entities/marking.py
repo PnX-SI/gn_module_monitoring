@@ -37,6 +37,7 @@ class MarkingEntityConfigSchema(BaseEntityConfigSchema):
                     "id_module": "__MODULE.ID_MODULE",
                     "hidden": True,
                 },
+                "required": True,
             },
             "marking_date": {
                 "store": {"type": "datetime"},

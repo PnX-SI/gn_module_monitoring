@@ -92,7 +92,6 @@
       ]
     },
     "base_site_name": {
-      "required": true,
       "type_widget": "text",
       "attribut_label": "Nom",
       "title": "Nom affiché dans les listes"

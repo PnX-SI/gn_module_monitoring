@@ -17,6 +17,7 @@ class ObservationDetailEntityConfigSchema(BaseEntityConfigSchema):
             "id_observation": {
                 "store": {"type": "integer"},
                 "widget": {"attribut_label": "Id observation", "hidden": True},
+                "required": True,
             },
             "uuid_observation_detail": {
                 "store": {"type": "uuid"},

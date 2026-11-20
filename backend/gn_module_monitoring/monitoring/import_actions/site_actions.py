@@ -14,7 +14,6 @@ from geonature.core.imports.checks.sql import (
     check_altitudes,
     check_duplicate_uuid,
     check_existing_uuid,
-    convert_geom_columns,
     do_nomenclatures_mapping,
     generate_missing_uuid_for_id_origin,
 )
@@ -23,9 +22,14 @@ from geonature.core.imports.utils import (
     compute_bounding_box,
 )
 
-from geonature.core.imports.checks.dataframe.geometry import check_geometry
-
 from geonature.core.imports.checks.sql.user import map_observer_matching
+
+from .geometry import (
+    check_wkt_geometries,
+    compute_geom_local,
+    fill_wkt_from_xy,
+    get_geom_field_name,
+)
 
 
 class SiteImportActions:
@@ -36,7 +40,6 @@ class SiteImportActions:
     LINE_NO = "site_line_no"
     UUID_FIELD = "uuid_base_site"
     GEOMETRY_FIELD = "s__geom"
-    GEOMETRY_LOCAL_FIELD = "s__geom_local"
     ALTITUDE_MIN_FIELD = "s__altitude_min"
     ALTITUDE_MAX_FIELD = "s__altitude_max"
     LINE_NO = "site_line_no"
@@ -106,12 +109,33 @@ class SiteImportActions:
         )
 
     @staticmethod
+    def fill_wkt_from_xy(imprt: TImports, entity: Entity, df) -> set:
+        """
+        Écrit le WKT du site depuis x et y lorsque le WKT est vide (après `check_types`).
+        """
+        entity_fields, _, _ = get_mapping_data(imprt, entity)
+        from gn_module_monitoring.modules import get_module
+
+        site_entity = get_module(imprt.destination.code).entities[SiteImportActions.ENTITY_CODE]
+        geom_field_name = site_entity.data.get("geom_field_name")
+        if not geom_field_name:
+            return set()
+        return fill_wkt_from_xy(
+            imprt,
+            entity,
+            df,
+            wkt_field=entity_fields[f"s__{geom_field_name}"],
+            x_field=entity_fields["x"],
+            y_field=entity_fields["y"],
+        )
+
+    @staticmethod
     def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
         """
         Check the site data of one batch, in the dataframe.
 
         List of checks (in order of execution):
-        - check geography
+        - check geography (WKT, bounding box, 4326 geometry)
 
         Parameters
         ----------
@@ -137,19 +161,14 @@ class SiteImportActions:
         site_entity = get_module(imprt.destination.code).entities[SiteImportActions.ENTITY_CODE]
         geom_field_name = site_entity.data.get("geom_field_name")
         if geom_field_name:
-            geom_field_name__local = f"s__{geom_field_name}_local"
-            geom_field_name__wkt = f"s__{geom_field_name}"
-            # Le même champ porte le WKT (source) et la géométrie 4326 (destination `geom`)
-            updated_cols |= check_geometry(
+            # WKT source (`src_s__geom`, éventuellement écrit depuis x/y) -> géométrie 4326 (`s__geom`)
+            updated_cols |= check_wkt_geometries(
                 imprt,
                 entity,
                 df,
                 file_srid=imprt.srid,
-                geom_4326_field=entity_fields[geom_field_name__wkt],
-                geom_local_field=entity_fields[geom_field_name__local],
-                wkt_field=entity_fields[geom_field_name__wkt],
-                latitude_field=entity_fields["y"],
-                longitude_field=entity_fields["x"],
+                wkt_field=entity_fields[f"s__{geom_field_name}"],
+                geom_4326_field=entity_fields[f"s__{geom_field_name}"],
             )
 
         return updated_cols
@@ -226,11 +245,11 @@ class SiteImportActions:
         entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
         fields, _, _ = get_mapping_data(imprt, entity_site)
 
-        convert_geom_columns(
+        compute_geom_local(
             imprt,
             entity_site,
             geom_4326_field=fields[SiteImportActions.GEOMETRY_FIELD],
-            geom_local_field=fields[SiteImportActions.GEOMETRY_LOCAL_FIELD],
+            geom_field_name=get_geom_field_name(imprt, SiteImportActions.ENTITY_CODE),
         )
 
     @staticmethod

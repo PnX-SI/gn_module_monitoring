@@ -1,25 +1,21 @@
 import geojson
-import json
 
 from operator import attrgetter
 from flask import g
 
 from typing import Dict, Any
 import marshmallow
-from geoalchemy2.shape import from_shape, to_shape
-from geojson import Feature
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
 from geonature.utils.env import MA
 from geonature.utils.schema import CruvedSchemaMixin
 from utils_flask_sqla.schema import SmartRelationshipsMixin
-from marshmallow import Schema, ValidationError, fields, post_dump, pre_load, validate
+from marshmallow import Schema, fields, post_dump, pre_load, validate
 from marshmallow_sqlalchemy import auto_field
 from marshmallow_sqlalchemy.fields import Related, RelatedList
 from pypnusershub.db.models import User
-from shapely.geometry import shape
-from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
+from gn_module_monitoring.tools.geometry import GeojsonSerializationField
 from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
     TMonitoringMarkingEvent,
@@ -192,32 +188,6 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
 
     def set_pk(self, obj):
         return "id_module"
-
-
-# PATCH : To move in utils_flask_sqla_geo
-class GeojsonSerializationField(fields.Field):
-
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return value
-        else:
-            if type(value).__name__ == "WKBElement":
-                feature = Feature(geometry=to_shape(value))
-                return feature.geometry
-            else:
-                return None
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        if not value:
-            return None
-        try:
-            if isinstance(value, str):
-                value = json.loads(value)
-            shape_ = shape(value)
-            two_dimension_geom = remove_third_dimension(shape_)
-            return from_shape(two_dimension_geom, srid=4326)
-        except Exception as error:
-            raise ValidationError("Geometry error") from error
 
 
 class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):

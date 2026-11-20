@@ -37,7 +37,6 @@ class EntityImportActionsUtils:
             entity_fields |= {
                 fields["id_base_site"],
                 fields["s__geom"],
-                fields["s__geom_local"],
                 fields["uuid_base_site"],
             }
             entity_fields -= {fields["s__types_site"]}
@@ -85,6 +84,8 @@ class EntityImportActionsUtils:
 
         entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
         substitutions = get_module(imprt.destination.code).substitutions
+        from geonature.utils.env import db as _db
+        import sqlalchemy as _sa
 
         for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
             if field.type_field == "taxonomy" or (

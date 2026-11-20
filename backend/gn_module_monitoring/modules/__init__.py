@@ -155,6 +155,17 @@ def get_module(module_code):
     return current_app.extensions[EXTENSION_CODE]["modules"][module_code]
 
 
+def invalidate_module(module_code):
+    """
+    Retire le module du cache de `get_module` : à appeler après toute écriture de sa configuration
+    ou de sa ligne `t_modules` (installation, mise à jour du protocole, PATCH du module, tests).
+    Les substitutions (`__MODULE.ID_LIST_TAXONOMY`, ...) sont recalculées à l'appel suivant.
+    """
+    if module_code == MODULE_CODE:
+        module_code = "generic"
+    current_app.extensions[EXTENSION_CODE]["modules"].pop(module_code, None)
+
+
 def get_entity_or_404(module_code, object_type):
     """
     Entité `object_type` de la configuration du module (ou générique si `module_code` est vide).

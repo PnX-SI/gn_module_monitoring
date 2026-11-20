@@ -2,6 +2,7 @@ import re
 
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import JSONB
+from geoalchemy2 import Geometry
 
 from sqlalchemy import (
     ARRAY,
@@ -16,13 +17,20 @@ from sqlalchemy import (
     ForeignKey,
     PrimaryKeyConstraint,
     Uuid,
+    func,
     inspect as sa_inspect,
+    select,
     text,
 )
 
 from geonature.utils.env import DB
 from geonature.core.imports.models import (
     TImports,
+)
+
+from gn_module_monitoring.command.imports.constant import (
+    TABLE_NAME_SUBMODULE,
+    geom_local_column_name,
 )
 
 from gn_module_monitoring.tools.stores import UsersStore
@@ -108,7 +116,8 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
     Pour chaque champ :
     - `src_<nom>` : valeur lue dans le fichier, toujours conservée (texte, JSONB pour les listes) ;
     - `<nom>` : colonne de destination, présente si le champ a un `dest_field`. Son type vient du
-      store du champ (`store.get_column_type()`), voir `get_destination_column_type`.
+      store du champ (`store.get_column_type()`), voir `get_destination_column_type` ; pour un
+      identifiant (bib directe), c'est `column_type` (type SQLAlchemy), sans store.
       Les observateurs (store users) sont lus en texte à la source, mappés ensuite.
 
     Pour chaque entité, `<entité>_data` (JSONB, nullable) reçoit les valeurs mises en forme
@@ -157,7 +166,15 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
         for field in all_fields:
             source_field = field.get("source_field")
             dest_field = field.get("dest_field")
-            store = get_field_store(entity, field["name_field"])
+            # Identifiant (bib directe) : type SQLAlchemy donné par le protocole, sans store
+            has_column_type = "column_type" in field
+            if has_column_type:
+                store = None
+            else:
+                # Store porté par l'entrée (champ synthétique) ou lu dans la configuration de l'entité
+                store = field.get("store")
+                if store is None:
+                    store = get_field_store(entity, field["name_field"])
             sql_type = None if store is None else store.sql_type
             # Les observateurs (store users) sont lus en texte : ce sont des noms, mappés ensuite
             is_observers = isinstance(store, UsersStore)
@@ -177,13 +194,34 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
                 added_columns.add(source_field)
 
             if dest_field and dest_field not in added_columns:
-                column_type = get_destination_column_type(store) if store is not None else String
+                if has_column_type:
+                    column_type = field["column_type"]
+                else:
+                    column_type = (
+                        get_destination_column_type(store) if store is not None else String
+                    )
                 columns.append(
                     Column(
                         dest_field, column_type, nullable=True
                     )  # Must be nullable because dest_field values are computed after the row is created
                 )
                 added_columns.add(dest_field)
+
+        # Colonne annexe de la géométrie locale de l'entité : pas de champ, pas de bib_fields.
+        # Elle reçoit la géométrie dans le SRID local lu en base (comme la table de destination).
+        geom_field_name = entity.data.get("geom_field_name")
+        if geom_field_name is not None:
+            geom_local_column = geom_local_column_name(geom_field_name)
+            srid_local = DB.session.scalar(
+                select(
+                    func.Find_SRID(
+                        "gn_monitoring", TABLE_NAME_SUBMODULE[entity_code], geom_local_column
+                    )
+                )
+            )
+            columns.append(
+                Column(geom_local_column, Geometry("GEOMETRY", srid_local), nullable=True)
+            )
 
     schema = "gn_imports"
 

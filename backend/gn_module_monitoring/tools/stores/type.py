@@ -1,21 +1,15 @@
 import datetime
-import json
 import logging
 import uuid
 
 import sqlalchemy as sa
 from flask import current_app
 from geoalchemy2 import Geometry
-from geoalchemy2.shape import from_shape, to_shape
-from geojson import Feature
 from marshmallow import ValidationError, fields, post_load
-from shapely import wkb
-from shapely.geometry import shape
-from shapely.geometry.base import BaseGeometry
 from sqlalchemy.orm import ColumnProperty
-from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.tools.geometry import GeojsonSerializationField
 
 from .base import BaseStore
 
@@ -192,50 +186,9 @@ class UUIDStore(BaseTypeStore):
         return TextWidget(data, **kwargs)
 
 
-class GeojsonField(fields.Field):
-    """
-    Géométrie échangée avec l’API en GeoJSON (sortie : dict GeoJSON ; entrée : dict GeoJSON ou
-    chaîne JSON), géométrie 2D en SRID 4326. Entrée acceptée aussi : géométrie Shapely ou WKB.
-    Si `store` est fourni, le type géométrique est validé contre `store.data["geometry_type"]`.
-    """
-
-    def __init__(self, store=None, **kwargs):
-        super().__init__(**kwargs)
-        self.store = store
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return value
-        if type(value).__name__ == "WKBElement":
-            return Feature(geometry=to_shape(value)).geometry
-        return None
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        if not value:
-            return None
-        try:
-            if isinstance(value, str):
-                value = json.loads(value)
-            if isinstance(value, BaseGeometry):
-                shape_ = value
-            elif isinstance(value, (bytes, bytearray)):
-                shape_ = wkb.loads(bytes(value))
-            elif type(value).__name__ == "WKBElement":
-                shape_ = to_shape(value)
-            else:
-                shape_ = shape(value)
-            two_dimension_geom = remove_third_dimension(shape_)
-            geom = from_shape(two_dimension_geom, srid=4326)
-        except Exception as error:
-            raise ValidationError("Geometry error") from error
-        if self.store is not None:
-            self.store.validate_geometry(two_dimension_geom)
-        return geom
-
-
 class GeometryStore(BaseTypeStore):
     """
-    Géométrie (colonne `geom`, `geom_local`, ...). Valeur de l’API : GeoJSON (voir `GeojsonField`).
+    Géométrie (colonne `geom`, `geom_local`, ...). Valeur de l’API : GeoJSON (voir `GeojsonSerializationField`).
     La colonne de la table transitoire a le SRID `srid` (4326 par défaut).
     `geometry_type` : type géométrique accepté (chaîne ou liste), validé à l’entrée de l’API.
     """
@@ -267,7 +220,7 @@ class GeometryStore(BaseTypeStore):
             )
 
     def get_field(self) -> fields.Field:
-        return GeojsonField(store=self, **self._get_field_kwargs())
+        return GeojsonSerializationField(store=self, **self._get_field_kwargs())
 
     def get_api_type(self) -> type:
         return str

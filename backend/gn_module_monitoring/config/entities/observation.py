@@ -17,6 +17,7 @@ class ObservationEntityConfigSchema(BaseEntityConfigSchema):
             "id_base_visit": {
                 "store": {"type": "visit"},
                 "widget": {"attribut_label": "Id visite", "hidden": True},
+                "required": True,
             },
             "id_digitiser": {
                 "store": {"type": "user"},

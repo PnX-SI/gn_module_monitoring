@@ -35,6 +35,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
             "id_module": {
                 "store": {"type": "integer"},
                 "widget": {"attribut_label": "ID Module", "hidden": True},
+                "required": True,
             },
             "observers": {
                 "store": {
@@ -60,7 +61,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
             "id_digitiser": {
                 "store": {"type": "user"},
                 "widget": {"attribut_label": "Digitiser", "hidden": True},
-                "required": True,
+                "required": False,
             },
             "visit_date_min": {
                 "store": {"type": "datetime"},

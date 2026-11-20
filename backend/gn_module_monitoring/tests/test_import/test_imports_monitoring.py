@@ -21,6 +21,8 @@ occhab = pytest.importorskip("gn_module_occhab")
 
 from gn_module_occhab.models import OccurenceHabitat, Station
 
+WKT_IMPORT_FILES = ("valid_wkt.csv", "invalid_wkt.csv")
+
 # ######################################################################################
 # Fixtures -- override default values
 # ######################################################################################
@@ -52,19 +54,13 @@ def install_test_module_with_import(install_module_test, datasets):
         )
     ).all()
 
+    # Champs spécifiques des types de site (roost_type, owner_*, ...) : non fusionnés dans les bib_fields
+    # du module tant que P1 (TASKS.md, « Champs spécifiques des types de site ») n'est pas fait.
     assert set(
         [
-            "s__roost_type",
             "s__meteo",
-            "s__place_name",
-            "s__owner_name",
-            "s__owner_adress",
-            "s__owner_tel",
-            "s__owner_mail",
-            "s__opening",
-            "s__threat",
-            "s__recommandation",
-            "s__meteo_gite",
+            "s__base_site_code",
+            "s__base_site_name",
         ]
     ).issubset(set([f.name_field for f in site_fields]))
 
@@ -113,7 +109,7 @@ def fieldmapping(
     preset_fieldmapping,
     types_site,
 ):
-    return {
+    mapping = {
         "uuid_base_site": {"column_src": "uuid_base_site"},
         "s__base_site": {"column_src": "s__base_site"},
         "s__id_inventor": {"constant_value": {"id_role": 3}},
@@ -127,11 +123,10 @@ def fieldmapping(
         "s__types_site": {
             "constant_value": [list(types_site.values())[0].id_nomenclature_type_site]
         },
-        "s__roost_type": {"column_src": "s__roost_type"},
         "y": {"column_src": "y"},
         "x": {"column_src": "x"},
         "uuid_base_visit": {"column_src": "uuid_base_visit"},
-        "unique_dataset_id": {"column_src": "id_dataset"},
+        "uuid_dataset": {"column_src": "id_dataset"},
         "v__visit_date_min": {"column_src": "v__visit_date_min"},
         "v__visit_date_max": {"column_src": "v__visit_date_max"},
         "v__meteo": {"column_src": "v__meteo"},
@@ -140,6 +135,10 @@ def fieldmapping(
         "o__cd_nom": {"column_src": "o__cd_nom"},
         "o__comments": {"column_src": "o__comments"},
     }
+    if import_file_name in WKT_IMPORT_FILES:
+        # Géométrie en WKT (colonne source `s__geom`), x et y vides dans ces fichiers
+        mapping["s__geom"] = {"column_src": "s__geom"}
+    return mapping
 
 
 @pytest.fixture()
@@ -303,3 +302,93 @@ class TestImportMonitoring:
         )
         for entity in entities:
             assert entity.label == new_label
+
+
+# Coordonnées des sites (uuid_base_site) des fichiers valid_hierarchy_comma.csv / valid_wkt.csv
+SITE_POINTS_4326 = {
+    "550e8400-e29b-41d4-a716-446655440002": (6.0531825, 44.5764805),
+    "01b93717-ab9a-482c-a852-4e6f61ae2ac0": (6.762981626694984, 44.88250842566327),
+    "4d514a15-6e9b-446a-aafe-1d22fad066e5": (6.834298469329738, 44.82957727096802),
+}
+
+
+def _import_sites_geometry(id_import):
+    """Géométrie 4326 (X, Y, SRID), présence et SRID de geom_local des sites d'un import (SELECT)."""
+    return {
+        str(row.uuid_base_site): row
+        for row in db.session.execute(
+            sa.text(
+                """
+                SELECT uuid_base_site,
+                       ST_SRID(geom) AS srid,
+                       ST_X(geom) AS x,
+                       ST_Y(geom) AS y,
+                       geom_local IS NOT NULL AS has_geom_local,
+                       ST_SRID(geom_local) AS srid_local
+                FROM gn_monitoring.t_base_sites
+                WHERE id_import = :id_import
+                """
+            ),
+            {"id_import": id_import},
+        ).all()
+    }
+
+
+@pytest.mark.usefixtures(
+    "client_class",
+    "temporary_transaction",
+    "celery_eager",
+    "install_test_module_with_import",
+    "import_destination",
+    "default_import_destination",
+    "module_code",
+    "fieldmapping_preset_name",
+    "testfiles_folder",
+    "contentmapping_preset_name",
+)
+class TestImportMonitoringGeometry:
+    @pytest.mark.parametrize(
+        "autogenerate, import_file_name,fieldmapping_preset_name",
+        [
+            (False, "valid_hierarchy_comma.csv", None),  # x/y -> POINT construit
+            (False, "valid_wkt.csv", None),  # WKT valide
+        ],
+    )
+    def test_import_site_geometry(self, imported_import):
+        """Import x/y ou WKT : géométrie 4326 du site = POINT(x y), geom_local renseignée (SRID local)."""
+        assert_import_errors(imported_import, set([]))
+        sites = _import_sites_geometry(imported_import.id_import)
+        assert set(sites) == set(SITE_POINTS_4326)
+        srid_local = db.session.scalar(
+            sa.text(
+                "SELECT Find_SRID('gn_monitoring', 't_base_sites', 'geom_local')"
+            )
+        )
+        for uuid, (x, y) in SITE_POINTS_4326.items():
+            site = sites[uuid]
+            assert site.srid == 4326
+            assert (site.x, site.y) == pytest.approx((x, y), abs=1e-9)
+            assert site.has_geom_local
+            assert site.srid_local == srid_local
+
+    @pytest.mark.parametrize(
+        "autogenerate, import_file_name,fieldmapping_preset_name",
+        [(False, "invalid_wkt.csv", None)],
+    )
+    def test_import_invalid_wkt_rows_have_no_geometry(self, imported_import):
+        """Un WKT 3D et un WKT non parsable sont rejetés : pas de site ni de geom_local pour ces lignes."""
+        invalid_wkt_rows = set()
+        for error in imported_import.errors:
+            if error.type.name == "INVALID_WKT":
+                assert error.column == "WKT"
+                invalid_wkt_rows |= set(error.rows or [])
+        # Numéros de ligne du fichier (en-tête = ligne 1) : lignes 5 et 6 (WKT 3D, site 01b93717)
+        # et 7 (WKT non parsable, site 4d514a15)
+        assert invalid_wkt_rows == {5, 6, 7}
+        sites = _import_sites_geometry(imported_import.id_import)
+        valid_uuid = "550e8400-e29b-41d4-a716-446655440002"
+        assert set(sites) == {valid_uuid}
+        assert (sites[valid_uuid].x, sites[valid_uuid].y) == pytest.approx(
+            SITE_POINTS_4326[valid_uuid], abs=1e-9
+        )
+        assert sites[valid_uuid].has_geom_local

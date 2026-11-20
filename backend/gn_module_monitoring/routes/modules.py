@@ -17,7 +17,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
 from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.modules import get_entity_or_404
+from gn_module_monitoring.modules import get_entity_or_404, invalidate_module
 from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
@@ -115,6 +115,8 @@ def create_or_update_module(post_data: dict, module_code: str, instance=None):
 
     db.session.add(module)
     db.session.commit()
+    # Les substitutions du module (ex. ID_LIST_TAXONOMY) viennent de la ligne : cache de get_module
+    invalidate_module(module.module_code)
     # Les attributs du module alimentent config["custom"] : rafraîchissement du cache
     get_config(module.module_code, force=True)
     return schema().dump(module)

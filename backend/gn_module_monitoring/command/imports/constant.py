@@ -82,8 +82,20 @@ IGNORED_IMPORT_FIELDS = [
     "id_base_site_origin",
     "id_base_visit_origin",
     "id_observation_origin",
-    "unique_dataset_id",
+    "uuid_dataset",  # UUID du JDD (get_uuid_dataset_bib_fields), nom fixé par le code
 ]
+
+
+
+def geom_local_column_name(geom_field_name: str) -> str:
+    """
+    Colonne annexe de la géométrie locale d'une entité, dérivée de son champ géométrie
+    (`geom_field_name` de l'entité, ex. `geom` -> `geom_local`). Ce n'est ni un champ synthétique ni un
+    bib_fields : la colonne est ajoutée à la table transitoire (command/imports/sql.py), calculée en SQL
+    après contrôle (monitoring/import_actions/geometry.py), puis transférée vers la table de l'entité
+    (monitoring/import_actions/actions.py).
+    """
+    return f"{geom_field_name}_local"
 
 ID_FIELD_NAME = {
     "sites_group": "id_sites_group",

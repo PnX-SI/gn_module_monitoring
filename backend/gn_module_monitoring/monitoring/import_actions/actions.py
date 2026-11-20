@@ -1,6 +1,7 @@
 from math import ceil
 
 from geonature.core.imports.models import BibFields
+from geoalchemy2 import Geometry
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
@@ -36,6 +37,8 @@ import typing
 
 
 from .entity_import_actions_utils import EntityImportActionsUtils
+from gn_module_monitoring.command.imports.constant import geom_local_column_name
+from gn_module_monitoring.monitoring.import_actions.geometry import get_geom_field_name
 from gn_module_monitoring.monitoring.import_actions.site_actions import (
     SiteImportActions,
 )
@@ -55,6 +58,22 @@ def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
         code="observation", id_destination=imprt.destination.id_destination
     ).one()
     return entity_site, entity_visit, entity_observation
+
+
+def get_fields_to_cast(fields: dict, transient_table) -> dict:
+    """
+    Champs de `fields` à caster par check_types : tous, sauf ceux dont la colonne de destination dans la
+    table transitoire est une géométrie. Les champs sans colonne de destination ne sont pas concernés.
+    """
+    return {
+        name: field
+        for name, field in fields.items()
+        if not (
+            field.dest_field
+            and field.dest_field in transient_table.c
+            and isinstance(transient_table.c[field.dest_field].type, Geometry)
+        )
+    }
 
 
 def get_entity_model(entity: Entity):
@@ -151,14 +170,15 @@ class MonitoringImportActions(ImportActions):
         # check_types overriding generated values during SQL checks.
         fields, _, _ = get_mapping_data(imprt, entity)
 
-        # Le WKT du site (`s__geom`, source = WKT, destination = geom Geometry) est lu et converti
-        # par SiteImportActions.check_dataframe (check_geometry) : check_types ne doit pas le caster.
-        fields_to_cast = {
-            name: field for name, field in fields.items() if name != SiteImportActions.GEOMETRY_FIELD
-        }
+        # Les champs géométrie (colonne transitoire de type Geometry) sont lus et convertis par les
+        # contrôles géométrie : check_types ne doit pas les caster.
+        fields_to_cast = get_fields_to_cast(fields, imprt.destination.get_transient_table())
         updated_cols = check_types(
             imprt, entity, df, fields_to_cast
         )  # FIXME do not check site and visit uuid twice
+        if entity.code == SiteImportActions.ENTITY_CODE:
+            # x/y -> WKT source (si WKT vide), après check_types, avant le contrôle des champs requis
+            updated_cols |= SiteImportActions.fill_wkt_from_xy(imprt, entity, df)
         updated_cols |= check_required_values(imprt, entity, df, fields)
 
         if entity.code == SiteImportActions.ENTITY_CODE:
@@ -261,6 +281,20 @@ class MonitoringImportActions(ImportActions):
                     )
                 else:
                     complement_fields.append(field)
+
+            # Géométrie locale de l'entité : colonne annexe de la table transitoire, sans bib_fields
+            geom_field_name = get_geom_field_name(imprt, entity.code)
+            if geom_field_name is not None:
+                geom_local_column = geom_local_column_name(geom_field_name)
+                if (
+                    geom_local_column in transient_table.c
+                    and geom_local_column in destination_col_names
+                    and geom_local_column not in core_dest_col_names
+                ):
+                    core_dest_col_names.append(geom_local_column)
+                    core_select_cols.append(
+                        transient_table.c[geom_local_column].label(geom_local_column)
+                    )
 
             if entity.code == "visit":
                 core_dest_col_names.append("id_module")

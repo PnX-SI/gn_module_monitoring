@@ -744,6 +744,7 @@ class TestSiteWithModule:
             types_site=[list(types_site.values())[0]],
             data={
                 "profondeur_grotte": 42.8,
+                "roost_type": "grotte",  # requis par le type de site (donnée de test ajoutée)
                 "prop_from_other_module": "foo",
             },
         )

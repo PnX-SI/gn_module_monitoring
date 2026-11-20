@@ -1,15 +1,11 @@
 {
   "specific": {
     "cd_nom": {
-      "type_widget": "datalist",
+      "type_widget": "taxonomy",
       "attribut_label": "Taxon",
-      "keyValue": "cd_nom",
-      "keyLabel": "nom_valide",
-      "multiple": false,
-      "api": "taxref/allnamebylist/__MODULE.ID_LIST_TAXONOMY",
-      "application": "TaxHub",
-      "required": true,
-      "type_util": "taxonomy"
+      "type_util": "taxonomy",
+      "id_list": "__MODULE.ID_LIST_TAXONOMY",
+      "required": true
     } 
   }
 }

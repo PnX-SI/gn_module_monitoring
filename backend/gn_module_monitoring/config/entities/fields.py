@@ -57,10 +57,72 @@ class StoreConfigSchema(ma.Schema):
             )
 
 
-class EntityFieldConfigSchema(ma.Schema):
-    class Meta:
-        unknown = ma.EXCLUDE  # TODO: switch to raise once schema complete
+def handle_retrocompat_field_definition(definition: dict) -> dict:
+    """
+    Conversion de l'ancien format de définition de champ, pour construire `widget` et `store`.
+    Ne modifie pas `definition` et renvoie une copie.
 
+    - Mode STRICT : aucune conversion. La définition est renvoyée telle quelle ; l'ancien format
+      (`type_widget`, `type_util`, clés plates) est alors refusé par le schéma (clé inconnue).
+    - Mode non STRICT : `type_widget` définit `widget.type` et `type_util` définit `store.type` ;
+      les clés plates du champ sont copiées dans `widget` (et dans `store` pour `type_util`), comme
+      la conversion historique. Aucune clé n'est retirée du premier niveau : les clés que les schémas
+      ne reconnaissent pas sont ignorées (EXCLUDE). `required` non booléen devient `widget.required_js`.
+    `multi_select` et `multiple` choisissent le type de store (datasets, modules, users) ; `site`
+    impose un champ masqué.
+
+    Appelée par `EntityFieldConfigSchema.pre_load` et, avant la fusion, sur les champs du protocole et
+    des types de site.
+    """
+    data = deepcopy(definition)
+    if current_app.config[MODULE_CODE]["STRICT"]:
+        return data
+    # Si required (resp. hidden) n'est pas un booléen, c'est une valeur dynamique à évaluer en js que l’on transmet au widget.
+    # On considère le champs comme non requis (resp. non masqué) en l'absence de possibilité de savoir ce qu'il en est réellement.
+    if "required" in data and not isinstance(data["required"], bool):
+        data.setdefault("widget", {})["required_js"] = data.pop("required")
+        data["required"] = False
+
+    if "type_widget" not in data and "type_util" not in data:
+        return data
+
+    orig_data = deepcopy(data)
+    if "type_widget" in data:
+        if "widget" in data:
+            # Sans la clé `widget` elle-même : évite une référence cyclique (widget["widget"] is widget)
+            data["widget"].update({key: value for key, value in data.items() if key != "widget"})
+        else:
+            data["widget"] = deepcopy(orig_data)
+        widget_type = data.pop("type_widget")
+        data["widget"]["type"] = widget_type
+        if widget_type == "site":  # retro-compat
+            # Il n’y a pas de widget site : le champ est masqué, son widget est celui du store
+            if not data["widget"].get("hidden", False):
+                raise ValidationError({"widget": "Le widget 'site' ne peut que être hidden."})
+            data["widget"].pop("type")
+    if "type_util" in data:
+        if "store" in data:
+            # Sans la clé `store` elle-même : évite une référence cyclique
+            data["store"].update({key: value for key, value in data.items() if key != "store"})
+        else:
+            data["store"] = deepcopy(orig_data)
+        store_type = data.pop("type_util")
+        data["store"]["type"] = store_type
+        # On utilise des stores différents pour gérer les M2O et les M2M
+        # => utilisation du bon store si multiple/multi_select=True
+        if store_type == "dataset" and data["store"].pop("multi_select", False):
+            data["store"]["type"] = "datasets"
+        if store_type == "module" and data["store"].pop("multiple", False):
+            data["store"]["type"] = "modules"
+        if store_type == "user":
+            multiple = data["store"].pop("multiple", False)
+            multi_select = data["store"].pop("multi_select", False)
+            if multiple or multi_select:
+                data["store"]["type"] = "users"
+    return data
+
+
+class EntityFieldConfigSchema(ma.Schema):
     # Widget & store created in @post_load so using raw fields
     widget = fields.Raw()
     store = fields.Raw()
@@ -68,6 +130,10 @@ class EntityFieldConfigSchema(ma.Schema):
     required = fields.Boolean()
     required_cel = fields.Str()
     validate_cel = CELValidationsField()
+    # Valeur par défaut du champ (None : pas de valeur par défaut). Obligatoire pour passer `required`
+    # de true à false (voir SiteEntityConfigSchema.pre_load). Lue dans la config seulement : elle n'est
+    # pas transmise aux stores ni aux widgets, et n'est pas appliquée à la saisie ni à l'import.
+    default_value = fields.Raw(allow_none=True)
     # Renseigné en post_load pour les champs spécifiques à un type de site
     id_types_site = fields.List(fields.Integer(), dump_only=True)
 
@@ -80,49 +146,15 @@ class EntityFieldConfigSchema(ma.Schema):
 
     def load(self, data, **kwargs):
         with schema_context(field_name=data.pop("name")):
+            # Une seule voie : clé inconnue rejetée en STRICT, ignorée sinon
+            kwargs["unknown"] = (
+                ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
+            )
             return super().load(data, **kwargs)
 
     @pre_load
     def pre_load(self, data, **kwargs):
-        # Si required (resp. hidden) n'est pas un booléen, c'est une valeur dynamique à évaluer en js que l’on transmet au widget.
-        # On considère le champs comme non requis (resp. non masqué) en l'absence de possibilité de savoir ce qu'il en est réellement.
-        if "required" in data and not isinstance(data["required"], bool):
-            data.setdefault("widget", {})["required_js"] = data.pop("required")
-            data["required"] = False
-
-        # retro-compat.
-        orig_data = deepcopy(data)
-        if "type_widget" in data:
-            if "widget" in data:
-                data["widget"].update(data)
-            else:
-                data["widget"] = deepcopy(orig_data)
-            widget_type = data.pop("type_widget")
-            data["widget"]["type"] = widget_type
-            if widget_type == "site":  # retro-compat
-                # Il n’y a pas de widget site : le champ est masqué, son widget est celui du store
-                if not data["widget"].get("hidden", False):
-                    raise ValidationError({"widget": "Le widget 'site' ne peut que être hidden."})
-                data["widget"].pop("type")
-        if "type_util" in data:
-            if "store" in data:
-                data["store"].update(data)
-            else:
-                data["store"] = deepcopy(orig_data)
-            store_type = data.pop("type_util")
-            data["store"]["type"] = store_type
-            # On utilise des stores différents pour gérer les M2O et les M2M
-            # => utilisation du bon store si multiple/multi_select=True
-            if store_type == "dataset" and data["store"].pop("multi_select", False):
-                data["store"]["type"] = "datasets"
-            if store_type == "module" and data["store"].pop("multiple", False):
-                data["store"]["type"] = "modules"
-            if store_type == "user":
-                multiple = data["store"].pop("multiple", False)
-                multi_select = data["store"].pop("multi_select", False)
-                if multiple or multi_select:
-                    data["store"]["type"] = "users"
-        return data
+        return handle_retrocompat_field_definition(data)
 
     @post_load
     def post_load(self, data, **kwargs):

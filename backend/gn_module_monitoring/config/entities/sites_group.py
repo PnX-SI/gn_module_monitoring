@@ -30,11 +30,11 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
             },
             "sites_group_name": {
                 "widget": {"type": "text", "attribut_label": "Nom"},
-                "required": True,
+                "required": False,
             },
             "sites_group_code": {
                 "widget": {"type": "text", "attribut_label": "Code"},
-                "required": True,
+                "required": False,
             },
             "sites_group_description": {
                 "widget": {"type": "textarea", "attribut_label": "Description"},
@@ -77,7 +77,7 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
             "id_digitiser": {
                 "store": {"type": "user"},
                 "widget": {"attribut_label": "Digitiser", "hidden": True},
-                "required": True,
+                "required": False,
             },
             "modules": {
                 "store": {"type": "modules"},

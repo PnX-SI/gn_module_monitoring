@@ -11,7 +11,7 @@ from geonature.core.gn_commons.models import TModules
 from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.modules import get_module
+from gn_module_monitoring.modules import get_module, invalidate_module
 from gn_module_monitoring.config.utils import (
     get_monitorings_path,
     get_monitoring_module,
@@ -177,6 +177,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(source)
     DB.session.commit()
 
+    invalidate_module(module_code)
     click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
 
@@ -229,6 +230,7 @@ def cmd_add_update_import_on_protocole(module_code):
             try:
                 click.secho(f"Mise à jour du module {module_code}")
                 state = process_update_module_import({"module": module_entity}, module_code)
+                invalidate_module(module_code)
                 if state is None:
                     # rien à faire : le message est déjà affiché
                     return
@@ -245,6 +247,7 @@ def cmd_add_update_import_on_protocole(module_code):
     # Ajouter les destinations disponibles
     process_module_import(module_data)
     DB.session.commit()
+    invalidate_module(module_code)
 
 
 @click.command("update_module_available_permissions")
