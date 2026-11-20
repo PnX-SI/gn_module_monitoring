@@ -131,6 +131,7 @@ export class MonitoringModuleDetailComponent extends MonitoringGeomComponent imp
           data: data[`${objType}s`],
           objType: objType,
           childType: this.childTypes[objType],
+          active : data["active"]
         };
       }
       this.setDataTableObjData(dataToTable, this.moduleCode, [

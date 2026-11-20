@@ -312,6 +312,20 @@ export class MonitoringGeomComponent implements OnInit {
     return this.templateSpecificData;
   }
 
+  // Deactivate the possibility to add an item if site is inactive
+  setCanCreateAccordingToSiteActive(active: boolean)
+  {
+    // We don't want to modify if status == true
+    if (active == false)
+    {
+      for (let tableConfig of this.dataTableConfig)
+      {
+        tableConfig["canCreateObj"] = false;
+        tableConfig["canCreateChild"] = false;
+      }
+    }
+  }
+
   onEachFeatureSite() {
     return (feature, layer) => {
       const popup = this._popup.setSitePopup(this._configServiceG.moduleCode(), feature, {});

@@ -151,9 +151,9 @@
                     >
                       <option-list-btn
                         placeholder="{{ dataTableConfig[i].childType }}"
-                        label="{{ 'Monitoring.Sites.addVisit' | translate }}"
+                        label="{{ row.active ? 'Monitoring.Sites.addVisit' : 'Monitoring.Sites.inactiveSite' | translate }}"
                         [iconOrButton]="icon"
-                        [canCreateChild]="dataTableConfig[i].canCreateChild"
+                        [canCreateChild]="dataTableConfig[i].canCreateChild && row.active"
                         [item]="row"
                         (onDeployed)="addChildrenVisit(row)"
                         (onSaved)="saveOptionChild(row, $event)"
@@ -162,7 +162,7 @@
                     <ng-template #addChildrenTemplate>
                       <ng-container>
                         <a
-                          [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild }"
+                          [ngClass]="{ isDisableBtn: !dataTableConfig[i].canCreateChild || !row.active }"
                           class="nav-link link cell-link"
                           (click)="
                             dataTableConfig[i].canCreateChild
@@ -174,7 +174,7 @@
                           "
                         >
                           <i
-                            [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild }"
+                            [ngClass]="{ isDisableIcon: !dataTableConfig[i].canCreateChild || !row.active }"
                             class="fa fa-plus"
                             aria-hidden="true"
                           ></i>

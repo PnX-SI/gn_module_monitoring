@@ -50,6 +50,7 @@ export interface ISite extends IGeomObject {
   id_inventor: number;
   inventor: string[];
   deleted: boolean;
+  active: boolean;
 }
 
 export interface ISiteField extends Omit<ISite, 'types_site'> {

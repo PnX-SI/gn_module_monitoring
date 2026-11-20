@@ -72,6 +72,8 @@ export class MonitoringObservationsDetailComponent
     this._observationsService.getById(this.dataId, this.moduleCode).subscribe((detailData) => {
       this.objectData = detailData;
 
+      this.setCanCreateAccordingToSiteActive(this.objectData.parents.site.active);
+      
       // Get site geometries
       this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
         id_base_site: this.objectData.id_base_site,

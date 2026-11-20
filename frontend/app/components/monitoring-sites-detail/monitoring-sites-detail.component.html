@@ -67,10 +67,10 @@
     add-button
     placeholder="Sélectionner le protocole"
     *ngIf="moduleCode === 'generic'"
-    label="{{ 'Monitoring.Sites.addVisit' | translate }}"
+    label="{{ 'Monitoring.Sites.addVisit' | translate }}" 
     [optionList]="modules"
     (onDeployed)="getModules()"
     (onSaved)="addNewVisit($event)"
-    [canCreateChild]="moduleCode === 'generic' ? true : currentPermission?.visit?.canCreate > 0"
+    [canCreateChild]="canCreateVisit()"
   ></option-list-btn>
 </pnx-monitoring-datatable-g>

@@ -12,6 +12,7 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringObservations,
     TMonitoringVisits,
     TMonitoringIndividuals,
+    TMonitoringSites
 )
 
 from gn_module_monitoring.monitoring.schemas import (
@@ -158,6 +159,10 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
     """
     config = get_config(module_code)
     process_data = process_json_data_for_db_upsert(config, post_data, ObjectType.OBSERVATION)
+    visit = db.session.scalar(db.select(TMonitoringVisits).where(TMonitoringVisits.id_base_visit == process_data["id_base_visit"]))
+    site = db.session.scalar(db.select(TMonitoringSites).where(TMonitoringSites.id_base_site == visit.id_base_site))
+    if (site.active == False) :
+        raise Forbidden("Le site est inactif, impossible de créer l'observation")
 
     # Cas des individus, s'il y a un id_individual
     # Récupération du cd_nom de l'individu
@@ -172,6 +177,8 @@ def create_or_update_observation(post_data: dict, module_code: str = "generic"):
             process_data["cd_nom"] = individual.cd_nom
 
     observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
+
+
 
     db.session.add(observation)
     db.session.commit()

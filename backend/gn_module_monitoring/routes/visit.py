@@ -14,7 +14,7 @@ from gn_module_monitoring.constants import ObjectType
 from gn_module_monitoring.blueprint import blueprint_api
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
-from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
+from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules, TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import (
     MonitoringVisitsSchemaCruved,
     MonitoringVisitsSchema,
@@ -138,6 +138,10 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic"):
 
     try:
         visit = MonitoringVisitsSchema(unknown=EXCLUDE).load(process_data)
+        site = db.session.scalar(db.select(TMonitoringSites).where(TMonitoringSites.id_base_site == visit.id_base_site))
+        if (site.active == False) :
+            raise Forbidden("Le site est inactif, impossible de créer la visite")
+            
     except Exception as e:
         # TODO REMOVE DEV MODE
         print(e.__dict__)

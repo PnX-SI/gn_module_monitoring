@@ -17,6 +17,7 @@ import { SelectObject } from '../../interfaces/object';
 import { Module } from '../../interfaces/module';
 import { FormService } from '../../services/form.service';
 import { Popup } from '../../utils/popup';
+import { TPermission } from '../../types/permission';
 import { DataMonitoringObjectService } from '../../services/data-monitoring-object.service';
 import { PermissionService } from '../../services/permission.service';
 
@@ -44,6 +45,8 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
   bDeleteModalEmitter = new EventEmitter<boolean>();
 
   currentUser: User;
+
+  currentPermission: TPermission;
 
   constructor(
     protected _Activatedroute: ActivatedRoute,
@@ -75,6 +78,13 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       this.dataId,
       this.queryParams
     );
+
+    this._Activatedroute.data.subscribe(({ data }) => {
+      this.currentPermission = data.permission;
+    });
+
+    
+
     // initialisation des données
     this.initSiteVisit();
   }
@@ -100,12 +110,16 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       visits: this._visits_service.getResolved(1, this.limit, defaultFilters),
     }).subscribe((data) => {
       this.objectData = data.site;
+      this.setCanCreateAccordingToSiteActive(this.objectData.active);
+      
+
       const fieldsConfig = this._configServiceG.config()[this.objectType]['fields'];
       // Resolve site data
       this._dataUtilsService
         .resolveObjectProperties(this.objectData, fieldsConfig)
         .subscribe((data) => {
           this.objectDataResolved = data;
+          
         });
 
       if (this.parentPath.includes('sites_group')) {
@@ -194,6 +208,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
     } else {
       this.addNewVisit({ id: this.moduleCode, label: '' });
     }
+  }
+
+
+  canCreateVisit() {
+    return this.objectData?.active 
+      && this.moduleCode === 'generic' ? true : !!this.currentPermission?.visit?.C === true; // check permission
   }
 
   addNewVisit($event: SelectObject) {
