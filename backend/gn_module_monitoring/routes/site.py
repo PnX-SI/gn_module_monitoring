@@ -6,7 +6,6 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.utils.env import db
-from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
@@ -123,8 +122,7 @@ def get_sites(module_code=None):
             TMonitoringSites.modules.any(TMonitoringModules.module_code == module_code)
         )
 
-    config = get_module(module_code or "generic").dump_config()
-    specific_properties = get_specific_properties(TMonitoringSites, config, ObjectType.SITE)
+    specific_properties = get_entity_or_404(module_code, ObjectType.SITE).extra_fields()
 
     query = filter_params(TMonitoringSites, query=query, params=params)
     query = sort_according_to_column_type_for_site(
@@ -224,11 +222,7 @@ def _get_site_geometries(module_code=None):
     ).distinct()
     query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
 
-    specific_properties = get_specific_properties(
-        TMonitoringSites,
-        get_module(module_code).dump_config(),
-        ObjectType.SITE,
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.SITE).extra_fields()
 
     query_allowed = TMonitoringSites.filter_by_specific(
         query=query_allowed,

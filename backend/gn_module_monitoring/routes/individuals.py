@@ -1,5 +1,4 @@
 from flask import g, request
-from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from sqlalchemy import select
 from werkzeug.datastructures import MultiDict
@@ -70,10 +69,11 @@ def get_individuals(module_code=None):
             TMonitoringIndividuals.modules.any(TMonitoringModules.module_code == module_code)
         )
 
-    config = get_module(g.current_module.module_code).dump_config()
-    specific_properties = get_specific_properties(
-        TMonitoringIndividuals, config, ObjectType.INDIVIDUAL
-    ).keys()
+    specific_properties = (
+        get_entity_or_404(g.current_module.module_code, ObjectType.INDIVIDUAL)
+        .extra_fields()
+        .keys()
+    )
 
     query = filter_params(TMonitoringIndividuals, query=query, params=params)
     query = sort(TMonitoringIndividuals, query, sort_label, sort_dir, specific_properties)

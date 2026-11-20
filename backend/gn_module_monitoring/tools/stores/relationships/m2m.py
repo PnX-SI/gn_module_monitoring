@@ -1,5 +1,7 @@
 import logging
 
+import sqlalchemy as sa
+from sqlalchemy import ARRAY
 from marshmallow import fields, validate, ValidationError
 from flask import current_app
 from sqlalchemy.orm import RelationshipProperty
@@ -29,6 +31,9 @@ class BaseManyToManyStore(BaseRelationshipStore):
       la renvoie telle quelle. Pour un champ natif, `Field.get_value` extrait les clés primaires
       de la relation (liste d’instances).
     """
+
+    # Le store stocke une liste de clés primaires de la cible (entiers)
+    sql_type = ARRAY(sa.types.Integer)
 
     class Field(BaseRelationshipStore.Field):
         def _deserialize(self, value, attr, data, **kwargs):

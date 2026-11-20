@@ -35,6 +35,9 @@ class BaseForeignKeyStore(BaseRelationshipStore):
       sans charger l’instance.
     """
 
+    # Le store stocke la clé primaire de la cible (entier)
+    sql_type = sa.types.Integer
+
     class Field(BaseRelationshipStore.Field):
         def _deserialize(self, value, attr, data, **kwargs):
             """

@@ -36,7 +36,6 @@ class SiteImportActions:
     LINE_NO = "site_line_no"
     UUID_FIELD = "uuid_base_site"
     GEOMETRY_FIELD = "s__geom"
-    GEOMETRY_4326_FIELD = "s__geom_4326"
     GEOMETRY_LOCAL_FIELD = "s__geom_local"
     ALTITUDE_MIN_FIELD = "s__altitude_min"
     ALTITUDE_MAX_FIELD = "s__altitude_max"
@@ -139,14 +138,14 @@ class SiteImportActions:
         geom_field_name = site_entity.data.get("geom_field_name")
         if geom_field_name:
             geom_field_name__local = f"s__{geom_field_name}_local"
-            geom_field_name__4326 = f"s__{geom_field_name}_4326"
             geom_field_name__wkt = f"s__{geom_field_name}"
+            # Le même champ porte le WKT (source) et la géométrie 4326 (destination `geom`)
             updated_cols |= check_geometry(
                 imprt,
                 entity,
                 df,
                 file_srid=imprt.srid,
-                geom_4326_field=entity_fields[geom_field_name__4326],
+                geom_4326_field=entity_fields[geom_field_name__wkt],
                 geom_local_field=entity_fields[geom_field_name__local],
                 wkt_field=entity_fields[geom_field_name__wkt],
                 latitude_field=entity_fields["y"],
@@ -210,13 +209,15 @@ class SiteImportActions:
         ):
             deepest_child_entity_code = VisitImportActions.ENTITY_CODE
 
+        # Colonne transitoire de la géométrie 4326 : `dest_field` du champ s__geom
+        entity_site = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        fields, _, _ = get_mapping_data(imprt, entity_site)
+
         return compute_bounding_box(
             imprt=imprt,
             geom_entity_code=SiteImportActions.ENTITY_CODE,
-            geom_4326_field_name__transient=SiteImportActions.GEOMETRY_FIELD,
-            geom_4326_field_name__destination=EntityImportActionsUtils.get_destination_column_name(
-                SiteImportActions.GEOMETRY_FIELD
-            ),
+            geom_4326_field_name__transient=fields[SiteImportActions.GEOMETRY_FIELD].dest_field,
+            geom_4326_field_name__destination="geom",  # colonne de t_base_sites
             child_entity_code=deepest_child_entity_code,
         )
 
@@ -228,7 +229,7 @@ class SiteImportActions:
         convert_geom_columns(
             imprt,
             entity_site,
-            geom_4326_field=fields[SiteImportActions.GEOMETRY_4326_FIELD],
+            geom_4326_field=fields[SiteImportActions.GEOMETRY_FIELD],
             geom_local_field=fields[SiteImportActions.GEOMETRY_LOCAL_FIELD],
         )
 

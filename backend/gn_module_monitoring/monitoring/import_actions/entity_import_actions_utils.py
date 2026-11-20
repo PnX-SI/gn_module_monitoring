@@ -1,16 +1,13 @@
+import re
+
 from geonature.core.imports.models import Entity, TImports
 from geonature.core.imports.checks.sql import (
     check_cd_nom,
 )
-import re
 from sqlalchemy.orm.exc import NoResultFound
 
 
 class EntityImportActionsUtils:
-    @staticmethod
-    def get_destination_column_name(transient_table_column_name: str) -> str:
-        return re.sub(r"^.*?__", "", transient_table_column_name)
-
     @staticmethod
     def get_entity(imprt: TImports, entity_code: str) -> Entity:
         return Entity.query.filter_by(
@@ -39,7 +36,7 @@ class EntityImportActionsUtils:
         if entity.code == "site":
             entity_fields |= {
                 fields["id_base_site"],
-                fields["s__geom_4326"],
+                fields["s__geom"],
                 fields["s__geom_local"],
                 fields["uuid_base_site"],
             }
@@ -100,3 +97,12 @@ class EntityImportActionsUtils:
                     field,
                     substitutions.get("__MODULE.ID_LIST_TAXONOMY"),
                 )
+
+    @staticmethod
+    def get_destination_column_name(column_name: str) -> str:
+        """
+        Colonne de destination d'une colonne de la table transitoire : le préfixe `<x>__` est retiré
+        (inverse de `BaseEntity.get_import_column_name`). Un nom sans préfixe (`geom`, `id_base_site`) est
+        inchangé.
+        """
+        return re.sub(r"^.*?__", "", column_name)

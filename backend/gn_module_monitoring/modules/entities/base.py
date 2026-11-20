@@ -19,6 +19,7 @@ from geonature.utils.env import db
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.command.imports.constant import ID_FIELD_NAME
 from gn_module_monitoring.tools.stores import DummyStore
 from gn_module_monitoring.tools.utils import schema_context
 
@@ -196,6 +197,24 @@ class BaseEntity(UserDict):
             ENTITY_MAP[cls.name] = cls
 
     @classmethod
+    def get_import_column_name(cls, field_name: str) -> str | None:
+        """
+        Nom d'import (`name_field` de bib_fields, `s__kind`, `v__meteo`, ...) du champ `field_name`
+        de la configuration de l'entité.
+
+        - l'identifiant de l'entité (ID_FIELD_NAME) garde son nom nu ;
+        - les autres champs sont préfixés : `g__` (sites_group), `d__` (observation_detail),
+          sinon la première lettre du nom de l'entité.
+        Cette règle ne consulte pas IGNORED_IMPORT_FIELDS : un champ exclu de l'import est filtré
+        par l'appelant (`build_field_names`). Un champ synthétique dont le nom ne suit pas la règle
+        porte un `import_name` explicite (command/imports/protocol.py).
+        """
+        if field_name == ID_FIELD_NAME.get(cls.name):
+            return field_name
+        prefix = {"sites_group": "g", "observation_detail": "d"}.get(cls.name, cls.name[0])
+        return f"{prefix}__{field_name}"
+
+    @classmethod
     @cache
     def get_model_attrs(cls):
         return sa.inspect(cls.model).attrs
@@ -302,6 +321,16 @@ class BaseEntity(UserDict):
         unknown = ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
         with schema_context(entity=self):
             self.data = self.config_schema.load(config, unknown=unknown)
+
+    def extra_fields(self):
+        """
+        Champs non natifs de l'entité (store sans `native_attr`, stockés dans `data`).
+        """
+        return {
+            name: field
+            for name, field in self.data["fields"].items()
+            if field["store"].native_attr is None
+        }
 
     def dump_config(self):
         return self.config_schema.dump(self.data)

@@ -629,14 +629,14 @@ class TestSite:
 #         _add_site.counter += 1
 #         i = _add_site.counter
 #         user = test_module_user
-#         geom_4326 = from_shape(Point(43, 24), srid=4326)
+#         geom_point = from_shape(Point(43, 24), srid=4326)
 #         args = {
 #             "id_inventor": user.id_role,
 #             "id_digitiser": user.id_role,
 #             "base_site_name": f"Site{i}",
 #             "base_site_description": f"Description{i}",
 #             "base_site_code": f"Code{i}",
-#             "geom": geom_4326,
+#             "geom": geom_point,
 #             "types_site": list(types_site.values()),
 #             "id_sites_group": site_group_with_sites.id_sites_group,
 #         }
@@ -1240,14 +1240,14 @@ class TestSiteWithModule:
             _add_site.counter += 1
             i = _add_site.counter
             user = test_module_user
-            geom_4326 = from_shape(Point(43, 24), srid=4326)
+            geom_point = from_shape(Point(43, 24), srid=4326)
             args = {
                 "id_inventor": user.id_role,
                 "id_digitiser": user.id_role,
                 "base_site_name": f"Site{i}",
                 "base_site_description": f"Description{i}",
                 "base_site_code": f"Code{i}",
-                "geom": geom_4326,
+                "geom": geom_point,
                 "types_site": list(types_site.values()),
                 "id_sites_group": site_group_with_sites.id_sites_group,
             }

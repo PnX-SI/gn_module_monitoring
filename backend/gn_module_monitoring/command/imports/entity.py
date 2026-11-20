@@ -15,13 +15,12 @@ from gn_module_monitoring.command.imports.constant import (
     UUID_FIELD_NAME,
 )
 from gn_module_monitoring.command.imports.fields import get_themes_dict
-from gn_module_monitoring.config.utils import json_from_file, monitoring_module_config_path
 from gn_module_monitoring.utils.utils import extract_keys
 
 
 def get_entities_protocol(module_code: str) -> list:
     """
-    Extrait les entités à partir du fichier de configuration pour un module donné.
+    Extrait les entités importables d'un module, à partir de la configuration v3 (`get_module`).
 
     Parameters
     ----------
@@ -33,20 +32,17 @@ def get_entities_protocol(module_code: str) -> list:
         list
             Liste des entités du module.
     """
-    module_path = monitoring_module_config_path(module_code)
+    # Import local : évite le cycle command.imports -> modules -> config -> command.imports
+    from gn_module_monitoring.modules import get_module
 
-    if not (module_path / "config.json").is_file():
-        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
-
-    data_config = json_from_file(module_path / "config.json")
-    tree = data_config.get("tree", {}).get("module", {})
+    tree = get_module(module_code)["tree"]["module"]
     keys = extract_keys(tree)
     return [key for key in list(dict.fromkeys(keys)) if key not in ENTITIES_NOT_AVAILABLE]
 
 
 def get_entity_parent(tree: dict, entity_code: str):
     """
-    Trouve le parent d'une entité à l'aide de la configuration du protocole (`config.json`).
+    Trouve le parent d'une entité dans l'arbre du module (`module["tree"]["module"]`, configuration v3).
     """
 
     def find_parent(node, target, parent=None):
@@ -67,8 +63,8 @@ def insert_entities(
     unique_fields: dict, id_destination: int, entity_hierarchy_map: dict, module_code: str
 ):
     """
-    Insère ou met à jour les entités dans `bib_entities` en respectant la hiérarchie des entités disponibles dans le
-    fichier `config.json` du protocole.
+    Insère ou met à jour les entités dans `bib_entities` en respectant la hiérarchie des entités de l'arbre
+    du module (configuration v3).
     Les entités sont insérées/mises à jour en fonction de leur parent.
 
     Parameters

@@ -1,4 +1,3 @@
-import json
 from copy import copy
 
 from typing import Optional
@@ -18,6 +17,7 @@ from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
 
 import gn_module_monitoring.monitoring.models as Models
+from gn_module_monitoring.tools.stores.relationships.m2m import BaseManyToManyStore
 
 
 class GnMonitoringGenericFilter:
@@ -110,7 +110,7 @@ class GnMonitoringGenericFilter:
         spécifiques enregistrées dans le champ JSON `data` du modèle. Les définitions de ces propriétés sont attendues dans
         `specific_properties` telles que présentes dans les configs.
 
-        le principe est pour chaque params (c-a-d filtre) d'extraire le type util et la cardinalité
+        le principe est pour chaque params (c-a-d filtre) d'extraire le modèle (store) et la cardinalité
             et de construire une requête sql en fonction de ces infos
 
         :param query: requête sql initiale
@@ -122,20 +122,21 @@ class GnMonitoringGenericFilter:
             if param not in specific_properties:
                 continue
 
-            field_type = specific_properties[param].get("type_util", "text")
+            field = specific_properties[param]
+            field_model_name = getattr(field["store"], "model", None)
 
-            if field_type in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
+            if field_model_name in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
                 # Vérification des champs exotiques
-                value_field = specific_properties[param].get(
-                    "value_field_name"
-                ) or specific_properties[param].get("keyValue")
+                value_field = field["widget"].get("value_field_name") or field["widget"].get(
+                    "keyValue"
+                )
                 if value_field and value_field != getattr(
-                    cls._get_relationship_clause(field_type)[1], "name", None
+                    cls._get_relationship_clause(field_model_name)[1], "name", None
                 ):
                     continue
 
                 query, filter_column = _build_join_for_specific_property(
-                    query, cls, param, specific_properties, field_type, is_outer_join=False
+                    query, cls, param, specific_properties, field_model_name, is_outer_join=False
                 )
 
                 query = query.where(filter_column.ilike(f"{value}%"))
@@ -146,32 +147,32 @@ class GnMonitoringGenericFilter:
     @classmethod
     def _get_relationship_clause(
         cls,
-        type_util: str,
+        model_name: str,
     ) -> tuple[Optional[aliased], Optional[str], Optional[str]]:
         join_table = None  # alias de la table de jointure
         join_column = None  # nom de la colonne permettant la jointure entre data et la table
         filter_column = None  # nom de la colonne sur lequel le filtre est appliqué
-        if type_util == "nomenclature":
+        if model_name == "nomenclature":
             join_table = aliased(TNomenclatures)
             join_column = join_table.id_nomenclature
             filter_column = join_table.label_default
-        elif type_util == "taxonomy":
+        elif model_name == "taxonomy":
             join_table = aliased(Taxref)
             join_column = join_table.cd_nom
             filter_column = join_table.nom_vern_or_lb_nom
-        elif type_util == "user":
+        elif model_name == "user":
             join_table = aliased(User)
             join_column = join_table.id_role
             filter_column = join_table.nom_complet
-        elif type_util == "area":
+        elif model_name == "area":
             join_table = aliased(LAreas)
             join_column = join_table.id_area
             filter_column = join_table.area_name
-        elif type_util == "dataset":
+        elif model_name == "dataset":
             join_table = aliased(TDatasets)
             join_column = join_table.id_dataset
             filter_column = join_table.dataset_name
-        elif type_util == "habitat":
+        elif model_name == "habitat":
             join_table = aliased(Habref)
             join_column = join_table.cd_hab
             filter_column = join_table.lb_hab_fr
@@ -456,28 +457,12 @@ class ObservationDetailsQuery(GnMonitoringGenericFilter):
         return query
 
 
-def _is_multiple(specific_property: dict) -> bool:
-    """
-    Extrait la valeur de `multiple` depuis une propriété spécifique.
-    Retourne False par défaut si non défini ou invalide.
-    """
-    if not specific_property:
-        return False
-    multiple_value = specific_property.get("multiple", False)
-    if isinstance(multiple_value, bool):
-        return multiple_value
-    try:
-        return bool(json.loads(multiple_value))
-    except (TypeError, ValueError):
-        return False
-
-
 def _build_join_for_specific_property(
     query: Select,
     model,
     param: str,
     specific_properties: dict,
-    type_util: str,
+    model_name: str,
     is_outer_join: bool = False,
 ) -> tuple[Select, BinaryExpression]:
     """
@@ -488,7 +473,7 @@ def _build_join_for_specific_property(
     :param model: Modèle SQLAlchemy.
     :param param: Nom de la propriété spécifique.
     :param specific_properties: Dictionnaire des propriétés spécifiques.
-    :param type_util: Type de la propriété (ex: "nomenclature").
+    :param model_name: Modèle de la propriété (ex: "nomenclature"), issu de `store.model`.
     :param is_outer_join: Si True, utilise outerjoin pour éviter d'exclure les NULL (nécessaire pour le tri).
     :return: Tuple (requête modifiée, colonne pour le tri/filtre).
     """
@@ -500,8 +485,9 @@ def _build_join_for_specific_property(
         else:
             return query.join(target, onclause)
 
-    join_table, join_column, filter_column = model._get_relationship_clause(type_util)
-    multiple = _is_multiple(specific_properties.get(param, {}))
+    join_table, join_column, filter_column = model._get_relationship_clause(model_name)
+    # Une relation multiple est un store many-to-many ; un store many-to-one (BaseForeignKeyStore) ne l'est pas
+    multiple = isinstance(specific_properties.get(param, {}).get("store"), BaseManyToManyStore)
 
     if multiple:
         # Sous-requête pour vérifier si le champ est un tableau

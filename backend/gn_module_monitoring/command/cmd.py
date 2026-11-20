@@ -12,8 +12,8 @@ from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules import get_module
-from gn_module_monitoring.modules.repositories import get_simple_module
 from gn_module_monitoring.config.utils import (
+    get_monitorings_path,
     get_monitoring_module,
     is_module_configured,
     monitoring_module_config_path,
@@ -28,7 +28,6 @@ from gn_module_monitoring.command.utils import (
     process_module_import,
     process_update_module_import,
     remove_monitoring_module,
-    validate_json_file_protocol,
     check_module_code_name,
 )
 
@@ -104,16 +103,15 @@ def cmd_install_monitoring_module(module_code):
             )
         return
 
-    success, errors = validate_json_file_protocol(module_code)
-    if not success:
+    try:
+        get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
+    except Exception as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
-        for error in errors:
-            click.echo(f"- {error}")
+        click.echo(f"- {e}")
         click.echo("Installation annulée")
         return
 
-    module_monitoring = get_simple_module("module_code", "MONITORINGS")
-    config = get_module(module_code).dump_config()
+    monitoring_module = get_module(module_code)
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
@@ -122,10 +120,10 @@ def cmd_install_monitoring_module(module_code):
     # process Exports
     process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
-    module_desc = config["module"].get("module_desc")
-    module_label = config["module"].get("module_label")
+    module_desc = monitoring_module.entities["module"].data.get("module_desc")
+    module_label = monitoring_module.entities["module"].data.get("module_label")
     synthese_object = (
-        config.get("synthese_object") or "observation"
+        monitoring_module.get("synthese_object") or "observation"
     )  # pour retrouver la page depuis la synthese
 
     if not (module_desc and module_label):
@@ -138,9 +136,9 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
 
     module_data = {
         "module_picto": "fa-puzzle-piece",
-        **config["module"],
+        **monitoring_module.entities["module"].data,
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "module_path": "{}/module/{}".format(get_monitorings_path(), module_code),
         "active_frontend": False,
         "active_backend": False,
         "type": "monitoring_module",
@@ -171,7 +169,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
             module_code.lower()
         ),
         "url_source": "#/{}/object/{}/{}".format(
-            module_monitoring.module_path, module_code, synthese_object
+            get_monitorings_path(), module_code, synthese_object
         ),
     }
 
@@ -193,13 +191,13 @@ def cmd_add_update_import_on_protocole(module_code):
             f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !"
         )
 
-    config = get_module(module_code).dump_config()
+    module_entity = get_module(module_code).entities["module"].data
     # Vérification de la conformité des fichier json
-    success, errors = validate_json_file_protocol(module_code)
-    if not success:
+    try:
+        get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
+    except Exception as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
-        for error in errors:
-            click.echo(f"- {error}")
+        click.echo(f"- {e}")
         click.echo("Mise à jour de l'import annulée")
         return
 
@@ -210,30 +208,29 @@ def cmd_add_update_import_on_protocole(module_code):
         )
         return
 
-    module_monitoring = get_simple_module("module_code", "MONITORINGS")
     module_data = {
         "module_picto": "fa-puzzle-piece",
-        **config["module"],
+        **module_entity,
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "module_path": "{}/module/{}".format(get_monitorings_path(), module_code),
         "active_frontend": False,
         "active_backend": False,
         "type": "monitoring_module",
     }
 
     try:
-        module = get_simple_module("module_code", module_code)
         destination_exists = DB.session.scalar(
             exists(Destination).where(Destination.code == module_code).select()
         )
         # Vérifier si le module existe
-        if module and destination_exists:
-            # Effectuer une mise à jour
+        # Le module est installé (vérifié plus haut) : seul compte l'existence de la destination
+        if destination_exists:
+            # Effectuer une mise à jour (diff affiché, puis confirmation)
             try:
                 click.secho(f"Mise à jour du module {module_code}")
-                state = process_update_module_import(config, module_code)
+                state = process_update_module_import({"module": module_entity}, module_code)
                 if state is None:
-                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+                    # rien à faire : le message est déjà affiché
                     return
                 if state:
                     click.secho(f"Module {module_code} mis à jour", fg="green")

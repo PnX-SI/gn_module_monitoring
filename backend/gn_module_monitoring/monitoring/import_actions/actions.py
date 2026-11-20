@@ -151,8 +151,13 @@ class MonitoringImportActions(ImportActions):
         # check_types overriding generated values during SQL checks.
         fields, _, _ = get_mapping_data(imprt, entity)
 
+        # Le WKT du site (`s__geom`, source = WKT, destination = geom Geometry) est lu et converti
+        # par SiteImportActions.check_dataframe (check_geometry) : check_types ne doit pas le caster.
+        fields_to_cast = {
+            name: field for name, field in fields.items() if name != SiteImportActions.GEOMETRY_FIELD
+        }
         updated_cols = check_types(
-            imprt, entity, df, fields
+            imprt, entity, df, fields_to_cast
         )  # FIXME do not check site and visit uuid twice
         updated_cols |= check_required_values(imprt, entity, df, fields)
 
@@ -180,6 +185,8 @@ class MonitoringImportActions(ImportActions):
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
+        # Import local : évite le cycle actions -> modules.entities -> models -> actions
+
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
@@ -278,7 +285,9 @@ class MonitoringImportActions(ImportActions):
             for field in complement_fields:
                 json_args.extend(
                     [
-                        EntityImportActionsUtils.get_destination_column_name(field.dest_field),
+                        EntityImportActionsUtils.get_destination_column_name(
+                            field.dest_field
+                        ),
                         transient_table.c[field.dest_field],
                     ]
                 )

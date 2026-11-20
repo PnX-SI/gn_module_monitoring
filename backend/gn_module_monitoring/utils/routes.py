@@ -120,11 +120,11 @@ def sort(
 
     if specific_properties and sort in specific_properties:
         field = specific_properties[sort]
-        type_util = field.get("type_util")
+        field_model_name = getattr(field["store"], "model", None)
 
-        if type_util in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
+        if field_model_name in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
             query, order_by = _build_join_for_specific_property(
-                query, model, sort, specific_properties, type_util, is_outer_join=True
+                query, model, sort, specific_properties, field_model_name, is_outer_join=True
             )
         else:
             order_by = model.data[sort]
@@ -287,7 +287,7 @@ def get_objet_with_permission_boolean(
     return objects_out
 
 
-def process_json_data_for_db_upsert(config, properties, object_type):
+def process_json_data_for_db_upsert(module, properties, object_type):
     """
     Process json data for db upsert.
 
@@ -296,18 +296,18 @@ def process_json_data_for_db_upsert(config, properties, object_type):
     It also checks which properties are not in the site group type schema, the generic schema or the module schema and adds them to the "data" key in the properties dictionary.
     Finally, it returns the processed properties dictionary.
 
-    :param config: dict, configuration for a site group
+    :param module: MonitoringModule, configuration of the module (see get_module)
     :param properties: dict, dictionary of properties
     :return: dict, processed properties dictionary
     """
     from gn_module_monitoring.monitoring.definitions import MonitoringModels_dict
-    from gn_module_monitoring.config.utils import get_specific_properties
+    from gn_module_monitoring.modules import get_entity_or_404
 
     data = {}
     class_object_type = MonitoringModels_dict[object_type]
-    specific_properties = get_specific_properties(class_object_type, config, object_type)
+    specific_properties = get_entity_or_404(module.module_code, object_type).extra_fields()
     for attribut_name, attribut_value in specific_properties.items():
-        if "type_widget" in attribut_value and attribut_value["type_widget"] != "html":
+        if attribut_value["widget"]["type"] != "html":
             if attribut_name in properties:
                 val = properties.pop(attribut_name)
                 data[attribut_name] = val
@@ -324,7 +324,7 @@ def process_json_data_for_db_upsert(config, properties, object_type):
         is_in_model = hasattr(class_object_type, prop)
         if (
             not is_in_model
-            and prop not in config[object_type]["fields"].keys()
+            and prop not in module.entities[object_type].data["fields"].keys()
             and prop != "id_module"
             and prop != "data"
         ):

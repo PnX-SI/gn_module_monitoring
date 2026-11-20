@@ -1,7 +1,5 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.config.utils import get_specific_properties
-from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden
 from gn_module_monitoring.command import permissions
@@ -92,11 +90,9 @@ def get_obs_details(module_code: str):
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
     )
-    specific_properties = get_specific_properties(
-        TMonitoringObservationDetails,
-        get_module(module_code).dump_config(),
-        ObjectType.OBSERVATION_DETAIL,
-    )
+    specific_properties = get_entity_or_404(
+        module_code, ObjectType.OBSERVATION_DETAIL
+    ).extra_fields()
     query_allowed = TMonitoringObservationDetails.filter_by_specific(
         query=query_allowed,
         params=params,

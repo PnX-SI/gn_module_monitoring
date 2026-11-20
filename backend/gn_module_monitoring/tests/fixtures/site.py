@@ -17,7 +17,7 @@ from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, Monitorin
 def sites(users, types_site, site_group_with_sites):
     user = users["user"]
     admin_user = users["admin_user"]
-    geom_4326 = from_shape(Point(43, 24), srid=4326)
+    geom_point = from_shape(Point(43, 24), srid=4326)
     sites = {}
     for i, key in enumerate(types_site.keys()):
         sites[key] = TMonitoringSites(
@@ -26,7 +26,7 @@ def sites(users, types_site, site_group_with_sites):
             base_site_name=f"Site{i}user",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
-            geom=geom_4326,
+            geom=geom_point,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
             data={"profondeur_grotte": 42.8, "owner_name": "Robert", "meteo": 2},
@@ -39,7 +39,7 @@ def sites(users, types_site, site_group_with_sites):
             base_site_name=f"Site{i} admin_user",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
-            geom=geom_4326,
+            geom=geom_point,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
         )
@@ -51,7 +51,7 @@ def sites(users, types_site, site_group_with_sites):
         base_site_name="no-type",
         base_site_description="Description-no-type",
         base_site_code="Code-no-type",
-        geom=geom_4326,
+        geom=geom_point,
         types_site=[],
         id_sites_group=site_group_with_sites.id_sites_group,
     )
@@ -64,7 +64,7 @@ def sites(users, types_site, site_group_with_sites):
 @pytest.fixture()
 def sites_with_data_typeutils(users, types_site_type_utils, site_group_with_sites):
     user = users["user"]
-    geom_4326 = from_shape(Point(43, 24), srid=4326)
+    geom_point = from_shape(Point(43, 24), srid=4326)
     sites = {}
     nomenclature_sex = db.session.scalars(
         select(TNomenclatures)
@@ -79,7 +79,7 @@ def sites_with_data_typeutils(users, types_site_type_utils, site_group_with_site
             base_site_name=f"Site{i}",
             base_site_description=f"Description{i}",
             base_site_code=f"Code{i}",
-            geom=geom_4326,
+            geom=geom_point,
             types_site=[types_site_type_utils[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
             data={

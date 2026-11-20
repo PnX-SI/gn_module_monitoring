@@ -53,12 +53,12 @@ def add_specific_attributes(schema, object_type, module_code):
         MonitoringObjects_dict,
     )
     from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
-    from gn_module_monitoring.config.utils import get_specific_properties
 
     model_class = MonitoringModels_dict[object_type]
 
-    config = get_module(module_code).dump_config()
-    specific_properties = get_specific_properties(model_class, config, object_type).keys()
+    # Une entité absente de l'arbre du module n'a pas de propriétés spécifiques
+    entity = get_module(module_code).entities.get(object_type)
+    specific_properties = entity.extra_fields().keys() if entity is not None else []
 
     def create_getter(key):
         return lambda obj: (obj.data or {}).get(key)

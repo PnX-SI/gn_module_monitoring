@@ -26,9 +26,9 @@ def process_available_permissions(module_code, session):
         print("le module n'existe pas")
         return
 
-    config = get_module_config(module_code).dump_config()
+    monitoring_module = get_module_config(module_code)
 
-    tree = config.get("tree", [])
+    tree = monitoring_module["tree"]
 
     module_objects = [k for k in extract_keys(tree, keys=[])]
 

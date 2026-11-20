@@ -1,41 +1,3 @@
-from sqlalchemy import (
-    Integer,
-    Float,
-    String,
-    Boolean,
-    Date,
-    ARRAY,
-    Text,
-)
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-
-TYPE_WIDGET = {
-    "select": "varchar",
-    "checkbox": "varchar",
-    "radio": "varchar",
-    "html": "text",
-    "bool_checkbox": "boolean",
-    "number": "number",
-    "multiselect": "varchar",
-    "observers": "integer",
-    "observers-text": "varchar",
-    "media": "varchar",
-    "medias": "varchar",
-    "date": "date",
-    "nomenclature": "integer",
-    "datalist": "integer",
-    "text": "varchar",
-    "textarea": "text",
-    "jsonb": "jsonb",
-    "time": "varchar",
-    "taxonomy": "integer",
-    "site": "integer",
-    "individuals": "integer",
-    "dataset": "integer",
-    "municipalities": "integer",
-    "areas": "integer",
-}
-
 INT_TYPE_UTILS = [
     "user",
     "taxonomy",
@@ -56,19 +18,6 @@ OTHER_TYPE_UTILS = [
 
 # Type de widget qui implique que multiple soit à true
 MULTI_TYPE_WIDGET = ["multiselect", "checkbox", "municipalities", "areas"]
-
-SQL_DATA_TYPE_MAPPING = {
-    "varchar": String,
-    "varchar[]": ARRAY(String),
-    "text": Text,
-    "boolean": Boolean,
-    "integer": Integer,
-    "integer[]": ARRAY(Integer),
-    "number": Float(precision=24),
-    "date": Date,
-    "jsonb": JSONB,
-    "uuid": UUID,
-}
 
 FORBIDDEN_SQL_INSTRUCTION = [
     "INSERT ",
@@ -127,6 +76,13 @@ IGNORED_IMPORT_FIELDS = [
     "nb_marking_events",  # dynamic
     "medias",  # not importable
     "id_sites_group",  # ignored for now
+    # champs synthétiques de l'import (command/imports/protocol.py) : leur nom d'import est fixé par le code
+    "x",  # longitude
+    "y",  # latitude
+    "id_base_site_origin",
+    "id_base_visit_origin",
+    "id_observation_origin",
+    "unique_dataset_id",
 ]
 
 ID_FIELD_NAME = {
@@ -150,7 +106,9 @@ TOOLTIPS = {
     "id_base_visit_origin": "Identifiant alphanumérique permettant de faire le lien entre les visites et leurs observations si aucun UUID est fourni",
 }
 
-ENTITIES_NOT_AVAILABLE = ["sites_group", "observation_detail"]
+# Entités de l'arbre du module qui ne sont pas importées (pas de destination d'import) :
+# groupes de sites, détail d'observation, individus et marquages (suivi CMR).
+ENTITIES_NOT_AVAILABLE = ["sites_group", "observation_detail", "individual", "marking"]
 
 # Valeur pouvant être retourné suite à l'analyse de la modification du protocole
 # cas de la mise à jour d'un module

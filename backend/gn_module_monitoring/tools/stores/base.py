@@ -14,6 +14,10 @@ STORE_MAP: dict[str, type] = {}
 
 
 class BaseStore(UserDict):
+    # Type SQL de la valeur stockée (classe SQLAlchemy, ou ARRAY pour une liste). None : le store
+    # n’a pas de colonne (dummy, value, list). Lu par la table transitoire (command/imports/sql.py).
+    sql_type = None
+
     class ConfigSchema(ma.Schema):
         """
         Schéma de configuration du store.
@@ -113,6 +117,10 @@ class BaseStore(UserDict):
                         return subcls
         raise ValueError(f"Unable to find proper store for column '{attr.key}'")
 
+    def get_column_type(self):
+        """Type SQLAlchemy de la colonne de la table transitoire (None : pas de colonne)."""
+        return self.sql_type
+
     def get_field(self) -> fields.Field:
         """
         Champ marshmallow du store : valide et convertit la valeur reçue de l’API en valeur Python,
@@ -156,8 +164,8 @@ class BaseStore(UserDict):
         Si la fonction retourne une valeur différente de celle reçu en entrée, cela est considéré comme
         une correction et la base sera mise à jour avec la donnée renvoyé.
         """
-        yield
         return value
+        yield  # rend la fonction générateur sans produire d'erreur
 
     def __str__(self):
         return self.__class__.__name__

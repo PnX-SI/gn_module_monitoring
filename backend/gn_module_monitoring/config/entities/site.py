@@ -77,6 +77,15 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "last_visit", "dir": "desc"}],
         "fields": {
+            # Géométrie native (TMonitoringSites.geom, SRID 4326) : GeoJSON en API, WKT en import
+            "geom": {
+                "store": {
+                    "type": "geometry",
+                    "geometry_type": ["Point", "LineString", "Polygon"],
+                },
+                "widget": {"type": "textarea", "attribut_label": "Géométrie (WKT)"},
+                "required": True,
+            },
             "base_site_code": {
                 "widget": {"type": "text", "attribut_label": "Code"},
                 "required": True,

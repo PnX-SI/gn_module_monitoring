@@ -1,8 +1,6 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.command.utils import get_module
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import get_specific_properties
+from gn_module_monitoring.modules import get_module
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden, NotFound
 from sqlalchemy import select
@@ -219,9 +217,7 @@ def get_markings(module_code: str):
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
     )
-    specific_properties = get_specific_properties(
-        TMonitoringMarkingEvent, get_config(module_code, force=True), ObjectType.MARKING
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.MARKING).extra_fields()
     query_allowed = TMonitoringMarkingEvent.filter_by_specific(
         query=query_allowed,
         params=params,

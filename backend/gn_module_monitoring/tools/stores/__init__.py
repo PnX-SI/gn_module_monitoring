@@ -14,6 +14,7 @@ from .type import (
     DateStore,
     DateTimeStore,
     UUIDStore,
+    GeometryStore,
 )
 from .relationships import (
     UserStore,

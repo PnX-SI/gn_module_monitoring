@@ -7,6 +7,7 @@ from marshmallow import ValidationError
 
 from gn_module_monitoring.modules import MonitoringModule
 from gn_module_monitoring.command.check.data import check_module_data
+from gn_module_monitoring.command.check.imports import check_module_import
 from gn_module_monitoring.command.check.nomenclature import check_module_nomenclatures
 from gn_module_monitoring.command.check.sql import check_module_sql_files
 from gn_module_monitoring.command.check.permissions import check_module_permissions
@@ -24,7 +25,7 @@ def load_module(module_code):
         yield e.messages
 
 
-def run_module_check(module_code, check_data, data_filters, fix):
+def run_module_check(module_code, check_data, data_filters, fix, installed=False):
     total_error_count = 0
 
     total_error_count += wrap_errors(
@@ -39,6 +40,9 @@ def run_module_check(module_code, check_data, data_filters, fix):
     total_error_count += error_count
     if module is None:
         return total_error_count
+
+    if installed:
+        total_error_count += check_module_import(module_code, fix)
 
     if check_data:
         total_error_count += wrap_errors("Permissions", check_module_permissions(module_code))
@@ -89,6 +93,7 @@ def _run_check(module_code, check_data, data_filters, fix):
                 check_data and installed,
                 data_filters,
                 fix,
+                installed=installed,
             )
 
     click.echo("")

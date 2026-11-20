@@ -1,6 +1,5 @@
 from flask import jsonify, request, g
 
-from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
@@ -68,11 +67,7 @@ def get_sites_groups(module_code=None):
     query_allowed = TMonitoringSitesGroups.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
-    specific_properties = get_specific_properties(
-        TMonitoringSitesGroups,
-        get_module(module_code or "generic").dump_config(),
-        ObjectType.SITES_GROUP,
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.SITES_GROUP).extra_fields()
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,
         params=params,

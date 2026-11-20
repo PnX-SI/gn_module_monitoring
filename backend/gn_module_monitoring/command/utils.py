@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Tuple
 
 from gn_module_monitoring.command.imports.constant import (
-    TYPE_WIDGET,
     ValidationFlag,
 )
 from gn_module_monitoring.command.imports.destination import upsert_bib_destination
@@ -15,16 +14,19 @@ from gn_module_monitoring.command.imports.entity import (
 )
 from gn_module_monitoring.command.imports.fields import insert_bib_field
 from gn_module_monitoring.command.imports.protocol import (
-    compare_protocol_fields,
-    get_existing_protocol_state,
+    compute_protocol_diff,
+    format_protocol_diff,
     get_protocol_data,
+    is_protocol_diff_empty,
     update_protocol,
 )
 from gn_module_monitoring.command.imports.sql import (
     check_rows_exist_in_import_table,
     create_sql_import_table_protocol,
+    transient_table_has_diff,
 )
 from gn_module_monitoring.command.imports.utils import ask_confirmation
+import click
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
@@ -41,8 +43,6 @@ from geonature.core.imports.models import (
 
 from gn_module_monitoring.config.utils import (
     json_from_file,
-    monitoring_module_config_path,
-    validate_json_file,
     SUB_MODULE_CONFIG_DIR,
 )
 
@@ -131,31 +131,6 @@ def extract_keys(test_dict, keys=[]):
     return keys
 
 
-def validate_json_file_protocol(module_code: str):
-    errors = []
-    module_config_dir = Path(monitoring_module_config_path(module_code))
-    config_path = module_config_dir / "config.json"
-    valid_type_widgets = set(TYPE_WIDGET.keys())
-    errors.extend(validate_json_file(config_path, valid_type_widgets))
-
-    try:
-        entities = get_entities_protocol(module_code)
-        for entity_code in entities:
-            if not entity_code == "sites_group":
-                # Valid specific file
-                specific_path = module_config_dir / f"{entity_code}.json"
-                errors.extend(validate_json_file(specific_path, valid_type_widgets))
-
-                # Valid generic file
-                project_root = Path(__file__).parent.parent
-                generic_path = project_root / "config" / "generic" / f"{entity_code}.json"
-                errors.extend(validate_json_file(generic_path, valid_type_widgets))
-    except Exception as e:
-        errors.append(f"Erreur lors de la lecture des entités: {str(e)}")
-
-    return len(errors) == 0, errors
-
-
 def process_module_import(module_data):
     """
     Pipeline complet pour insérer un protocole et ses données dans la base.
@@ -190,120 +165,111 @@ def process_module_import(module_data):
         )
 
 
+DATA_LOSS_WARNING = (
+    "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données."
+)
+
+
+def print_protocol_diff(module_code: str, diff: dict):
+    """Affiche toutes les différences d'un `compute_protocol_diff`."""
+    click.secho(f"Différences entre la configuration et la base pour {module_code} :", bold=True)
+    for line in format_protocol_diff(diff):
+        click.echo(f"- {line}")
+
+
+def apply_protocol_diff(module_data, module_code: str, diff: dict) -> bool:
+    """
+    Applique les écarts d'un `compute_protocol_diff` (bib_fields, bib_entities, table transitoire),
+    après avertissement éventuel sur les données de la table transitoire et confirmation.
+
+    Returns
+    -------
+    bool
+        True si la mise à jour a réussi, False si elle est annulée ou a échoué.
+    """
+    if check_rows_exist_in_import_table(module_code):
+        click.secho(f"ATTENTION: {DATA_LOSS_WARNING}", fg="yellow")
+
+    if not ask_confirmation():
+        click.secho("Mise à jour annulée, aucune modification effectuée.", fg="red")
+        return False
+
+    return update_protocol(
+        module_data,
+        module_code,
+        diff["fields"]["deleted"],
+        update_label_only=diff["label"] is not None and not _has_structural_changes(diff),
+        recreate_transient_table=transient_table_has_diff(diff["transient_table"]),
+    )
+
+
 def process_update_module_import(module_data, module_code: str):
     """
-    Gère la mise à jour complète d'un module.
+    Compare le protocole voulu à l'existant, affiche toutes les différences, puis les applique
+    après confirmation.
+
+    Returns
+    -------
+    True si mis à jour, False si annulé ou en erreur, None si rien à faire.
     """
     try:
-        flags, messages, fields_to_delete = validate_protocol_changes(module_code, module_data)
-
-        if ValidationFlag.NOTHING in flags:
-            for msg in messages:
-                print(f"- {msg}")
-            return None
-
-        if ValidationFlag.INVALID in flags:
-            print("Erreurs détectées lors de la validation du protocole:")
-            for msg in messages:
-                print(f"- {msg}")
-            return False
-
-        if messages:
-            print("\nAvertissements concernant les modifications du protocole:")
-            for msg in messages:
-                print(f"- {msg}")
-
-        if not ask_confirmation():
-            return False
-        update_label_only = False
-        if ValidationFlag.LABEL in flags:
-            update_label_only = True
-        return update_protocol(module_data, module_code, fields_to_delete, update_label_only)
-
+        diff = compute_protocol_diff(module_code, module_data)
     except Exception as e:
-        print(f"Erreur lors du traitement du module {module_code}: {str(e)}")
+        click.secho(f"Erreur lors de la comparaison du module {module_code}: {str(e)}", fg="red")
         return False
+
+    if is_protocol_diff_empty(diff):
+        click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+        return None
+
+    print_protocol_diff(module_code, diff)
+    return apply_protocol_diff(module_data, module_code, diff)
 
 
 def validate_protocol_changes(module_code: str, module_data) -> Tuple[set, list, list]:
     """
-    Valide les changements dans les fichiers de configuration du protocole.
+    Valide les changements du protocole (compatibilité : même retour qu'avant).
 
-    Args:
-        module_code: Code du module à valider.
+    Cette fonction ne sert plus au flux `process_import` (voir `process_update_module_import`) :
+    elle demande la confirmation sur les données de la table transitoire, puis calcule le diff.
 
-    Returns:
+    Returns
+    -------
         - Flags indiquant les types des changements détectés.
-        - Liste des messages d'erreur ou d'avertissement.
+        - Liste des messages (différences, avertissements).
         - Champs à supprimer.
     """
+    flags = set()
+    warnings = []
     try:
-        flags = set()
-        destination = DB.session.execute(select(Destination).filter_by(code=module_code)).scalar()
-        warnings = []
-        fields_to_delete = []
-
         if check_rows_exist_in_import_table(module_code):
-            if not ask_confirmation(
-                "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données. Voulez-vous continuer ? (y/n): "
-            ):
+            if not ask_confirmation(DATA_LOSS_WARNING + " Voulez-vous continuer ? (y/n): "):
                 warnings.append(
                     "La table d'importation contient des données. Impossible de mettre à jour le protocole."
                 )
                 flags.add(ValidationFlag.INVALID)
+                return flags, warnings, []
 
-                return (
-                    flags,
-                    warnings,
-                    fields_to_delete,
-                )
+        diff = compute_protocol_diff(module_code, module_data)
+        warnings.extend(format_protocol_diff(diff))
 
-        existing_data = get_existing_protocol_state(destination.id_destination, module_data)
-        protocol_data, _ = get_protocol_data(module_code, destination.id_destination)
-
-        all_new_fields = []
-        for entity_fields in protocol_data.values():
-            all_new_fields.extend(entity_fields["fields"])
-
-        fields_to_add, fields_to_update, fields_to_delete = compare_protocol_fields(
-            existing_data["fields"], all_new_fields
-        )
-
-        if existing_data["label"]:
-            warnings.append(
-                f"INFO: Le libellé du module va être modifié. '{destination.label}' -> '{module_data['module'].get('module_label')}'"
-            )
-
-        if len(fields_to_delete) > 0:
-            warnings.append(
-                "ATTENTION: Des champs vont être supprimés. "
-                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_delete)}"
-            )
-
-        if len(fields_to_update) > 0:
-            warnings.append(
-                "ATTENTION: Des champs vont être modifiés. "
-                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_update)}"
-            )
-
-        if len(fields_to_add) > 0:
-            warnings.append(
-                "INFO: De nouveaux champs vont être ajoutés. "
-                f"Champs concernés: {', '.join(f['name_field'][3:] for f in fields_to_add)}"
-            )
-
-        if existing_data["label"]:
+        if diff["label"] is not None:
             flags.add(ValidationFlag.LABEL)
-        if fields_to_add or fields_to_update or fields_to_delete:
+        if _has_structural_changes(diff):
             flags.add(ValidationFlag.FIELDS)
         if len(flags) == 0:
             flags.add(ValidationFlag.NOTHING)
-        return flags, warnings, fields_to_delete
+        return flags, warnings, diff["fields"]["deleted"]
 
     except Exception as e:
         flags.add(ValidationFlag.INVALID)
         warnings.append(f"Erreur lors de la validation du protocole: {str(e)}")
-        return flags, warnings, fields_to_delete
+        return flags, warnings, []
+
+
+def _has_structural_changes(diff: dict) -> bool:
+    """Vrai si le diff contient autre chose que le libellé (champs, entités, table transitoire)."""
+    return not is_protocol_diff_empty({**diff, "label": None})
 
 
 def check_module_code_name(module_code: str) -> bool:
