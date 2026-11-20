@@ -51,6 +51,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "observers_txt": {
+                "store": {"type": "string"},
                 "widget": {
                     "type": "observers-text",
                     "attribut_label": "Observateur(s) (extérieur)",
@@ -78,7 +79,10 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                     "nomenclature_type": "TECHNIQUE_OBS",
                 }
             },
-            "comments": {"widget": {"type": "text", "attribut_label": "Commentaires"}},
+            "comments": {
+                "store": {"type": "string"},
+                "widget": {"type": "text", "attribut_label": "Commentaires"}
+            },
             "uuid_base_visit": {
                 "store": {"type": "uuid"},
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
@@ -98,6 +102,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"attribut_label": "Nombre d'observations", "hidden": True},
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

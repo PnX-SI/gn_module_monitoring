@@ -24,6 +24,7 @@ class ObservationDetailEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

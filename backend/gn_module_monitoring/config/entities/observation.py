@@ -37,12 +37,16 @@ class ObservationEntityConfigSchema(BaseEntityConfigSchema):
                 },
                 "required": True,
             },
-            "comments": {"widget": {"type": "text", "attribut_label": "Commentaires"}},
+            "comments": {
+                "store": {"type": "string"},
+                "widget": {"type": "text", "attribut_label": "Commentaires"}
+            },
             "uuid_observation": {
                 "store": {"type": "uuid"},
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

@@ -39,26 +39,34 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
         "display_properties": ["module_label", "module_desc", "datasets"],
         "fields": {
             "module_code": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Code", "hidden": True},
                 "required": True,
             },
             "module_label": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Nom", "hidden": True},
                 "required": True,
             },
             "module_path": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Path", "hidden": True},
                 "required": True,
             },
             "module_desc": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Description", "hidden": True},
                 "required": True,
             },
             "module_picto": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Icone dans le menu"},
                 "required": True,
             },
-            "uuid_module_complement": {"widget": {"attribut_label": "uuid"}},
+            "uuid_module_complement": {
+                "store": {"type": "uuid"},
+                "widget": {"attribut_label": "uuid"}
+            },
             "datasets": {
                 "store": {"type": "datasets"},
                 "widget": {
@@ -100,6 +108,7 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "b_synthese": {
+                "store": {"type": "bool"},
                 "widget": {
                     "type": "bool_checkbox",
                     "attribut_label": "Activer la synthèse ?",
@@ -107,6 +116,7 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "b_draw_sites_group": {
+                "store": {"type": "bool"},
                 "widget": {
                     "type": "bool_checkbox",
                     "attribut_label": "Dessiner les groupes de sites",
@@ -115,6 +125,13 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "taxonomy_display_field_name": {
+                "store": {
+                    "type": "value",
+                    "values": [
+                        {"label": "Nom vernaculaire ou nom latin", "value": "nom_vern,lb_nom"},
+                        {"label": "Nom latin", "value": "lb_nom"},
+                    ],
+                },
                 "widget": {
                     "type": "datalist",
                     "attribut_label": "Affichage des taxons",
@@ -127,10 +144,12 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "cd_nom": {
+                "store": {"type": "taxonomy"},
                 "widget": {"attribut_label": "Espèce", "hidden": True},
                 "required": False,
             },
             "active_frontend": {
+                "store": {"type": "bool"},
                 "widget": {
                     "type": "bool_checkbox",
                     "attribut_label": "Afficher dans le menu ?",
@@ -154,6 +173,7 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

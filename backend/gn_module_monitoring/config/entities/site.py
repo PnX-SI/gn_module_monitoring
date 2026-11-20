@@ -284,14 +284,17 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "base_site_code": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Code"},
                 "required": False,
             },
             "base_site_name": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Nom"},
                 "required": True,
             },
             "base_site_description": {
+                "store": {"type": "string"},
                 "widget": {"type": "textarea", "attribut_label": "Description"},
             },
             "id_inventor": {
@@ -317,9 +320,11 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "required": False,
             },
             "last_visit": {
+                "store": {"type": "date"},
                 "widget": {"type": "date", "attribut_label": "Dernière visite", "hidden": True},
             },
             "nb_visits": {
+                "store": {"type": "float"},
                 "widget": {"type": "number", "attribut_label": "Nb. visites", "hidden": True},
             },
             "nb_individuals": {
@@ -331,6 +336,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

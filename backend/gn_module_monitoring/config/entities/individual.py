@@ -25,14 +25,19 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
         "uuid_field_name": "uuid_individual",
         "fields": {
             "id_individual": {
+                "store": {"type": "integer"},
                 "widget": {"attribut_label": "Id individual", "hidden": True},
             },
-            "nb_sites": {"widget": {"attribut_label": "Nombre de sites associés"}},
+            "nb_sites": {
+                "store": {"type": "integer"},
+                "widget": {"attribut_label": "Nombre de sites associés"}
+            },
             "uuid_individual": {
                 "store": {"type": "uuid"},
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
             },
             "individual_name": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Nom de l'individu"},
                 "required": True,
             },
@@ -47,6 +52,7 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "active": {
+                "store": {"type": "bool"},
                 "widget": {
                     "type": "bool_checkbox",
                     "attribut_label": "Actif",
@@ -54,7 +60,10 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
                     "value": True,
                 },
             },
-            "comment": {"widget": {"type": "textarea", "attribut_label": "Commentaires"}},
+            "comment": {
+                "store": {"type": "string"},
+                "widget": {"type": "textarea", "attribut_label": "Commentaires"}
+            },
             "cd_nom": {
                 "store": {"type": "taxonomy"},
                 "widget": {
@@ -74,6 +83,7 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
                 "required": True,
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",

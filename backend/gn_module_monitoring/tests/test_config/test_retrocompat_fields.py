@@ -97,9 +97,12 @@ def test_non_strict_keeps_top_level_keys_untouched(non_strict):
     assert converted["zzz"] == 1
 
 
-def test_non_strict_unknown_key_is_ignored_at_load(non_strict):
+def test_non_strict_unknown_key_is_kept_at_load(non_strict):
+    # Non STRICT : une clé inconnue du champ est conservée au chargement (INCLUDE, décision 21/11),
+    # pas exclue. Elle n'entre ni dans widget ni dans store.
     field = load_field({"widget": {"type": "text"}, "store": {"type": "string"}, "zzz": 1})
-    assert "zzz" not in field
+    assert field["zzz"] == 1
+    assert "zzz" not in field["widget"]
 
 
 def test_non_strict_legacy_definition_loads(non_strict):

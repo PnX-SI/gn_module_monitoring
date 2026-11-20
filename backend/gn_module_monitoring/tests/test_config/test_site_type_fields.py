@@ -88,7 +88,7 @@ def test_protocol_widget_is_applied_over_type_field():
 @pytest.mark.parametrize(
     "field_name,spec",
     [
-        ("base_site_name", {"store": {"type": "string"}}),
+        ("base_site_name", {"store": {"type": "integer"}}),  # string = défaut depuis D49 (ignoré, D36)
         ("base_site_name", {"required": False}),
         ("roost_type", {"required_cel": "fields.x"}),
     ],
@@ -110,7 +110,7 @@ def test_protocol_new_field_can_have_full_spec():
 
 
 def test_type_cannot_redefine_store_of_native_field():
-    types = [make_type(1, "Grotte", {"base_site_name": {"store": {"type": "string"}}})]
+    types = [make_type(1, "Grotte", {"base_site_name": {"store": {"type": "integer"}}})]
     with pytest.raises(ValidationError, match="base_site_name"):
         pre_load_with_types(types, {})
 
@@ -238,7 +238,7 @@ def test_protocol_can_redefine_default_value_of_type_field():
     assert data["fields"]["place_name"]["default_value"] == "Inconnu"
 
 
-@pytest.mark.parametrize("key,value", [("store", {"type": "string"}), ("required_cel", "fields.x")])
+@pytest.mark.parametrize("key,value", [("store", {"type": "integer"}), ("required_cel", "fields.x")])
 def test_other_keys_remain_forbidden_on_native_and_type_fields(key, value):
     # (c) autre clé interdite, sur natif comme sur type
     types = [make_type(1, "Grotte", {"place_name": SPEC_PLACE})]

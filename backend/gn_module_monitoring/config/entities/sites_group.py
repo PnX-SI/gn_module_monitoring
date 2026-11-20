@@ -29,17 +29,23 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"attribut_label": "Id site", "hidden": True},
             },
             "sites_group_name": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Nom"},
                 "required": False,
             },
             "sites_group_code": {
+                "store": {"type": "string"},
                 "widget": {"type": "text", "attribut_label": "Code"},
                 "required": False,
             },
             "sites_group_description": {
+                "store": {"type": "string"},
                 "widget": {"type": "textarea", "attribut_label": "Description"},
             },
-            "comments": {"widget": {"type": "text", "attribut_label": "Commentaires"}},
+            "comments": {
+                "store": {"type": "string"},
+                "widget": {"type": "text", "attribut_label": "Commentaires"}
+            },
             "uuid_sites_group": {
                 "store": {"type": "uuid"},
                 "widget": {"type": "text", "attribut_label": "uuid", "hidden": True},
@@ -49,9 +55,11 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"attribut_label": "Nombre de sites", "hidden": True},
             },
             "nb_visits": {
+                "store": {"type": "float"},
                 "widget": {"type": "number", "attribut_label": "Nombre de visites", "hidden": True},
             },
             "medias": {
+                "store": {"type": "dummy"},
                 "widget": {
                     "type": "medias",
                     "attribut_label": "Médias",
@@ -59,6 +67,7 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "altitude_min": {
+                "store": {"type": "integer"},
                 "widget": {
                     "type": "number",
                     "step": 1,
@@ -67,6 +76,7 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
                 },
             },
             "altitude_max": {
+                "store": {"type": "integer"},
                 "widget": {
                     "type": "number",
                     "step": 1,

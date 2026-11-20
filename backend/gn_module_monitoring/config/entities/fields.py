@@ -25,14 +25,20 @@ from gn_module_monitoring.tools.utils import (
 logger = logging.getLogger()
 
 
+def _unknown_mode():
+    """Widgets et stores : clé inconnue rejetée en STRICT, ignorée sinon (EXCLUDE)."""
+    return ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
+
+
 class WidgetConfigSchema(ma.Schema):
     type = fields.Str(required=True)
 
     def load(self, data, **kwargs):
-        data = super().load(data, unknown=ma.INCLUDE)
-        if data["type"] in WIDGET_MAP:
-            widget = WIDGET_MAP[data["type"]]
-            return widget(data, **kwargs)
+        # Seul le type est lu ici ; les autres clés sont validées par le widget lui-même.
+        typed = super().load(data, unknown=ma.INCLUDE)
+        if typed["type"] in WIDGET_MAP:
+            widget = WIDGET_MAP[typed["type"]]
+            return widget(data, **{**kwargs, "unknown": _unknown_mode()})
         else:
             raise ValidationError(
                 {
@@ -45,10 +51,11 @@ class StoreConfigSchema(ma.Schema):
     type = fields.Str(required=True)
 
     def load(self, data, **kwargs):
-        data = super().load(data, unknown=ma.INCLUDE)
-        if data["type"] in STORE_MAP:
-            store = STORE_MAP[data["type"]]
-            return store(data, **kwargs)
+        # Seul le type est lu ici ; les autres clés (ex. `values`) sont validées par le store lui-même.
+        typed = super().load(data, unknown=ma.INCLUDE)
+        if typed["type"] in STORE_MAP:
+            store = STORE_MAP[typed["type"]]
+            return store(data, **{**kwargs, "unknown": _unknown_mode()})
         else:
             raise ValidationError(
                 {
@@ -146,9 +153,10 @@ class EntityFieldConfigSchema(ma.Schema):
 
     def load(self, data, **kwargs):
         with schema_context(field_name=data.pop("name")):
-            # Une seule voie : clé inconnue rejetée en STRICT, ignorée sinon
+            # Une seule voie : clé inconnue rejetée en STRICT, conservée sinon (INCLUDE), pour que
+            # les clés plates restent disponibles dans la définition du champ.
             kwargs["unknown"] = (
-                ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
+                ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.INCLUDE
             )
             return super().load(data, **kwargs)
 
