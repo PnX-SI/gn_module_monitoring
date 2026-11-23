@@ -5,6 +5,7 @@ import uuid
 import sqlalchemy as sa
 from flask import current_app
 from geoalchemy2 import Geometry
+from geoalchemy2.elements import WKBElement
 from marshmallow import ValidationError, fields, post_load
 from sqlalchemy.orm import ColumnProperty
 
@@ -198,15 +199,7 @@ class GeometryStore(BaseTypeStore):
 
     class ConfigSchema(BaseTypeStore.ConfigSchema):
         srid = fields.Integer(load_default=4326)
-        geometry_type = fields.Raw()
-
-        @post_load
-        def normalize_geometry_type(self, data, **kwargs):
-            # Une chaîne (sites_group : "Polygon") ou une liste (site : ["Point", ...]) : une liste
-            geometry_type = data.get("geometry_type")
-            if isinstance(geometry_type, str):
-                data["geometry_type"] = [geometry_type]
-            return data
+        geometry_type = fields.StrOrListStr()
 
     def get_column_type(self):
         return Geometry("GEOMETRY", self.data["srid"])
@@ -223,12 +216,12 @@ class GeometryStore(BaseTypeStore):
         return GeojsonSerializationField(store=self, **self._get_field_kwargs())
 
     def get_api_type(self) -> type:
-        return str
+        return dict  # geojson
 
     def get_python_type(self) -> type:
-        return str
+        return WKBElement
 
     def _get_default_widget(self, data, **kwargs):
-        from gn_module_monitoring.tools.widgets import TextareaWidget
+        from gn_module_monitoring.tools.widgets import GeojsonWidget
 
-        return TextareaWidget(data, **kwargs)
+        return GeojsonWidget(data, **kwargs)

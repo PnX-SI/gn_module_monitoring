@@ -58,6 +58,7 @@ TABLE_NAME_SUBMODULE = {
 }
 
 # Champs de configuration non importés dans bib_fields (gérés à part, générés ou dynamiques).
+# TODO: définir une liste par entités plutôt qu’une liste globale
 IGNORED_IMPORT_FIELDS = [
     "id_module",  # handled manually
     "id_dataset",  # handled manually
@@ -97,6 +98,8 @@ def geom_local_column_name(geom_field_name: str) -> str:
     """
     return f"{geom_field_name}_local"
 
+
+# TODO: propriété sur les entités ?
 ID_FIELD_NAME = {
     "sites_group": "id_sites_group",
     "site": "id_base_site",
@@ -105,6 +108,7 @@ ID_FIELD_NAME = {
     "observation_detail": "id_observation_detail",
 }
 
+# TODO: propriété sur les entités ?
 UUID_FIELD_NAME = {
     "sites_group": "uuid_sites_group",
     "site": "uuid_base_site",
@@ -113,6 +117,7 @@ UUID_FIELD_NAME = {
     "observation_detail": "uuid_observation_detail",
 }
 
+# TODO: propriété sur les entités ?
 TOOLTIPS = {
     "id_base_site_origin": "Identifiant alphanumérique permettant de faire le lien entre les sites et leurs visites si aucun UUID est fourni",
     "id_base_visit_origin": "Identifiant alphanumérique permettant de faire le lien entre les visites et leurs observations si aucun UUID est fourni",
@@ -120,6 +125,7 @@ TOOLTIPS = {
 
 # Entités de l'arbre du module qui ne sont pas importées (pas de destination d'import) :
 # groupes de sites, détail d'observation, individus et marquages (suivi CMR).
+# TODO: à faire, sites_group initié dans https://github.com/PnX-SI/gn_module_monitoring/pull/593 avant le refact
 ENTITIES_NOT_AVAILABLE = ["sites_group", "observation_detail", "individual", "marking"]
 
 # Valeur pouvant être retourné suite à l'analyse de la modification du protocole

@@ -11,6 +11,7 @@ from gn_module_monitoring.config.utils import apply_substitutions
 from gn_module_monitoring.tools.utils import (
     CELValidationsField,
     MultilineStr,
+    StrOrListStr,
     compile_cel_expression,
 )
 from .fields import EntityFieldConfigSchema, schema_context
@@ -140,7 +141,7 @@ class BaseEntityConfigSchema(ma.Schema):
     filters = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.Raw())
     genre = ma.fields.Str()
     geom_field_name = ma.fields.Str()
-    geometry_type = ma.fields.Raw()
+    geometry_type = StrOrListStr()
     id_field_name = ma.fields.Str()
     description_field_name = ma.fields.Str()
     label = ma.fields.Str()

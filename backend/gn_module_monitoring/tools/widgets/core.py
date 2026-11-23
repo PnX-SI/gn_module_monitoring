@@ -355,4 +355,13 @@ class MediaWidget(BaseWidget):
         return Never
 
 
-# TODO: checkbox, radio, html, bool_checkbox, number, multiselect, observers, observers-text, media, medias, date, text, textarea, jsonb, time, taxonomy, site, individuals, municipalities, areas
+class GeojsonWidget(BaseWidget):
+    key = "geojson"
+
+    def _get_default_store(self, data, **kwargs):
+        from ..stores import GeometryStore
+
+        return GeometryStore(data, **kwargs)
+
+    def get_api_type(self):
+        return dict  # geojson

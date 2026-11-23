@@ -121,6 +121,7 @@ class MonitoringImportActions(ImportActions):
     def process_fields(destination, entities):
         from gn_module_monitoring.modules import get_module
 
+        # FIXME: config v3: désormais inutile, les schémas appliquant les substitutions (à confirmer)
         customs = get_module(destination.code).substitutions
         for entity in entities:
             for theme in entity["themes"]:
@@ -319,9 +320,7 @@ class MonitoringImportActions(ImportActions):
             for field in complement_fields:
                 json_args.extend(
                     [
-                        EntityImportActionsUtils.get_destination_column_name(
-                            field.dest_field
-                        ),
+                        EntityImportActionsUtils.get_destination_column_name(field.dest_field),
                         transient_table.c[field.dest_field],
                     ]
                 )

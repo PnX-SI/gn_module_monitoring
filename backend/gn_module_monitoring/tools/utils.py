@@ -194,7 +194,7 @@ class StrOrListStr(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if isinstance(value, str):
-            return value
+            return [value]
         if isinstance(value, list):
             return fields.List(fields.String()).deserialize(value)
         raise ValidationError("Must be a string or a list.")

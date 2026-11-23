@@ -241,7 +241,3 @@ class ListStore(BaseStore):
 
     def get_python_type(self) -> type:
         return self.get_api_type()
-
-
-# TODO: date, site, sites_group, area
-# TODO: observer_list, taxonomy_list, municipality? accepté par la route util/<type_util>/
