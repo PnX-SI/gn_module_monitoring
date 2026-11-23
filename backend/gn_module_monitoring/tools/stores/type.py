@@ -6,11 +6,12 @@ import sqlalchemy as sa
 from flask import current_app
 from geoalchemy2 import Geometry
 from geoalchemy2.elements import WKBElement
-from marshmallow import ValidationError, fields, post_load
+from marshmallow import ValidationError, fields
 from sqlalchemy.orm import ColumnProperty
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.tools.geometry import GeojsonSerializationField
+from gn_module_monitoring.tools.utils import StrOrListStr
 
 from .base import BaseStore
 
@@ -199,7 +200,7 @@ class GeometryStore(BaseTypeStore):
 
     class ConfigSchema(BaseTypeStore.ConfigSchema):
         srid = fields.Integer(load_default=4326)
-        geometry_type = fields.StrOrListStr()
+        geometry_type = StrOrListStr()
 
     def get_column_type(self):
         return Geometry("GEOMETRY", self.data["srid"])
