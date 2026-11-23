@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnusershub.tests.utils import set_logged_user_cookie
-from ref_geo.models import LAreas
+from ref_geo.models import BibAreasTypes, LAreas
 
 from geonature.utils.env import db
 from gn_module_monitoring.monitoring.schemas import (
@@ -21,6 +21,15 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringVisits,
     TMonitoringModules,
 )
+
+
+def get_area(type_code, area_code):
+    """Zone du référentiel géographique identifiée par son type et son code."""
+    return db.session.scalar(
+        select(LAreas)
+        .join(BibAreasTypes, LAreas.id_type == BibAreasTypes.id_type)
+        .where(BibAreasTypes.type_code == type_code, LAreas.area_code == area_code)
+    )
 
 
 @pytest.mark.usefixtures("client_class")
@@ -652,7 +661,9 @@ class TestSite:
 
 
 # TODO: ajouter tests sur filtre par permissions
-@pytest.mark.usefixtures("client_class", "temporary_transaction", "install_module_test_with_config")
+@pytest.mark.usefixtures(
+    "client_class", "temporary_transaction", "install_module_test_with_config"
+)
 class TestSiteWithModule:
 
     def test_get_module_sites(
@@ -999,10 +1010,8 @@ class TestSiteWithModule:
     ):
         set_logged_user_cookie(self.client, test_module_user)
 
-        # 48075	Ispagnac
-        # 48061	Florac Trois Rivières
-        florac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48061"))
-        ispagnac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48075"))
+        florac = get_area("COM", "48061")  # Ispagnac
+        ispagnac = get_area("COM", "48075")  # Florac Trois Rivières
         generate_sites = [
             [getattr(florac, column_value), getattr(ispagnac, column_value)],
             [getattr(florac, column_value)],

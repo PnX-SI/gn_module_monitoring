@@ -254,8 +254,12 @@ def test_synthetic_fields_load_in_strict_mode(app, monkeypatch, entity_code):
     monkeypatch.setitem(app.config[MODULE_CODE], "STRICT", True)
     entity, specs = synthetic_specs(entity_code)
     for spec in specs:
+        config = spec["config"]
+        if config["store"]["type"] == "geometry":
+            # GeometryStore attend un dict (geojson) : le widget doit renvoyer un dict
+            config = {**config, "widget": {**config["widget"], "type": "geojson"}}
         with schema_context(entity=entity):
-            EntityFieldConfigSchema().load({"name": spec["key"], **spec["config"]})
+            EntityFieldConfigSchema().load({"name": spec["key"], **config})
 
 
 # Nom sans attribut natif : seule la cohérence widget/store est testée.
