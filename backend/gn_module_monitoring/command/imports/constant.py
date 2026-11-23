@@ -100,24 +100,6 @@ def geom_local_column_name(geom_field_name: str) -> str:
 
 
 # TODO: propriété sur les entités ?
-ID_FIELD_NAME = {
-    "sites_group": "id_sites_group",
-    "site": "id_base_site",
-    "visit": "id_base_visit",
-    "observation": "id_observation",
-    "observation_detail": "id_observation_detail",
-}
-
-# TODO: propriété sur les entités ?
-UUID_FIELD_NAME = {
-    "sites_group": "uuid_sites_group",
-    "site": "uuid_base_site",
-    "visit": "uuid_base_visit",
-    "observation": "uuid_observation",
-    "observation_detail": "uuid_observation_detail",
-}
-
-# TODO: propriété sur les entités ?
 TOOLTIPS = {
     "id_base_site_origin": "Identifiant alphanumérique permettant de faire le lien entre les sites et leurs visites si aucun UUID est fourni",
     "id_base_visit_origin": "Identifiant alphanumérique permettant de faire le lien entre les visites et leurs observations si aucun UUID est fourni",

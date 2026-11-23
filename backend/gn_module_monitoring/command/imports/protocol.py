@@ -1,9 +1,7 @@
 import os
 from gn_module_monitoring.command.imports.constant import (
     ENTITIES_NOT_AVAILABLE,
-    ID_FIELD_NAME,
     TABLE_NAME_SUBMODULE,
-    UUID_FIELD_NAME,
 )
 
 from gn_module_monitoring.command.imports.utils import destination_name
@@ -358,7 +356,7 @@ def get_protocol_data(module_code: str, id_destination: int):
         parent_entity = get_entity_parent(tree, entity_code)
 
         entity_hierarchy_map[entity_code] = {
-            "id_field_name": ID_FIELD_NAME.get(entity_code),
+            "id_field_name": entity.import_actions_class.ID_FIELD,
             "parent_entity": (
                 parent_entity if parent_entity not in ENTITIES_NOT_AVAILABLE else None
             ),
@@ -381,7 +379,7 @@ def get_protocol_data(module_code: str, id_destination: int):
     if "observation_detail" in entities:
 
         entity_hierarchy_map["observation_detail"] = {
-            "id_field_name": ID_FIELD_NAME.get("observation_detail"),
+            "id_field_name": module.entities["observation_detail"].import_actions_class.ID_FIELD,
             "parent_entity": "observation",
         }
         parent_data = entity_confs.get("observation", None)
@@ -546,6 +544,9 @@ def get_expected_entities(module_code: str, protocol_data: dict, entity_hierarch
     `parent`, `unique_field` et `uuid_field` sont des codes (et non des identifiants), pour être
     comparables à la base.
     """
+    # Import local : évite le cycle command.imports -> modules -> config -> command.imports
+    from gn_module_monitoring.modules.entities import ENTITY_MAP
+
     expected = []
     for order, entity_code in enumerate(get_entities_protocol(module_code), start=1):
         label = protocol_data[entity_code]["label"]
@@ -559,8 +560,8 @@ def get_expected_entities(module_code: str, protocol_data: dict, entity_hierarch
                 "destination_table_schema": "gn_monitoring",
                 "destination_table_name": TABLE_NAME_SUBMODULE.get(entity_code),
                 "parent": _entity_code_in_db(parent) if parent else None,
-                "unique_field": ID_FIELD_NAME[entity_code],
-                "uuid_field": UUID_FIELD_NAME[entity_code],
+                "unique_field": ENTITY_MAP[entity_code].import_actions_class.ID_FIELD,
+                "uuid_field": ENTITY_MAP[entity_code].import_actions_class.UUID_FIELD,
             }
         )
     return expected

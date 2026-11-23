@@ -2,6 +2,9 @@ from gn_module_monitoring.monitoring.models import TMonitoringObservations
 from gn_module_monitoring.monitoring.schemas import MonitoringObservationsSchemaCruved
 
 from gn_module_monitoring.config.entities.observation import ObservationEntityConfigSchema
+from gn_module_monitoring.monitoring.import_actions.observation_actions import (
+    ObservationImportActions,
+)
 from .base import BaseEntity
 
 
@@ -10,3 +13,4 @@ class ObservationEntity(BaseEntity):
     model = TMonitoringObservations
     model_schema_class = MonitoringObservationsSchemaCruved
     config_schema_class = ObservationEntityConfigSchema
+    import_actions_class = ObservationImportActions

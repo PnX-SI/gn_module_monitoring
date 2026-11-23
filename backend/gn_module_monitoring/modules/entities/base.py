@@ -19,7 +19,6 @@ from geonature.utils.env import db
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
-from gn_module_monitoring.command.imports.constant import ID_FIELD_NAME
 from gn_module_monitoring.tools.stores import DummyStore
 from gn_module_monitoring.tools.utils import schema_context
 
@@ -190,6 +189,7 @@ class BaseEntity(UserDict):
     model: ClassVar[type[db.Model]] = None  # type: ignore
     model_schema_class: ClassVar[type[ma.Schema]] = None  # type: ignore
     config_schema_class: ClassVar[type[ma.Schema]] = None  # type: ignore
+    import_actions_class: ClassVar[type | None] = None  # classe d'actions d'import de l'entité
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -202,14 +202,17 @@ class BaseEntity(UserDict):
         Nom d'import (`name_field` de bib_fields, `s__kind`, `v__meteo`, ...) du champ `field_name`
         de la configuration de l'entité.
 
-        - l'identifiant de l'entité (ID_FIELD_NAME) garde son nom nu ;
+        - l'identifiant de l'entité (`import_actions_class.ID_FIELD`) garde son nom nu ;
         - les autres champs sont préfixés : `g__` (sites_group), `d__` (observation_detail),
           sinon la première lettre du nom de l'entité.
         Cette règle ne consulte pas IGNORED_IMPORT_FIELDS : un champ exclu de l'import est filtré
         par l'appelant (`build_field_names`). Un champ synthétique dont le nom ne suit pas la règle
         porte un `import_name` explicite (command/imports/protocol.py).
         """
-        if field_name == ID_FIELD_NAME.get(cls.name):
+        if (
+            cls.import_actions_class is not None
+            and field_name == cls.import_actions_class.ID_FIELD
+        ):
             return field_name
         prefix = {"sites_group": "g", "observation_detail": "d"}.get(cls.name, cls.name[0])
         return f"{prefix}__{field_name}"

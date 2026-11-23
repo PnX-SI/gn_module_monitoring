@@ -9,10 +9,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from gn_module_monitoring.command.imports.constant import (
     ENTITIES_NOT_AVAILABLE,
-    ID_FIELD_NAME,
     TABLE_NAME_SUBMODULE,
     TOOLTIPS,
-    UUID_FIELD_NAME,
 )
 from gn_module_monitoring.command.imports.fields import get_themes_dict
 from gn_module_monitoring.utils.utils import extract_keys
@@ -83,14 +81,18 @@ def insert_entities(
         dict
             Dictionnaire contenant les identifiants des entités insérées/mises à jour.
     """
+    # Import local : évite le cycle command.imports -> modules -> config -> command.imports
+    from gn_module_monitoring.modules.entities import ENTITY_MAP
+
     inserted_entity_ids = {}
     order = 1
 
     for entity_code in get_entities_protocol(module_code):
         entity_data = unique_fields[entity_code]
         entity_config = entity_hierarchy_map.get(entity_code)
-        id_field_name = ID_FIELD_NAME[entity_code]
-        uuid_field_name = UUID_FIELD_NAME[entity_code]
+        import_actions_class = ENTITY_MAP[entity_code].import_actions_class
+        id_field_name = import_actions_class.ID_FIELD
+        uuid_field_name = import_actions_class.UUID_FIELD
         parent_entity = entity_config["parent_entity"]
 
         id_field = DB.session.scalar(
