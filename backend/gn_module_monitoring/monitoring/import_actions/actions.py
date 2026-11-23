@@ -108,35 +108,6 @@ class MonitoringImportActions(ImportActions):
             {"key": "taxa_count", "value": "Nombre de taxons importés"},
         ]
 
-    # Some field params appears to be dynamic
-    # They must be handled on the fly
-    # Ex. process
-    # {
-    #   "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-    #   ...
-    # }
-    # TO
-    # "api": "users/menu/2",
-    @staticmethod
-    def process_fields(destination, entities):
-        from gn_module_monitoring.modules import get_module
-
-        # FIXME: config v3: désormais inutile, les schémas appliquant les substitutions (à confirmer)
-        customs = get_module(destination.code).substitutions
-        for entity in entities:
-            for theme in entity["themes"]:
-                for field in theme["fields"]:
-                    type_field_params = field["type_field_params"]
-                    if isinstance(type_field_params, dict):
-                        for k, v in type_field_params.items():
-                            if isinstance(v, str):
-                                for c_k, c_v in customs.items():
-                                    if isinstance(c_v, (str, int, float)) and c_k in v:
-                                        v = v.replace(c_k, str(c_v))
-                                field["type_field_params"][k] = v
-
-        return entities
-
     # The output of this method is NEVER used
     @staticmethod
     def preprocess_transient_data(imprt: TImports, df) -> None:
