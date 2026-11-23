@@ -43,7 +43,7 @@
             "type_widget": "observers",
             "type_util": "user",
             "code_list": "CODE_OBSERVERS_LIST",
-            "multi_select": false,
+            "multiple": false,
             "required": true
         },
         "id_base_marking_site": {

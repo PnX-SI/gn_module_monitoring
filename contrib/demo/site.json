@@ -321,7 +321,7 @@
     "demo_datasets": {
       "type_util": "dataset",
       "type_widget": "dataset",
-      "multi_select": true,
+      "multiple": true,
       "attribut_label": "Jeux de données (démo, multiple)",
       "module_code": "demo"
     },

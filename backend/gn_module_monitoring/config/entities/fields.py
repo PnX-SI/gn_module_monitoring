@@ -75,7 +75,7 @@ def handle_retrocompat_field_definition(definition: dict) -> dict:
       les clés plates du champ sont copiées dans `widget` (et dans `store` pour `type_util`), comme
       la conversion historique. Aucune clé n'est retirée du premier niveau : les clés que les schémas
       ne reconnaissent pas sont ignorées (EXCLUDE). `required` non booléen devient `widget.required_js`.
-    `multi_select` et `multiple` choisissent le type de store (datasets, modules, users) ; `site`
+    `multiple` choisit le type de store (datasets, modules, users) ; `site`
     impose un champ masqué.
 
     Appelée par `EntityFieldConfigSchema.pre_load` et, avant la fusion, sur les champs du protocole et
@@ -93,6 +93,11 @@ def handle_retrocompat_field_definition(definition: dict) -> dict:
     if "type_widget" not in data and "type_util" not in data:
         return data
 
+    # `multiple` fait foi ; `multi_select` (legacy, à plat) n'est lu qu'en l'absence de `multiple`
+    if "multi_select" in data:
+        data.setdefault("multiple", data["multi_select"])
+        data.pop("multi_select")
+
     orig_data = deepcopy(data)
     if "type_widget" in data:
         if "widget" in data:
@@ -107,6 +112,8 @@ def handle_retrocompat_field_definition(definition: dict) -> dict:
             if not data["widget"].get("hidden", False):
                 raise ValidationError({"widget": "Le widget 'site' ne peut que être hidden."})
             data["widget"].pop("type")
+    else:
+        data["widget"] = {}
     if "type_util" in data:
         if "store" in data:
             # Sans la clé `store` elle-même : évite une référence cyclique
@@ -116,16 +123,17 @@ def handle_retrocompat_field_definition(definition: dict) -> dict:
         store_type = data.pop("type_util")
         data["store"]["type"] = store_type
         # On utilise des stores différents pour gérer les M2O et les M2M
-        # => utilisation du bon store si multiple/multi_select=True
-        if store_type == "dataset" and data["store"].pop("multi_select", False):
+        # => utilisation du bon store si multiple=True
+        if store_type == "dataset" and data.get("multiple", False):
             data["store"]["type"] = "datasets"
-        if store_type == "module" and data["store"].pop("multiple", False):
+        if store_type == "module" and data.get("multiple", False):
             data["store"]["type"] = "modules"
-        if store_type == "user":
-            multiple = data["store"].pop("multiple", False)
-            multi_select = data["store"].pop("multi_select", False)
-            if multiple or multi_select:
-                data["store"]["type"] = "users"
+        if store_type == "user" and data.get("multiple", False):
+            data["store"]["type"] = "users"
+        if store_type == "nomenclature" and data.get("multiple", False):
+            data["store"]["type"] = "nomenclatures"
+    else:
+        data["store"] = {}
     return data
 
 

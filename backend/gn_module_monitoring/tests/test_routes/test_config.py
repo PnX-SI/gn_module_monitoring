@@ -81,7 +81,7 @@ class TestRouteConfig:
 
         # Test fields multiple
         assert data["module"]["fields"]["datasets"]["multiple"] == True
-        assert data["module"]["fields"]["datasets"]["multi_select"] == True
+        assert "multi_select" not in data["module"]["fields"]["datasets"]
 
     @pytest.mark.parametrize(
         "route", ["monitorings.legacy.get_config_api", "monitorings.api.get_config_endpoint"]

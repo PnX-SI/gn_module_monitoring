@@ -72,7 +72,7 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {
                     "type": "dataset",
                     "attribut_label": "Jeu de données",
-                    "multi_select": True,
+                    "multiple": True,
                 },
                 "required": True,
             },

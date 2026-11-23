@@ -140,7 +140,7 @@ class DatasetsStore(DatasetMixin, BaseManyToManyStore):
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import DatasetWidget
 
-        return DatasetWidget({**(data or {}), "multi_select": True}, **kwargs)
+        return DatasetWidget({**(data or {}), "multiple": True}, **kwargs)
 
 
 class NomenclaturesStore(NomenclatureMixin, BaseManyToManyStore):
@@ -156,7 +156,7 @@ class NomenclaturesStore(NomenclatureMixin, BaseManyToManyStore):
     def _get_default_widget(self, data, **kwargs):
         from gn_module_monitoring.tools.widgets import NomenclatureWidget
 
-        return NomenclatureWidget({**(data or {}), "multi_select": True}, **kwargs)
+        return NomenclatureWidget({**(data or {}), "multiple": True}, **kwargs)
 
 
 class ModulesStore(ModuleMixin, BaseManyToManyStore):

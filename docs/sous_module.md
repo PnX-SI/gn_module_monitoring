@@ -196,7 +196,7 @@ Elles peuvent servir dans la définition des formulaires (en particulier pour le
 | number                                  | `max`                    | Valeur maximum de l'input                                                                                                                         |
 | nomenclature                            | `code_nomenclature_type` | Code du type de nomenclature à afficher                                                                                                           |
 | nomenclature                            | `cd_nomenclatures`       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items que l'on ne veut pas pour ce sous-module)                                |
-| nomenclature / dataset / observers      | `multi_select`           | Booléen : permet de sélectionner plusieurs items dans la liste de valeurs                                                                         |
+| nomenclature / dataset / observers      | `multiple`               | Booléen : permet de sélectionner plusieurs items dans la liste de valeurs                                                                         |
 | dataset                                 | `module_code`            | Limite aux jeux de données associés à ce sous-module                                                                                              |
 | html                                    | `html`                   | Contenu du bloc HTML                                                                                                                              |
 

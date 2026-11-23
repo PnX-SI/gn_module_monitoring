@@ -57,7 +57,7 @@
       "type_util": "dataset",
       "attribut_label": "Jeu de données",
       "required": true,
-      "multi_select": true
+      "multiple": true
     },
     "id_list_observer": {
       "type_widget": "datalist",

@@ -71,7 +71,7 @@ export class FormService {
                 }
               }
               //Si non multiple on renvoie le premier élément ou null
-              if (!elem.multi_select) {
+              if (!elem.multiple) {
                 currentUser = currentUser.length ? currentUser[0] : null;
               }
               return of(currentUser);
@@ -158,7 +158,7 @@ export class FormService {
         break;
       }
       case 'observers': {
-        if ('multi_select' in elem && elem.multi_select) {
+        if ('multiple' in elem && elem.multiple) {
           x = x.map((item) => {
             return item.id_role;
           });

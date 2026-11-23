@@ -1,4 +1,4 @@
-from marshmallow import fields, pre_load, validate
+from marshmallow import fields, validate
 
 from .core import BaseWidget
 
@@ -7,24 +7,24 @@ class NomenclatureWidget(BaseWidget):
     key = "nomenclature"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        multi_select = fields.Boolean(load_default=False)
+        multiple = fields.Boolean(load_default=False)
         value = fields.Raw()  # valeur par défaut, lue par form.service (toForm)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import NomenclatureStore, NomenclaturesStore
 
-        # Clés acceptées par le store (multi_select est une option du widget)
+        # Clés acceptées par le store (multiple est une option du widget)
         data = {
             k: v
             for k, v in data.items()
             if k in ("nomenclature_type", "cd_nomenclatures", "storage_col", "storage_cols")
         }
-        if self["multi_select"]:
+        if self["multiple"]:
             return NomenclaturesStore(data, **kwargs)
         return NomenclatureStore(data, **kwargs)
 
     def get_api_type(self):
-        if self["multi_select"]:
+        if self["multiple"]:
             return list[int]
         return int
 
@@ -54,22 +54,22 @@ class DatasetWidget(BaseWidget):
     key = "dataset"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        multi_select = fields.Boolean(load_default=False)
+        multiple = fields.Boolean(load_default=False)
         module_code = fields.Str()  # lu par dynamic-form (formDef.module_code)
         creatable_in_module = fields.Str()  # lu par dynamic-form (formDef.creatable_in_module)
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import DatasetStore, DatasetsStore
 
-        # Clés acceptées par le store (multi_select est une option du widget)
+        # Clés acceptées par le store (multiple est une option du widget)
         data = {k: v for k, v in data.items() if k in ("storage_col", "storage_cols")}
-        if self["multi_select"]:
+        if self["multiple"]:
             return DatasetsStore(data, **kwargs)
         else:
             return DatasetStore(data, **kwargs)
 
     def get_api_type(self):
-        if self["multi_select"]:
+        if self["multiple"]:
             return list[int]
         return int
 
@@ -150,28 +150,21 @@ class ObserversWidget(BaseWidget):
     key = "observers"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        multi_select = fields.Boolean(load_default=False)
-        multiple = fields.Boolean()  # alias de multi_select (legacy)
+        multiple = fields.Boolean(load_default=False)
         code_list = fields.String()  # liste d'observateurs (code), lue par pnx-observers
         id_list = fields.Raw()  # liste d'observateurs (id), lue par pnx-observers
-
-        @pre_load
-        def retrocompat_multiple(self, data, **kwargs):
-            if "multiple" in data and "multi_select" not in data:
-                data["multi_select"] = data["multiple"]
-            return data
 
     def _get_default_store(self, data, **kwargs):
         from ..stores import UserStore, UsersStore
 
-        # Clés acceptées par le store (multi_select, multiple, id_list sont propres au widget)
+        # Clés acceptées par le store (multiple, id_list sont propres au widget)
         data = {k: v for k, v in data.items() if k in ("storage_col", "storage_cols", "code_list")}
-        if self["multi_select"]:
+        if self["multiple"]:
             return UsersStore(data, **kwargs)
         return UserStore(data, **kwargs)
 
     def get_api_type(self):
-        if self["multi_select"]:
+        if self["multiple"]:
             return list[int]
         return int
 

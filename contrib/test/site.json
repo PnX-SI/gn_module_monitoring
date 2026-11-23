@@ -60,7 +60,7 @@
       "type_widget": "nomenclature",
       "attribut_label": "test météo multiple",
       "code_nomenclature_type": "TEST_METEO",
-      "type_util": "nomenclature",
+      "type_util": "nomenclatures",
       "required": false,
       "multiple": true
     },
@@ -89,37 +89,37 @@
       "attribut_label": "Observateur",
       "type_util": "user",
       "code_list": "__MODULE.CODE_OBSERVERS_LIST",
-      "multi_select": false
+      "multiple": false
     },
     "determiner_mutiple": {
       "type_widget": "observers",
       "attribut_label": "Observateur",
       "type_util": "user",
       "code_list": "__MODULE.CODE_OBSERVERS_LIST",
-      "multi_select": true
+      "multiple": true
     },
     "commune_areas": {
       "type_widget": "areas",
       "attribut_label": "Commune area",
-      "type_util": "area",
+      "type_util": "areas",
       "type_codes": ["COM"],
-      "multiple": false,
+      "multiple": true,
       "required": false
   },
     "commune_aa": {
       "type_widget": "municipalities",
       "attribut_label": "Commune municipality",
-      "type_util": "area",
+      "type_util": "areas",
       "type_codes": ["COM"],
-      "multiple": false,
+      "multiple": true,
       "required": false
   },
   "commune_area_code": {
       "type_widget": "municipalities",
       "attribut_label": "Commune area code",
       "value_field_name": "area_code",
-      "type_util": "area",
-      "multiple": false,
+      "type_util": "areas",
+      "multiple": true,
       "required": false
     }
   }

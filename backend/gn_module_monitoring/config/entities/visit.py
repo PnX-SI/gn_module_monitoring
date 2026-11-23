@@ -45,7 +45,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {
                     "type": "observers",
                     "attribut_label": "Observateurs",
-                    "multi_select": True,
+                    "multiple": True,
                     "hidden": False,
                 },
                 "required": True,

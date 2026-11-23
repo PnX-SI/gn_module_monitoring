@@ -80,6 +80,7 @@ def test_non_strict_converts_type_widget_to_widget_type(non_strict):
     "definition,expected_type",
     [
         ({"type_util": "dataset", "multi_select": True}, "datasets"),
+        ({"type_util": "dataset", "multiple": True}, "datasets"),
         ({"type_util": "dataset"}, "dataset"),
         ({"type_util": "module", "multiple": True}, "modules"),
         ({"type_util": "user", "multiple": True}, "users"),
@@ -89,6 +90,37 @@ def test_non_strict_converts_type_widget_to_widget_type(non_strict):
 def test_non_strict_converts_type_util_to_store_type(non_strict, definition, expected_type):
     converted = handle_retrocompat_field_definition(definition)
     assert converted["store"]["type"] == expected_type
+
+
+# Données à plat : `multi_select` (legacy) est chargé dans `multiple` (widget et store)
+
+
+def test_non_strict_flat_multi_select_loads_in_widget_multiple(non_strict):
+    converted = handle_retrocompat_field_definition(
+        {"type_widget": "observers", "multi_select": True}
+    )
+    assert converted["widget"]["multiple"] is True
+    assert "multi_select" not in converted["widget"]
+
+
+def test_non_strict_flat_multiple_wins_over_multi_select(non_strict):
+    converted = handle_retrocompat_field_definition(
+        {"type_widget": "observers", "multi_select": True, "multiple": False}
+    )
+    assert converted["widget"]["multiple"] is False
+
+
+def test_strict_widget_multi_select_is_rejected(strict):
+    with pytest.raises(ValidationError):
+        load_field({"widget": {"type": "observers", "multi_select": True}})
+
+
+def test_non_strict_nested_widget_multi_select_is_not_mapped(non_strict):
+    # Format courant (widget imbriqué) : pas de rétro-compat, la clé est ignorée (EXCLUDE)
+    converted = handle_retrocompat_field_definition(
+        {"widget": {"type": "observers", "multi_select": True}}
+    )
+    assert "multiple" not in converted["widget"]
 
 
 def test_non_strict_keeps_top_level_keys_untouched(non_strict):

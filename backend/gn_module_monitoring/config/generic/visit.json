@@ -44,7 +44,7 @@
       "attribut_label": "Observateurs",
       "type_util": "user",
       "code_list": "CODE_OBSERVERS_LIST",
-      "multi_select": true,
+      "multiple": true,
       "hidden": false,
       "required": true  
     },

@@ -22,7 +22,7 @@ CHECK_KEYS = ("store", "required", "default_value")
 # Attributs du store comparés lors d'une redéfinition (voir store_changes) : les autres clés du store
 # (copies de la conversion legacy) ne sont pas comparées.
 STORE_ATTRIBUTE_KEYS = {
-    "type", "code_list", "id_list", "multiple", "multi_select", "params", "code_nomenclature_type",
+    "type", "code_list", "id_list", "multiple", "params", "code_nomenclature_type",
     "cd_nomenclatures", "nomenclature_type", "module_code", "area_type_code", "type_codes",
     "value_field_name",
 }
@@ -305,7 +305,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {
                     "type": "observers",
                     "attribut_label": "Observateur",
-                    "multi_select": False,
+                    "multiple": False,
                 },
                 "required": False,
             },

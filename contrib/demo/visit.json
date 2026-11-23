@@ -43,7 +43,7 @@
       "widget": {
         "type": "observers",
         "attribut_label": "Observateurs",
-        "multi_select": true
+        "multiple": true
       },
       "required": true
     },
