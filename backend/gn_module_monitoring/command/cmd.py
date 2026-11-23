@@ -3,6 +3,7 @@ import click
 from flask.cli import with_appcontext
 from sqlalchemy.sql import select
 from sqlalchemy import exists
+from marshmallow import ValidationError
 
 from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
@@ -105,7 +106,7 @@ def cmd_install_monitoring_module(module_code):
 
     try:
         get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
-    except Exception as e:
+    except ValidationError as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
         click.echo(f"- {e}")
         click.echo("Installation annulée")
@@ -196,7 +197,7 @@ def cmd_add_update_import_on_protocole(module_code):
     # Vérification de la conformité des fichier json
     try:
         get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
-    except Exception as e:
+    except ValidationError as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
         click.echo(f"- {e}")
         click.echo("Mise à jour de l'import annulée")

@@ -318,7 +318,8 @@ class BaseEntity(UserDict):
             config = {}
 
         self.config_schema = self.config_schema_class()
-        unknown = ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.EXCLUDE
+        # Strict : clé inconnue rejetée. Souple : conservée (INCLUDE), voir LOTS.md section 8.
+        unknown = ma.RAISE if current_app.config[MODULE_CODE]["STRICT"] else ma.INCLUDE
         with schema_context(entity=self):
             self.data = self.config_schema.load(config, unknown=unknown)
 
