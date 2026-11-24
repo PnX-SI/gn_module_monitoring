@@ -1,3 +1,4 @@
+from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
 from flask import current_app
 from .entity_import_actions_utils import EntityImportActionsUtils
 
@@ -31,8 +32,9 @@ from .geometry import (
 )
 
 
-class SiteImportActions:
+class SiteImportActions(BaseImportActions):
     ENTITY_CODE = "site"
+    FIELD_PREFIX = "s__"
     TABLE_NAME = "t_base_sites"
     ID_FIELD = "id_base_site"
     ID_ORIGIN_FIELD = "id_base_site_origin"

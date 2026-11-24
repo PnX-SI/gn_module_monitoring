@@ -1,3 +1,4 @@
+from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
 from gn_module_monitoring.monitoring.import_actions.visit_actions import (
     VisitImportActions,
 )
@@ -32,8 +33,9 @@ from geonature.core.imports.utils import (
 )
 
 
-class ObservationImportActions:
+class ObservationImportActions(BaseImportActions):
     ENTITY_CODE = "observation"
+    FIELD_PREFIX = "o__"
     TABLE_NAME = "t_observations"
     ID_FIELD = "id_observation"
     UUID_FIELD = "uuid_observation"

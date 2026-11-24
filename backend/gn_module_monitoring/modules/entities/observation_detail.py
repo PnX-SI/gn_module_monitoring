@@ -12,7 +12,6 @@ from .base import BaseEntity
 
 class ObservationDetailEntity(BaseEntity):
     name = "observation_detail"
-    import_field_prefix = "d__"
     model = TMonitoringObservationDetails
     model_schema_class = MonitoringObservationsDetailsSchemaCruved
     config_schema_class = ObservationDetailEntityConfigSchema

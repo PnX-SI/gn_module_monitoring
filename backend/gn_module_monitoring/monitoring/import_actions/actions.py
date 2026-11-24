@@ -130,7 +130,7 @@ def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict
                     "Contraintes de l'entité",
                 )
             else:
-                column = module_entity.get_import_field_name(field_name)
+                column = module_entity.import_actions_class.get_field_name(field_name)
                 if field_name in required and rows[position].get(field_name) is None:
                     error_code = ImportCodeError.MISSING_VALUE
                 elif field_name in geometry:

@@ -1,3 +1,4 @@
+from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
@@ -29,8 +30,9 @@ from geonature.core.imports.checks.dataframe.core import check_datasets
 from geonature.utils.env import db
 
 
-class VisitImportActions:
+class VisitImportActions(BaseImportActions):
     ENTITY_CODE = "visit"
+    FIELD_PREFIX = "v__"
     TABLE_NAME = "t_base_visits"
     ID_FIELD = "id_base_visit"
     ID_ORIGIN_FIELD = "id_base_visit_origin"

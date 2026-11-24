@@ -9,7 +9,6 @@ from .base import BaseEntity
 
 class IndividualEntity(BaseEntity):
     name = "individual"
-    import_field_prefix = "i__"
     model = TMonitoringIndividuals
     model_schema_class = MonitoringIndividualsSchemaCruved
     config_schema_class = IndividualEntityConfigSchema

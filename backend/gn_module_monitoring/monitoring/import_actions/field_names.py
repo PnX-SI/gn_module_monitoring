@@ -9,7 +9,7 @@ Correspondance entre deux familles de noms de champs :
 
 Le backend lit ces données sur l'entité chargée (`get_module(code).entities[nom].data`).
 
-Règle de construction : `BaseEntity.get_import_field_name` (modules/entities/base.py), qui
+Règle de construction : `BaseImportActions.get_field_name` (monitoring/import_actions/base.py), qui
 reprend la règle de `prepare_fields` et `monitoring_field_to_bib_field` (command/imports/fields.py).
 """
 
@@ -51,10 +51,11 @@ def build_field_names(entity_code: str, entity) -> FieldNames:
     fields = entity.data["fields"]
 
     for entity_field_name in fields:
+        # Une entité sans actions d'import (ex. `module`) n'a aucun champ importable
         import_field_name = (
             None
-            if entity_field_name in IGNORED_IMPORT_FIELDS
-            else entity.get_import_field_name(entity_field_name)
+            if entity_field_name in IGNORED_IMPORT_FIELDS or entity.import_actions_class is None
+            else entity.import_actions_class.get_field_name(entity_field_name)
         )
         if import_field_name is None:
             names.ignored_entity_fields[entity_field_name] = (

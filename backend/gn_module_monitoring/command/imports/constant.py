@@ -93,12 +93,12 @@ def geom_local_column_name(geom_field_name: str) -> str:
 def entity_import_field_name(entity_code: str, field_name: str) -> str:
     """
     Nom d'import d'un champ import only (identifiant d'origine, UUID, x, y, JDD), préfixé comme les
-    autres champs de l'entité (`ENTITY_MAP[entity_code].get_import_field_name`). L'identifiant de
+    autres champs de l'entité (`ENTITY_MAP[entity_code].import_actions_class.get_field_name`). L'identifiant de
     l'entité (id_base_site, ...) garde son nom nu.
     """
     from gn_module_monitoring.modules.entities import ENTITY_MAP
 
-    return ENTITY_MAP[entity_code].get_import_field_name(field_name)
+    return ENTITY_MAP[entity_code].import_actions_class.get_field_name(field_name)
 
 
 # TODO: propriété sur les entités ?

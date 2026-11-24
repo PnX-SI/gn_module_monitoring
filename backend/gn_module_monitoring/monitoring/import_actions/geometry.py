@@ -167,9 +167,11 @@ def fill_entity_wkt_from_xy(imprt: TImports, entity: Entity, df) -> set:
         imprt,
         entity,
         df,
-        wkt_field=entity_fields[module_entity.get_import_field_name(geom_field_name)],
-        x_field=entity_fields[module_entity.get_import_field_name("x")],
-        y_field=entity_fields[module_entity.get_import_field_name("y")],
+        wkt_field=entity_fields[
+            module_entity.import_actions_class.get_field_name(geom_field_name)
+        ],
+        x_field=entity_fields[module_entity.import_actions_class.get_field_name("x")],
+        y_field=entity_fields[module_entity.import_actions_class.get_field_name("y")],
     )
 
 

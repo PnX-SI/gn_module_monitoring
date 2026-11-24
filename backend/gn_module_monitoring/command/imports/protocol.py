@@ -146,7 +146,7 @@ def get_import_only_bib_fields(entity_code: str, entity, id_destination: int) ->
 
     geom_field_name = entity.data.get("geom_field_name")
     if entity_code == "site" and geom_field_name is not None:
-        geom_name = entity.get_import_field_name(geom_field_name)
+        geom_name = entity.import_actions_class.get_field_name(geom_field_name)
         for coord, label in (("x", "Longitude (x)"), ("y", "Latitude (y)")):
             field_name = entity_import_field_name("site", coord)
             fields.append(

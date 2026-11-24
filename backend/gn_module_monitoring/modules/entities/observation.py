@@ -10,7 +10,6 @@ from .base import BaseEntity
 
 class ObservationEntity(BaseEntity):
     name = "observation"
-    import_field_prefix = "o__"
     model = TMonitoringObservations
     model_schema_class = MonitoringObservationsSchemaCruved
     config_schema_class = ObservationEntityConfigSchema

@@ -191,34 +191,11 @@ class BaseEntity(UserDict):
     model_schema_class: ClassVar[type[ma.Schema]] = None  # type: ignore
     config_schema_class: ClassVar[type[ma.Schema]] = None  # type: ignore
     import_actions_class: ClassVar[type | None] = None  # classe d'actions d'import de l'entité
-    # Préfixe des noms d'import des champs de l'entité (`s__`, `v__`, ...), voir get_import_field_name
-    import_field_prefix: ClassVar[str | None] = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if cls.name is not None:
             ENTITY_MAP[cls.name] = cls
-
-    @classmethod
-    def get_import_field_name(cls, field_name: str) -> str:
-        """
-        Nom d'import (`name_field` de bib_fields, `s__kind`, `v__meteo`, `uuid_base_site`, ...) du champ
-        `field_name` de la configuration de l'entité.
-
-        - l'identifiant de l'entité (`import_actions_class.ID_FIELD`), les UUID (`uuid_*`) et les
-          identifiants d'origine (`*_origin`) gardent leur nom nu ;
-        - les autres champs sont préfixés par `import_field_prefix` de l'entité (`s__`, `v__`, ...).
-        Cette règle ne consulte pas IGNORED_IMPORT_FIELDS : un champ exclu de l'import est filtré
-        par l'appelant (`build_field_names`).
-        """
-        if (
-            cls.import_actions_class is not None
-            and field_name == cls.import_actions_class.ID_FIELD
-        ):
-            return field_name
-        if field_name.startswith("uuid_") or field_name.endswith("_origin"):
-            return field_name
-        return f"{cls.import_field_prefix}{field_name}"
 
     @classmethod
     @cache

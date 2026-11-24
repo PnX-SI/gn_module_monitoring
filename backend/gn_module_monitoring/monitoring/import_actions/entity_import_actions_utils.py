@@ -103,7 +103,7 @@ class EntityImportActionsUtils:
     def get_destination_column_name(column_name: str) -> str:
         """
         Colonne de destination d'une colonne de la table transitoire : le préfixe `<x>__` est retiré
-        (inverse de `BaseEntity.get_import_field_name`). Un nom sans préfixe (`geom`, `id_base_site`) est
+        (inverse de `BaseImportActions.get_field_name`). Un nom sans préfixe (`geom`, `id_base_site`) est
         inchangé.
         """
         return re.sub(r"^.*?__", "", column_name)

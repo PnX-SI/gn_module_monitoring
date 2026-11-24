@@ -8,7 +8,6 @@ from .base import BaseEntity
 
 class VisitEntity(BaseEntity):
     name = "visit"
-    import_field_prefix = "v__"
     model = TMonitoringVisits
     model_schema_class = MonitoringVisitsSchemaCruved
     config_schema_class = VisitEntityConfigSchema

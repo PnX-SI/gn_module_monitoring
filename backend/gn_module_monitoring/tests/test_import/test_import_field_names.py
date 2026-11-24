@@ -72,8 +72,8 @@ def load_field(entity_code, field_name, config):
         ("site", "id_base_site_origin", "id_base_site_origin"),
     ],
 )
-def test_get_import_field_name(entity_code, field_name, expected):
-    assert ENTITY_MAP[entity_code].get_import_field_name(field_name) == expected
+def test_get_field_name(entity_code, field_name, expected):
+    assert ENTITY_MAP[entity_code].import_actions_class.get_field_name(field_name) == expected
 
 
 def test_build_field_names_excludes_ignored_fields():
@@ -160,6 +160,8 @@ def test_module_entities_field_names(module_code):
     """Vérification sur les modules de référence : toutes les variables CEL doivent être mappées."""
     module = get_module(module_code)
     for entity_code, entity in module.entities.items():
+        if entity.import_actions_class is None:  # entité non importable (ex. `module`)
+            continue
         names = build_field_names(entity_code, entity)
         # un import field name ne désigne qu'un seul entity field name
         assert len(names.import_to_entity) == len(set(names.import_to_entity.values()))
