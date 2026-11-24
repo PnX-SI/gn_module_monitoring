@@ -57,13 +57,23 @@ def load_field(entity_code, field_name, config):
         ("visit", "id_base_visit", "id_base_visit"),
         ("observation", "id_observation", "id_observation"),
         ("sites_group", "id_sites_group", "id_sites_group"),
-        # autres identifiants : préfixés (les champs synthétiques portent un import_name explicite)
-        ("visit", "uuid_base_visit", "v__uuid_base_visit"),
+        # autres identifiants : préfixés (les champs import only portent un import_name explicite)
+        # UUID : nom nu, quel que soit l'entité
+        ("visit", "uuid_base_visit", "uuid_base_visit"),
+        ("visit", "uuid_dataset", "uuid_dataset"),
+        ("site", "uuid_base_site", "uuid_base_site"),
+        ("observation", "uuid_observation", "uuid_observation"),
+        # autres champs import only : préfixés par l'entité
         ("visit", "id_base_site", "v__id_base_site"),
+        ("visit", "id_dataset", "v__id_dataset"),
+        ("site", "x", "s__x"),
+        ("site", "y", "s__y"),
+        # origine : nom nu
+        ("site", "id_base_site_origin", "id_base_site_origin"),
     ],
 )
-def test_get_import_column_name(entity_code, field_name, expected):
-    assert ENTITY_MAP[entity_code].get_import_column_name(field_name) == expected
+def test_get_import_field_name(entity_code, field_name, expected):
+    assert ENTITY_MAP[entity_code].get_import_field_name(field_name) == expected
 
 
 def test_build_field_names_excludes_ignored_fields():

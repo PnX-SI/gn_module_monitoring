@@ -8,6 +8,7 @@ from .base import BaseEntity
 
 class MarkingEntity(BaseEntity):
     name = "marking"
+    import_field_prefix = "m__"
     model = TMonitoringMarkingEvent
     model_schema_class = MonitoringMarkingSchemaCruved
     config_schema_class = MarkingEntityConfigSchema

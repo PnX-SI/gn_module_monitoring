@@ -21,8 +21,8 @@ from gn_module_monitoring.monitoring.import_actions.geometry import (
 )
 
 WKT = SimpleNamespace(source_field="src_s__geom", dest_field="s__geom")
-X = SimpleNamespace(source_field="src_x", dest_field=None)
-Y = SimpleNamespace(source_field="src_y", dest_field=None)
+X = SimpleNamespace(source_field="src_s__x", dest_field=None)
+Y = SimpleNamespace(source_field="src_s__y", dest_field=None)
 GEOM_4326 = SimpleNamespace(source_field="src_s__geom", dest_field="s__geom")
 
 
@@ -44,7 +44,7 @@ def _fill(df):
 
 def test_xy_numeric_written_as_point_without_comma(errors):
     df = pd.DataFrame(
-        {"src_s__geom": [None, ""], "src_x": ["2,5", 2.5], "src_y": ["44.1", 44.1]}
+        {"src_s__geom": [None, ""], "src_s__x": ["2,5", 2.5], "src_s__y": ["44.1", 44.1]}
     )
     updated = _fill(df)
     assert updated == {"src_s__geom"}
@@ -56,7 +56,7 @@ def test_xy_numeric_written_as_point_without_comma(errors):
 def test_xy_written_point_is_valid_wkt(errors):
     from shapely import wkt
 
-    df = pd.DataFrame({"src_s__geom": [np.nan], "src_x": ["-1,25"], "src_y": [" 47.0 "]})
+    df = pd.DataFrame({"src_s__geom": [np.nan], "src_s__x": ["-1,25"], "src_s__y": [" 47.0 "]})
     _fill(df)
     point = wkt.loads(df["src_s__geom"].iloc[0])
     assert (point.x, point.y) == pytest.approx((-1.25, 47.0))
@@ -64,27 +64,27 @@ def test_xy_written_point_is_valid_wkt(errors):
 
 
 def test_existing_wkt_is_not_overwritten_and_warns(errors):
-    df = pd.DataFrame({"src_s__geom": ["POINT(1 2)"], "src_x": ["5"], "src_y": ["6"]})
+    df = pd.DataFrame({"src_s__geom": ["POINT(1 2)"], "src_s__x": ["5"], "src_s__y": ["6"]})
     _fill(df)
     assert df["src_s__geom"].iloc[0] == "POINT(1 2)"
     assert [e["error_code"] for e in errors] == [ImportCodeError.MULTIPLE_GEO_INFO_WARNING]
 
 
 def test_non_numeric_x_reports_type_error_and_no_wkt(errors):
-    df = pd.DataFrame({"src_s__geom": [None], "src_x": ["abc"], "src_y": ["44"]})
+    df = pd.DataFrame({"src_s__geom": [None], "src_s__x": ["abc"], "src_s__y": ["44"]})
     _fill(df)
     assert pd.isna(df["src_s__geom"].iloc[0])
     assert len(errors) == 1
     assert errors[0]["error_code"] == ImportCodeError.INVALID_NUMERIC
-    assert errors[0]["column"] == "x"
+    assert errors[0]["column"] == "s__x"
 
 
 def test_non_finite_y_reports_type_error_and_no_wkt(errors):
-    df = pd.DataFrame({"src_s__geom": [None], "src_x": ["2"], "src_y": ["inf"]})
+    df = pd.DataFrame({"src_s__geom": [None], "src_s__x": ["2"], "src_s__y": ["inf"]})
     _fill(df)
     assert pd.isna(df["src_s__geom"].iloc[0])
     assert errors[0]["error_code"] == ImportCodeError.INVALID_NUMERIC
-    assert errors[0]["column"] == "y"
+    assert errors[0]["column"] == "s__y"
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_non_finite_y_reports_type_error_and_no_wkt(errors):
     ],
 )
 def test_blank_x_or_y_gives_no_wkt_and_no_error(errors, x, y):
-    df = pd.DataFrame({"src_s__geom": [None], "src_x": [x], "src_y": [y]}, dtype=object)
+    df = pd.DataFrame({"src_s__geom": [None], "src_s__x": [x], "src_s__y": [y]}, dtype=object)
     _fill(df)
     assert pd.isna(df["src_s__geom"].iloc[0])
     assert errors == []

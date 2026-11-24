@@ -18,7 +18,7 @@ MODULE_CODE = "demo"
 def _field(entity_code, entity_field_name, name_field=None):
     """Champ de protocole : le nom d'import vient de l'entité, le type de colonne de son store."""
     if name_field is None:
-        name_field = ENTITY_MAP[entity_code].get_import_column_name(entity_field_name)
+        name_field = ENTITY_MAP[entity_code].get_import_field_name(entity_field_name)
     return {
         "name_field": name_field,
         "source_field": f"src_{name_field}",

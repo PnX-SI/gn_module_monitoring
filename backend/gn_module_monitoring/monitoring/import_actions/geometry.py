@@ -115,7 +115,7 @@ def fill_wkt_from_xy(df: pd.DataFrame, wkt_field: BibFields, x_field: BibFields,
     x_blank = df[x_col].map(_is_blank)
     y_blank = df[y_col].map(_is_blank)
 
-    for name, col, blank in (("x", x_col, x_blank), ("y", y_col, y_blank)):
+    for name, col, blank in (("s__x", x_col, x_blank), ("s__y", y_col, y_blank)):
         not_numeric = df[~blank][col].map(lambda v: _coordinate_to_float(v) is None)
         invalid_rows = df.loc[not_numeric[not_numeric].index]
         if len(invalid_rows):

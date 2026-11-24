@@ -11,6 +11,7 @@ from gn_module_monitoring.command.imports.constant import (
     ENTITIES_NOT_AVAILABLE,
     TABLE_NAME_SUBMODULE,
     TOOLTIPS,
+    entity_import_field_name,
 )
 from gn_module_monitoring.command.imports.fields import get_themes_dict
 from gn_module_monitoring.utils.utils import extract_keys
@@ -248,14 +249,14 @@ def insert_entity_field_relations(
             )
             get_cor_entity_field(
                 entity_id=entity_id,
-                field_name=f"uuid_base_{parent_code}",
+                field_name=entity_import_field_name(parent_code, f"uuid_base_{parent_code}"),
                 id_destination=id_destination,
                 bib_themes=bib_themes,
                 is_parent_link=True,
             )
             get_cor_entity_field(
                 entity_id=entity_id,
-                field_name=f"id_base_{parent_code}_origin",
+                field_name=entity_import_field_name(parent_code, f"id_base_{parent_code}_origin"),
                 id_destination=id_destination,
                 bib_themes=bib_themes,
                 is_parent_link=True,

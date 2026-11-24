@@ -10,6 +10,7 @@ from .base import BaseEntity
 
 class SitesGroupEntity(BaseEntity):
     name = "sites_group"
+    import_field_prefix = "g__"
     model = TMonitoringSitesGroups
     model_schema_class = MonitoringSitesGroupsSchemaCruved
     config_schema_class = SitesGroupEntityConfigSchema

@@ -125,8 +125,8 @@ class SiteImportActions:
             entity,
             df,
             wkt_field=entity_fields[f"s__{geom_field_name}"],
-            x_field=entity_fields["x"],
-            y_field=entity_fields["y"],
+            x_field=entity_fields["s__x"],
+            y_field=entity_fields["s__y"],
         )
 
     @staticmethod

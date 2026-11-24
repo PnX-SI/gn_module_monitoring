@@ -61,7 +61,6 @@ TABLE_NAME_SUBMODULE = {
 # TODO: définir une liste par entités plutôt qu’une liste globale
 IGNORED_IMPORT_FIELDS = [
     "id_module",  # handled manually
-    "id_dataset",  # handled manually
     "id_digitiser",  # handled manually
     "uuid_base_visit",  # handled manually
     "uuid_base_site",  # handled manually
@@ -77,13 +76,6 @@ IGNORED_IMPORT_FIELDS = [
     "nb_marking_events",  # dynamic
     "medias",  # not importable
     "id_sites_group",  # ignored for now
-    # champs synthétiques de l'import (command/imports/protocol.py) : leur nom d'import est fixé par le code
-    "x",  # longitude
-    "y",  # latitude
-    "id_base_site_origin",
-    "id_base_visit_origin",
-    "id_observation_origin",
-    "uuid_dataset",  # UUID du JDD (get_uuid_dataset_bib_fields), nom fixé par le code
 ]
 
 
@@ -91,12 +83,23 @@ IGNORED_IMPORT_FIELDS = [
 def geom_local_column_name(geom_field_name: str) -> str:
     """
     Colonne annexe de la géométrie locale d'une entité, dérivée de son champ géométrie
-    (`geom_field_name` de l'entité, ex. `geom` -> `geom_local`). Ce n'est ni un champ synthétique ni un
+    (`geom_field_name` de l'entité, ex. `geom` -> `geom_local`). Ce n'est ni un champ import only ni un
     bib_fields : la colonne est ajoutée à la table transitoire (command/imports/sql.py), calculée en SQL
     après contrôle (monitoring/import_actions/geometry.py), puis transférée vers la table de l'entité
     (monitoring/import_actions/actions.py).
     """
     return f"{geom_field_name}_local"
+
+
+def entity_import_field_name(entity_code: str, field_name: str) -> str:
+    """
+    Nom d'import d'un champ import only (identifiant d'origine, UUID, x, y, JDD), préfixé comme les
+    autres champs de l'entité (`ENTITY_MAP[entity_code].get_import_field_name`). L'identifiant de
+    l'entité (id_base_site, ...) garde son nom nu.
+    """
+    from gn_module_monitoring.modules.entities import ENTITY_MAP
+
+    return ENTITY_MAP[entity_code].get_import_field_name(field_name)
 
 
 # TODO: propriété sur les entités ?

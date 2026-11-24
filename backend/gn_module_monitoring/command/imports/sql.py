@@ -171,7 +171,7 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
             if has_column_type:
                 store = None
             else:
-                # Store porté par l'entrée (champ synthétique) ou lu dans la configuration de l'entité
+                # Store porté par l'entrée (champ import only) ou lu dans la configuration de l'entité
                 store = field.get("store")
                 if store is None:
                     store = get_field_store(entity, field["name_field"])

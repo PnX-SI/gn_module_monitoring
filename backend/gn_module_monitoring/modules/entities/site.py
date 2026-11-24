@@ -8,6 +8,7 @@ from .base import BaseEntity
 
 class SiteEntity(BaseEntity):
     name = "site"
+    import_field_prefix = "s__"
     model = TMonitoringSites
     model_schema_class = MonitoringSitesSchemaCruved
     config_schema_class = SiteEntityConfigSchema

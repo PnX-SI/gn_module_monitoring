@@ -123,8 +123,8 @@ def fieldmapping(
         "s__types_site": {
             "constant_value": [list(types_site.values())[0].id_nomenclature_type_site]
         },
-        "y": {"column_src": "y"},
-        "x": {"column_src": "x"},
+        "s__y": {"column_src": "y"},
+        "s__x": {"column_src": "x"},
         "uuid_base_visit": {"column_src": "uuid_base_visit"},
         "uuid_dataset": {"column_src": "id_dataset"},
         "v__visit_date_min": {"column_src": "v__visit_date_min"},

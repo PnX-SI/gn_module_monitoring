@@ -160,7 +160,7 @@ class VisitImportActions:
             entity,
             df,
             uuid_field=entity_fields["uuid_dataset"],
-            id_field=entity_fields["id_dataset"],
+            id_field=entity_fields["v__id_dataset"],
             module_code=imprt.destination.module.module_code,
             object_code="MONITORINGS_VISITES",
         )
