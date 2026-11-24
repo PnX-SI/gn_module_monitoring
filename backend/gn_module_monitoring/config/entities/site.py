@@ -274,13 +274,14 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
         ],
         "sorts": [{"prop": "last_visit", "dir": "desc"}],
         "fields": {
-            # Géométrie native (TMonitoringSites.geom, SRID 4326) : GeoJSON en API, WKT en import
+            # Géométrie native (TMonitoringSites.geom, SRID 4326) : GeoJSON en API et en saisie (carte).
+            # Le format WKT de l'import est indiqué par le schéma contexte (`geometry_format`).
             "geom": {
                 "store": {
                     "type": "geometry",
                     "geometry_type": ["Point", "LineString", "Polygon"],
                 },
-                "widget": {"type": "textarea", "attribut_label": "Géométrie (WKT)"},
+                "widget": {"type": "geojson", "attribut_label": "Géométrie"},
                 "required": True,
             },
             "base_site_code": {

@@ -10,8 +10,8 @@ from marshmallow import ValidationError, fields
 from sqlalchemy.orm import ColumnProperty
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.tools.geometry import GeojsonSerializationField
-from gn_module_monitoring.tools.utils import StrOrListStr
+from gn_module_monitoring.tools.geometry import GeojsonSerializationField, parse_input_format
+from gn_module_monitoring.tools.utils import StrOrListStr, schema_context
 
 from .base import BaseStore
 
@@ -215,6 +215,16 @@ class GeometryStore(BaseTypeStore):
 
     def get_field(self) -> fields.Field:
         return GeojsonSerializationField(store=self, **self._get_field_kwargs())
+
+    def get_input_format(self) -> str:
+        """
+        Format d'entrée : `geojson` (défaut), `wkt`, ou `wkt;SRID=<code>` (ex. `wkt;SRID=2154`, le SRID
+        de l'import, `imprt.srid`). Lu dans le schéma contexte (`geometry_format`) au moment de la
+        lecture ; une valeur inconnue lève une erreur.
+        """
+        input_format = (schema_context.get() or {}).get("geometry_format", "geojson")
+        parse_input_format(input_format)  # valide la valeur
+        return input_format
 
     def get_api_type(self) -> type:
         return dict  # geojson

@@ -214,15 +214,14 @@ def get_direct_synthetic_bib_fields(entity_code: str, entity, id_destination: in
 
 def get_synthetic_field_specs(entity_code: str, entity) -> list:
     """
-    Champs synthétiques de l'import d'une entité, chargés avec `EntityFieldConfigSchema` : géométrie
-    (site) et identifiant du JDD (visit). Les identifiants propres, les coordonnées (x, y) et l'UUID du
+    Champs synthétiques de l'import d'une entité, pris dans la configuration par défaut de l'entité :
+    géométrie (site) et identifiant du JDD (visit). Les identifiants propres, les coordonnées (x, y) et l'UUID du
     JDD ne sont pas ici : ce sont des entrées de bib_fields directes (voir
     `get_direct_synthetic_bib_fields`). La géométrie locale (`geom_local`) n'est pas un champ : c'est une
     colonne annexe de la table transitoire (`geom_local_column_name`, command/imports/constant.py).
 
     Chaque spécification est un dict :
-    - `key` : clé du champ (configuration de l'entité, non écrite dans `entity.data`) ;
-    - `config` : configuration au format disque, chargée par `EntityFieldConfigSchema` ;
+    - `key` : clé du champ dans `entity.data["fields"]` (configuration par défaut, store, widget, required) ;
     - `bib` : seulement les attributs non déductibles (voir `load_synthetic_fields`) :
         - `import_name` : nom d'import nu, quand il ne suit pas la règle de
           `BaseEntity.get_import_column_name` (id_dataset) ;
@@ -232,39 +231,25 @@ def get_synthetic_field_specs(entity_code: str, entity) -> list:
     """
     specs = []
 
-    geom_field_name = entity.data.get("geom_field_name")
-    if entity_code == "site" and geom_field_name is not None:
+    if entity_code == "site":
+        geom_field_name = entity.get("geom_field_name")
         geom_name = entity.get_import_column_name(geom_field_name)
         specs += [
             {
                 "key": geom_field_name,
-                "config": {
-                    "store": {"type": "geometry"},
-                    "widget": {"type": "textarea", "attribut_label": "Géometrie (WKT)"},
-                    "required": True,
-                },
                 # WKT (source `src_s__geom`) et géométrie 4326 calculée dans cette même colonne
                 # transitoire `s__geom` ; sa colonne de destination `geom` (t_base_sites) se déduit
                 # de `EntityImportActionsUtils.get_destination_column_name`
                 "bib": {"dest_field": geom_name, "optional_conditions": ["x", "y"]},
             },
         ]
-
-    if entity_code == "visit":
+    elif entity_code == "visit":
         specs += [
             {
+                # Configuration par défaut de la visite (dataset, requis). Source : colonne `id_dataset`
+                # du fichier (`src_id_dataset`), ou valeur fixe saisie dans le protocole.
                 "key": "id_dataset",
-                "config": {
-                    "store": {"type": "integer"},
-                    "widget": {
-                        "type": "number",
-                        "step": 1,
-                        "attribut_label": "Identifiant JDD",
-                        "hidden": True,
-                    },
-                    "required": False,
-                },
-                "bib": {"import_name": "id_dataset", "source_field": None},
+                "bib": {"import_name": "id_dataset"},
             },
         ]
 
@@ -273,8 +258,8 @@ def get_synthetic_field_specs(entity_code: str, entity) -> list:
 
 def load_synthetic_fields(entity, specs: list, id_destination: int, parent_data: dict) -> list:
     """
-    Charge les champs synthétiques avec `EntityFieldConfigSchema` (même format que la configuration
-    sur disque) et retourne leurs entrées de bib_fields.
+    Retourne les entrées de bib_fields des champs synthétiques, à partir de leur configuration par défaut
+    (`entity.data["fields"][key]`, déjà chargée et validée avec la configuration de l'entité).
 
     Les champs synthétiques ne sont PAS rangés dans `entity.data["fields"]` : sinon, les champs
     non natifs (x, y, identifiants d'origine, ...) entreraient dans le schéma étendu de l'API
@@ -286,14 +271,9 @@ def load_synthetic_fields(entity, specs: list, id_destination: int, parent_data:
     - source : `src_<nom d'import>` ;
     - destination : le nom d'import si le store est lié à une colonne du modèle (natif), sinon None.
     """
-    # Import local : évite le cycle command.imports -> config -> command.imports
-    from gn_module_monitoring.config.entities.fields import EntityFieldConfigSchema
-    from gn_module_monitoring.tools.utils import schema_context
-
     bib_fields = []
     for spec in specs:
-        with schema_context(entity=entity):
-            field_data = EntityFieldConfigSchema().load({"name": spec["key"], **spec["config"]})
+        field_data = entity.data["fields"][spec["key"]]
         name_field = spec["bib"].get("import_name") or entity.get_import_column_name(spec["key"])
         source_field = spec["bib"].get("source_field", f"src_{name_field}")
         if "dest_field" in spec["bib"]:
@@ -309,7 +289,11 @@ def load_synthetic_fields(entity, specs: list, id_destination: int, parent_data:
             name_field=name_field,
             source_field=source_field,
             dest_field=dest_field,
-            **{k: v for k, v in spec["bib"].items() if k in ("autogenerated", "optional_conditions")},
+            **{
+                k: v
+                for k, v in spec["bib"].items()
+                if k in ("autogenerated", "optional_conditions")
+            },
         )
         bib_field["store"] = field_data["store"]
         bib_fields.append(bib_field)
@@ -569,9 +553,9 @@ def get_expected_entities(module_code: str, protocol_data: dict, entity_hierarch
 
 def get_existing_entities(id_destination: int) -> list:
     """Entités présentes en base (bib_entities) pour la destination, au même format que `get_expected_entities`."""
-    entities = DB.session.execute(
-        select(Entity).filter_by(id_destination=id_destination)
-    ).scalars().all()
+    entities = (
+        DB.session.execute(select(Entity).filter_by(id_destination=id_destination)).scalars().all()
+    )
     codes_by_id = {entity.id_entity: entity.code for entity in entities}
     field_names = dict(
         DB.session.execute(

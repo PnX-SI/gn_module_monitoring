@@ -11,9 +11,25 @@ import json
 from geoalchemy2.shape import from_shape, to_shape
 from geojson import Feature
 from marshmallow import ValidationError, fields
-from shapely import wkb
+from pyproj import CRS, Transformer
+from shapely import wkb, wkt
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
+from shapely.ops import transform
+
+
+def parse_input_format(input_format: str) -> tuple[str, int]:
+    """
+    Décompose le format d'entrée : `geojson`, `wkt` ou `wkt;SRID=<code>` (ex. `wkt;SRID=2154`).
+    Renvoie (`geojson` | `wkt`, SRID de la géométrie en entrée). GeoJSON est toujours en 4326 ;
+    WKT sans SRID explicite : 4326.
+    """
+    if input_format == "geojson":
+        return "geojson", 4326
+    kind, _, srid = input_format.partition(";SRID=")
+    if kind != "wkt" or (srid and not srid.isdigit()):
+        raise ValueError(f"Format d'entrée géométrique inconnu : {input_format!r}")
+    return "wkt", int(srid) if srid else 4326
 
 
 def check_geometry_rules(geom: BaseGeometry) -> None:
@@ -38,7 +54,9 @@ class GeojsonSerializationField(fields.Field):
     chaîne JSON), en SRID 4326. Entrée acceptée aussi : géométrie Shapely ou WKB.
     La 3e dimension est rejetée (voir `check_geometry_rules`).
 
-    Si `store` est fourni, le type géométrique est validé contre `store.validate_geometry`.
+    Si `store` est fourni, le type géométrique est validé contre `store.validate_geometry`, et le
+    format d'entrée (GeoJSON par défaut, WKT si `store.get_input_format()` le demande) est lu dans le
+    schéma contexte (voir `GeometryStore`).
     """
 
     def __init__(self, store=None, **kwargs):
@@ -55,17 +73,30 @@ class GeojsonSerializationField(fields.Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:
             return None
+        input_format, srid = parse_input_format(
+            self.store.get_input_format() if self.store is not None else "geojson"
+        )
         try:
-            if isinstance(value, str):
-                value = json.loads(value)
-            if isinstance(value, BaseGeometry):
-                shape_ = value
-            elif isinstance(value, (bytes, bytearray)):
-                shape_ = wkb.loads(bytes(value))
-            elif type(value).__name__ == "WKBElement":
-                shape_ = to_shape(value)
+            if input_format == "wkt":
+                shape_ = wkt.loads(value)
+                if srid != 4326:
+                    shape_ = transform(
+                        Transformer.from_crs(
+                            CRS.from_epsg(srid), CRS.from_epsg(4326), always_xy=True
+                        ).transform,
+                        shape_,
+                    )
             else:
-                shape_ = shape(value)
+                if isinstance(value, str):
+                    value = json.loads(value)
+                if isinstance(value, BaseGeometry):
+                    shape_ = value
+                elif isinstance(value, (bytes, bytearray)):
+                    shape_ = wkb.loads(bytes(value))
+                elif type(value).__name__ == "WKBElement":
+                    shape_ = to_shape(value)
+                else:
+                    shape_ = shape(value)
         except Exception as error:
             raise ValidationError("Geometry error") from error
         check_geometry_rules(shape_)

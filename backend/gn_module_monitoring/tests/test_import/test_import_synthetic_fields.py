@@ -25,6 +25,7 @@ from gn_module_monitoring.command.imports.protocol import (
     get_identifier_bib_fields,
     get_synthetic_field_specs,
     get_uuid_dataset_bib_fields,
+    load_synthetic_fields,
 )
 from gn_module_monitoring.command.imports.sql import get_imports_table_metadata
 from gn_module_monitoring.config.entities.fields import EntityFieldConfigSchema
@@ -240,26 +241,21 @@ def test_visit_parent_id_is_found_by_name_in_destination_fields():
     assert "id_base_visit" in {field.name_field for field in selected}
 
 
-# Champs synthétiques restants (géométrie, x, y, JDD) : chargés en mode strict.
-@pytest.mark.parametrize("entity_code", ["site", "visit", "observation"])
-def test_integer_synthetic_fields_have_integer_widget(entity_code):
-    _, specs = synthetic_specs(entity_code)
-    for spec in specs:
-        if spec["config"]["store"]["type"] == "integer":
-            assert spec["config"]["widget"]["step"] == 1, spec["key"]
+# Champs synthétiques (géométrie, id_dataset) : pris dans la configuration par défaut de l'entité.
+@pytest.mark.parametrize("entity_code", ["site", "visit"])
+def test_synthetic_fields_come_from_default_entity_config(app, entity_code):
+    from gn_module_monitoring.modules import get_module
 
-
-@pytest.mark.parametrize("entity_code", ["site", "visit", "observation"])
-def test_synthetic_fields_load_in_strict_mode(app, monkeypatch, entity_code):
-    monkeypatch.setitem(app.config[MODULE_CODE], "STRICT", True)
-    entity, specs = synthetic_specs(entity_code)
+    entity = get_module("generic").entities[entity_code]
+    specs = get_synthetic_field_specs(entity_code, entity)
+    assert specs, entity_code
     for spec in specs:
-        config = spec["config"]
-        if config["store"]["type"] == "geometry":
-            # GeometryStore attend un dict (geojson) : le widget doit renvoyer un dict
-            config = {**config, "widget": {**config["widget"], "type": "geojson"}}
-        with schema_context(entity=entity):
-            EntityFieldConfigSchema().load({"name": spec["key"], **config})
+        assert "config" not in spec, spec["key"]
+        assert spec["key"] in entity.data["fields"], spec["key"]
+    bib_fields = load_synthetic_fields(entity, specs, 1, {})
+    for bib_field, spec in zip(bib_fields, specs):
+        widget_type = entity.data["fields"][spec["key"]]["widget"]["type"]
+        assert bib_field["type_field"] == widget_type, spec["key"]
 
 
 # Nom sans attribut natif : seule la cohérence widget/store est testée.
