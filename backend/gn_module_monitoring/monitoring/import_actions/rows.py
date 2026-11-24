@@ -17,6 +17,7 @@ import pandas as pd
 from gn_module_monitoring.monitoring.import_actions.field_names import (
     build_field_names,
 )
+from gn_module_monitoring.tools.stores.type import GeometryStore
 
 
 def _to_python_value(value):
@@ -36,6 +37,14 @@ def _to_python_value(value):
     return value
 
 
+def _read_column(import_field_name: str, entity_field_name: str, entity) -> str:
+    """Colonne du DataFrame lue pour un champ : le WKT source pour une géométrie, sinon `dest_column`."""
+    store = entity.data["fields"][entity_field_name]["store"]
+    if isinstance(store, GeometryStore):
+        return f"src_{import_field_name}"
+    return import_field_name
+
+
 def build_schema_rows(df: pd.DataFrame, entity_code: str, entity) -> list[dict]:
     """
     Retourne, pour chaque ligne de `df`, le dictionnaire d'entrée de `entity.get_extended_schema()`.
@@ -44,20 +53,22 @@ def build_schema_rows(df: pd.DataFrame, entity_code: str, entity) -> list[dict]:
     Les valeurs sont lues dans les colonnes `dest_column` des champs (valeurs typées par
     `check_types`) ; une colonne absente de `df` ne produit pas de clé. Les colonnes qui ne sont pas importées
     (voir `build_field_names`) sont ignorées.
+    Un champ géométrie n'a pas encore de colonne `dest_column` à ce stade : son WKT source
+    (`source_column`, `src_<import field name>`) est lu à la place.
     """
     names = build_field_names(entity_code, entity)
     # Pour les champs monitoring, `dest_field` vaut l'import field name (`prepare_fields`)
-    present = [
-        (import_field_name, entity_field_name)
-        for import_field_name, entity_field_name in names.import_to_entity.items()
-        if import_field_name in df.columns
-    ]
-    records = df[[import_field_name for import_field_name, _ in present]].to_dict("records")
+    present = []
+    for import_field_name, entity_field_name in names.import_to_entity.items():
+        column = _read_column(import_field_name, entity_field_name, entity)
+        if column in df.columns:
+            present.append((column, entity_field_name))
+    records = df[[column for column, _ in present]].to_dict("records")
 
     rows = []
     for record in records:
         row = {}
-        for import_field_name, entity_field_name in present:
-            row[entity_field_name] = _to_python_value(record[import_field_name])
+        for column, entity_field_name in present:
+            row[entity_field_name] = _to_python_value(record[column])
         rows.append(row)
     return rows

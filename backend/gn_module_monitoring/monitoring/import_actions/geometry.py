@@ -5,7 +5,8 @@ Chaîne :
 1. `fill_wkt_from_xy` (après `check_types`) : si le WKT source est vide et que x et y sont
    renseignés et numériques, écrit `POINT(x y)` dans la colonne WKT source (SRID du fichier).
 2. `check_wkt_geometries` : parse le WKT (`ImportGeometryField`), contrôle les bornes du SRID du
-   fichier, et écrit la géométrie 4326 (`s__geom`) depuis le SRID du fichier.
+   fichier, et écrit la géométrie 4326 (`s__geom`) depuis le SRID du fichier. Un WKT invalide n'est
+   pas signalé ici : il l'est par le schéma étendu (INVALID_WKT, voir `actions.py`).
 3. `compute_geom_local` (SQL, post-check) : `geom_local` pour les lignes valides uniquement.
 """
 
@@ -24,6 +25,7 @@ from utils_flask_sqla_geo.schema import GeometryField
 from geonature.core.imports.checks.dataframe.utils import dataframe_check
 from geonature.core.imports.checks.errors import ImportCodeError
 from geonature.core.imports.models import BibFields, Entity, TImports
+from geonature.core.imports.utils import get_mapping_data
 from geonature.utils.env import db
 
 from gn_module_monitoring.command.imports.constant import (
@@ -146,6 +148,29 @@ def fill_wkt_from_xy(df: pd.DataFrame, wkt_field: BibFields, x_field: BibFields,
     return {wkt_col}
 
 
+def fill_entity_wkt_from_xy(imprt: TImports, entity: Entity, df) -> set:
+    """
+    Écrit le WKT de l'entité depuis x et y (voir `fill_wkt_from_xy`), à partir de la configuration de
+    l'entité du module : `geom_field_name`, `x` et `y` (noms d'import préfixés par l'entité).
+    Ne fait rien si l'entité n'a pas de `geom_field_name`. Utilisable par toute entité géométrique.
+    """
+    from gn_module_monitoring.modules import get_module
+
+    entity_fields, _, _ = get_mapping_data(imprt, entity)
+    module_entity = get_module(imprt.destination.code).entities[entity.code]
+    geom_field_name = module_entity.data.get("geom_field_name")
+    if not geom_field_name:
+        return set()
+    return fill_wkt_from_xy(
+        imprt,
+        entity,
+        df,
+        wkt_field=entity_fields[module_entity.get_import_field_name(geom_field_name)],
+        x_field=entity_fields[module_entity.get_import_field_name("x")],
+        y_field=entity_fields[module_entity.get_import_field_name("y")],
+    )
+
+
 @dataframe_check
 def check_wkt_geometries(
     df: pd.DataFrame,
@@ -155,12 +180,15 @@ def check_wkt_geometries(
 ):
     """
     Parse le WKT source (SRID du fichier), contrôle les bornes de ce SRID et écrit la géométrie en
-    SRID 4326 dans `geom_4326_field`. Les lignes en erreur n'ont pas de géométrie.
+    SRID 4326 dans `geom_4326_field`. Les lignes au WKT invalide ou hors emprise n'ont pas de géométrie.
 
     Yields
     ------
-    INVALID_WKT : WKT non parsable ou vide.
     GEOMETRY_OUT_OF_BOX : géométrie hors de l'emprise du SRID du fichier.
+
+    Notes
+    -----
+    Le WKT invalide n'est pas signalé ici : le schéma étendu le signale (INVALID_WKT).
     """
     wkt_col = wkt_field.source_field
     geom_col = geom_4326_field.dest_field
@@ -176,12 +204,6 @@ def check_wkt_geometries(
             parsed[index] = field.deserialize(value)
         except ValidationError:
             invalid.append(index)
-    if invalid:
-        yield {
-            "error_code": ImportCodeError.INVALID_WKT,
-            "column": "WKT",
-            "invalid_rows": df.loc[invalid],
-        }
 
     bounding_box = get_srid_bounding_box(file_srid)
     out_of_box = [index for index, geom in parsed.items() if not geom.within(bounding_box)]

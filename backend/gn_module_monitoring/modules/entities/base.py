@@ -20,6 +20,7 @@ from geonature.utils.env import db
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
 from gn_module_monitoring.tools.stores import DummyStore
+from gn_module_monitoring.tools.stores.type import GeometryStore
 from gn_module_monitoring.tools.utils import schema_context
 
 ENTITY_MAP: dict[str, type] = {}
@@ -210,7 +211,10 @@ class BaseEntity(UserDict):
         Cette règle ne consulte pas IGNORED_IMPORT_FIELDS : un champ exclu de l'import est filtré
         par l'appelant (`build_field_names`).
         """
-        if cls.import_actions_class is not None and field_name == cls.import_actions_class.ID_FIELD:
+        if (
+            cls.import_actions_class is not None
+            and field_name == cls.import_actions_class.ID_FIELD
+        ):
             return field_name
         if field_name.startswith("uuid_") or field_name.endswith("_origin"):
             return field_name
@@ -282,7 +286,16 @@ class BaseEntity(UserDict):
 
         extra_data_schema = self._build_extra_data_schema(extra_stores)
         fields = self.data["fields"]
+        # TODO: utiliser que les fields fournis par les stores, y compris pour les champs natifs,
+        # plutôt que d’hériter du schema de base ?
+        # Géométries : on override avec le champ lié au store, qui lit le format d'entrée (`geometry_format`) (WKT dans l’import)
+        native_store_fields = {
+            name: field["store"].get_field()
+            for name, field in fields.items()
+            if isinstance(field["store"], GeometryStore) and field["store"].native_attr is not None
+        }
         attrs = {
+            **native_store_fields,
             "extra_field_names": frozenset(extra_stores),
             "compiled_required_cel": {
                 name: field["compiled_required_cel"]
@@ -300,7 +313,12 @@ class BaseEntity(UserDict):
 
         return type(
             f"{type(self).__name__}ExtendedSchema",
-            (*mixins, ExtraDataMixin, CELMixin, self.model_schema_class),
+            (
+                *mixins,
+                ExtraDataMixin,
+                CELMixin,
+                self.model_schema_class,
+            ),  # FIXME: doit-on vraiment utiliser ce schema ?
             attrs,
         )
 

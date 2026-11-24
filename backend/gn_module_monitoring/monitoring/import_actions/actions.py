@@ -23,7 +23,8 @@ from geonature.core.imports.actions import (
 )
 from geonature.core.imports.models import Entity, TImports
 from geonature.core.imports.checks.dataframe.cast import check_types
-from geonature.core.imports.checks.dataframe.core import check_required_values
+from geonature.core.imports.checks.dataframe.utils import dataframe_check
+from geonature.core.imports.checks.errors import ImportCodeError
 from geonature.core.imports.utils import get_mapping_data
 from geonature.core.gn_monitoring.models import CorVisitObserver
 
@@ -38,7 +39,13 @@ import typing
 
 from .entity_import_actions_utils import EntityImportActionsUtils
 from gn_module_monitoring.command.imports.constant import geom_local_column_name
-from gn_module_monitoring.monitoring.import_actions.geometry import get_geom_field_name
+from gn_module_monitoring.monitoring.import_actions.geometry import (
+    fill_entity_wkt_from_xy,
+    get_geom_field_name,
+)
+from gn_module_monitoring.monitoring.import_actions.rows import build_schema_rows
+from gn_module_monitoring.tools.stores.type import GeometryStore
+from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.monitoring.import_actions.site_actions import (
     SiteImportActions,
 )
@@ -49,6 +56,17 @@ from gn_module_monitoring.monitoring.import_actions.observation_actions import (
     ObservationImportActions,
 )
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from marshmallow import EXCLUDE
+import pandas as pd
+
+# Champs de configuration exclus de la validation par le schéma étendu, par code d'entité
+# Champs exclus du schéma étendu à l'import : identifiant, UUID de l'entité et identifiant du parent,
+# déjà contrôlés par les checks SQL.
+EXTENDED_SCHEMA_EXCLUDE: dict[str, tuple] = {
+    "site": ("id_base_site", "uuid_base_site"),
+    "visit": ("id_base_visit", "uuid_base_visit", "id_base_site"),
+    "observation": ("id_observation", "uuid_observation", "id_base_visit"),
+}
 
 
 def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
@@ -74,6 +92,81 @@ def get_fields_to_cast(fields: dict, transient_table) -> dict:
             and isinstance(transient_table.c[field.dest_field].type, Geometry)
         )
     }
+
+
+def _schema_error_fields(messages: dict):
+    """Noms des champs en erreur dans les messages marshmallow (`_schema` pour les contraintes d'entité)."""
+    for name, detail in messages.items():
+        if isinstance(detail, dict):  # champs supplémentaires, regroupés dans `data`
+            yield from _schema_error_fields(detail)
+        else:
+            yield name
+
+
+@dataframe_check
+def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict], module_entity):
+    """
+    Traduit les erreurs du schéma étendu de l'entité (`schema.validate(rows, many=True)`, indexées par
+    position de ligne) en erreurs du cœur.
+
+    - champ requis absent ou vide : MISSING_VALUE ;
+    - champ géométrie (WKT invalide ou type non autorisé) : INVALID_WKT ;
+    - autre champ, ou contrainte d'entité (`_schema`) : CONDITIONAL_INVALID_DATA.
+
+    La colonne est le nom d'import du champ (`name_field`), ou un libellé pour `_schema`.
+    """
+    fields = module_entity.data["fields"]
+    required = {name for name, field in fields.items() if field["store"].required}
+    geometry = {
+        name for name, field in fields.items() if isinstance(field["store"], GeometryStore)
+    }
+
+    positions_by_error: dict[tuple[str, str], list[int]] = {}
+    for position, messages in schema_errors.items():
+        for field_name in _schema_error_fields(messages):
+            if field_name == "_schema":
+                error_code, column = (
+                    ImportCodeError.CONDITIONAL_INVALID_DATA,
+                    "Contraintes de l'entité",
+                )
+            else:
+                column = module_entity.get_import_field_name(field_name)
+                if field_name in required and rows[position].get(field_name) is None:
+                    error_code = ImportCodeError.MISSING_VALUE
+                elif field_name in geometry:
+                    error_code = ImportCodeError.INVALID_WKT
+                else:
+                    error_code = ImportCodeError.CONDITIONAL_INVALID_DATA
+            positions_by_error.setdefault((error_code, column), []).append(position)
+
+    for (error_code, column), positions in positions_by_error.items():
+        yield {
+            "error_code": error_code,
+            "column": column,
+            "invalid_rows": df.iloc[sorted(set(positions))],
+        }
+
+
+def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFrame) -> set:
+    """Valide les lignes du batch par le schéma étendu de l'entité du module de l'import."""
+    from gn_module_monitoring.modules import get_module
+
+    module_entity = get_module(imprt.destination.code).entities[entity.code]
+    schema = module_entity.get_extended_schema()(
+        exclude=EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()),
+        unknown=EXCLUDE,
+        load_instance=False,
+    )
+    rows = build_schema_rows(df, entity.code, module_entity)
+    if entity.code == VisitImportActions.ENTITY_CODE:
+        # Le schéma de visite lit id_module dans la requête (g.current_module), absente hors API :
+        # on fournit le module de l'import, comme à l'insertion.
+        for row in rows:
+            row.setdefault("id_module", imprt.destination.id_module)
+    # Le WKT source est lu au format WKT (SRID du fichier contrôlé par check_wkt_geometries)
+    with schema_context(geometry_format="wkt"):
+        schema_errors = schema.validate(rows, many=True)
+    return check_extended_schema(imprt, entity, df, schema_errors, rows, module_entity)
 
 
 def get_entity_model(entity: Entity):
@@ -150,8 +243,9 @@ class MonitoringImportActions(ImportActions):
         )  # FIXME do not check site and visit uuid twice
         if entity.code == SiteImportActions.ENTITY_CODE:
             # x/y -> WKT source (si WKT vide), après check_types, avant le contrôle des champs requis
-            updated_cols |= SiteImportActions.fill_wkt_from_xy(imprt, entity, df)
-        updated_cols |= check_required_values(imprt, entity, df, fields)
+            updated_cols |= fill_entity_wkt_from_xy(imprt, entity, df)
+        # Champs requis, types et contraintes CEL : schéma étendu de l'entité
+        updated_cols |= check_extended_schema_batch(imprt, entity, df)
 
         if entity.code == SiteImportActions.ENTITY_CODE:
             updated_cols |= SiteImportActions.check_dataframe(imprt, entity, df)

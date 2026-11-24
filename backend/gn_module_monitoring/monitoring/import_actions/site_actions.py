@@ -27,7 +27,6 @@ from geonature.core.imports.checks.sql.user import map_observer_matching
 from .geometry import (
     check_wkt_geometries,
     compute_geom_local,
-    fill_wkt_from_xy,
     get_geom_field_name,
 )
 
@@ -106,27 +105,6 @@ class SiteImportActions:
 
         EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
             imprt, SiteImportActions.ENTITY_CODE
-        )
-
-    @staticmethod
-    def fill_wkt_from_xy(imprt: TImports, entity: Entity, df) -> set:
-        """
-        Écrit le WKT du site depuis x et y lorsque le WKT est vide (après `check_types`).
-        """
-        entity_fields, _, _ = get_mapping_data(imprt, entity)
-        from gn_module_monitoring.modules import get_module
-
-        site_entity = get_module(imprt.destination.code).entities[SiteImportActions.ENTITY_CODE]
-        geom_field_name = site_entity.data.get("geom_field_name")
-        if not geom_field_name:
-            return set()
-        return fill_wkt_from_xy(
-            imprt,
-            entity,
-            df,
-            wkt_field=entity_fields[f"s__{geom_field_name}"],
-            x_field=entity_fields["s__x"],
-            y_field=entity_fields["s__y"],
         )
 
     @staticmethod

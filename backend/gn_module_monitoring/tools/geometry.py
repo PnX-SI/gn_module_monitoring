@@ -17,6 +17,8 @@ from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import transform
 
+from gn_module_monitoring.tools.utils import schema_context
+
 
 def parse_input_format(input_format: str) -> tuple[str, int]:
     """
@@ -57,6 +59,8 @@ class GeojsonSerializationField(fields.Field):
     Si `store` est fourni, le type géométrique est validé contre `store.validate_geometry`, et le
     format d'entrée (GeoJSON par défaut, WKT si `store.get_input_format()` le demande) est lu dans le
     schéma contexte (voir `GeometryStore`).
+    Sans `store` (géométrie native du modèle), le format d'entrée est lu de la même façon dans le
+    schéma contexte (`geometry_format`, GeoJSON par défaut).
     """
 
     def __init__(self, store=None, **kwargs):
@@ -73,9 +77,11 @@ class GeojsonSerializationField(fields.Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:
             return None
-        input_format, srid = parse_input_format(
-            self.store.get_input_format() if self.store is not None else "geojson"
-        )
+        if self.store is not None:
+            input_format_name = self.store.get_input_format()
+        else:
+            input_format_name = (schema_context.get() or {}).get("geometry_format", "geojson")
+        input_format, srid = parse_input_format(input_format_name)  # valide la valeur
         try:
             if input_format == "wkt":
                 shape_ = wkt.loads(value)
