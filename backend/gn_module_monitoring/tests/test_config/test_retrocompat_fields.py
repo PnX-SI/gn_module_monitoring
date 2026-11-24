@@ -58,7 +58,9 @@ def test_strict_leaves_new_format_definition_untouched(strict):
     result = handle_retrocompat_field_definition(definition)
     assert result == snapshot  # `required` non booléen n'est pas converti en STRICT
     with pytest.raises(ValidationError):
-        load_field({"widget": {"type": "text"}, "store": {"type": "string"}, "required": "js-expr"})
+        load_field(
+            {"widget": {"type": "text"}, "store": {"type": "string"}, "required": "js-expr"}
+        )
 
 
 def test_strict_accepts_new_format_definition(strict):
@@ -70,7 +72,9 @@ def test_strict_accepts_new_format_definition(strict):
 
 
 def test_non_strict_converts_type_widget_to_widget_type(non_strict):
-    converted = handle_retrocompat_field_definition({"type_widget": "textarea", "attribut_label": "X"})
+    converted = handle_retrocompat_field_definition(
+        {"type_widget": "textarea", "attribut_label": "X"}
+    )
     assert converted["widget"]["type"] == "textarea"
     assert converted["widget"]["attribut_label"] == "X"
     assert "type_widget" not in converted  # pop au premier niveau (conversion)
@@ -156,7 +160,9 @@ def test_non_strict_site_widget_must_be_hidden(non_strict):
 
 def test_non_strict_no_self_reference_when_widget_is_given(non_strict):
     # Régression : `widget.update(data)` créait une référence cyclique
-    converted = handle_retrocompat_field_definition({"type_widget": "text", "widget": {"type": "select"}})
+    converted = handle_retrocompat_field_definition(
+        {"type_widget": "text", "widget": {"type": "select"}}
+    )
     assert converted["widget"]["type"] == "text"
     assert "widget" not in converted["widget"]
 

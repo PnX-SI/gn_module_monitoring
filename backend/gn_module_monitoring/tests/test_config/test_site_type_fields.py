@@ -88,7 +88,10 @@ def test_protocol_widget_is_applied_over_type_field():
 @pytest.mark.parametrize(
     "field_name,spec",
     [
-        ("base_site_name", {"store": {"type": "integer"}}),  # string = défaut depuis D49 (ignoré, D36)
+        (
+            "base_site_name",
+            {"store": {"type": "integer"}},
+        ),  # string = défaut depuis D49 (ignoré, D36)
         ("base_site_name", {"required": False}),
         ("roost_type", {"required_cel": "fields.x"}),
     ],
@@ -204,9 +207,7 @@ def test_required_true_to_false_with_default_value_is_accepted_on_type_field():
 def test_type_redefinition_of_native_required_follows_same_rule():
     # (e) un type redéfinit required d'un natif : même règle
     with pytest.raises(ValidationError, match="base_site_name"):
-        pre_load_with_types(
-            [make_type(1, "Grotte", {"base_site_name": {"required": False}})], {}
-        )
+        pre_load_with_types([make_type(1, "Grotte", {"base_site_name": {"required": False}})], {})
     data = pre_load_with_types(
         [make_type(1, "Grotte", {"base_site_name": {"required": False, "default_value": "x"}})], {}
     )
@@ -238,7 +239,9 @@ def test_protocol_can_redefine_default_value_of_type_field():
     assert data["fields"]["place_name"]["default_value"] == "Inconnu"
 
 
-@pytest.mark.parametrize("key,value", [("store", {"type": "integer"}), ("required_cel", "fields.x")])
+@pytest.mark.parametrize(
+    "key,value", [("store", {"type": "integer"}), ("required_cel", "fields.x")]
+)
 def test_other_keys_remain_forbidden_on_native_and_type_fields(key, value):
     # (c) autre clé interdite, sur natif comme sur type
     types = [make_type(1, "Grotte", {"place_name": SPEC_PLACE})]
@@ -325,7 +328,12 @@ def test_native_required_matches_database_not_null():
     from gn_module_monitoring.monitoring.models import TMonitoringSites
 
     exceptions = {  # ni colonne saisie : PK, uuid, relations, expressions dynamiques
-        "id_base_site", "uuid_base_site", "types_site", "medias", "last_visit", "nb_visits",
+        "id_base_site",
+        "uuid_base_site",
+        "types_site",
+        "medias",
+        "last_visit",
+        "nb_visits",
         "nb_individuals",
     }
     not_null_in_db = {
@@ -342,7 +350,11 @@ def test_native_required_matches_database_not_null():
     columns = sa.inspect(TMonitoringSites).columns
     mismatches = []
     for name, spec in native.items():
-        if name in exceptions or name not in not_null_in_db or not isinstance(columns.get(name), sa.Column):
+        if (
+            name in exceptions
+            or name not in not_null_in_db
+            or not isinstance(columns.get(name), sa.Column)
+        ):
             continue
         if bool(spec.get("required", False)) != (name in not_null_in_db):
             mismatches.append(name)

@@ -19,24 +19,18 @@ def dep_area():
 def other_type_area():
     # Seul le type DEP est présent en base de test : on crée une zone d'un autre type
     # (rollback avec la transaction du test)
-    id_type = db.session.execute(
-        sa.text(
-            """
+    id_type = db.session.execute(sa.text("""
             INSERT INTO ref_geo.bib_areas_types
                 (type_name, type_code, type_desc, ref_name, ref_version, num_version, size_hierarchy)
             VALUES ('Type de test', 'TEST_AREA_TYPE', 'Type de test', 'test', 1, '1', 1)
             RETURNING id_type
-            """
-        )
-    ).scalar_one()
+            """)).scalar_one()
     id_area = db.session.execute(
-        sa.text(
-            """
+        sa.text("""
             INSERT INTO ref_geo.l_areas (id_type, area_name, area_code, source, description, enable)
             VALUES (:id_type, 'Zone de test', 'TEST01', 'test', 'test', true)
             RETURNING id_area
-            """
-        ),
+            """),
         {"id_type": id_type},
     ).scalar_one()
     return db.session.get(LAreas, id_area)

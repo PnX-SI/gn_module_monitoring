@@ -183,11 +183,7 @@ def get_imports_table_metadata(module_code: str, protocol_data) -> Table:
                 columns.append(
                     Column(
                         source_field,
-                        (
-                            JSONB
-                            if isinstance(sql_type, ARRAY) and not is_observers
-                            else String
-                        ),
+                        (JSONB if isinstance(sql_type, ARRAY) and not is_observers else String),
                         nullable=True,  # Must be nullable because we perform partial inserts
                     )
                 )

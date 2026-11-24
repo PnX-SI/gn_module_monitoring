@@ -82,7 +82,9 @@ class MarkingEntityConfigSchema(BaseEntityConfigSchema):
                 "widget": {"type": "text", "attribut_label": "Localisation du marquage"},
             },
             "marking_code": {"widget": {"type": "text", "attribut_label": "Code du marquage"}},
-            "marking_details": {"widget": {"type": "text", "attribut_label": "Détails du marquage"}},
+            "marking_details": {
+                "widget": {"type": "text", "attribut_label": "Détails du marquage"}
+            },
             "id_digitiser": {
                 "store": {"type": "user"},
                 "widget": {

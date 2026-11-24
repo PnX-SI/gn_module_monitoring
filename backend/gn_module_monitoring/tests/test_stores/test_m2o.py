@@ -225,9 +225,7 @@ class TestAreaStore:
         with schema_context(
             entity=ENTITY_MAP["site"], field_name="my_field", module=get_module("test")
         ):
-            store = AreasWidget(
-                {"multiple": False, "area_type_code": "DEP"}
-            ).get_default_store()
+            store = AreasWidget({"multiple": False, "area_type_code": "DEP"}).get_default_store()
         assert isinstance(store, AreaStore)
         assert store.area_type.type_code == "DEP"
 

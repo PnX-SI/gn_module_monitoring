@@ -124,7 +124,9 @@ def test_validate_cel_is_typed_per_condition():
     fields["target"] = make_field(
         StringStore,
         "target",
-        validate_cel=CELValidationsField().deserialize(["fields.number > 3", "fields.number == 'a'"]),
+        validate_cel=CELValidationsField().deserialize(
+            ["fields.number > 3", "fields.number == 'a'"]
+        ),
     )
     with pytest.raises(ValidationError) as e:
         compile_entity_cel_expressions({"fields": fields})

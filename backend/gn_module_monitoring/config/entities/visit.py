@@ -81,7 +81,7 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
             },
             "comments": {
                 "store": {"type": "string"},
-                "widget": {"type": "text", "attribut_label": "Commentaires"}
+                "widget": {"type": "text", "attribut_label": "Commentaires"},
             },
             "uuid_base_visit": {
                 "store": {"type": "uuid"},

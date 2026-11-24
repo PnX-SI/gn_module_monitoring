@@ -78,8 +78,6 @@ def uuid_dataset_bibs(entity_code, id_destination=1):
     return [f for f in _direct(entity_code, id_destination) if f["name_field"] == "uuid_dataset"]
 
 
-
-
 @pytest.mark.parametrize("entity_code", IDENTIFIER_ENTITIES)
 def test_identifiers_are_direct_bib_fields_without_store(entity_code):
     bib_fields = identifiers(entity_code, 42)
@@ -166,8 +164,6 @@ def test_uuid_dataset_only_on_visit(entity_code):
     assert uuid_dataset_bibs(entity_code, 1) == []
 
 
-
-
 def test_geom_local_is_not_a_import_only_field():
     entity = import_only_entity("site")
     direct = by_name(get_import_only_bib_fields("site", entity, 1))
@@ -180,7 +176,9 @@ def test_geom_local_is_annex_column_with_local_srid(app):
     entity = import_only_entity("site")
     protocol_data = {"site": {"fields": get_import_only_bib_fields("site", entity, 1)}}
     table = get_imports_table_metadata("demo", protocol_data)
-    srid_local = DB.session.scalar(select(func.Find_SRID("gn_monitoring", "t_base_sites", "geom_local")))
+    srid_local = DB.session.scalar(
+        select(func.Find_SRID("gn_monitoring", "t_base_sites", "geom_local"))
+    )
     assert table.c["geom_local"].type.srid == srid_local
 
 

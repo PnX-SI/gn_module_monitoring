@@ -16,7 +16,11 @@ from gn_module_monitoring.tools.stores.type import (
     StringStore,
     UUIDStore,
 )
-from gn_module_monitoring.tools.stores.relationships.m2m import AreasStore, DatasetsStore, UsersStore
+from gn_module_monitoring.tools.stores.relationships.m2m import (
+    AreasStore,
+    DatasetsStore,
+    UsersStore,
+)
 from gn_module_monitoring.tools.stores.relationships.m2o import SiteStore, UserStore
 from gn_module_monitoring.tools.utils import schema_context
 
@@ -147,7 +151,9 @@ class TestExtendedSchemaStorage:
         assert schema(only=["+data", "+medias"]).load({"my_datasets": ids}).data == {
             "my_datasets": [datasets["orphan_dataset"].dataset_name]
         }
-        assert schema(only=["+data", "+medias"]).load({"my_datasets": []}).data == {"my_datasets": []}
+        assert schema(only=["+data", "+medias"]).load({"my_datasets": []}).data == {
+            "my_datasets": []
+        }
 
 
 @pytest.mark.usefixtures("temporary_transaction", "install_module_test_with_config")
@@ -158,13 +164,17 @@ class TestAreasExtendedSchemaStorage:
         loaded = schema(only=["+data", "+medias"]).load({"my_areas": [dep_area.id_area]})
         assert loaded.data == {"my_areas": [dep_area.id_area]}
         assert json.dumps(loaded.data)
-        assert schema(only=["+data", "+medias"]).dump(SimpleNamespace(data=loaded.data))["my_areas"] == [dep_area.id_area]
+        assert schema(only=["+data", "+medias"]).dump(SimpleNamespace(data=loaded.data))[
+            "my_areas"
+        ] == [dep_area.id_area]
 
     def test_area_of_other_type_is_rejected(self, dep_area, other_type_area):
         store = make_store(AreasStore, "my_areas", {"area_type_code": "DEP"})
         schema = build_schema({"my_areas": store})
         with pytest.raises(ValidationError):
-            schema(only=["+data", "+medias"]).load({"my_areas": [dep_area.id_area, other_type_area.id_area]})
+            schema(only=["+data", "+medias"]).load(
+                {"my_areas": [dep_area.id_area, other_type_area.id_area]}
+            )
 
     def test_unknown_area_is_rejected(self):
         store = make_store(AreasStore, "my_areas", {"area_type_code": "DEP"})

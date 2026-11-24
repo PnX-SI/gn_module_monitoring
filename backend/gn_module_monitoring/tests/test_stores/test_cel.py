@@ -39,9 +39,7 @@ def normalized(conditions):
 
 def make_store(store_cls, field_name, required_cel=None, validate_cel=None):
     with schema_context(entity=ENTITY_MAP["site"], field_name=field_name):
-        return store_cls(
-            {}, required_cel=required_cel, validate_cel=normalized(validate_cel)
-        )
+        return store_cls({}, required_cel=required_cel, validate_cel=normalized(validate_cel))
 
 
 def build_schema(stores, validate_cel=None):
@@ -53,9 +51,7 @@ def build_schema(stores, validate_cel=None):
         "first_use_date": make_store(DateStore, "first_use_date"),
     }
     entity_data = {
-        "fields": {
-            name: {"store": store} for name, store in {**native_stores, **stores}.items()
-        }
+        "fields": {name: {"store": store} for name, store in {**native_stores, **stores}.items()}
     }
     entity_data["validate_cel"] = normalized(validate_cel)
     compile_entity_cel_expressions(entity_data)
@@ -239,7 +235,9 @@ class TestValidateCel:
         schema = build_schema(
             {
                 "value": make_store(
-                    IntegerStore, "value", validate_cel=cond("fields.value > 10 && fields.value < 20")
+                    IntegerStore,
+                    "value",
+                    validate_cel=cond("fields.value > 10 && fields.value < 20"),
                 )
             }
         )
@@ -250,7 +248,9 @@ class TestValidateCel:
         schema = build_schema(
             {
                 "value": make_store(
-                    IntegerStore, "value", validate_cel=cond("fields.value > 10 && fields.value < 20")
+                    IntegerStore,
+                    "value",
+                    validate_cel=cond("fields.value > 10 && fields.value < 20"),
                 )
             }
         )
@@ -263,7 +263,9 @@ class TestValidateCel:
         schema = build_schema(
             {
                 "value": make_store(
-                    IntegerStore, "value", validate_cel=cond("fields.value > 10 && fields.value < 20")
+                    IntegerStore,
+                    "value",
+                    validate_cel=cond("fields.value > 10 && fields.value < 20"),
                 )
             }
         )
@@ -428,4 +430,3 @@ class TestValidateCelConditions:
         )
         messages = load_messages(schema, {"base_site_name": "x", "min_value": 3, "max_value": 2})
         assert messages == {"_schema": ["min > max"]}
-

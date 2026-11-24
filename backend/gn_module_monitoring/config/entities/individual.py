@@ -30,7 +30,7 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
             },
             "nb_sites": {
                 "store": {"type": "integer"},
-                "widget": {"attribut_label": "Nombre de sites associés"}
+                "widget": {"attribut_label": "Nombre de sites associés"},
             },
             "uuid_individual": {
                 "store": {"type": "uuid"},
@@ -62,7 +62,7 @@ class IndividualEntityConfigSchema(BaseEntityConfigSchema):
             },
             "comment": {
                 "store": {"type": "string"},
-                "widget": {"type": "textarea", "attribut_label": "Commentaires"}
+                "widget": {"type": "textarea", "attribut_label": "Commentaires"},
             },
             "cd_nom": {
                 "store": {"type": "taxonomy"},

@@ -82,9 +82,7 @@ def get_individuals(module_code=None):
         query=query, module_code=g.current_module.module_code, object_code=object_code
     )
 
-    schema = get_entity_or_404(module_code, "individual").get_extended_schema()(
-        only=["+data"]
-    )
+    schema = get_entity_or_404(module_code, "individual").get_extended_schema()(only=["+data"])
 
     return paginate_scope(
         query=query_allowed,

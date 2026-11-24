@@ -159,9 +159,7 @@ class NomenclatureMixin:
         if self.nomenclature_type.id_type is None:
             raise ValidationError(f"Le type de nomenclature '{mnemonique}' n’existe pas en base.")
         not_of_type = [
-            n.id_nomenclature
-            for n in nomenclatures
-            if n.id_type != self.nomenclature_type.id_type
+            n.id_nomenclature for n in nomenclatures if n.id_type != self.nomenclature_type.id_type
         ]
         if not_of_type:
             raise ValidationError(

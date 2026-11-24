@@ -165,9 +165,7 @@ def process_module_import(module_data):
         )
 
 
-DATA_LOSS_WARNING = (
-    "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données."
-)
+DATA_LOSS_WARNING = "La table d'importation contient des données. La mise à jour du protocole peut entraîner la perte de données."
 
 
 def print_protocol_diff(module_code: str, diff: dict):

@@ -93,7 +93,9 @@ class TestModules:
         assert r.json["id_module"] == module_test.id_module
         assert r.json["taxonomy_display_field_name"] == data["taxonomy_display_field_name"]
 
-    def test_patch_module_id_mismatch(self, module_test, modules_with_and_without_permission, users):
+    def test_patch_module_id_mismatch(
+        self, module_test, modules_with_and_without_permission, users
+    ):
         set_logged_user_cookie(self.client, users["admin_user"])
         other = db.session.execute(
             select(TMonitoringModules).where(TMonitoringModules.module_code == "NO_PERM")

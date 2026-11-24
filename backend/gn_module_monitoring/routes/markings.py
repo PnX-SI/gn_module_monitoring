@@ -223,9 +223,7 @@ def get_markings(module_code: str):
         params=params,
         specific_properties=specific_properties,
     )
-    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(
-        only=["+data"]
-    )
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(only=["+data"])
 
     return paginate_scope(
         query=query_allowed,

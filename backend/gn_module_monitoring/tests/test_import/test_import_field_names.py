@@ -107,7 +107,7 @@ def test_build_field_names_maps_fields_and_ignores_generated_ones():
 def test_cel_variable_on_ignored_field_is_reported():
     entity = make_entity(
         {
-            "kind": {"required_cel": 'fields.id_sites_group != null'},
+            "kind": {"required_cel": "fields.id_sites_group != null"},
             "id_sites_group": {},
         }
     )
@@ -139,7 +139,9 @@ def test_field_names_agree_with_prepare_fields():
             "id_observation": load_field(
                 "observation", "id_observation", {"store": {"type": "integer"}}
             ),
-            "id_base_visit": load_field("observation", "id_base_visit", {"store": {"type": "integer"}}),
+            "id_base_visit": load_field(
+                "observation", "id_base_visit", {"store": {"type": "integer"}}
+            ),
             "medias": load_field(
                 "observation", "medias", {"store": {"type": "dummy"}, "widget": {"type": "text"}}
             ),

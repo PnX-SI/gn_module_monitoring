@@ -12,7 +12,6 @@ from gn_module_monitoring.config.entities.fields import (
 
 from .base import BaseEntityConfigSchema
 
-
 # Clés qu'un protocole ou un type de site peut redéfinir sur un champ déjà défini (type ou natif).
 # `store` n'est accepté que s'il est identique à la couche précédente (voir clean_redefinition).
 REDEFINITION_KEYS = {"widget", "required", "default_value", "validate_cel"}
@@ -22,8 +21,17 @@ CHECK_KEYS = ("store", "required", "default_value")
 # Attributs du store comparés lors d'une redéfinition (voir store_changes) : les autres clés du store
 # (copies de la conversion legacy) ne sont pas comparées.
 STORE_ATTRIBUTE_KEYS = {
-    "type", "code_list", "id_list", "multiple", "params", "code_nomenclature_type",
-    "cd_nomenclatures", "nomenclature_type", "module_code", "area_type_code", "type_codes",
+    "type",
+    "code_list",
+    "id_list",
+    "multiple",
+    "params",
+    "code_nomenclature_type",
+    "cd_nomenclatures",
+    "nomenclature_type",
+    "module_code",
+    "area_type_code",
+    "type_codes",
     "value_field_name",
 }
 
@@ -106,9 +114,16 @@ def clean_redefinition(field_name, spec, previous, origin, not_null):
         del cleaned["store"]  # identique : ignoré
     if "required" in cleaned:
         default_value = (
-            cleaned["default_value"] if "default_value" in cleaned else previous.get("default_value")
+            cleaned["default_value"]
+            if "default_value" in cleaned
+            else previous.get("default_value")
         )
-        if _required_of(previous) and not _required_of(cleaned) and not_null and default_value is None:
+        if (
+            _required_of(previous)
+            and not _required_of(cleaned)
+            and not_null
+            and default_value is None
+        ):
             raise _redefinition_error(
                 field_name,
                 f"{origin.capitalize()} ne peut passer le champ '{field_name}' de requis à non "
@@ -125,7 +140,9 @@ def _apply_protocol_redefinition(merged, protocol_spec):
         if key in protocol_spec:
             merged[key] = deepcopy(protocol_spec[key])
     if "validate_cel" in protocol_spec:
-        merged["validate_cel"] = _concat_cel(merged.get("validate_cel"), protocol_spec["validate_cel"])
+        merged["validate_cel"] = _concat_cel(
+            merged.get("validate_cel"), protocol_spec["validate_cel"]
+        )
     return merged
 
 

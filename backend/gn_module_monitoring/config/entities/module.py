@@ -65,7 +65,7 @@ class ModuleEntityConfigSchema(BaseEntityConfigSchema):
             },
             "uuid_module_complement": {
                 "store": {"type": "uuid"},
-                "widget": {"attribut_label": "uuid"}
+                "widget": {"attribut_label": "uuid"},
             },
             "datasets": {
                 "store": {"type": "datasets"},

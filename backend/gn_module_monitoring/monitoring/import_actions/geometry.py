@@ -98,7 +98,9 @@ def _coordinate_to_float(value):
 
 
 @dataframe_check
-def fill_wkt_from_xy(df: pd.DataFrame, wkt_field: BibFields, x_field: BibFields, y_field: BibFields):
+def fill_wkt_from_xy(
+    df: pd.DataFrame, wkt_field: BibFields, x_field: BibFields, y_field: BibFields
+):
     """
     Écrit `POINT(x y)` dans la colonne WKT source, pour les lignes où le WKT est vide et où x et y
     sont renseignés. x : longitude, y : latitude, dans le SRID du fichier.
@@ -249,7 +251,9 @@ def compute_geom_local(
     geom_local_column = geom_local_column_name(geom_field_name)
     local_srid = db.session.scalar(
         sa.select(
-            sa.func.Find_SRID("gn_monitoring", TABLE_NAME_SUBMODULE[entity.code], geom_local_column)
+            sa.func.Find_SRID(
+                "gn_monitoring", TABLE_NAME_SUBMODULE[entity.code], geom_local_column
+            )
         )
     )
     transient_table = imprt.destination.get_transient_table()

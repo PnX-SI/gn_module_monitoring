@@ -48,7 +48,9 @@ def prepare_fields(entity, id_destination: int, parent_data: dict, skip=()):
             continue
         field_data = entity.data["fields"][field_name]
         entity_fields["fields"].append(
-            monitoring_field_to_bib_field(field_data, entity, field_name, id_destination, parent_data)
+            monitoring_field_to_bib_field(
+                field_data, entity, field_name, id_destination, parent_data
+            )
         )
 
     return entity_fields

@@ -39,7 +39,7 @@ class ObservationEntityConfigSchema(BaseEntityConfigSchema):
             },
             "comments": {
                 "store": {"type": "string"},
-                "widget": {"type": "text", "attribut_label": "Commentaires"}
+                "widget": {"type": "text", "attribut_label": "Commentaires"},
             },
             "uuid_observation": {
                 "store": {"type": "uuid"},

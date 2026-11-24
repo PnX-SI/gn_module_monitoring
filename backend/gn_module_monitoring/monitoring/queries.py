@@ -125,7 +125,14 @@ class GnMonitoringGenericFilter:
             field = specific_properties[param]
             field_model_name = getattr(field["store"], "model", None)
 
-            if field_model_name in ("nomenclature", "taxonomy", "user", "area", "habitat", "dataset"):
+            if field_model_name in (
+                "nomenclature",
+                "taxonomy",
+                "user",
+                "area",
+                "habitat",
+                "dataset",
+            ):
                 # Vérification des champs exotiques
                 value_field = field["widget"].get("value_field_name") or field["widget"].get(
                     "keyValue"

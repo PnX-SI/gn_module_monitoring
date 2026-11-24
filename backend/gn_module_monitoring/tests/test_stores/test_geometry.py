@@ -52,7 +52,9 @@ def test_schema_and_store_use_the_same_field_class():
     assert isinstance(store_field(), GeojsonSerializationField)
 
 
-@pytest.mark.parametrize("value", [POINT_2D, POLYGON_2D, '{"type": "Point", "coordinates": [2, 44]}'])
+@pytest.mark.parametrize(
+    "value", [POINT_2D, POLYGON_2D, '{"type": "Point", "coordinates": [2, 44]}']
+)
 def test_2d_geojson_is_accepted_by_schema_and_store_with_same_result(value):
     schema_geom = GeojsonSerializationField().deserialize(value)
     store_geom = store_field().deserialize(value)
@@ -77,7 +79,10 @@ def test_3d_json_string_is_rejected():
     "value,message",
     [
         ({"type": "Polygon", "coordinates": []}, "Empty geometry."),
-        ({"type": "Polygon", "coordinates": [[[0, 0], [1, 1], [1, 0], [0, 1], [0, 0]]]}, "Invalid geometry."),
+        (
+            {"type": "Polygon", "coordinates": [[[0, 0], [1, 1], [1, 0], [0, 1], [0, 0]]]},
+            "Invalid geometry.",
+        ),
         ("not json", "Geometry error"),
     ],
 )

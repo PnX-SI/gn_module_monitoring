@@ -44,7 +44,7 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
             },
             "comments": {
                 "store": {"type": "string"},
-                "widget": {"type": "text", "attribut_label": "Commentaires"}
+                "widget": {"type": "text", "attribut_label": "Commentaires"},
             },
             "uuid_sites_group": {
                 "store": {"type": "uuid"},
@@ -56,7 +56,11 @@ class SitesGroupEntityConfigSchema(BaseEntityConfigSchema):
             },
             "nb_visits": {
                 "store": {"type": "float"},
-                "widget": {"type": "number", "attribut_label": "Nombre de visites", "hidden": True},
+                "widget": {
+                    "type": "number",
+                    "attribut_label": "Nombre de visites",
+                    "hidden": True,
+                },
             },
             "medias": {
                 "store": {"type": "dummy"},

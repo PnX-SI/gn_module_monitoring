@@ -317,8 +317,7 @@ def _import_sites_geometry(id_import):
     return {
         str(row.uuid_base_site): row
         for row in db.session.execute(
-            sa.text(
-                """
+            sa.text("""
                 SELECT uuid_base_site,
                        ST_SRID(geom) AS srid,
                        ST_X(geom) AS x,
@@ -327,8 +326,7 @@ def _import_sites_geometry(id_import):
                        ST_SRID(geom_local) AS srid_local
                 FROM gn_monitoring.t_base_sites
                 WHERE id_import = :id_import
-                """
-            ),
+                """),
             {"id_import": id_import},
         ).all()
     }
@@ -360,9 +358,7 @@ class TestImportMonitoringGeometry:
         sites = _import_sites_geometry(imported_import.id_import)
         assert set(sites) == set(SITE_POINTS_4326)
         srid_local = db.session.scalar(
-            sa.text(
-                "SELECT Find_SRID('gn_monitoring', 't_base_sites', 'geom_local')"
-            )
+            sa.text("SELECT Find_SRID('gn_monitoring', 't_base_sites', 'geom_local')")
         )
         for uuid, (x, y) in SITE_POINTS_4326.items():
             site = sites[uuid]

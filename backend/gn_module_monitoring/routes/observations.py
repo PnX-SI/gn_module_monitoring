@@ -64,9 +64,7 @@ def get_observations(module_code: str = None):
         specific_properties=specific_properties,
     )
 
-    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(
-        only=["+data"]
-    )
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(only=["+data"])
 
     return paginate_scope(
         query=query_allowed,

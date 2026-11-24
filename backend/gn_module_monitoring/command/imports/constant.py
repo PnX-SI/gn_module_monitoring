@@ -79,7 +79,6 @@ IGNORED_IMPORT_FIELDS = [
 ]
 
 
-
 def geom_local_column_name(geom_field_name: str) -> str:
     """
     Colonne annexe de la géométrie locale d'une entité, dérivée de son champ géométrie

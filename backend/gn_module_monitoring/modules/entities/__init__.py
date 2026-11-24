@@ -8,7 +8,6 @@ from .observation_detail import ObservationDetailEntity
 from .individual import IndividualEntity
 from .marking import MarkingEntity
 
-
 __all__ = [
     "ENTITY_MAP",
     "ModuleEntity",

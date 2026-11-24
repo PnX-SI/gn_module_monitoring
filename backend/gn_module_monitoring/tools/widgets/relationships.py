@@ -33,7 +33,9 @@ class TaxonomyWidget(BaseWidget):
     key = "taxonomy"
 
     class ConfigSchema(BaseWidget.ConfigSchema):
-        id_list = fields.Int(allow_none=True)  # liste TaxHub restreignant la recherche (None = pas de restriction), lue par pnx-taxonomy
+        id_list = fields.Int(
+            allow_none=True
+        )  # liste TaxHub restreignant la recherche (None = pas de restriction), lue par pnx-taxonomy
         application = fields.String()
         api = fields.String()
         keyValue = fields.String()
