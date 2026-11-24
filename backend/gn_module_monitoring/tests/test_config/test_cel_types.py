@@ -32,23 +32,30 @@ def make_field(
 
 
 # Champs requis : variables typées
-TYPED_FIELDS = {
-    "number": make_field(IntegerStore, "number", required=True),
-    "ratio": make_field(FloatStore, "ratio", required=True),
-    "label": make_field(StringStore, "label", required=True),
-    "flag": make_field(BooleanStore, "flag", required=True),
-    "date": make_field(DateStore, "date", required=True),
-}
+# Fonctions (et non constantes de module) : `make_field` nécessite un contexte d'application Flask,
+# absent au moment de la collecte pytest.
+def typed_fields():
+    return {
+        "number": make_field(IntegerStore, "number", required=True),
+        "ratio": make_field(FloatStore, "ratio", required=True),
+        "label": make_field(StringStore, "label", required=True),
+        "flag": make_field(BooleanStore, "flag", required=True),
+        "date": make_field(DateStore, "date", required=True),
+    }
+
 
 # Champs optionnels : variables DYN, pouvant être vides
-NULLABLE_FIELDS = {
-    "number": make_field(IntegerStore, "number"),
-    "label": make_field(StringStore, "label"),
-    "date": make_field(DateStore, "date"),
-}
+def nullable_fields():
+    return {
+        "number": make_field(IntegerStore, "number"),
+        "label": make_field(StringStore, "label"),
+        "date": make_field(DateStore, "date"),
+    }
 
 
-def errors_for(expression, key="required_cel", fields=TYPED_FIELDS):
+def errors_for(expression, key="required_cel", fields=None):
+    if fields is None:
+        fields = typed_fields()
     fields = {name: dict(field) for name, field in fields.items()}
     fields["target"] = make_field(StringStore, "target", **{key: expression})
     try:
@@ -95,11 +102,11 @@ def test_type_mismatch_on_required_field_is_an_error(expression):
     ],
 )
 def test_null_comparison_on_optional_field_is_valid(expression):
-    assert errors_for(expression, fields=NULLABLE_FIELDS) is None
+    assert errors_for(expression, fields=nullable_fields()) is None
 
 
 def test_optional_field_is_not_type_checked():
-    assert errors_for("fields.number == 'a'", fields=NULLABLE_FIELDS) is None
+    assert errors_for("fields.number == 'a'", fields=nullable_fields()) is None
 
 
 def test_non_boolean_expression_is_an_error():
@@ -113,7 +120,7 @@ def test_unknown_field_is_an_error():
 
 
 def test_validate_cel_is_typed_per_condition():
-    fields = {name: dict(field) for name, field in TYPED_FIELDS.items()}
+    fields = {name: dict(field) for name, field in typed_fields().items()}
     fields["target"] = make_field(
         StringStore,
         "target",
@@ -127,7 +134,7 @@ def test_validate_cel_is_typed_per_condition():
 def test_hidden_cel_is_typed():
     messages = errors_for("fields.number == 1", key="hidden_cel")
     assert messages is None
-    fields = {name: dict(field) for name, field in TYPED_FIELDS.items()}
+    fields = {name: dict(field) for name, field in typed_fields().items()}
     fields["target"] = make_field(StringStore, "target", hidden_cel="fields.label > 3")
     with pytest.raises(ValidationError) as e:
         compile_entity_cel_expressions({"fields": fields})
@@ -137,7 +144,7 @@ def test_hidden_cel_is_typed():
 def test_entity_validate_cel_is_typed():
     conditions = CELValidationsField().deserialize(["fields.number > 3", "fields.label == 1"])
     with pytest.raises(ValidationError) as e:
-        compile_entity_cel_expressions({"fields": TYPED_FIELDS, "validate_cel": conditions})
+        compile_entity_cel_expressions({"fields": typed_fields(), "validate_cel": conditions})
     assert len(e.value.messages["validate_cel"]) == 1
 
 
@@ -148,7 +155,7 @@ def test_syntax_error_is_an_error(expression):
 
 
 def test_compiled_expressions_are_stored_by_field():
-    fields = {name: dict(field) for name, field in TYPED_FIELDS.items()}
+    fields = {name: dict(field) for name, field in typed_fields().items()}
     fields["target"] = make_field(
         StringStore,
         "target",
