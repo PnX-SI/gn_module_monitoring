@@ -189,14 +189,14 @@ Elles peuvent servir dans la définition des formulaires (en particulier pour le
 | Tous                                    | `hidden`                 | Booléen : permet de cacher un champ du formulaire                                                                                                 |
 | Tous                                    | `link_definition`        | Ajoute un lien vers l'adresse pointée par ce paramètre. Le paramètre `definition` doit également être défini                                      |
 | Tous                                    | `pattern_message`        | Ajoute un texte en rouge sous le champ explicitant une erreur                                                                                     |
-| Tous                                    | `value`                  | Valeur par défaut du champ                                                                                                                        |
+| Tous                                    | `value`                  | Valeur par défaut du champ
+| Tous     | `multiple`           | Booléen : permet de sélectionner plusieurs items dans la liste de valeurs                                                                         |                                            |
 | select / multiselect / checkbox / radio | `values`                 | Valeurs de choix proposées. Attend un tableau de valeurs ou un tableau clé/valeur `[{"value": "my_database_value", "label": "my_display_value"}]` |
 | select                                  | `noNullOption`           | Désactive la valeur vide (« - ») des choix d'un select                                                                                            |
 | number                                  | `min`                    | Valeur minimum de l'input                                                                                                                         |
 | number                                  | `max`                    | Valeur maximum de l'input                                                                                                                         |
 | nomenclature                            | `code_nomenclature_type` | Code du type de nomenclature à afficher                                                                                                           |
 | nomenclature                            | `cd_nomenclatures`       | Liste des codes nomenclatures à afficher (afin d'éliminer certains items que l'on ne veut pas pour ce sous-module)                                |
-| nomenclature / dataset / observers      | `multi_select`           | Booléen : permet de sélectionner plusieurs items dans la liste de valeurs                                                                         |
 | dataset                                 | `module_code`            | Limite aux jeux de données associés à ce sous-module                                                                                              |
 | html                                    | `html`                   | Contenu du bloc HTML                                                                                                                              |
 
@@ -263,11 +263,16 @@ Un choix obligatoire parmi une liste définie par un type de nomenclature :
   "attribut_label": "Nature de l'observation",
   "code_nomenclature_type": "OED_NAT_OBS",
   "required": true,
-  "type_util": "nomenclature"
+  "type_util": "nomenclature",
+  "cd_nomenclatures": ["1", "2", "3", "5"],
+  "value": {"cd_nomenclature": "1"}
 }
 ```
 
-La variable `"code_nomenclature_type": "OED_NAT_OBS"` définit le type de nomenclature.
+Options :
+ * `"code_nomenclature_type": "OED_NAT_OBS"` définit le type de nomenclature.
+ * `"cd_nomenclatures": ["1", "2", "3", "5"]` filtre les items de nomenclature de la liste
+ * `"value": {"cd_nomenclature": "1"}` indique la valeur par défaut de la nomenclature
 
 > [!WARNING]
 > Il est important d'ajouter `"type_util": "nomenclature"`.
@@ -412,24 +417,7 @@ Options supplémentaires pour ce widget :
 | `nullDefault` | Si `true`, ajoute une option vide `-- Aucun --` avec la valeur `null` en base. Nécessite `required: false`     |
 | `orderBy`     | Trie les valeurs par ordre alphabétique avec `asc` ou `desc`                                                   |
 
-**Nomenclature avec sous-liste et valeur par défaut :**
 
-```json
-"id_nomenclature_determination_method": {
-  "type_widget": "datalist",
-  "attribut_label": "Méthode de détermination",
-  "api": "nomenclatures/nomenclature/METH_DETERMIN",
-  "application": "GeoNature",
-  "keyValue": "id_nomenclature",
-  "keyLabel": "label_fr",
-  "data_path": "values",
-  "type_util": "nomenclature",
-  "required": true,
-  "default": {
-    "cd_nomenclature": "1"
-  }
-}
-```
 
 **Groupe de sites :**
 
@@ -446,21 +434,6 @@ Options supplémentaires pour ce widget :
 }
 ```
 
-**Utilisateur :**
-
-```json
-"observers": {
-  "type_widget": "datalist",
-  "attribut_label": "Observateurs",
-  "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-  "application": "GeoNature",
-  "keyValue": "id_role",
-  "keyLabel": "nom_complet",
-  "type_util": "user",
-  "multiple": true,
-  "required": true
-}
-```
 
 ### Les paramètres dynamiques
 
