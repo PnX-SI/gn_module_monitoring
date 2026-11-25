@@ -56,7 +56,7 @@ def execute_sql_file(dir, file, module_code, forbidden_instruction=[]):
     for sql_cmd in forbidden_instruction:
         if sql_cmd.lower() in sql_content.lower():
             raise Exception(
-                "erreur dans le script {} instruction sql non autorisée {}".format(
+                "{} - erreur dans le script {} : instruction sql non autorisée {}".format(
                     module_code, file, sql_cmd
                 )
             )
