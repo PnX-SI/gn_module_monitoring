@@ -1,26 +1,31 @@
 name: Lint
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
 
 jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Backend code formatting check (Black)
         uses: psf/black@stable
         with:
-          src: "setup.py ./backend/gn_module_monitoring"
+          src: "./backend/gn_module_monitoring"
 
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
       - name: Frontend code formatting check (Prettier)
         run: npm install prettier@~3.1.0 && npm run format:check
         working-directory: ./frontend
