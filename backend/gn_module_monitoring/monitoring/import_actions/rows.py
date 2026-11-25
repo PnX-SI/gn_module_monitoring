@@ -14,9 +14,16 @@ pandas et numpy sont converties en types Python natifs.
 import numpy as np
 import pandas as pd
 
+import sqlalchemy as sa
+from geonature.utils.env import db
+from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
+
 from gn_module_monitoring.monitoring.import_actions.field_names import (
     build_field_names,
 )
+from gn_module_monitoring.tools.stores.base import ListStore
+from gn_module_monitoring.tools.stores.relationships.m2m import UsersStore
+from gn_module_monitoring.tools.stores.relationships.mixin import NomenclatureMixin
 from gn_module_monitoring.tools.stores.type import GeometryStore
 
 
@@ -37,15 +44,82 @@ def _to_python_value(value):
     return value
 
 
-def _read_column(import_field_name: str, entity_field_name: str, entity) -> str:
-    """Colonne du DataFrame lue pour un champ : le WKT source pour une géométrie, sinon `dest_column`."""
+def _read_column(df: pd.DataFrame, import_field_name: str, entity_field_name: str, entity) -> str:
+    """
+    Colonne du DataFrame lue pour un champ :
+    - le WKT source pour une géométrie ;
+    - sinon `dest_column` (valeur typée par le cœur, champ natif) ;
+    - sinon la colonne source `src_<nom>` : champ additionnel sans colonne de destination, dont la
+      valeur est du texte au format de l'API (voir `get_destination_column_type`).
+    """
     store = entity.data["fields"][entity_field_name]["store"]
     if isinstance(store, GeometryStore):
+        return f"src_{import_field_name}"
+    if isinstance(store, UsersStore) and f"src_{import_field_name}" in df.columns:
+        # Observateurs : le texte du fichier, résolu en id_role par build_schema_rows
+        return f"src_{import_field_name}"
+    if import_field_name not in df.columns and f"src_{import_field_name}" in df.columns:
         return f"src_{import_field_name}"
     return import_field_name
 
 
-def build_schema_rows(df: pd.DataFrame, entity_code: str, entity) -> list[dict]:
+def _to_api_value(store, value):
+    """
+    Valeur d'un champ additionnel de type liste, lue en texte : les valeurs sont séparées par des
+    virgules (ex. `a,b`). Les autres valeurs sont inchangées.
+    """
+    if isinstance(store, ListStore) and isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return value
+
+
+def _nomenclature_ids(mnemonique: str) -> dict:
+    """{cd_nomenclature: id_nomenclature} des nomenclatures d'un type."""
+    rows = db.session.execute(
+        sa.select(TNomenclatures.cd_nomenclature, TNomenclatures.id_nomenclature)
+        .join(BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type)
+        .where(BibNomenclaturesTypes.mnemonique == mnemonique)
+    ).all()
+    return {cd: id_nomenclature for cd, id_nomenclature in rows}
+
+
+def _observers_api_value(value: str, observer_mapping: dict) -> list:
+    """
+    Identifiants (`id_role`) des observateurs d'une valeur lue dans le fichier (noms séparés par des
+    virgules), comme `observermapping` le fait dans le contrôle SQL. Un nom non résolu devient None :
+    le store signale alors l'observateur, au lieu de l'ignorer.
+    """
+    ids = []
+    for name in value.split(","):
+        name = name.strip()
+        if not name:
+            continue
+        mapped = (observer_mapping or {}).get(name)
+        ids.append(mapped["id_role"] if mapped else None)
+    return ids
+
+
+def _nomenclature_api_value(store, value, contentmapping: dict, ids_by_type: dict):
+    """
+    Identifiant de nomenclature (valeur attendue par le store, comme à l'API) d'une valeur lue dans le
+    fichier : libellé, mnémonique ou code (`contentmapping`, comme `do_nomenclatures_mapping`).
+    Une valeur inconnue devient None : son erreur est signalée par le contrôle SQL
+    (INVALID_NOMENCLATURE), pas par le schéma.
+    """
+    mnemonique = store.nomenclature_type.mnemonique
+    if mnemonique not in ids_by_type:
+        ids_by_type[mnemonique] = _nomenclature_ids(mnemonique)
+    cd_nomenclature = (contentmapping.get(mnemonique) or {}).get(value, value)
+    return ids_by_type[mnemonique].get(cd_nomenclature)
+
+
+def build_schema_rows(
+    df: pd.DataFrame,
+    entity_code: str,
+    entity,
+    contentmapping: dict | None = None,
+    observermapping: dict | None = None,
+) -> list[dict]:
     """
     Retourne, pour chaque ligne de `df`, le dictionnaire d'entrée de `entity.get_extended_schema()`.
 

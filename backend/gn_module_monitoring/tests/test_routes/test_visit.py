@@ -23,7 +23,11 @@ def module_test_visit(types_site, users):
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(select(UserList.id_liste).limit(1))
+        # Liste d'observateurs du module : contient l'utilisateur administrateur (observers des visites)
+        observers_list = db.session.get(UserList, db.session.scalar(select(UserList.id_liste).limit(1)))
+        if users["admin_user"] not in observers_list.users:
+            observers_list.users.append(users["admin_user"])
+        module_test.id_list_observer = observers_list.id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
         db.session.add(module_test)
 
@@ -142,6 +146,7 @@ class TestVisits:
             "id_base_site": site.id_base_site,
             "visit_date_min": "2024-01-01",
             "id_dataset": visits_routes[0].id_dataset,
+            "observers": [users["admin_user"].id_role],
         }
 
         r = self.client.post(
@@ -162,6 +167,7 @@ class TestVisits:
         data = {
             "id_base_site": visit.id_base_site,
             "visit_date_min": "2024-02-02",
+            "observers": [users["admin_user"].id_role],
         }
 
         r = self.client.patch(

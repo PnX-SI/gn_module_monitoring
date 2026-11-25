@@ -333,7 +333,7 @@ class SiteEntityConfigSchema(BaseEntityConfigSchema):
                 "required": False,
             },
             "first_use_date": {
-                "store": {"type": "datetime"},
+                "store": {"type": "date"},
                 "widget": {"attribut_label": "Date description"},
                 "required": False,
             },

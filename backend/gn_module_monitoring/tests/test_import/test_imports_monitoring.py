@@ -23,20 +23,29 @@ from gn_module_occhab.models import OccurenceHabitat, Station
 
 WKT_IMPORT_FILES = ("valid_wkt.csv", "invalid_wkt.csv")
 
+def observers_list(users):
+    """Liste d'observateurs du module de test, qui contient les utilisateurs de test."""
+    user_list = UserList(code_liste="test_import", nom_liste="Observateurs (test import)")
+    user_list.users = list(users.values())
+    with db.session.begin_nested():
+        db.session.add(user_list)
+    return user_list
+
+
 # ######################################################################################
 # Fixtures -- override default values
 # ######################################################################################
 
 
 @pytest.fixture()
-def install_test_module_with_import(install_module_test, datasets):
+def install_test_module_with_import(install_module_test, datasets, users):
     module_test = db.session.execute(
         sa.select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one_or_none()
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(sa.select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(sa.select(UserList.id_liste).limit(1))
+        module_test.id_list_observer = observers_list(users).id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
         module_test.datasets.append(datasets["orphan_dataset"])
         db.session.add(module_test)
@@ -118,6 +127,7 @@ def fieldmapping(
         "s__base_site_description": {"column_src": "s__base_site_description"},
         "s__first_use_date": {"column_src": "s__first_use_date"},
         "s__meteo": {"column_src": "s__meteo"},
+        "s__roost_type": {"column_src": "s__roost_type"},
         "s__profondeur_grotte": {"column_src": "s__profondeur_grotte"},
         "s__contact_name": {"column_src": "s__contact_name"},
         "s__types_site": {
@@ -189,6 +199,16 @@ def add_in_contentmapping():
             "Nuageux": "METEO_N",
             "Mauvais": "METEO_M",
         }
+    }
+
+
+@pytest.fixture()
+def observers_mapping(users):
+    """Noms d'observateurs des fichiers de test (colonne v__observers)."""
+    return {
+        "test_user1": {"id_role": users["user"].id_role},
+        "test_user2": {"id_role": users["noright_user"].id_role},
+        "test_user3": {"id_role": users["stranger_user"].id_role},
     }
 
 

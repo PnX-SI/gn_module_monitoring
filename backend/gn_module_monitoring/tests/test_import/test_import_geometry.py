@@ -123,11 +123,11 @@ def test_check_wkt_4326_file_is_not_reprojected(errors):
     assert "ST_Transform" not in str(df["s__geom"].iloc[0].compile())
 
 
-def test_check_wkt_invalid_is_reported_and_has_no_geometry(errors):
+def test_check_wkt_invalid_has_no_geometry_and_is_left_to_extended_schema(errors):
+    # Un WKT invalide n'est pas signalé ici : le schéma étendu le signale (INVALID_WKT, voir actions.py)
     df = pd.DataFrame({"src_s__geom": ["POINT(1 2", "POINT(700000 6600000)"]})
     check_wkt_geometries(None, None, df, file_srid=2154, wkt_field=WKT, geom_4326_field=GEOM_4326)
-    assert [e["error_code"] for e in errors] == [ImportCodeError.INVALID_WKT]
-    assert errors[0]["invalid_rows"].index.tolist() == [0]
+    assert errors == []
     assert pd.isna(df["s__geom"].iloc[0])
     assert df["s__geom"].iloc[1] is not None
 

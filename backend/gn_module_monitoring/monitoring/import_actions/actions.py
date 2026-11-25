@@ -38,7 +38,10 @@ import typing
 
 
 from .entity_import_actions_utils import EntityImportActionsUtils
-from gn_module_monitoring.command.imports.constant import geom_local_column_name
+from gn_module_monitoring.command.imports.constant import (
+    entity_import_field_name,
+    geom_local_column_name,
+)
 from gn_module_monitoring.monitoring.import_actions.geometry import (
     fill_entity_wkt_from_xy,
     get_geom_field_name,
@@ -97,7 +100,9 @@ def get_fields_to_cast(fields: dict, transient_table) -> dict:
 def _schema_error_fields(messages: dict):
     """Noms des champs en erreur dans les messages marshmallow (`_schema` pour les contraintes d'entité)."""
     for name, detail in messages.items():
-        if isinstance(detail, dict):  # champs supplémentaires, regroupés dans `data`
+        # Seuls les champs supplémentaires sont regroupés (sous `data`). Une liste (ex. observers)
+        # donne un dict indexé par position : c'est le champ lui-même qui est en erreur.
+        if name == "data" and isinstance(detail, dict):
             yield from _schema_error_fields(detail)
         else:
             yield name
@@ -134,7 +139,8 @@ def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict
                 if field_name in required and rows[position].get(field_name) is None:
                     error_code = ImportCodeError.MISSING_VALUE
                 elif field_name in geometry:
-                    error_code = ImportCodeError.INVALID_WKT
+                    # Colonne du fichier (libellé attendu par les erreurs WKT, comme check_wkt_geometries)
+                    error_code, column = ImportCodeError.INVALID_WKT, "WKT"
                 else:
                     error_code = ImportCodeError.CONDITIONAL_INVALID_DATA
             positions_by_error.setdefault((error_code, column), []).append(position)
@@ -192,6 +198,15 @@ def get_entity_model_complements(entity: Entity):
 
 
 class MonitoringImportActions(ImportActions):
+    @staticmethod
+    def get_dataset_transient_column_name() -> str:
+        # Colonne transitoire du JDD de la visite, lue depuis son champ bib_fields. `name_field` n'est
+        # unique que par destination, mais `dest_column` est le même pour toutes : on prend le premier.
+        field = BibFields.query.filter_by(
+            name_field=entity_import_field_name("visit", "id_dataset")
+        ).first()
+        return field.dest_column
+
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
         return [

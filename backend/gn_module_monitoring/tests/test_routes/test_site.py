@@ -506,11 +506,13 @@ class TestSite:
         db.session.refresh(existing)
         assert existing.base_site_name == original_name
 
-    def test_patch_sites(self, sites, users):
+    def test_patch_sites(self, sites, site_to_post_with_types, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         _id_site = sites["Test_Grotte"].id_base_site
 
+        # La mise à jour envoie la fiche complète : la route valide les champs requis (types de site, géométrie)
         update_data = {
+            **site_to_post_with_types,
             "base_site_name": "Test_Grotte_updated",
         }
         response = self.client.patch(

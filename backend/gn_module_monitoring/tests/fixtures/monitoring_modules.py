@@ -32,14 +32,18 @@ def install_module_test(types_site, users):
 
 
 @pytest.fixture
-def install_module_test_with_config(install_module_test, datasets):
+def install_module_test_with_config(install_module_test, datasets, users):
     module_test = db.session.execute(
         select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one_or_none()
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(select(UserList.id_liste).limit(1))
+        # Liste d'observateurs du module : contient l'utilisateur administrateur des tests de routes
+        observers_list = db.session.get(UserList, db.session.scalar(select(UserList.id_liste).limit(1)))
+        if users["admin_user"] not in observers_list.users:
+            observers_list.users.append(users["admin_user"])
+        module_test.id_list_observer = observers_list.id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
         module_test.datasets.append(datasets["orphan_dataset"])
         db.session.add(module_test)

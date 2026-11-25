@@ -65,12 +65,12 @@ class VisitEntityConfigSchema(BaseEntityConfigSchema):
                 "required": False,
             },
             "visit_date_min": {
-                "store": {"type": "datetime"},
+                "store": {"type": "date"},
                 "widget": {"type": "date", "attribut_label": "Date"},
                 "required": True,
             },
             "visit_date_max": {
-                "store": {"type": "datetime"},
+                "store": {"type": "date"},
                 "widget": {"type": "date", "attribut_label": "Date (max)", "hidden": True},
             },
             "id_nomenclature_tech_collect_campanule": {

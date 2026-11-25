@@ -1,3 +1,4 @@
+import datetime
 import pytest
 import json
 
@@ -29,7 +30,13 @@ def sites(users, types_site, site_group_with_sites):
             geom=geom_point,
             types_site=[types_site[key]],
             id_sites_group=site_group_with_sites.id_sites_group,
-            data={"profondeur_grotte": 42.8, "owner_name": "Robert", "meteo": 2},
+            first_use_date=datetime.date(2025, 1, 1),
+            data={
+                "profondeur_grotte": 42.8,
+                "owner_name": "Robert",
+                "meteo": 2,
+                "roost_type": "grotte",
+            },
         )
 
     for i, key in enumerate(types_site.keys()):
@@ -101,7 +108,13 @@ def sites_with_data_typeutils(users, types_site_type_utils, site_group_with_site
 def site_to_post_with_types(users, types_site, site_group_without_sites):
     user = users["user"]
     list_nomenclature_id = []
-    specific_dic = {"owner_name": "Propriétaire", "threat": "Menaces", "owner_tel": "0609090909"}
+    # roost_type : champ spécifique obligatoire des types de site de test
+    specific_dic = {
+        "owner_name": "Propriétaire",
+        "threat": "Menaces",
+        "owner_tel": "0609090909",
+        "roost_type": "grotte",
+    }
     schema_type_site = BibTypeSiteSchema()
     mock_db_type_site = [schema_type_site.dump(type) for type in types_site.values()]
     types_site = [type["id_nomenclature_type_site"] for type in mock_db_type_site]

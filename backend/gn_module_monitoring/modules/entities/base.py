@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 import sqlalchemy as sa
 import marshmallow as ma
+from sqlalchemy.orm import RelationshipProperty
 from cel_expr_python.cel import Type
 from google.protobuf.timestamp_pb2 import Timestamp
 from flask import current_app
@@ -19,6 +20,7 @@ from geonature.utils.env import db
 
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.tools.cel import _CEL_SKIP, value_to_cel
 from gn_module_monitoring.tools.stores import DummyStore
 from gn_module_monitoring.tools.stores.type import GeometryStore
 from gn_module_monitoring.tools.utils import schema_context
@@ -26,56 +28,24 @@ from gn_module_monitoring.tools.utils import schema_context
 ENTITY_MAP: dict[str, type] = {}
 
 
-_CEL_SKIP = object()  # sentinel value
-
-
-@cache
-def get_app_timezone():
+class StoreAccessMixin:
     """
-    Fuseau horaire de l’application, lu dans la variable d’environnement TZ (UTC par défaut).
+    Accès au store de chaque champ d'un schéma étendu. `field_stores` (nom du champ -> store) vient de la
+    configuration de l'entité : il couvre les champs natifs (hérités du schéma de base, quel que soit leur
+    type marshmallow) comme les champs additionnels. Le sous-schéma `data` a son propre mapping, que
+    `store_of` consulte aussi.
     """
-    return ZoneInfo(os.environ.get("TZ") or "UTC")
 
+    field_stores: ClassVar[dict] = {}
 
-def _to_timestamp(value: datetime.datetime) -> Timestamp:
-    timestamp = Timestamp()
-    timestamp.FromDatetime(value.astimezone(datetime.timezone.utc))
-    return timestamp
-
-
-def to_cel_value(value):
-    """
-    Convertit une valeur chargée en valeur CEL. Retourne `_CEL_SKIP` si elle n’est pas représentable
-    (instance de modèle, géométrie…).
-    """
-    if value is None or isinstance(value, (bool, int, float, str, bytes)):
-        return value
-    if isinstance(value, datetime.datetime):  # sous-classe de date : à tester en premier
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=get_app_timezone())
-        return _to_timestamp(value)
-    if isinstance(value, datetime.date):
-        midnight = datetime.datetime.combine(value, datetime.time(), tzinfo=get_app_timezone())
-        return _to_timestamp(midnight)
-    if isinstance(value, uuid.UUID):
-        return str(value)
-    if isinstance(value, (list, tuple)):
-        items = []
-        for item in value:
-            converted = to_cel_value(item)
-            if converted is _CEL_SKIP:
-                return _CEL_SKIP
-            items.append(converted)
-        return items
-    if isinstance(value, dict) and all(isinstance(key, str) for key in value):
-        items = {}
-        for key, item in value.items():
-            converted = to_cel_value(item)
-            if converted is _CEL_SKIP:
-                return _CEL_SKIP
-            items[key] = converted
-        return items
-    return _CEL_SKIP
+    def store_of(self, name):
+        """Store du champ `name` (None si le champ n'est pas configuré)."""
+        if name in self.field_stores:
+            return self.field_stores[name]
+        data_field = self.fields.get("data")
+        if data_field is not None:
+            return data_field.schema.store_of(name)
+        return None
 
 
 class ExtraDataMixin:
@@ -106,10 +76,31 @@ class ExtraDataMixin:
             data[name] = extra.get(name)
         return data
 
+    def _to_storage(self, data: dict) -> dict:
+        """
+        Valeurs chargées (sorties des champs des stores) converties pour le modèle, par le store de chaque
+        champ : un champ natif va vers `to_native_storage` (ex. PK pour une FK colonne), un champ additionnel va vers
+        `to_json_storage` (valeur stockée dans `data`).
+        """
+        extra = data.get("data") or {}
+        # Un champ sans store (ex. medias, champs calculés) n'a pas de conversion : sa valeur est gardée
+        converted = {
+            name: (
+                self.field_stores[name].to_native_storage(value) if name in self.field_stores else value
+            )
+            for name, value in data.items()
+            if name != "data" and name not in self.extra_field_names
+        }
+        converted["data"] = {
+            name: self.field_stores[name].to_json_storage(value) for name, value in extra.items()
+        }
+        return converted
+
     @ma.post_load
     def make_instance(self, data, **kwargs):
         # Mise à jour : les champs déclarés absents de la requête sont supprimés, mais les données
         # stockées qui ne sont pas déclarées dans la configuration sont conservées.
+        data = self._to_storage(data)
         instance = (self.instance or self.get_instance(data)) if self._load_instance else None
         if instance is not None:
             kept = {
@@ -138,6 +129,11 @@ class CELMixin:
     def _field_value(self, name, data, extra):
         return extra.get(name) if name in self.extra_field_names else data.get(name)
 
+    def _cel_value(self, name, value):
+        """Valeur CEL d'un champ : convertie par son store (`BaseStore.to_cel`)."""
+        store = self.store_of(name)
+        return value_to_cel(value) if store is None else store.to_cel(value)
+
     @validates_schema
     def check_cel(self, data, **kwargs):
         # Exécuté après la désérialisation de tous les champs, et avant post_load (création de
@@ -145,7 +141,7 @@ class CELMixin:
         extra = data.get("data") or {}
         context = {}
         for name in {*self.fields, *self.extra_field_names} - {"data"}:
-            value = to_cel_value(self._field_value(name, data, extra))
+            value = self._cel_value(name, self._field_value(name, data, extra))
             if value is not _CEL_SKIP:
                 context[f"fields.{name}"] = value
 
@@ -219,34 +215,37 @@ class BaseEntity(UserDict):
         """
         Schéma de la colonne `data`, qui contient les champs supplémentaires non-natifs.
         - Les champs valident et convertissent la valeur de l’API en valeur Python (chargement) ;
-        - post_load convertit les valeurs Python en valeur stockable en JSON (`to_storage`) ;
-        - pre_dump convertit les valeurs lues en JSON en PK (`from_storage`) avant que
+        - la conversion en valeur stockable (`to_json_storage`) est faite par le schéma principal (make_instance) ;
+        - pre_dump convertit les valeurs lues en JSON en PK (`from_json_storage`) avant que
           les champs ne les envoient telles quelles à l’API.
         """
-
-        def convert_to_storage(self, data, **kwargs):
-            return {
-                name: extra_stores[name].to_storage(value) if name in extra_stores else value
-                for name, value in data.items()
-            }
 
         def convert_from_storage(self, data, **kwargs):
             # Une clé absente de la configuration (champ supprimé) est conservée telle quelle
             return {
-                name: extra_stores[name].from_storage(value) if name in extra_stores else value
+                name: extra_stores[name].from_json_storage(value) if name in extra_stores else value
                 for name, value in data.items()
             }
 
         extra_fields = {name: store.get_field() for name, store in extra_stores.items()}
         return type(
             f"{type(self).__name__}ExtraDataSchema",
-            (ma.Schema,),
+            (ma.Schema, StoreAccessMixin),
             {
                 **extra_fields,
-                "convert_to_storage": ma.post_load(convert_to_storage),
+                "field_stores": dict(extra_stores),
                 "convert_from_storage": ma.pre_dump(convert_from_storage),
             },
         )
+
+    def patch_payload(self, instance, post_data: dict, only: list) -> dict:
+        """
+        Données d'une mise à jour partielle (PATCH), ramenées à une fiche complète : l'état courant de
+        l'instance (même représentation que l'API) est complété par les champs envoyés. La validation
+        (champs requis, CEL, post_load) porte ainsi toujours sur l'état complet de l'objet, comme à la création.
+        """
+        current = self.get_extended_schema()(only=only).dump(instance)
+        return {**current, **post_data}
 
     def _build_extended_schema(self, mixins):
         """
@@ -266,14 +265,17 @@ class BaseEntity(UserDict):
         # TODO: utiliser que les fields fournis par les stores, y compris pour les champs natifs,
         # plutôt que d’hériter du schema de base ?
         # Géométries : on override avec le champ lié au store, qui lit le format d'entrée (`geometry_format`) (WKT dans l’import)
+        # Relations natives (ex. observers de la visite) : le champ du store charge les objets, que les CEL
+        # et la validation utilisent (API et import). Les géométries lisent leur format d'entrée (`geometry_format`).
         native_store_fields = {
             name: field["store"].get_field()
             for name, field in fields.items()
-            if isinstance(field["store"], GeometryStore) and field["store"].native_attr is not None
+            if field["store"].native_attr is not None and not isinstance(field["store"], DummyStore)
         }
         attrs = {
             **native_store_fields,
             "extra_field_names": frozenset(extra_stores),
+            "field_stores": {name: field["store"] for name, field in fields.items()},
             "compiled_required_cel": {
                 name: field["compiled_required_cel"]
                 for name, field in fields.items()
@@ -294,6 +296,7 @@ class BaseEntity(UserDict):
                 *mixins,
                 ExtraDataMixin,
                 CELMixin,
+                StoreAccessMixin,
                 self.model_schema_class,
             ),  # FIXME: doit-on vraiment utiliser ce schema ?
             attrs,

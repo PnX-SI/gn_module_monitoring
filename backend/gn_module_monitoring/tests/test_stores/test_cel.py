@@ -7,13 +7,9 @@ from marshmallow import ValidationError
 
 from gn_module_monitoring.config.entities.base import compile_entity_cel_expressions
 from gn_module_monitoring.modules.entities import ENTITY_MAP
-from gn_module_monitoring.modules.entities.base import (
-    _CEL_SKIP,
-    BaseEntity,
-    CELMixin,
-    get_app_timezone,
-    to_cel_value,
-)
+from gn_module_monitoring.modules.entities.base import BaseEntity, CELMixin
+from gn_module_monitoring.tools.cel import _CEL_SKIP, get_app_timezone, object_to_cel, value_to_cel
+from gn_module_monitoring.tools.stores.relationships.m2o import NomenclatureStore
 from gn_module_monitoring.tools.stores.type import DateStore, IntegerStore, StringStore
 from gn_module_monitoring.tools.utils import CELValidationsField, schema_context
 
@@ -74,41 +70,71 @@ def load_messages(schema, payload):
 class TestToCelValue:
     @pytest.mark.parametrize("value", [None, True, 3, 1.5, "abc", b"ab"])
     def test_scalar_is_kept(self, value):
-        assert to_cel_value(value) == value
+        assert value_to_cel(value) == value
 
     def test_uuid_becomes_string(self):
         value = uuid.UUID(int=1)
-        assert to_cel_value(value) == str(value)
+        assert value_to_cel(value) == str(value)
 
     def test_date_is_midnight_in_app_timezone(self, app_tz):
-        value = to_cel_value(datetime.date(2026, 1, 2))
+        value = value_to_cel(datetime.date(2026, 1, 2))
         assert value.ToJsonString() == "2026-01-01T23:00:00Z"
 
     def test_naive_datetime_is_in_app_timezone(self, app_tz):
-        value = to_cel_value(datetime.datetime(2026, 1, 2, 10))
+        value = value_to_cel(datetime.datetime(2026, 1, 2, 10))
         assert value.ToJsonString() == "2026-01-02T09:00:00Z"
 
     def test_aware_datetime_keeps_its_timezone(self, app_tz):
         value = datetime.datetime(2026, 1, 2, 10, tzinfo=datetime.timezone.utc)
-        assert to_cel_value(value).ToJsonString() == "2026-01-02T10:00:00Z"
+        assert value_to_cel(value).ToJsonString() == "2026-01-02T10:00:00Z"
 
     def test_list_converts_each_item(self):
-        assert to_cel_value([1, None, "a"]) == [1, None, "a"]
+        assert value_to_cel([1, None, "a"]) == [1, None, "a"]
 
     def test_list_with_unsupported_item_is_skipped(self):
-        assert to_cel_value([1, object()]) is _CEL_SKIP
+        assert value_to_cel([1, object()]) is _CEL_SKIP
 
     def test_dict_converts_each_value(self):
-        assert to_cel_value({"a": 1, "b": [1, 2]}) == {"a": 1, "b": [1, 2]}
+        assert value_to_cel({"a": 1, "b": [1, 2]}) == {"a": 1, "b": [1, 2]}
 
     def test_dict_with_non_string_key_is_skipped(self):
-        assert to_cel_value({1: "a"}) is _CEL_SKIP
+        assert value_to_cel({1: "a"}) is _CEL_SKIP
 
     def test_dict_with_unsupported_value_is_skipped(self):
-        assert to_cel_value({"a": object()}) is _CEL_SKIP
+        assert value_to_cel({"a": object()}) is _CEL_SKIP
 
     def test_unsupported_object_is_skipped(self):
-        assert to_cel_value(object()) is _CEL_SKIP
+        assert value_to_cel(object()) is _CEL_SKIP
+
+    def test_model_instance_is_not_a_python_value(self):
+        from pypnnomenclature.models import TNomenclatures
+
+        assert value_to_cel(TNomenclatures(cd_nomenclature="METEO_B")) is _CEL_SKIP
+
+
+class TestObjectToCel:
+    def test_model_instance_becomes_object_of_its_columns(self):
+        # Objet chargé par un store relationnel (ex. nomenclature) : ses colonnes, pour `fields.<nom>.<colonne>`
+        from pypnnomenclature.models import TNomenclatures
+
+        nomenclature = TNomenclatures(id_nomenclature=1, cd_nomenclature="METEO_B", mnemonique="Beau")
+        value = object_to_cel(nomenclature)
+        assert value["id_nomenclature"] == 1
+        assert value["cd_nomenclature"] == "METEO_B"
+        assert value["mnemonique"] == "Beau"
+
+    def test_object_to_cel_rejects_python_values(self):
+        with pytest.raises(TypeError):
+            object_to_cel("METEO_B")
+
+    def test_store_converts_instances_as_objects(self):
+        from pypnnomenclature.models import TNomenclatures
+
+        store = NomenclatureStore.__new__(NomenclatureStore)  # sans configuration : seul to_cel est testé
+        nomenclature = TNomenclatures(id_nomenclature=1, cd_nomenclature="METEO_B")
+        assert store.to_cel_item(nomenclature)["cd_nomenclature"] == "METEO_B"
+        assert store.to_cel(None) is None
+        assert StringStore.to_cel(StringStore.__new__(StringStore), "abc") == "abc"
 
 
 class TestCheckRequiredCel:
@@ -430,3 +456,19 @@ class TestValidateCelConditions:
         )
         messages = load_messages(schema, {"base_site_name": "x", "min_value": 3, "max_value": 2})
         assert messages == {"_schema": ["min > max"]}
+
+
+class TestStoreAccess:
+    def test_store_of_native_and_additional_fields(self):
+        value_store = make_store(IntegerStore, "value")
+        schema = build_schema({"value": value_store})(only=["+data"])
+        # Champ natif (hérité du schéma de base) : son store est retrouvé
+        assert schema.store_of("base_site_name") is not None
+        assert isinstance(schema.store_of("base_site_name"), StringStore)
+        # Champ additionnel : même store que sa configuration, au niveau du schéma et du sous-schéma data
+        assert schema.store_of("value") is value_store
+        assert schema.fields["data"].schema.store_of("value") is value_store
+
+    def test_store_of_unknown_field_is_none(self):
+        schema = build_schema({"value": make_store(IntegerStore, "value")})(only=["+data"])
+        assert schema.store_of("inexistant") is None
