@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "gn_module_monitoring"
 dynamic = ["version"]
 dependencies = ["geonature>=2.18.0", "jsonschema"]
-description = "GeoNature"
+description = "Module pour générer de façon générique des interfaces de saisie correspondant à des protocoles de suivi"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-or-later"
