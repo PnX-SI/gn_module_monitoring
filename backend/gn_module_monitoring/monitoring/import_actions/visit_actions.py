@@ -1,4 +1,5 @@
 from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
+from gn_module_monitoring.monitoring.import_actions.mappings import map_observers_to_dest
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
@@ -46,7 +47,18 @@ class VisitImportActions(BaseImportActions):
     LINE_NO = "visit_line_no"
 
     @staticmethod
-    def check_sql(imprt):
+    def check_pre(imprt):
+        """Mappings avant le schéma étendu : nomenclatures, observateurs de la visite."""
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+        observers_field = fieldmapped_fields.get("v__observers")
+        if observers_field is not None and imprt.fieldmapping["v__observers"].get("column_src"):
+            map_observers_to_dest(imprt, observers_field)
+
+    @staticmethod
+    def check_post(imprt):
         from gn_module_monitoring.monitoring.import_actions.site_actions import (
             SiteImportActions,
         )
@@ -101,8 +113,6 @@ class VisitImportActions(BaseImportActions):
             whereclause=None,
         )
 
-        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
-
         ## process parent uuid and id
         set_id_parent_from_destination(
             imprt,
@@ -131,7 +141,7 @@ class VisitImportActions(BaseImportActions):
         VisitImportActions.check_parent_validity(imprt)
 
     @staticmethod
-    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
+    def check_df_batch(imprt: TImports, entity: Entity, df) -> set:
         """
         Check the visit data of one batch, in the dataframe.
 

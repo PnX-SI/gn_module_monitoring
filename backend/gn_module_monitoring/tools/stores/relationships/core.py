@@ -8,6 +8,7 @@ from sqlalchemy.orm import RelationshipProperty
 
 from geonature.utils.env import db
 
+from gn_module_monitoring.tools.cel import object_to_cel
 from gn_module_monitoring.tools.utils import schema_context
 
 from ..base import BaseStore
@@ -100,13 +101,13 @@ class BaseRelationshipStore(BaseStore):
             """
             Reçoit la (m2o) ou les (m2m) PK par l’API, et renvoi la ou les instance(s) associée(s).
             Le chargement des instances est nécessaire à d’éventuels contrôles, au contexte CEL,
-            et éventuellement à to_storage lorsque l’on souhaite stocker divers colonne de notre objet.
+            et éventuellement à to_json_storage lorsque l’on souhaite stocker divers colonne de notre objet.
             """
             raise NotImplementedError
 
         def _serialize(self, value, attr, obj, **kwargs):
             """
-            Reçoit la (m2o) ou les (m2m) PK depuis la base (directement ou après appelle à from_storage
+            Reçoit la (m2o) ou les (m2m) PK depuis la base (directement ou après appelle à from_json_storage
             pour les champs non natifs), et renvoi la ou les PK telle(s) quelle(s), d’où l’implémentation
             par défaut renvoyant simplement value.
             """
@@ -157,6 +158,15 @@ class BaseRelationshipStore(BaseStore):
     def _get_storage_filters(self):
         # Conditions supplémentaires pour retrouver une instance à partir de storage_col
         return []
+
+    def to_cel(self, value):
+        """
+        Valeur CEL d'une relation : `value` est l'objet chargé par le champ du store (ou None). L'objet est
+        converti par `object_to_cel`.
+        """
+        if value is None:
+            return None
+        return object_to_cel(value)
 
     def get_field(self) -> fields.Field:
         return self.Field(self)

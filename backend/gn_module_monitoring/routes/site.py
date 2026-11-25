@@ -282,6 +282,9 @@ def post_sites(module_code: str = "generic"):
     return create_or_update_site(post_data, module_code=module_code), 201
 
 
+SITE_ONLY = ["+types_site", "+medias", "+data"]
+
+
 @blueprint_api.route("/sites/<int:_id>", methods=["PATCH"])
 @blueprint_api.route("/<string:module_code>/sites/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_SITES")
@@ -292,6 +295,10 @@ def patch_site(scope, module_code=None, _id=None):
     post_data = dict(request.get_json())
     if "id_base_site" not in post_data:
         post_data["id_base_site"] = _id
+    # PATCH partiel : les champs absents de la requête gardent leur valeur courante
+    post_data = get_entity_or_404(module_code, "site").patch_payload(
+        site, post_data, only=SITE_ONLY
+    )
     return create_or_update_site(post_data, module_code=module_code, instance=site), 201
 
 
@@ -316,7 +323,7 @@ def create_or_update_site(post_data: dict, module_code: str = "generic", instanc
     :param instance: existing site to update, None to create one
     :return: dict, serialized site
     """
-    only = ["+types_site", "+medias", "+data"]
+    only = SITE_ONLY
     schema = get_entity_or_404(module_code, "site").get_extended_schema()
 
     site = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)

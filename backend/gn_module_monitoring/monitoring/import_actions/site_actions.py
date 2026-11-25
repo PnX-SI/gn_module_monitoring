@@ -47,7 +47,17 @@ class SiteImportActions(BaseImportActions):
     ID_INVENTOR_FIELD = "s__id_inventor"
 
     @staticmethod
-    def check_sql(imprt: TImports):
+    def check_pre(imprt: TImports):
+        """Mappings avant le schéma étendu : nomenclatures, observateur du site."""
+        entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+        if SiteImportActions.ID_INVENTOR_FIELD in fieldmapped_fields:
+            map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
+
+    @staticmethod
+    def check_post(imprt: TImports):
         entity = EntityImportActionsUtils.get_entity(imprt, SiteImportActions.ENTITY_CODE)
         entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
@@ -100,17 +110,13 @@ class SiteImportActions(BaseImportActions):
 
         SiteImportActions.check_altitudes(imprt)
 
-        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
-
-        if SiteImportActions.ID_INVENTOR_FIELD in fieldmapped_fields:
-            map_observer_matching(imprt, entity, fieldmapped_fields["s__id_inventor"])
 
         EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
             imprt, SiteImportActions.ENTITY_CODE
         )
 
     @staticmethod
-    def check_dataframe(imprt: TImports, entity: Entity, df) -> set:
+    def check_df_batch(imprt: TImports, entity: Entity, df) -> set:
         """
         Check the site data of one batch, in the dataframe.
 

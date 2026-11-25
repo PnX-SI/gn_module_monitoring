@@ -14,8 +14,23 @@ from gn_module_monitoring.monitoring.models import TMonitoringSites
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
 
 
+def add_to_observers_list(*users):
+    """
+    Inscrit les utilisateurs dans la liste d'observateurs `obsocctax` (liste par défaut des modules) : les
+    observateurs d'un site (id_inventor, id_digitiser) sont validés par le store contre cette liste.
+    """
+    from pypnusershub.db.models import UserList
+
+    observers_list = db.session.scalar(select(UserList).where(UserList.code_liste == "obsocctax"))
+    with db.session.begin_nested():
+        for user in users:
+            if user not in observers_list.users:
+                observers_list.users.append(user)
+
+
 @pytest.fixture()
 def sites(users, types_site, site_group_with_sites):
+    add_to_observers_list(users["user"], users["admin_user"])
     user = users["user"]
     admin_user = users["admin_user"]
     geom_point = from_shape(Point(43, 24), srid=4326)
@@ -106,6 +121,7 @@ def sites_with_data_typeutils(users, types_site_type_utils, site_group_with_site
 
 @pytest.fixture()
 def site_to_post_with_types(users, types_site, site_group_without_sites):
+    add_to_observers_list(users["user"])
     user = users["user"]
     list_nomenclature_id = []
     # roost_type : champ spécifique obligatoire des types de site de test

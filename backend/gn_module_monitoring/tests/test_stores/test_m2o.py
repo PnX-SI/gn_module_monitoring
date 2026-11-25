@@ -149,18 +149,18 @@ class TestNomenclatureStore:
 
     def test_storage_cols_dict_is_read_back_as_pk(self, meteo_nomenclature):
         store = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"})
-        stored = store.to_storage(meteo_nomenclature)
+        stored = store.to_json_storage(meteo_nomenclature)
         assert stored["id_nomenclature"] == meteo_nomenclature.id_nomenclature
-        assert store.from_storage(stored) == meteo_nomenclature.id_nomenclature
+        assert store.from_json_storage(stored) == meteo_nomenclature.id_nomenclature
 
     def test_storage_col_is_read_back_as_pk(self, meteo_nomenclature):
         store = make_store(
             NomenclatureStore,
             {"nomenclature_type": "TEST_METEO", "storage_col": "cd_nomenclature"},
         )
-        stored = store.to_storage(meteo_nomenclature)
+        stored = store.to_json_storage(meteo_nomenclature)
         assert stored == meteo_nomenclature.cd_nomenclature
-        assert store.from_storage(stored) == meteo_nomenclature.id_nomenclature
+        assert store.from_json_storage(stored) == meteo_nomenclature.id_nomenclature
 
     def test_nomenclature_of_other_type_is_rejected(self, other_type_nomenclature):
         field = make_store(NomenclatureStore, {"nomenclature_type": "TEST_METEO"}).get_field()
@@ -203,7 +203,7 @@ class TestAreaStore:
             AreaStore,
             {"area_type_code": "DEP", "storage_col": "area_code"},
         )
-        assert store.from_storage(dep_area.area_code) == dep_area.id_area
+        assert store.from_json_storage(dep_area.area_code) == dep_area.id_area
 
     def test_storage_col_ignores_areas_of_other_type(self, other_type_area):
         store = make_store(
@@ -211,7 +211,7 @@ class TestAreaStore:
             {"area_type_code": "DEP", "storage_col": "area_code"},
         )
         with pytest.raises(ValueError):
-            store.from_storage(other_type_area.area_code)
+            store.from_json_storage(other_type_area.area_code)
 
     def test_widget_passes_area_type_code_to_single_store(self):
         with schema_context(

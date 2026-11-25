@@ -5,6 +5,7 @@ import marshmallow as ma
 from marshmallow import fields, pre_load, validate
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 
+from gn_module_monitoring.tools.cel import value_to_cel
 from gn_module_monitoring.tools.utils import (
     ValueLabelField,
     schema_context,
@@ -140,17 +141,31 @@ class BaseStore(UserDict):
         """Options communes des champs marshmallow du store."""
         return {"required": self.required, "allow_none": not self.required}
 
-    def to_storage(self, value):
+    def to_cel(self, value):
+        """
+        Valeur CEL d'une valeur chargée pour ce store (`fields.<nom>`). Par défaut, une valeur Python
+        (`value_to_cel`). Les stores relationnels convertissent leurs objets (`object_to_cel`).
+        """
+        return value_to_cel(value)
+
+    def to_native_storage(self, value):
+        """
+        Valeur écrite dans l'attribut natif du modèle, à partir de la valeur chargée par le champ du store.
+        Par défaut, la valeur Python est inchangée (dates, uuid, entiers, textes…).
+        """
+        return value
+
+    def to_json_storage(self, value):
         """
         Convertit une valeur Python en valeur stockable dans la colonne JSON `data`
         (uniquement pour les champs non natifs). Par défaut, la valeur est inchangée.
         """
         return value
 
-    def from_storage(self, value):
+    def from_json_storage(self, value):
         """
         Convertit une valeur lue depuis la colonne JSON `data` en valeur Python
-        (inverse de `to_storage`). Par défaut, la valeur est inchangée.
+        (inverse de `to_json_storage`). Par défaut, la valeur est inchangée.
         """
         return value
 

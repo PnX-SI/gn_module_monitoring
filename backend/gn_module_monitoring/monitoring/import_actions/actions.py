@@ -108,6 +108,12 @@ def _schema_error_fields(messages: dict):
             yield name
 
 
+def _source_value_present(df: pd.DataFrame, import_name: str, position: int) -> bool:
+    """Vrai si la colonne source du champ contient une valeur pour la ligne `position`."""
+    source = f"src_{import_name}"
+    return source in df.columns and pd.notna(df[source].iloc[position])
+
+
 @dataframe_check
 def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict], module_entity):
     """
@@ -137,6 +143,10 @@ def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict
             else:
                 column = module_entity.import_actions_class.get_field_name(field_name)
                 if field_name in required and rows[position].get(field_name) is None:
+                    if _source_value_present(df, column, position):
+                        # Valeur présente dans le fichier mais non résolue (ex. nomenclature inconnue) :
+                        # son contrôle propre la signale (INVALID_NOMENCLATURE…), pas une absence
+                        continue
                     error_code = ImportCodeError.MISSING_VALUE
                 elif field_name in geometry:
                     # Colonne du fichier (libellé attendu par les erreurs WKT, comme check_wkt_geometries)
@@ -158,8 +168,19 @@ def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFram
     from gn_module_monitoring.modules import get_module
 
     module_entity = get_module(imprt.destination.code).entities[entity.code]
+    # Champs de l'entité absents du mapping (ni colonne du fichier, ni constante) : renseignés par l'import
+    # (ex. id_digitiser) ou facultatifs pour ce fichier. Ils ne sont pas validés comme requis.
+    mapped_import_names = set((imprt.fieldmapping or {}).keys())
+    not_provided = tuple(
+        name
+        for name, field in module_entity.data["fields"].items()
+        if field["store"].native_attr is not None
+        and not isinstance(field["store"], GeometryStore)  # fournie par WKT, ou x/y
+        and module_entity.import_actions_class.get_field_name(name) not in mapped_import_names
+    )
     schema = module_entity.get_extended_schema()(
-        exclude=EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()),
+        only=["+data"],
+        exclude=EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()) + not_provided,
         unknown=EXCLUDE,
         load_instance=False,
     )
@@ -169,9 +190,15 @@ def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFram
         # on fournit le module de l'import, comme à l'insertion.
         for row in rows:
             row.setdefault("id_module", imprt.destination.id_module)
-    # Le WKT source est lu au format WKT (SRID du fichier contrôlé par check_wkt_geometries)
+    # Le WKT source est lu au format WKT (SRID du fichier contrôlé par check_wkt_geometries).
+    # Chaque ligne est validée seule : avec many=True, marshmallow saute les validateurs de schéma
+    # (CEL) de toutes les lignes dès qu'une ligne a une erreur de champ.
     with schema_context(geometry_format="wkt"):
-        schema_errors = schema.validate(rows, many=True)
+        schema_errors = {}
+        for position, row in enumerate(rows):
+            messages = schema.validate(row)
+            if messages:
+                schema_errors[position] = messages
     return check_extended_schema(imprt, entity, df, schema_errors, rows, module_entity)
 
 
@@ -224,7 +251,13 @@ class MonitoringImportActions(ImportActions):
     @staticmethod
     def get_source_cols(imprt: TImports, entity: Entity) -> typing.List[str]:
         # All the fields are loaded: the CEL conditions may use any field of the entity
-        return [ef.field.source_field for ef in entity.fields if ef.field.source_field is not None]
+        # Colonnes source (texte du fichier) et de destination (valeurs typées, mappées par check_pre)
+        return [
+            column
+            for ef in entity.fields
+            for column in (ef.field.source_field, ef.field.dest_field)
+            if column is not None
+        ]
 
     @staticmethod
     @import_hook(progress=0.1)
@@ -240,6 +273,16 @@ class MonitoringImportActions(ImportActions):
         SiteImportActions.check_entity_data_consistency(imprt)
         if isVisit:
             VisitImportActions.check_entity_data_consistency(imprt)
+
+        # Mappings (nomenclatures, observateurs) : avant le schéma étendu, qui lit les valeurs mappées
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+        SiteImportActions.check_pre(imprt)
+        if isVisit:
+            VisitImportActions.check_pre(imprt)
+        if isObservation:
+            ObservationImportActions.check_pre(imprt)
 
     @staticmethod
     @import_hook(progress=0.4)
@@ -263,9 +306,9 @@ class MonitoringImportActions(ImportActions):
         updated_cols |= check_extended_schema_batch(imprt, entity, df)
 
         if entity.code == SiteImportActions.ENTITY_CODE:
-            updated_cols |= SiteImportActions.check_dataframe(imprt, entity, df)
+            updated_cols |= SiteImportActions.check_df_batch(imprt, entity, df)
         elif entity.code == VisitImportActions.ENTITY_CODE:
-            updated_cols |= VisitImportActions.check_dataframe(imprt, entity, df)
+            updated_cols |= VisitImportActions.check_df_batch(imprt, entity, df)
         return updated_cols
 
     @staticmethod
@@ -278,11 +321,11 @@ class MonitoringImportActions(ImportActions):
             imprt, ObservationImportActions.ENTITY_CODE
         )
 
-        SiteImportActions.check_sql(imprt)
+        SiteImportActions.check_post(imprt)
         if isVisit:
-            VisitImportActions.check_sql(imprt)
+            VisitImportActions.check_post(imprt)
         if isObservation:
-            ObservationImportActions.check_sql(imprt)
+            ObservationImportActions.check_post(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:

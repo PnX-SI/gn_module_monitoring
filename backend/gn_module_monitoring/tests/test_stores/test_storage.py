@@ -45,39 +45,57 @@ def build_schema(stores):
 class TestToStorage:
     def test_date_is_iso_string(self):
         store = make_store(DateStore)
-        assert store.to_storage(datetime.date(2024, 1, 2)) == "2024-01-02"
+        assert store.to_json_storage(datetime.date(2024, 1, 2)) == "2024-01-02"
+
+    def test_date_refuses_datetime(self):
+        # Contrat explicite : la colonne est une date, un datetime n'est pas accepté
+        with pytest.raises(TypeError):
+            make_store(DateStore).to_json_storage(datetime.datetime(2024, 1, 2, 8, 30))
+
+    def test_datetime_refuses_date(self):
+        with pytest.raises(TypeError):
+            make_store(DateTimeStore).to_json_storage(datetime.date(2024, 1, 2))
+
+    def test_date_round_trip(self):
+        store = make_store(DateStore)
+        assert store.from_json_storage(store.to_json_storage(datetime.date(2024, 1, 2))) == datetime.date(2024, 1, 2)
+
+    def test_datetime_round_trip(self):
+        store = make_store(DateTimeStore)
+        value = datetime.datetime(2024, 1, 2, 8, 30)
+        assert store.from_json_storage(store.to_json_storage(value)) == value
 
     def test_datetime_is_iso_string(self):
         store = make_store(DateTimeStore)
         value = datetime.datetime(2024, 1, 2, 8, 30)
-        assert store.to_storage(value) == "2024-01-02T08:30:00"
+        assert store.to_json_storage(value) == "2024-01-02T08:30:00"
 
     def test_uuid_is_string(self):
         store = make_store(UUIDStore)
         value = uuid.UUID(int=1)
-        assert store.to_storage(value) == str(value)
+        assert store.to_json_storage(value) == str(value)
 
     @pytest.mark.parametrize("store_cls", [DateStore, DateTimeStore, UUIDStore])
     def test_none_is_kept(self, store_cls):
-        assert make_store(store_cls).to_storage(None) is None
+        assert make_store(store_cls).to_json_storage(None) is None
 
     def test_plain_value_is_kept(self):
-        assert make_store(IntegerStore).to_storage(3) == 3
-        assert make_store(StringStore).to_storage("abc") == "abc"
+        assert make_store(IntegerStore).to_json_storage(3) == 3
+        assert make_store(StringStore).to_json_storage("abc") == "abc"
 
 
 class TestFromStorage:
     def test_date_from_iso_string(self):
         store = make_store(DateStore)
-        assert store.from_storage("2024-01-02") == datetime.date(2024, 1, 2)
+        assert store.from_json_storage("2024-01-02") == datetime.date(2024, 1, 2)
 
     def test_datetime_from_iso_string(self):
         store = make_store(DateTimeStore)
-        assert store.from_storage("2024-01-02T08:30:00") == datetime.datetime(2024, 1, 2, 8, 30)
+        assert store.from_json_storage("2024-01-02T08:30:00") == datetime.datetime(2024, 1, 2, 8, 30)
 
     def test_uuid_from_string(self):
         store = make_store(UUIDStore)
-        assert store.from_storage(str(uuid.UUID(int=1))) == uuid.UUID(int=1)
+        assert store.from_json_storage(str(uuid.UUID(int=1))) == uuid.UUID(int=1)
 
     @pytest.mark.parametrize("store_cls", [DateStore, DateTimeStore, UUIDStore])
     def test_roundtrip(self, store_cls):
@@ -87,7 +105,7 @@ class TestFromStorage:
             DateTimeStore: datetime.datetime(2024, 1, 2, 8, 30),
             UUIDStore: uuid.UUID(int=1),
         }[store_cls]
-        assert store.from_storage(store.to_storage(value)) == value
+        assert store.from_json_storage(store.to_json_storage(value)) == value
 
 
 class TestApiType:
@@ -206,3 +224,38 @@ class TestPythonType:
     def test_multiple_relationship_python_type_is_list_of_model(self):
         store = make_store(UsersStore)
         assert store.get_python_type() == list[UsersStore.get_model()]
+
+
+class TestCheckStoredValue:
+    def _errors(self, store, value):
+        generator = store.check_stored_value(None, 7, "field", value, False)
+        messages = []
+        try:
+            while True:
+                messages.append(next(generator))
+        except StopIteration as stop:
+            return messages, stop.value
+
+    @pytest.mark.parametrize("value", ["2024-01-02", None])
+    def test_valid_date_has_no_error(self, value):
+        messages, returned = self._errors(make_store(DateStore), value)
+        assert messages == []
+        assert returned == value
+
+    @pytest.mark.parametrize("value", ["02/01/2024", "2024-1-2", "20240102", "2024-02-30", 20240102])
+    def test_invalid_date_is_reported(self, value):
+        messages, returned = self._errors(make_store(DateStore), value)
+        assert len(messages) == 1
+        assert "n'est pas une date ISO" in messages[0]
+        assert returned == value
+
+    @pytest.mark.parametrize("value", ["2024-01-02T08:30:00", "2024-01-02T08:30:00+02:00", None])
+    def test_valid_datetime_has_no_error(self, value):
+        messages, _ = self._errors(make_store(DateTimeStore), value)
+        assert messages == []
+
+    @pytest.mark.parametrize("value", ["2024-01-02", "02/01/2024 08:30", "2024-01-02 08:30:00"])
+    def test_invalid_datetime_is_reported(self, value):
+        messages, _ = self._errors(make_store(DateTimeStore), value)
+        assert len(messages) == 1
+        assert "datetime ISO 8601" in messages[0]

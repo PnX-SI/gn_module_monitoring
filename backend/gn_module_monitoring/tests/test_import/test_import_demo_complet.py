@@ -36,6 +36,7 @@ IMPORT_FILE_NAME = "demo_complet.csv"
 EXPECTED_ERRORS = {
     ('ALTI_MIN_SUP_ALTI_MAX', 'site', 's__altitude_min', frozenset({10})),
     ('CD_NOM_NOT_FOUND', 'observation', 'o__cd_nom', frozenset({38})),
+    ('CONDITIONAL_INVALID_DATA', 'observation', 'o__cd_nom', frozenset({38})),
     ('CD_NOM_NOT_FOUND', 'site', 's__demo_taxonomy', frozenset({20})),
     ('CLOSED_ACQUISITION_FRAMEWORK', 'visit', 'uuid_dataset', frozenset({34})),
     ('CONDITIONAL_INVALID_DATA', 'observation', "Contraintes de l'entité", frozenset({39})),
@@ -46,7 +47,6 @@ EXPECTED_ERRORS = {
     ('CONDITIONAL_INVALID_DATA', 'site', 's__cd_hab', frozenset({23})),
     ('CONDITIONAL_INVALID_DATA', 'site', 's__demo_date', frozenset({24})),
     ('CONDITIONAL_INVALID_DATA', 'site', 's__demo_taxonomy', frozenset({20})),
-    ('CONDITIONAL_INVALID_DATA', 'site', 's__first_use_date', frozenset({11})),
     ('CONDITIONAL_INVALID_DATA', 'visit', 'v__demo_visit_score', frozenset({29, 30})),
     ('DATASET_NOT_ACTIVE', 'visit', 'uuid_dataset', frozenset({32})),
     ('DATASET_NOT_AUTHORIZED', 'visit', 'uuid_dataset', frozenset({31})),

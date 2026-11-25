@@ -44,12 +44,19 @@ class ObservationImportActions(BaseImportActions):
     PARENT_LINE_NO = "visit_line_no"
 
     @staticmethod
-    def check_sql(imprt):
+    def check_pre(imprt):
+        """Mappings avant le schéma étendu : nomenclatures."""
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+
+    @staticmethod
+    def check_post(imprt):
         entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
         entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
         # How to default ?
-        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
 
         EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
             imprt, ObservationImportActions.ENTITY_CODE

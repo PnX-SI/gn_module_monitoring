@@ -6,12 +6,18 @@ import pandas as pd
 import pytest
 
 from gn_module_monitoring.modules import get_module
+from gn_module_monitoring.monitoring.import_actions.actions import EXTENDED_SCHEMA_EXCLUDE
 from gn_module_monitoring.monitoring.import_actions.rows import build_schema_rows
 
 
 @pytest.fixture
 def observation():
     return get_module("demo").entities["observation"]
+
+
+@pytest.fixture
+def visit():
+    return get_module("demo").entities["visit"]
 
 
 def test_absent_values_become_none(observation):
@@ -31,21 +37,21 @@ def test_absent_values_become_none(observation):
     ]
 
 
-def test_missing_date_becomes_none_and_dates_are_native(observation):
+def test_missing_date_becomes_none_and_dates_are_api_representation(visit):
+    # Champ natif date : le cœur lit un datetime, la ligne porte la représentation de l'API (ISO)
     df = pd.DataFrame(
         {
-            "o__comments": [
+            "v__visit_date_min": [
                 pd.NaT,
                 pd.Timestamp("2026-03-04"),
-                datetime.date(2026, 5, 6),
+                datetime.datetime(2026, 5, 6),
             ],
         }
     )
-    rows = build_schema_rows(df, "observation", observation)
-    assert rows[0]["comments"] is None
-    assert rows[1]["comments"] == datetime.datetime(2026, 3, 4)
-    assert type(rows[1]["comments"]) is datetime.datetime
-    assert rows[2]["comments"] == datetime.date(2026, 5, 6)
+    rows = build_schema_rows(df, "visit", visit)
+    assert rows[0]["visit_date_min"] is None
+    assert rows[1]["visit_date_min"] == "2026-03-04"
+    assert rows[2]["visit_date_min"] == "2026-05-06"
 
 
 def test_integer_read_as_float_keeps_its_value(observation):
@@ -112,8 +118,12 @@ def test_empty_dataframe_gives_no_rows(observation):
 
 
 def test_row_is_validated_by_extended_schema(observation):
+    # id_digitiser est renseigné par l'import : exclu comme dans la validation de l'import
     schema = observation.get_extended_schema()(
-        unknown=EXCLUDE, load_instance=False, only=["+data"]
+        unknown=EXCLUDE,
+        load_instance=False,
+        only=["+data"],
+        exclude=EXTENDED_SCHEMA_EXCLUDE["observation"] + ("id_digitiser",),
     )
     df = pd.DataFrame(
         {

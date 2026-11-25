@@ -132,7 +132,7 @@ class TestObjectToCel:
 
         store = NomenclatureStore.__new__(NomenclatureStore)  # sans configuration : seul to_cel est testé
         nomenclature = TNomenclatures(id_nomenclature=1, cd_nomenclature="METEO_B")
-        assert store.to_cel_item(nomenclature)["cd_nomenclature"] == "METEO_B"
+        assert store.to_cel(nomenclature)["cd_nomenclature"] == "METEO_B"
         assert store.to_cel(None) is None
         assert StringStore.to_cel(StringStore.__new__(StringStore), "abc") == "abc"
 

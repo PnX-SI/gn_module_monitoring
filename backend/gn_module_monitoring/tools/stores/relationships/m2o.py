@@ -29,9 +29,9 @@ class BaseForeignKeyStore(BaseRelationshipStore):
     Store pour une relation many-to-one : le champ est une foreign key.
 
     Asymétrie volontaire entre les deux sens :
-    - chargement (API → DB) : `Field._deserialize` renvoie une instance, et `to_storage` la reçoit,
+    - chargement (API → DB) : `Field._deserialize` renvoie une instance, et `to_json_storage` la reçoit,
       car la validation (CEL, contrôles propres au store) en a besoin ;
-    - dump (DB → API) : `from_storage` renvoie une clé primaire, et `Field._serialize` la reçoit,
+    - dump (DB → API) : `from_json_storage` renvoie une clé primaire, et `Field._serialize` la reçoit,
       sans charger l’instance.
     """
 
@@ -90,12 +90,21 @@ class BaseForeignKeyStore(BaseRelationshipStore):
             if error_message is not None:
                 raise ValidationError({self.field_name: error_message})
 
-    def to_storage(self, value):
+    def to_native_storage(self, value):
+        """
+        Écriture de l'attribut natif : une FK colonne reçoit la clé primaire de l'objet. Une relation
+        (objet attendu par SQLAlchemy) reçoit l'objet.
+        """
+        if value is None or not isinstance(self.native_attr, ColumnProperty):
+            return value
+        return getattr(value, self.get_model_pk().name)
+
+    def to_json_storage(self, value):
         if value is None:
             return None
         return self._to_storage(value)
 
-    def from_storage(self, value):
+    def from_json_storage(self, value):
         # Renvoie la clé primaire sans charger l’instance
         if value is None:
             return None

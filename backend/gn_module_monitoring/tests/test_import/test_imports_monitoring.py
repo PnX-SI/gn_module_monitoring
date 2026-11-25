@@ -117,11 +117,12 @@ def fieldmapping(
     fieldmapping_preset_name,
     preset_fieldmapping,
     types_site,
+    users,
 ):
     mapping = {
         "uuid_base_site": {"column_src": "uuid_base_site"},
         "s__base_site": {"column_src": "s__base_site"},
-        "s__id_inventor": {"constant_value": {"id_role": 3}},
+        "s__id_inventor": {"constant_value": {"id_role": users["user"].id_role}},
         "s__base_site_code": {"column_src": "s__base_site_code"},
         "s__base_site_name": {"column_src": "s__base_site_name"},
         "s__base_site_description": {"column_src": "s__base_site_description"},

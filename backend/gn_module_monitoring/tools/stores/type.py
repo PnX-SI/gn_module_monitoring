@@ -1,5 +1,6 @@
 import datetime
 import logging
+import re
 import uuid
 
 import sqlalchemy as sa
@@ -18,16 +19,32 @@ from .base import BaseStore
 log = logging.getLogger(__name__)
 
 
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _is_valid_iso(parse, value: str) -> bool:
+    try:
+        parse(value)
+    except ValueError:
+        return False
+    return True
+
+
+_ISO_DATETIME_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?([+-]\d{2}:\d{2}|Z)?$"
+)
+
+
 class BaseTypeStore(BaseStore):
     """
     Store pour une colonne simple dont le type SQL correspond à `sql_type`.
     """
 
     # Le stockage JSON utilise la représentation de l’API (date et uuid sont stockés en chaîne)
-    def to_storage(self, value):
+    def to_json_storage(self, value):
         return None if value is None else self.get_field()._serialize(value, None, None)
 
-    def from_storage(self, value):
+    def from_json_storage(self, value):
         return None if value is None else self.get_field().deserialize(value)
 
     @classmethod
@@ -135,6 +152,30 @@ class DateStore(BaseTypeStore):
     key = "date"
     sql_type = sa.types.Date
 
+    def to_json_storage(self, value):
+        """Date Python -> texte ISO (YYYY-MM-DD). Un datetime est refusé : la colonne est une date."""
+        if value is None:
+            return None
+        if not isinstance(value, datetime.date) or isinstance(value, datetime.datetime):
+            raise TypeError(f"DateStore attend une date, reçu {type(value)!r}")
+        return value.isoformat()
+
+    def from_json_storage(self, value):
+        """Texte ISO (YYYY-MM-DD) -> date Python."""
+        if value is None:
+            return None
+        return datetime.date.fromisoformat(value)
+
+    def check_stored_value(self, entity, row_id, field_name, value, fix):
+        """Contrôle d'une valeur stockée : doit être une date ISO (YYYY-MM-DD)."""
+        if value is not None and not (
+            isinstance(value, str)
+            and _ISO_DATE_RE.match(value)
+            and _is_valid_iso(datetime.date.fromisoformat, value)
+        ):
+            yield f"[id={row_id}] {field_name} : valeur '{value}' n'est pas une date ISO (YYYY-MM-DD)"
+        return value
+
     def get_field(self) -> fields.Field:
         return fields.Date(**self._get_field_kwargs())
 
@@ -153,6 +194,30 @@ class DateStore(BaseTypeStore):
 class DateTimeStore(BaseTypeStore):
     key = "datetime"
     sql_type = sa.types.DateTime
+
+    def to_json_storage(self, value):
+        """Datetime Python -> texte ISO 8601."""
+        if value is None:
+            return None
+        if not isinstance(value, datetime.datetime):
+            raise TypeError(f"DateTimeStore attend un datetime, reçu {type(value)!r}")
+        return value.isoformat()
+
+    def from_json_storage(self, value):
+        """Texte ISO 8601 -> datetime Python."""
+        if value is None:
+            return None
+        return datetime.datetime.fromisoformat(value)
+
+    def check_stored_value(self, entity, row_id, field_name, value, fix):
+        """Contrôle d'une valeur stockée : doit être un datetime ISO 8601."""
+        if value is not None and not (
+            isinstance(value, str)
+            and _ISO_DATETIME_RE.match(value)
+            and _is_valid_iso(datetime.datetime.fromisoformat, value)
+        ):
+            yield f"[id={row_id}] {field_name} : valeur '{value}' n'est pas un datetime ISO 8601"
+        return value
 
     def get_field(self) -> fields.Field:
         return fields.DateTime(**self._get_field_kwargs())

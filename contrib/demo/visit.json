@@ -56,7 +56,7 @@
     },
     "visit_date_min": {
       "store": {
-        "type": "datetime"
+        "type": "date"
       },
       "widget": {
         "type": "date",
@@ -81,12 +81,12 @@
     "id_nomenclature_tech_collect_campanule": {
       "store": {
         "type": "nomenclature",
-        "nomenclature_type": "DEMO_METEO",
-        "cd_nomenclatures": ["METEO_B", "METEO_N", "METEO_M"]
+        "nomenclature_type": "TECHNIQUE_OBS",
+        "cd_nomenclatures": ["11", "6", "7"]
       },
       "widget": {
         "type": "nomenclature",
-        "attribut_label": "Météo"
+        "attribut_label": "Technique de collecte"
       },
       "required": true
     },

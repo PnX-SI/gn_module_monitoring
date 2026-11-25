@@ -7,6 +7,7 @@ from flask import current_app
 from sqlalchemy.orm import RelationshipProperty
 
 from gn_module_monitoring import MODULE_CODE
+from gn_module_monitoring.tools.cel import object_to_cel
 
 from .cache import get_instance
 from .core import BaseRelationshipStore
@@ -26,8 +27,8 @@ class BaseManyToManyStore(BaseRelationshipStore):
     (clé primaire, `storage_col` ou `storage_cols`), et la liste entière est stockée.
     Asymétrie entre les deux sens :
     - chargement (API → DB) : `Field._deserialize` renvoie une liste d’instances, pour la validation ;
-      `to_storage` la convertit en liste de valeurs stockables ;
-    - dump (DB → API) : `from_storage` renvoie une liste de clés primaires, et `Field._serialize`
+      `to_json_storage` la convertit en liste de valeurs stockables ;
+    - dump (DB → API) : `from_json_storage` renvoie une liste de clés primaires, et `Field._serialize`
       la renvoie telle quelle. Pour un champ natif, `Field.get_value` extrait les clés primaires
       de la relation (liste d’instances).
     """
@@ -61,12 +62,18 @@ class BaseManyToManyStore(BaseRelationshipStore):
     def is_suitable_for_relationship(cls, relationship):
         return relationship.secondary is not None and relationship.mapper.class_ is cls.get_model()
 
-    def to_storage(self, value):
+    def to_cel(self, value):
+        """Relation many-to-many : `value` est la liste des objets chargés (ou None), chacun en objet CEL."""
+        if value is None:
+            return None
+        return [object_to_cel(instance) for instance in value]
+
+    def to_json_storage(self, value):
         if value is None:
             return None
         return [self._to_storage(instance) for instance in value]
 
-    def from_storage(self, value):
+    def from_json_storage(self, value):
         if value is None:
             return None
         return [self._from_storage(item) for item in value]

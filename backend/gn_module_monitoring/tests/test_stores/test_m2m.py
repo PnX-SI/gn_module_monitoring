@@ -124,41 +124,41 @@ class TestManyToManyStorage:
         id_role = users["user"].id_role
         store = make_store(UsersStore, {})
         instances = store.get_field().deserialize([id_role])
-        stored = store.to_storage(instances)
+        stored = store.to_json_storage(instances)
         assert stored == [id_role]
         assert json.dumps(stored)
-        assert store.from_storage(stored) == [id_role]
+        assert store.from_json_storage(stored) == [id_role]
 
     def test_storage_cols_are_list_of_objects(self, users):
         user = users["user"]
         store = make_store(UsersStore, {"storage_cols": ["id_role", "identifiant"]})
         instances = store.get_field().deserialize([user.id_role])
-        stored = store.to_storage(instances)
+        stored = store.to_json_storage(instances)
         assert stored == [{"id_role": user.id_role, "identifiant": user.identifiant}]
-        assert store.from_storage(stored) == [user.id_role]
+        assert store.from_json_storage(stored) == [user.id_role]
 
     def test_storage_col_is_list_of_values(self, datasets):
         dataset = datasets["orphan_dataset"]
         store = make_store(DatasetsStore, {"storage_col": "dataset_name"})
         instances = store.get_field().deserialize([dataset.id_dataset])
-        stored = store.to_storage(instances)
+        stored = store.to_json_storage(instances)
         assert stored == [dataset.dataset_name]
-        assert store.from_storage(stored) == [dataset.id_dataset]
+        assert store.from_json_storage(stored) == [dataset.id_dataset]
 
     def test_storage_col_unknown_value_is_rejected(self):
         store = make_store(DatasetsStore, {"storage_col": "dataset_name"})
         with pytest.raises(ValueError):
-            store.from_storage(["jeu de données inexistant"])
+            store.from_json_storage(["jeu de données inexistant"])
 
     def test_none_is_kept(self):
         store = make_store(UsersStore, {})
-        assert store.to_storage(None) is None
-        assert store.from_storage(None) is None
+        assert store.to_json_storage(None) is None
+        assert store.from_json_storage(None) is None
 
     def test_empty_list_is_kept(self):
         store = make_store(UsersStore, {})
-        assert store.to_storage([]) == []
-        assert store.from_storage([]) == []
+        assert store.to_json_storage([]) == []
+        assert store.from_json_storage([]) == []
 
 
 @pytest.mark.usefixtures("temporary_transaction")

@@ -44,6 +44,9 @@ def post_visit(module_code):
     return create_or_update_visit(post_data, module_code=module_code)
 
 
+VISIT_ONLY = ["+module", "+observers", "+medias", "+data"]
+
+
 @blueprint_api.route("/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
 def patch_visit(scope, module_code: str, _id: int):
@@ -53,6 +56,10 @@ def patch_visit(scope, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_base_visit" in post_data:
         post_data["id_base_visit"] = _id
+    # PATCH partiel : les champs absents de la requête gardent leur valeur courante
+    post_data = get_entity_or_404(module_code, "visit").patch_payload(
+        visit, post_data, only=VISIT_ONLY
+    )
     return create_or_update_visit(post_data, module_code=module_code, instance=visit)
 
 
@@ -133,7 +140,7 @@ def create_or_update_visit(post_data: dict, module_code: str = "generic", instan
     :param instance: existing visit to update, None to create one
     :return: dict, serialized visit
     """
-    only = ["+module", "+observers", "+medias", "+data"]
+    only = VISIT_ONLY
     schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
     visit = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)

@@ -6,7 +6,7 @@ du module `demo` : un champ natif a un store lié à une colonne du modèle, un 
 n'en a pas et est stocké dans la colonne `<entité>_data`.
 """
 
-from sqlalchemy import Boolean, Date, DateTime, Float, Integer, String, Uuid
+from sqlalchemy import Boolean, Date, Float, Integer, String, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
 
 from gn_module_monitoring.command.imports.sql import get_imports_table_metadata
@@ -59,16 +59,16 @@ def test_native_integer_is_integer():
     assert isinstance(_table().c["s__altitude_min"].type, Integer)
 
 
-def test_native_datetime_is_datetime():
-    assert isinstance(_table().c["s__first_use_date"].type, DateTime)
+def test_native_date_is_date():
+    assert isinstance(_table().c["s__first_use_date"].type, Date)
 
 
 def test_native_uuid_is_uuid():
     assert isinstance(_table().c["uuid_base_site"].type, Uuid)
 
 
-def test_native_datetime_of_visit_is_datetime():
-    assert isinstance(_table().c["v__visit_date_min"].type, DateTime)
+def test_native_date_of_visit_is_date():
+    assert isinstance(_table().c["v__visit_date_min"].type, Date)
 
 
 def test_native_text_is_string():
