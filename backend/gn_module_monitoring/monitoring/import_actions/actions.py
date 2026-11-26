@@ -47,6 +47,12 @@ from gn_module_monitoring.monitoring.import_actions.geometry import (
     get_geom_field_name,
 )
 from gn_module_monitoring.monitoring.import_actions.rows import build_schema_rows
+from gn_module_monitoring.tools.stores.relationships.cache import (
+    CACHE_CONTEXT_KEY,
+    RelationshipCache,
+)
+from gn_module_monitoring.tools.stores.relationships.m2m import BaseManyToManyStore
+from gn_module_monitoring.tools.stores.relationships.m2o import BaseForeignKeyStore
 from gn_module_monitoring.tools.stores.type import GeometryStore
 from gn_module_monitoring.tools.utils import schema_context
 from gn_module_monitoring.monitoring.import_actions.site_actions import (
@@ -163,6 +169,31 @@ def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict
         }
 
 
+def prefetch_relationships(module_entity, rows: list[dict], excluded: tuple) -> RelationshipCache:
+    """
+    Cache des objets liés (m2o et m2m) référencés par les lignes du batch : chaque cible est chargée
+    en une requête par modèle, au lieu d'une requête par ligne et par champ lors de la validation.
+    Les champs de `excluded` ne sont pas validés par le schéma, ils ne sont donc pas pré-chargés.
+    """
+    cache = RelationshipCache()
+    for name, field in module_entity.data["fields"].items():
+        store = field["store"]
+        if name in excluded:
+            continue
+        if isinstance(store, BaseForeignKeyStore):
+            values = [row.get(name) for row in rows]
+        elif isinstance(store, BaseManyToManyStore):
+            values = [pk for row in rows if isinstance(row.get(name), list) for pk in row[name]]
+        else:
+            continue
+        # Seules les clés du type attendu sont chargées : les autres sont rejetées par le champ
+        pk_type = store.get_model_pk().type.python_type
+        pks = [value for value in values if isinstance(value, pk_type)]
+        if pks:
+            cache.prefetch(store.get_model(), pks)
+    return cache
+
+
 def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFrame) -> set:
     """Valide les lignes du batch par le schéma étendu de l'entité du module de l'import."""
     from gn_module_monitoring.modules import get_module
@@ -178,9 +209,10 @@ def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFram
         and not isinstance(field["store"], GeometryStore)  # fournie par WKT, ou x/y
         and module_entity.import_actions_class.get_field_name(name) not in mapped_import_names
     )
+    excluded = EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()) + not_provided
     schema = module_entity.get_extended_schema()(
         only=["+data"],
-        exclude=EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()) + not_provided,
+        exclude=excluded,
         unknown=EXCLUDE,
         load_instance=False,
     )
@@ -190,10 +222,12 @@ def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFram
         # on fournit le module de l'import, comme à l'insertion.
         for row in rows:
             row.setdefault("id_module", imprt.destination.id_module)
+    # Objets liés pré-chargés une fois pour tout le batch, lus par les stores via le schema_context
+    relationship_cache = prefetch_relationships(module_entity, rows, excluded)
     # Le WKT source est lu au format WKT (SRID du fichier contrôlé par check_wkt_geometries).
     # Chaque ligne est validée seule : avec many=True, marshmallow saute les validateurs de schéma
     # (CEL) de toutes les lignes dès qu'une ligne a une erreur de champ.
-    with schema_context(geometry_format="wkt"):
+    with schema_context(geometry_format="wkt", **{CACHE_CONTEXT_KEY: relationship_cache}):
         schema_errors = {}
         for position, row in enumerate(rows):
             messages = schema.validate(row)
