@@ -272,6 +272,7 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
     const objectFormDefiniton = this._dynformService
       .formDefinitionsdictToArray(schema, this.meta)
       .filter((formDef) => formDef.type_widget)
+      .filter((formDef) => formDef.type_widget !== 'geojson')
       .map((formDef) => this.applyCelDefinition(formDef))
       .sort((a, b) => {
         if (a.attribut_name === 'medias') return 1;
