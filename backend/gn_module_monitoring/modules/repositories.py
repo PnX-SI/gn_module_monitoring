@@ -6,6 +6,7 @@ get_modules
 
 from sqlalchemy import select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.orm import Session
 
 from geonature.utils.env import DB
 from geonature.utils.errors import GeoNatureError
@@ -33,7 +34,7 @@ def get_simple_module(field_name, value):
     return get_module(field_name, value, TModules)
 
 
-def get_module(field_name, value, moduleCls=TMonitoringModules):
+def get_module(field_name, value, moduleCls=TMonitoringModules, *, session: Session = DB.session):
     """
     récupere un module de protocole de suivi a partir d'un paramètre
 
@@ -57,7 +58,7 @@ def get_module(field_name, value, moduleCls=TMonitoringModules):
         return None
 
     try:
-        module = DB.session.execute(
+        module = session.execute(
             select(moduleCls).where(getattr(moduleCls, field_name) == value)
         ).scalar_one()
 

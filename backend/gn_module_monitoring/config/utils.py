@@ -6,6 +6,7 @@ from pathlib import Path
 from flask import current_app
 from sqlalchemy import and_, select
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import Session
 
 from pypnusershub.db.models import UserList
 
@@ -42,7 +43,7 @@ def monitoring_module_config_path(module_code):
     return SUB_MODULE_CONFIG_DIR / module_code
 
 
-def get_monitoring_module(module_code):
+def get_monitoring_module(module_code, *, session: Session = DB.session):
     """
     ne doit pas lancer d'exception sinon plante l'install
     -> all()[0]
@@ -50,7 +51,7 @@ def get_monitoring_module(module_code):
     if module_code == "generic":
         return None
 
-    return DB.session.execute(
+    return session.execute(
         select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
     ).scalar_one_or_none()
 
@@ -75,14 +76,14 @@ def is_module_configured(module) -> bool:
     )
 
 
-def get_monitorings_path():
-    module = DB.session.execute(
+def get_monitorings_path(*, session: Session = DB.session):
+    module = session.execute(
         select(TModules.module_path).where(TModules.module_code == "MONITORINGS")
     ).scalar_one()
     return module
 
 
-def get_id_table_location(object_type):
+def get_id_table_location(object_type, *, session: Session = DB.session):
     table_names = {
         "module": "t_module_complements",
         "site": "t_base_sites",
@@ -100,7 +101,7 @@ def get_id_table_location(object_type):
     id_table_location = None
 
     try:
-        id_table_location = DB.session.execute(
+        id_table_location = session.execute(
             select(BibTablesLocation.id_table_location).where(
                 and_(
                     BibTablesLocation.schema_name == schema_name,
@@ -153,18 +154,18 @@ def json_config_from_file(module_code, type_config):
     return json_from_file(file_path, {})
 
 
-def json_config_from_db(module_code):
+def json_config_from_db(module_code, *, session: Session = DB.session):
     site_type_config = {"types_site": {}, "specific": {}}
     field_to_types_sites = {}
     if module_code == "generic":
         # Si generic récupération de tous les types de sites
-        types = query_all_types_site_from_module_id(0)
+        types = query_all_types_site_from_module_id(0, session=session)
     else:
         try:
-            module = get_module("module_code", module_code)
+            module = get_module("module_code", module_code, session=session)
         except NoResultFound:
             return site_type_config
-        types = query_all_types_site_from_module_id(module.id_module)
+        types = query_all_types_site_from_module_id(module.id_module, session=session)
 
     for t in types:
         site_type_config["types_site"][t.id_nomenclature_type_site] = {
@@ -353,7 +354,7 @@ def get_data_preload(config, module):
     return out
 
 
-def get_module_code_list(module):
+def get_module_code_list(module, *, session: Session = DB.session):
     """
     Récupération du code de la liste des observateurs
     défini pour le module
@@ -362,7 +363,7 @@ def get_module_code_list(module):
         # Si c'est un module spécifique
         # Récupération de la liste des observateurs du module
         id_list = module.id_list_observer
-        menu = DB.session.scalar(select(UserList).where(UserList.id_liste == id_list))
+        menu = session.scalar(select(UserList).where(UserList.id_liste == id_list))
         return menu.code_liste
     else:
         # Sinon récupération du code défini au niveau du module monitoring

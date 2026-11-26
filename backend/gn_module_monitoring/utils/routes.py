@@ -12,6 +12,7 @@ from sqlalchemy import desc
 from sqlalchemy import cast, func, text, select, and_, Integer
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import load_only, aliased
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import Select
 
 from geonature.utils.env import DB
@@ -193,7 +194,7 @@ def query_all_types_site_from_site_id(id_site: int):
     return DB.session.scalars(query).unique().all()
 
 
-def query_all_types_site_from_module_id(id_module: int = None):
+def query_all_types_site_from_module_id(id_module: int = None, *, session: Session = DB.session):
     query = select(BibTypeSite)
     if id_module:
         query = query.join(
@@ -201,7 +202,7 @@ def query_all_types_site_from_module_id(id_module: int = None):
             BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
         )
         query = query.where(cor_module_type.c.id_module == id_module)
-    return DB.session.scalars(query).unique().all()
+    return session.scalars(query).unique().all()
 
 
 def sort_according_to_column_type_for_site(query, sort_label, sort_dir, specific_properties):

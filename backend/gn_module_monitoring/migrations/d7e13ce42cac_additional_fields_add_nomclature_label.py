@@ -10,6 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 import logging
 from sqlalchemy.sql import text
+from sqlalchemy.orm import Session
 from gn_module_monitoring.command.utils import installed_modules
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.config.utils import get_specific_properties
@@ -18,7 +19,7 @@ from gn_module_monitoring.config.utils import get_specific_properties
 revision = "d7e13ce42cac"
 down_revision = "bbdd47114b4d"
 branch_labels = None
-depends_on = None
+depends_on = "0444c425fa27"  # GeoNature : gn_commons.t_modules.support_additional_fields (lu via TModules dans get_config)
 
 log = logging.getLogger(__name__)
 
@@ -49,8 +50,10 @@ def upgrade():
 
     for id_module, module_code in rows:
         log.info(f"upgrade module {module_code}")
-        # Get config
-        config = get_config(module_code, force=True)
+        # Session sur la connexion d'alembic : DB.session serait bloquée par les verrous
+        # des révisions précédentes du même upgrade (ex. 05288e58df3e)
+        with Session(bind=conn, join_transaction_mode="create_savepoint") as session:
+            config = get_config(module_code, force=True, session=session)
         if not config:
             continue
 
