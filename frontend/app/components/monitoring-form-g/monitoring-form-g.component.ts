@@ -1,7 +1,14 @@
 import { forkJoin, Observable, of, EMPTY, Subscription } from 'rxjs';
 import { concatMap, debounceTime } from 'rxjs/operators';
 import { Component, OnInit, Input, AfterViewInit, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
+import {
+  AbstractControl,
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormControl,
+  FormArray,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
@@ -108,8 +115,16 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         this.form.patchValue(formValue);
         this.initialFormValue = this.form.value;
       },
-      complete: () => setTimeout(() => (this.formReady = true)),
-      error: () => setTimeout(() => (this.formReady = true)),
+      complete: () =>
+        setTimeout(() => {
+          this.formReady = true;
+          this.logFormValidity();
+        }),
+      error: () =>
+        setTimeout(() => {
+          this.formReady = true;
+          this.logFormValidity();
+        }),
     });
 
     // Affichage de la geometrie des sites et groupes de sites du module
@@ -738,7 +753,50 @@ export class MonitoringFormGComponent implements OnInit, AfterViewInit {
         this.validationError = this.checkEntityValidateCel(value);
         this.fieldErrors = this.checkFieldValidateCel(value);
         this.logHiddenRequiredEmptyFields(value);
+        this.logFormValidity();
       });
+  }
+
+  /**
+   * Liste dans la console tous les contrôles en erreur du formulaire (récursif : groupes et
+   * tableaux inclus), avec leur chemin et leurs erreurs Angular (`required`, `minlength`...).
+   * Explique un bouton de validation désactivé (`!form.valid`) ou en attente (`!formReady`).
+   */
+  private collectInvalidControls(
+    control: AbstractControl,
+    path: string,
+    out: { path: string; errors: any }[]
+  ): void {
+    if (control.status !== 'INVALID') {
+      return;
+    }
+    if (control instanceof FormGroup || control instanceof FormArray) {
+      // Object.entries donne aussi les index d'un FormArray
+      for (const [key, child] of Object.entries(control.controls)) {
+        this.collectInvalidControls(child, path ? `${path}.${key}` : key, out);
+      }
+    }
+    if (control.errors) {
+      out.push({ path: path || '(formulaire)', errors: control.errors });
+    }
+  }
+
+  /** Journalise l'état de validation du formulaire et la liste des contrôles en erreur. */
+  private logFormValidity(): void {
+    if (!this.formReady) {
+      console.log('[FORM] formReady = false : bouton de validation désactivé (chargement en cours)');
+    }
+    const invalid: { path: string; errors: any }[] = [];
+    this.collectInvalidControls(this.form, '', invalid);
+    if (!invalid.length) {
+      return;
+    }
+    console.log(
+      `[FORM] Formulaire invalide : ${invalid.length} contrôle(s) en erreur (bouton de validation désactivé)`
+    );
+    for (const item of invalid) {
+      console.log(`[FORM]   - ${item.path} :`, item.errors);
+    }
   }
 
   /** Définitions de tous les champs du formulaire, avec `hidden` et `required` évaluables. */
