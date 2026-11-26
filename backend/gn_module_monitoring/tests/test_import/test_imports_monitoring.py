@@ -21,21 +21,33 @@ occhab = pytest.importorskip("gn_module_occhab")
 
 from gn_module_occhab.models import OccurenceHabitat, Station
 
+WKT_IMPORT_FILES = ("valid_wkt.csv", "invalid_wkt.csv")
+
+def observers_list(users):
+    """Liste d'observateurs du module de test, qui contient les utilisateurs de test."""
+    user_list = UserList(code_liste="test_import", nom_liste="Observateurs (test import)")
+    user_list.users = list(users.values())
+    with db.session.begin_nested():
+        db.session.add(user_list)
+    return user_list
+
+
 # ######################################################################################
 # Fixtures -- override default values
 # ######################################################################################
 
 
 @pytest.fixture()
-def install_test_module_with_import(install_module_test):
+def install_test_module_with_import(install_module_test, datasets, users):
     module_test = db.session.execute(
         sa.select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one_or_none()
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(sa.select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(sa.select(UserList.id_liste).limit(1))
+        module_test.id_list_observer = observers_list(users).id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
+        module_test.datasets.append(datasets["orphan_dataset"])
         db.session.add(module_test)
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
@@ -51,19 +63,13 @@ def install_test_module_with_import(install_module_test):
         )
     ).all()
 
+    # Champs spécifiques des types de site (roost_type, owner_*, ...) : non fusionnés dans les bib_fields
+    # du module tant que P1 (TASKS.md, « Champs spécifiques des types de site ») n'est pas fait.
     assert set(
         [
-            "s__roost_type",
             "s__meteo",
-            "s__place_name",
-            "s__owner_name",
-            "s__owner_adress",
-            "s__owner_tel",
-            "s__owner_mail",
-            "s__opening",
-            "s__threat",
-            "s__recommandation",
-            "s__meteo_gite",
+            "s__base_site_code",
+            "s__base_site_name",
         ]
     ).issubset(set([f.name_field for f in site_fields]))
 
@@ -111,26 +117,27 @@ def fieldmapping(
     fieldmapping_preset_name,
     preset_fieldmapping,
     types_site,
+    users,
 ):
-    return {
+    mapping = {
         "uuid_base_site": {"column_src": "uuid_base_site"},
         "s__base_site": {"column_src": "s__base_site"},
-        "s__id_inventor": {"constant_value": {"id_role": 3}},
+        "s__id_inventor": {"constant_value": {"id_role": users["user"].id_role}},
         "s__base_site_code": {"column_src": "s__base_site_code"},
         "s__base_site_name": {"column_src": "s__base_site_name"},
         "s__base_site_description": {"column_src": "s__base_site_description"},
         "s__first_use_date": {"column_src": "s__first_use_date"},
         "s__meteo": {"column_src": "s__meteo"},
+        "s__roost_type": {"column_src": "s__roost_type"},
         "s__profondeur_grotte": {"column_src": "s__profondeur_grotte"},
         "s__contact_name": {"column_src": "s__contact_name"},
         "s__types_site": {
             "constant_value": [list(types_site.values())[0].id_nomenclature_type_site]
         },
-        "s__roost_type": {"column_src": "s__roost_type"},
-        "y": {"column_src": "y"},
-        "x": {"column_src": "x"},
+        "s__y": {"column_src": "y"},
+        "s__x": {"column_src": "x"},
         "uuid_base_visit": {"column_src": "uuid_base_visit"},
-        "unique_dataset_id": {"column_src": "id_dataset"},
+        "uuid_dataset": {"column_src": "id_dataset"},
         "v__visit_date_min": {"column_src": "v__visit_date_min"},
         "v__visit_date_max": {"column_src": "v__visit_date_max"},
         "v__meteo": {"column_src": "v__meteo"},
@@ -139,6 +146,10 @@ def fieldmapping(
         "o__cd_nom": {"column_src": "o__cd_nom"},
         "o__comments": {"column_src": "o__comments"},
     }
+    if import_file_name in WKT_IMPORT_FILES:
+        # Géométrie en WKT (colonne source `s__geom`), x et y vides dans ces fichiers
+        mapping["s__geom"] = {"column_src": "s__geom"}
+    return mapping
 
 
 @pytest.fixture()
@@ -189,6 +200,16 @@ def add_in_contentmapping():
             "Nuageux": "METEO_N",
             "Mauvais": "METEO_M",
         }
+    }
+
+
+@pytest.fixture()
+def observers_mapping(users):
+    """Noms d'observateurs des fichiers de test (colonne v__observers)."""
+    return {
+        "test_user1": {"id_role": users["user"].id_role},
+        "test_user2": {"id_role": users["noright_user"].id_role},
+        "test_user3": {"id_role": users["stranger_user"].id_role},
     }
 
 
@@ -302,3 +323,89 @@ class TestImportMonitoring:
         )
         for entity in entities:
             assert entity.label == new_label
+
+
+# Coordonnées des sites (uuid_base_site) des fichiers valid_hierarchy_comma.csv / valid_wkt.csv
+SITE_POINTS_4326 = {
+    "550e8400-e29b-41d4-a716-446655440002": (6.0531825, 44.5764805),
+    "01b93717-ab9a-482c-a852-4e6f61ae2ac0": (6.762981626694984, 44.88250842566327),
+    "4d514a15-6e9b-446a-aafe-1d22fad066e5": (6.834298469329738, 44.82957727096802),
+}
+
+
+def _import_sites_geometry(id_import):
+    """Géométrie 4326 (X, Y, SRID), présence et SRID de geom_local des sites d'un import (SELECT)."""
+    return {
+        str(row.uuid_base_site): row
+        for row in db.session.execute(
+            sa.text("""
+                SELECT uuid_base_site,
+                       ST_SRID(geom) AS srid,
+                       ST_X(geom) AS x,
+                       ST_Y(geom) AS y,
+                       geom_local IS NOT NULL AS has_geom_local,
+                       ST_SRID(geom_local) AS srid_local
+                FROM gn_monitoring.t_base_sites
+                WHERE id_import = :id_import
+                """),
+            {"id_import": id_import},
+        ).all()
+    }
+
+
+@pytest.mark.usefixtures(
+    "client_class",
+    "temporary_transaction",
+    "celery_eager",
+    "install_test_module_with_import",
+    "import_destination",
+    "default_import_destination",
+    "module_code",
+    "fieldmapping_preset_name",
+    "testfiles_folder",
+    "contentmapping_preset_name",
+)
+class TestImportMonitoringGeometry:
+    @pytest.mark.parametrize(
+        "autogenerate, import_file_name,fieldmapping_preset_name",
+        [
+            (False, "valid_hierarchy_comma.csv", None),  # x/y -> POINT construit
+            (False, "valid_wkt.csv", None),  # WKT valide
+        ],
+    )
+    def test_import_site_geometry(self, imported_import):
+        """Import x/y ou WKT : géométrie 4326 du site = POINT(x y), geom_local renseignée (SRID local)."""
+        assert_import_errors(imported_import, set([]))
+        sites = _import_sites_geometry(imported_import.id_import)
+        assert set(sites) == set(SITE_POINTS_4326)
+        srid_local = db.session.scalar(
+            sa.text("SELECT Find_SRID('gn_monitoring', 't_base_sites', 'geom_local')")
+        )
+        for uuid, (x, y) in SITE_POINTS_4326.items():
+            site = sites[uuid]
+            assert site.srid == 4326
+            assert (site.x, site.y) == pytest.approx((x, y), abs=1e-9)
+            assert site.has_geom_local
+            assert site.srid_local == srid_local
+
+    @pytest.mark.parametrize(
+        "autogenerate, import_file_name,fieldmapping_preset_name",
+        [(False, "invalid_wkt.csv", None)],
+    )
+    def test_import_invalid_wkt_rows_have_no_geometry(self, imported_import):
+        """Un WKT 3D et un WKT non parsable sont rejetés : pas de site ni de geom_local pour ces lignes."""
+        invalid_wkt_rows = set()
+        for error in imported_import.errors:
+            if error.type.name == "INVALID_WKT":
+                assert error.column == "WKT"
+                invalid_wkt_rows |= set(error.rows or [])
+        # Numéros de ligne du fichier (en-tête = ligne 1) : lignes 5 et 6 (WKT 3D, site 01b93717)
+        # et 7 (WKT non parsable, site 4d514a15)
+        assert invalid_wkt_rows == {5, 6, 7}
+        sites = _import_sites_geometry(imported_import.id_import)
+        valid_uuid = "550e8400-e29b-41d4-a716-446655440002"
+        assert set(sites) == {valid_uuid}
+        assert (sites[valid_uuid].x, sites[valid_uuid].y) == pytest.approx(
+            SITE_POINTS_4326[valid_uuid], abs=1e-9
+        )
+        assert sites[valid_uuid].has_geom_local

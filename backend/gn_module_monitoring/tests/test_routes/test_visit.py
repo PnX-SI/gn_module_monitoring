@@ -23,7 +23,11 @@ def module_test_visit(types_site, users):
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(select(UserList.id_liste).limit(1))
+        # Liste d'observateurs du module : contient l'utilisateur administrateur (observers des visites)
+        observers_list = db.session.get(UserList, db.session.scalar(select(UserList.id_liste).limit(1)))
+        if users["admin_user"] not in observers_list.users:
+            observers_list.users.append(users["admin_user"])
+        module_test.id_list_observer = observers_list.id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
         db.session.add(module_test)
 
@@ -57,7 +61,7 @@ class TestVisits:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_visits",
+                "monitorings.api.get_visits",
             )
         )
 
@@ -72,7 +76,7 @@ class TestVisits:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_visits",
+                "monitorings.api.get_visits",
                 id_base_site=site.id_base_site,
             )
         )
@@ -92,7 +96,7 @@ class TestVisits:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_visit_by_id",
+                "monitorings.api.get_visit_by_id",
                 module_code="test",
                 id=visit.id_base_visit,
             )
@@ -108,13 +112,31 @@ class TestVisits:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_visit_by_id",
+                "monitorings.api.get_visit_by_id",
                 module_code="test",
                 id=999999999,
             )
         )
 
         assert r.status_code == 404
+
+    def test_get_visits_filters_dataset(self, visits_routes, users, datasets):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        test_data = (
+            ("orphan_dataset", "id_dataset", len(visits_routes)),
+            ("orphan_dataset", "dataset_name", len(visits_routes)),
+            ("own_dataset", "id_dataset", 0),
+            ("own_dataset", "dataset_name", 0),
+        )
+        for key, value, expected in test_data:
+            r = self.client.get(
+                url_for(
+                    "monitorings.api.get_visits",
+                    module_code="test",
+                    id_dataset=getattr(datasets[key], value),
+                )
+            )
+            assert len(r.json["items"]) == expected
 
     def test_post_visit(self, visits_routes, sites, users):
         set_logged_user_cookie(self.client, users["admin_user"])
@@ -124,11 +146,12 @@ class TestVisits:
             "id_base_site": site.id_base_site,
             "visit_date_min": "2024-01-01",
             "id_dataset": visits_routes[0].id_dataset,
+            "observers": [users["admin_user"].id_role],
         }
 
         r = self.client.post(
             url_for(
-                "monitorings.post_visit",
+                "monitorings.api.post_visit",
                 module_code="test",
             ),
             json=data,
@@ -144,11 +167,12 @@ class TestVisits:
         data = {
             "id_base_site": visit.id_base_site,
             "visit_date_min": "2024-02-02",
+            "observers": [users["admin_user"].id_role],
         }
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_visit",
+                "monitorings.api.patch_visit",
                 module_code="test",
                 _id=visit.id_base_visit,
             ),
@@ -164,7 +188,7 @@ class TestVisits:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_visit",
+                "monitorings.api.patch_visit",
                 module_code=module_code,
                 _id=999999999,
             ),
@@ -179,7 +203,7 @@ class TestVisits:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_visit",
+                "monitorings.api.delete_visit",
                 _id=visit.id_base_visit,
                 module_code="test",
             )
@@ -190,7 +214,7 @@ class TestVisits:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_visit_by_id",
+                "monitorings.api.get_visit_by_id",
                 module_code="test",
                 id=visit.id_base_visit,
                 object_type="visit",
@@ -202,7 +226,7 @@ class TestVisits:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_visit", _id=999999999, module_code="test")
+            url_for("monitorings.api.delete_visit", _id=999999999, module_code="test")
         )
 
         assert r.status_code == 404

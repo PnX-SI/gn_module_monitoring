@@ -1,0 +1,41 @@
+{
+  "module_label": "Démo",
+  "module_desc": "Module de démonstration couvrant les entités, champs, widgets, stores et règles CEL du module monitoring",
+  "b_draw_sites_group": true,
+  "export_csv": [
+    {
+      "label": "Liste des sites",
+      "type": "csv",
+      "method": "sites"
+    },
+    {
+      "label": "Observations (filtre par jeu de données)",
+      "type": "csv",
+      "method": "obs",
+      "filter_dataset": true
+    }
+  ],
+  "specific": {
+    "demo_contact": {
+      "type_widget": "text",
+      "attribut_label": "Contact du protocole",
+      "value": "contact@example.org",
+      "required": true
+    },
+    "demo_mode": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Mode",
+        "values": ["simple", "complet"]
+      },
+      "required": true
+    },
+    "demo_notes": {
+      "widget": {
+        "type": "textarea",
+        "attribut_label": "Notes",
+        "hidden_cel": "fields.demo_mode != 'complet'"
+      }
+    }
+  }
+}

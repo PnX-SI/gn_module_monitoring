@@ -10,6 +10,8 @@ from pypnnomenclature.models import BibNomenclaturesTypes, TNomenclatures
 
 from geonature.core.gn_monitoring.models import BibTypeSite
 
+from gn_module_monitoring.command.nomenclature import add_nomenclature
+
 
 def get_test_data(filename):
     folder_path = os.path.abspath(os.path.dirname(__file__))
@@ -45,7 +47,14 @@ def nomenclature_types_site():
 
 
 @pytest.fixture
-def types_site(nomenclature_types_site):
+def test_module_nomenclatures(nomenclature_types_site):
+    # config_type_site.json référence le type TEST_METEO, déclaré dans le nomenclature.json du module
+    # « test » : sans cette insertion, il n'existe pas en base (la fixture du module n'est pas toujours là)
+    add_nomenclature("test")
+
+
+@pytest.fixture
+def types_site(nomenclature_types_site, test_module_nomenclatures):
     config_type_site = get_test_data("config_type_site.json")
     types_site = {
         nomenc_type_site.label_default: BibTypeSite(

@@ -9,19 +9,17 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from gn_module_monitoring.command.imports.constant import (
     ENTITIES_NOT_AVAILABLE,
-    ID_FIELD_NAME,
     TABLE_NAME_SUBMODULE,
     TOOLTIPS,
-    UUID_FIELD_NAME,
+    entity_import_field_name,
 )
 from gn_module_monitoring.command.imports.fields import get_themes_dict
-from gn_module_monitoring.config.utils import json_from_file, monitoring_module_config_path
 from gn_module_monitoring.utils.utils import extract_keys
 
 
 def get_entities_protocol(module_code: str) -> list:
     """
-    Extrait les entités à partir du fichier de configuration pour un module donné.
+    Extrait les entités importables d'un module, à partir de la configuration v3 (`get_module`).
 
     Parameters
     ----------
@@ -33,20 +31,17 @@ def get_entities_protocol(module_code: str) -> list:
         list
             Liste des entités du module.
     """
-    module_path = monitoring_module_config_path(module_code)
+    # Import local : évite le cycle command.imports -> modules -> config -> command.imports
+    from gn_module_monitoring.modules import get_module
 
-    if not (module_path / "config.json").is_file():
-        raise Exception(f"Le fichier config.json est manquant pour le module {module_code}")
-
-    data_config = json_from_file(module_path / "config.json")
-    tree = data_config.get("tree", {}).get("module", {})
+    tree = get_module(module_code)["tree"]["module"]
     keys = extract_keys(tree)
     return [key for key in list(dict.fromkeys(keys)) if key not in ENTITIES_NOT_AVAILABLE]
 
 
 def get_entity_parent(tree: dict, entity_code: str):
     """
-    Trouve le parent d'une entité à l'aide de la configuration du protocole (`config.json`).
+    Trouve le parent d'une entité dans l'arbre du module (`module["tree"]["module"]`, configuration v3).
     """
 
     def find_parent(node, target, parent=None):
@@ -67,8 +62,8 @@ def insert_entities(
     unique_fields: dict, id_destination: int, entity_hierarchy_map: dict, module_code: str
 ):
     """
-    Insère ou met à jour les entités dans `bib_entities` en respectant la hiérarchie des entités disponibles dans le
-    fichier `config.json` du protocole.
+    Insère ou met à jour les entités dans `bib_entities` en respectant la hiérarchie des entités de l'arbre
+    du module (configuration v3).
     Les entités sont insérées/mises à jour en fonction de leur parent.
 
     Parameters
@@ -87,14 +82,18 @@ def insert_entities(
         dict
             Dictionnaire contenant les identifiants des entités insérées/mises à jour.
     """
+    # Import local : évite le cycle command.imports -> modules -> config -> command.imports
+    from gn_module_monitoring.modules.entities import ENTITY_MAP
+
     inserted_entity_ids = {}
     order = 1
 
     for entity_code in get_entities_protocol(module_code):
         entity_data = unique_fields[entity_code]
         entity_config = entity_hierarchy_map.get(entity_code)
-        id_field_name = ID_FIELD_NAME[entity_code]
-        uuid_field_name = UUID_FIELD_NAME[entity_code]
+        import_actions_class = ENTITY_MAP[entity_code].import_actions_class
+        id_field_name = import_actions_class.ID_FIELD
+        uuid_field_name = import_actions_class.UUID_FIELD
         parent_entity = entity_config["parent_entity"]
 
         id_field = DB.session.scalar(
@@ -250,14 +249,14 @@ def insert_entity_field_relations(
             )
             get_cor_entity_field(
                 entity_id=entity_id,
-                field_name=f"uuid_base_{parent_code}",
+                field_name=entity_import_field_name(parent_code, f"uuid_base_{parent_code}"),
                 id_destination=id_destination,
                 bib_themes=bib_themes,
                 is_parent_link=True,
             )
             get_cor_entity_field(
                 entity_id=entity_id,
-                field_name=f"id_base_{parent_code}_origin",
+                field_name=entity_import_field_name(parent_code, f"id_base_{parent_code}_origin"),
                 id_destination=id_destination,
                 bib_themes=bib_themes,
                 is_parent_link=True,

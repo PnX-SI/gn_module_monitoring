@@ -1,0 +1,27 @@
+/* Invitation à configurer le module, affichée tant que celui-ci n'est pas configuré */
+.module-setup {
+  margin-bottom: 1rem;
+  border: 1px dashed #b8b8c4;
+  box-shadow: none;
+}
+
+.module-setup mat-card-content {
+  max-width: 60ch;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.9rem;
+
+  &__title {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  &__intro {
+    margin: 0 0 1rem;
+    color: #5f6368;
+  }
+  &__no-permission {
+    margin: 0;
+    color: #5f6368;
+    font-style: italic;
+  }
+}

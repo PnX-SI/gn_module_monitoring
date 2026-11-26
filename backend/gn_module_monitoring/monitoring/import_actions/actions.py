@@ -1,6 +1,7 @@
 from math import ceil
 
 from geonature.core.imports.models import BibFields
+from geoalchemy2 import Geometry
 from geonature.core.gn_monitoring.models import (
     TBaseSites,
     TBaseVisits,
@@ -15,9 +16,16 @@ from gn_module_monitoring.monitoring.models import (
 )
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased, joinedload
-from geonature.core.imports.actions import ImportActions, ImportStatisticsLabels
-from geonature.core.imports.checks.sql.core import check_orphan_rows, init_rows_validity
+from geonature.core.imports.actions import (
+    ImportActions,
+    ImportStatisticsLabels,
+    import_hook,
+)
 from geonature.core.imports.models import Entity, TImports
+from geonature.core.imports.checks.dataframe.cast import check_types
+from geonature.core.imports.checks.dataframe.utils import dataframe_check
+from geonature.core.imports.checks.errors import ImportCodeError
+from geonature.core.imports.utils import get_mapping_data
 from geonature.core.gn_monitoring.models import CorVisitObserver
 
 
@@ -29,12 +37,44 @@ import typing
 
 
 from .entity_import_actions_utils import EntityImportActionsUtils
-from gn_module_monitoring.monitoring.import_actions.site_actions import SiteImportActions
-from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+from gn_module_monitoring.command.imports.constant import (
+    entity_import_field_name,
+    geom_local_column_name,
+)
+from gn_module_monitoring.monitoring.import_actions.geometry import (
+    fill_entity_wkt_from_xy,
+    get_geom_field_name,
+)
+from gn_module_monitoring.monitoring.import_actions.rows import build_schema_rows
+from gn_module_monitoring.tools.stores.relationships.cache import (
+    CACHE_CONTEXT_KEY,
+    RelationshipCache,
+)
+from gn_module_monitoring.tools.stores.relationships.m2m import BaseManyToManyStore
+from gn_module_monitoring.tools.stores.relationships.m2o import BaseForeignKeyStore
+from gn_module_monitoring.tools.stores.type import GeometryStore
+from gn_module_monitoring.tools.utils import schema_context
+from gn_module_monitoring.monitoring.import_actions.site_actions import (
+    SiteImportActions,
+)
+from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+    VisitImportActions,
+)
 from gn_module_monitoring.monitoring.import_actions.observation_actions import (
     ObservationImportActions,
 )
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from marshmallow import EXCLUDE
+import pandas as pd
+
+# Champs de configuration exclus de la validation par le schéma étendu, par code d'entité
+# Champs exclus du schéma étendu à l'import : identifiant, UUID de l'entité et identifiant du parent,
+# déjà contrôlés par les checks SQL.
+EXTENDED_SCHEMA_EXCLUDE: dict[str, tuple] = {
+    "site": ("id_base_site", "uuid_base_site"),
+    "visit": ("id_base_visit", "uuid_base_visit", "id_base_site"),
+    "observation": ("id_observation", "uuid_observation", "id_base_visit"),
+}
 
 
 def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
@@ -44,6 +84,155 @@ def get_entities(imprt: TImports) -> typing.Tuple[Entity, Entity, Entity]:
         code="observation", id_destination=imprt.destination.id_destination
     ).one()
     return entity_site, entity_visit, entity_observation
+
+
+def get_fields_to_cast(fields: dict, transient_table) -> dict:
+    """
+    Champs de `fields` à caster par check_types : tous, sauf ceux dont la colonne de destination dans la
+    table transitoire est une géométrie. Les champs sans colonne de destination ne sont pas concernés.
+    """
+    return {
+        name: field
+        for name, field in fields.items()
+        if not (
+            field.dest_field
+            and field.dest_field in transient_table.c
+            and isinstance(transient_table.c[field.dest_field].type, Geometry)
+        )
+    }
+
+
+def _schema_error_fields(messages: dict):
+    """Noms des champs en erreur dans les messages marshmallow (`_schema` pour les contraintes d'entité)."""
+    for name, detail in messages.items():
+        # Seuls les champs supplémentaires sont regroupés (sous `data`). Une liste (ex. observers)
+        # donne un dict indexé par position : c'est le champ lui-même qui est en erreur.
+        if name == "data" and isinstance(detail, dict):
+            yield from _schema_error_fields(detail)
+        else:
+            yield name
+
+
+def _source_value_present(df: pd.DataFrame, import_name: str, position: int) -> bool:
+    """Vrai si la colonne source du champ contient une valeur pour la ligne `position`."""
+    source = f"src_{import_name}"
+    return source in df.columns and pd.notna(df[source].iloc[position])
+
+
+@dataframe_check
+def check_extended_schema(df: pd.DataFrame, schema_errors: dict, rows: list[dict], module_entity):
+    """
+    Traduit les erreurs du schéma étendu de l'entité (`schema.validate(rows, many=True)`, indexées par
+    position de ligne) en erreurs du cœur.
+
+    - champ requis absent ou vide : MISSING_VALUE ;
+    - champ géométrie (WKT invalide ou type non autorisé) : INVALID_WKT ;
+    - autre champ, ou contrainte d'entité (`_schema`) : CONDITIONAL_INVALID_DATA.
+
+    La colonne est le nom d'import du champ (`name_field`), ou un libellé pour `_schema`.
+    """
+    fields = module_entity.data["fields"]
+    required = {name for name, field in fields.items() if field["store"].required}
+    geometry = {
+        name for name, field in fields.items() if isinstance(field["store"], GeometryStore)
+    }
+
+    positions_by_error: dict[tuple[str, str], list[int]] = {}
+    for position, messages in schema_errors.items():
+        for field_name in _schema_error_fields(messages):
+            if field_name == "_schema":
+                error_code, column = (
+                    ImportCodeError.CONDITIONAL_INVALID_DATA,
+                    "Contraintes de l'entité",
+                )
+            else:
+                column = module_entity.import_actions_class.get_field_name(field_name)
+                if field_name in required and rows[position].get(field_name) is None:
+                    if _source_value_present(df, column, position):
+                        # Valeur présente dans le fichier mais non résolue (ex. nomenclature inconnue) :
+                        # son contrôle propre la signale (INVALID_NOMENCLATURE…), pas une absence
+                        continue
+                    error_code = ImportCodeError.MISSING_VALUE
+                elif field_name in geometry:
+                    # Colonne du fichier (libellé attendu par les erreurs WKT, comme check_wkt_geometries)
+                    error_code, column = ImportCodeError.INVALID_WKT, "WKT"
+                else:
+                    error_code = ImportCodeError.CONDITIONAL_INVALID_DATA
+            positions_by_error.setdefault((error_code, column), []).append(position)
+
+    for (error_code, column), positions in positions_by_error.items():
+        yield {
+            "error_code": error_code,
+            "column": column,
+            "invalid_rows": df.iloc[sorted(set(positions))],
+        }
+
+
+def prefetch_relationships(module_entity, rows: list[dict], excluded: tuple) -> RelationshipCache:
+    """
+    Cache des objets liés (m2o et m2m) référencés par les lignes du batch : chaque cible est chargée
+    en une requête par modèle, au lieu d'une requête par ligne et par champ lors de la validation.
+    Les champs de `excluded` ne sont pas validés par le schéma, ils ne sont donc pas pré-chargés.
+    """
+    cache = RelationshipCache()
+    for name, field in module_entity.data["fields"].items():
+        store = field["store"]
+        if name in excluded:
+            continue
+        if isinstance(store, BaseForeignKeyStore):
+            values = [row.get(name) for row in rows]
+        elif isinstance(store, BaseManyToManyStore):
+            values = [pk for row in rows if isinstance(row.get(name), list) for pk in row[name]]
+        else:
+            continue
+        # Seules les clés du type attendu sont chargées : les autres sont rejetées par le champ
+        pk_type = store.get_model_pk().type.python_type
+        pks = [value for value in values if isinstance(value, pk_type)]
+        if pks:
+            cache.prefetch(store.get_model(), pks)
+    return cache
+
+
+def check_extended_schema_batch(imprt: TImports, entity: Entity, df: pd.DataFrame) -> set:
+    """Valide les lignes du batch par le schéma étendu de l'entité du module de l'import."""
+    from gn_module_monitoring.modules import get_module
+
+    module_entity = get_module(imprt.destination.code).entities[entity.code]
+    # Champs de l'entité absents du mapping (ni colonne du fichier, ni constante) : renseignés par l'import
+    # (ex. id_digitiser) ou facultatifs pour ce fichier. Ils ne sont pas validés comme requis.
+    mapped_import_names = set((imprt.fieldmapping or {}).keys())
+    not_provided = tuple(
+        name
+        for name, field in module_entity.data["fields"].items()
+        if field["store"].native_attr is not None
+        and not isinstance(field["store"], GeometryStore)  # fournie par WKT, ou x/y
+        and module_entity.import_actions_class.get_field_name(name) not in mapped_import_names
+    )
+    excluded = EXTENDED_SCHEMA_EXCLUDE.get(entity.code, ()) + not_provided
+    schema = module_entity.get_extended_schema()(
+        only=["+data"],
+        exclude=excluded,
+        unknown=EXCLUDE,
+        load_instance=False,
+    )
+    rows = build_schema_rows(df, entity.code, module_entity)
+    if entity.code == VisitImportActions.ENTITY_CODE:
+        # Le schéma de visite lit id_module dans la requête (g.current_module), absente hors API :
+        # on fournit le module de l'import, comme à l'insertion.
+        for row in rows:
+            row.setdefault("id_module", imprt.destination.id_module)
+    # Objets liés pré-chargés une fois pour tout le batch, lus par les stores via le schema_context
+    relationship_cache = prefetch_relationships(module_entity, rows, excluded)
+    # Le WKT source est lu au format WKT (SRID du fichier contrôlé par check_wkt_geometries).
+    # Chaque ligne est validée seule : avec many=True, marshmallow saute les validateurs de schéma
+    # (CEL) de toutes les lignes dès qu'une ligne a une erreur de champ.
+    with schema_context(geometry_format="wkt", **{CACHE_CONTEXT_KEY: relationship_cache}):
+        schema_errors = {}
+        for position, row in enumerate(rows):
+            messages = schema.validate(row)
+            if messages:
+                schema_errors[position] = messages
+    return check_extended_schema(imprt, entity, df, schema_errors, rows, module_entity)
 
 
 def get_entity_model(entity: Entity):
@@ -69,6 +258,14 @@ def get_entity_model_complements(entity: Entity):
 
 
 class MonitoringImportActions(ImportActions):
+    @staticmethod
+    def get_dataset_transient_column_name() -> str:
+        # Colonne transitoire du JDD de la visite, lue depuis son champ bib_fields. `name_field` n'est
+        # unique que par destination, mais `dest_column` est le même pour toutes : on prend le premier.
+        field = BibFields.query.filter_by(
+            name_field=entity_import_field_name("visit", "id_dataset")
+        ).first()
+        return field.dest_column
 
     @staticmethod
     def statistics_labels() -> typing.List[ImportStatisticsLabels]:
@@ -79,58 +276,30 @@ class MonitoringImportActions(ImportActions):
             {"key": "taxa_count", "value": "Nombre de taxons importés"},
         ]
 
-    # Some field params appears to be dynamic
-    # They must be handled on the fly
-    # Ex. process
-    # {
-    #   "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
-    #   ...
-    # }
-    # TO
-    # "api": "users/menu/2",
-    @staticmethod
-    def process_fields(destination, entities):
-        from gn_module_monitoring.config.repositories import get_config
-
-        config = get_config(destination.code)
-        customs = config["custom"]
-        for entity in entities:
-            for theme in entity["themes"]:
-                for field in theme["fields"]:
-                    type_field_params = field["type_field_params"]
-                    if isinstance(type_field_params, dict):
-                        for k, v in type_field_params.items():
-                            if isinstance(v, str):
-                                for c_k, c_v in customs.items():
-                                    if isinstance(c_v, (str, int, float)) and c_k in v:
-                                        v = v.replace(c_k, str(c_v))
-                                field["type_field_params"][k] = v
-
-        return entities
-
     # The output of this method is NEVER used
     @staticmethod
     def preprocess_transient_data(imprt: TImports, df) -> None:
         pass
 
     @staticmethod
-    def check_transient_data(task, logger, imprt: TImports) -> None:
-        from gn_module_monitoring.config.repositories import get_config
+    def get_source_cols(imprt: TImports, entity: Entity) -> typing.List[str]:
+        # All the fields are loaded: the CEL conditions may use any field of the entity
+        # Colonnes source (texte du fichier) et de destination (valeurs typées, mappées par check_pre)
+        return [
+            column
+            for ef in entity.fields
+            for column in (ef.field.source_field, ef.field.dest_field)
+            if column is not None
+        ]
 
-        config = get_config(imprt.destination.code)
+    @staticmethod
+    @import_hook(progress=0.1)
+    def check_transient_data_pre(task, logger, imprt: TImports, update_progress) -> None:
+        ImportActions.check_transient_data_pre(task, logger, imprt, update_progress)
 
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
-        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
-            imprt, ObservationImportActions.ENTITY_CODE
-        )
-
-        task.update_state(state="PROGRESS", meta={"progress": 0})
-        init_rows_validity(imprt)
-        task.update_state(state="PROGRESS", meta={"progress": 0.05})
-        check_orphan_rows(imprt)
-        task.update_state(state="PROGRESS", meta={"progress": 0.1})
 
         # We first check site and visit consistency in order to avoid checking
         # incoherent data
@@ -138,22 +307,63 @@ class MonitoringImportActions(ImportActions):
         if isVisit:
             VisitImportActions.check_entity_data_consistency(imprt)
 
+        # Mappings (nomenclatures, observateurs) : avant le schéma étendu, qui lit les valeurs mappées
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+        SiteImportActions.check_pre(imprt)
+        if isVisit:
+            VisitImportActions.check_pre(imprt)
+        if isObservation:
+            ObservationImportActions.check_pre(imprt)
+
+    @staticmethod
+    @import_hook(progress=0.4)
+    def check_transient_data_df_batch(
+        task, logger, imprt: TImports, entity: Entity, df, update_progress
+    ) -> set:
         # We run dataframes checks before SQL checks in order to avoid
         # check_types overriding generated values during SQL checks.
-        SiteImportActions.check_dataframe(imprt, config)
-        if isVisit:
-            VisitImportActions.check_dataframe(imprt)
-        if isObservation:
-            ObservationImportActions.check_dataframe(imprt)
+        fields, _, _ = get_mapping_data(imprt, entity)
 
-        SiteImportActions.check_sql(imprt)
+        # Les champs géométrie (colonne transitoire de type Geometry) sont lus et convertis par les
+        # contrôles géométrie : check_types ne doit pas les caster.
+        fields_to_cast = get_fields_to_cast(fields, imprt.destination.get_transient_table())
+        updated_cols = check_types(
+            imprt, entity, df, fields_to_cast
+        )  # FIXME do not check site and visit uuid twice
+        if entity.code == SiteImportActions.ENTITY_CODE:
+            # x/y -> WKT source (si WKT vide), après check_types, avant le contrôle des champs requis
+            updated_cols |= fill_entity_wkt_from_xy(imprt, entity, df)
+        # Champs requis, types et contraintes CEL : schéma étendu de l'entité
+        updated_cols |= check_extended_schema_batch(imprt, entity, df)
+
+        if entity.code == SiteImportActions.ENTITY_CODE:
+            updated_cols |= SiteImportActions.check_df_batch(imprt, entity, df)
+        elif entity.code == VisitImportActions.ENTITY_CODE:
+            updated_cols |= VisitImportActions.check_df_batch(imprt, entity, df)
+        return updated_cols
+
+    @staticmethod
+    @import_hook(progress=0.5)
+    def check_transient_data_post(task, logger, imprt: TImports, update_progress) -> None:
+        isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, VisitImportActions.ENTITY_CODE
+        )
+        isObservation = EntityImportActionsUtils.is_entity_defined_in_import(
+            imprt, ObservationImportActions.ENTITY_CODE
+        )
+
+        SiteImportActions.check_post(imprt)
         if isVisit:
-            VisitImportActions.check_sql(imprt)
+            VisitImportActions.check_post(imprt)
         if isObservation:
-            ObservationImportActions.check_sql(imprt)
+            ObservationImportActions.check_post(imprt)
 
     @staticmethod
     def import_data_to_destination(imprt: TImports) -> None:
+        # Import local : évite le cycle actions -> modules.entities -> models -> actions
+
         isVisit = EntityImportActionsUtils.is_entity_defined_in_import(
             imprt, VisitImportActions.ENTITY_CODE
         )
@@ -228,6 +438,20 @@ class MonitoringImportActions(ImportActions):
                     )
                 else:
                     complement_fields.append(field)
+
+            # Géométrie locale de l'entité : colonne annexe de la table transitoire, sans bib_fields
+            geom_field_name = get_geom_field_name(imprt, entity.code)
+            if geom_field_name is not None:
+                geom_local_column = geom_local_column_name(geom_field_name)
+                if (
+                    geom_local_column in transient_table.c
+                    and geom_local_column in destination_col_names
+                    and geom_local_column not in core_dest_col_names
+                ):
+                    core_dest_col_names.append(geom_local_column)
+                    core_select_cols.append(
+                        transient_table.c[geom_local_column].label(geom_local_column)
+                    )
 
             if entity.code == "visit":
                 core_dest_col_names.append("id_module")
@@ -335,7 +559,8 @@ class MonitoringImportActions(ImportActions):
                             obs_ordered_cte.c.id_observation, comp_cte.c.data
                         ).select_from(
                             obs_ordered_cte.join(
-                                comp_cte, obs_ordered_cte.c.row_num == comp_cte.c.row_num
+                                comp_cte,
+                                obs_ordered_cte.c.row_num == comp_cte.c.row_num,
                             )
                         )
 

@@ -38,9 +38,7 @@ export class ModulesComponent implements OnInit {
     this.bLoading = true;
 
     // Paramètre d'affichage
-    this.assetsDirectory = `${this._configServiceG.backendUrl()}/${
-      this._geonatureConfig.MEDIA_URL
-    }/monitorings/`;
+    this.assetsDirectory = `${this._geonatureConfig.API_ENDPOINT}/${this._geonatureConfig.MEDIA_URL}/monitorings/`;
     this.description = this._geonatureConfig.MONITORINGS.DESCRIPTION_MODULE;
     this.titleModule = this._geonatureConfig.MONITORINGS.TITLE_MODULE;
 

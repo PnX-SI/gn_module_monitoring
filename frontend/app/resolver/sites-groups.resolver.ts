@@ -125,8 +125,9 @@ export class SitesGroupsResolver
         ...sortObjetTypeInit,
         ...(configSchemaObjetType?.filters || {}),
       };
+      // Pas de récupération des données si le module n'est pas configuré
       $getObjetTypes =
-        permission > 0
+        permission > 0 && config.configured !== false
           ? objectService.getResolved(1, LIMIT, query_params)
           : of({ items: [], count: 0, limit: 0, page: 1 });
     }

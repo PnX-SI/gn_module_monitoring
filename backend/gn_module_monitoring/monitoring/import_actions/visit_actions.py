@@ -1,3 +1,5 @@
+from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
+from gn_module_monitoring.monitoring.import_actions.mappings import map_observers_to_dest
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
@@ -21,8 +23,6 @@ from geonature.core.imports.checks.sql import (
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
-    load_transient_data_in_dataframe,
-    update_transient_data_from_dataframe,
 )
 
 from geonature.core.imports.models import Entity, TImports
@@ -31,8 +31,9 @@ from geonature.core.imports.checks.dataframe.core import check_datasets
 from geonature.utils.env import db
 
 
-class VisitImportActions:
+class VisitImportActions(BaseImportActions):
     ENTITY_CODE = "visit"
+    FIELD_PREFIX = "v__"
     TABLE_NAME = "t_base_visits"
     ID_FIELD = "id_base_visit"
     ID_ORIGIN_FIELD = "id_base_visit_origin"
@@ -46,7 +47,18 @@ class VisitImportActions:
     LINE_NO = "visit_line_no"
 
     @staticmethod
-    def check_sql(imprt):
+    def check_pre(imprt):
+        """Mappings avant le schéma étendu : nomenclatures, observateurs de la visite."""
+        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+        observers_field = fieldmapped_fields.get("v__observers")
+        if observers_field is not None and imprt.fieldmapping["v__observers"].get("column_src"):
+            map_observers_to_dest(imprt, observers_field)
+
+    @staticmethod
+    def check_post(imprt):
         from gn_module_monitoring.monitoring.import_actions.site_actions import (
             SiteImportActions,
         )
@@ -101,8 +113,6 @@ class VisitImportActions:
             whereclause=None,
         )
 
-        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
-
         ## process parent uuid and id
         set_id_parent_from_destination(
             imprt,
@@ -131,45 +141,43 @@ class VisitImportActions:
         VisitImportActions.check_parent_validity(imprt)
 
     @staticmethod
-    def check_dataframe(imprt: TImports):
+    def check_df_batch(imprt: TImports, entity: Entity, df) -> set:
         """
-        Check the visit data before importing.
+        Check the visit data of one batch, in the dataframe.
 
-        List of checks and data operations (in order of execution):
+        List of checks (in order of execution):
         - check datasets
-        - check types
-        - check required values
 
         Parameters
         ----------
         imprt : TImports
             The import to check.
+        entity : Entity
+            The visit entity.
+        df : pandas.DataFrame
+            The visit data of the batch (loaded and written back by the core).
 
+        Returns
+        -------
+        set
+            Names of the columns modified in ``df``.
         """
-
-        entity = EntityImportActionsUtils.get_entity(imprt, VisitImportActions.ENTITY_CODE)
-
-        entity_fields, _, source_cols = get_mapping_data(imprt, entity)
+        entity_fields, _, _ = get_mapping_data(imprt, entity)
 
         # Save column names where the data was changed in the dataframe
         updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
-
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, entity_fields)
 
         updated_cols |= check_datasets(
             imprt,
             entity,
             df,
-            uuid_field=entity_fields["unique_dataset_id"],
-            id_field=entity_fields["id_dataset"],
+            uuid_field=entity_fields["uuid_dataset"],
+            id_field=entity_fields["v__id_dataset"],
             module_code=imprt.destination.module.module_code,
             object_code="MONITORINGS_VISITES",
         )
 
-        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
+        return updated_cols
 
     ## UUID visit and site should not be mandatory !
 

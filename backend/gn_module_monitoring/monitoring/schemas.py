@@ -1,24 +1,21 @@
 import geojson
-import json
 
 from operator import attrgetter
 from flask import g
 
 from typing import Dict, Any
 import marshmallow
-from geoalchemy2.shape import from_shape, to_shape
-from geojson import Feature
 from geonature.core.gn_commons.schemas import MediaSchema, ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite, TBaseSites
 from geonature.utils.env import MA
 from geonature.utils.schema import CruvedSchemaMixin
-from marshmallow import Schema, ValidationError, fields, post_dump, pre_load, validate
+from utils_flask_sqla.schema import SmartRelationshipsMixin
+from marshmallow import Schema, fields, post_dump, pre_load, validate
 from marshmallow_sqlalchemy import auto_field
 from marshmallow_sqlalchemy.fields import Related, RelatedList
 from pypnusershub.db.models import User
-from shapely.geometry import shape
-from utils_flask_sqla_geo.utilsgeometry import remove_third_dimension
 
+from gn_module_monitoring.tools.geometry import GeojsonSerializationField
 from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
     TMonitoringMarkingEvent,
@@ -46,18 +43,18 @@ def add_specific_attributes(schema, object_type, module_code):
     à la classe 'schema' passée en argument."""
 
     # FIXME: déplacer ces imports hors de la fonction mais il faut résoudre un pb de circular import
-    from gn_module_monitoring.config.repositories import get_config
+    from gn_module_monitoring.modules import get_module
     from gn_module_monitoring.monitoring.definitions import (
         MonitoringModels_dict,
         MonitoringObjects_dict,
     )
     from gn_module_monitoring.monitoring.geom import MonitoringObjectGeom
-    from gn_module_monitoring.config.utils import get_specific_properties
 
     model_class = MonitoringModels_dict[object_type]
 
-    config = get_config(module_code)
-    specific_properties = get_specific_properties(model_class, config, object_type).keys()
+    # Une entité absente de l'arbre du module n'a pas de propriétés spécifiques
+    entity = get_module(module_code).entities.get(object_type)
+    specific_properties = entity.extra_fields().keys() if entity is not None else []
 
     def create_getter(key):
         return lambda obj: (obj.data or {}).get(key)
@@ -68,9 +65,6 @@ def add_specific_attributes(schema, object_type, module_code):
 
     monitoring_object_class = MonitoringObjects_dict[object_type]
     parameters = {"model": model_class, "exclude": [], "include_fk": True}
-    # Certains modèles (ex: individus) n'ont pas de colonne data
-    if hasattr(model_class, "data"):
-        parameters["exclude"].append("data")
     if issubclass(monitoring_object_class, MonitoringObjectGeom):
         parameters["exclude"].extend(["geom_geojson"])
     if issubclass(model_class, TBaseSites):
@@ -121,10 +115,11 @@ class GenericAdditionalSchema(Schema):
     def add_additional_fields(self, data, **kwargs) -> Dict[str, Any]:
         # Cas des propriétés renseignées dans d'autre module
         #  Ajout manuel des propriétés manquantes
-
         additional_fields_data: dict[str, Any] = data.pop("data", {})
+
         if not additional_fields_data:
             return data
+
         # Initialiser `additional_data_keys` si absent
         if "additional_data_keys" not in data:
             data["additional_data_keys"] = []
@@ -142,7 +137,7 @@ class GenericAdditionalSchema(Schema):
         return data
 
 
-class MonitoringCruvedSchemaMixin(CruvedSchemaMixin):
+class MonitoringCruvedSchemaMixin(CruvedSchemaMixin, SmartRelationshipsMixin):
 
     @property
     def __module_code__(self):
@@ -195,32 +190,6 @@ class MonitoringModuleSchema(MA.SQLAlchemyAutoSchema):
         return "id_module"
 
 
-# PATCH : To move in utils_flask_sqla_geo
-class GeojsonSerializationField(fields.Field):
-
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return value
-        else:
-            if type(value).__name__ == "WKBElement":
-                feature = Feature(geometry=to_shape(value))
-                return feature.geometry
-            else:
-                return None
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        if not value:
-            return None
-        try:
-            if isinstance(value, str):
-                value = json.loads(value)
-            shape_ = shape(value)
-            two_dimension_geom = remove_third_dimension(shape_)
-            return from_shape(two_dimension_geom, srid=4326)
-        except Exception as error:
-            raise ValidationError("Geometry error") from error
-
-
 class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
     class Meta:
@@ -261,7 +230,7 @@ class MonitoringSitesGroupsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesGroupsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesGroupsSchema):
-    pass
+    __object_code__ = "MONITORINGS_GRP_SITES"
 
 
 class BibTypeSiteSchema(MA.SQLAlchemyAutoSchema):
@@ -292,6 +261,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     id_sites_group = auto_field(allow_none=True)
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
+    nb_marking_events = fields.Integer(dump_only=True)
     last_visit = fields.Date(dump_only=True)
     first_use_date = fields.Date()
     geom = GeojsonSerializationField()
@@ -313,7 +283,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringSitesSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringSitesSchema):
-    pass
+    __object_code__ = "MONITORINGS_SITES"
 
 
 class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
@@ -353,7 +323,7 @@ class MonitoringVisitsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringVisitsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringVisitsSchema):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
@@ -392,7 +362,7 @@ class MonitoringObservationsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
@@ -440,7 +410,7 @@ class MonitoringObservationsDetailsSchema(MA.SQLAlchemyAutoSchema):
 class MonitoringObservationsDetailsSchemaCruved(
     MonitoringCruvedSchemaMixin, MonitoringObservationsDetailsSchema
 ):
-    pass
+    __object_code__ = "MONITORINGS_VISITES"
 
 
 class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
@@ -468,7 +438,7 @@ class MonitoringIndividualsSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringIndividualsSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringIndividualsSchema):
-    pass
+    __object_code__ = "INDIVIDUALS"
 
 
 class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
@@ -502,4 +472,4 @@ class MonitoringMarkingSchema(MA.SQLAlchemyAutoSchema):
 
 
 class MonitoringMarkingSchemaCruved(MonitoringCruvedSchemaMixin, MonitoringMarkingSchema):
-    pass
+    __object_code__ = "MONITORINGS_MARKINGS"

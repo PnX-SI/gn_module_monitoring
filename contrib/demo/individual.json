@@ -1,0 +1,45 @@
+{
+  "label": "Individu démo",
+  "label_list": "Individus démo",
+  "display_properties": [
+    "uuid_individual",
+    "individual_name",
+    "active",
+    "id_nomenclature_sex",
+    "demo_indiv_color",
+    "demo_indiv_weight",
+    "comment",
+    "cd_nom",
+    "id_digitiser"
+  ],
+  "fields": {
+    "demo_indiv_color": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Couleur (démo)",
+        "values": ["rouge", "bleu", "vert"]
+      }
+    },
+    "demo_indiv_weight": {
+      "store": {
+        "type": "float"
+      },
+      "widget": {
+        "type": "number",
+        "step": 0.1,
+        "min": 0,
+        "attribut_label": "Poids (démo)"
+      },
+      "required_cel": "fields.demo_indiv_color == 'rouge'"
+    },
+    "demo_indiv_birth": {
+      "store": {
+        "type": "date"
+      },
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date de naissance (démo)"
+      }
+    }
+  }
+}

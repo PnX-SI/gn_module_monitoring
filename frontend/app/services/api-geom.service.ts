@@ -18,7 +18,7 @@ import { CacheService } from './cache.service';
 import { IVisit } from '../interfaces/visit';
 import { IIndividual } from '../interfaces/individual';
 import { IObject, IObjectProperties, IService } from '../interfaces/object';
-import { LIMIT } from '../constants/api';
+import { API_PREFIX, LIMIT } from '../constants/api';
 import { Module } from '../interfaces/module';
 import { ConfigServiceG } from './config-g.service';
 import { IObservation } from '../interfaces/observation';
@@ -30,6 +30,8 @@ import { DataUtilsService } from './data-utils.service';
 export class ApiService<T = IObject> implements IService<T> {
   public objectObs: IobjObs<T>;
   public endPoint: endPoints;
+  // Préfixe ajouté aux routes appelées par ce service ('' pour les routes non préfixées)
+  protected apiPrefix: string = API_PREFIX;
 
   constructor(
     protected _cacheService: CacheService,
@@ -42,19 +44,21 @@ export class ApiService<T = IObject> implements IService<T> {
     this.objectObs = objectObjs;
   }
 
+  protected _url(path: string): string {
+    return this.apiPrefix ? `${this.apiPrefix}/${path}` : path;
+  }
+
   public _getModuleCode(): string {
     const config = (this._configServiceG.config() || {})[this.objectObs.objectType];
     return this._configServiceG.moduleCode();
   }
 
   get(page: number = 1, limit: number = LIMIT, params: JsonData = {}): Observable<IPaginated<T>> {
-    const module = !(this._getModuleCode() === 'generic')
-      ? 'refacto/' + this._getModuleCode() + '/'
-      : '';
+    const module = !(this._getModuleCode() === 'generic') ? this._getModuleCode() + '/' : '';
 
     return this._cacheService.request<Observable<IPaginated<T>>>(
       'get',
-      `${module}${this.endPoint}`,
+      this._url(`${module}${this.endPoint}`),
       {
         queryParams: { page, limit, ...params },
       }
@@ -90,7 +94,10 @@ export class ApiService<T = IObject> implements IService<T> {
   }
 
   getById(id: number, moduleCode: string = 'generic'): Observable<T> {
-    return this._cacheService.request<Observable<T>>('get', `${this.endPoint}/${moduleCode}/${id}`);
+    return this._cacheService.request<Observable<T>>(
+      'get',
+      this._url(`${moduleCode}/${this.endPoint}/${id}`)
+    );
   }
 
   getByIdResolved(id: number, moduleCode: string = 'generic'): Observable<any> {
@@ -118,7 +125,7 @@ export class ApiService<T = IObject> implements IService<T> {
   patch(id: number, updatedData): Observable<T> {
     return this._cacheService.request(
       'patch',
-      `${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`,
+      this._url(`${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`),
       {
         postData: updatedData as {},
       }
@@ -128,7 +135,7 @@ export class ApiService<T = IObject> implements IService<T> {
   create(postData): Observable<T> {
     return this._cacheService.request(
       'post',
-      `${this._configServiceG.moduleCode()}/${this.endPoint}`,
+      this._url(`${this._configServiceG.moduleCode()}/${this.endPoint}`),
       {
         postData: postData as {},
       }
@@ -139,7 +146,7 @@ export class ApiService<T = IObject> implements IService<T> {
     // module_code
     return this._cacheService.request(
       'delete',
-      `${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`,
+      this._url(`${this._configServiceG.moduleCode()}/${this.endPoint}/${id}`),
       {
         queryParams: params,
       }
@@ -165,12 +172,16 @@ export class ApiGeomService<T = IGeomObject> extends ApiService<T> implements IG
     );
 
     const endPoint = !(this._getModuleCode() === 'generic')
-      ? `refacto/${this._getModuleCode()}/${this.endPoint}/geometries`
+      ? `${this._getModuleCode()}/${this.endPoint}/geometries`
       : `${this.endPoint}/geometries`;
 
-    return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>('get', endPoint, {
-      queryParams: { ...clean_params },
-    });
+    return this._cacheService.request<Observable<GeoJSON.FeatureCollection>>(
+      'get',
+      this._url(endPoint),
+      {
+        queryParams: { ...clean_params },
+      }
+    );
   }
 
   getConfig(): Observable<T> {
@@ -202,12 +213,10 @@ export class SitesGroupService extends ApiGeomService<ISitesGroup> {
     limit: number = 10,
     params: JsonData = {}
   ): Observable<IPaginated<ISite>> {
-    const module = !(this._getModuleCode() === 'generic')
-      ? 'refacto/' + this._getModuleCode() + '/'
-      : '';
+    const module = !(this._getModuleCode() === 'generic') ? this._getModuleCode() + '/' : '';
     return this._cacheService.request<Observable<IPaginated<ISite>>>(
       'get',
-      `${module}${endPoints.sites}`,
+      this._url(`${module}${endPoints.sites}`),
       {
         queryParams: { page, limit, ...params },
       }
@@ -283,12 +292,15 @@ export class SitesService extends ApiGeomService<ISite> {
   }
 
   getSiteModules(idSite: number, moduleCode: string = 'generic'): Observable<Module[]> {
-    return this._cacheService.request('get', `sites/${moduleCode}/${idSite}/modules`);
+    return this._cacheService.request('get', this._url(`${moduleCode}/sites/${idSite}/modules`));
   }
 }
 
 @Injectable()
 export class ModuleService extends ApiService<any> {
+  // Les routes des modules (routes/modules.py) ne sont pas préfixées
+  protected apiPrefix = '';
+
   constructor(
     _cacheService: CacheService,
     protected _configServiceG: ConfigServiceG,
@@ -351,12 +363,6 @@ export class IndividualsService extends ApiService<IIndividual> {
     };
     super.init(endPoint, objectObs);
   }
-
-  delete(id: number, params: JsonData = {}): Observable<IIndividual> {
-    return this._cacheService.request('delete', `${this.endPoint}/${id}`, {
-      queryParams: params,
-    });
-  }
 }
 
 @Injectable()
@@ -415,11 +421,5 @@ export class MarkingsService extends ApiService<IMarking> {
       childType: undefined,
     };
     super.init(endPoint, objectObs);
-  }
-
-  delete(id: number, params: JsonData = {}): Observable<IMarking> {
-    return this._cacheService.request('delete', `refacto/${this.endPoint}/${id}`, {
-      queryParams: params,
-    });
   }
 }

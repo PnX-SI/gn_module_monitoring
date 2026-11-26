@@ -251,10 +251,12 @@ export class MonitoringSitesDetailComponent extends MonitoringGeomComponent impl
       // Passage du mode édition au mode consultation : on suppose que des modifications de géométries
       //  ont pu être faites
       // Récupération et affichage de la géométrie du site
-      this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-        id_base_site: this.objectData.id_base_site,
-      });
-      this.initSiteVisit();
+      if (this.objectData.deleted !== true) {
+        this.geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
+          id_base_site: this.objectData.id_base_site,
+        });
+        this.initSiteVisit();
+      }
     }
     this.bEdit = event;
   }

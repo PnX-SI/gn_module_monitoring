@@ -1,7 +1,8 @@
-import os, datetime, time
+import os
 import importlib
 import json
 from pathlib import Path
+import copy
 
 from flask import current_app
 from sqlalchemy import and_, select
@@ -18,12 +19,7 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.modules.repositories import get_module
 from gn_module_monitoring.utils.routes import query_all_types_site_from_module_id
 from gn_module_monitoring.utils.utils import extract_keys
-from gn_module_monitoring.command.imports.constant import (
-    TYPE_WIDGET,
-    INT_TYPE_UTILS,
-    OTHER_TYPE_UTILS,
-    MULTI_TYPE_WIDGET,
-)
+from gn_module_monitoring.command.imports.constant import MULTI_TYPE_WIDGET
 
 SUB_MODULE_CONFIG_DIR = Path(gn_config["MEDIA_FOLDER"]) / "monitorings/"
 
@@ -53,6 +49,26 @@ def get_monitoring_module(module_code):
     return DB.session.execute(
         select(TMonitoringModules).where(TMonitoringModules.module_code == module_code)
     ).scalar_one_or_none()
+
+
+def is_module_configured(module) -> bool:
+    """
+    Indique si un module de suivi est configuré, c'est-à-dire si lui sont associés :
+        - une liste d'observateurs
+        - au moins un jeu de données
+        - une liste de taxons ou un cd_nom est spécifié
+        - un mode d'affichage des taxons
+
+    Le module générique (module=None) est toujours considéré comme configuré.
+    """
+    if module is None:
+        return True
+    return (
+        bool(module.id_list_observer)
+        and len(module.datasets) > 0
+        and (module.id_list_taxonomy or module.cd_nom) is not None
+        and bool(module.taxonomy_display_field_name)
+    )
 
 
 def get_monitorings_path():
@@ -93,10 +109,6 @@ def get_id_table_location(object_type):
         pass
 
     return id_table_location
-
-
-def copy_dict(dict_in):
-    return json.loads(json.dumps(dict_in))
 
 
 def json_from_file(file_path, result_default={}):
@@ -217,9 +229,9 @@ def process_schema(object_type, config):
         type_widget_g = generic[key].get("type_widget")
 
         if type_widget_s and type_widget_s == type_widget_g:
-            generic[key] = copy_dict(specific[key])
+            generic[key] = copy.deepcopy(specific[key])
         else:
-            generic[key].update(copy_dict(specific[key]))
+            generic[key].update(copy.deepcopy(specific[key]))
         generic[key].update(process_display_element(generic[key]))
 
         del specific[key]
@@ -231,13 +243,6 @@ def process_display_element(element):
         return element
     if element["type_widget"] in MULTI_TYPE_WIDGET:
         element["multiple"] = True
-
-    # Ajout de la propriété multiple si le champ permet plusieurs valeurs
-    # Quelque soit la propriété reseignée multiple ou multi_select
-    # PATCH lié à une hétérogénéité des composants du dynamic form
-    if element.get("multiple", element.get("multi_select", False)):
-        element["multiple"] = True
-        element["multi_select"] = True
 
     if element["type_widget"] == "datalist":
         element["designStyle"] = "bootstrap"
@@ -265,8 +270,8 @@ def process_config_display(object_type, config):
 
     config_object["display_properties"] = display_properties
     config_object["display_list"] = display_list
-    config_object["properties_keys"] = properties_keys
-    config_object["display_form"] = display_form
+    config_object["properties_keys"] = properties_keys  # FIXME: not used
+    config_object["display_form"] = display_form  # FIXME: not used
 
 
 def customize_config(elem, custom):
@@ -290,7 +295,29 @@ def customize_config(elem, custom):
     return elem
 
 
-def get_data_preload(config, module):
+def apply_substitutions(data, substitutions):
+    if isinstance(data, list):
+        for idx, value in enumerate(data):
+            data[idx] = apply_substitutions(value, substitutions)
+    elif isinstance(data, dict):
+        for key, value in list(data.items()):
+            value = apply_substitutions(value, substitutions)
+            # Une substitution non définie (None) équivaut à une clé absente
+            if value is None and isinstance(data[key], str):
+                del data[key]
+            else:
+                data[key] = value
+    elif isinstance(data, str):
+        for old, new in substitutions.items():
+            if data == old:  # keep the new type (e.g. int instead of string)
+                data = new
+                break
+            else:
+                data = data.replace(old, str(new))
+    return data
+
+
+def get_data_preload(config):
     out = {"nomenclature": ["TYPE_MEDIA"]}
 
     # if getattr(module, "id_list_observer", None):
@@ -309,7 +336,11 @@ def get_data_preload(config, module):
 
             # composant nomenclature
             if type_widget == "nomenclature":
-                out["nomenclature"].append(form["code_nomenclature_type"])
+                code_type = form.get("code_nomenclature_type") or (value or {}).get(
+                    "code_nomenclature_type"
+                )
+                if code_type:
+                    out["nomenclature"].append(code_type)
 
             # composant datalist
             if type_widget == "datalist":
@@ -353,112 +384,3 @@ def config_from_files_customized(type_config, module_code):
     config_type = config_from_files(type_config, module_code)
     custom = config_from_files("custom", module_code)
     return customize_config(config_type, custom)
-
-
-def validate_json_file(file_path: Path, valid_type_widgets=None) -> list:
-    """Valide un fichier JSON individuel"""
-    file_errors = []
-
-    if not file_path.exists():
-        return file_errors
-
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        if not content.strip():
-            file_errors.append(f"Fichier vide: {file_path}")
-            return file_errors
-
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError as e:
-            lines = content.split("\n")
-            line_no = e.lineno - 1
-
-            context_start = max(0, line_no - 2)
-            context_end = min(len(lines), line_no + 3)
-            context_lines = lines[context_start:context_end]
-
-            error_msg = f"Erreur de syntaxe JSON dans {file_path}:\n"
-            error_msg += f"- Message: {str(e)}\n"
-            error_msg += f"- Position: ligne {e.lineno}, colonne {e.colno}\n"
-            error_msg += "- Contexte:\n"
-
-            for i, line in enumerate(context_lines, start=context_start + 1):
-                marker = "→ " if i == e.lineno else "  "
-                error_msg += f"{marker}{i}: {line}\n"
-                if i == e.lineno:
-                    error_msg += "    " + " " * (e.colno - 1) + "^\n"
-
-            file_errors.append(error_msg)
-            return file_errors
-
-        # Validate the JSON structure
-        if not isinstance(data, dict):
-            file_errors.append(f"Le fichier {file_path} doit contenir un objet JSON")
-            return file_errors
-
-        # Validate the JSON content
-        if "specific" in data:
-            for field_name, field_data in data["specific"].items():
-                validate_json_field(file_path, field_name, field_data, file_errors)
-        if "generic" in data:
-            for field_name, field_data in data["generic"].items():
-                validate_json_field(file_path, field_name, field_data, file_errors)
-
-    except Exception as e:
-        file_errors.append(f"Erreur lors de la lecture de {file_path}: {str(e)}")
-
-    return file_errors
-
-
-def validate_json_field(file_path, field_name, field_data, file_errors):
-    """
-    Valide un champ JSON individuel
-    """
-
-    valid_type_widgets = set(TYPE_WIDGET.keys())
-    valid_type_util = set(INT_TYPE_UTILS + OTHER_TYPE_UTILS)
-
-    if not isinstance(field_data, dict):
-        file_errors.append(f"Dans {file_path}, le champ {field_name} doit être un objet")
-
-    if "type_widget" in field_data and not isinstance(field_data["type_widget"], str):
-        file_errors.append(
-            f"Dans {file_path}, le champ {field_name}: type_widget doit être une chaîne"
-        )
-
-    if "type_widget" in field_data and field_data["type_widget"] not in valid_type_widgets:
-        file_errors.append(
-            f"Dans {file_path}, le champ {field_name}: type_widget {field_data['type_widget']} n'est pas valide"
-        )
-
-    if "type_util" in field_data and field_data["type_util"] not in valid_type_util:
-        file_errors.append(f"Dans {file_path}, le champ {field_name}: type_util n'est pas valide")
-
-    return file_errors
-
-
-import warnings
-
-
-def get_specific_properties(monitoringClass: object, config: dict, object_type: str):
-    if not object_type in config:
-        return {}
-    return get_specific_properties_from_object_config(monitoringClass, config[object_type])
-
-
-def get_specific_properties_from_object_config(monitoringClass: object, object_config: dict):
-    if not "fields" in object_config:
-        warnings.warn(
-            f"Object config for {monitoringClass.__name__} does not contain 'fields' key. Returning empty specific properties.",
-            UserWarning,
-        )
-        return {}
-    specific_properties = {
-        field_name: field_data
-        for field_name, field_data in object_config["fields"].items()
-        if not hasattr(monitoringClass, field_name)
-    }
-    return specific_properties

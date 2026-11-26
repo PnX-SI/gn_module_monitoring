@@ -22,7 +22,6 @@
       "hidden": true
     },
     "id_digitiser": {
-      "type_widget": "text",
       "attribut_label": "Numérisateur",
       "required": true,
       "hidden": true,
@@ -30,8 +29,12 @@
     },
     "id_individual": {
       "type_widget": "text",
-      "attribut_label": "Id individu",
-      "hidden": true
+      "attribut_label": "Choix de l'individu",
+      "module_code": "__MODULE.MODULE_CODE",
+      "id_list": "__MODULE.ID_LIST_TAXONOMY",
+      "cd_nom": "__MODULE.CD_NOM",
+      "hidden": true,
+      "required": false
     },
     "cd_nom": {
       "type_widget": "taxonomy",

@@ -1,8 +1,6 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.command.utils import get_module
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import get_specific_properties
+from gn_module_monitoring.modules import get_module
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden, NotFound
 from sqlalchemy import select
@@ -10,26 +8,22 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.blueprint import blueprint_api
 from geonature.core.gn_permissions import decorators as permissions
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringMarkingEvent,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringMarkingSchema,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
 )
 
-default_route_object_type = "marking"
 OBJECT_CODE = "MONITORINGS_MARKINGS"
 
 
@@ -72,13 +66,9 @@ def get_marking_or_404(id_marking: int, id_module: int) -> TMonitoringMarkingEve
     return marking
 
 
-@blueprint.route(
-    "/refacto/markings/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/markings/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code=OBJECT_CODE)
-def delete_marking(scope, _id: int, object_type: str):
+def delete_marking(scope, _id: int, module_code: str):
     """
     Delete a marking.
 
@@ -90,6 +80,8 @@ def delete_marking(scope, _id: int, object_type: str):
         Identifier of the marking to delete.
     object_type : str
         Object type, by default "marking".
+    module_code : str
+        Code of the monitoring module.
 
     Returns
     -------
@@ -111,13 +103,9 @@ def delete_marking(scope, _id: int, object_type: str):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    "/<string:module_code>/markings",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/markings", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code=OBJECT_CODE)
-def post_marking(object_type: str, module_code: str):
+def post_marking(module_code: str):
     """
     Create a marking from the request JSON body.
 
@@ -136,18 +124,15 @@ def post_marking(object_type: str, module_code: str):
         Serialized created marking.
     """
     post_data = dict(request.get_json())
+    post_data.pop("id_marking", None)
     if not "id_module" in post_data:
         post_data["id_module"] = g.get("current_module").id_module
     return create_or_update_marking(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    "/<string:module_code>/markings/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/markings/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code=OBJECT_CODE)
-def patch_marking(scope, object_type: str, module_code: str, _id: int):
+def patch_marking(scope, module_code: str, _id: int):
     """
     Update a marking from the request JSON body.
 
@@ -185,15 +170,11 @@ def patch_marking(scope, object_type: str, module_code: str, _id: int):
         post_data["id_marking"] = _id
     if not "id_module" in post_data:
         post_data["id_module"] = g.get("current_module").id_module
-    return create_or_update_marking(post_data, module_code=module_code)
+    return create_or_update_marking(post_data, module_code=module_code, instance=marking)
 
 
-@blueprint.route(
-    "/refacto/<string:module_code>/markings",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
-def get_markings(object_type: str, module_code: str):
+@blueprint_api.route("/<string:module_code>/markings", methods=["GET"])
+def get_markings(module_code: str):
     """
     List the markings of a module readable by the current user.
 
@@ -236,15 +217,13 @@ def get_markings(object_type: str, module_code: str):
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
     )
-    specific_properties = get_specific_properties(
-        TMonitoringMarkingEvent, get_config(module_code, force=True), "marking"
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.MARKING).extra_fields()
     query_allowed = TMonitoringMarkingEvent.filter_by_specific(
         query=query_allowed,
         params=params,
         specific_properties=specific_properties,
     )
-    schema = add_specific_attributes(MonitoringMarkingSchema, object_type, module_code)
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(only=["+data"])
 
     return paginate_scope(
         query=query_allowed,
@@ -261,13 +240,9 @@ def get_markings(object_type: str, module_code: str):
     )
 
 
-@blueprint.route(
-    "/markings/<string:module_code>/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/markings/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code=OBJECT_CODE)
-def get_marking_by_id(scope: int, module_code: str, id: int, object_type: str):
+def get_marking_by_id(scope: int, module_code: str, id: int):
     """
     Retrieve a single marking.
 
@@ -297,14 +272,16 @@ def get_marking_by_id(scope: int, module_code: str, id: int, object_type: str):
     marking = get_marking_or_404(id, id_module=g.current_module.id_module)
     if not marking.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read marking {marking.id_marking}")
-    schema = add_specific_attributes(MonitoringMarkingSchema, object_type, module_code)
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()(
+        only=["+cruved", "+medias", "+data"]
+    )
 
-    data = schema().dump(marking)
+    data = schema.dump(marking)
 
     return data
 
 
-def create_or_update_marking(post_data: dict, module_code: str = "generic"):
+def create_or_update_marking(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a marking.
 
@@ -314,16 +291,18 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
         Data used to create or update a marking.
     module_code : str, optional
         Module code, by default "generic".
+    instance : TMonitoringMarkingEvent, optional
+        Existing marking to update, None to create one.
 
     Returns
     -------
     dict
         Serialized marking.
     """
-    config = get_config(module_code, force=True)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    schema = get_entity_or_404(module_code, "marking").get_extended_schema()
+    only = ["+medias", "+data"]
     try:
-        marking = MonitoringMarkingSchema(unknown=EXCLUDE).load(process_data)
+        marking = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
     except Exception as e:
         print(f"Error loading marking data: {e}")
         raise
@@ -331,7 +310,4 @@ def create_or_update_marking(post_data: dict, module_code: str = "generic"):
     db.session.add(marking)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringMarkingSchema, default_route_object_type, module_code
-    )
-    return schema().dump(marking)
+    return schema(only=only).dump(marking)

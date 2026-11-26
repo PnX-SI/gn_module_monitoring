@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -7,214 +9,132 @@ from geonature.core.imports.models import (
     BibFields,
     BibThemes,
 )
-from utils_flask_sqla.utils import strtobool
 
 from gn_module_monitoring.command.imports.constant import (
-    ID_FIELD_NAME,
-    TYPE_WIDGET,
-    INT_TYPE_UTILS,
-    OTHER_TYPE_UTILS,
-    MULTI_TYPE_WIDGET,
+    IGNORED_IMPORT_FIELDS,
+    entity_import_field_name,
 )
+from gn_module_monitoring.tools.stores.relationships.mixin import NomenclatureMixin
 
 
-def prepare_fields(
-    entity_config: dict,
-    entity_code: str,
-    id_destination: int,
-    parent_data: dict,
-):
+def prepare_fields(entity, id_destination: int, parent_data: dict, skip=()):
     """
-    Prépare les champs (fields) à insérer dans bib_fields à partir des données spécifiques et génériques.
+    Prépare les champs (fields) à insérer dans bib_fields à partir de la configuration de l'entité.
 
     Parameters
     ----------
-    specific_data : dict
-        Données des champs spécifiques du sous-module
-    generic_data : dict
-        Données des champs génériques du sous-module
-    entity_code : str
-        Code de l'entité
+    entity : BaseEntity
+        Entité chargée (`get_module(module_code).entities[entity_code]`) : `entity.data["fields"]`
+        contient les champs de configuration, chargés avec `EntityFieldConfigSchema`
     id_destination : int
         ID de la destination (table) où insérer les champs
     parent_data : dict
         Données du parent (table) où insérer les champs
+    skip : iterable
+        Noms de champs à ignorer (champs import only, préparés par ailleurs)
 
     Returns
     -------
     entity_fields : dict
         Contient les champs à insérer dans bib_fields
     """
-
     entity_fields = {
         "fields": [],
-        "label": entity_config.get("label", entity_code),
+        "label": entity.data.get("label", entity.name),
     }
 
-    ignored_fields = [
-        "id_module",  # handled manually
-        "id_dataset",  # handled manually
-        "id_digitiser",  # handled manually
-        "uuid_base_visit",  # handled manually
-        "uuid_base_site",  # handled manually
-        "uuid_observation",  # handled manually
-        "id_base_site",  # generated
-        "id_base_visit",  # generated
-        "id_observation",  # generated
-        "id_nomenclature_type_site",  # handled manually
-        "last_visit",  # dynamic
-        "nb_visits",  # dynamic
-        "nb_observations",  # dynamic
-        "nb_individuals",  # dynamic
-        "medias",  # not importable
-        "id_sites_group",  # ignored for now
-    ]
-
-    for field_name in entity_config.get("fields", {}):
-        if field_name in ignored_fields:
+    for field_name in entity.data.get("fields", {}):
+        if field_name in IGNORED_IMPORT_FIELDS or field_name in skip:
             continue
-        field_data = entity_config["fields"][field_name]
+        field_data = entity.data["fields"][field_name]
         entity_fields["fields"].append(
             monitoring_field_to_bib_field(
-                field_data, entity_code, field_name, id_destination, parent_data
+                field_data, entity, field_name, id_destination, parent_data
             )
         )
 
     return entity_fields
 
 
-def determine_field_type(field_data: dict) -> str:
-    """
-    Détermine le type SQL du champ en fonction du widget et du type utilitaire.
-
-    Parameters
-    ----------
-    field_data : dict
-        Dictionnaire contenant la configuration du champ avec les clés:
-        - type_widget: str, optionnel
-            Type de widget (défaut: 'text')
-        - type_util: str, optionnel
-            Type utilitaire pour traitement spécial
-        - multiple: bool, optionnel
-            Si le champ permet plusieurs valeurs (défaut: False)
-        - multi_select: bool, optionnel
-            Drapeau alternatif pour valeurs multiples (défaut: False)
-
-    Returns
-    -------
-    str
-        Type SQL du champ en majuscules ('VARCHAR', 'INTEGER', etc.)
-    """
-    type_widget = field_data.get("type_widget", "text")
-    type_util = field_data.get("type_util")
-    multiple = field_data.get("multiple", field_data.get("multi_select", False))
-
-    # Si le champ est de type checkbox ou multiselect, on considère qu'il permet plusieurs valeurs
-    if type_widget in MULTI_TYPE_WIDGET:
-        multiple = True
-
-    field_type = "text"
-    # Si la propriété `type_utils` existe et correspond à un type de `INT_TYPE_UTILS` (c-a-d relationship)
-    if type_util in INT_TYPE_UTILS:
-        field_type = "integer"
-    elif type_util in OTHER_TYPE_UTILS:
-        field_type = type_util
-    # Sinon, on utilise le type définit par le widget
-    elif type_widget in TYPE_WIDGET:
-        field_type = TYPE_WIDGET[type_widget]
-
-    # Si le champ est multivalue, on ajoute "[]"
-    if multiple:
-        return field_type + "[]"
-
-    return field_type
-
-
-def get_field_name(entity_code, field_name):
-    if entity_code == "sites_group":
-        return f"g__{field_name}"
-    elif entity_code == "observation_detail":
-        return f"d__{field_name}"
-    return f"{entity_code[0]}__{field_name}"
-
-
 def monitoring_field_to_bib_field(
     field_data: dict,
-    entity_code: str,
+    entity,
     field_name: str,
     id_destination: int,
     parent_data: dict,
+    **overrides,
 ):
     """
     Crée un dictionnaire représentant un champ (field) à insérer dans bib_fields.
+
+    `field_data` est une entrée de la configuration (`entity.data["fields"][field_name]`, chargée
+    avec `EntityFieldConfigSchema`) : son `store` porte le type SQL de la colonne (`store.sql_type`)
+    et le type de nomenclature, son `widget` le libellé, la visibilité statique et `type_field`.
+
+    Le nom d'import vient de `entity.import_actions_class.get_field_name`. La géométrie d'un site (`geom_field_name`)
+    porte `optional_conditions` : x et y (`s__x`, `s__y`) sont acceptés à sa place. `overrides`
+    (`name_field`, `source_field`, `dest_field`, `autogenerated`, `optional_conditions`) remplace les
+    valeurs dérivées.
+
+    La table transitoire est construite à partir de `store.sql_type` (command/imports/sql.py).
     """
-    if "code_nomenclature_type" in field_data:
-        mnemonique = field_data["code_nomenclature_type"]
-    elif (
-        "value" in field_data
-        and isinstance(field_data["value"], dict)
-        and "code_nomenclature_type" in field_data["value"]
-    ):
-        mnemonique = field_data["value"]["code_nomenclature_type"]
-    else:
-        mnemonique = None
+    store = field_data["store"]
+    widget = field_data["widget"]
 
-    def get_bool(value, default=False):
-        if isinstance(value, bool):
-            return value
-        elif isinstance(value, str):
-            try:
-                return strtobool(value)
-            except ValueError:
-                return default
-        return default
+    if entity.name == "site" and field_name == entity.data.get("geom_field_name"):
+        # x et y (champs import only, bib directs) sont acceptés à la place de la géométrie
+        overrides.setdefault(
+            "optional_conditions",
+            [entity_import_field_name("site", "x"), entity_import_field_name("site", "y")],
+        )
 
-    # both hidden and required may be a Javascript expression,
-    # if the value is a string we try to convert it to a boolean, if not, we take a default value
+    mnemonique = store["nomenclature_type"] if isinstance(store, NomenclatureMixin) else None
+    # Le frontend affiche le widget de valeur constante à partir de type_field (type du widget)
+    # et de type_field_params (config du widget). Le cœur repère les observateurs par type_field == "observers".
+    type_field = widget["type"]
+    type_field_params = {k: v for k, v in widget.dump_config().items() if k != "type"}
 
-    hidden_value = get_bool(
-        field_data.get("hidden", False), False
-    )  # If a field is potentially hidden, the default value is false to not hide it if the expression cannot be evaluated
+    # Un champ masqué (hidden statique) n'est pas obligatoire : l'utilisateur ne peut pas le saisir.
+    # `hidden` et `required` dynamiques (JavaScript, CEL) sont ignorés : ils ne sont pas évalués ici.
+    hidden_value = bool(widget.get("hidden", False))
+    required_value = bool(store.required) and not hidden_value
 
-    required_value = get_bool(
-        field_data.get("required", False), False
-    )  # If a field is potentially required but has a non-boolean value (e.g. Javascript expression), the field is not mandatory
+    if store.sql_type is None and store.native_attr is not None:
+        # Un store sans type SQL (dummy, value, list) n'a pas de colonne : sur un champ natif, la valeur
+        # ne serait jamais écrite par l'import. Le store n'est pas refusé à la construction, car
+        # `module.medias` et `module.taxonomy_display_field_name` en usent légitimement (hors import).
+        raise ValueError(
+            f"Le champ '{field_name}' de l'entité '{entity.name}' utilise le store '{store.key}', "
+            "sans type SQL, sur un champ natif : il ne peut pas être importé."
+        )
 
-    # if a field is hidden, we consider that it is not required since the user cannot fill it
-    required_value = required_value and not hidden_value
-
-    determined_type_field = determine_field_type(field_data)
-
-    name_field = field_name
     parent_id_field_name = parent_data.get("id_field_name") if parent_data else None
+    name_field = overrides.pop("name_field", None)
+    if name_field is None:
+        if field_name == parent_id_field_name:
+            name_field = field_name
+        else:
+            name_field = entity.import_actions_class.get_field_name(field_name)
 
-    if name_field not in [ID_FIELD_NAME.get(entity_code), parent_id_field_name]:
-        name_field = get_field_name(entity_code, field_name)
-
-    type_field_params = {
-        k: v
-        for k, v in field_data.items()
-        if k not in ["required", "hidden", "type_widget", "attribut_label"]
-    }
-
-    return {
+    bib_field = {
         "name_field": name_field,
-        "fr_label": field_data.get("attribut_label", ""),
+        "fr_label": widget.get("attribut_label", ""),
         "eng_label": None,
-        "type_field": field_data.get("type_widget", None),
-        "type_column": determined_type_field,
         "mandatory": required_value,
         "autogenerated": False,
-        "display": not field_data.get("hidden", False),
+        "display": not hidden_value,
         "mnemonique": mnemonique,
+        "type_field": type_field,
+        "type_field_params": type_field_params,
         "source_field": f"src_{name_field}",
-        "dest_field": name_field,
+        "dest_field": name_field if store.sql_type is not None else None,
         "multi": False,
         "id_destination": id_destination,
         "mandatory_conditions": None,
         "optional_conditions": None,
-        "type_field_params": type_field_params if type_field_params else None,
     }
+    bib_field.update(overrides)
+    return bib_field
 
 
 def insert_bib_field(protocol_data: dict):
@@ -228,26 +148,23 @@ def insert_bib_field(protocol_data: dict):
 
     def upsert_field(field):
         values = {**field}
-        values.pop("type_column", None)
-        if values.get("type_field_params", None) is None:
-            values.pop("type_field_params", None)
+        values.pop("store", None)  # store d'un champ import only (command/imports/protocol.py)
+        values.pop("column_type", None)  # type SQL d'un identifiant (get_import_only_bib_fields)
         set_ = {
             "fr_label": field.get("fr_label"),
             "eng_label": field.get("eng_label"),
-            "type_field": field.get("type_field"),
-            "type_field_params": field.get("type_field_params", None),
             "mandatory": field.get("mandatory"),
             "autogenerated": field.get("autogenerated"),
             "display": field.get("display"),
             "mnemonique": field.get("mnemonique"),
+            "type_field": field.get("type_field"),
+            "type_field_params": field.get("type_field_params"),
             "source_field": field.get("source_field"),
             "dest_field": field.get("dest_field"),
             "multi": field.get("multi"),
             "mandatory_conditions": field.get("mandatory_conditions", None),
             "optional_conditions": field.get("optional_conditions", None),
         }
-        if set_["type_field_params"] is None:
-            del set_["type_field_params"]
         stmt = (
             pg_insert(BibFields)
             .values(**values)
@@ -289,27 +206,60 @@ def delete_bib_fields(fields: dict):
     DB.session.flush()
 
 
+# Attributs de bib_fields produits par la génération (monitoring_field_to_bib_field, insert_bib_field).
+# `name_field` n'est pas listé : il sert de clé de comparaison.
+FIELD_COMPARED_ATTRS = [
+    "id_destination",
+    "fr_label",
+    "eng_label",
+    "mandatory",
+    "autogenerated",
+    "display",
+    "mnemonique",
+    "type_field",
+    "type_field_params",
+    "source_field",
+    "dest_field",
+    "multi",
+    "mandatory_conditions",
+    "optional_conditions",
+]
+
+
+def _canonical_json(value):
+    """Forme canonique d'une valeur JSON (clés triées) pour une comparaison d'égalité complète."""
+    return json.dumps(value, sort_keys=True, default=str)
+
+
+def get_field_changes(existing: dict, new: dict) -> list:
+    """
+    Liste les attributs de bib_fields qui diffèrent entre le champ existant et le champ généré.
+
+    `type_field_params` est comparé en égalité JSON complète.
+
+    Returns
+    -------
+    list of dict
+        `{"attr", "db", "expected"}` pour chaque attribut différent.
+    """
+    changes = []
+    for attr in FIELD_COMPARED_ATTRS:
+        db_value = existing.get(attr)
+        expected_value = new.get(attr)
+        if attr == "type_field_params":
+            different = _canonical_json(db_value) != _canonical_json(expected_value)
+        else:
+            different = db_value != expected_value
+        if different:
+            changes.append({"attr": attr, "db": db_value, "expected": expected_value})
+    return changes
+
+
 def has_field_changes(existing: dict, new: dict) -> bool:
     """
     Vérifie si un champ a été modifié en comparant les attributs pertinents.
     """
-    relevant_attrs = [
-        "fr_label",
-        "eng_label",
-        "type_field",
-        "mandatory",
-        "autogenerated",
-        "display",
-        "mnemonique",
-        "source_field",
-        "dest_field",
-        "multi",
-        "mandatory_conditions",
-        "optional_conditions",
-        "type_field_params",
-    ]
-
-    return any(existing.get(attr) != new.get(attr) for attr in relevant_attrs)
+    return len(get_field_changes(existing, new)) > 0
 
 
 def get_themes_dict():

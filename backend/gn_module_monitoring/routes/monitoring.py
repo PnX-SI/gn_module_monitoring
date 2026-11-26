@@ -15,6 +15,7 @@ from geonature.utils.env import DB
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.modules import get_module
 from gn_module_monitoring.routes.legacy import blueprint_legacy
 from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from gn_module_monitoring.monitoring.object_utils import (
@@ -23,7 +24,7 @@ from gn_module_monitoring.monitoring.object_utils import (
     process_synthese,
     serialize_object,
 )
-from gn_module_monitoring.config.repositories import get_config, get_config_old
+from gn_module_monitoring.config.repositories import get_config_old
 
 # Legacy routes for backward compatibility with old modules
 blueprint.register_blueprint(blueprint_legacy)
@@ -45,7 +46,13 @@ def breadcrumbs_object_api(module_code, object_type, id):
     query_params = dict(**request.args)
     query_params["parents_path"] = request.args.getlist("parents_path")
 
-    config = get_config(module_code)
+    # Force module in parents_path
+    parents_path = query_params["parents_path"]
+    if "module" in parents_path:
+        parents_path.remove("module")
+    query_params["parents_path"] = ["module"] + parents_path
+
+    module = get_module(module_code)
     # PATCH si module_code == "MONITORINGS" et object_type == "module"
     #  alors réponse en dur car le module monitoring n'est pas de type TModuleMonitoring
     if g.current_module.module_code.upper() == "MONITORINGS" and object_type == "module":
@@ -59,7 +66,7 @@ def breadcrumbs_object_api(module_code, object_type, id):
             }
         ]
 
-    return get_breadcrumbs(module_code, object_type, id, config, query_params)
+    return get_breadcrumbs(module_code, object_type, id, module, query_params)
 
 
 # listes pour les formulaires par exemple
@@ -79,7 +86,8 @@ def list_object_api(module_code, object_type):
 @check_cruved_scope("U", object_code="MONITORINGS_MODULES")
 @json_resp
 def update_synthese_api(module_code):
-    return process_synthese(module_code, get_config(module_code))
+    module = get_module(module_code)
+    return process_synthese(module_code, module)
 
 
 # export add mje
@@ -144,9 +152,9 @@ def post_export_pdf(module_code, object_type, id):
     Need to set a template in sub-module.
     """
 
-    config = get_config(module_code)
-    model = get_object_model(module_code, object_type, id, config)
-    monitoring_object = serialize_object(module_code, object_type, model, config)
+    module = get_module(module_code)
+    model = get_object_model(module_code, object_type, id, module)
+    monitoring_object = serialize_object(module_code, object_type, model, module)
 
     df = {
         "module_code": module_code,

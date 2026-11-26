@@ -1,0 +1,65 @@
+{
+  "types": [
+    {
+      "mnemonique": "DEMO_METEO",
+      "label_default": "Météo (démo)",
+      "definition_default": "Météo du module de démonstration"
+    },
+    {
+      "mnemonique": "DEMO_STADE",
+      "label_default": "Stade de vie (démo)",
+      "definition_default": "Stade de vie du module de démonstration"
+    }
+  ],
+  "nomenclatures": [
+    {
+      "type": "TYPE_SITE",
+      "cd_nomenclature": "DEMO",
+      "mnemonique": "Site DEMO",
+      "label_default": "Site DEMO",
+      "definition_default": "Site DEMO (démo)"
+    },
+    {
+      "type": "DEMO_METEO",
+      "cd_nomenclature": "METEO_B",
+      "mnemonique": "Beau",
+      "label_default": "Beau temps",
+      "definition_default": "Beau temps (démo)"
+    },
+    {
+      "type": "DEMO_METEO",
+      "cd_nomenclature": "METEO_N",
+      "mnemonique": "Nuageux",
+      "label_default": "Temps nuageux",
+      "definition_default": "Temps nuageux (démo)"
+    },
+    {
+      "type": "DEMO_METEO",
+      "cd_nomenclature": "METEO_M",
+      "mnemonique": "Mauvais",
+      "label_default": "Mauvais temps",
+      "definition_default": "Mauvais temps (démo)"
+    },
+    {
+      "type": "DEMO_STADE",
+      "cd_nomenclature": "STADE_A",
+      "mnemonique": "Adulte",
+      "label_default": "Adulte",
+      "definition_default": "Adulte (démo)"
+    },
+    {
+      "type": "DEMO_STADE",
+      "cd_nomenclature": "STADE_J",
+      "mnemonique": "Juvénile",
+      "label_default": "Juvénile",
+      "definition_default": "Juvénile (démo)"
+    },
+    {
+      "type": "DEMO_STADE",
+      "cd_nomenclature": "STADE_I",
+      "mnemonique": "Indéterminé",
+      "label_default": "Indéterminé",
+      "definition_default": "Indéterminé (démo)"
+    }
+  ]
+}

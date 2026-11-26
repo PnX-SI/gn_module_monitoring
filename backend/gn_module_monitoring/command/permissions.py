@@ -1,4 +1,3 @@
-from flask import current_app
 from sqlalchemy import select
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -14,8 +13,9 @@ from geonature.core.gn_commons.models import TModules
 
 
 from gn_module_monitoring.command.imports.constant import ACTION_LABEL, PERMISSION_LABEL
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.constants import PERMISSION_OBJECT_CODES
 from gn_module_monitoring.utils.utils import extract_keys
+from gn_module_monitoring.modules import get_module as get_module_config
 from gn_module_monitoring.modules.repositories import get_module
 
 
@@ -26,22 +26,17 @@ def process_available_permissions(module_code, session):
         print("le module n'existe pas")
         return
 
-    config = get_config(module_code, force=True)
-    if not config:
-        print(f"Il y a un problème de configuration pour le module {module_code}")
-        return
+    monitoring_module = get_module_config(module_code)
 
-    tree = config.get("tree", [])
+    tree = monitoring_module["tree"]
 
     module_objects = [k for k in extract_keys(tree, keys=[])]
-
-    permission_level = current_app.config["MONITORINGS"].get("PERMISSION_LEVEL", {})
 
     # Insert permission object
     for permission_object_code in module_objects:
         print(f"Création des permissions pour {module_code} : {permission_object_code}")
         insert_module_available_permissions(
-            module_code, permission_level[permission_object_code], session=session
+            module_code, PERMISSION_OBJECT_CODES[permission_object_code], session=session
         )
 
 

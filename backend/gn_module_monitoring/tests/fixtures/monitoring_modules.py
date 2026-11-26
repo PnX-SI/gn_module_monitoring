@@ -7,7 +7,7 @@ from flask import current_app
 
 from sqlalchemy import select
 
-from geonature.utils.env import db, BACKEND_DIR
+from geonature.utils.env import db
 from geonature.core.gn_permissions.models import (
     PermAction,
     PermObject,
@@ -32,15 +32,20 @@ def install_module_test(types_site, users):
 
 
 @pytest.fixture
-def install_module_test_with_config(install_module_test):
+def install_module_test_with_config(install_module_test, datasets, users):
     module_test = db.session.execute(
         select(TMonitoringModules).where(TMonitoringModules.module_code == "test")
     ).scalar_one_or_none()
 
     with db.session.begin_nested():
         module_test.id_list_taxonomy = db.session.scalar(select(BibListes.id_liste).limit(1))
-        module_test.id_list_observer = db.session.scalar(select(UserList.id_liste).limit(1))
+        # Liste d'observateurs du module : contient l'utilisateur administrateur des tests de routes
+        observers_list = db.session.get(UserList, db.session.scalar(select(UserList.id_liste).limit(1)))
+        if users["admin_user"] not in observers_list.users:
+            observers_list.users.append(users["admin_user"])
+        module_test.id_list_observer = observers_list.id_liste
         module_test.taxonomy_display_field_name = "nom_vern,lb_nom"
+        module_test.datasets.append(datasets["orphan_dataset"])
         db.session.add(module_test)
     runner = current_app.test_cli_runner()
     result = runner.invoke(cmd_add_update_import_on_protocole, ["test"])
@@ -67,7 +72,9 @@ def install_monitoring_module(module_code, type_site, users):
     # Copy des fichiers du module de test
     path_gn_monitoring = Path(__file__).absolute().parent.parent.parent.parent.parent
     path_module_test = path_gn_monitoring / Path(f"contrib/{module_code}")
-    path_gn_monitoring = BACKEND_DIR / Path(f"media/monitorings/{module_code}")
+    from gn_module_monitoring.config.utils import monitoring_module_config_path
+
+    path_gn_monitoring = monitoring_module_config_path(module_code)
     shutil.copytree(src=str(path_module_test), dst=str(path_gn_monitoring), dirs_exist_ok=True)
 
     # Installation du module

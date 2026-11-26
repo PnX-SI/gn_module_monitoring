@@ -1,6 +1,5 @@
 from flask import jsonify, request, g
 
-from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
@@ -13,18 +12,14 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.blueprint import blueprint
-from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.blueprint import blueprint, blueprint_api
 from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
     TMonitoringSitesGroups,
     TMonitoringModules,
 )
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringSitesGroupsSchema,
-    MonitoringSitesGroupsSchemaCruved,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.errors.errorHandler import InvalidUsage
 from gn_module_monitoring.utils.routes import (
     filter_params,
@@ -33,18 +28,16 @@ from gn_module_monitoring.utils.routes import (
     get_sort,
     paginate_scope,
     sort,
-    process_json_data_for_db_upsert,
 )
 
 
-@blueprint.route("/sites_groups", methods=["GET"], defaults={"object_type": "sites_group"})
-@blueprint.route(
-    "/refacto/<string:module_code>/sites_groups",
+@blueprint_api.route("/sites_groups", methods=["GET"])
+@blueprint_api.route(
+    "/<string:module_code>/sites_groups",
     methods=["GET"],
-    defaults={"object_type": "sites_group"},
 )
 @check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
-def get_sites_groups(object_type: str, module_code=None):
+def get_sites_groups(module_code=None):
     object_code = "MONITORINGS_GRP_SITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -74,19 +67,16 @@ def get_sites_groups(object_type: str, module_code=None):
     query_allowed = TMonitoringSitesGroups.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
     )
-    specific_properties = get_specific_properties(
-        TMonitoringSitesGroups, get_config(module_code), "sites_group"
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.SITES_GROUP).extra_fields()
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,
         params=params,
         specific_properties=specific_properties,
     )
 
-    if module_code:
-        schema = add_specific_attributes(MonitoringSitesGroupsSchema, object_type, module_code)
-    else:
-        schema = MonitoringSitesGroupsSchema
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()(
+        only=["+modules", "+data"]
+    )
 
     return paginate_scope(
         query=query_allowed,
@@ -98,33 +88,28 @@ def get_sites_groups(object_type: str, module_code=None):
     )
 
 
-@blueprint.route(
-    "/sites_groups/<string:module_code>/<int:id_sites_group>",
+@blueprint_api.route(
+    "/<string:module_code>/sites_groups/<int:id_sites_group>",
     methods=["GET"],
-    defaults={"object_type": "sites_group"},
 )
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_GRP_SITES")
-def get_sites_group_by_id(scope, module_code, id_sites_group: int, object_type: str):
+def get_sites_group_by_id(scope, module_code, id_sites_group: int):
     sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
-    schema = MonitoringSitesGroupsSchemaCruved()
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()(
+        only=["+cruved", "+medias", "+modules", "+data"]
+    )
 
     return schema.dump(sites_group)
 
 
-@blueprint.route(
-    "/sites_groups/geometries", methods=["GET"], defaults={"object_type": "sites_group"}
-)
-@blueprint.route(
-    "/refacto/<string:module_code>/sites_groups/geometries",
-    methods=["GET"],
-    defaults={"object_type": "site"},
-)
-@check_cruved_scope("R")
-def get_sites_group_geometries(object_type: str, module_code=None):
+@blueprint_api.route("/sites_groups/geometries", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/sites_groups/geometries", methods=["GET"])
+@check_cruved_scope("R", object_code="MONITORINGS_GRP_SITES")
+def get_sites_group_geometries(module_code=None):
 
     if g.current_module:
         module_code = g.current_module.module_code
@@ -171,50 +156,35 @@ def get_sites_group_geometries(object_type: str, module_code=None):
     return jsonify(results)
 
 
-@blueprint.route(
-    "/sites_groups/<int:_id>", methods=["PATCH"], defaults={"object_type": "sites_group"}
-)
-@blueprint.route(
-    "/<string:module_code>/sites_groups/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": "sites_group"},
-)
+@blueprint_api.route("/sites_groups/<int:_id>", methods=["PATCH"])
+@blueprint_api.route("/<string:module_code>/sites_groups/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_GRP_SITES")
-def patch(scope, object_type: str, module_code: str = "generic", _id: int = None):
+def patch(scope, module_code: str = "generic", _id: int = None):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
         )
     post_data = dict(request.get_json())
-    sites_group = create_or_update_site_group(post_data, module_code)
+    sites_group = create_or_update_site_group(post_data, module_code, instance=sites_group)
     return sites_group
 
 
-@blueprint.route(
-    "/sites_groups",
-    methods=["POST"],
-    defaults={"object_type": "sites_group"},
-)
-@blueprint.route(
-    "/<string:module_code>/sites_groups",
-    methods=["POST"],
-    defaults={"object_type": "sites_group"},
-)
+@blueprint_api.route("/sites_groups", methods=["POST"])
+@blueprint_api.route("/<string:module_code>/sites_groups", methods=["POST"])
 @check_cruved_scope("C", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
-def post_sites_group(object_type: str, module_code: str = "generic"):
+def post_sites_group(module_code: str = "generic"):
     post_data = dict(request.get_json())
+    post_data.pop("id_sites_group", None)
     sites_group = create_or_update_site_group(post_data, module_code)
     return sites_group
 
 
-@blueprint.route(
-    "/sites_groups/<int:_id>", methods=["DELETE"], defaults={"object_type": "sites_group"}
-)
+@blueprint_api.route("/<string:module_code>/sites_groups/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope(
     "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
-def delete(scope, _id: int, object_type: str):
+def delete(scope, _id: int, module_code: str):
     sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -234,19 +204,20 @@ def handle_validation_error(error):
     ).to_dict()
 
 
-def create_or_update_site_group(post_data: dict, module_code: str = "generic"):
+def create_or_update_site_group(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a site group.
 
     :param post_data: dict containing data to create or update a site group
     :param module_code: str, module code, default is "generic"
+    :param instance: existing site group to update, None to create one
     :return: dict, serialized site group
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, "sites_group")
+    schema = get_entity_or_404(module_code, "sites_group").get_extended_schema()
+    only = ["+medias", "+modules", "+data"]
 
-    sites_group = MonitoringSitesGroupsSchema(unknown=EXCLUDE).load(process_data)
+    sites_group = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(sites_group)
     db.session.commit()
-    return MonitoringSitesGroupsSchema().dump(sites_group)
+    return schema(only=only).dump(sites_group)

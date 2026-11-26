@@ -20,7 +20,11 @@ export class MonitoringFormGLayoutComponent {
   @Input() objectType: String;
   @Input() form: FormGroup;
   @Input() chainInput: boolean;
+  // Nombre d'objets déjà validés en saisie enchaînée
+  @Input() chainedCount = 0;
   @Input() saveSpinner: boolean;
+  // valeurs de l'objet chargées dans le formulaire (validation impossible avant)
+  @Input() formReady: boolean = true;
   @Input() saveAndAddChildrenSpinner: boolean;
   @Input() canUpdate: boolean;
   @Input() canDelete: boolean;
@@ -28,11 +32,19 @@ export class MonitoringFormGLayoutComponent {
   @Input() addChildren: boolean;
   @Input() deleteSpinner: boolean;
   @Input() deleteModal: boolean;
+  @Input() validationError: string[] = [];
 
   @Output() chainInputChange = new EventEmitter<boolean>();
   @Output() deleteModalChange = new EventEmitter<boolean>();
   @Output() submitForm = new EventEmitter<boolean>();
   @Output() notAllowed = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
+  @Output() stopChain = new EventEmitter<void>();
   @Output() confirmDelete = new EventEmitter<void>();
+
+  closeDropdowns() {
+    if (document.querySelector('body > .ng-dropdown-panel')) {
+      document.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  }
 }

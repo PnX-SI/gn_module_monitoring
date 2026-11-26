@@ -1,34 +1,18 @@
+import re
+
 from geonature.core.imports.models import Entity, TImports
-from geonature.core.imports.checks.dataframe.cast import check_types
-from geonature.core.imports.checks.dataframe.core import check_required_values
 from geonature.core.imports.checks.sql import (
     check_cd_nom,
 )
-import re
 from sqlalchemy.orm.exc import NoResultFound
 
 
 class EntityImportActionsUtils:
     @staticmethod
-    def get_destination_column_name(transient_table_column_name: str) -> str:
-        return re.sub(r"^.*?__", "", transient_table_column_name)
-
-    @staticmethod
     def get_entity(imprt: TImports, entity_code: str) -> Entity:
         return Entity.query.filter_by(
             code=entity_code, id_destination=imprt.destination.id_destination
         ).one()
-
-    @staticmethod
-    def dataframe_checks(imprt, df, entity, fields):
-        updated_cols = set({})
-        updated_cols |= check_types(
-            imprt, entity, df, fields
-        )  # FIXME do not check site and visit uuid twice
-
-        updated_cols |= check_required_values(imprt, entity, df, fields)
-
-        return updated_cols
 
     @staticmethod
     def get_destination_fields(imprt: TImports, entity: Entity):
@@ -52,8 +36,7 @@ class EntityImportActionsUtils:
         if entity.code == "site":
             entity_fields |= {
                 fields["id_base_site"],
-                fields["s__geom_4326"],
-                fields["s__geom_local"],
+                fields["s__geom"],
                 fields["uuid_base_site"],
             }
             entity_fields -= {fields["s__types_site"]}
@@ -61,7 +44,7 @@ class EntityImportActionsUtils:
             entity_fields |= {
                 fields["id_base_site"],
                 fields["id_base_visit"],
-                fields["id_dataset"],
+                fields["v__id_dataset"],
                 fields["uuid_base_visit"],
             }
         elif entity.code == "observation":
@@ -97,10 +80,12 @@ class EntityImportActionsUtils:
 
     @staticmethod
     def check_cd_nom_on_taxonomy_field(imprt: TImports, entity_code: str):
-        from gn_module_monitoring.config.repositories import get_config
+        from gn_module_monitoring.modules import get_module
 
         entity = EntityImportActionsUtils.get_entity(imprt, entity_code)
-        config = get_config(imprt.destination.code)
+        substitutions = get_module(imprt.destination.code).substitutions
+        from geonature.utils.env import db as _db
+        import sqlalchemy as _sa
 
         for field in EntityImportActionsUtils.get_destination_fields(imprt, entity):
             if field.type_field == "taxonomy" or (
@@ -111,5 +96,14 @@ class EntityImportActionsUtils:
                     imprt,
                     entity,
                     field,
-                    config["custom"].get("__MODULE.ID_LIST_TAXONOMY"),
+                    substitutions.get("__MODULE.ID_LIST_TAXONOMY"),
                 )
+
+    @staticmethod
+    def get_destination_column_name(column_name: str) -> str:
+        """
+        Colonne de destination d'une colonne de la table transitoire : le préfixe `<x>__` est retiré
+        (inverse de `BaseImportActions.get_field_name`). Un nom sans préfixe (`geom`, `id_base_site`) est
+        inchangé.
+        """
+        return re.sub(r"^.*?__", "", column_name)

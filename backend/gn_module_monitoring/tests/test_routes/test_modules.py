@@ -76,6 +76,44 @@ class TestModules:
         assert r.status_code == 200
         assert r.json["taxonomy_display_field_name"] == data["taxonomy_display_field_name"]
 
+    def test_patch_module_without_id_module(self, module_test, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+
+        data = {"taxonomy_display_field_name": "lb_nom"}
+
+        r = self.client.patch(
+            url_for(
+                "monitorings.patch_module",
+                module_code="test",
+                _id=module_test.id_module,
+            ),
+            json=data,
+        )
+        assert r.status_code == 200
+        assert r.json["id_module"] == module_test.id_module
+        assert r.json["taxonomy_display_field_name"] == data["taxonomy_display_field_name"]
+
+    def test_patch_module_id_mismatch(
+        self, module_test, modules_with_and_without_permission, users
+    ):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        other = db.session.execute(
+            select(TMonitoringModules).where(TMonitoringModules.module_code == "NO_PERM")
+        ).scalar_one()
+        original_label = module_test.module_label
+
+        r = self.client.patch(
+            url_for(
+                "monitorings.patch_module",
+                module_code="test",
+                _id=module_test.id_module,
+            ),
+            json={"id_module": other.id_module, "module_label": "Changed"},
+        )
+        assert r.status_code == 400
+        db.session.refresh(module_test)
+        assert module_test.module_label == original_label
+
     def test_patch_module_not_found(self, module_test, users):
         set_logged_user_cookie(self.client, users["admin_user"])
 

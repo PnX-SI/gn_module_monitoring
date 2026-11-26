@@ -3,12 +3,12 @@
     "base_site_name",
     "base_site_code",
     "base_site_description",
-    "id_nomenclature_type_site",
     "cd_hab",
     "id_inventor",
     "first_use_date",
     "last_visit",
-    "nb_visits"
+    "nb_visits",
+    "nb_marking_events"
   ],
   "export_pdf": [
     {
@@ -16,20 +16,8 @@
         "label": "Export PDF"
     }
   ],
-  "map_label_field_name": "base_site_name",
   "geometry_type": "Point",
   "specific": {
-    "base_site_code": {
-      "required": false
-    },
-    "id_nomenclature_type_site": {
-      "filters": {
-        "cd_nomenclature": ["1", "2", "3"]
-      },
-      "default": {
-        "cd_nomenclature": "1"
-      }
-    },
     "contact_name": {
       "type_widget": "text",
       "attribut_label": "contact"

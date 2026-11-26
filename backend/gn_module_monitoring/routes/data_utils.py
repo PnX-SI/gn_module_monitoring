@@ -13,16 +13,14 @@ from sqlalchemy import and_, inspect, cast, select
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from geonature.utils.env import DB
-from geonature.core.users.models import VUserslistForallMenu
 from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.errors import GeoNatureError
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_commons.models import TModules
 
-from pypnusershub.db.models import User, UserList
+from pypnusershub.db.models import UserList
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
-from pypnnomenclature.repository import get_nomenclature_list
 
 from apptax.taxonomie.models import Taxref, BibListes
 
@@ -34,6 +32,7 @@ from ref_geo.models import LAreas, LiMunicipalities
 
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import (
+    TMonitoringIndividuals,
     TMonitoringSites,
     TMonitoringSitesGroups,
 )
@@ -51,6 +50,7 @@ model_dict = {
     "area": LAreas,
     "municipality": LiMunicipalities,
     "module": TModules,
+    "individual": TMonitoringIndividuals,
 }
 
 

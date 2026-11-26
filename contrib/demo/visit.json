@@ -1,0 +1,117 @@
+{
+  "label": "Visite démo",
+  "label_list": "Visites démo",
+  "redirect_to_parent": true,
+  "display_properties": [
+    "id_base_site",
+    "visit_date_min",
+    "visit_date_max",
+    "observers",
+    "observers_txt",
+    "id_dataset",
+    "comments",
+    "id_nomenclature_tech_collect_campanule",
+    "demo_visit_type",
+    "demo_visit_score",
+    "nb_observations"
+  ],
+  "display_list": [
+    "id_base_site",
+    "visit_date_min",
+    "observers",
+    "demo_visit_type",
+    "nb_observations"
+  ],
+  "keep": ["id_dataset", "observers", "demo_visit_type"],
+  "sorts": [{"prop": "visit_date_min", "dir": "desc"}],
+  "validate_cel": [
+    {
+      "condition": "fields.visit_date_min == null || fields.visit_date_max == null || fields.visit_date_max >= fields.visit_date_min",
+      "message": "La date de fin doit être postérieure à la date de début."
+    }
+  ],
+  "fields": {
+    "id_base_site": {
+      "type_widget": "site",
+      "hidden": true
+    },
+    "observers": {
+      "store": {
+        "type": "users",
+        "code_list": "__MODULE.CODE_OBSERVERS_LIST"
+      },
+      "widget": {
+        "type": "observers",
+        "attribut_label": "Observateurs",
+        "multiple": true
+      },
+      "required": true
+    },
+    "observers_txt": {
+      "widget": {
+        "type": "observers-text",
+        "attribut_label": "Observateur(s) (extérieur)",
+        "hidden": "({value}) => !value.observers || value.observers.length === 0"
+      }
+    },
+    "visit_date_min": {
+      "store": {
+        "type": "date"
+      },
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date de début"
+      },
+      "required": true
+    },
+    "visit_date_max": {
+      "widget": {
+        "type": "date",
+        "attribut_label": "Date de fin",
+        "hidden": false,
+        "title": "Facultative"
+      }
+    },
+    "comments": {
+      "widget": {
+        "type": "textarea",
+        "attribut_label": "Commentaires"
+      }
+    },
+    "id_nomenclature_tech_collect_campanule": {
+      "store": {
+        "type": "nomenclature",
+        "nomenclature_type": "TECHNIQUE_OBS",
+        "cd_nomenclatures": ["11", "6", "7"]
+      },
+      "widget": {
+        "type": "nomenclature",
+        "attribut_label": "Technique de collecte"
+      },
+      "required": true
+    },
+    "demo_visit_type": {
+      "widget": {
+        "type": "select",
+        "attribut_label": "Type de visite",
+        "values": ["ponctuelle", "suivi"],
+        "definition": "Type de visite (démo)"
+      },
+      "required": true
+    },
+    "demo_visit_score": {
+      "store": {
+        "type": "integer"
+      },
+      "widget": {
+        "type": "number",
+        "step": 1,
+        "min": 0,
+        "max": 10,
+        "attribut_label": "Score (0 à 10)"
+      },
+      "required_cel": "fields.demo_visit_type == 'suivi'",
+      "validate_cel": ["fields.demo_visit_score <= 10"]
+    }
+  }
+}

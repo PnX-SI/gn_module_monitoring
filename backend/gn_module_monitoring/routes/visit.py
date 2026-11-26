@@ -1,6 +1,5 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.config.repositories import get_config
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden
 from gn_module_monitoring.command import permissions
@@ -10,36 +9,25 @@ from werkzeug.datastructures import MultiDict
 
 from geonature.utils.env import db
 
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.blueprint import blueprint_api
+from gn_module_monitoring.modules import get_entity_or_404
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scope
 from gn_module_monitoring.monitoring.models import TMonitoringVisits, TMonitoringModules
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringVisitsSchemaCruved,
-    MonitoringVisitsSchema,
-    add_specific_attributes,
-)
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
     sort,
     get_objet_with_permission_boolean,
 )
 from gn_module_monitoring.routes.modules import get_modules
 
-default_route_object_type = "visit"
 
-
-@blueprint.route(
-    "/refacto/visits/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/visits/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
-def delete_visit(scope, _id, object_type):
+def delete_visit(scope, _id, module_code):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot delete visit {visit.id_base_visit}")
@@ -48,40 +36,36 @@ def delete_visit(scope, _id, object_type):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    "/<string:module_code>/visits",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/visits", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
-def post_visit(object_type, module_code):
+def post_visit(module_code):
     post_data = dict(request.get_json())
+    post_data.pop("id_base_visit", None)
     return create_or_update_visit(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    "/<string:module_code>/visits/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+VISIT_ONLY = ["+module", "+observers", "+medias", "+data"]
+
+
+@blueprint_api.route("/<string:module_code>/visits/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
-def patch_visit(scope, object_type: str, module_code: str, _id: int):
+def patch_visit(scope, module_code: str, _id: int):
     visit = db.get_or_404(TMonitoringVisits, _id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot update visit {visit.id_base_visit}")
     post_data = dict(request.get_json())
     if not "id_base_visit" in post_data:
         post_data["id_base_visit"] = _id
-    return create_or_update_visit(post_data, module_code=module_code)
+    # PATCH partiel : les champs absents de la requête gardent leur valeur courante
+    post_data = get_entity_or_404(module_code, "visit").patch_payload(
+        visit, post_data, only=VISIT_ONLY
+    )
+    return create_or_update_visit(post_data, module_code=module_code, instance=visit)
 
 
-@blueprint.route("/visits", methods=["GET"], defaults={"object_type": default_route_object_type})
-@blueprint.route(
-    "/refacto/<string:module_code>/visits",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
-def get_visits(object_type, module_code=None):
+@blueprint_api.route("/visits", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/visits", methods=["GET"])
+def get_visits(module_code=None):
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
     sort_label, sort_dir = get_sort(
@@ -112,9 +96,13 @@ def get_visits(object_type, module_code=None):
             query_allowed = TMonitoringVisits.filter_by_readable(
                 query=query_allowed, module_code=module["module_code"], object_code=OBJECT_CODE
             )
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()(
+        only=["+module", "+observers", "+data"]
+    )
+
     return paginate_scope(
         query=query_allowed,
-        schema=MonitoringVisitsSchema,
+        schema=schema,
         limit=limit,
         page=page,
         object_code=OBJECT_CODE,
@@ -127,46 +115,36 @@ def get_visits(object_type, module_code=None):
     )
 
 
-@blueprint.route(
-    "/visits/<string:module_code>/<int:id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/visits/<int:id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
-def get_visit_by_id(scope, module_code, id, object_type):
-    # print(scope, module_code, id, object_type)
+def get_visit_by_id(scope, module_code, id):
+
     visit = db.get_or_404(TMonitoringVisits, id)
     if not visit.has_instance_permission(scope=scope):
         raise Forbidden(f"User {g.current_user} cannot read visit {visit.id_base_visit}")
-    schema = add_specific_attributes(MonitoringVisitsSchema, object_type, module_code)
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()(
+        only=["+cruved", "+observers", "+medias", "+data"]
+    )
 
-    data = schema(exclude=("module",)).dump(visit)
+    data = schema.dump(visit)
 
     return data
 
 
-def create_or_update_visit(post_data: dict, module_code: str = "generic"):
+def create_or_update_visit(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a visit.
 
     :param post_data: dict containing data to create or update a visit
     :param module_code: str, module code, default is "generic"
+    :param instance: existing visit to update, None to create one
     :return: dict, serialized visit
     """
-    config = get_config(module_code)
-    # print(config, "config", module_code, "module_code")
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    only = VISIT_ONLY
+    schema = get_entity_or_404(module_code, "visit").get_extended_schema()
 
-    try:
-        visit = MonitoringVisitsSchema(unknown=EXCLUDE).load(process_data)
-    except Exception as e:
-        # TODO REMOVE DEV MODE
-        print(e.__dict__)
-        raise e
+    visit = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
     db.session.add(visit)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringVisitsSchema, default_route_object_type, module_code
-    )
-    return schema().dump(visit)
+    return schema(only=only).dump(visit)

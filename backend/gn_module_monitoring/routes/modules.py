@@ -4,6 +4,7 @@ routes pour les modules de suivis...
 
 from flask import request
 from utils_flask_sqla.response import json_resp_accept_empty_list, json_resp
+from werkzeug.exceptions import BadRequest
 
 from marshmallow import EXCLUDE
 
@@ -16,6 +17,7 @@ from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.repositories import get_config
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringModuleSchema
 from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.modules import get_entity_or_404, invalidate_module
 from gn_module_monitoring.modules.repositories import (
     get_module,
     get_modules,
@@ -24,7 +26,6 @@ from gn_module_monitoring.monitoring.models import TMonitoringModules
 from gn_module_monitoring.utils.utils import to_int
 from gn_module_monitoring.utils.routes import (
     query_all_types_site_from_module_id,
-    process_json_data_for_db_upsert,
 )
 
 
@@ -87,34 +88,35 @@ def get_all_types_site_from_module_id(module_code):
     return schema.dump(types_site)
 
 
-@blueprint.route("/module/<int:_id>", methods=["PATCH"], defaults={"object_type": "module"})
-@blueprint.route(
-    "/<string:module_code>/module/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": "module"},
-)
+@blueprint.route("/module/<int:_id>", methods=["PATCH"])
+@blueprint.route("/<string:module_code>/module/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_MODULES")
-def patch_module(scope, object_type: str, module_code: str = "generic", _id: int = None):
+def patch_module(scope, module_code: str = "generic", _id: int = None):
     module = db.get_or_404(TMonitoringModules, _id)
     post_data = dict(request.get_json())
-    module = create_or_update_module(post_data, module_code)
+    if post_data.get("id_module", _id) != _id:
+        raise BadRequest("L'id_module du corps ne correspond pas à l'id de l'URL.")
+    post_data["id_module"] = _id
+    module = create_or_update_module(post_data, module_code, instance=module)
     return module
 
 
-def create_or_update_module(post_data: dict, module_code: str):
+def create_or_update_module(post_data: dict, module_code: str, instance=None):
     """
     Create or update a module.
 
     :param post_data: dict containing data to create or update a module
     :param module_code: str, module code, default is "generic"
+    :param instance: TMonitoringModules to update, None to create a new module
     :return: dict, serialized module
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, "module")
-    module = MonitoringModuleSchema(unknown=EXCLUDE).load(process_data, partial=True)
+    schema = get_entity_or_404(module_code, "module").get_extended_schema()
+    module = schema(unknown=EXCLUDE).load(post_data, instance=instance, partial=True)
 
     db.session.add(module)
     db.session.commit()
+    # Les substitutions du module (ex. ID_LIST_TAXONOMY) viennent de la ligne : cache de get_module
+    invalidate_module(module.module_code)
     # Les attributs du module alimentent config["custom"] : rafraîchissement du cache
     get_config(module.module_code, force=True)
-    return MonitoringModuleSchema().dump(module)
+    return schema().dump(module)

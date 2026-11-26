@@ -2,8 +2,9 @@
 Fonctions utilisées par les routes de l'ancienne API (breadcrumbs, suppression, synthèse, export pdf)
 encore appelées par l'interface.
 
-Elles reposent sur la configuration renvoyée par `get_config` (champs dans config[object_type]["fields"])
-et remplacent les méthodes équivalentes de MonitoringObject, qui reste basé sur `get_config_old`.
+Elles reposent sur l'objet module renvoyé par `get_module` (entités dans `module.entities[object_type].data`,
+`module.module` et `module.substitutions`) et remplacent les méthodes équivalentes de MonitoringObject,
+qui reste basé sur `get_config_old`.
 """
 
 import json
@@ -24,7 +25,7 @@ from gn_module_monitoring.monitoring.serializer import MonitoringSerializer_dict
 log = logging.getLogger(__name__)
 
 
-def get_object_model(module_code, object_type, id, config):
+def get_object_model(module_code, object_type, id, module):
     """
     Renvoie l'objet SQLAlchemy correspondant à `id`.
     Pour un module, l'objet est récupéré à partir de `module_code` si `id` n'est pas défini.
@@ -34,7 +35,7 @@ def get_object_model(module_code, object_type, id, config):
     if object_type == "module" and not id:
         condition = Model.module_code == module_code
     else:
-        condition = getattr(Model, config[object_type]["id_field_name"]) == id
+        condition = getattr(Model, module.entities[object_type].data["id_field_name"]) == id
 
     model = DB.session.execute(select(Model).where(condition)).unique().scalar_one_or_none()
     if model is None:
@@ -49,13 +50,13 @@ def get_field_value(model, field_name):
     return (getattr(model, "data", None) or {}).get(field_name)
 
 
-def get_id_parent(module_code, object_type, model, config):
-    parent_types = config[object_type].get("parent_types") or []
+def get_id_parent(module_code, object_type, model, module):
+    parent_types = module.entities[object_type].data.get("parent_types") or []
     if not parent_types:
         return None
     if "module" in parent_types[0]:
         return module_code
-    return getattr(model, config[parent_types[0]]["id_field_name"], None)
+    return getattr(model, module.entities[parent_types[0]].data["id_field_name"], None)
 
 
 def _module_breadcrumb():
@@ -69,18 +70,18 @@ def _module_breadcrumb():
     }
 
 
-def get_breadcrumbs(module_code, object_type, id, config, params):
+def get_breadcrumbs(module_code, object_type, id, module, params):
     """
     Renvoie la liste des breadcrumbs de l'objet et de ses parents (du plus haut au plus bas).
 
     Si `params["parents_path"]` est renseigné, les parents sont pris dans cette liste (en partant de la fin),
     sinon on remonte le premier type de parent défini dans la configuration.
     """
-    model = get_object_model(module_code, object_type, id, config) if id else None
+    model = get_object_model(module_code, object_type, id, module) if id else None
 
     breadcrumbs = []
     if model is not None:
-        object_config = config[object_type]
+        object_config = module.entities[object_type].data
         breadcrumb = {
             "id": getattr(model, object_config["id_field_name"]),
             "label": object_config.get("label"),
@@ -96,30 +97,30 @@ def get_breadcrumbs(module_code, object_type, id, config, params):
         parent_type = params["parents_path"].pop()
         if parent_type == "module":
             return [_module_breadcrumb()] + breadcrumbs
-        parent_id_field_name = config[parent_type]["id_field_name"]
+        parent_id_field_name = module.entities[parent_type].data["id_field_name"]
         parent_id = (
             model is not None and get_field_value(model, parent_id_field_name)
         ) or params.get(parent_id_field_name)
     else:
-        parent_types = config[object_type].get("parent_types") or []
+        parent_types = module.entities[object_type].data.get("parent_types") or []
         parent_type = parent_types[0] if parent_types else None
         if not parent_type or parent_type == "module":
             return breadcrumbs
-        parent_id = get_id_parent(module_code, object_type, model, config) if model else None
+        parent_id = get_id_parent(module_code, object_type, model, module) if model else None
 
-    return get_breadcrumbs(module_code, parent_type, parent_id, config, params) + breadcrumbs
+    return get_breadcrumbs(module_code, parent_type, parent_id, module, params) + breadcrumbs
 
 
-def process_synthese(module_code, config, limit=1000):
+def process_synthese(module_code, module, limit=1000):
     """
     Synchronise la synthèse avec la vue gn_monitoring.v_synthese_<module_code> pour tout le module.
     Renvoie True si la synchronisation a été faite.
     """
-    if not config.get("synthese"):
+    if not module.module.b_synthese:
         return
 
-    module = get_object_model(module_code, "module", None, config)
-    id_field_name = config["module"]["id_field_name"]
+    monitoring_module = get_object_model(module_code, "module", None, module)
+    id_field_name = module.entities["module"].data["id_field_name"]
     table_name = f"v_synthese_{module_code.lower()}"
 
     # Test de l'existence de la colonne de synchronisation sur la vue synthese
@@ -145,12 +146,16 @@ def process_synthese(module_code, config, limit=1000):
         return
 
     import_from_table(
-        "gn_monitoring", table_name, id_field_name, getattr(module, id_field_name), limit
+        "gn_monitoring",
+        table_name,
+        id_field_name,
+        getattr(monitoring_module, id_field_name),
+        limit,
     )
     return True
 
 
-def serialize_object(module_code, object_type, model, config):
+def serialize_object(module_code, object_type, model, module):
     """
     Sérialise un objet (propriétés génériques et spécifiques à plat + géométrie)
     au format utilisé par les templates d'export pdf :
@@ -160,7 +165,7 @@ def serialize_object(module_code, object_type, model, config):
         MonitoringSerializer_dict[object_type], object_type, module_code
     )
     properties = schema().dump(model)
-    properties["id_parent"] = get_id_parent(module_code, object_type, model, config)
+    properties["id_parent"] = get_id_parent(module_code, object_type, model, module)
 
     # Libellés des types de site (et leurs ids dans ids_types_site)
     if properties.get("types_site") and hasattr(model, "types_site"):
@@ -173,5 +178,5 @@ def serialize_object(module_code, object_type, model, config):
         "geometry": json.loads(geom_geojson) if geom_geojson else None,
         "object_type": object_type,
         "module_code": module_code,
-        "id": getattr(model, config[object_type]["id_field_name"]),
+        "id": getattr(model, module.entities[object_type].data["id_field_name"]),
     }

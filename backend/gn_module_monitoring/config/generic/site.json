@@ -65,10 +65,9 @@
       "type_util": "user",
       "code_list": "CODE_OBSERVERS_LIST",
       "required": true,
-      "multi_select": false
+      "multiple": false
     },
     "id_digitiser": {
-      "type_widget": "text",
       "attribut_label": "Digitiser",
       "type_util": "user",
       "required": true,

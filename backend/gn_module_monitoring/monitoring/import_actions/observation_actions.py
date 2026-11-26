@@ -1,8 +1,11 @@
-from gn_module_monitoring.monitoring.import_actions.visit_actions import VisitImportActions
+from gn_module_monitoring.monitoring.import_actions.base import BaseImportActions
+from gn_module_monitoring.monitoring.import_actions.visit_actions import (
+    VisitImportActions,
+)
 from .entity_import_actions_utils import EntityImportActionsUtils
 from geonature.core.imports.checks.sql.parent import set_parent_line_no
 
-from geonature.core.imports.models import TImports
+from geonature.core.imports.models import Entity, TImports
 
 from geonature.core.gn_monitoring.models import TObservations
 from geonature.utils.env import db
@@ -27,13 +30,12 @@ from geonature.core.imports.checks.sql import (
 )
 from geonature.core.imports.utils import (
     get_mapping_data,
-    load_transient_data_in_dataframe,
-    update_transient_data_from_dataframe,
 )
 
 
-class ObservationImportActions:
+class ObservationImportActions(BaseImportActions):
     ENTITY_CODE = "observation"
+    FIELD_PREFIX = "o__"
     TABLE_NAME = "t_observations"
     ID_FIELD = "id_observation"
     UUID_FIELD = "uuid_observation"
@@ -42,12 +44,19 @@ class ObservationImportActions:
     PARENT_LINE_NO = "visit_line_no"
 
     @staticmethod
-    def check_sql(imprt):
+    def check_pre(imprt):
+        """Mappings avant le schéma étendu : nomenclatures."""
+        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
+        _, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
+
+        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
+
+    @staticmethod
+    def check_post(imprt):
         entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
         entity_fields, fieldmapped_fields, _ = get_mapping_data(imprt, entity)
 
         # How to default ?
-        do_nomenclatures_mapping(imprt, entity, fieldmapped_fields, fill_with_defaults=False)
 
         EntityImportActionsUtils.check_cd_nom_on_taxonomy_field(
             imprt, ObservationImportActions.ENTITY_CODE
@@ -111,36 +120,6 @@ class ObservationImportActions:
         )
 
         ObservationImportActions.check_parent_validity(imprt)
-
-    @staticmethod
-    def check_dataframe(imprt: TImports):
-        """
-        Check the observation data before importing.
-
-        List of checks and data operations (in order of execution):
-        - check types
-        - check required values
-
-        Parameters
-        ----------
-        imprt : TImports
-            The import to check.
-
-        """
-
-        entity = EntityImportActionsUtils.get_entity(imprt, ObservationImportActions.ENTITY_CODE)
-
-        fields, _, source_cols = get_mapping_data(imprt, entity)
-
-        # Save column names where the data was changed in the dataframe
-        updated_cols = set()
-
-        ### Dataframe checks
-        df = load_transient_data_in_dataframe(imprt, entity, source_cols)
-
-        updated_cols |= EntityImportActionsUtils.dataframe_checks(imprt, df, entity, fields)
-
-        update_transient_data_from_dataframe(imprt, entity, updated_cols, df)
 
     @staticmethod
     def generate_id(imprt: TImports):

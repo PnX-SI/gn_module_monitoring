@@ -6,6 +6,10 @@ from geonature.core.gn_monitoring.models import BibTypeSite
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 
 
+from gn_module_monitoring.tools.stores.relationships.utils import (
+    get_nomenclature,
+    get_nomenclature_type,
+)
 from gn_module_monitoring.config.utils import (
     json_from_file,
     monitoring_module_config_path,
@@ -58,6 +62,10 @@ def add_nomenclature(module_code):
 
     for data in nomenclature["nomenclatures"]:
         insert_update_nomenclature(data)
+
+    # Les recherches de nomenclatures sont mises en cache : invalide ce qui a été lu avant l'ajout
+    get_nomenclature_type.cache_clear()
+    get_nomenclature.cache_clear()
 
 
 def insert_update_nomenclature(data):

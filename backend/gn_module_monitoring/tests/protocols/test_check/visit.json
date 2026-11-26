@@ -1,0 +1,8 @@
+{
+    "specific": {
+        "visit_field": {
+            "type_widget": "text",
+            "attribut_label": "Champ spécifique aux visites"
+        }
+    }
+}

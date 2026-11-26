@@ -117,9 +117,9 @@
       mat-stroked-button
       color="primary"
       class="mr-2"
-      (click)="hasEditPermission ? onEditClick() : null"
-      [matTooltip]="hasEditPermission() ? null : toolTipNotAllowed"
-      [disabled]="!hasEditPermission"
+      (click)="editPermission ? onEditClick() : null"
+      [matTooltip]="editPermission ? null : toolTipNotAllowed"
+      [disabled]="!editPermission"
     >
       {{ 'Monitoring.Module.Edit' | translate }}
     </button>

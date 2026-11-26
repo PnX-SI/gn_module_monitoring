@@ -71,7 +71,7 @@ export class FormService {
                 }
               }
               //Si non multiple on renvoie le premier élément ou null
-              if (!elem.multi_select) {
+              if (!elem.multiple) {
                 currentUser = currentUser.length ? currentUser[0] : null;
               }
               return of(currentUser);
@@ -79,6 +79,8 @@ export class FormService {
           ));
     } else if (elem.type_widget === 'taxonomy') {
       x = x ? this._dataUtilsService.getUtil('taxonomy', x, 'all') : null;
+    } else if (this.isBoundItem(elem) && x != null && this.containsIds(x)) {
+      x = this.resolveBoundItems(elem, x);
     } else if (
       elem.type_util === 'nomenclature' &&
       Utils.isObject(x) &&
@@ -96,10 +98,56 @@ export class FormService {
     return x;
   }
 
+  /**
+   * Champs relationnels dont le formControl contient l’objet complet (et non son identifiant),
+   * activé par `bind_all_item` (nomenclature, dataset, areas, individuals).
+   */
+  isBoundItem(elem): boolean {
+    const boundWidgets = ['nomenclature', 'dataset', 'areas', 'individuals'];
+    return Boolean(elem.bind_all_item) && boundWidgets.includes(elem.type_widget);
+  }
+
+  /** Vrai si la valeur (ou chaque élément d’un tableau) est un identifiant et non un objet. */
+  containsIds(x): boolean {
+    return Array.isArray(x) ? x.every((item) => !Utils.isObject(item)) : !Utils.isObject(x);
+  }
+
+  /** Identifiant de l’objet relationnel, selon le widget. */
+  private boundItemIdField(elem): string {
+    return {
+      nomenclature: 'id_nomenclature',
+      dataset: 'id_dataset',
+      areas: elem.value_field_name || 'id_area',
+      individuals: 'id_individual',
+    }[elem.type_widget];
+  }
+
+  /** Résout les identifiants stockés en objets complets (type d’util correspondant au widget). */
+  private resolveBoundItems(elem, x): Observable<any> {
+    const utilType = {
+      nomenclature: 'nomenclature',
+      dataset: 'dataset',
+      areas: 'area',
+      individuals: 'individual',
+    }[elem.type_widget];
+    if (Array.isArray(x)) {
+      return x.length
+        ? forkJoin(x.map((id) => this._dataUtilsService.getUtil(utilType, id, 'all')))
+        : of([]);
+    }
+    return this._dataUtilsService.getUtil(utilType, x, 'all');
+  }
+
   fromForm(elem, val) {
     let x = val;
     if (x == undefined) {
       return x;
+    }
+    if (this.isBoundItem(elem)) {
+      // objet complet : on envoie son identifiant à l’API (les identifiants sont laissés tels quels)
+      const idField = this.boundItemIdField(elem);
+      const toId = (item) => (Utils.isObject(item) ? item[idField] : item);
+      return Array.isArray(x) ? x.map(toId) : toId(x);
     }
     switch (elem.type_widget) {
       case 'date': {
@@ -110,7 +158,7 @@ export class FormService {
         break;
       }
       case 'observers': {
-        if ('multi_select' in elem && elem.multi_select) {
+        if ('multiple' in elem && elem.multiple) {
           x = x.map((item) => {
             return item.id_role;
           });

@@ -2,10 +2,9 @@ from marshmallow import EXCLUDE
 from geonature.utils.env import db
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from gn_module_monitoring import MODULE_CODE
-from gn_module_monitoring.blueprint import blueprint
+from gn_module_monitoring.constants import ObjectType
+from gn_module_monitoring.blueprint import blueprint_api
 
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import get_specific_properties
 from gn_module_monitoring.monitoring.models import (
     TMonitoringModules,
     TMonitoringObservations,
@@ -13,35 +12,26 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringIndividuals,
 )
 
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringObservationsSchema,
-    add_specific_attributes,
-)
+from gn_module_monitoring.modules import get_entity_or_404, get_module
 from gn_module_monitoring.utils.routes import (
     filter_params,
     get_limit_page,
     get_sort,
     paginate_scope,
-    process_json_data_for_db_upsert,
 )
 from sqlalchemy import select
 from gn_module_monitoring.utils.routes import sort
 from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import Forbidden
 
 from geonature.core.gn_permissions import decorators as permissions
 
 from flask import request, g
 
-default_route_object_type = "observation"
 
-
-@blueprint.route(
-    "/refacto/<string:module_code>/observations",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/observations", methods=["GET"])
 @permissions.check_cruved_scope("R", object_code="MONITORINGS_VISITES")
-def get_observations(object_type: str, module_code: str = None):
+def get_observations(module_code: str = None):
     object_code = "MONITORINGS_VISITES"
     params = MultiDict(request.args)
     limit, page = get_limit_page(params=params)
@@ -67,16 +57,14 @@ def get_observations(object_type: str, module_code: str = None):
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
     )
-    specific_properties = get_specific_properties(
-        TMonitoringObservations, get_config(module_code), "observation"
-    )
+    specific_properties = get_entity_or_404(module_code, ObjectType.OBSERVATION).extra_fields()
     query_allowed = TMonitoringObservations.filter_by_specific(
         query=query_allowed,
         params=params,
         specific_properties=specific_properties,
     )
 
-    schema = MonitoringObservationsSchema
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(only=["+data"])
 
     return paginate_scope(
         query=query_allowed,
@@ -93,45 +81,33 @@ def get_observations(object_type: str, module_code: str = None):
     )
 
 
-@blueprint.route(
-    "/observation/geometries", methods=["GET"], defaults={"object_type": default_route_object_type}
-)
-@blueprint.route(
-    "/refacto/<string:module_code>/observation/geometries",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/observation/geometries", methods=["GET"])
+@blueprint_api.route("/<string:module_code>/observation/geometries", methods=["GET"])
 @permissions.check_cruved_scope("R")
-def obs_geometries(object_type: str, module_code=None):
+def obs_geometries(module_code=None):
     return {}
 
 
-@blueprint.route(
-    "/observations/<string:module_code>/<int:_id>",
-    methods=["GET"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["GET"])
 @permissions.check_cruved_scope("R", get_scope=True, object_code="MONITORINGS_VISITES")
-def get_observation_by_id(scope, module_code, _id, object_type):
+def get_observation_by_id(scope, module_code, _id):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read observation {observation.id_observation}"
         )
-    schema = add_specific_attributes(MonitoringObservationsSchema, object_type, module_code)
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()(
+        only=["+cruved", "+medias", "+data"]
+    )
 
-    data = schema().dump(observation)
+    data = schema.dump(observation)
 
     return data
 
 
-@blueprint.route(
-    "/<string:module_code>/observations/<int:_id>",
-    methods=["DELETE"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["DELETE"])
 @permissions.check_cruved_scope("D", get_scope=True, object_code="MONITORINGS_VISITES")
-def delete_observation(scope, _id, module_code, object_type):
+def delete_observation(scope, _id, module_code):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -142,24 +118,17 @@ def delete_observation(scope, _id, module_code, object_type):
     return {"success": "Item is successfully deleted"}, 200
 
 
-@blueprint.route(
-    "/<string:module_code>/observations",
-    methods=["POST"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/observations", methods=["POST"])
 @permissions.check_cruved_scope("C", object_code="MONITORINGS_VISITES")
-def post_observation(object_type, module_code):
+def post_observation(module_code):
     post_data = dict(request.get_json())
+    post_data.pop("id_observation", None)
     return create_or_update_observation(post_data, module_code=module_code)
 
 
-@blueprint.route(
-    "/<string:module_code>/observations/<int:_id>",
-    methods=["PATCH"],
-    defaults={"object_type": default_route_object_type},
-)
+@blueprint_api.route("/<string:module_code>/observations/<int:_id>", methods=["PATCH"])
 @permissions.check_cruved_scope("U", get_scope=True, object_code="MONITORINGS_VISITES")
-def patch_observation(scope, object_type: str, module_code: str, _id: int):
+def patch_observation(scope, module_code: str, _id: int):
     observation = db.get_or_404(TMonitoringObservations, _id)
     if not observation.has_instance_permission(scope=scope):
         raise Forbidden(
@@ -168,38 +137,36 @@ def patch_observation(scope, object_type: str, module_code: str, _id: int):
     post_data = dict(request.get_json())
     if not "id_observation" in post_data:
         post_data["id_observation"] = _id
-    return create_or_update_observation(post_data, module_code=module_code)
+    return create_or_update_observation(post_data, module_code=module_code, instance=observation)
 
 
-def create_or_update_observation(post_data: dict, module_code: str = "generic"):
+def create_or_update_observation(post_data: dict, module_code: str = "generic", instance=None):
     """
     Create or update a observation.
 
     :param post_data: dict containing data to create or update a observation
     :param module_code: str, module code, default is "generic"
+    :param instance: existing observation to update, None to create one
     :return: dict, serialized observation
     """
-    config = get_config(module_code)
-    process_data = process_json_data_for_db_upsert(config, post_data, default_route_object_type)
+    schema = get_entity_or_404(module_code, "observation").get_extended_schema()
+    only = ["+medias", "+data"]
 
     # Cas des individus, s'il y a un id_individual
     # Récupération du cd_nom de l'individu
-    if process_data.get("id_individual", None):
+    if post_data.get("id_individual", None):
         # Get individual cd_nom
         individual = db.session.scalar(
             select(TMonitoringIndividuals).where(
-                TMonitoringIndividuals.id_individual == process_data["id_individual"]
+                TMonitoringIndividuals.id_individual == post_data["id_individual"]
             )
         )
         if individual:
-            process_data["cd_nom"] = individual.cd_nom
+            post_data["cd_nom"] = individual.cd_nom
 
-    observation = MonitoringObservationsSchema(unknown=EXCLUDE).load(process_data)
+    observation = schema(unknown=EXCLUDE, only=only).load(post_data, instance=instance)
 
     db.session.add(observation)
     db.session.commit()
 
-    schema = add_specific_attributes(
-        MonitoringObservationsSchema, default_route_object_type, module_code
-    )
-    return schema().dump(observation)
+    return schema(only=only).dump(observation)

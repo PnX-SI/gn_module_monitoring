@@ -54,7 +54,9 @@ class TestIndividuals:
         id_individuals = [i.id_individual for i in individuals]
 
         # Test get with default sort
-        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        response = self.client.get(
+            url_for("monitorings.api.get_individuals", module_code="test_indi")
+        )
         assert response.status_code == 200
         individuals_response = response.json["items"]
 
@@ -63,7 +65,7 @@ class TestIndividuals:
 
         # Test sort asc
         response = self.client.get(
-            url_for("monitorings.get_individuals", module_code="test_indi", sort_dir="asc")
+            url_for("monitorings.api.get_individuals", module_code="test_indi", sort_dir="asc")
         )
         individuals_response = response.json["items"]
 
@@ -72,7 +74,7 @@ class TestIndividuals:
         # Test sort other column
         response = self.client.get(
             url_for(
-                "monitorings.get_individuals",
+                "monitorings.api.get_individuals",
                 module_code="test_indi",
                 sort="comment",
                 sort_dir="asc",
@@ -84,7 +86,7 @@ class TestIndividuals:
 
         # Test filter main column
         response = self.client.get(
-            url_for("monitorings.get_individuals", module_code="test_indi", id_digitiser="Bob")
+            url_for("monitorings.api.get_individuals", module_code="test_indi", id_digitiser="Bob")
         )
         individuals_response = response.json["items"]
         assert len(individuals_response) == 2
@@ -92,14 +94,14 @@ class TestIndividuals:
 
         # Test filter cd_nom column
         response = self.client.get(
-            url_for("monitorings.get_individuals", module_code="test_indi", cd_nom=649883)
+            url_for("monitorings.api.get_individuals", module_code="test_indi", cd_nom=649883)
         )
         individuals_response = response.json["items"]
         assert len(individuals_response) == 1
         assert individuals_response[0]["cd_nom"] == 649883
 
         response = self.client.get(
-            url_for("monitorings.get_individuals", module_code="test_indi", cd_nom="python")
+            url_for("monitorings.api.get_individuals", module_code="test_indi", cd_nom="python")
         )
         individuals_response = response.json["items"]
         assert len(individuals_response) == 1
@@ -107,20 +109,26 @@ class TestIndividuals:
 
     def test_get_individuals_scope_1(self, install_module_test_indi, users):
         set_logged_user_cookie(self.client, users["self_user"])
-        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        response = self.client.get(
+            url_for("monitorings.api.get_individuals", module_code="test_indi")
+        )
         assert response.status_code == 200
         assert len(response.json["items"]) == 1
 
     def test_get_individuals_scope_2(self, install_module_test_indi, users):
         set_logged_user_cookie(self.client, users["stranger_user"])
 
-        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        response = self.client.get(
+            url_for("monitorings.api.get_individuals", module_code="test_indi")
+        )
         assert response.status_code == 200
         assert len(response.json["items"]) == 1
 
     def test_get_individuals_scope_2_organism(self, install_module_test_indi, users):
         set_logged_user_cookie(self.client, users["user"])
-        response = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        response = self.client.get(
+            url_for("monitorings.api.get_individuals", module_code="test_indi")
+        )
         assert response.status_code == 200
         assert len(response.json["items"]) == 4
 
@@ -130,7 +138,7 @@ class TestIndividuals:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_individual_by_id",
+                "monitorings.api.get_individual_by_id",
                 module_code="test_indi",
                 id=individual_instance.id_individual,
             )
@@ -140,13 +148,37 @@ class TestIndividuals:
         assert r.json["id_individual"] == individual_instance.id_individual
         assert r.json["individual_name"] == individual_instance.individual_name
         assert r.json["cd_nom"] == individual_instance.cd_nom
+        # droits de l'utilisateur sur l'objet, utilisés par le formulaire (éditer / supprimer)
+        assert {action: r.json["cruved"][action] for action in "RUD"} == {
+            "R": True,
+            "U": True,
+            "D": True,
+        }
+
+    def test_get_individual_by_id_cruved_scope_1(self, install_module_test_indi, users):
+        # scope 1 : droits complets sur ses propres individus
+        self_user = users["self_user"]
+        own = next(i for i in install_module_test_indi if i.id_digitiser == self_user.id_role)
+        set_logged_user_cookie(self.client, self_user)
+
+        r = self.client.get(
+            url_for(
+                "monitorings.api.get_individual_by_id",
+                module_code="test_indi",
+                id=own.id_individual,
+            )
+        )
+
+        assert r.status_code == 200
+        assert r.json["cruved"]["U"] is True
+        assert r.json["cruved"]["D"] is True
 
     def test_get_individual_by_id_not_found(self, users):
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.get(
             url_for(
-                "monitorings.get_individual_by_id",
+                "monitorings.api.get_individual_by_id",
                 module_code="test_indi",
                 id=999999999,
             )
@@ -167,7 +199,7 @@ class TestIndividuals:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_individual",
+                "monitorings.api.post_individual",
                 module_code="test_indi",
             ),
             json=data,
@@ -178,7 +210,7 @@ class TestIndividuals:
         assert r.json["comment"] == data["comment"]
 
         # L'individu créé doit être associé au module et donc apparaitre dans sa liste
-        r = self.client.get(url_for("monitorings.get_individuals", module_code="test_indi"))
+        r = self.client.get(url_for("monitorings.api.get_individuals", module_code="test_indi"))
         assert r.status_code == 200
         assert data["individual_name"] in [i["individual_name"] for i in r.json["items"]]
 
@@ -196,7 +228,7 @@ class TestIndividuals:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_individual",
+                "monitorings.api.patch_individual",
                 module_code="test_indi",
                 _id=individual_instance.id_individual,
             ),
@@ -212,7 +244,7 @@ class TestIndividuals:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_individual",
+                "monitorings.api.patch_individual",
                 module_code="test_indi",
                 _id=999999999,
             ),
@@ -227,7 +259,7 @@ class TestIndividuals:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_individual",
+                "monitorings.api.delete_individual",
                 _id=individual_instance.id_individual,
                 module_code="test_indi",
             )
@@ -238,7 +270,7 @@ class TestIndividuals:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_individual_by_id",
+                "monitorings.api.get_individual_by_id",
                 module_code="test_indi",
                 id=individual_instance.id_individual,
             )
@@ -249,7 +281,7 @@ class TestIndividuals:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_individual", _id=999999999, module_code="test_indi")
+            url_for("monitorings.api.delete_individual", _id=999999999, module_code="test_indi")
         )
 
         assert r.status_code == 404
@@ -268,7 +300,7 @@ class TestIndividuals:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_observation",
+                "monitorings.api.post_observation",
                 module_code="test_indi",
             ),
             json=data,
@@ -283,7 +315,7 @@ class TestIndividuals:
         data["cd_nom"] = 999999999
         r = self.client.post(
             url_for(
-                "monitorings.post_observation",
+                "monitorings.api.post_observation",
                 module_code="test_indi",
             ),
             json=data,

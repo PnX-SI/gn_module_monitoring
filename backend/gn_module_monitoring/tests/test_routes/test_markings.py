@@ -7,7 +7,14 @@ from sqlalchemy import select
 
 from pypnusershub.tests.utils import set_logged_user_cookie
 from geonature.utils.env import db
-from gn_module_monitoring.monitoring.models import TMonitoringMarkingEvent, TMonitoringModules
+from gn_module_monitoring.monitoring.models import (
+    TMonitoringMarkingEvent,
+    TMonitoringModules,
+    TMonitoringSites,
+)
+
+
+from gn_module_monitoring.monitoring.schemas import MonitoringSitesSchema
 
 
 @pytest.fixture
@@ -45,7 +52,7 @@ class TestMarkings:
         set_logged_user_cookie(self.client, users["admin_user"])
         r = self.client.get(
             url_for(
-                "monitorings.get_markings",
+                "monitorings.api.get_markings",
                 module_code="test_indi",
             )
         )
@@ -61,7 +68,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_markings",
+                "monitorings.api.get_markings",
                 module_code="test_indi",
                 id_individual=marking_instance.id_individual,
             )
@@ -77,7 +84,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=marking_instance.id_marking,
             )
@@ -92,7 +99,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=999999999,
             )
@@ -116,7 +123,7 @@ class TestMarkings:
 
         r = self.client.post(
             url_for(
-                "monitorings.post_marking",
+                "monitorings.api.post_marking",
                 module_code="test_indi",
             ),
             json=data,
@@ -125,6 +132,48 @@ class TestMarkings:
         assert r.json["id_individual"] == data["id_individual"]
         assert r.json["marking_location"] == data["marking_location"]
         assert r.json["marking_code"] == data["marking_code"]
+
+    def test_post_marking_site(self, markings_routes, users, nomenclature_type_markings, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        marking_instance = markings_routes[0]
+
+        data = {
+            "id_individual": marking_instance.id_individual,
+            "id_digitiser": users["admin_user"].id_role,
+            "id_operator": users["admin_user"].id_role,
+            "marking_date": "2025-06-01",
+            "marking_location": "new_location",
+            "marking_code": "new_code",
+            "id_nomenclature_marking_type": nomenclature_type_markings.id_nomenclature,
+            "id_base_marking_site": sites["admin_user_Test_Grotte"].id_base_site,
+        }
+
+        r = self.client.post(
+            url_for(
+                "monitorings.api.post_marking",
+                module_code="test_indi",
+            ),
+            json=data,
+        )
+        assert r.status_code == 200
+        assert r.json["id_individual"] == data["id_individual"]
+        assert r.json["marking_location"] == data["marking_location"]
+        assert r.json["marking_code"] == data["marking_code"]
+
+        selected_site = db.session.scalar(
+            select(TMonitoringSites)
+            .where(TMonitoringSites.id_base_site == sites["admin_user_Test_Grotte"].id_base_site)
+            .limit(1)
+        )
+        assert MonitoringSitesSchema().dump(selected_site).get("nb_marking_events") == 1
+
+        # test route site with markings event
+        r = self.client.get(
+            url_for("monitorings.api.get_sites", module_code="test_indi", nb_marking_events=1)
+        )
+        assert len(r.json["items"]) == 1
+        assert r.json["count"] == 1
+        assert r.json["items"][0]["id_base_site"] == sites["admin_user_Test_Grotte"].id_base_site
 
     def test_patch_marking(self, markings_routes, users):
         set_logged_user_cookie(self.client, users["admin_user"])
@@ -143,7 +192,7 @@ class TestMarkings:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_marking",
+                "monitorings.api.patch_marking",
                 module_code="test_indi",
                 _id=marking_instance.id_marking,
             ),
@@ -158,7 +207,7 @@ class TestMarkings:
 
         r = self.client.patch(
             url_for(
-                "monitorings.patch_marking",
+                "monitorings.api.patch_marking",
                 module_code="test_indi",
                 _id=999999999,
             ),
@@ -173,7 +222,7 @@ class TestMarkings:
 
         r = self.client.delete(
             url_for(
-                "monitorings.delete_marking",
+                "monitorings.api.delete_marking",
                 _id=marking_instance.id_marking,
                 module_code="test_indi",
             )
@@ -184,7 +233,7 @@ class TestMarkings:
 
         r = self.client.get(
             url_for(
-                "monitorings.get_marking_by_id",
+                "monitorings.api.get_marking_by_id",
                 module_code="test_indi",
                 id=marking_instance.id_marking,
             )
@@ -195,7 +244,7 @@ class TestMarkings:
         set_logged_user_cookie(self.client, users["admin_user"])
 
         r = self.client.delete(
-            url_for("monitorings.delete_marking", _id=999999999, module_code="test_indi")
+            url_for("monitorings.api.delete_marking", _id=999999999, module_code="test_indi")
         )
 
         assert r.status_code == 404

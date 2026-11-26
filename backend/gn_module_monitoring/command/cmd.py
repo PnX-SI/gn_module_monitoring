@@ -3,6 +3,7 @@ import click
 from flask.cli import with_appcontext
 from sqlalchemy.sql import select
 from sqlalchemy import exists
+from marshmallow import ValidationError
 
 from geonature.utils.env import DB
 from geonature.core.gn_synthese.models import TSources
@@ -11,20 +12,23 @@ from geonature.core.gn_commons.models import TModules
 from geonature.core.imports.models import Destination
 
 from gn_module_monitoring.monitoring.models import TMonitoringModules
-from gn_module_monitoring.modules.repositories import get_simple_module
-from gn_module_monitoring.config.repositories import get_config
-from gn_module_monitoring.config.utils import monitoring_module_config_path
+from gn_module_monitoring.modules import get_module, invalidate_module
+from gn_module_monitoring.config.utils import (
+    get_monitorings_path,
+    get_monitoring_module,
+    is_module_configured,
+    monitoring_module_config_path,
+)
+from gn_module_monitoring.command.check import run_check
 from gn_module_monitoring.command.nomenclature import add_nomenclature
 from gn_module_monitoring.command.permissions import process_available_permissions
 from gn_module_monitoring.command.sql import process_sql_files
 from gn_module_monitoring.command.utils import (
     available_modules,
     installed_modules,
-    is_module_configured,
     process_module_import,
     process_update_module_import,
     remove_monitoring_module,
-    validate_json_file_protocol,
     check_module_code_name,
 )
 
@@ -66,19 +70,24 @@ def cmd_install_monitoring_module(module_code):
     # module_code = module_code or module_config_dir_path.name
 
     # Check module code_name
-    is_module_code_given = module_code != ""
-
-    if is_module_code_given and not check_module_code_name(module_code):
+    module_code = None if module_code in ("", None) else module_code
+    module_config_dir_path = ""
+    if module_code and not check_module_code_name(module_code):
         click.secho(
             f"Le nom du module {module_code} n'est pas valide !",
             fg="red",
         )
         return
 
-    module_config_dir_path = monitoring_module_config_path(module_code)
+    if module_code in [module["module_code"] for module in installed_modules()]:
+        click.secho(f"Le module {module_code} est déjà installé !\n")
+        return
 
-    if not (is_module_code_given and (module_config_dir_path / "module.json").is_file()):
-        if is_module_code_given:
+    if module_code:
+        module_config_dir_path = monitoring_module_config_path(module_code)
+
+    if not (module_code and (module_config_dir_path / "module.json").is_file()):
+        if module_code:
             click.secho(
                 f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}",
                 fg="red",
@@ -95,22 +104,15 @@ def cmd_install_monitoring_module(module_code):
             )
         return
 
-    success, errors = validate_json_file_protocol(module_code)
-    if not success:
+    try:
+        get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
+    except ValidationError as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
-        for error in errors:
-            click.echo(f"- {error}")
+        click.echo(f"- {e}")
         click.echo("Installation annulée")
         return
 
-    module_monitoring = get_simple_module("module_code", "MONITORINGS")
-    from gn_module_monitoring.config.repositories import get_config
-
-    config = get_config(module_code, force=True)
-
-    if not config:
-        click.secho(f"config directory for module {module_code} does not exist", fg="red")
-        return None
+    monitoring_module = get_module(module_code)
 
     click.secho(f"Installation du sous-module monitoring {module_code}")
 
@@ -119,10 +121,10 @@ def cmd_install_monitoring_module(module_code):
     # process Exports
     process_sql_files(dir=None, module_code=module_code, depth=None, allowed_files=None)
 
-    module_desc = config["module"].get("module_desc")
-    module_label = config["module"].get("module_label")
+    module_desc = monitoring_module.entities["module"].data.get("module_desc")
+    module_label = monitoring_module.entities["module"].data.get("module_label")
     synthese_object = (
-        config.get("synthese_object") or "observation"
+        monitoring_module.get("synthese_object") or "observation"
     )  # pour retrouver la page depuis la synthese
 
     if not (module_desc and module_label):
@@ -135,9 +137,9 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
 
     module_data = {
         "module_picto": "fa-puzzle-piece",
-        **config["module"],
+        **monitoring_module.entities["module"].data,
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "module_path": "{}/module/{}".format(get_monitorings_path(), module_code),
         "active_frontend": False,
         "active_backend": False,
         "type": "monitoring_module",
@@ -168,7 +170,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
             module_code.lower()
         ),
         "url_source": "#/{}/object/{}/{}".format(
-            module_monitoring.module_path, module_code, synthese_object
+            get_monitorings_path(), module_code, synthese_object
         ),
     }
 
@@ -176,6 +178,7 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     DB.session.add(source)
     DB.session.commit()
 
+    invalidate_module(module_code)
     click.secho(f"Sous-module monitoring '{module_code}' installé", fg="green")
     return
 
@@ -190,43 +193,47 @@ def cmd_add_update_import_on_protocole(module_code):
             f"Le module {module_code} n'est pas installé. Pour pouvoir importer dans ce protocole, vous devez d'abord l'installer !"
         )
 
-    config = get_config(module_code, force=True)
+    module_entity = get_module(module_code).entities["module"].data
     # Vérification de la conformité des fichier json
-    success, errors = validate_json_file_protocol(module_code)
-    if not success:
+    try:
+        get_module(module_code)  # config v3 : lève une erreur si la configuration est invalide
+    except ValidationError as e:
         click.echo("Erreurs détectées dans les fichiers de configuration:")
-        for error in errors:
-            click.echo(f"- {error}")
+        click.echo(f"- {e}")
         click.echo("Mise à jour de l'import annulée")
         return
 
-    if not is_module_configured(module_code):
+    if not is_module_configured(get_monitoring_module(module_code)):
+        click.secho(
+            f"Le module {module_code} n'est pas configuré ! ",
+            fg="red",
+        )
         return
 
-    module_monitoring = get_simple_module("module_code", "MONITORINGS")
     module_data = {
         "module_picto": "fa-puzzle-piece",
-        **config["module"],
+        **module_entity,
         "module_code": module_code,
-        "module_path": "{}/module/{}".format(module_monitoring.module_path, module_code),
+        "module_path": "{}/module/{}".format(get_monitorings_path(), module_code),
         "active_frontend": False,
         "active_backend": False,
         "type": "monitoring_module",
     }
 
     try:
-        module = get_simple_module("module_code", module_code)
         destination_exists = DB.session.scalar(
             exists(Destination).where(Destination.code == module_code).select()
         )
         # Vérifier si le module existe
-        if module and destination_exists:
-            # Effectuer une mise à jour
+        # Le module est installé (vérifié plus haut) : seul compte l'existence de la destination
+        if destination_exists:
+            # Effectuer une mise à jour (diff affiché, puis confirmation)
             try:
                 click.secho(f"Mise à jour du module {module_code}")
-                state = process_update_module_import(config, module_code)
+                state = process_update_module_import({"module": module_entity}, module_code)
+                invalidate_module(module_code)
                 if state is None:
-                    click.secho(f"Le module {module_code} est déjà à jour", fg="yellow")
+                    # rien à faire : le message est déjà affiché
                     return
                 if state:
                     click.secho(f"Module {module_code} mis à jour", fg="green")
@@ -241,6 +248,7 @@ def cmd_add_update_import_on_protocole(module_code):
     # Ajouter les destinations disponibles
     process_module_import(module_data)
     DB.session.commit()
+    invalidate_module(module_code)
 
 
 @click.command("update_module_available_permissions")
@@ -311,12 +319,82 @@ def synchronize_synthese(module_code, offset):
     click.secho("DONE", fg="green")
 
 
+def check_filter_options(option_name, param_name, description):
+    def decorator(func):
+        func = click.option(
+            option_name,
+            param_name,
+            is_flag=True,
+            help=f"Contrôle les {description}",
+        )(func)
+        func = click.option(
+            f"{option_name}-pk",
+            f"{param_name}_pks",
+            type=int,
+            multiple=True,
+            help=f"Contrôle uniquement certains enregistrements (répétable) ({description})",
+        )(func)
+        func = click.option(
+            f"{option_name}-field",
+            f"{param_name}_fields",
+            multiple=True,
+            help=f"Contrôle uniquement certains champs (répétable) ({description})",
+        )(func)
+        return func
+
+    return decorator
+
+
+@click.command("check")
+@click.argument(
+    "module_code",
+    type=str,
+    required=False,
+)
+@click.option("--data/--no-data", "check_data", default=False, help="Vérifie les données")
+@check_filter_options("--site-group", "site_group", "groupes de sites")
+@check_filter_options("--site", "site", "sites")
+@check_filter_options("--visit", "visit", "visites")
+@check_filter_options("--observation", "observation", "observations")
+@check_filter_options("--observation-detail", "observation_detail", "détails d’observation")
+@click.option(
+    "--strict/--tolerant",
+    "strict",
+    default=False,
+    help="Mode strict : contrôle de manière plus exigeant la configuration en refusant certaines incohérences et syntaxes obsolètes.",
+)
+@click.option(
+    "--fix",
+    is_flag=True,
+    default=False,
+    help="Propose de corriger les anomalies détectées",
+)
+@with_appcontext
+def cmd_check(module_code, strict, fix, check_data, **data_filters):
+    """
+    Contrôle la configuration, les nomenclatures et les données des
+    protocoles de suivi.
+
+    Les fichiers de configuration de tous les protocoles (installés ou non)
+    sont contrôlés. Les nomenclatures et les données ne sont contrôlées que
+    pour les protocoles installés.
+
+    Les contrôles de données peuvent être limité à une catégorie de données :
+    groupe de site, site, visite, observation, détails d’observation
+
+    Pour chaque catégorie, il est possible de limiter le contrôle de données à
+    certains enregistrements (--<category>-pk) ou à certains champs (--<category>-field).
+    """
+    run_check(module_code, strict, check_data, data_filters, fix)
+
+
 commands = [
     cmd_install_monitoring_module,
     cmd_process_available_permission_module,
     cmd_remove_monitoring_module_cmd,
     cmd_add_module_nomenclature_cli,
     cmd_process_sql,
+    cmd_check,
     synchronize_synthese,
     cmd_add_update_import_on_protocole,
 ]
