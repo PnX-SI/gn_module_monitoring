@@ -6,6 +6,9 @@ import os
 from types import MappingProxyType
 
 from flask import current_app
+from sqlalchemy.orm import Session
+
+from geonature.utils.env import DB
 
 from gn_module_monitoring.config.utils import (
     customize_config,
@@ -31,7 +34,9 @@ CONFIG_CACHE_NAME = "MONITORINGS_CONFIG_V2"  # get_config
 config_cache_name = "MONITORINGS_CONFIG"  # get_config_old
 
 
-def get_config_objects(module_code, config, tree=None, parent_type=None):
+def get_config_objects(
+    module_code, config, tree=None, parent_type=None, *, session: Session = DB.session
+):
     """
     Récupère la config de chaque object present dans tree pour le module <module_code>
     """
@@ -42,7 +47,9 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
     for object_type in tree:
         # config object
         if not object_type in config:
-            config[object_type] = config_object_from_files(module_code, object_type)
+            config[object_type] = config_object_from_files(
+                module_code, object_type, session=session
+            )
 
         # tree
         children_types = tree[object_type] and list(tree[object_type].keys()) or []
@@ -75,17 +82,23 @@ def get_config_objects(module_code, config, tree=None, parent_type=None):
             config[object_type]["root_object"] = True
 
         # id_table_location
-        config[object_type]["id_table_location"] = get_id_table_location(object_type)
+        config[object_type]["id_table_location"] = get_id_table_location(
+            object_type, session=session
+        )
 
         # filters
         config[object_type]["filters"] = config[object_type].get("filters") or {}
 
         # recursif
         if tree[object_type]:
-            get_config_objects(module_code, config, tree[object_type], object_type)
+            get_config_objects(
+                module_code, config, tree[object_type], object_type, session=session
+            )
 
 
-def config_object_from_files(module_code, object_type, custom=None):
+def config_object_from_files(
+    module_code, object_type, custom=None, *, session: Session = DB.session
+):
     """
     Récupère la configuration d'un object de type <object_type> pour le module <module_code>
     """
@@ -98,7 +111,7 @@ def config_object_from_files(module_code, object_type, custom=None):
     db_config_object = {"specific": {}}
 
     if object_type == "site":
-        db_config_object = json_config_from_db(module_code)
+        db_config_object = json_config_from_db(module_code, session=session)
         # Suppression de l'information id_types_site
         # des champs qui sont déjà présent dans le fichier specifique du module
         for key in specific_config_object.get("specific", {}):
@@ -110,7 +123,7 @@ def config_object_from_files(module_code, object_type, custom=None):
             specific_config_object.get("specific", {}), db_config_object.get("specific", {})
         )
     elif object_type == "module":
-        db_config_object = json_config_from_db(module_code)
+        db_config_object = json_config_from_db(module_code, session=session)
         specific_config_object["types_site"] = db_config_object["types_site"]
         db_config_object = {"specific": {}}
 
@@ -221,7 +234,7 @@ def get_config_old(module_code=None, force=False):
     return config
 
 
-def get_config(module_code=None, force=False):
+def get_config(module_code=None, force=False, *, session: Session = DB.session):
     """
     Récupère la configuration pour le module monitoring
 
@@ -236,6 +249,11 @@ def get_config(module_code=None, force=False):
         Code du module de monitoring. Par défaut None (utilise "generic").
     force : bool, optional
         Force le rechargement de la configuration en ignorant le cache. Par défaut False.
+    session : sqlalchemy.orm.Session, optional
+        Session à utiliser pour les requêtes. Par défaut DB.session.
+        À fournir depuis une migration alembic (``Session(bind=op.get_bind())``) :
+        DB.session ouvre sa propre connexion, qui resterait bloquée par les verrous
+        posés par les révisions précédentes du même ``upgrade`` (ALTER TABLE…).
 
     Returns
     -------
@@ -260,10 +278,10 @@ def get_config(module_code=None, force=False):
     ) and not force:
         return ImmutableDict(config)
 
-    module = get_monitoring_module(module_code)
+    module = get_monitoring_module(module_code, session=session)
 
     config = config_from_files("config", module_code)
-    get_config_objects(module_code, config)
+    get_config_objects(module_code, config, session=session)
 
     # Si module est `generic`
     config["custom"] = {
@@ -271,7 +289,7 @@ def get_config(module_code=None, force=False):
         "__MODULE.MODULE_CODE": "generic",
         "__MODULE.ID_MODULE": None,
         "__MODULE.B_SYNTHESE": False,
-        "__MONITORINGS_PATH": get_monitorings_path(),
+        "__MONITORINGS_PATH": get_monitorings_path(session=session),
     }
     if module:
         for field_name in [
@@ -298,7 +316,7 @@ def get_config(module_code=None, force=False):
     config["configured"] = is_module_configured(module)
 
     # Get the list of observers
-    config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module)
+    config["custom"]["CODE_OBSERVERS_LIST"] = get_module_code_list(module, session=session)
     # preload data # TODO auto from schemas && config recup tax users nomenclatures etc....
     config["data"] = get_data_preload(config, module)
 
