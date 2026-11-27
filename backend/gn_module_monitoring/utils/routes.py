@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from flask import Response, g
 from flask.json import jsonify
 
@@ -8,29 +6,19 @@ from typing import Tuple, Optional
 from marshmallow import Schema
 from werkzeug.datastructures import MultiDict
 
-from sqlalchemy import desc
-from sqlalchemy import cast, func, text, select, and_, Integer
+from sqlalchemy import cast, func, text, select, and_, nulls_last, desc
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import load_only, aliased
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import load_only, Session
 from sqlalchemy.sql.expression import Select
 
 from geonature.utils.env import DB
 from geonature.core.gn_permissions.models import PermObject, PermissionAvailable
 from geonature.core.gn_monitoring.models import BibTypeSite
-from geonature.core.gn_permissions.models import PermissionAvailable, PermObject
-from geonature.utils.env import DB
+
 from geonature.utils.errors import GeoNatureError
-from marshmallow import Schema
+
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
-from sqlalchemy import and_, cast, func, select, text
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import aliased, load_only
-from sqlalchemy.sql.expression import Select
-from werkzeug.datastructures import MultiDict
-
-
 from gn_module_monitoring.monitoring.models import (
     TBaseSites,
     TModules,
@@ -117,7 +105,7 @@ def sort(
         order_by = getattr(model, sort)
         if sort_dir == "desc":
             order_by = desc(order_by)
-        return query.order_by(order_by)
+        return query.order_by(nulls_last(order_by))
 
     if specific_properties and sort in specific_properties:
         field = specific_properties[sort]
@@ -128,11 +116,13 @@ def sort(
                 query, model, sort, specific_properties, type_util, is_outer_join=True
             )
         else:
-            order_by = model.data[sort]
+            # Chaîne vide ou ne contenant que des blancs considérée comme NULL
+            # pour qu'elle soit triée en dernier
+            order_by = func.nullif(func.btrim(func.jsonb_extract_path_text(model.data, sort)), "")
 
         if sort_dir == "desc":
             order_by = desc(order_by)
-        return query.order_by(order_by)
+        return query.order_by(nulls_last(order_by))
 
     return query
 
@@ -215,9 +205,9 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir, specific
     elif sort_label == "id_inventor":
         query = query.outerjoin(TMonitoringSites.inventor)
         if sort_dir == "asc":
-            query = query.order_by(User.nom_complet.asc())
+            query = query.order_by(nulls_last(User.nom_complet.asc()))
         else:
-            query = query.order_by(User.nom_complet.desc())
+            query = query.order_by(nulls_last(User.nom_complet.desc()))
     else:
         query = sort(
             TMonitoringSites,

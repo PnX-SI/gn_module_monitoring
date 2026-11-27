@@ -1161,6 +1161,36 @@ class TestSiteWithModule:
         ]
         assert sites_meteos == expected_meteo_ids
 
+    @pytest.mark.parametrize("dir", ["asc", "desc"])
+    def test_get_module_sites_ordering_by_specific_property_empty_values_last(
+        self, test_module_user, add_site, dir
+    ):
+        """Les valeurs vides (NULL, chaîne vide, blancs, clé absente) sont
+        triées en dernier quel que soit le sens du tri"""
+        set_logged_user_cookie(self.client, test_module_user)
+        add_site(data={"contact_name": None})
+        add_site(data={"contact_name": "Robert"})
+        add_site(data={"contact_name": ""})
+        add_site(data={"contact_name": "Alice"})
+        add_site(data={"contact_name": " "})
+        add_site(data={})
+
+        response = self.client.get(
+            url_for(
+                "monitorings.api.get_sites",
+                module_code="test",
+                sort="contact_name",
+                sort_dir=dir,
+                limit=10,
+            )
+        )
+        assert response.status_code == 200
+        names_response = [s.get("contact_name") for s in response.json["items"]]
+        assert len(names_response) == 6
+        expected_names = ["Alice", "Robert"] if dir == "asc" else ["Robert", "Alice"]
+        assert names_response[:2] == expected_names
+        assert all(not (name or "").strip() for name in names_response[2:])
+
     @staticmethod
     def add_visit(site, dataset):
         module = db.session.execute(

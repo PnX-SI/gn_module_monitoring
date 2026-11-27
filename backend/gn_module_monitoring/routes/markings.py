@@ -216,15 +216,22 @@ def get_markings(module_code: str):
 
     query = filter_params(TMonitoringMarkingEvent, query=query, params=params)
 
-    query = sort(TMonitoringMarkingEvent, query=query, sort=sort_label, sort_dir=sort_dir)
+    specific_properties = get_specific_properties(
+        TMonitoringMarkingEvent, get_config(module_code, force=True), ObjectType.MARKING
+    )
+
+    query = sort(
+        TMonitoringMarkingEvent,
+        query=query,
+        sort=sort_label,
+        sort_dir=sort_dir,
+        specific_properties=specific_properties,
+    )
 
     query_allowed = TMonitoringMarkingEvent.filter_by_readable(
         query=query,
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
-    )
-    specific_properties = get_specific_properties(
-        TMonitoringMarkingEvent, get_config(module_code, force=True), ObjectType.MARKING
     )
     query_allowed = TMonitoringMarkingEvent.filter_by_specific(
         query=query_allowed,

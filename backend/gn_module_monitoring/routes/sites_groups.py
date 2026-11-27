@@ -61,6 +61,10 @@ def get_sites_groups(module_code=None):
 
     query = filter_params(TMonitoringSitesGroups, query=query, params=params)
 
+    specific_properties = get_specific_properties(
+        TMonitoringSitesGroups, get_config(module_code), ObjectType.SITES_GROUP
+    )
+
     # PATCH order by modules
     if sort_label == "modules":
         query = query.join(TMonitoringSitesGroups.modules)
@@ -69,13 +73,16 @@ def get_sites_groups(module_code=None):
             module_order = module_order.desc()
         query = query.order_by(module_order)
     else:
-        query = sort(TMonitoringSitesGroups, query=query, sort=sort_label, sort_dir=sort_dir)
+        query = sort(
+            TMonitoringSitesGroups,
+            query=query,
+            sort=sort_label,
+            sort_dir=sort_dir,
+            specific_properties=specific_properties,
+        )
 
     query_allowed = TMonitoringSitesGroups.filter_by_readable(
         query=query, object_code=object_code, module_code=g.current_module.module_code
-    )
-    specific_properties = get_specific_properties(
-        TMonitoringSitesGroups, get_config(module_code), ObjectType.SITES_GROUP
     )
     query_allowed = TMonitoringSitesGroups.filter_by_specific(
         query=query_allowed,

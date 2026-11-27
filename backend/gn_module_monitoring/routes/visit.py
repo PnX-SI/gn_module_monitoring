@@ -1,6 +1,7 @@
 from flask import request, current_app, g
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.config.repositories import get_config
+from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE
 from werkzeug.exceptions import Forbidden
 from gn_module_monitoring.command import permissions
@@ -84,7 +85,18 @@ def get_visits(module_code=None):
         TMonitoringVisits.id_module.in_(ids_modules_allowed)
     )
     query = filter_params(TMonitoringVisits, query=query, params=params)
-    query = sort(model=TMonitoringVisits, query=query, sort=sort_label, sort_dir=sort_dir)
+    specific_properties = (
+        get_specific_properties(TMonitoringVisits, get_config(module_code), ObjectType.VISIT)
+        if module_code
+        else None
+    )
+    query = sort(
+        model=TMonitoringVisits,
+        query=query,
+        sort=sort_label,
+        sort_dir=sort_dir,
+        specific_properties=specific_properties,
+    )
     if module_code:
         query = query.where(
             TMonitoringVisits.module.has(TMonitoringModules.module_code == module_code)

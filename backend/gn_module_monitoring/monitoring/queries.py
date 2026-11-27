@@ -11,7 +11,7 @@ from pypnusershub.db.models import User
 from pypn_habref_api.models import Habref
 from geonature.core.gn_meta.models import TDatasets
 from ref_geo.models import LAreas
-from sqlalchemy import Unicode, and_, false, func, or_, select, true, Integer
+from sqlalchemy import Unicode, and_, false, func, or_, select, true, Integer, nulls_last
 from sqlalchemy.orm import aliased, class_mapper
 from sqlalchemy.sql.expression import Select, BinaryExpression
 from sqlalchemy.types import DateTime
@@ -66,7 +66,7 @@ class GnMonitoringGenericFilter:
         if direction == "desc":
             order_by = order_by.desc()
 
-        return query.order_by(order_by)
+        return query.order_by(nulls_last(order_by))
 
     @classmethod
     def _get_cruved_scope(cls, module_code=None, object_code=None, user=None):
