@@ -8,7 +8,7 @@ Nécessite GeoNature 2.18.0 (ou plus).
 
 Cette version est l'aboutissement d'une importante refonte technique du module avec :
 
-- Refonte de l'API avec la création de endpoint pour chaque objet de monitoring (site, visite, groupes de sites, etc.)
+- Refonte de l'API avec la création de routes pour chaque objet de Monitoring (sites, visites, groupes de sites, etc.)
 - Refonte du frontend avec la création de composants génériques (formulaires, tableaux de données, formulaire de site)
 
 **🚀 Nouveautés**
