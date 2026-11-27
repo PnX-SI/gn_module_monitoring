@@ -42,7 +42,7 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 **⚠️ Notes de version**
 
 - Nécessite GeoNature 2.18.0 minimum.
-- L'objet de permission `MONITORINGS_INDIVIDUALS` est remplacé par l'objet `INDIVIDUALS` géré par le cœur de GeoNature ; une migration supprime l'ancien objet de permission. Pensez à redéfinir les permissions sur les individus (par @CynthiaBorotPNV).
+- L'objet de permission `MONITORINGS_INDIVIDUALS` est remplacé par l'objet `INDIVIDUALS` géré par le cœur de GeoNature ; une migration supprime l'ancien objet de permission. Pensez à redéfinir les permissions sur les individus si vous les utilisiez dans des sous-modules (par @CynthiaBorotPNV).
 - Le paramètre de configuration `PERMISSION_LEVEL` est obsolète et n'est plus utilisé (#748).
 - Les routes de l'API ont été harmonisées sous un nouveau préfixe `/refacto` (ex. `/monitorings/refacto/<module_code>/config`). Les nouveaux développements et outils externes doivent utiliser ces routes.
 - **Rétrocompatibilité** : les anciennes routes sont conservées dans un blueprint `legacy`, sans préfixe et aux mêmes URL qu'auparavant (`/object/...`, `/sites/config`, `/sites_groups/config`, …). Les outils externes qui appellent l'API du module continuent donc de fonctionner sans modification (#701). Ces routes sont dépréciées et seront supprimées dans une prochaine version.
