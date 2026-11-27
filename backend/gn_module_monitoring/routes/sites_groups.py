@@ -2,7 +2,7 @@ from flask import jsonify, request, g
 
 from gn_module_monitoring.config.utils import get_specific_properties
 from marshmallow import EXCLUDE, ValidationError
-from sqlalchemy import func, nulls_last, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
 
 from werkzeug.datastructures import MultiDict
@@ -71,7 +71,7 @@ def get_sites_groups(module_code=None):
         module_order = TMonitoringModules.module_label
         if sort_dir == "desc":
             module_order = module_order.desc()
-        query = query.order_by(nulls_last(module_order))
+        query = query.order_by(module_order)
     else:
         query = sort(
             TMonitoringSitesGroups,

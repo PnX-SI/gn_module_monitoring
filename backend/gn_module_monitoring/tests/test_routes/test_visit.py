@@ -86,6 +86,59 @@ class TestVisits:
 
         assert expected_visits.issubset(current_visits)
 
+    @pytest.mark.parametrize("dir", ["asc", "desc"])
+    def test_get_visits_ordering_by_specific_property_empty_values_last(
+        self, sites, datasets, module_test_visit, users, dir
+    ):
+        """Le tri sur une propriété spécifique est appliqué et les valeurs vides
+        (NULL, chaîne vide, blancs, clé absente) sont triées en dernier"""
+        set_logged_user_cookie(self.client, users["admin_user"])
+        site = list(sites.values())[0]
+        visit_date_min = datetime.strptime("2025-01-01", "%Y-%m-%d").date()
+        visits = []
+        with db.session.begin_nested():
+            for data in [
+                {"meteo": None},
+                {"meteo": "Nuageux"},
+                {"meteo": ""},
+                {"meteo": "Beau"},
+                {"meteo": " "},
+                {},
+            ]:
+                visit = TMonitoringVisits(
+                    id_base_site=site.id_base_site,
+                    id_module=module_test_visit.id_module,
+                    id_dataset=datasets["orphan_dataset"].id_dataset,
+                    visit_date_min=visit_date_min,
+                    data=data,
+                )
+                db.session.add(visit)
+                visits.append(visit)
+        # Les propriétés spécifiques ne sont pas renvoyées par la liste :
+        # on retrouve la météo de chaque visite à partir de son identifiant
+        meteo_by_id = {visit.id_base_visit: visit.data.get("meteo") for visit in visits}
+
+        r = self.client.get(
+            url_for(
+                "monitorings.api.get_visits",
+                module_code="test",
+                id_base_site=site.id_base_site,
+                sort="meteo",
+                sort_dir=dir,
+                limit=20,
+            )
+        )
+        assert r.status_code == 200
+        meteos = [
+            meteo_by_id[visit["id_base_visit"]]
+            for visit in r.json["items"]
+            if visit["id_base_visit"] in meteo_by_id
+        ]
+        assert len(meteos) == 6
+        expected_meteos = ["Beau", "Nuageux"] if dir == "asc" else ["Nuageux", "Beau"]
+        assert meteos[:2] == expected_meteos
+        assert all(not (meteo or "").strip() for meteo in meteos[2:])
+
     def test_get_visit_by_id(self, visits_routes, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         visit = visits_routes[0]
