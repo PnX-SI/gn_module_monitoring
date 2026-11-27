@@ -55,7 +55,7 @@ OTHER_TYPE_UTILS = [
 ]
 
 # Type de widget qui implique que multiple soit à true
-MULTI_TYPE_WIDGET = ["multiselect", "checkbox", "municipalities", "areas"]
+MULTI_TYPE_WIDGET = ["multiselect", "checkbox"]
 
 SQL_DATA_TYPE_MAPPING = {
     "varchar": String,

@@ -921,14 +921,14 @@ class TestSiteWithModule:
                 "id_area",
                 "commune_aa",
                 "flo",
-                2,
+                1,
                 0,
             ),
             (
                 "id_area",
                 "commune_areas",
                 "flo",
-                2,
+                1,
                 0,
             ),
             (
@@ -937,7 +937,7 @@ class TestSiteWithModule:
                 "flo",
                 3,
                 3,
-            ),
+            ),  # Pas de filtre si la colonne stockée n'est pas id_area donc retourne toujours tous les résulats
         ],
     )
     def test_get_module_sites_with_filter_on_site_type_specific_area_attribute(
@@ -957,9 +957,9 @@ class TestSiteWithModule:
         florac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48061"))
         ispagnac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48075"))
         generate_sites = [
-            [getattr(florac, column_value), getattr(ispagnac, column_value)],
-            [getattr(florac, column_value)],
-            [],
+            getattr(ispagnac, column_value),
+            getattr(florac, column_value),
+            None,
         ]
         for site_data in generate_sites:
             add_site(data={filter_name: site_data})
@@ -977,6 +977,42 @@ class TestSiteWithModule:
         )
         sites_response = response.json["items"]
         assert len(sites_response) == expected_not_found
+
+    def test_get_module_sites_with_filter_on_site_type_specific_area_multiple_attribute(
+        self,
+        test_module_user,
+        add_site,
+    ):
+        set_logged_user_cookie(self.client, test_module_user)
+
+        column_value = "id_area"
+        filter_name = "commune_multiple"
+        filter_value = "flo"
+        # 48075	Ispagnac
+        # 48061	Florac Trois Rivières
+        florac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48061"))
+        ispagnac = db.session.scalar(select(LAreas).where(LAreas.area_code == "48075"))
+        generate_sites = [
+            [getattr(florac, column_value), getattr(ispagnac, column_value)],
+            [getattr(florac, column_value)],
+            [],
+        ]
+        for site_data in generate_sites:
+            add_site(data={filter_name: site_data})
+        filter_params = {filter_name: filter_value}
+        response = self.client.get(
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
+        )
+        assert response.status_code == 200
+        sites_response = response.json["items"]
+        assert len(sites_response) == 2
+
+        filter_params = {filter_name: "notfound"}
+        response = self.client.get(
+            url_for("monitorings.api.get_sites", module_code="test", **filter_params)
+        )
+        sites_response = response.json["items"]
+        assert len(sites_response) == 0
 
     def test_get_module_sites_with_filter_on_site_nb_visits(
         self, test_module_user, add_site, datasets

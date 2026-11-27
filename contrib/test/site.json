@@ -19,8 +19,8 @@
   ],
   "export_pdf": [
     {
-        "template": "fiche_site.html",
-        "label": "Export PDF"
+      "template": "fiche_site.html",
+      "label": "Export PDF"
     }
   ],
   "map_label_field_name": "base_site_name",
@@ -59,8 +59,8 @@
       "keyLabel": "search_name",
       "type_util": "habitat",
       "params": {
-          "cd_typo": 7,
-          "search_name": ""
+        "cd_typo": 7,
+        "search_name": ""
       }
     },
     "meteo": {
@@ -81,11 +81,7 @@
     "multiselect": {
       "type_widget": "multiselect",
       "attribut_label": "Multiselect",
-      "values": [
-        "choix_1",
-        "choix_2",
-        "choix_3"
-      ]
+      "values": ["choix_1", "choix_2", "choix_3"]
     },
     "cd_nom_taxonomy": {
       "type_widget": "taxonomy",
@@ -119,7 +115,7 @@
       "type_codes": ["COM"],
       "multiple": false,
       "required": false
-  },
+    },
     "commune_aa": {
       "type_widget": "municipalities",
       "attribut_label": "Commune municipality",
@@ -127,13 +123,21 @@
       "type_codes": ["COM"],
       "multiple": false,
       "required": false
-  },
-  "commune_area_code": {
+    },
+    "commune_area_code": {
       "type_widget": "municipalities",
       "attribut_label": "Commune area code",
       "value_field_name": "area_code",
       "type_util": "area",
       "multiple": false,
+      "required": false
+    },
+    "commune_multiple": {
+      "type_widget": "areas",
+      "attribut_label": "Commune multiple",
+      "type_util": "area",
+      "type_codes": ["COM"],
+      "multiple": true,
       "required": false
     }
   }
