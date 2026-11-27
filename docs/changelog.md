@@ -35,11 +35,13 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Correction de l'ajout d'une visite depuis le module générique (#800 par @amandine-sahl)
 - Possibilité de définir des filtres par défaut  (#551, #695 par @amandine-sahl)
 - Correction du tri sur les champs spécifiques de type nomenclature multiple (#794 par @amandine-sahl)
+- Correction du tri sur les listes pour les dates (#548 par @amandine-sahl)
 - Correction de la résolution et de la requête des jeux de données (#753 par @Pierre-Narcisi, @jacquesfize, @amandine-sahl)
 - Correction de la prise en compte du paramètre `keep` pour l’enchaînement des saisies (#673 par @amandine-sahl)
 - Commande d'installation : gestion d'un code de module vide et d'un module déjà installé (#661 par @amandine-sahl)
 - Prise en compte du paramètre `multiple` pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
 - Import : transformation de la propriété `hidden` en booléen (#693 par @bouttier)
+- Installation : prise en compte du SRID local pour les groupes de sites (#589, #630 par @amandine-sahl)
 
 **💻 Développement**
 
