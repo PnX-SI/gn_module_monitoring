@@ -20,7 +20,8 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
   - harmonisation des routes sous un nouveau préfixe
   - anciennes routes déplacées dans un blueprint `legacy`
 - Refonte de la gestion des individus et des marquages (routes et composants de création/détail) (#662, #665 par @jacquesfize, @amandine-sahl)
-- Ajout du nombre d'événements de marquage d'un individu (#758 par @amandine-sahl)
+- Liste des individus : ajout du nombre d'événements de marquage de chaque individu (#758 par @amandine-sahl)
+- L'objet de permission `MONITORINGS_INDIVIDUALS` est remplacé par l'objet `INDIVIDUALS` géré par le cœur de GeoNature, avec une migration automatique des données qui supprime l'ancien objet de permission (par @CynthiaBorotPNV).
 - Gestion des types de site entre les sous-modules et suppression des propriétés spécifiques d'un type de site retiré d'un site (#700, #702, #797 par @Pierre-Narcisi, @amandine-sahl)
 - Blocage de l'accès à un sous-module tant qu'il n'est pas configuré (#752 par @jacquesfize)
 - Utilisation de la route `users` de GeoNature (#703 par @amandine-sahl)
@@ -28,7 +29,6 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Ajout d'un bouton pour arrêter le mode de saisie enchaînée (#802 par @jacquesfize)
 - Valeur par défaut des champs de nomenclature (#806 par @amandine-sahl)
 - Documentation : complément et mise en ligne avec docsify (#754, #799, #806 par @jacquesfize, @amandine-sahl)
-- Export : possibilité d'exporter les données en json et de les filtrer (#801 par @TheoLechemia)
 
 **🐛 Corrections**
 
@@ -36,10 +36,10 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Possibilité de définir des filtres par défaut  (#551, #695 par @amandine-sahl)
 - Correction du tri sur les champs spécifiques de type nomenclature multiple (#794 par @amandine-sahl)
 - Correction de la résolution et de la requête des jeux de données (#753 par @Pierre-Narcisi, @jacquesfize, @amandine-sahl)
-- Correction prise en compte du paramètre keep pour l'enchainement des saisies (#673 par @amandine-sahl)
+- Correction de la prise en compte du paramètre `keep` pour l’enchaînement des saisies (#673 par @amandine-sahl)
 - Commande d'installation : gestion d'un code de module vide et d'un module déjà installé (#661 par @amandine-sahl)
-- Prise en compte du paramètre multiple pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
-- Import : transformation du champ hidden en boolean (#693 par @bouttier)
+- Prise en compte du paramètre `multiple` pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
+- Import : transformation de la propriété `hidden` en booléen (#693 par @bouttier)
 
 **💻 Développement**
 
@@ -50,12 +50,11 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 **⚠️ Notes de version**
 
 - Nécessite GeoNature 2.18.0 minimum.
-- L'objet de permission `MONITORINGS_INDIVIDUALS` est remplacé par l'objet `INDIVIDUALS` géré par le cœur de GeoNature ; une migration supprime l'ancien objet de permission. Pensez à redéfinir les permissions sur les individus si vous les utilisiez dans des sous-modules (par @CynthiaBorotPNV).
 - Le paramètre de configuration `PERMISSION_LEVEL` est obsolète et n'est plus utilisé (#748).
 - Les routes de l'API ont été harmonisées sous un nouveau préfixe `/refacto` (ex. `/monitorings/refacto/<module_code>/config`). Les nouveaux développements et outils externes doivent utiliser ces routes.
 - **Rétrocompatibilité** : les anciennes routes sont conservées dans un blueprint `legacy`, sans préfixe et aux mêmes URL qu'auparavant (`/object/...`, `/sites/config`, `/sites_groups/config`, …). Les outils externes qui appellent l'API du module continuent donc de fonctionner sans modification (#701). Ces routes sont dépréciées et seront supprimées dans une prochaine version.
 - **Route de configuration** : l'ancienne route `GET /monitorings/config/<module_code>` est maintenue et renvoie toujours la configuration au format historique (`get_config_old`). La nouvelle route `GET /monitorings/refacto/<module_code>/config` renvoie la configuration au nouveau format utilisé par le frontend (`get_config`).
-- **Type de widget area, municipalities** : La propriété multiple étant pris en compte les vieilles données doivent être modifiées de façon à ne pas stocker les valeurs dans des array :
+- **Widget  de type `area` et `municipalities`** : Si vous aviez le cas particulier d'un champ additionnel de ce type avec la propriété `"multiple": false`, celle-ci n'était pas bien prise en compte (#607). Cela est désormais corrigé et, les données de ce type de champ doivent être modifiées de façon à ne pas stocker les valeurs associées dans des array :
 
 ```sql
 -- Exemple de mise à jour de la propriété commune_aa de la table gn_monitoring.t_site_complements
