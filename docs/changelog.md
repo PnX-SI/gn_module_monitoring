@@ -14,7 +14,7 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 **🚀 Nouveautés**
 
 - Compatibilité avec SQLAlchemy 2 (#698 par @amandine-sahl, @jacquesfize)
-- Refonte importante du frontend autour de composants génériques (`form-g`, `datatable-g`, `site-form-g`) et suppression des composants et services hérités (`MonitoringObjectService`, `ConfigService`, …) (#524, #645, #646, #650, #669, #696, #697, #707 par @Pierre-Narcisi, @amandine-sahl)
+- Refonte technique du frontend autour de composants génériques (`form-g`, `datatable-g`, `site-form-g`) et suppression des composants et services hérités (`MonitoringObjectService`, `ConfigService`, …) (#524, #645, #646, #650, #669, #696, #697, #707 par @Pierre-Narcisi, @amandine-sahl)
 - Refonte des routes backend : nouvelles routes GET/POST/PATCH pour les groupes de sites, sites, visites, observations et détails d'observation basées sur des schémas Marshmallow, harmonisation des routes sous un nouveau préfixe, anciennes routes déplacées dans un blueprint `legacy` (#511, #522, #523, #532, #652, #654, #656, #701, #748 par @amandine-sahl, @jacquesfize)
 - Refonte de la gestion des individus et des marquages (routes et composants de création/détail) (#662, #665 par @jacquesfize, @amandine-sahl)
 - Ajout du nombre d'événements de marquage d'un individu (#758 par @amandine-sahl)
