@@ -90,15 +90,22 @@ def get_obs_details(module_code: str):
 
     query = filter_params(TMonitoringObservationDetails, query=query, params=params)
 
-    query = sort(TMonitoringObservationDetails, query=query, sort=sort_label, sort_dir=sort_dir)
+    specific_properties = get_specific_properties(
+        TMonitoringObservationDetails, get_config(module_code), ObjectType.OBSERVATION_DETAIL
+    )
+
+    query = sort(
+        TMonitoringObservationDetails,
+        query=query,
+        sort=sort_label,
+        sort_dir=sort_dir,
+        specific_properties=specific_properties,
+    )
 
     query_allowed = TMonitoringObservationDetails.filter_by_readable(
         query=query,
         object_code=object_code,
         module_code=module_code or g.current_module.module_code,
-    )
-    specific_properties = get_specific_properties(
-        TMonitoringObservationDetails, get_config(module_code), ObjectType.OBSERVATION_DETAIL
     )
     query_allowed = TMonitoringObservationDetails.filter_by_specific(
         query=query_allowed,
