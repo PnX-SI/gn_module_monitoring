@@ -8,14 +8,17 @@ Nécessite GeoNature 2.18.0 (ou plus).
 
 Cette version est l'aboutissement d'une importante refonte technique du module avec :
 
-- Refonte de l'API avec la création de routes pour chaque objet de Monitoring (sites, visites, groupes de sites, etc.)
+- Refonte de l'API avec la création de routes pour chaque entité de Monitoring (sites, visites, groupes de sites, etc.)
 - Refonte technique du frontend (interface) avec la création de composants génériques (formulaires, tableaux de données, formulaire de site)
 
 **🚀 Nouveautés**
 
 - Compatibilité avec SQLAlchemy 2 (#698 par @amandine-sahl, @jacquesfize)
 - Refonte technique du frontend autour de composants génériques (`form-g`, `datatable-g`, `site-form-g`) et suppression des composants et services hérités (`MonitoringObjectService`, `ConfigService`, …) (#524, #645, #646, #650, #669, #696, #697, #707 par @Pierre-Narcisi, @amandine-sahl)
-- Refonte des routes backend : nouvelles routes GET/POST/PATCH pour les groupes de sites, sites, visites, observations et détails d'observation basées sur des schémas Marshmallow, harmonisation des routes sous un nouveau préfixe, anciennes routes déplacées dans un blueprint `legacy` (#511, #522, #523, #532, #652, #654, #656, #701, #748 par @amandine-sahl, @jacquesfize)
+- Refonte des routes backend :  (#511, #522, #523, #532, #652, #654, #656, #701, #748 par @amandine-sahl, @jacquesfize)
+  - nouvelles routes GET/POST/PATCH/DELETE pour les groupes de sites, sites, visites, observations et détails d'observation basées sur des schémas Marshmallow
+  - harmonisation des routes sous un nouveau préfixe
+  - anciennes routes déplacées dans un blueprint `legacy`
 - Refonte de la gestion des individus et des marquages (routes et composants de création/détail) (#662, #665 par @jacquesfize, @amandine-sahl)
 - Ajout du nombre d'événements de marquage d'un individu (#758 par @amandine-sahl)
 - Gestion des types de site entre les sous-modules et suppression des propriétés spécifiques d'un type de site retiré d'un site (#700, #702, #797 par @Pierre-Narcisi, @amandine-sahl)
@@ -29,9 +32,12 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 **🐛 Corrections**
 
 - Correction de l'ajout d'une visite depuis le module générique (#800 par @amandine-sahl)
+- Possibilité de définir des filtres par défaut  (#551, #695 par @amandine-sahl)
 - Correction du tri sur les champs spécifiques de type nomenclature multiple (#794 par @amandine-sahl)
-- Correction de la résolution et de la requête des jeux de données (#753 par @amandine-sahl)
+- Correction de la résolution et de la requête des jeux de données (#753 par @Pierre-Narcisi, @jacquesfize, @amandine-sahl)
+- Correction prise en compte du paramètre keep pour l'enchainement des saisies (#673 par @amandine-sahl)
 - Commande d'installation : gestion d'un code de module vide et d'un module déjà installé (#661 par @amandine-sahl)
+- Prise en compte du paramètre multiple pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
 
 **💻 Développement**
 
@@ -47,6 +53,34 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Les routes de l'API ont été harmonisées sous un nouveau préfixe `/refacto` (ex. `/monitorings/refacto/<module_code>/config`). Les nouveaux développements et outils externes doivent utiliser ces routes.
 - **Rétrocompatibilité** : les anciennes routes sont conservées dans un blueprint `legacy`, sans préfixe et aux mêmes URL qu'auparavant (`/object/...`, `/sites/config`, `/sites_groups/config`, …). Les outils externes qui appellent l'API du module continuent donc de fonctionner sans modification (#701). Ces routes sont dépréciées et seront supprimées dans une prochaine version.
 - **Route de configuration** : l'ancienne route `GET /monitorings/config/<module_code>` est maintenue et renvoie toujours la configuration au format historique (`get_config_old`). La nouvelle route `GET /monitorings/refacto/<module_code>/config` renvoie la configuration au nouveau format utilisé par le frontend (`get_config`).
+- **Type de widget area, municipalities** : La propriété multiple étant pris en compte les vieilles données doivent être modifiées de façon à ne pas stocker les valeurs dans des array :
+
+```sql
+-- Exemple de mise à jour de la propriété commune_aa de la table gn_monitoring.t_site_complements
+-- Requete à adapter :
+  --  - table concernée
+  --  - nom du champ
+  --  - type de données stockées : si id_area alors ::int si code_area alors ::varchar
+  --  - filtre de selection utilisé si plusieurs modules ont la propriété commune_aa avec des définitions différentes
+
+WITH data_to_update AS (
+	SELECT
+		tsc.id_base_site,
+		jsonb_set(
+	        tsc.data,
+	        '{commune_aa}',
+	        CASE
+	            WHEN jsonb_typeof(tsc.data -> 'commune_aa') = 'array' THEN to_jsonb((tsc.data -> 'commune_aa' ->>0 )::int)
+	            ELSE  tsc.data -> 'commune_aa'
+	        END
+	    ) AS data_modifiee, tsc.data
+	FROM gn_monitoring.t_site_complements tsc
+	WHERE tsc.data->>'commune_aa' is not NULL
+)
+UPDATE gn_monitoring.t_site_complements tsc SET DATA = data_modifiee
+FROM data_to_update d
+WHERE d.id_base_site = tsc.id_base_site;
+```
 
 ## 1.3.2 (27-07-2026)
 
