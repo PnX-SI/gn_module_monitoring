@@ -25,7 +25,12 @@ class TestModules:
 
         # test unauthorized
         response = self.client.get(
-            url_for("monitorings.export_all_observations", module_code="test", method="inexistant")
+            url_for(
+                "monitorings.export_all_observations",
+                export_format="csv",
+                module_code="test",
+                method="inexistant",
+            )
         )
         assert response.status_code == 404
 
@@ -34,7 +39,12 @@ class TestModules:
 
         # test unautorized
         response = self.client.get(
-            url_for("monitorings.export_all_observations", module_code="test", method="sites")
+            url_for(
+                "monitorings.export_all_observations",
+                export_format="csv",
+                module_code="test",
+                method="sites",
+            )
         )
         assert response.status_code == 403
 
@@ -48,7 +58,12 @@ class TestModules:
         )
 
         response = self.client.get(
-            url_for("monitorings.export_all_observations", module_code="test", method="sites")
+            url_for(
+                "monitorings.export_all_observations",
+                export_format="csv",
+                module_code="test",
+                method="sites",
+            )
         )
 
         assert response.status_code == 200
@@ -245,7 +260,7 @@ class TestOldApiWithNewConfig:
                 "monitorings.export_all_observations",
                 module_code="test",
                 method="sites",
-                format="json",
+                export_format="json",
             )
         )
 
@@ -268,8 +283,8 @@ class TestOldApiWithNewConfig:
                 "monitorings.export_all_observations",
                 module_code="test",
                 method="sites",
-                format="json",
-                base_site_code="Code-no-type",
+                export_format="json",
+                base_site_code="Code0",
             )
         )
 
@@ -277,5 +292,61 @@ class TestOldApiWithNewConfig:
         filtered_content = filtered_response.json
 
         # the filter must only return the matching site
-        assert len(filtered_content) == 1
-        assert filtered_content[0]["base_site_code"] == "Code-no-type"
+        assert filtered_content
+        assert all(row["base_site_code"] == "Code0" for row in filtered_content)
+        assert len(filtered_content) < len(json_content)
+
+    def test_get_export_json_unauthorized(self, install_module_test, users, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        response = self.client.get(
+            url_for(
+                "monitorings.export_all_observations",
+                export_format="json",
+                module_code="test",
+                method="sites",
+            )
+        )
+        assert response.status_code == 403
+
+    def test_get_export_csv_filtered(self, install_module_test, users, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        add_user_permission(
+            "test",
+            users["admin_user"],
+            scope=3,
+            type_code_object="MONITORINGS_MODULES",
+            code_action="E",
+        )
+        response = self.client.get(
+            url_for(
+                "monitorings.export_all_observations",
+                export_format="csv",
+                module_code="test",
+                method="sites",
+                base_site_code="Code0",
+            )
+        )
+        assert response.status_code == 200
+        csv_content = pd.read_csv(StringIO(response.data.decode("utf-8")), sep=";")
+        assert not csv_content.empty
+        assert set(csv_content["base_site_code"]) == {"Code0"}
+
+    def test_get_export_unknown_format(self, install_module_test, users, sites):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        add_user_permission(
+            "test",
+            users["admin_user"],
+            scope=3,
+            type_code_object="MONITORINGS_MODULES",
+            code_action="E",
+        )
+        csv_url = url_for(
+            "monitorings.export_all_observations",
+            export_format="csv",
+            module_code="test",
+            method="sites",
+        )
+        assert self.client.get(csv_url).status_code == 200
+
+        response = self.client.get(csv_url.replace("/exports/csv/", "/exports/xml/"))
+        assert response.status_code == 404

@@ -94,9 +94,9 @@ def update_synthese_api(module_code):
 
 # export add mje
 # export all observations
-@blueprint.route("/exports/csv/<module_code>/<method>", methods=["GET"])
+@blueprint.route("/exports/<any(csv,json):export_format>/<module_code>/<method>", methods=["GET"])
 @check_cruved_scope("E", object_code="MONITORINGS_MODULES")
-def export_all_observations(module_code, method):
+def export_all_observations(module_code, method, export_format):
     """
     Export all data in csv of a custom module view
 
@@ -127,7 +127,6 @@ def export_all_observations(module_code, method):
     data = export.raw_query().all()
     serialized_data = schema().dump(data, many=True)
 
-    export_format = request.args.get("format", "csv")
     if export_format == "json":
         return to_json_resp(serialized_data)
 
