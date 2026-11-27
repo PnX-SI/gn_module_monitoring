@@ -1,16 +1,102 @@
 # CHANGELOG
 
+## 1.4.0 (unreleased)
+
+Nécessite GeoNature 2.18.0 (ou plus).
+
+**⏩ En bref**
+
+Cette version est l'aboutissement d'une importante refonte technique du module avec :
+
+- Refonte de l'API avec la création de routes pour chaque entité de Monitoring (sites, visites, groupes de sites, etc.)
+- Refonte technique du frontend (interface) avec la création de composants génériques (formulaires, tableaux de données, formulaire de site)
+
+**🚀 Nouveautés**
+
+- Compatibilité avec SQLAlchemy 2 (#698 par @amandine-sahl, @jacquesfize)
+- Refonte technique du frontend autour de composants génériques (`form-g`, `datatable-g`, `site-form-g`) et suppression des composants et services hérités (`MonitoringObjectService`, `ConfigService`, …) (#524, #645, #646, #650, #669, #696, #697, #707 par @Pierre-Narcisi, @amandine-sahl)
+- Refonte des routes backend :  (#511, #522, #523, #532, #652, #654, #656, #701, #748 par @amandine-sahl, @jacquesfize)
+  - nouvelles routes GET/POST/PATCH/DELETE pour les groupes de sites, sites, visites, observations et détails d'observation basées sur des schémas Marshmallow
+  - harmonisation des routes sous un nouveau préfixe
+  - anciennes routes déplacées dans un blueprint `legacy`
+- Refonte de la gestion des individus et des marquages (routes et composants de création/détail) (#662, #665 par @jacquesfize, @amandine-sahl)
+- Liste des individus : ajout du nombre d'événements de marquage de chaque individu (#758 par @amandine-sahl)
+- L'objet de permission `MONITORINGS_INDIVIDUALS` est remplacé par l'objet `INDIVIDUALS` géré par le cœur de GeoNature, avec une migration automatique des données qui supprime l'ancien objet de permission (par @CynthiaBorotPNV).
+- Gestion des types de site entre les sous-modules et suppression des propriétés spécifiques d'un type de site retiré d'un site (#700, #702, #797 par @Pierre-Narcisi, @amandine-sahl)
+- Blocage de l'accès à un sous-module tant qu'il n'est pas configuré (#752 par @jacquesfize)
+- Utilisation de la route `users` de GeoNature (#703 par @amandine-sahl)
+- Ajout d'un badge indiquant le nombre de filtres actifs sur les tableaux de données (#699 par @jacquesfize)
+- Ajout d'un bouton pour arrêter le mode de saisie enchaînée (#802 par @jacquesfize)
+- Valeur par défaut des champs de nomenclature (#806 par @amandine-sahl)
+- Documentation : complément et mise en ligne avec docsify (#754, #799, #806 par @jacquesfize, @amandine-sahl)
+
+**🐛 Corrections**
+
+- Correction de l'ajout d'une visite depuis le module générique (#800 par @amandine-sahl)
+- Possibilité de définir des filtres par défaut  (#551, #695 par @amandine-sahl)
+- Correction du tri sur les champs spécifiques de type nomenclature multiple (#794 par @amandine-sahl)
+- Correction du tri sur les listes pour les dates (#548 par @amandine-sahl)
+- Correction de la résolution et de la requête des jeux de données (#753 par @Pierre-Narcisi, @jacquesfize, @amandine-sahl)
+- Correction de la prise en compte du paramètre `keep` pour l’enchaînement des saisies (#673 par @amandine-sahl)
+- Commande d'installation : gestion d'un code de module vide et d'un module déjà installé (#661 par @amandine-sahl)
+- Prise en compte du paramètre `multiple` pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
+- Import : transformation de la propriété `hidden` en booléen (#693 par @bouttier)
+- Installation : prise en compte du SRID local pour les groupes de sites (#589, #630 par @amandine-sahl)
+
+**💻 Développement**
+
+- Suppression du `setup.py` et de `requirements.in` au profit de `pyproject.toml` (#808 par @jacquesfize)
+- Ajout de nombreux tests backend (routes modules, observations, types de sites, permissions, schémas) (#656, #657 par @amandine-sahl, @jacquesfize)
+- Suppression des doublons de types de site et ajout des appartenances aux types de site dans les champs (#649 par @jacquesfize)
+
+**⚠️ Notes de version**
+
+- Nécessite GeoNature 2.18.0 minimum.
+- Le paramètre de configuration `PERMISSION_LEVEL` est obsolète et n'est plus utilisé (#748).
+- Les routes de l'API ont été harmonisées sous un nouveau préfixe `/refacto` (ex. `/monitorings/refacto/<module_code>/config`). Les nouveaux développements et outils externes doivent utiliser ces routes.
+- **Rétrocompatibilité** : les anciennes routes sont conservées dans un blueprint `legacy`, sans préfixe et aux mêmes URL qu'auparavant (`/object/...`, `/sites/config`, `/sites_groups/config`, …). Les outils externes qui appellent l'API du module continuent donc de fonctionner sans modification (#701). Ces routes sont dépréciées et seront supprimées dans une prochaine version.
+- **Route de configuration** : l'ancienne route `GET /monitorings/config/<module_code>` est maintenue et renvoie toujours la configuration au format historique (`get_config_old`). La nouvelle route `GET /monitorings/refacto/<module_code>/config` renvoie la configuration au nouveau format utilisé par le frontend (`get_config`).
+- **Widget  de type `area` et `municipalities`** : Si vous aviez le cas particulier d'un champ additionnel de ce type avec la propriété `"multiple": false`, celle-ci n'était pas bien prise en compte (#607). Cela est désormais corrigé et, les données de ce type de champ doivent être modifiées de façon à ne pas stocker les valeurs associées dans des array :
+  ```sql
+  -- Exemple de mise à jour de la propriété commune_aa de la table gn_monitoring.t_site_complements
+  -- Requete à adapter :
+    --  - table concernée
+    --  - nom du champ
+    --  - type de données stockées : si id_area alors ::int si code_area alors ::varchar
+    --  - filtre de selection utilisé si plusieurs modules ont la propriété commune_aa avec des définitions différentes
+
+  WITH data_to_update AS (
+	SELECT
+		tsc.id_base_site,
+		jsonb_set(
+	        tsc.data,
+	        '{commune_aa}',
+	        CASE
+	            WHEN jsonb_typeof(tsc.data -> 'commune_aa') = 'array' THEN to_jsonb((tsc.data -> 'commune_aa' ->>0 )::int)
+	            ELSE  tsc.data -> 'commune_aa'
+	        END
+	    ) AS data_modifiee, tsc.data
+	FROM gn_monitoring.t_site_complements tsc
+	WHERE tsc.data->>'commune_aa' is not NULL
+  )
+  UPDATE gn_monitoring.t_site_complements tsc SET DATA = data_modifiee
+  FROM data_to_update d
+  WHERE d.id_base_site = tsc.id_base_site;
+  ```
+
 ## 1.3.2 (27-07-2026)
 
 **🚀 Nouveautés**
- - Test de la validité d'un code de sous-module à l'installation (#635, #659). Un code est maintenant considéré comme valide si : 
- 	  - Ne contient que des lettres ou des chiffres ou le caractère `_`
-    - Son premier caractère est une lettre
-    - Fait moins de 63 caractères
-      
+
+- Test de la validité d'un code de sous-module à l'installation (#635, #659). Un code est maintenant considéré comme valide si :
+  - Ne contient que des lettres ou des chiffres ou le caractère `_`
+  - Son premier caractère est une lettre
+  - Fait moins de 63 caractères
+
 **🐛 Corrections**
+
 - Ajout de `sites_group` dans les `type_util` autorisés (#639 par @jacquesfize)
-- [Import]  Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize) 
+- [Import] Ajout d'un message d'erreur explicite lors de l'import d'une donnée avec un `cd_nom` absent de la table `taxonomie.taxref` (#637, #640 par @jacquesfize)
 
 ## 1.3.1 (03-07-2026)
 
@@ -18,27 +104,31 @@
 
 - Doc : Complément de la documentation de configuration d'un sous-module (#624 par @pierre56, #627)
 - Import :
-   - Champ considéré comme non obligatoire si son caractère obligatoire n'est pas un booléen mais basé sur une condition javascript (#596, #597 par @edelclaux)
-   - Possibilité de supprimer les données contenues dans la table temporaire d'import en cas de mise à jour de la configuration de l'import du sous-module (#622 par @jacquesfize)
+  - Champ considéré comme non obligatoire si son caractère obligatoire n'est pas un booléen mais basé sur une condition javascript (#596, #597 par @edelclaux)
+  - Possibilité de supprimer les données contenues dans la table temporaire d'import en cas de mise à jour de la configuration de l'import du sous-module (#622 par @jacquesfize)
 
 **🐛 Corrections**
 
 - Import :
-   - Prise en compte des propriétés spécifiques des sous-modules et des types de sites (#617 par @amandine-sahl)
-   - Correction de l'erreur lors de l'activation de l'import sur un sous-module avec des groupes de sites (#591, #592 par @jacquesfize)
-   - La mise à jour du label du sous-module dans la table "destination" est maintenant fonctionnelle (#631  par @amandine-sahl)
-   - Refactoring et test (#626 par @amandine-sahl)
+
+  - Prise en compte des propriétés spécifiques des sous-modules et des types de sites (#617 par @amandine-sahl)
+  - Correction de l'erreur lors de l'activation de l'import sur un sous-module avec des groupes de sites (#591, #592 par @jacquesfize)
+  - La mise à jour du label du sous-module dans la table "destination" est maintenant fonctionnelle (#631 par @amandine-sahl)
+  - Refactoring et test (#626 par @amandine-sahl)
 
 - Backend :
-   - Considération du SRID local pour la géométrie des groupes de sites (#589, #619, #630 par @amandine-sahl)
-   - Suppression de la route "util/user" et factorisation du code (#604, #605 par @amandine-sahl)
+
+  - Considération du SRID local pour la géométrie des groupes de sites (#589, #619, #630 par @amandine-sahl)
+  - Suppression de la route "util/user" et factorisation du code (#604, #605 par @amandine-sahl)
 
 - Frontend :
-   - Prise en compte de la valeur par défaut 0 dans les champs numériques des formulaires (#595, #616 par @Pierre-Narcisi)
-   - Formulaire de création des sites : initialisation du contexte du sous-module (#628 par @amandine-sahl)
+
+  - Prise en compte de la valeur par défaut 0 dans les champs numériques des formulaires (#595, #616 par @Pierre-Narcisi)
+  - Formulaire de création des sites : initialisation du contexte du sous-module (#628 par @amandine-sahl)
 
 - Config :
-   - Par défaut les champs `nb_visits`, `nb_sites`, `nb_individus`, `nb_observations`, `altitude_min` et `altitude_max` ne sont plus visibles dans les formulaires ni importables. (#608, #620 par @amandine-sahl)
+
+  - Par défaut les champs `nb_visits`, `nb_sites`, `nb_individus`, `nb_observations`, `altitude_min` et `altitude_max` ne sont plus visibles dans les formulaires ni importables. (#608, #620 par @amandine-sahl)
 
 - Le taux de couverture de code par des test automatisés (Codecov) est de nouveau mesuré sur l'ensemble du code du module gn_module_monitoring (#623 par @amandine-sahl)
 
@@ -207,7 +297,7 @@ Nécessite GeoNature 2.16.0 (ou plus)
 
 - Réduction du nombre d'appels des objets pour améliorer les performances de chargement des pages (#404, par @amandine-sahl)
 - Correction de dysfonctionnement de l'enchainement des saisies (#396, #401, par @unjambonakap, @gildeluermoz, @amandine-sahl)
-- Correction de la requête de synthèse du sous-module contrib/test (#350, par @marie-laure-cen,  @amandine-sahl)
+- Correction de la requête de synthèse du sous-module contrib/test (#350, par @marie-laure-cen, @amandine-sahl)
 
 ## 1.0.0 (2024-12-13)
 
