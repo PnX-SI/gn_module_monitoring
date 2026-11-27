@@ -28,6 +28,7 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Ajout d'un bouton pour arrêter le mode de saisie enchaînée (#802 par @jacquesfize)
 - Valeur par défaut des champs de nomenclature (#806 par @amandine-sahl)
 - Documentation : complément et mise en ligne avec docsify (#754, #799, #806 par @jacquesfize, @amandine-sahl)
+- Export : possibilité d'exporter les données en json et de les filtrer (#801 par @TheoLechemia)
 
 **🐛 Corrections**
 
@@ -38,6 +39,7 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - Correction prise en compte du paramètre keep pour l'enchainement des saisies (#673 par @amandine-sahl)
 - Commande d'installation : gestion d'un code de module vide et d'un module déjà installé (#661 par @amandine-sahl)
 - Prise en compte du paramètre multiple pour les types de widget `area` et `municipalities` (#607, https://github.com/PnX-SI/GeoNature/pull/4476 par  @Pierre-Narcisi)
+- Import : transformation du champ hidden en boolean (#693 par @bouttier)
 
 **💻 Développement**
 
