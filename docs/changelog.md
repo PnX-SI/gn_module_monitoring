@@ -55,16 +55,15 @@ Cette version est l'aboutissement d'une importante refonte technique du module a
 - **Rétrocompatibilité** : les anciennes routes sont conservées dans un blueprint `legacy`, sans préfixe et aux mêmes URL qu'auparavant (`/object/...`, `/sites/config`, `/sites_groups/config`, …). Les outils externes qui appellent l'API du module continuent donc de fonctionner sans modification (#701). Ces routes sont dépréciées et seront supprimées dans une prochaine version.
 - **Route de configuration** : l'ancienne route `GET /monitorings/config/<module_code>` est maintenue et renvoie toujours la configuration au format historique (`get_config_old`). La nouvelle route `GET /monitorings/refacto/<module_code>/config` renvoie la configuration au nouveau format utilisé par le frontend (`get_config`).
 - **Widget  de type `area` et `municipalities`** : Si vous aviez le cas particulier d'un champ additionnel de ce type avec la propriété `"multiple": false`, celle-ci n'était pas bien prise en compte (#607). Cela est désormais corrigé et, les données de ce type de champ doivent être modifiées de façon à ne pas stocker les valeurs associées dans des array :
+  ```sql
+  -- Exemple de mise à jour de la propriété commune_aa de la table gn_monitoring.t_site_complements
+  -- Requete à adapter :
+    --  - table concernée
+    --  - nom du champ
+    --  - type de données stockées : si id_area alors ::int si code_area alors ::varchar
+    --  - filtre de selection utilisé si plusieurs modules ont la propriété commune_aa avec des définitions différentes
 
-```sql
--- Exemple de mise à jour de la propriété commune_aa de la table gn_monitoring.t_site_complements
--- Requete à adapter :
-  --  - table concernée
-  --  - nom du champ
-  --  - type de données stockées : si id_area alors ::int si code_area alors ::varchar
-  --  - filtre de selection utilisé si plusieurs modules ont la propriété commune_aa avec des définitions différentes
-
-WITH data_to_update AS (
+  WITH data_to_update AS (
 	SELECT
 		tsc.id_base_site,
 		jsonb_set(
@@ -77,11 +76,11 @@ WITH data_to_update AS (
 	    ) AS data_modifiee, tsc.data
 	FROM gn_monitoring.t_site_complements tsc
 	WHERE tsc.data->>'commune_aa' is not NULL
-)
-UPDATE gn_monitoring.t_site_complements tsc SET DATA = data_modifiee
-FROM data_to_update d
-WHERE d.id_base_site = tsc.id_base_site;
-```
+  )
+  UPDATE gn_monitoring.t_site_complements tsc SET DATA = data_modifiee
+  FROM data_to_update d
+  WHERE d.id_base_site = tsc.id_base_site;
+  ```
 
 ## 1.3.2 (27-07-2026)
 
