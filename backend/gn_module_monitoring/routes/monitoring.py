@@ -5,8 +5,12 @@ from flask import request, url_for, g, current_app
 from sqlalchemy import select
 from sqlalchemy.exc import NoSuchTableError
 
-from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp
+from utils_flask_sqla.response import (
+    to_csv_resp,
+    to_json_resp,
+    json_resp,
+    json_resp_accept_empty_list,
+)
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from geonature.core.gn_permissions.decorators import check_cruved_scope
@@ -90,12 +94,11 @@ def update_synthese_api(module_code):
 
 # export add mje
 # export all observations
-@blueprint.route("/exports/csv/<module_code>/<method>", methods=["GET"])
+@blueprint.route("/exports/<any(csv,json):export_format>/<module_code>/<method>", methods=["GET"])
 @check_cruved_scope("E", object_code="MONITORINGS_MODULES")
-def export_all_observations(module_code, method):
+def export_all_observations(module_code, method, export_format):
     """
     Export all data in csv of a custom module view
-
 
     :params module_code: Code of the module
     :type module_code: str
@@ -104,13 +107,12 @@ def export_all_observations(module_code, method):
 
     :returns: Array of dict
     """
-    id_dataset = request.args.get("id_dataset", None, int)
     try:
         export = GenericQueryGeo(
             DB=DB,
             tableName=f"v_export_{module_code.lower()}_{method}",
             schemaName="gn_monitoring",
-            filters=[],
+            filters=request.args,
             limit=50000,
             offset=0,
             geometry_field=None,
@@ -119,21 +121,20 @@ def export_all_observations(module_code, method):
     except (KeyError, NoSuchTableError):
         return f"table v_export_{module_code.lower()}_{method} doesn't exist", 404
 
-    model = export.get_model()
     columns = export.view.tableDef.columns
     schema = export.get_marshmallow_schema()
 
-    q = select(export.view.tableDef)
-    #  Filter with dataset if is set
-    if hasattr(model, "id_dataset") and id_dataset:
-        q = q.where(getattr(model, "id_dataset") == id_dataset)
+    data = export.raw_query().all()
+    serialized_data = schema().dump(data, many=True)
 
-    data = DB.session.execute(q).all()
+    if export_format == "json":
+        return to_json_resp(serialized_data)
+
     timestamp = dt.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S")
     filename = f"{module_code}_{method}_{timestamp}"
     return to_csv_resp(
         filename,
-        data=schema().dump(data, many=True),
+        data=serialized_data,
         separator=";",
         columns=[
             db_col.key for db_col in columns if db_col.key != "geom"
